@@ -1,45 +1,75 @@
-{% extends "admin/login.html" %}
-{% load static %}
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
 
 {% block extrastyle %}
-<style>
-  body.login {
-    background: linear-gradient(135deg, rgba(13,110,253,.12), rgba(25,135,84,.08));
-  }
-  #header {
-    background: transparent !important;
-  }
-  .login #container {
-    border-radius: 18px;
-    overflow: hidden;
-  }
-  .gilead-brand {
-    text-align: center;
-    margin-bottom: 12px;
-  }
-  .gilead-brand img {
-    max-height: 72px;
-    margin-bottom: 8px;
-  }
-  .gilead-brand h3 {
-    margin: 0;
-    font-weight: 700;
-  }
-  .gilead-brand p {
-    margin: 0;
-    color: #555;
-    font-size: 13px;
-  }
-</style>
+  {{ block.super }}
+  <style>
+    .login-wrap{max-width:480px;margin:6vh auto;}
+    .login-card{border:0;border-radius:18px;box-shadow:0 12px 32px rgba(0,0,0,.10);overflow:hidden;}
+    .login-hero{padding:18px 22px;color:#fff;background:linear-gradient(90deg,#0d6efd,#ff7a18);}
+    .login-hero .brand{display:flex;align-items:center;gap:10px;}
+    .login-hero img{height:34px;width:auto;}
+    .login-body{padding:22px;}
+    .help-text{color:#6c757d;font-size:.9rem;}
+    .btn-primary{border:0;border-radius:12px;padding:10px 14px;}
+    input{border-radius:12px !important;}
+  </style>
 {% endblock %}
 
-{% block branding %}
-<div class="gilead-brand">
-  {% if SITE and SITE.logo %}
-    <img src="{{ SITE.logo.url }}" alt="School Logo">
-  {% endif %}
-  <h3>{{ SITE.site_name|default:"School System" }}</h3>
-  <p>{{ SITE.tagline|default:"Knowledge • Technology • Excellence" }}</p>
-</div>
-{% endblock %}
+{% block content %}
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-hero">
+        <div class="brand">
+          <img src="{% static 'images/logo.png' %}" alt="Logo">
+          <div>
+            <div style="font-weight:700;line-height:1.1;">{{ SITE.site_name|default:"School Management" }}</div>
+            <div style="opacity:.9;font-size:.92rem;">{{ SITE.tagline|default:"Admin Portal" }}</div>
+          </div>
+        </div>
+      </div>
 
+      <div class="login-body">
+        {% if form.errors and not form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% blocktranslate count counter=form.errors.items|length %}
+              Please correct the error below.
+            {% plural %}
+              Please correct the errors below.
+            {% endblocktranslate %}
+          </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="login-form" novalidate>
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label" for="id_username">{% trans 'Username' %}</label>
+            {{ form.username }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="id_password">{% trans 'Password' %}</label>
+            {{ form.password }}
+          </div>
+
+          {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+          {% endif %}
+
+          <button class="btn btn-primary w-100" type="submit">{% trans 'Log in' %}</button>
+
+          <div class="help-text mt-3">
+            {% trans "Use your staff credentials. If you can’t log in, contact the school admin." %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

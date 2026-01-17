@@ -43,6 +43,24 @@ class Evaluation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+    @property
+    def total_score(self) -> float:
+        """Single score used for ranking/statistics.
+
+        For now: average of test1 and test2 when present.
+        This is intentionally simple so we can evolve to weighted
+        sequences/exams/mocks/practicals later.
+        """
+        scores = []
+        if self.test1 is not None:
+            scores.append(float(self.test1))
+        if self.test2 is not None:
+            scores.append(float(self.test2))
+        if not scores:
+            return 0.0
+        return round(sum(scores) / len(scores), 2)
+
     class Meta:
         unique_together = ("academic_year", "term", "subject_assignment", "student")
 
@@ -65,4 +83,3 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return f"{self.student} | {self.subject_assignment.subject} | {self.term}"
-

@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  {% include "reports/_report_styles.html" %}
+</head>
+<body>
+  <div class="letterhead">
+    {% if SITE and SITE.logo %}
+      <img src="{{ SITE.logo.path }}" alt="logo" />
+    {% endif %}
+    <div>
+      <p class="title">{{ SITE.site_name|default:"School" }}</p>
+      <p class="sub">{{ SITE.tagline|default:"Excellence & Character" }}</p>
+    </div>
+    <div style="margin-left:auto; text-align:right;">
+      <div class="pill">Term Report Card</div>
+      <div class="sub">{{ term.name|default:"Term" }}</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <b>Student</b><br>
+      {{ student.full_name }}<br>
+      <span class="sub">{{ student.student_class.name }}</span>
+    </div>
+    <div class="box">
+      <b>Summary</b><br>
+      Average: <b>{{ summary.average|default:"-" }}</b><br>
+      Position: <b>{{ summary.position|default:"-" }}</b> / {{ summary.class_size|default:"-" }}
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:10px;">
+    <b>Subjects</b>
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Scores</th>
+          <th>Total</th>
+          <th>Remark</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.subject }}</td>
+            <td>{{ row.breakdown }}</td>
+            <td><b>{{ row.total }}</b></td>
+            <td>{{ row.remark }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="sub">No marks recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div>Generated: {{ generated_at|date:"Y-m-d" }}</div>
+    <div>Powered by {{ SITE.site_name|default:"School System" }}</div>
+  </div>
+</body>
+</html>
