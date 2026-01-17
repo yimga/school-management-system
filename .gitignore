@@ -3,21 +3,19 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-*.sqlite3
+*.egg-info/
 
 # Env
 .env
-.env.*
-!.env.example
+.venv/
+venv/
+ENV/
 
-# Media/static build artifacts
+# Django
+*.log
 media/
 staticfiles/
+db.sqlite3
 
 # OS
 .DS_Store
@@ -26,4 +24,3 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
-

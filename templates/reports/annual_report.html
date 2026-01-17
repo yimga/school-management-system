@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  {% include "reports/_report_styles.html" %}
+</head>
+<body>
+  <div class="letterhead">
+    {% if SITE and SITE.logo %}
+      <img src="{{ SITE.logo.path }}" alt="logo" />
+    {% endif %}
+    <div>
+      <p class="title">{{ SITE.site_name|default:"School" }}</p>
+      <p class="sub">Annual Report Card • {{ year|default:"" }}</p>
+    </div>
+    <div class="ms-auto" style="text-align:right;">
+      <div class="badge">AVERAGE: {{ annual_average|default:"—" }}</div>
+      <div style="margin-top:6px;font-size:10pt;">Position (Class): {{ class_position|default:"—" }} | Position (School): {{ school_position|default:"—" }}</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="box">
+      <h3>Student</h3>
+      <div><b>Name:</b> {{ student.full_name|default:"" }}</div>
+      <div><b>Class:</b> {{ student.classroom.name|default:"" }}</div>
+    </div>
+    <div class="box">
+      <h3>Decision</h3>
+      <div class="badge" style="background:{{ decision_color|default:'#0d6efd' }};">{{ promotion_decision|default:"Pending" }}</div>
+      <div style="margin-top:8px;">Promotion average required: {{ promotion_average|default:"" }}</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:14px;">Term Summary</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th style="text-align:right;">Average</th>
+        <th style="text-align:right;">Class Position</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in term_rows %}
+        <tr>
+          <td>{{ row.term }}</td>
+          <td style="text-align:right;">{{ row.avg }}</td>
+          <td style="text-align:right;">{{ row.pos }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">No term data.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <div>Signature (Principal): ______________________</div>
+    <div>Date: ______________________</div>
+  </div>
+</body>
+</html>
