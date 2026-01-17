@@ -1,0 +1,45 @@
+{% extends "admin/login.html" %}
+{% load static %}
+
+{% block extrastyle %}
+<style>
+  body.login {
+    background: linear-gradient(135deg, rgba(13,110,253,.12), rgba(25,135,84,.08));
+  }
+  #header {
+    background: transparent !important;
+  }
+  .login #container {
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .gilead-brand {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .gilead-brand img {
+    max-height: 72px;
+    margin-bottom: 8px;
+  }
+  .gilead-brand h3 {
+    margin: 0;
+    font-weight: 700;
+  }
+  .gilead-brand p {
+    margin: 0;
+    color: #555;
+    font-size: 13px;
+  }
+</style>
+{% endblock %}
+
+{% block branding %}
+<div class="gilead-brand">
+  {% if SITE and SITE.logo %}
+    <img src="{{ SITE.logo.url }}" alt="School Logo">
+  {% endif %}
+  <h3>{{ SITE.site_name|default:"School System" }}</h3>
+  <p>{{ SITE.tagline|default:"Knowledge • Technology • Excellence" }}</p>
+</div>
+{% endblock %}
+

@@ -1,0 +1,71 @@
+{% extends "portal_base.html" %}
+{% block title %}Results{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Results</h2>
+  <div>
+    <a class="btn btn-outline-primary btn-sm" href="/portal/parent/">Back</a>
+    {% if published %}
+      <a class="btn btn-success btn-sm" href="/reports/parent/report/{{ student.id }}/">Download PDF</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <b>Student:</b> {{ student.last_name }} {{ student.first_name }} ({{ student.student_code }})<br/>
+    <b>Class:</b> {{ student.classroom.name }} / {{ student.specialty.name }}<br/>
+    <b>Year:</b> {{ year.name }} | <b>Term:</b> {{ term.get_name_display }}
+  </div>
+</div>
+
+{% if not published %}
+  <div class="alert alert-danger"><b>Not published yet.</b> Please check back later.</div>
+{% else %}
+  <div class="card">
+    <div class="card-body table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Coef</th>
+            <th>Test1</th>
+            <th>Test2</th>
+            <th>Average</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+            <tr>
+              <td>{{ r.subject }}</td>
+              <td>{{ r.coef }}</td>
+              <td>{{ r.test1 }}</td>
+              <td>{{ r.test2 }}</td>
+              <td>{{ r.avg }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5">No marks found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% if totals %}
+        <div class="mt-2">
+          <b>Total Coef:</b> {{ totals.total_coef }}<br/>
+          <b>Overall:</b> {{ totals.overall }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% if r.avg >= 70 %}
+<span class="badge bg-success">Pass</span>
+{% elif r.avg >= 50 %}
+<span class="badge bg-warning">Average</span>
+{% else %}
+<span class="badge bg-danger">Fail</span>
+{% endif %}
+

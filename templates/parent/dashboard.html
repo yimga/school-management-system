@@ -1,0 +1,68 @@
+{% extends "portal_base.html" %}
+{% block title %}Parent Dashboard{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">Parent Dashboard</h2>
+      <div class="text-muted">Quick access to your children’s results.</div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="text-muted small">Linked Children</div>
+          <div class="display-6 kpi">{{ links|length }}</div>
+          <div class="small text-muted">Students connected to your account.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <div class="fw-semibold mb-1">How results work</div>
+          <div class="text-muted small">Results become visible after the school publishes the term. If you can’t see marks yet, it usually means the term is not published.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="children">
+    <div class="card-body">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0">My Children</h5>
+      </div>
+
+      {% if links %}
+        <div class="row g-3">
+          {% for link in links %}
+            <div class="col-md-6 col-xl-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <div class="fw-semibold">{{ link.student.last_name }} {{ link.student.first_name }}</div>
+                  <div class="small text-muted mb-2">{{ link.student.student_code }}</div>
+                  <div class="small">
+                    <span class="badge text-bg-light">{{ link.student.classroom.name }}</span>
+                    <span class="badge text-bg-light">{{ link.student.specialty.name }}</span>
+                  </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                  <a class="btn btn-sm btn-primary w-100" href="{% url 'parent_child_results' link.student.id %}">
+                    View Results
+                  </a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info mb-0">
+          No children are linked to your account yet. Please contact the school admin.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+

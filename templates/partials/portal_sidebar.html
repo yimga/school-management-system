@@ -1,0 +1,52 @@
+{% load static %}
+
+<div class="d-flex align-items-center gap-2 mb-3">
+  <div class="flex-grow-1">
+    <div class="fw-semibold">Portal</div>
+    <div class="small text-muted">
+      {% if request.user.is_authenticated %}
+        {{ request.user.get_full_name|default:request.user.username }}
+      {% else %}
+        Guest
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="small text-uppercase text-muted mb-2" style="letter-spacing:.08em;">Navigation</div>
+
+<div class="nav flex-column gap-1">
+  {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'teacher_dashboard' %}">
+      <i class="bi bi-speedometer2 me-2"></i>Dashboard
+    </a>
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'teacher_marks_entry' %}">
+      <i class="bi bi-pencil-square me-2"></i>Enter Marks
+    </a>
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'teacher_marks_list' %}">
+      <i class="bi bi-table me-2"></i>Marks History
+    </a>
+
+  {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'parent_dashboard' %}">
+      <i class="bi bi-speedometer2 me-2"></i>Dashboard
+    </a>
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'parent_dashboard' %}#children">
+      <i class="bi bi-people me-2"></i>My Children
+    </a>
+
+  {% elif request.user.is_authenticated and request.user.is_staff %}
+    <a class="nav-link nav-pill px-3 py-2" href="/admin/">
+      <i class="bi bi-shield-lock me-2"></i>Admin
+    </a>
+  {% endif %}
+</div>
+
+<hr class="my-3">
+
+<div class="d-grid gap-2">
+  {% if request.user.is_authenticated and request.user.is_staff %}
+    <a class="btn btn-sm btn-outline-primary" href="/admin/">Open Admin</a>
+  {% endif %}
+  <a class="btn btn-sm btn-outline-secondary" href="/">Home</a>
+</div>

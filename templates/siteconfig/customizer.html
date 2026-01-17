@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Site Customizer{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Site Customizer</h2>
+    <div class="text-muted">Branding, theme, features, maintenance mode</div>
+  </div>
+
+  <a class="btn btn-outline-secondary" href="/admin/">Back to Admin</a>
+</div>
+
+{% if SITE and SITE.is_preview %}
+  <div class="alert alert-warning">
+    <b>Preview mode is ON.</b> You are seeing draft settings (not saved).
+    <a class="btn btn-sm btn-outline-dark ms-2" href="{% url 'siteconfig_clear_preview' %}">
+      Clear preview
+    </a>
+  </div>
+{% endif %}
+
+<div class="card p-4 shadow-sm">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <h5 class="mb-3">Branding</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="form-label">Site Name</label>
+        {{ form.site_name }}
+        {% for e in form.site_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Tagline</label>
+        {{ form.tagline }}
+        {% for e in form.tagline.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Logo</label>
+        {{ form.logo }}
+        {% for e in form.logo.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+
+        {% if SITE and SITE.logo %}
+          <div class="mt-2">
+            <div class="text-muted small mb-1">Current logo:</div>
+            <img src="{{ SITE.logo.url }}" alt="logo" style="max-height:64px;">
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <hr class="my-4">
+
+    <h5 class="mb-3">Theme</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label class="form-label">Primary Color</label>
+        {{ form.primary_color }}
+        {% for e in form.primary_color.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Accent Color</label>
+        {{ form.accent_color }}
+        {% for e in form.accent_color.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          {{ form.use_dark_mode }}
+          <label class="form-check-label ms-1" for="{{ form.use_dark_mode.id_for_label }}">Enable dark mode</label>
+        </div>
+      </div>
+    </div>
+
+    <hr class="my-4">
+
+    <h5 class="mb-3">Behavior</h5>
+    <div class="mb-4">
+      <div class="form-check">
+        {{ form.maintenance_mode }}
+        <label class="form-check-label ms-1" for="{{ form.maintenance_mode.id_for_label }}">Maintenance mode</label>
+      </div>
+      <div class="text-muted small">
+        When enabled, the public site shows a maintenance page (admins still get through).
+      </div>
+    </div>
+
+    <hr class="my-4">
+
+    <h5 class="mb-3">Feature Toggles</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.enable_parent_portal }}
+          <label class="form-check-label ms-1" for="{{ form.enable_parent_portal.id_for_label }}">Parent portal</label>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.enable_teacher_portal }}
+          <label class="form-check-label ms-1" for="{{ form.enable_teacher_portal.id_for_label }}">Teacher portal</label>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-check">
+          {{ form.enable_reports_pdf }}
+          <label class="form-check-label ms-1" for="{{ form.enable_reports_pdf.id_for_label }}">PDF reports</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" name="_action" value="save" type="submit">Save Settings</button>
+
+      <button class="btn btn-outline-primary" name="_action" value="preview" type="submit">
+        Preview (don’t save)
+      </button>
+
+      <a class="btn btn-outline-secondary ms-auto" href="/admin/siteconfig/sitesettings/">
+        Advanced (raw admin)
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+

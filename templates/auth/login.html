@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+    <div class="text-center mb-3">
+      <div class="fw-semibold">Sign in to continue</div>
+      <div class="small text-muted">Use the credentials provided by the school.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input class="form-control" name="username" autocomplete="username" placeholder="e.g. jdoe" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <div class="input-group">
+              <input class="form-control" id="password" type="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Show password">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-100" type="submit">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="text-center small text-muted mt-3">
+      Trouble signing in? Contact the school administrator.
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const btn = document.getElementById('togglePassword');
+    const input = document.getElementById('password');
+    if (!btn || !input) return;
+
+    btn.addEventListener('click', function () {
+      const isPw = input.getAttribute('type') === 'password';
+      input.setAttribute('type', isPw ? 'text' : 'password');
+      this.innerHTML = isPw ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+    });
+  })();
+</script>
+{% endblock %}

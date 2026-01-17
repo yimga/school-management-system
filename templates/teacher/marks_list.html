@@ -1,0 +1,50 @@
+{% extends "portal_base.html" %}
+{% block title %}My Marks{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">My Marks</h2>
+  <div>
+    <a class="btn btn-outline-primary btn-sm" href="/evals/teacher/">Dashboard</a>
+    <a class="btn btn-primary btn-sm" href="/evals/teacher/marks/entry/">Enter Marks</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body table-responsive">
+    <table class="table table-sm table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Updated</th>
+          <th>Student</th>
+          <th>Subject</th>
+          <th>Class</th>
+          <th>Specialty</th>
+          <th>Term</th>
+          <th>Test1</th>
+          <th>Test2</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in evals %}
+          <tr>
+            <td>{{ e.updated_at }}</td>
+            <td>{{ e.student.last_name }} {{ e.student.first_name }} ({{ e.student.student_code }})</td>
+            <td>{{ e.subject_assignment.subject.name }}</td>
+            <td>{{ e.subject_assignment.classroom.name }}</td>
+            <td>{{ e.subject_assignment.specialty.name }}</td>
+            <td>{{ e.term.get_name_display }}</td>
+            <td>{{ e.test1 }}</td>
+            <td>{{ e.test2 }}</td>
+            <td>{{ e.remarks }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9">No marks entered yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+

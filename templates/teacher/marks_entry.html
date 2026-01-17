@@ -1,0 +1,84 @@
+{% extends "portal_base.html" %}
+{% block title %}Enter Marks{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Enter Marks (Bulk)</h2>
+  <div>
+    <a class="btn btn-outline-primary btn-sm" href="/evals/teacher/">Dashboard</a>
+    <a class="btn btn-outline-primary btn-sm" href="/evals/teacher/marks/">My Marks</a>
+  </div>
+</div>
+
+{% if year and term %}
+  <div class="alert alert-info">
+    <b>Active Year:</b> {{ year.name }} | <b>Term:</b> {{ term.get_name_display }}
+  </div>
+{% endif %}
+
+{% if locked %}
+  <div class="alert alert-danger">
+    <b>LOCKED:</b> This term has been published. Marks entry is disabled.
+  </div>
+{% endif %}
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <label class="form-label"><b>Select your assigned class/subject</b></label>
+    <div class="d-flex gap-2">
+      <select class="form-select" name="subject_assignment_id" required {% if locked %}disabled{% endif %}>
+        <option value="">-- choose --</option>
+        {% for ta in teacher_assignments %}
+          <option value="{{ ta.subject_assignment.id }}" {% if selected_sa_id == ta.subject_assignment.id|stringformat:"s" %}selected{% endif %}>
+            {{ ta.subject_assignment.subject.name }} —
+            {{ ta.subject_assignment.classroom.name }} /
+            {{ ta.subject_assignment.specialty.name }} —
+            {{ ta.subject_assignment.term.get_name_display }}
+          </option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit" {% if locked %}disabled{% endif %}>Load Students</button>
+    </div>
+  </div>
+</form>
+
+{% if sa and students %}
+  <div class="card">
+    <div class="card-header">
+      <b>{{ sa.subject.name }}</b> — {{ sa.classroom.name }} / {{ sa.specialty.name }} — coef {{ sa.coefficient }}
+    </div>
+    <div class="card-body table-responsive">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
+
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th style="width:140px;">Test 1</th>
+              <th style="width:140px;">Test 2</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in students %}
+              {% with e=existing|get_item:s.id %}
+              <tr>
+                <td>{{ s.last_name }} {{ s.first_name }} ({{ s.student_code }})</td>
+                <td><input class="form-control form-control-sm" name="test1_{{ s.id }}" value="{% if e %}{{ e.test1 }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="test2_{{ s.id }}" value="{% if e %}{{ e.test2 }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+              </tr>
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <button class="btn btn-success" type="submit" {% if locked %}disabled{% endif %}>Save All Marks</button>
+      </form>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
