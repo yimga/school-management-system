@@ -66,6 +66,7 @@
               <th>Term</th>
               <th>Class</th>
               <th>Subject</th>
+              <th class="text-end">Marks filled</th>
               <th class="text-end">Actions</th>
             </tr>
           </thead>
@@ -76,6 +77,17 @@
               <td>{{ a.term }}</td>
               <td>{{ a.classroom }}</td>
               <td>{{ a.subject }}</td>
+              <td class="text-end">
+                {% with p=progress|get_item:a.id %}
+                  {% if p %}
+                    <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                      {{ p.filled }}/{{ p.total }}
+                    </span>
+                  {% else %}
+                    <span class="badge bg-secondary">0/0</span>
+                  {% endif %}
+                {% endwith %}
+              </td>
               <td class="text-end">
                 <a class="btn btn-sm btn-primary" href="{% url 'teacher_marks_entry' %}?assignment={{ a.id }}">Enter marks</a>
                 <a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_marks_list' %}?assignment={{ a.id }}">View</a>

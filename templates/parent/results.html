@@ -30,9 +30,13 @@
           <tr>
             <th>Subject</th>
             <th>Coef</th>
-            <th>Test1</th>
-            <th>Test2</th>
-            <th>Average</th>
+            <th>Seq1</th>
+            <th>Seq2</th>
+            <th>Exam</th>
+            <th>Mock</th>
+            <th>Pract</th>
+            <th>Avg</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -40,12 +44,24 @@
             <tr>
               <td>{{ r.subject }}</td>
               <td>{{ r.coef }}</td>
-              <td>{{ r.test1 }}</td>
-              <td>{{ r.test2 }}</td>
-              <td>{{ r.avg }}</td>
+              <td>{{ r.seq1|default_if_none:"" }}</td>
+              <td>{{ r.seq2|default_if_none:"" }}</td>
+              <td>{{ r.exam|default_if_none:"" }}</td>
+              <td>{{ r.mock|default_if_none:"" }}</td>
+              <td>{{ r.practical|default_if_none:"" }}</td>
+              <td>{{ r.avg|default_if_none:"" }}</td>
+              <td>
+                {% if r.avg is None %}
+                  <span class="badge bg-secondary">Pending</span>
+                {% elif r.avg >= 10 %}
+                  <span class="badge bg-success">Pass</span>
+                {% else %}
+                  <span class="badge bg-danger">Needs work</span>
+                {% endif %}
+              </td>
             </tr>
           {% empty %}
-            <tr><td colspan="5">No marks found.</td></tr>
+            <tr><td colspan="9">No marks found.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -61,11 +77,4 @@
 {% endif %}
 {% endblock %}
 
-{% if r.avg >= 70 %}
-<span class="badge bg-success">Pass</span>
-{% elif r.avg >= 50 %}
-<span class="badge bg-warning">Average</span>
-{% else %}
-<span class="badge bg-danger">Fail</span>
-{% endif %}
 
