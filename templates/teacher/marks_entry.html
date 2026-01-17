@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load evals_extras %}
 {% block title %}Enter Marks{% endblock %}
 
 {% block content %}
@@ -42,6 +43,22 @@
   </div>
 </form>
 
+{% if selected_sa %}
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div class="small text-muted">
+      <b>Progress:</b> {{ filled_count }} / {{ total_students }} students have all required marks.
+      <span class="ms-2">Required: {{ required_fields|join:", " }}</span>
+    </div>
+    <div>
+      {% if show_missing %}
+        <a class="btn btn-outline-secondary btn-sm" href="?subject_assignment_id={{ selected_sa.id }}">Show all</a>
+      {% else %}
+        <a class="btn btn-outline-secondary btn-sm" href="?subject_assignment_id={{ selected_sa.id }}&missing=1">Show missing only</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
 {% if sa and students %}
   <div class="card">
     <div class="card-header">
@@ -56,18 +73,24 @@
           <thead>
             <tr>
               <th>Student</th>
-              <th style="width:140px;">Test 1</th>
-              <th style="width:140px;">Test 2</th>
+              <th style="width:110px;">Seq 1</th>
+              <th style="width:110px;">Seq 2</th>
+              <th style="width:110px;">Exam</th>
+              <th style="width:110px;">Mock</th>
+              <th style="width:110px;">Practical</th>
               <th>Remarks</th>
             </tr>
           </thead>
           <tbody>
             {% for s in students %}
               {% with e=existing|get_item:s.id %}
-              <tr>
+              <tr class="{% if e|evaluation_incomplete:required_fields %}table-warning{% endif %}">
                 <td>{{ s.last_name }} {{ s.first_name }} ({{ s.student_code }})</td>
-                <td><input class="form-control form-control-sm" name="test1_{{ s.id }}" value="{% if e %}{{ e.test1 }}{% endif %}" {% if locked %}disabled{% endif %}></td>
-                <td><input class="form-control form-control-sm" name="test2_{{ s.id }}" value="{% if e %}{{ e.test2 }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="seq1_{{ s.id }}" value="{% if e %}{{ e.seq1_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="seq2_{{ s.id }}" value="{% if e %}{{ e.seq2_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="exam_{{ s.id }}" value="{% if e %}{{ e.exam_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="mock_{{ s.id }}" value="{% if e %}{{ e.mock_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
+                <td><input class="form-control form-control-sm" name="practical_{{ s.id }}" value="{% if e %}{{ e.practical_score }}{% endif %}" {% if locked %}disabled{% endif %}></td>
                 <td><input class="form-control form-control-sm" name="remarks_{{ s.id }}" value="{% if e %}{{ e.remarks }}{% endif %}" {% if locked %}disabled{% endif %}></td>
               </tr>
               {% endwith %}

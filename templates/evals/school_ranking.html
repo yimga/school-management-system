@@ -1,0 +1,67 @@
+{% extends "portal_base.html" %}
+
+{% block title %}School Ranking{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">School Ranking</h2>
+    <div class="text-muted">Ranks all students (all classes) by term average.</div>
+  </div>
+</div>
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small">Academic year</label>
+        <select class="form-select" name="year">
+          {% for y in years %}
+            <option value="{{ y.id }}" {% if y.id == selected_year.id %}selected{% endif %}>{{ y.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">Term</label>
+        <select class="form-select" name="term">
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if t.id == selected_term.id %}selected{% endif %}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-flex justify-content-end">
+        <button class="btn btn-primary">View</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th style="width:72px">Rank</th>
+            <th>Student</th>
+            <th>Class</th>
+            <th class="text-end">Average</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+            <tr>
+              <td><span class="badge text-bg-dark">#{{ r.rank }}</span></td>
+              <td>{{ r.student.user.get_full_name|default:r.student.user.username }}</td>
+              <td>{{ r.student.classroom.name }}</td>
+              <td class="text-end"><b>{{ r.average }}</b></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-muted">No ranking data available.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

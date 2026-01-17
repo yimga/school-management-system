@@ -10,6 +10,56 @@
   </div>
 </div>
 
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small">Term</label>
+        <select class="form-select" name="term">
+          <option value="">All</option>
+          {% for t in term_choices %}
+            <option value="{{ t.id }}" {% if request.GET.term == t.id|stringformat:"s" %}selected{% endif %}>
+              {{ t.get_name_display }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small">Class</label>
+        <select class="form-select" name="classroom">
+          <option value="">All</option>
+          {% for c in classrooms %}
+            <option value="{{ c.id }}" {% if request.GET.classroom == c.id|stringformat:"s" %}selected{% endif %}>
+              {{ c.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small">Subject</label>
+        <select class="form-select" name="subject">
+          <option value="">All</option>
+          {% for s in subjects %}
+            <option value="{{ s.id }}" {% if request.GET.subject == s.id|stringformat:"s" %}selected{% endif %}>
+              {{ s.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" value="1" id="missingOnly" name="missing" {% if request.GET.missing %}checked{% endif %}>
+          <label class="form-check-label small" for="missingOnly">Missing only</label>
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Filter</button>
+      </div>
+    </div>
+  </div>
+</form>
+
 <div class="card">
   <div class="card-body table-responsive">
     <table class="table table-sm table-striped align-middle">
@@ -21,8 +71,11 @@
           <th>Class</th>
           <th>Specialty</th>
           <th>Term</th>
-          <th>Test1</th>
-          <th>Test2</th>
+          <th>Seq1</th>
+          <th>Seq2</th>
+          <th>Exam</th>
+          <th>Mock</th>
+          <th>Practical</th>
           <th>Remarks</th>
         </tr>
       </thead>
@@ -35,12 +88,15 @@
             <td>{{ e.subject_assignment.classroom.name }}</td>
             <td>{{ e.subject_assignment.specialty.name }}</td>
             <td>{{ e.term.get_name_display }}</td>
-            <td>{{ e.test1 }}</td>
-            <td>{{ e.test2 }}</td>
+            <td>{{ e.seq1_score|default:e.test1 }}</td>
+            <td>{{ e.seq2_score|default:e.test2 }}</td>
+            <td>{{ e.exam_score }}</td>
+            <td>{{ e.mock_score }}</td>
+            <td>{{ e.practical_score }}</td>
             <td>{{ e.remarks }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="9">No marks entered yet.</td></tr>
+          <tr><td colspan="12">No marks entered yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>

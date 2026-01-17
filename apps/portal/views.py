@@ -64,16 +64,17 @@ def parent_child_results(request: HttpRequest, student_id: int):
 
     for e in evals:
         coef = float(e.subject_assignment.coefficient)
-        # simple average of test1/test2 (ignore missing)
-        marks = [m for m in [e.test1, e.test2] if m is not None]
-        avg = float(sum(marks) / len(marks)) if marks else None
+        avg = e.total_score
 
         weighted = (avg * coef) if avg is not None else 0
         rows.append({
             "subject": e.subject_assignment.subject.name,
             "coef": coef,
-            "test1": e.test1,
-            "test2": e.test2,
+            "seq1": e.seq1_score if e.seq1_score is not None else e.test1,
+            "seq2": e.seq2_score if e.seq2_score is not None else e.test2,
+            "exam": e.exam_score,
+            "mock": e.mock_score,
+            "practical": e.practical_score,
             "avg": avg,
         })
         total_coef += coef
