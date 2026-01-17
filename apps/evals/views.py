@@ -5,7 +5,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
-from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Term
+# NOTE: the model is named ClassRoom (capital R) in academics.
+from apps.academics.models import SubjectAssignment, ClassRoom, AcademicYear, Term
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.evals.models import TeacherAssignment, Evaluation, AssessmentWeights
@@ -288,13 +289,13 @@ def class_ranking_view(request: HttpRequest):
     year_obj = get_object_or_404(AcademicYear, id=year_id)
     term_obj = get_object_or_404(Term, id=term_id)
 
-    classrooms = Classroom.objects.filter(academic_year=year_obj).order_by("name")
+    classrooms = ClassRoom.objects.filter(academic_year=year_obj).order_by("name")
     selected_classroom = None
     ranking = []
     stats = None
 
     if classroom_id:
-        selected_classroom = get_object_or_404(Classroom, id=classroom_id)
+        selected_classroom = get_object_or_404(ClassRoom, id=classroom_id)
 
         from .services import get_class_ranking, get_class_stats
 
