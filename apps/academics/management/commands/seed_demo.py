@@ -7,7 +7,15 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Classroom, Specialty, Subject, SubjectAssignment, Term
+from apps.academics.models import (
+    AcademicYear,
+    Classroom,
+    Department,
+    Specialty,
+    Subject,
+    SubjectAssignment,
+    Term,
+)
 from apps.evals.models import Evaluation, TeacherAssignment
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 
@@ -48,18 +56,42 @@ class Command(BaseCommand):
             year.is_active = True
             year.save(update_fields=["is_active"])
 
-        term1, _ = Term.objects.get_or_create(academic_year=year, number=1, defaults={"is_active": True})
-        term2, _ = Term.objects.get_or_create(academic_year=year, number=2, defaults={"is_active": False})
-        term3, _ = Term.objects.get_or_create(academic_year=year, number=3, defaults={"is_active": False})
+        term1, _ = Term.objects.get_or_create(
+            academic_year=year,
+            name=Term.Name.FIRST,
+            defaults={"start_date": date(2025, 9, 1), "end_date": date(2025, 12, 15), "is_active": True},
+        )
+        term2, _ = Term.objects.get_or_create(
+            academic_year=year,
+            name=Term.Name.SECOND,
+            defaults={"start_date": date(2026, 1, 5), "end_date": date(2026, 3, 20), "is_active": False},
+        )
+        term3, _ = Term.objects.get_or_create(
+            academic_year=year,
+            name=Term.Name.THIRD,
+            defaults={"start_date": date(2026, 4, 6), "end_date": date(2026, 7, 10), "is_active": False},
+        )
         # Make Term 1 active for demo
         Term.objects.filter(academic_year=year).update(is_active=False)
         term1.is_active = True
         term1.save(update_fields=["is_active"])
 
-        form3, _ = Classroom.objects.get_or_create(academic_year=year, name="Form 3")
-        form4, _ = Classroom.objects.get_or_create(academic_year=year, name="Form 4")
+        department, _ = Department.objects.get_or_create(name="General Studies", code="GEN")
 
-        general, _ = Specialty.objects.get_or_create(name="General")
+        form3, _ = Classroom.objects.get_or_create(
+            academic_year=year,
+            department=department,
+            name="Form 3",
+            defaults={"code": "F3"},
+        )
+        form4, _ = Classroom.objects.get_or_create(
+            academic_year=year,
+            department=department,
+            name="Form 4",
+            defaults={"code": "F4"},
+        )
+
+        general, _ = Specialty.objects.get_or_create(department=department, name="General", defaults={"code": "GEN"})
 
         english, _ = Subject.objects.get_or_create(name="English")
         math, _ = Subject.objects.get_or_create(name="Mathematics")
@@ -81,14 +113,14 @@ class Command(BaseCommand):
             last_name="Two",
         )
 
-        teacher1 = self._get_or_create_user(
+        teacher1_user = self._get_or_create_user(
             username="teacher1",
             email="teacher1@example.com",
             role=User.Role.TEACHER,
             first_name="Teacher",
             last_name="One",
         )
-        teacher2 = self._get_or_create_user(
+        teacher2_user = self._get_or_create_user(
             username="teacher2",
             email="teacher2@example.com",
             role=User.Role.TEACHER,
@@ -97,71 +129,117 @@ class Command(BaseCommand):
         )
 
         # Teacher profiles
-        TeacherProfile.objects.get_or_create(user=teacher1, defaults={"department": "Languages"})
-        TeacherProfile.objects.get_or_create(user=teacher2, defaults={"department": "Sciences"})
-
-        # Students (each has its own student user account)
-        student_user1 = self._get_or_create_user(
-            username="student1",
-            email="student1@example.com",
-            role=User.Role.STUDENT,
-            first_name="Student",
-            last_name="One",
+        teacher1, _ = TeacherProfile.objects.get_or_create(
+            user=teacher1_user,
+            defaults={"staff_id": "T-001", "phone": "+237600000001"},
         )
-        student_user2 = self._get_or_create_user(
-            username="student2",
-            email="student2@example.com",
-            role=User.Role.STUDENT,
-            first_name="Student",
-            last_name="Two",
+        teacher2, _ = TeacherProfile.objects.get_or_create(
+            user=teacher2_user,
+            defaults={"staff_id": "T-002", "phone": "+237600000002"},
         )
 
+        # Students
         student1, _ = StudentProfile.objects.get_or_create(
-            user=student_user1,
+            student_code="F3-0001",
             defaults={
+                "first_name": "Student",
+                "last_name": "One",
                 "academic_year": year,
                 "classroom": form3,
                 "specialty": general,
-                "matricule": "F3-0001",
             },
         )
         student2, _ = StudentProfile.objects.get_or_create(
-            user=student_user2,
+            student_code="F3-0002",
             defaults={
+                "first_name": "Student",
+                "last_name": "Two",
                 "academic_year": year,
                 "classroom": form3,
                 "specialty": general,
-                "matricule": "F3-0002",
             },
         )
 
         # Link parents to students
-        StudentGuardian.objects.get_or_create(student=student1, parent=parent1)
-        StudentGuardian.objects.get_or_create(student=student2, parent=parent2)
+        StudentGuardian.objects.get_or_create(student=student1, guardian_user=parent1)
+        StudentGuardian.objects.get_or_create(student=student2, guardian_user=parent2)
 
         # ---- Assignments ----
         # Teacher 1 teaches two subjects
-        sa_eng_f3, _ = SubjectAssignment.objects.get_or_create(classroom=form3, subject=english, teacher=teacher1)
-        sa_math_f3, _ = SubjectAssignment.objects.get_or_create(classroom=form3, subject=math, teacher=teacher1)
+        sa_eng_f3, _ = SubjectAssignment.objects.get_or_create(
+            academic_year=year,
+            term=term1,
+            classroom=form3,
+            specialty=general,
+            subject=english,
+            defaults={"coefficient": 2},
+        )
+        sa_math_f3, _ = SubjectAssignment.objects.get_or_create(
+            academic_year=year,
+            term=term1,
+            classroom=form3,
+            specialty=general,
+            subject=math,
+            defaults={"coefficient": 2},
+        )
         # Teacher 2 teaches Physics
-        sa_phy_f3, _ = SubjectAssignment.objects.get_or_create(classroom=form3, subject=physics, teacher=teacher2)
+        sa_phy_f3, _ = SubjectAssignment.objects.get_or_create(
+            academic_year=year,
+            term=term1,
+            classroom=form3,
+            specialty=general,
+            subject=physics,
+            defaults={"coefficient": 2},
+        )
 
         # Evals teacher assignments (drives the teacher marks UI)
-        TeacherAssignment.objects.get_or_create(teacher=teacher1, subject_assignment=sa_eng_f3, defaults={"active": True})
-        TeacherAssignment.objects.get_or_create(teacher=teacher1, subject_assignment=sa_math_f3, defaults={"active": True})
-        TeacherAssignment.objects.get_or_create(teacher=teacher2, subject_assignment=sa_phy_f3, defaults={"active": True})
+        TeacherAssignment.objects.get_or_create(
+            teacher=teacher1,
+            academic_year=year,
+            subject_assignment=sa_eng_f3,
+            defaults={"is_active": True},
+        )
+        TeacherAssignment.objects.get_or_create(
+            teacher=teacher1,
+            academic_year=year,
+            subject_assignment=sa_math_f3,
+            defaults={"is_active": True},
+        )
+        TeacherAssignment.objects.get_or_create(
+            teacher=teacher2,
+            academic_year=year,
+            subject_assignment=sa_phy_f3,
+            defaults={"is_active": True},
+        )
 
         # ---- Seed some evaluations so ranking + report screens are not empty ----
-        self._seed_evals_for_student(year, term1, student1, [sa_eng_f3, sa_math_f3, sa_phy_f3])
-        self._seed_evals_for_student(year, term1, student2, [sa_eng_f3, sa_math_f3, sa_phy_f3])
+        self._seed_evals_for_student(
+            year,
+            term1,
+            student1,
+            [
+                (sa_eng_f3, teacher1),
+                (sa_math_f3, teacher1),
+                (sa_phy_f3, teacher2),
+            ],
+        )
+        self._seed_evals_for_student(
+            year,
+            term1,
+            student2,
+            [
+                (sa_eng_f3, teacher1),
+                (sa_math_f3, teacher1),
+                (sa_phy_f3, teacher2),
+            ],
+        )
 
         # Print credentials
         self.stdout.write(self.style.SUCCESS("\n✅ Demo data ready."))
         self.stdout.write("\nLogin credentials (password for all: Test1234):")
         self.stdout.write("  Admin: (your existing superuser)")
         self.stdout.write("  Parents: parent1, parent2")
-        self.stdout.write("  Teachers: teacher1, teacher2")
-        self.stdout.write("  Students: student1, student2\n")
+        self.stdout.write("  Teachers: teacher1, teacher2\n")
 
     def _get_or_create_user(self, username: str, email: str, role: str, first_name: str, last_name: str) -> User:
         user, created = User.objects.get_or_create(
@@ -187,21 +265,33 @@ class Command(BaseCommand):
 
         return user
 
-    def _seed_evals_for_student(self, year: AcademicYear, term: Term, student: StudentProfile, subject_assignments):
-        for sa in subject_assignments:
+    def _seed_evals_for_student(
+        self,
+        year: AcademicYear,
+        term: Term,
+        student: StudentProfile,
+        subject_assignments,
+    ):
+        for subject_assignment, teacher in subject_assignments:
             # Deterministic-ish demo scores
             base = random.randint(10, 18)
+            seq1 = base
+            seq2 = max(0, min(20, base + random.randint(-2, 2)))
+            exam = max(0, min(20, base + random.randint(-3, 3)))
             Evaluation.objects.get_or_create(
                 academic_year=year,
                 term=term,
                 student=student,
-                subject_assignment=sa,
+                subject_assignment=subject_assignment,
                 defaults={
-                    "seq1": base,
-                    "seq2": max(0, min(20, base + random.randint(-2, 2))),
-                    "exam": max(0, min(20, base + random.randint(-3, 3))),
-                    "mock": None,
-                    "practical": None,
+                    "teacher": teacher,
+                    "seq1_score": seq1,
+                    "seq2_score": seq2,
+                    "exam_score": exam,
+                    "mock_score": None,
+                    "practical_score": None,
+                    "test1": seq1,
+                    "test2": seq2,
                 },
             )
 
@@ -217,9 +307,9 @@ class Command(BaseCommand):
         StudentGuardian.objects.all().delete()
         StudentProfile.objects.all().delete()
         TeacherProfile.objects.all().delete()
-
-        Subject.objects.all().delete()
         Classroom.objects.all().delete()
+        Specialty.objects.all().delete()
+        Subject.objects.all().delete()
+        Department.objects.all().delete()
         Term.objects.all().delete()
         AcademicYear.objects.all().delete()
-        Specialty.objects.all().delete()

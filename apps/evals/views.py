@@ -5,8 +5,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
-# NOTE: the model is named ClassRoom (capital R) in academics.
-from apps.academics.models import SubjectAssignment, ClassRoom, AcademicYear, Term
+from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Term
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.evals.models import TeacherAssignment, Evaluation, AssessmentWeights
@@ -39,6 +38,8 @@ def _required_fields(academic_year, classroom, term):
 def teacher_dashboard(request: HttpRequest):
     teacher = get_object_or_404(TeacherProfile, user=request.user)
     year, term = get_active_year_and_term()
+    if not year or not term:
+        return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
     assignments = TeacherAssignment.objects.filter(
         teacher=teacher,
@@ -194,6 +195,7 @@ def teacher_marks_entry(request: HttpRequest):
         "teacher_assignments": teacher_assignments,
         "selected_sa_id": str(selected_sa_id) if selected_sa_id else "",
         "sa": sa,
+        "selected_sa": sa,
         "students": students,
         "existing": existing,
         "locked": locked,
@@ -207,6 +209,8 @@ def teacher_marks_entry(request: HttpRequest):
 def teacher_marks_list(request: HttpRequest):
     teacher = get_object_or_404(TeacherProfile, user=request.user)
     year, term = get_active_year_and_term()
+    if not year or not term:
+        return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
     # Filters
     classroom_id = request.GET.get("classroom")
@@ -281,6 +285,8 @@ def class_ranking_view(request: HttpRequest):
     This is a staff-only view intended for Admin/Leadership.
     """
     year, active_term = get_active_year_and_term()
+    if not year or not active_term:
+        return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
     year_id = request.GET.get("year") or str(year.id)
     term_id = request.GET.get("term") or str(active_term.id)
@@ -289,13 +295,13 @@ def class_ranking_view(request: HttpRequest):
     year_obj = get_object_or_404(AcademicYear, id=year_id)
     term_obj = get_object_or_404(Term, id=term_id)
 
-    classrooms = ClassRoom.objects.filter(academic_year=year_obj).order_by("name")
+    classrooms = Classroom.objects.filter(academic_year=year_obj).order_by("name")
     selected_classroom = None
     ranking = []
     stats = None
 
     if classroom_id:
-        selected_classroom = get_object_or_404(ClassRoom, id=classroom_id)
+        selected_classroom = get_object_or_404(Classroom, id=classroom_id)
 
         from .services import get_class_ranking, get_class_stats
 
@@ -305,8 +311,8 @@ def class_ranking_view(request: HttpRequest):
     return render(request, "evals/class_ranking.html", {
         "year": year_obj,
         "term": term_obj,
-        "years": AcademicYear.objects.order_by("-start_year"),
-        "terms": Term.objects.filter(academic_year=year_obj).order_by("order"),
+        "years": AcademicYear.objects.order_by("-start_date"),
+        "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date", "name"),
         "classrooms": classrooms,
         "selected_classroom": selected_classroom,
         "ranking": ranking,
@@ -318,6 +324,8 @@ def class_ranking_view(request: HttpRequest):
 def school_ranking_view(request: HttpRequest):
     """School-wide ranking for a given year/term."""
     year, active_term = get_active_year_and_term()
+    if not year or not active_term:
+        return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
     year_id = request.GET.get("year") or str(year.id)
     term_id = request.GET.get("term") or str(active_term.id)
@@ -332,8 +340,7 @@ def school_ranking_view(request: HttpRequest):
     return render(request, "evals/school_ranking.html", {
         "year": year_obj,
         "term": term_obj,
-        "years": AcademicYear.objects.order_by("-start_year"),
-        "terms": Term.objects.filter(academic_year=year_obj).order_by("order"),
+        "years": AcademicYear.objects.order_by("-start_date"),
+        "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date", "name"),
         "ranking": ranking,
     })
-
