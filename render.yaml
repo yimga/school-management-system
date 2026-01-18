@@ -18,6 +18,8 @@ services:
         value: "school-management-system.onrender.com"
       - key: SECRET_KEY
         generateValue: true
+      - key: SEED_DEMO
+        value: "1"
 
 databases:
   - name: school-management-db
