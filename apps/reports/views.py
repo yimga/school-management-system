@@ -5,10 +5,11 @@ from django.core.files.base import ContentFile
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
 from apps.people.models import StudentGuardian
+from apps.academics.models import Term
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
 from apps.reports.models import ReportCard
-from apps.reports.services import is_term_published
+from apps.reports.services import is_term_published, get_promotion_status
 from apps.reports.pdf import build_term_report_pdf
 
 
@@ -28,6 +29,8 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         return HttpResponseForbidden("Not authorized.")
 
     student = link.student
+    if term.name == Term.Name.THIRD and not student.classroom.allows_third_term:
+        return HttpResponseForbidden("Third term report is not available for this classroom.")
 
     # publish gate
     if not is_term_published(year.id, term.id, student.classroom_id):
@@ -61,6 +64,7 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
             total_weighted += avg * coef
 
     overall = (total_weighted / total_coef) if total_coef else None
+    promotion_status = get_promotion_status(student, year, overall)
 
     pdf_bytes = build_term_report_pdf(
         student_name=f"{student.last_name} {student.first_name}",
@@ -69,6 +73,7 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         term_name=term.get_name_display(),
         rows=rows,
         overall=overall,
+        promotion_status=promotion_status,
     )
 
     # Optional: save/update ReportCard row in DB
@@ -85,4 +90,3 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
-

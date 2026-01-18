@@ -5,6 +5,8 @@ from .views import (
     teacher_marks_list,
     class_ranking_view,
     school_ranking_view,
+    evaluation_admin,
+    evaluation_evidence_upload,
 )
 
 urlpatterns = [
@@ -15,5 +17,6 @@ urlpatterns = [
     # Staff/leadership dashboards
     path("rankings/class/", class_ranking_view, name="class_ranking"),
     path("rankings/school/", school_ranking_view, name="school_ranking"),
+    path("admin/evaluations/", evaluation_admin, name="evaluation_admin"),
+    path("admin/evaluations/evidence/", evaluation_evidence_upload, name="evaluation_evidence_upload"),
 ]
-

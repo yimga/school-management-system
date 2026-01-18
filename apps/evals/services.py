@@ -114,3 +114,18 @@ def classroom_stats(classroom: Classroom, term: Term) -> dict:
         "median": float(median(avgs)) if avgs else 0.0,
         "count": len(avgs),
     }
+
+
+def get_class_ranking(classroom: Classroom, year: Optional[object], term: Term) -> List[StudentAggregate]:
+    """Back-compat wrapper for ranking views."""
+    return classroom_term_rankings(classroom, term)
+
+
+def get_school_ranking(year: Optional[object], term: Term) -> List[StudentAggregate]:
+    """Back-compat wrapper for ranking views."""
+    return school_term_rankings(term)
+
+
+def get_class_stats(classroom: Classroom, year: Optional[object], term: Term) -> dict:
+    """Back-compat wrapper for stats views."""
+    return classroom_stats(classroom, term)

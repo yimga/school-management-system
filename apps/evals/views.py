@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpRequest, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponseForbidden, HttpResponse
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+import csv
+from decimal import Decimal
 
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
@@ -10,6 +12,14 @@ from apps.academics.services import get_active_year_and_term
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.evals.models import TeacherAssignment, Evaluation, AssessmentWeights
 from apps.reports.services import is_term_published
+from .forms import (
+    BulkEvaluationCreateForm,
+    EvaluationFilterForm,
+    EvaluationEvidenceForm,
+    AssessmentWeightsForm,
+    BatchFillMissingForm,
+)
+from .models import EvaluationEvidence
 
 
 def _required_fields(academic_year, classroom, term):
@@ -18,7 +28,11 @@ def _required_fields(academic_year, classroom, term):
     Rule: any component with a configured weight > 0 is required.
     Fallback: seq1, seq2, exam.
     """
-    weights = AssessmentWeights.get_for(academic_year=academic_year, classroom=classroom)
+    weights = AssessmentWeights.get_for(
+        academic_year=academic_year,
+        classroom=classroom,
+        term=term,
+    )
     fields = []
     if weights.seq1_weight > 0:
         fields.append("seq1_score")
@@ -31,6 +45,26 @@ def _required_fields(academic_year, classroom, term):
     if weights.practical_weight > 0:
         fields.append("practical_score")
 
+    return fields or ["seq1_score", "seq2_score", "exam_score"]
+
+
+def _required_fields_for_evaluation(evaluation: Evaluation) -> list[str]:
+    weights = AssessmentWeights.get_for(
+        academic_year=evaluation.academic_year,
+        classroom=evaluation.subject_assignment.classroom if evaluation.subject_assignment_id else None,
+        term=evaluation.term,
+    )
+    fields = []
+    if weights.seq1_weight > 0:
+        fields.append("seq1_score")
+    if weights.seq2_weight > 0:
+        fields.append("seq2_score")
+    if weights.exam_weight > 0:
+        fields.append("exam_score")
+    if weights.mock_weight > 0:
+        fields.append("mock_score")
+    if weights.practical_weight > 0:
+        fields.append("practical_score")
     return fields or ["seq1_score", "seq2_score", "exam_score"]
 
 
@@ -112,6 +146,8 @@ def teacher_marks_entry(request: HttpRequest):
             return HttpResponseForbidden("You are not assigned to this subject/class.")
 
         sa = get_object_or_404(SubjectAssignment, id=selected_sa_id)
+        if active_term.name == Term.Name.THIRD and not sa.classroom.allows_third_term:
+            return HttpResponseForbidden("Third term is not enabled for this classroom.")
 
         # Publish lock check
         locked = is_term_published(year.id, active_term.id, sa.classroom_id)
@@ -227,22 +263,6 @@ def teacher_marks_list(request: HttpRequest):
     if term_id:
         qs = qs.filter(term_id=term_id)
 
-    # "Missing" means at least one required component is not filled.
-    if missing_only:
-        # We use the default school weights for now; per-class overrides are supported.
-        from apps.academics.models import Term
-        selected_term = None
-        if term_id:
-            selected_term = Term.objects.filter(id=term_id).first()
-        req = _required_fields(year, None, selected_term)
-        # If a term override exists, _required_fields will pick it up.
-        # Build OR query for missing any required field.
-        from django.db.models import Q
-        missing_q = Q()
-        for f in req:
-            missing_q |= Q(**{f"{f}__isnull": True})
-        qs = qs.filter(missing_q)
-
     evals = qs.select_related(
         "student",
         "term",
@@ -250,6 +270,12 @@ def teacher_marks_list(request: HttpRequest):
         "subject_assignment__classroom",
         "subject_assignment__specialty",
     ).order_by("-updated_at")
+
+    if missing_only:
+        evals = [
+            e for e in evals
+            if any(getattr(e, field) is None for field in _required_fields_for_evaluation(e))
+        ]
 
     # Filter option lists
     classrooms = (
@@ -299,6 +325,7 @@ def class_ranking_view(request: HttpRequest):
     selected_classroom = None
     ranking = []
     stats = None
+    rows = []
 
     if classroom_id:
         selected_classroom = get_object_or_404(Classroom, id=classroom_id)
@@ -307,15 +334,21 @@ def class_ranking_view(request: HttpRequest):
 
         ranking = get_class_ranking(selected_classroom, year_obj, term_obj)
         stats = get_class_stats(selected_classroom, year_obj, term_obj)
+        rows = [
+            {"rank": idx + 1, "student": agg.student, "average": agg.average}
+            for idx, agg in enumerate(ranking)
+        ]
 
     return render(request, "evals/class_ranking.html", {
         "year": year_obj,
         "term": term_obj,
+        "selected_year": year_obj,
+        "selected_term": term_obj,
         "years": AcademicYear.objects.order_by("-start_date"),
         "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date", "name"),
         "classrooms": classrooms,
         "selected_classroom": selected_classroom,
-        "ranking": ranking,
+        "rows": rows,
         "stats": stats,
     })
 
@@ -336,11 +369,255 @@ def school_ranking_view(request: HttpRequest):
     from .services import get_school_ranking
 
     ranking = get_school_ranking(year_obj, term_obj)
+    rows = [
+        {"rank": idx + 1, "student": agg.student, "average": agg.average}
+        for idx, agg in enumerate(ranking)
+    ]
 
     return render(request, "evals/school_ranking.html", {
         "year": year_obj,
         "term": term_obj,
+        "selected_year": year_obj,
+        "selected_term": term_obj,
         "years": AcademicYear.objects.order_by("-start_date"),
         "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date", "name"),
-        "ranking": ranking,
+        "rows": rows,
+    })
+
+
+@staff_member_required
+def evaluation_admin(request: HttpRequest):
+    year, active_term = get_active_year_and_term()
+    if not year or not active_term:
+        return HttpResponseForbidden("No active academic year/term set by admin yet.")
+
+    year_id = request.GET.get("year") or str(year.id)
+    term_id = request.GET.get("term") or str(active_term.id)
+    classroom_id = request.GET.get("classroom")
+    subject_id = request.GET.get("subject")
+    missing_only = request.GET.get("missing") == "1"
+
+    year_obj = get_object_or_404(AcademicYear, id=year_id)
+    term_obj = get_object_or_404(Term, id=term_id)
+    classroom_obj = Classroom.objects.filter(id=classroom_id).first() if classroom_id else None
+
+    filter_form = EvaluationFilterForm(
+        data=request.GET or None,
+        academic_year=year_obj,
+    )
+
+    current_weights = AssessmentWeights.get_for(
+        academic_year=year_obj,
+        classroom=classroom_obj,
+        term=term_obj,
+    )
+    weights_initial = {
+        "academic_year": current_weights.academic_year,
+        "term": current_weights.term,
+        "classroom": current_weights.classroom,
+        "seq1_weight": current_weights.seq1_weight,
+        "seq2_weight": current_weights.seq2_weight,
+        "exam_weight": current_weights.exam_weight,
+        "mock_weight": current_weights.mock_weight,
+        "practical_weight": current_weights.practical_weight,
+        "score_scale": current_weights.score_scale,
+    }
+
+    create_form = BulkEvaluationCreateForm(
+        data=request.POST or None,
+        academic_year=year_obj,
+        term=term_obj,
+        prefix="create",
+    )
+    weights_form = AssessmentWeightsForm(
+        data=request.POST or None,
+        academic_year=year_obj,
+        prefix="weights",
+        initial=weights_initial if request.method != "POST" else None,
+    )
+    fill_form = BatchFillMissingForm(
+        data=request.POST or None,
+        prefix="fill",
+    )
+
+    if request.method == "POST" and request.POST.get("action") == "bulk_create":
+        if create_form.is_valid():
+            subject_assignment = create_form.cleaned_data["subject_assignment"]
+            teacher = create_form.cleaned_data["teacher"]
+
+            students = StudentProfile.objects.filter(
+                academic_year=year_obj,
+                classroom=subject_assignment.classroom,
+                specialty=subject_assignment.specialty,
+                is_active=True,
+            )
+
+            created = 0
+            for student in students:
+                _, was_created = Evaluation.objects.get_or_create(
+                    academic_year=year_obj,
+                    term=subject_assignment.term,
+                    subject_assignment=subject_assignment,
+                    student=student,
+                    defaults={"teacher": teacher},
+                )
+                if was_created:
+                    created += 1
+
+            messages.success(
+                request,
+                f"Created {created} evaluations for {subject_assignment}.",
+            )
+            return redirect(request.path + f"?year={year_obj.id}&term={term_obj.id}")
+
+    if request.method == "POST" and request.POST.get("action") == "update_weights":
+        if weights_form.is_valid():
+            data = weights_form.cleaned_data
+            AssessmentWeights.objects.update_or_create(
+                academic_year=data["academic_year"],
+                term=data["term"],
+                classroom=data["classroom"],
+                defaults={
+                    "seq1_weight": data["seq1_weight"],
+                    "seq2_weight": data["seq2_weight"],
+                    "exam_weight": data["exam_weight"],
+                    "mock_weight": data["mock_weight"],
+                    "practical_weight": data["practical_weight"],
+                    "score_scale": data["score_scale"],
+                },
+            )
+            messages.success(request, "Assessment weights saved.")
+            redirect_target = request.path + f"?year={year_obj.id}&term={term_obj.id}"
+            if classroom_id:
+                redirect_target += f"&classroom={classroom_id}"
+            return redirect(redirect_target)
+
+    evals = Evaluation.objects.filter(academic_year=year_obj, term=term_obj).select_related(
+        "student",
+        "teacher",
+        "subject_assignment__classroom",
+        "subject_assignment__specialty",
+        "subject_assignment__subject",
+    ).prefetch_related("evidence")
+
+    if classroom_obj:
+        evals = evals.filter(subject_assignment__classroom=classroom_obj)
+    if subject_id:
+        evals = evals.filter(subject_assignment__subject_id=subject_id)
+
+    required_fields = _required_fields(year_obj, classroom_obj, term_obj)
+    evals_list = list(evals.order_by("-updated_at"))
+    if missing_only:
+        evals_list = [
+            e for e in evals_list
+            if any(getattr(e, field) is None for field in _required_fields_for_evaluation(e))
+        ]
+
+    if request.method == "POST" and request.POST.get("action") == "fill_missing":
+        if fill_form.is_valid():
+            fill_value = Decimal(fill_form.cleaned_data["fill_value"])
+            updated = 0
+            for evaluation in evals_list:
+                needs_update = False
+                updates = {}
+                for field in _required_fields_for_evaluation(evaluation):
+                    if getattr(evaluation, field) is None:
+                        updates[field] = fill_value
+                        needs_update = True
+                if needs_update:
+                    Evaluation.objects.filter(id=evaluation.id).update(**updates)
+                    updated += 1
+            messages.success(request, f"Filled missing scores for {updated} evaluations.")
+            redirect_target = request.path + f"?year={year_obj.id}&term={term_obj.id}"
+            if classroom_id:
+                redirect_target += f"&classroom={classroom_id}"
+            if subject_id:
+                redirect_target += f"&subject={subject_id}"
+            if missing_only:
+                redirect_target += "&missing=1"
+            return redirect(redirect_target)
+
+    if request.GET.get("export") == "csv":
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="grading-sheet-{year_obj.name}-{term_obj.get_name_display()}.csv"'
+        writer = csv.writer(response)
+        writer.writerow([
+            "Student Code",
+            "Student Name",
+            "Classroom",
+            "Specialty",
+            "Subject",
+            "Seq 1",
+            "Seq 2",
+            "Exam",
+            "Mock",
+            "Practical",
+            "Total",
+        ])
+        for e in evals_list:
+            writer.writerow([
+                e.student.student_code,
+                f"{e.student.last_name} {e.student.first_name}",
+                e.subject_assignment.classroom.name,
+                e.subject_assignment.specialty.name,
+                e.subject_assignment.subject.name,
+                e.seq1_score or "",
+                e.seq2_score or "",
+                e.exam_score or "",
+                e.mock_score or "",
+                e.practical_score or "",
+                f"{e.total_score:.2f}",
+            ])
+        return response
+
+    export_params = request.GET.copy()
+    export_params["export"] = "csv"
+
+    return render(request, "evals/evaluation_admin.html", {
+        "year": year_obj,
+        "term": term_obj,
+        "selected_year": year_obj,
+        "selected_term": term_obj,
+        "filter_form": filter_form,
+        "create_form": create_form,
+        "weights_form": weights_form,
+        "fill_form": fill_form,
+        "current_weights": current_weights,
+        "evals": evals_list,
+        "missing_only": missing_only,
+        "required_fields": required_fields,
+        "export_query": export_params.urlencode(),
+    })
+
+
+@staff_member_required
+def evaluation_evidence_upload(request: HttpRequest):
+    evaluation_id = request.GET.get("evaluation")
+    evaluation = None
+    if evaluation_id:
+        evaluation = get_object_or_404(Evaluation, id=evaluation_id)
+
+    form = EvaluationEvidenceForm(
+        data=request.POST or None,
+        files=request.FILES or None,
+        evaluation=evaluation,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        evidence = form.save(commit=False)
+        evidence.uploaded_by = request.user
+        evidence.save()
+        messages.success(request, "Evidence uploaded successfully.")
+        return redirect("evaluation_admin")
+
+    evidence_items = EvaluationEvidence.objects.select_related(
+        "evaluation",
+        "evaluation__student",
+        "evaluation__subject_assignment__subject",
+    ).order_by("-uploaded_at")[:50]
+
+    return render(request, "evals/evidence_upload.html", {
+        "form": form,
+        "evaluation": evaluation,
+        "evidence_items": evidence_items,
     })
