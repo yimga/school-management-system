@@ -3,7 +3,16 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 
-def build_term_report_pdf(*, student_name: str, student_code: str, year_name: str, term_name: str, rows: list[dict], overall: float | None):
+def build_term_report_pdf(
+    *,
+    student_name: str,
+    student_code: str,
+    year_name: str,
+    term_name: str,
+    rows: list[dict],
+    overall: float | None,
+    promotion_status: str | None = None,
+):
     """
     rows: [{subject, coef, test1, test2, avg}]
     returns: bytes (PDF)
@@ -53,8 +62,10 @@ def build_term_report_pdf(*, student_name: str, student_code: str, year_name: st
     y -= 10
     c.setFont("Helvetica-Bold", 11)
     c.drawString(50, y, f"Overall: {overall if overall is not None else 'N/A'}")
+    if promotion_status:
+        y -= 16
+        c.drawString(50, y, f"Status: {promotion_status}")
 
     c.showPage()
     c.save()
     return buff.getvalue()
-

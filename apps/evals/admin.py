@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from unfold.admin import ModelAdmin
-from .models import TeacherAssignment, Evaluation, AssessmentWeights
+from .models import TeacherAssignment, Evaluation, AssessmentWeights, EvaluationEvidence
 
 
 @admin.register(TeacherAssignment)
@@ -39,6 +39,12 @@ class EvaluationAdmin(ModelAdmin):
 
 @admin.register(AssessmentWeights)
 class AssessmentWeightsAdmin(ModelAdmin):
-    list_display = ("academic_year", "classroom", "seq1_weight", "seq2_weight", "exam_weight", "mock_weight", "practical_weight", "score_scale")
-    list_filter = ("academic_year", "classroom")
+    list_display = ("academic_year", "term", "classroom", "seq1_weight", "seq2_weight", "exam_weight", "mock_weight", "practical_weight", "score_scale")
+    list_filter = ("academic_year", "term", "classroom")
 
+
+@admin.register(EvaluationEvidence)
+class EvaluationEvidenceAdmin(ModelAdmin):
+    list_display = ("evaluation", "media_type", "uploaded_by", "uploaded_at")
+    list_filter = ("media_type", "uploaded_at")
+    search_fields = ("evaluation__student__student_code", "evaluation__student__first_name", "evaluation__student__last_name")
