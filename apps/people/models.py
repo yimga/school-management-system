@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, ClassRoom, Specialty
+from apps.academics.models import AcademicYear, Classroom, Specialty
 
 
 class TeacherProfile(models.Model):
@@ -25,7 +25,7 @@ class StudentProfile(models.Model):
     student_code = models.CharField(max_length=50, unique=True)
 
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="students")
-    classroom = models.ForeignKey(ClassRoom, on_delete=models.PROTECT, related_name="students")
+    classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="students")
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="students")
 
     is_active = models.BooleanField(default=True)
@@ -64,4 +64,3 @@ class StudentGuardian(models.Model):
 
     def __str__(self):
         return f"{self.guardian_user.username} -> {self.student}"
-

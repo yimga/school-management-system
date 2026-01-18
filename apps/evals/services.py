@@ -17,7 +17,7 @@ from typing import Iterable, List, Optional, Sequence
 
 from django.db.models import QuerySet
 
-from apps.academics.models import Term, ClassRoom
+from apps.academics.models import Term, Classroom
 from apps.people.models import StudentProfile
 
 from .models import Evaluation
@@ -83,7 +83,7 @@ def student_term_average(student: StudentProfile, term: Term) -> float:
     return (total_weighted / total_coef) if total_coef else 0.0
 
 
-def classroom_term_rankings(classroom: ClassRoom, term: Term) -> List[StudentAggregate]:
+def classroom_term_rankings(classroom: Classroom, term: Term) -> List[StudentAggregate]:
     students = StudentProfile.objects.filter(classroom=classroom, is_active=True).select_related("classroom")
     aggregates: List[StudentAggregate] = []
 
@@ -105,7 +105,7 @@ def school_term_rankings(term: Term) -> List[StudentAggregate]:
     return aggregates
 
 
-def classroom_stats(classroom: ClassRoom, term: Term) -> dict:
+def classroom_stats(classroom: Classroom, term: Term) -> dict:
     """Mean/median for the class (based on students' term averages)."""
     ranks = classroom_term_rankings(classroom, term)
     avgs = [r.average for r in ranks]
