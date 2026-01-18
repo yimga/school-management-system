@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class AcademicYear(models.Model):
@@ -62,6 +63,10 @@ class Classroom(models.Model):
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="classrooms")
     name = models.CharField(max_length=120)
     code = models.CharField(max_length=30, unique=True)
+    allows_third_term = models.BooleanField(
+        default=True,
+        help_text="Disable to block third-term activities (e.g., Form 5/Upper Sixth).",
+    )
 
     class Meta:
         ordering = ["name"]
@@ -105,3 +110,8 @@ class SubjectAssignment(models.Model):
 
     def __str__(self):
         return f"{self.academic_year} | {self.term.get_name_display()} | {self.classroom} | {self.specialty} | {self.subject} (coef {self.coefficient})"
+
+    def clean(self):
+        if self.term and self.classroom:
+            if self.term.name == Term.Name.THIRD and not self.classroom.allows_third_term:
+                raise ValidationError("Third term is not allowed for this classroom.")
