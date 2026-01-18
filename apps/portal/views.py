@@ -7,7 +7,7 @@ from apps.accounts.models import User
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
-from apps.reports.services import is_term_published
+from apps.reports.services import are_terms_published, is_term_published, terms_for_student
 
 
 @role_required(User.Role.PARENT)
@@ -40,12 +40,15 @@ def parent_child_results(request: HttpRequest, student_id: int):
 
     # Publish gate: parents only see results if published (school-wide OR class publish)
     published = is_term_published(year.id, term.id, student.classroom_id)
+    terms = terms_for_student(year, student.classroom)
+    annual_published = are_terms_published(year.id, [t.id for t in terms], student.classroom_id)
     if not published:
         return render(request, "parent/results.html", {
             "student": student,
             "year": year,
             "term": term,
             "published": False,
+            "annual_published": annual_published,
             "rows": [],
             "totals": None,
         })
@@ -87,6 +90,7 @@ def parent_child_results(request: HttpRequest, student_id: int):
         "year": year,
         "term": term,
         "published": True,
+        "annual_published": annual_published,
         "rows": rows,
         "totals": {"total_coef": total_coef, "overall": overall},
     })

@@ -4,10 +4,15 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h2 class="mb-0">Results</h2>
-  <div>
+  <div class="d-flex flex-wrap gap-2">
     <a class="btn btn-outline-primary btn-sm" href="/portal/parent/">Back</a>
     {% if published %}
-      <a class="btn btn-success btn-sm" href="/reports/parent/report/{{ student.id }}/">Download PDF</a>
+      <a class="btn btn-success btn-sm" href="{% url 'parent_download_term_report' student.id %}">Download Term PDF</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'parent_share_report' student.id 'term' %}">Share Term Report</a>
+    {% endif %}
+    {% if annual_published %}
+      <a class="btn btn-outline-success btn-sm" href="{% url 'parent_download_annual_report' student.id %}">Download Annual PDF</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'parent_share_report' student.id 'annual' %}">Share Annual Report</a>
     {% endif %}
   </div>
 </div>

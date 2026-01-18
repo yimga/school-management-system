@@ -7,39 +7,50 @@
 <body>
   <div class="letterhead">
     {% if SITE and SITE.logo %}
-      <img src="{{ SITE.logo.path }}" alt="logo" />
+      <img src="{{ SITE.logo.url }}" alt="logo" />
     {% endif %}
     <div>
       <p class="title">{{ SITE.site_name|default:"School" }}</p>
       <p class="sub">{{ SITE.tagline|default:"Excellence & Character" }}</p>
+      <p class="sub">Academic Year: {{ year.name }}</p>
     </div>
     <div style="margin-left:auto; text-align:right;">
       <div class="pill">Term Report Card</div>
-      <div class="sub">{{ term.name|default:"Term" }}</div>
+      <div class="sub">{{ term.get_name_display }}</div>
     </div>
   </div>
 
   <div class="grid">
     <div class="box">
       <b>Student</b><br>
-      {{ student.full_name }}<br>
-      <span class="sub">{{ student.student_class.name }}</span>
+      {{ student_name }} ({{ student.student_code }})<br>
+      <span class="sub">{{ student.classroom.name }} / {{ student.specialty.name }}</span>
     </div>
     <div class="box">
       <b>Summary</b><br>
-      Average: <b>{{ summary.average|default:"-" }}</b><br>
-      Position: <b>{{ summary.position|default:"-" }}</b> / {{ summary.class_size|default:"-" }}
+      Average: <b>{{ summary.average|floatformat:2|default:"-" }}</b><br>
+      Class Rank: <b>{{ summary.class_position|default:"-" }}</b> / {{ summary.class_size|default:"-" }}<br>
+      School Rank: <b>{{ summary.school_position|default:"-" }}</b> / {{ summary.school_size|default:"-" }}<br>
+      Status: <b>{{ summary.promotion_status|default:"-" }}</b>
     </div>
   </div>
 
   <div class="box" style="margin-top:10px;">
-    <b>Subjects</b>
+    <div class="sub">
+      Weights: Seq1 {{ weights.seq1_weight }}% | Seq2 {{ weights.seq2_weight }}% | Exam {{ weights.exam_weight }}%
+      | Mock {{ weights.mock_weight }}% | Practical {{ weights.practical_weight }}%
+    </div>
     <table>
       <thead>
         <tr>
           <th>Subject</th>
-          <th>Scores</th>
-          <th>Total</th>
+          <th class="text-end">Coef</th>
+          <th class="text-end">Seq1</th>
+          <th class="text-end">Seq2</th>
+          <th class="text-end">Exam</th>
+          <th class="text-end">Mock</th>
+          <th class="text-end">Pract</th>
+          <th class="text-end">Total</th>
           <th>Remark</th>
         </tr>
       </thead>
@@ -47,20 +58,42 @@
         {% for row in rows %}
           <tr>
             <td>{{ row.subject }}</td>
-            <td>{{ row.breakdown }}</td>
-            <td><b>{{ row.total }}</b></td>
+            <td class="text-end">{{ row.coef }}</td>
+            <td class="text-end">{{ row.seq1|default_if_none:"" }}</td>
+            <td class="text-end">{{ row.seq2|default_if_none:"" }}</td>
+            <td class="text-end">{{ row.exam|default_if_none:"" }}</td>
+            <td class="text-end">{{ row.mock|default_if_none:"" }}</td>
+            <td class="text-end">{{ row.practical|default_if_none:"" }}</td>
+            <td class="text-end">
+              {% if row.complete %}
+                {{ row.total|floatformat:2 }}
+              {% else %}
+                <span class="sub">Pending</span>
+              {% endif %}
+            </td>
             <td>{{ row.remark }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="4" class="sub">No marks recorded yet.</td></tr>
+          <tr><td colspan="9" class="sub">No marks recorded yet.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 
+  <div class="grid" style="margin-top:10px;">
+    <div class="box">
+      <b>Teacher Remark</b><br>
+      {{ summary.teacher_remark }}
+    </div>
+    <div class="box">
+      <b>Generated</b><br>
+      {{ generated_at|date:"Y-m-d" }}
+    </div>
+  </div>
+
   <div class="footer">
-    <div>Generated: {{ generated_at|date:"Y-m-d" }}</div>
     <div>Powered by {{ SITE.site_name|default:"School System" }}</div>
+    <div>Signature: ______________________</div>
   </div>
 </body>
 </html>
