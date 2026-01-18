@@ -30,45 +30,17 @@ def ensure_legacy_weights_constraint(apps, schema_editor):
     if has_unique:
         return
 
-    constraint_name = "evals_assessmentweights_academic_year_id_classroom_id_uniq"
+    index_name = "evals_assessmentweights_academic_year_id_classroom_id_uniq"
     if connection.vendor == "postgresql":
         schema_editor.execute(
-            f'ALTER TABLE "{table_name}" '
-            f'ADD CONSTRAINT "{constraint_name}" '
-            f"UNIQUE (academic_year_id, classroom_id)"
+            f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" '
+            f'ON "{table_name}" (academic_year_id, classroom_id)'
         )
     else:
         schema_editor.execute(
-            f"ALTER TABLE {table_name} "
-            f"ADD CONSTRAINT {constraint_name} "
-            f"UNIQUE (academic_year_id, classroom_id)"
+            f"CREATE UNIQUE INDEX {index_name} "
+            f"ON {table_name} (academic_year_id, classroom_id)"
         )
-
-
-def drop_legacy_weights_constraint(apps, schema_editor):
-    connection = schema_editor.connection
-    if connection.vendor == "sqlite":
-        return
-
-    table_name = "evals_assessmentweights"
-    with connection.cursor() as cursor:
-        if table_name not in connection.introspection.table_names(cursor):
-            return
-        constraints = connection.introspection.get_constraints(cursor, table_name)
-
-    target_columns = {"academic_year_id", "classroom_id"}
-    for name, constraint in constraints.items():
-        if not constraint.get("unique"):
-            continue
-        columns = set(constraint.get("columns") or [])
-        if columns != target_columns:
-            continue
-        if connection.vendor == "postgresql":
-            schema_editor.execute(
-                f'ALTER TABLE "{table_name}" DROP CONSTRAINT IF EXISTS "{name}"'
-            )
-        else:
-            schema_editor.execute(f"ALTER TABLE {table_name} DROP INDEX {name}")
 
 
 class Migration(migrations.Migration):
@@ -80,18 +52,9 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(ensure_legacy_weights_constraint, migrations.RunPython.noop),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[
-                migrations.RunPython(
-                    drop_legacy_weights_constraint, migrations.RunPython.noop
-                )
-            ],
-            state_operations=[
-                migrations.AlterUniqueTogether(
-                    name="assessmentweights",
-                    unique_together=set(),
-                )
-            ],
+        migrations.AlterUniqueTogether(
+            name="assessmentweights",
+            unique_together=set(),
         ),
         migrations.AddField(
             model_name="assessmentweights",
