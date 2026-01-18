@@ -7,6 +7,9 @@
       <h2 class="mb-1">Parent Dashboard</h2>
       <div class="text-muted">Quick access to your children’s results.</div>
     </div>
+    {% if request.user.profile_photo %}
+      <img src="{{ request.user.profile_photo.url }}" alt="Parent profile photo" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;">
+    {% endif %}
   </div>
 
   <div class="row g-3 mb-4">
@@ -41,8 +44,15 @@
             <div class="col-md-6 col-xl-4">
               <div class="card h-100">
                 <div class="card-body">
-                  <div class="fw-semibold">{{ link.student.last_name }} {{ link.student.first_name }}</div>
-                  <div class="small text-muted mb-2">{{ link.student.student_code }}</div>
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    {% if link.student.profile_photo %}
+                      <img src="{{ link.student.profile_photo.url }}" alt="Student photo" class="rounded-circle border" style="width:36px;height:36px;object-fit:cover;">
+                    {% endif %}
+                    <div>
+                      <div class="fw-semibold">{{ link.student.last_name }} {{ link.student.first_name }}</div>
+                      <div class="small text-muted">{{ link.student.student_code }}</div>
+                    </div>
+                  </div>
                   <div class="small">
                     <span class="badge text-bg-light">{{ link.student.classroom.name }}</span>
                     <span class="badge text-bg-light">{{ link.student.specialty.name }}</span>
@@ -65,4 +75,3 @@
     </div>
   </div>
 {% endblock %}
-

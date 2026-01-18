@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.people.models import TeacherProfile, StudentProfile
+from apps.accounts.models import User
 
 
 class AssessmentWeights(models.Model):
@@ -19,6 +20,14 @@ class AssessmentWeights(models.Model):
     """
 
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="assessment_weights")
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="assessment_weights",
+        help_text="Optional term-specific override. Leave blank for full-year defaults.",
+    )
     # Optional per-classroom override. We avoid importing Classroom directly to prevent circular imports.
     classroom = models.ForeignKey(
         "academics.Classroom",
@@ -39,9 +48,15 @@ class AssessmentWeights(models.Model):
     score_scale = models.PositiveSmallIntegerField(default=20)
 
     class Meta:
-        unique_together = ("academic_year", "classroom")
+        unique_together = ("academic_year", "term", "classroom")
 
     def clean(self):
+        if AssessmentWeights.objects.filter(
+            academic_year=self.academic_year,
+            term=self.term,
+            classroom=self.classroom,
+        ).exclude(pk=self.pk).exists():
+            raise ValidationError("Assessment weights already exist for this year/term/classroom.")
         total = (
             self.seq1_weight
             + self.seq2_weight
@@ -57,26 +72,54 @@ class AssessmentWeights(models.Model):
             raise ValidationError("Score scale must be > 0.")
 
     @classmethod
-    def get_for(cls, academic_year: AcademicYear, classroom=None) -> "AssessmentWeights":
+    def get_for(cls, academic_year: AcademicYear, classroom=None, term: Term | None = None) -> "AssessmentWeights":
         """Return the best matching weights.
 
         Precedence:
-        1) classroom override (if provided)
-        2) school-wide default
+        1) classroom override for term (if provided)
+        2) school-wide term default
+        3) classroom override for full year
+        4) school-wide default
         If none exists, create a school-wide default.
         """
-        if classroom is not None:
-            obj = cls.objects.filter(academic_year=academic_year, classroom=classroom).first()
+        if term is not None:
+            if classroom is not None:
+                obj = cls.objects.filter(
+                    academic_year=academic_year,
+                    term=term,
+                    classroom=classroom,
+                ).first()
+                if obj:
+                    return obj
+            obj = cls.objects.filter(
+                academic_year=academic_year,
+                term=term,
+                classroom__isnull=True,
+            ).first()
             if obj:
                 return obj
 
-        obj = cls.objects.filter(academic_year=academic_year, classroom__isnull=True).first()
+        if classroom is not None:
+            obj = cls.objects.filter(
+                academic_year=academic_year,
+                term__isnull=True,
+                classroom=classroom,
+            ).first()
+            if obj:
+                return obj
+
+        obj = cls.objects.filter(
+            academic_year=academic_year,
+            term__isnull=True,
+            classroom__isnull=True,
+        ).first()
         if obj:
             return obj
 
         # Create a sensible default
         return cls.objects.create(
             academic_year=academic_year,
+            term=None,
             classroom=None,
             seq1_weight=20,
             seq2_weight=20,
@@ -88,7 +131,8 @@ class AssessmentWeights(models.Model):
 
     def __str__(self) -> str:
         scope = f"{self.classroom}" if self.classroom_id else "School default"
-        return f"Weights ({scope}) {self.academic_year}"
+        term_label = self.term.get_name_display() if self.term_id else "All terms"
+        return f"Weights ({scope}) {self.academic_year} • {term_label}"
 
 
 class TeacherAssignment(models.Model):
@@ -154,6 +198,7 @@ class Evaluation(models.Model):
         weights = AssessmentWeights.get_for(
             academic_year=self.academic_year,
             classroom=self.subject_assignment.classroom if self.subject_assignment_id else None,
+            term=self.term,
         )
         components = {
             "seq1": (s1, weights.seq1_weight),
@@ -182,6 +227,7 @@ class Evaluation(models.Model):
         weights = AssessmentWeights.get_for(
             academic_year=self.academic_year,
             classroom=self.subject_assignment.classroom if self.subject_assignment_id else None,
+            term=self.term,
         )
         s1 = self.seq1_score if self.seq1_score is not None else self.test1
         s2 = self.seq2_score if self.seq2_score is not None else self.test2
@@ -220,3 +266,20 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return f"{self.student} | {self.subject_assignment.subject} | {self.term}"
+
+
+class EvaluationEvidence(models.Model):
+    class MediaType(models.TextChoices):
+        PHOTO = "PHOTO", "Photo"
+        VIDEO = "VIDEO", "Video"
+        DOCUMENT = "DOCUMENT", "Document"
+
+    evaluation = models.ForeignKey(Evaluation, on_delete=models.CASCADE, related_name="evidence")
+    media_type = models.CharField(max_length=20, choices=MediaType.choices, default=MediaType.PHOTO)
+    file = models.FileField(upload_to="evaluations/evidence/")
+    caption = models.CharField(max_length=255, blank=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.evaluation} - {self.get_media_type_display()}"

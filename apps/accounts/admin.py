@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 from unfold.admin import ModelAdmin
 
-from .models import User
+from .models import User, AccessRole, Permission
 
 
 @admin.register(User)
@@ -12,7 +12,8 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
 
     # Add role to the default Django user admin form
     fieldsets = DjangoUserAdmin.fieldsets + (
-        ("Role", {"fields": ("role",)}),
+        ("Role", {"fields": ("role", "roles", "feature_permissions")}),
+        ("Profile", {"fields": ("profile_photo",)}),
     )
 
     # Show role in the users list
@@ -21,3 +22,16 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
 
     search_fields = ("username", "email", "first_name", "last_name")
     ordering = ("username",)
+
+
+@admin.register(AccessRole)
+class RoleAdmin(ModelAdmin):
+    list_display = ("code", "name")
+    search_fields = ("code", "name")
+    filter_horizontal = ("permissions",)
+
+
+@admin.register(Permission)
+class PermissionAdmin(ModelAdmin):
+    list_display = ("code", "name")
+    search_fields = ("code", "name")

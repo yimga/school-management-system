@@ -2,6 +2,7 @@ from django.db import models
 from apps.academics.models import AcademicYear, Term, Classroom
 from apps.people.models import StudentProfile
 from apps.accounts.models import User
+from django.core.exceptions import ValidationError
 
 
 class TermPublishStatus(models.Model):
@@ -43,3 +44,22 @@ class ReportCard(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.type} - {self.academic_year}"
+
+
+class PromotionRule(models.Model):
+    """Promotion thresholds per academic year with optional classroom overrides."""
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="promotion_rules")
+    classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.CASCADE, related_name="promotion_rules")
+    promotion_average = models.DecimalField(max_digits=5, decimal_places=2, default=10)
+    demotion_average = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    class Meta:
+        unique_together = ("academic_year", "classroom")
+
+    def clean(self):
+        if self.demotion_average > self.promotion_average:
+            raise ValidationError("Demotion average cannot be higher than promotion average.")
+
+    def __str__(self):
+        scope = self.classroom.name if self.classroom else "School default"
+        return f"{self.academic_year} - {scope}"

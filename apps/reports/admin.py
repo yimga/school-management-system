@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from unfold.admin import ModelAdmin
-from .models import TermPublishStatus, ReportCard
+from .models import TermPublishStatus, ReportCard, PromotionRule
 
 
 @admin.register(TermPublishStatus)
@@ -14,6 +14,9 @@ class TermPublishStatusAdmin(ModelAdmin):
 @admin.register(ReportCard)
 class ReportCardAdmin(ModelAdmin):
     list_display = ("student", "academic_year", "term", "type", "generated_at")
-    list_filter = ("academic_year", "term", "type")
-    search_fields = ("student__student_code", "student__first_name", "student__last_name")
 
+
+@admin.register(PromotionRule)
+class PromotionRuleAdmin(ModelAdmin):
+    list_display = ("academic_year", "classroom", "promotion_average", "demotion_average")
+    list_filter = ("academic_year", "classroom")
