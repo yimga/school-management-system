@@ -47,6 +47,17 @@ def drop_legacy_weights_constraint(apps, schema_editor):
             schema_editor.execute(f"DROP INDEX IF EXISTS {name}")
 
 
+def ensure_weights_table(apps, schema_editor):
+    connection = schema_editor.connection
+    table_name = "evals_assessmentweights"
+    with connection.cursor() as cursor:
+        if table_name in connection.introspection.table_names(cursor):
+            return
+
+    AssessmentWeights = apps.get_model("evals", "AssessmentWeights")
+    schema_editor.create_model(AssessmentWeights)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -68,6 +79,7 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
+        migrations.RunPython(ensure_weights_table, migrations.RunPython.noop),
         migrations.AddField(
             model_name="assessmentweights",
             name="term",
