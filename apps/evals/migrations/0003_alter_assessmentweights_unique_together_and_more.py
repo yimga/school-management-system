@@ -10,6 +10,10 @@ def ensure_legacy_weights_constraint(apps, schema_editor):
         return
 
     table_name = "evals_assessmentweights"
+    with connection.cursor() as cursor:
+        if table_name not in connection.introspection.table_names(cursor):
+            return
+
     target_columns = {"academic_year_id", "classroom_id"}
     with connection.cursor() as cursor:
         constraints = connection.introspection.get_constraints(cursor, table_name)
