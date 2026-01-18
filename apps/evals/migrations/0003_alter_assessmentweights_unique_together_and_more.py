@@ -4,7 +4,7 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
-def ensure_legacy_weights_constraint(apps, schema_editor):
+def drop_legacy_weights_constraint(apps, schema_editor):
     connection = schema_editor.connection
     if connection.vendor == "sqlite":
         return
@@ -14,33 +14,37 @@ def ensure_legacy_weights_constraint(apps, schema_editor):
         if table_name not in connection.introspection.table_names(cursor):
             return
 
-    target_columns = {"academic_year_id", "classroom_id"}
-    with connection.cursor() as cursor:
         constraints = connection.introspection.get_constraints(cursor, table_name)
 
-    has_unique = False
-    for constraint in constraints.values():
+    target_columns = {"academic_year_id", "classroom_id"}
+    constraint_names = []
+    index_names = []
+    for name, constraint in constraints.items():
         if not constraint.get("unique"):
             continue
         columns = set(constraint.get("columns") or [])
-        if columns == target_columns:
-            has_unique = True
-            break
+        if columns != target_columns:
+            continue
+        if constraint.get("index"):
+            index_names.append(name)
+        else:
+            constraint_names.append(name)
 
-    if has_unique:
-        return
+    for name in constraint_names:
+        if connection.vendor == "postgresql":
+            schema_editor.execute(
+                f'ALTER TABLE "{table_name}" DROP CONSTRAINT IF EXISTS "{name}"'
+            )
+        else:
+            schema_editor.execute(
+                f"ALTER TABLE {table_name} DROP CONSTRAINT IF EXISTS {name}"
+            )
 
-    index_name = "evals_assessmentweights_academic_year_id_classroom_id_uniq"
-    if connection.vendor == "postgresql":
-        schema_editor.execute(
-            f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" '
-            f'ON "{table_name}" (academic_year_id, classroom_id)'
-        )
-    else:
-        schema_editor.execute(
-            f"CREATE UNIQUE INDEX {index_name} "
-            f"ON {table_name} (academic_year_id, classroom_id)"
-        )
+    for name in index_names:
+        if connection.vendor == "postgresql":
+            schema_editor.execute(f'DROP INDEX IF EXISTS "{name}"')
+        else:
+            schema_editor.execute(f"DROP INDEX IF EXISTS {name}")
 
 
 class Migration(migrations.Migration):
@@ -51,10 +55,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(ensure_legacy_weights_constraint, migrations.RunPython.noop),
-        migrations.AlterUniqueTogether(
-            name="assessmentweights",
-            unique_together=set(),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(
+                    drop_legacy_weights_constraint, migrations.RunPython.noop
+                ),
+            ],
+            state_operations=[
+                migrations.AlterUniqueTogether(
+                    name="assessmentweights",
+                    unique_together=set(),
+                ),
+            ],
         ),
         migrations.AddField(
             model_name="assessmentweights",
