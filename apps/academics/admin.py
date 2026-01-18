@@ -35,8 +35,8 @@ class SpecialtyAdmin(ModelAdmin):
 
 @admin.register(Classroom)
 class ClassroomAdmin(ModelAdmin):
-    list_display = ("name", "code", "department", "academic_year")
-    list_filter = ("department", "academic_year")
+    list_display = ("name", "code", "department", "academic_year", "allows_third_term")
+    list_filter = ("department", "academic_year", "allows_third_term")
     search_fields = ("name", "code", "department__name", "academic_year__name")
 
 

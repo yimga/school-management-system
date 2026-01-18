@@ -1,0 +1,223 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Evaluation Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-1">Evaluation Manager</h2>
+    <div class="text-muted">Create evaluations in bulk and track missing scores.</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="/admin/">Back to Admin</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Bulk Create Evaluations</h5>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="bulk_create">
+          <div class="mb-3">
+            <label class="form-label">Academic Year</label>
+            {{ create_form.academic_year }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Term</label>
+            {{ create_form.term }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Subject Assignment</label>
+            {{ create_form.subject_assignment }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Teacher</label>
+            {{ create_form.teacher }}
+          </div>
+          <button class="btn btn-primary">Create Evaluations</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Filter Evaluations</h5>
+        <form method="get">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label small">Academic Year</label>
+              {{ filter_form.year }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Term</label>
+              {{ filter_form.term }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Classroom</label>
+              {{ filter_form.classroom }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Subject</label>
+              {{ filter_form.subject }}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small">Missing Only</label>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="missing" value="1" {% if missing_only %}checked{% endif %}>
+                <label class="form-check-label">Show missing</label>
+              </div>
+            </div>
+            <div class="col-md-3 d-grid">
+              <button class="btn btn-outline-primary">Apply Filters</button>
+            </div>
+          </div>
+        </form>
+        <div class="small text-muted mt-3">
+          Required fields: {{ required_fields|join:", " }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="mb-1">Assessment Weights (Theory vs Practical)</h5>
+        <div class="text-muted small">
+          Current: {{ current_weights.academic_year }} •
+          {% if current_weights.term %}{{ current_weights.term.get_name_display }}{% else %}All terms{% endif %} •
+          {% if current_weights.classroom %}{{ current_weights.classroom.name }}{% else %}School default{% endif %}
+        </div>
+      </div>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_weights">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label class="form-label small">Academic Year</label>
+          {{ weights_form.academic_year }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small">Term</label>
+          {{ weights_form.term }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small">Classroom</label>
+          {{ weights_form.classroom }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small">Score Scale</label>
+          {{ weights_form.score_scale }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Seq 1</label>
+          {{ weights_form.seq1_weight }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Seq 2</label>
+          {{ weights_form.seq2_weight }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Exam</label>
+          {{ weights_form.exam_weight }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Mock</label>
+          {{ weights_form.mock_weight }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Practical</label>
+          {{ weights_form.practical_weight }}
+        </div>
+        <div class="col-md-2 d-grid">
+          <label class="form-label small">&nbsp;</label>
+          <button class="btn btn-primary">Save Weights</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+      <div>
+        <h5 class="mb-1">Fill Missing Scores</h5>
+        <div class="text-muted small">Apply a default value to missing required components.</div>
+      </div>
+    </div>
+    <form method="post" class="row g-2 align-items-end">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="fill_missing">
+      <div class="col-md-3">
+        <label class="form-label small">Fill Value</label>
+        {{ fill_form.fill_value }}
+      </div>
+      <div class="col-md-3 d-grid">
+        <label class="form-label small">&nbsp;</label>
+        <button class="btn btn-outline-primary">Apply to Missing</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+      <div class="text-muted small">
+        Showing {{ evals|length }} evaluations • {{ selected_year.name }} • {{ selected_term.name }}
+      </div>
+      <div>
+        <a class="btn btn-outline-secondary btn-sm" href="?{{ export_query }}">Export CSV</a>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Subject</th>
+            <th class="text-center">Evidence</th>
+            <th class="text-end">Seq 1</th>
+            <th class="text-end">Seq 2</th>
+            <th class="text-end">Exam</th>
+            <th class="text-end">Mock</th>
+            <th class="text-end">Practical</th>
+            <th class="text-end">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in evals %}
+            <tr>
+              <td>{{ e.student }}</td>
+              <td>{{ e.subject_assignment.classroom.name }}</td>
+              <td>{{ e.subject_assignment.subject.name }}</td>
+              <td class="text-center">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'evaluation_evidence_upload' %}?evaluation={{ e.id }}">
+                  {{ e.evidence.count }} file{{ e.evidence.count|pluralize }}
+                </a>
+              </td>
+              <td class="text-end">{{ e.seq1_score|default:"-" }}</td>
+              <td class="text-end">{{ e.seq2_score|default:"-" }}</td>
+              <td class="text-end">{{ e.exam_score|default:"-" }}</td>
+              <td class="text-end">{{ e.mock_score|default:"-" }}</td>
+              <td class="text-end">{{ e.practical_score|default:"-" }}</td>
+              <td class="text-end fw-semibold">{{ e.total_score|floatformat:2 }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="10" class="text-muted">No evaluations match the selected filters.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
