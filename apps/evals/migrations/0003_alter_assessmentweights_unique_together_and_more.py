@@ -4,6 +4,41 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def ensure_legacy_weights_constraint(apps, schema_editor):
+    connection = schema_editor.connection
+    if connection.vendor == "sqlite":
+        return
+
+    table_name = "evals_assessmentweights"
+    target_columns = {"academic_year_id", "classroom_id"}
+    with connection.cursor() as cursor:
+        constraints = connection.introspection.get_constraints(cursor, table_name)
+
+    has_unique = False
+    for constraint in constraints.values():
+        if not constraint.get("unique"):
+            continue
+        columns = set(constraint.get("columns") or [])
+        if columns == target_columns:
+            has_unique = True
+            break
+
+    if has_unique:
+        return
+
+    index_name = "evals_assessmentweights_academic_year_id_classroom_id_uniq"
+    if connection.vendor == "postgresql":
+        schema_editor.execute(
+            f'CREATE UNIQUE INDEX IF NOT EXISTS "{index_name}" '
+            f'ON "{table_name}" (academic_year_id, classroom_id)'
+        )
+    else:
+        schema_editor.execute(
+            f"CREATE UNIQUE INDEX {index_name} "
+            f"ON {table_name} (academic_year_id, classroom_id)"
+        )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -12,6 +47,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(ensure_legacy_weights_constraint, migrations.RunPython.noop),
         migrations.AlterUniqueTogether(
             name="assessmentweights",
             unique_together=set(),
