@@ -57,8 +57,9 @@ class Specialty(models.Model):
         return self.name
 
 
-class ClassRoom(models.Model):
-    department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="classes")
+class Classroom(models.Model):
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="classrooms")
+    department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="classrooms")
     name = models.CharField(max_length=120)
     code = models.CharField(max_length=30, unique=True)
 
@@ -88,12 +89,12 @@ class Subject(models.Model):
 class SubjectAssignment(models.Model):
     """
     Connects:
-    AcademicYear + Term + ClassRoom + Specialty + Subject + Coefficient
+    AcademicYear + Term + Classroom + Specialty + Subject + Coefficient
     This is what teachers get assigned to, and what evaluations (marks) point to later.
     """
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="subject_assignments")
     term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="subject_assignments")
-    classroom = models.ForeignKey(ClassRoom, on_delete=models.PROTECT, related_name="subject_assignments")
+    classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="subject_assignments")
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="subject_assignments")
     subject = models.ForeignKey(Subject, on_delete=models.PROTECT, related_name="subject_assignments")
     coefficient = models.DecimalField(max_digits=5, decimal_places=2, default=1)
@@ -104,4 +105,3 @@ class SubjectAssignment(models.Model):
 
     def __str__(self):
         return f"{self.academic_year} | {self.term.get_name_display()} | {self.classroom} | {self.specialty} | {self.subject} (coef {self.coefficient})"
-

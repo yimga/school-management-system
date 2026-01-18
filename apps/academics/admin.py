@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from unfold.admin import ModelAdmin
 from .models import (
-    AcademicYear, Term, Department, Specialty, ClassRoom, Subject, SubjectAssignment
+    AcademicYear, Term, Department, Specialty, Classroom, Subject, SubjectAssignment
 )
 
 
@@ -33,11 +33,11 @@ class SpecialtyAdmin(ModelAdmin):
     search_fields = ("name", "code", "department__name")
 
 
-@admin.register(ClassRoom)
-class ClassRoomAdmin(ModelAdmin):
-    list_display = ("name", "code", "department")
-    list_filter = ("department",)
-    search_fields = ("name", "code", "department__name")
+@admin.register(Classroom)
+class ClassroomAdmin(ModelAdmin):
+    list_display = ("name", "code", "department", "academic_year")
+    list_filter = ("department", "academic_year")
+    search_fields = ("name", "code", "department__name", "academic_year__name")
 
 
 @admin.register(Subject)
@@ -52,4 +52,3 @@ class SubjectAssignmentAdmin(ModelAdmin):
     list_display = ("academic_year", "term", "classroom", "specialty", "subject", "coefficient")
     list_filter = ("academic_year", "term", "classroom", "specialty", "subject")
     search_fields = ("classroom__name", "specialty__name", "subject__name", "academic_year__name")
-

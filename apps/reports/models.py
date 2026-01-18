@@ -1,5 +1,5 @@
 from django.db import models
-from apps.academics.models import AcademicYear, Term, ClassRoom
+from apps.academics.models import AcademicYear, Term, Classroom
 from apps.people.models import StudentProfile
 from apps.accounts.models import User
 
@@ -11,7 +11,7 @@ class TermPublishStatus(models.Model):
     """
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="publish_statuses")
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="publish_statuses")
-    classroom = models.ForeignKey(ClassRoom, null=True, blank=True, on_delete=models.CASCADE, related_name="publish_statuses")
+    classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.CASCADE, related_name="publish_statuses")
 
     is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
@@ -43,4 +43,3 @@ class ReportCard(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.type} - {self.academic_year}"
-
