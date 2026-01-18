@@ -15,16 +15,28 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.conf import settings
 
-from weasyprint import HTML
+def _load_weasyprint_html():
+    try:
+        from weasyprint import HTML
+    except Exception as exc:
+        raise RuntimeError(
+            "WeasyPrint dependencies are missing. Install system libraries first."
+        ) from exc
+    return HTML
 
 
-def render_pdf(request, template_name: str, context: dict, filename: str = "document.pdf") -> HttpResponse:
+def render_pdf_bytes(request, template_name: str, context: dict) -> bytes:
     html_string = get_template(template_name).render(context, request=request)
 
     # Base URL lets WeasyPrint resolve /static/ and media URLs.
     base_url = getattr(settings, "WEASYPRINT_BASEURL", None) or request.build_absolute_uri("/")
 
-    pdf_bytes = HTML(string=html_string, base_url=base_url).write_pdf()
+    HTML = _load_weasyprint_html()
+    return HTML(string=html_string, base_url=base_url).write_pdf()
+
+
+def render_pdf(request, template_name: str, context: dict, filename: str = "document.pdf") -> HttpResponse:
+    pdf_bytes = render_pdf_bytes(request, template_name, context)
 
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'inline; filename="{filename}"'
