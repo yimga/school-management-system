@@ -1,0 +1,193 @@
+{% extends "portal_base.html" %}
+{% block title %}Access Control{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">Access Control</h2>
+      <div class="text-muted">Manage roles, permissions, and assignments without the admin panel.</div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Create Role</h5>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="role">
+            {{ role_form.non_field_errors }}
+            <div class="mb-3">
+              <label class="form-label">Code</label>
+              {{ role_form.code }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              {{ role_form.name }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              {{ role_form.description }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Permissions</label>
+              <div class="d-flex flex-column gap-1">
+                {{ role_form.permissions }}
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Create Role</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Create Permission</h5>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="permission">
+            {{ permission_form.non_field_errors }}
+            <div class="mb-3">
+              <label class="form-label">Code</label>
+              {{ permission_form.code }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Name</label>
+              {{ permission_form.name }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              {{ permission_form.description }}
+            </div>
+            <button class="btn btn-outline-primary" type="submit">Create Permission</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-2">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Assign Roles to User</h5>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="user_roles">
+            {{ user_role_form.non_field_errors }}
+            <div class="mb-3">
+              <label class="form-label">User</label>
+              {{ user_role_form.user }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Roles</label>
+              <div class="d-flex flex-column gap-1">
+                {{ user_role_form.roles }}
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Save Roles</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Assign Direct Permissions</h5>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="user_permissions">
+            {{ user_permission_form.non_field_errors }}
+            <div class="mb-3">
+              <label class="form-label">User</label>
+              {{ user_permission_form.user }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Permissions</label>
+              <div class="d-flex flex-column gap-1">
+                {{ user_permission_form.permissions }}
+              </div>
+            </div>
+            <button class="btn btn-outline-primary" type="submit">Save Permissions</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5 class="mb-3">Existing Roles</h5>
+      {% if roles %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Permissions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for role in roles %}
+                <tr>
+                  <td>{{ role.code }}</td>
+                  <td>{{ role.name }}</td>
+                  <td>{{ role.description|default:"—" }}</td>
+                  <td>
+                    {% if role.permissions.all %}
+                      <div class="d-flex flex-wrap gap-1">
+                        {% for perm in role.permissions.all %}
+                          <span class="badge text-bg-light">{{ perm.code }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      <span class="text-muted">No permissions</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-muted">No roles created yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5 class="mb-3">Existing Permissions</h5>
+      {% if permissions %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for permission in permissions %}
+                <tr>
+                  <td>{{ permission.code }}</td>
+                  <td>{{ permission.name }}</td>
+                  <td>{{ permission.description|default:"—" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-muted">No permissions created yet.</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
