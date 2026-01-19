@@ -15,20 +15,7 @@
     </div>
   </div>
 
-  <div class="dashboard-hero mb-4">
-    <div class="d-flex flex-wrap align-items-center gap-3">
-      <div>
-        <div class="hero-title">Total outstanding receivables</div>
-        <div class="hero-value">{{ summary.receivables|floatformat:2 }}</div>
-        <div class="small opacity-75">Includes all issued invoices minus payments</div>
-      </div>
-      <div class="hero-metric">
-        <div><strong>{{ summary.payables|floatformat:2 }}</strong> payables</div>
-        <div><strong>{{ summary.paid|floatformat:2 }}</strong> collected</div>
-        <div><strong>{{ summary.overdue }}</strong> overdue</div>
-      </div>
-    </div>
-  </div>
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
 
   {% include "widgets/finance_dashboard_widgets.html" %}
 

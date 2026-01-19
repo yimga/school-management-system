@@ -77,11 +77,27 @@ def parent_dashboard(request: HttpRequest):
 
     portal_features = _portal_features_status()
     widget_data = parent_dashboard_widget_data([link.student for link in links])
+    hero = {
+        "tagline": "Student Management Dashboard",
+        "title": "Welcome back",
+        "subtitle": "Live snapshot of your learners, attendance, and finances",
+        "icon": "bi-mortarboard",
+        "stats": [
+            {"label": "Linked Students", "value": links.count(), "meta": "Active profiles"},
+            {"label": "Attendance", "value": f"{widget_data['attendance']['overall']}%", "progress": widget_data['attendance']['overall'], "meta": "Completion"},
+            {"label": "Balance", "value": widget_data["finance"]["balance"], "meta": "Outstanding fees"},
+        ],
+        "actions": [
+            {"label": "View Results", "url": "#children"},
+            {"label": "Pay Fees", "url": "/finance/"},
+        ],
+    }
 
     return render(request, "parent/dashboard.html", {
         "links": links,
         "portal_features": portal_features,
         "widget_data": widget_data,
+        "hero": hero,
     })
 
 
