@@ -20,9 +20,19 @@ class TeacherProfileAdmin(ModelAdmin):
 
 @admin.register(StudentProfile)
 class StudentProfileAdmin(ModelAdmin):
-    list_display = ("student_code", "last_name", "first_name", "academic_year", "classroom", "specialty", "is_active", "profile_photo")
+    list_display = (
+        "admission_number",
+        "student_code",
+        "last_name",
+        "first_name",
+        "academic_year",
+        "classroom",
+        "specialty",
+        "is_active",
+        "profile_photo",
+    )
     list_filter = ("academic_year", "classroom", "specialty", "is_active")
-    search_fields = ("student_code", "first_name", "last_name")
+    search_fields = ("student_code", "admission_number", "first_name", "last_name")
 
 
 @admin.register(StudentGuardian)

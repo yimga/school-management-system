@@ -1,5 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.apps import apps as django_apps
+
+import re
+import uuid
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Specialty, Department
@@ -54,8 +58,19 @@ class TeacherProfile(models.Model):
 class StudentProfile(models.Model):
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
-    student_code = models.CharField(max_length=50, unique=True)
+    student_code = models.CharField(max_length=50, unique=True, blank=True)
+    admission_number = models.CharField(max_length=64, unique=True, blank=True, null=True)
     profile_photo = models.ImageField(upload_to="profiles/students/", blank=True, null=True)
+
+    gender = models.CharField(max_length=10, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    place_of_birth = models.CharField(max_length=120, blank=True)
+    status = models.CharField(max_length=20, blank=True)  # NEW | OLD
+    joined_term = models.CharField(max_length=20, blank=True)
+    joined_date = models.DateField(null=True, blank=True)
+    section = models.CharField(max_length=80, blank=True)
+    parent_phone = models.CharField(max_length=50, blank=True)
+    referral_code = models.CharField(max_length=80, blank=True)
 
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="students")
     classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="students")
@@ -68,6 +83,60 @@ class StudentProfile(models.Model):
 
     def __str__(self):
         return f"{self.last_name} {self.first_name} ({self.student_code})"
+
+    @staticmethod
+    def _class_segment(classroom: Classroom) -> str:
+        """
+        Attempt to derive a class/form segment from the classroom code.
+        Falls back to the last character or '00' if none found.
+        """
+        if classroom and classroom.code:
+            match = re.search(r"(\d+)$", classroom.code)
+            if match:
+                return match.group(1)
+            return classroom.code[:2].upper()
+        return "00"
+
+    @classmethod
+    def generate_admission_number(
+        cls,
+        academic_year: AcademicYear,
+        specialty: Specialty,
+        classroom: Classroom,
+    ) -> str:
+        """
+        Build YY-SCHOOLCODE-####-SPEC-CLASS.
+        - YY: start year suffix from AcademicYear.name (first four digits -> last two)
+        - SCHOOLCODE: from SiteSettings.school_code (default GIL)
+        - ####: zero-padded sequence per academic year
+        - SPEC: Specialty.code
+        - CLASS: classroom segment (numeric tail or first two chars)
+        """
+        SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
+        settings = SiteSettings.get_solo()
+        school_code = (settings.school_code or "GIL").upper()
+
+        year_str = (academic_year.name or "")[:4]
+        yy = year_str[-2:] if year_str and year_str[:4].isdigit() else "00"
+
+        seq = cls.objects.filter(academic_year=academic_year).count() + 1
+        seq_str = f"{seq:04d}"
+
+        spec_segment = (specialty.code or "XX").upper()[:6] if specialty else "XX"
+        class_segment = cls._class_segment(classroom)
+
+        return f"{yy}-{school_code}-{seq_str}-{spec_segment}-{class_segment}"
+
+    def save(self, *args, **kwargs):
+        if not self.admission_number and self.academic_year and self.specialty and self.classroom:
+            self.admission_number = self.generate_admission_number(
+                self.academic_year,
+                self.specialty,
+                self.classroom,
+            )
+        if not self.student_code:
+            self.student_code = self.admission_number or f"TEMP-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
 
 
 class StudentGuardian(models.Model):
