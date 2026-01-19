@@ -2,16 +2,31 @@
 {% block title %}Finance Dashboard{% endblock %}
 
 {% block content %}
-  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-3">
     <div>
       <h2 class="mb-0">Finance Dashboard</h2>
       <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
     </div>
     <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:generate_fees' %}">Generate Fee Invoices</a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoices' %}">All Invoices</a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:payments' %}">Payments</a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:trial_balance' %}">Trial Balance</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:generate_fees' %}">Generate Fee Invoices</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:invoices' %}">All Invoices</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:payments' %}">Payments</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:trial_balance' %}">Trial Balance</a>
+    </div>
+  </div>
+
+  <div class="dashboard-hero mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      <div>
+        <div class="hero-title">Total outstanding receivables</div>
+        <div class="hero-value">{{ summary.receivables|floatformat:2 }}</div>
+        <div class="small opacity-75">Includes all issued invoices minus payments</div>
+      </div>
+      <div class="hero-metric">
+        <div><strong>{{ summary.payables|floatformat:2 }}</strong> payables</div>
+        <div><strong>{{ summary.paid|floatformat:2 }}</strong> collected</div>
+        <div><strong>{{ summary.overdue }}</strong> overdue</div>
+      </div>
     </div>
   </div>
 

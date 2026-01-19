@@ -37,6 +37,7 @@ Branch: `phase7-Roadmap` (keep all work here until you’re ready to PR).
 - ✅ Added task tracker, portal quick links, timetable, and communication widgets for parents (see `templates/widgets/parent_dashboard_widgets.html` and `apps/portal/services.py`).
 - ✅ Teacher and admin dashboards now reuse the modern widgets (teacher in `templates/widgets/teacher_dashboard_widgets.html`, finance in `templates/widgets/finance_dashboard_widgets.html`) with updated services for richer KPIs and quick actions.
 - ✅ Added analytics insights to the parent dashboard (high/low subject averages with dedicated widget row) plus card-level styling updates so every dashboard feels more polished.
+- ✅ Introduced a dramatic finance hero banner with gradient colors and quick stats so the admin dashboard now looks bold and modern before the detailed widgets.
 - ✅ Implemented attendance, performance, financial, and event widgets on the parent dashboard plus a reusable partial (`templates/widgets/parent_dashboard_widgets.html`).
 - Add modular layout support (drag-and-drop, stored order per user via `UserPreference.dashboard_layout`) + adaptive rendering per role.
 - Enforce mobile-first styles (≥44x44 tap targets), micro-animations, high contrast theming, dark/light modes, and RTL support via CSS variables and `ThemePack` entries.
