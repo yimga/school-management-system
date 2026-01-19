@@ -216,6 +216,29 @@ a:link, a:visited {
   color: #22314e;
 }
 
+.dashboard-module a.button,
+.module a.button {
+  background: #f1f5f9;
+  border: 1px solid rgba(34, 49, 78, 0.14);
+  color: #1f2937;
+  box-shadow: none;
+}
+
+.dashboard-module a.button.default,
+.module a.button.default {
+  background: #e6ecff;
+  border: 1px solid rgba(124, 144, 191, 0.4);
+  color: #1f2a44;
+}
+
+.dashboard-module a.button:hover,
+.module a.button:hover,
+.button:hover,
+.submit-row input:hover {
+  background: #e8eef8;
+  border-color: rgba(34, 49, 78, 0.22);
+}
+
 #nav-sidebar,
 #nav-sidebar .module {
   background: #0f172a;
@@ -301,6 +324,42 @@ a:link, a:visited {
 .module tbody th, .module tbody td {
   padding: 10px 12px;
   font-size: 14px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.card-neutral {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  padding: 14px 16px;
+}
+
+.card-neutral h4 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+}
+
+.card-neutral .small {
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.stat-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.stat-link:focus-visible .stat-pill,
+.stat-link:hover .stat-pill {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
 }
 
 /* Login */
