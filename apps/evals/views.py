@@ -210,7 +210,7 @@ def teacher_marks_entry(request: HttpRequest):
     if request.method == "POST":
         if not sa:
             messages.error(request, "Please select an assignment first.")
-            return redirect("teacher_marks_entry")
+            return redirect("evals:teacher_marks_entry")
 
         if locked:
             return HttpResponseForbidden("This term is published/locked. Marks entry is disabled.")
@@ -244,7 +244,7 @@ def teacher_marks_entry(request: HttpRequest):
             )
 
         messages.success(request, "Marks saved successfully.")
-        return redirect("teacher_marks_list")
+        return redirect("evals:teacher_marks_list")
 
     # GET: render selection + (optional) student table
     return render(request, "teacher/marks_entry.html", {
@@ -631,7 +631,7 @@ def evaluation_evidence_upload(request: HttpRequest):
         evidence.uploaded_by = request.user
         evidence.save()
         messages.success(request, "Evidence uploaded successfully.")
-        return redirect("evaluation_admin")
+        return redirect("evals:evaluation_admin")
 
     evidence_items = EvaluationEvidence.objects.select_related(
         "evaluation",

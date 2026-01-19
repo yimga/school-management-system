@@ -19,7 +19,7 @@ def redirect_view(request):
         return redirect(reverse("accounts:login"))
 
     if getattr(user, "role", None) == "TEACHER":
-        return redirect("teacher_dashboard")
+        return redirect("evals:teacher_dashboard")
     if getattr(user, "role", None) == "PARENT":
         return redirect("parent_dashboard")
 

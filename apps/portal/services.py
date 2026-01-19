@@ -370,9 +370,9 @@ def teacher_dashboard_widget_data(assignments, progress, year, term):
         })
 
     links = [
-        {"label": "Enter marks", "url": reverse("teacher_marks_entry")},
-        {"label": "View marks", "url": reverse("teacher_marks_list")},
-        {"label": "My assignments", "url": reverse("teacher_dashboard")},
+        {"label": "Enter marks", "url": reverse("evals:teacher_marks_entry")},
+        {"label": "View marks", "url": reverse("evals:teacher_marks_list")},
+        {"label": "My assignments", "url": reverse("evals:teacher_dashboard")},
     ]
 
     return {
