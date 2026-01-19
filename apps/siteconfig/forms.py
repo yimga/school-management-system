@@ -10,7 +10,9 @@ class SiteSettingsForm(forms.ModelForm):
         model = SiteSettings
         fields = [
         # Branding
-        "site_name", "tagline", "logo", "background_image", "brand_font", "custom_css", "theme_pack",
+        "site_name", "tagline", "logo", "background_image", "brand_font",
+        "company_name", "company_address", "company_phone", "company_email", "ministry_registration_code", "company_slug",
+        "custom_css", "theme_pack",
         # Theme
         "primary_color", "accent_color", "use_dark_mode",
         # Behavior
@@ -40,6 +42,12 @@ class SiteSettingsForm(forms.ModelForm):
             "accent_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
             "background_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "brand_font": forms.TextInput(attrs={"class": "form-control"}),
+            "company_name": forms.TextInput(attrs={"class": "form-control"}),
+            "company_address": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "company_phone": forms.TextInput(attrs={"class": "form-control"}),
+            "company_email": forms.EmailInput(attrs={"class": "form-control"}),
+            "ministry_registration_code": forms.TextInput(attrs={"class": "form-control"}),
+            "company_slug": forms.TextInput(attrs={"class": "form-control"}),
             "custom_css": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "theme_pack": forms.Select(attrs={"class": "form-select"}),
             "default_dashboard_view": forms.Select(attrs={"class": "form-select"}),

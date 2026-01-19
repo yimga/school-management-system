@@ -38,6 +38,16 @@ class SiteSettingsAdmin(ModelAdmin):
                 "theme_pack",
             )
         }),
+        ("Company Details", {
+            "fields": (
+                "company_name",
+                "company_slug",
+                "company_address",
+                "company_phone",
+                "company_email",
+                "ministry_registration_code",
+            )
+        }),
         ("Theme & Experience", {
             "fields": (
                 "primary_color",

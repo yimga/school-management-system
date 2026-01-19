@@ -39,6 +39,12 @@ class SiteSettings(models.Model):
     logo = models.ImageField(upload_to="branding/", blank=True, null=True)
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
+    company_name = models.CharField(max_length=160, blank=True, default="")
+    company_address = models.TextField(blank=True, default="")
+    company_phone = models.CharField(max_length=50, blank=True, default="")
+    company_email = models.EmailField(blank=True, default="")
+    ministry_registration_code = models.CharField(max_length=80, blank=True, default="")
+    company_slug = models.SlugField(max_length=120, blank=True, default="")
 
     # Theme configuration
     primary_color = models.CharField(max_length=20, default="#0d6efd")

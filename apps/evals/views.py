@@ -5,7 +5,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 import csv
 from decimal import Decimal
 
-from apps.accounts.decorators import role_required
+from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
 from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Term
 from apps.academics.services import get_active_year_and_term
@@ -68,6 +68,7 @@ def _required_fields_for_evaluation(evaluation: Evaluation) -> list[str]:
     return fields or ["seq1_score", "seq2_score", "exam_score"]
 
 
+@teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_dashboard(request: HttpRequest):
     teacher = get_object_or_404(TeacherProfile, user=request.user)
@@ -116,6 +117,7 @@ def teacher_dashboard(request: HttpRequest):
         "progress": progress,
     })
 
+@teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_marks_entry(request: HttpRequest):
     teacher = get_object_or_404(TeacherProfile, user=request.user)
@@ -241,6 +243,7 @@ def teacher_marks_entry(request: HttpRequest):
         "total_students": total_students_count if selected_sa_id else 0,
     })
 
+@teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_marks_list(request: HttpRequest):
     teacher = get_object_or_404(TeacherProfile, user=request.user)

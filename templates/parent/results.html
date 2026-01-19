@@ -17,13 +17,64 @@
   </div>
 </div>
 
-<div class="card mb-3">
-  <div class="card-body">
-    <b>Student:</b> {{ student.last_name }} {{ student.first_name }} ({{ student.student_code }})<br/>
-    <b>Class:</b> {{ student.classroom.name }} / {{ student.specialty.name }}<br/>
-    <b>Year:</b> {{ year.name }} | <b>Term:</b> {{ term.get_name_display }}
+  <div class="card mb-3">
+    <div class="card-body">
+      <b>Student:</b> {{ student.last_name }} {{ student.first_name }} ({{ student.student_code }})<br/>
+      <b>Class:</b> {{ student.classroom.name }} / {{ student.specialty.name }}<br/>
+      <b>Year:</b> {{ year.name }} | <b>Term:</b> {{ term.get_name_display }}
+    </div>
   </div>
-</div>
+
+  {% if published and summary %}
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <div class="card h-100 border-primary">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Performance</h6>
+              <span class="badge bg-light text-dark">{{ summary.promotion_status }}</span>
+            </div>
+            <h3 class="fw-bold mb-1">{{ summary.average|default:"-"|floatformat:2 }}</h3>
+            <div class="text-muted small">
+              Class: {{ summary.class_position|default:"-" }} / {{ summary.class_size|default:"-" }}<br/>
+              School: {{ summary.school_position|default:"-" }} / {{ summary.school_size|default:"-" }}
+            </div>
+            {% if summary.teacher_remark %}
+              <div class="mt-2 small">
+                <strong>Teacher remark:</strong> {{ summary.teacher_remark }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-success">
+          <div class="card-body">
+            <h6 class="mb-2">Weights</h6>
+            <div class="text-muted small">
+              Seq1 {{ weights.seq1_weight }}% · Seq2 {{ weights.seq2_weight }}%<br/>
+              Exam {{ weights.exam_weight }}% · Mock {{ weights.mock_weight }}% · Pract {{ weights.practical_weight }}%
+            </div>
+            <div class="progress mt-3" style="height:6px;">
+              <div class="progress-bar" role="progressbar" style="width: {{ completion_pct }}%;" aria-valuenow="{{ completion_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <small class="text-muted d-block mt-1">{{ completed_count }} of {{ rows|length }} subjects complete.</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-info">
+          <div class="card-body">
+            <h6 class="mb-2">Next steps</h6>
+            <p class="mb-2 small text-muted">
+              Use the grading weights to know what matters most. If you need clarity, request a follow-up from your child’s teachers using the portal messaging tool.
+            </p>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:portal_feature' 'messaging' %}">Open messaging</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 
 {% if not published %}
   <div class="alert alert-danger"><b>Not published yet.</b> Please check back later.</div>
