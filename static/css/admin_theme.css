@@ -10,7 +10,7 @@
 }
 
 body {
-  background: linear-gradient(180deg, #f8fbff 0%, #fdf7fb 100%);
+  background: linear-gradient(180deg, #f8fbff 0%, #fefefe 100%);
   color: var(--admin-ink);
   min-height: 100vh;
 }
@@ -18,7 +18,7 @@ body {
 #header {
   background: linear-gradient(115deg, var(--admin-primary) 0%, var(--admin-secondary) 55%, #172554 100%);
   border-bottom: none;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.10);
 }
 
 #branding h1,
@@ -35,16 +35,16 @@ body {
 .module {
   background: var(--admin-card);
   border: 1px solid var(--admin-border);
-  border-radius: 18px;
-  box-shadow: var(--admin-shadow);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
 }
 
 .module h2, .module caption {
   background: #fff;
   color: var(--admin-ink);
   border-bottom: 1px solid var(--admin-border);
-  border-radius: 18px 18px 0 0;
-  padding: 0.9em 1.2em;
+  border-radius: 14px 14px 0 0;
+  padding: 0.85em 1em;
 }
 
 .module table {
@@ -54,11 +54,11 @@ body {
 }
 
 .module tbody tr:nth-child(odd) {
-  background: rgba(15, 23, 42, 0.02);
+  background: rgba(15, 23, 42, 0.015);
 }
 
 .module tbody tr:hover {
-  background: rgba(45, 212, 191, 0.08);
+  background: rgba(34, 49, 78, 0.06);
 }
 
 #content-related .module,
@@ -81,13 +81,16 @@ a:link, a:visited {
 .submit-row input.default {
   background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
   border: none;
-  box-shadow: 0 12px 24px rgba(255, 106, 136, 0.2);
+  box-shadow: 0 10px 20px rgba(255, 106, 136, 0.18);
 }
 
 .button,
 .submit-row input {
   border-radius: 12px;
   padding: 8px 14px;
+  background: #f7f9fc;
+  border: 1px solid rgba(34, 49, 78, 0.12);
+  color: #22314e;
 }
 
 .kpi-bar {
@@ -102,7 +105,7 @@ a:link, a:visited {
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: 16px;
   padding: 12px 14px;
-  box-shadow: 0 12px 22px rgba(0,0,0,0.12);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.10);
   min-width: 180px;
 }
 
@@ -199,6 +202,15 @@ a:link, a:visited {
 
 #nav-sidebar .current-model {
   background: rgba(255, 255, 255, 0.08);
+}
+
+#nav-sidebar a:hover {
+  color: #fff;
+}
+
+.module tbody th, .module tbody td {
+  padding: 10px 12px;
+  font-size: 14px;
 }
 
 /* Login */
