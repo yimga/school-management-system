@@ -22,6 +22,11 @@ def maintenance_view(request):
 
 @staff_member_required
 def customizer(request):
+    messages.info(
+        request,
+        "Customizer has moved into Site Settings. Use Preferences to adjust appearance and theme packs.",
+    )
+    return redirect("siteconfig:user_preferences")
     settings_obj = SiteSettings.get_solo()
 
     if request.method == "POST":
@@ -87,9 +92,10 @@ def customizer(request):
 
 @staff_member_required
 def clear_preview(request):
+    return redirect("siteconfig:user_preferences")
     request.session.pop(SESSION_KEY, None)
     messages.info(request, "Preview cleared.")
-    return redirect("siteconfig:customizer")
+    return redirect("siteconfig:user_preferences")
 
 
 @login_required
