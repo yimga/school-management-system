@@ -16,7 +16,7 @@ def redirect_view(request):
     """
     user = request.user
     if not user.is_authenticated:
-        return redirect(reverse("login"))
+        return redirect(reverse("accounts:login"))
 
     if getattr(user, "role", None) == "TEACHER":
         return redirect("teacher_dashboard")
@@ -99,4 +99,4 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect(reverse("login"))
+    return redirect(reverse("accounts:login"))

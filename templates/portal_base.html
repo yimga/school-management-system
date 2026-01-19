@@ -105,7 +105,7 @@
             <span class="small opacity-75 d-none d-sm-inline">{{ request.user.username }}</span>
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">Logout</a>
           {% else %}
-            <a class="btn btn-sm btn-outline-light" href="{% url 'login' %}">Login</a>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
           {% endif %}
         </div>
       </div>
