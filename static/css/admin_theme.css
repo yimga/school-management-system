@@ -1,4 +1,4 @@
-/* Warm, modern admin styling override */
+/* Warm but clean admin styling */
 :root {
   --admin-ink: #0f172a;
   --admin-primary: #ff6a88;
@@ -6,23 +6,19 @@
   --admin-accent: #2dd4bf;
   --admin-card: #ffffff;
   --admin-border: rgba(15, 23, 42, 0.08);
-  --admin-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+  --admin-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
 }
 
 body {
-  background:
-    radial-gradient(circle at 18% 20%, rgba(255, 106, 136, 0.20), transparent 32%),
-    radial-gradient(circle at 82% 15%, rgba(155, 107, 255, 0.22), transparent 34%),
-    radial-gradient(circle at 20% 78%, rgba(45, 212, 191, 0.18), transparent 32%),
-    linear-gradient(180deg, #fff7f2 0%, #f3f0ff 55%, #f0fbff 100%);
+  background: linear-gradient(180deg, #f8fbff 0%, #fdf7fb 100%);
   color: var(--admin-ink);
   min-height: 100vh;
 }
 
 #header {
-  background: linear-gradient(115deg, var(--admin-primary) 0%, var(--admin-secondary) 50%, #172554 100%);
+  background: linear-gradient(115deg, var(--admin-primary) 0%, var(--admin-secondary) 55%, #172554 100%);
   border-bottom: none;
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
 }
 
 #branding h1,
@@ -44,7 +40,7 @@ body {
 }
 
 .module h2, .module caption {
-  background: linear-gradient(135deg, rgba(255, 106, 136, 0.12), rgba(155, 107, 255, 0.08));
+  background: #fff;
   color: var(--admin-ink);
   border-bottom: 1px solid var(--admin-border);
   border-radius: 18px 18px 0 0;
@@ -52,8 +48,9 @@ body {
 }
 
 .module table {
-  border-radius: 0 0 16px 16px;
+  border-radius: 12px;
   overflow: hidden;
+  background: #fff;
 }
 
 .module tbody tr:nth-child(odd) {
@@ -61,12 +58,12 @@ body {
 }
 
 .module tbody tr:hover {
-  background: rgba(45, 212, 191, 0.12);
+  background: rgba(45, 212, 191, 0.08);
 }
 
 #content-related .module,
 div.breadcrumbs {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--admin-border);
   border-radius: 16px;
   box-shadow: var(--admin-shadow);
@@ -77,14 +74,14 @@ div.breadcrumbs {
 }
 
 a:link, a:visited {
-  color: var(--admin-primary);
+  color: #22314e;
 }
 
 .button.default,
 .submit-row input.default {
   background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
   border: none;
-  box-shadow: 0 12px 24px rgba(255, 106, 136, 0.25);
+  box-shadow: 0 12px 24px rgba(255, 106, 136, 0.2);
 }
 
 .button,
@@ -101,11 +98,11 @@ a:link, a:visited {
 }
 
 .kpi-pill {
-  background: linear-gradient(135deg, rgba(255, 106, 136, 0.16), rgba(155, 107, 255, 0.18));
-  border: 1px solid var(--admin-border);
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255,255,255,0.18);
   border-radius: 16px;
   padding: 12px 14px;
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 12px 22px rgba(0,0,0,0.12);
   min-width: 180px;
 }
 
@@ -113,12 +110,13 @@ a:link, a:visited {
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(15, 23, 42, 0.65);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .kpi-pill .kpi-value {
   font-size: 1.6rem;
   font-weight: 700;
+  color: #fff;
 }
 
 .admin-hero {
@@ -126,7 +124,7 @@ a:link, a:visited {
   padding: 22px;
   background: linear-gradient(120deg, #0d1b3b 0%, #2f3fa9 45%, #9b6bff 100%);
   color: #fff;
-  box-shadow: 0 16px 36px rgba(0,0,0,0.18);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.16);
   margin-bottom: 18px;
   border: 1px solid rgba(255,255,255,0.2);
 }
@@ -171,7 +169,36 @@ a:link, a:visited {
 
 .admin-hero .btn {
   border-radius: 12px;
-  box-shadow: 0 12px 22px rgba(0,0,0,0.18);
+  box-shadow: 0 12px 22px rgba(0,0,0,0.16);
+}
+
+.dashboard-module table caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 0.85em 1em;
+}
+
+.dashboard-module a,
+.module a {
+  color: #22314e;
+}
+
+#nav-sidebar,
+#nav-sidebar .module {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: none;
+  box-shadow: none;
+}
+
+#nav-sidebar a {
+  color: #e2e8f0;
+}
+
+#nav-sidebar .current-model {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Login */
