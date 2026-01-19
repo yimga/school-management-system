@@ -33,6 +33,7 @@ def parent_dashboard_widget_data(
         "access": _portal_access_links(),
         "timetable": _timetable_overview(students, year, term),
         "communication": _communication_center(),
+        "analytics": _analytics_insights(students, year, term),
     }
 
 
@@ -246,6 +247,42 @@ def _communication_center():
         "items": items,
         "cta": "Start a chat on WhatsApp" if whatsapp else "Connect with us",
         "note": "We also send reminders via SMS/email; update preferences in portal settings.",
+    }
+
+
+def _analytics_insights(students, year, term):
+    if not students or not year or not term:
+        return {
+            "highlights": [],
+            "lowlights": [],
+            "label": "Analytics populate as teachers publish evaluations.",
+        }
+
+    evals = Evaluation.objects.filter(
+        student__in=students,
+        academic_year=year,
+        term=term,
+    ).select_related("subject_assignment__subject")
+
+    subject_totals: dict[str, dict[str, float]] = {}
+    for e in evals:
+        subj = e.subject_assignment.subject.name if e.subject_assignment_id else "General"
+        subject_totals.setdefault(subj, {"total": 0.0, "count": 0})
+        subject_totals[subj]["total"] += float(e.total_score or 0.0)
+        subject_totals[subj]["count"] += 1
+
+    averages = []
+    for subject, data in subject_totals.items():
+        if data["count"] == 0:
+            continue
+        averages.append({"subject": subject, "average": round(data["total"] / data["count"], 2)})
+
+    averages.sort(key=lambda x: x["average"], reverse=True)
+
+    return {
+        "highlights": averages[:3],
+        "lowlights": averages[-3:],
+        "label": "Top/bottom subjects based on published evaluations.",
     }
 
 

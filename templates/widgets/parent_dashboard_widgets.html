@@ -159,3 +159,37 @@
     </div>
   {% endwith %}
 {% endif %}
+
+{% if widget_data.analytics %}
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm p-3">
+        <div class="widget-title mb-2">{{ widget_data.analytics.label }}</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="widget-grid">
+              {% for item in widget_data.analytics.highlights %}
+                <div class="widget-card border">
+                  <div class="fw-semibold">{{ item.subject }}</div>
+                  <div class="display-6 text-success">{{ item.average }}</div>
+                  <div class="text-muted small">Top subject</div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="widget-grid">
+              {% for item in widget_data.analytics.lowlights %}
+                <div class="widget-card border">
+                  <div class="fw-semibold">{{ item.subject }}</div>
+                  <div class="display-6 text-danger">{{ item.average }}</div>
+                  <div class="text-muted small">Needs attention</div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
