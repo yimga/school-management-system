@@ -92,7 +92,6 @@ def customizer(request):
 
 @staff_member_required
 def clear_preview(request):
-    return redirect("siteconfig:user_preferences")
     request.session.pop(SESSION_KEY, None)
     messages.info(request, "Preview cleared.")
     return redirect("siteconfig:user_preferences")
