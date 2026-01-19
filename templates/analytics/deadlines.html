@@ -1,0 +1,101 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Grading Deadlines{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Grading Deadlines</h2>
+    <div class="text-muted">Manage custom deadlines by term and classroom.</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:dashboard' %}">Back to Analytics</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small">Academic year</label>
+        <select class="form-select" name="year">
+          {% for y in years %}
+            <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">Term</label>
+        <select class="form-select" name="term">
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-grid">
+        <button class="btn btn-outline-primary">Load</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="post" class="row g-2 align-items-end">
+      {% csrf_token %}
+      <input type="hidden" name="year" value="{{ year.id }}">
+      <input type="hidden" name="term" value="{{ term.id }}">
+      <div class="col-md-4">
+        <label class="form-label small">Classroom</label>
+        <select class="form-select" name="classroom">
+          <option value="">Whole school</option>
+          {% for c in classrooms %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">Deadline</label>
+        <input class="form-control" type="datetime-local" name="deadline_at" required>
+      </div>
+      <div class="col-md-4 d-grid">
+        <button class="btn btn-primary" type="submit">Save Deadline</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Scope</th>
+            <th>Deadline</th>
+            <th style="width:120px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in deadlines %}
+            <tr>
+              <td>{{ d.classroom.name|default:"Whole school" }}</td>
+              <td>{{ d.deadline_at|date:"Y-m-d H:i" }}</td>
+              <td class="text-end">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="year" value="{{ year.id }}">
+                  <input type="hidden" name="term" value="{{ term.id }}">
+                  <input type="hidden" name="deadline_id" value="{{ d.id }}">
+                  <input type="hidden" name="action" value="delete">
+                  <button class="btn btn-outline-danger btn-sm" type="submit">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="text-muted">No custom deadlines set for this term.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

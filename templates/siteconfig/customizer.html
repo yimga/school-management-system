@@ -116,6 +116,45 @@
       </div>
     </div>
 
+    <hr class="my-4">
+
+    <h5 class="mb-3">Analytics</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label class="form-label">Top students default limit</label>
+        {{ form.top_students_default_limit }}
+        {% for e in form.top_students_default_limit.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Pass mark</label>
+        {{ form.pass_mark }}
+        {% for e in form.pass_mark.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Weak subject threshold</label>
+        {{ form.weak_subject_threshold }}
+        {% for e in form.weak_subject_threshold.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Improvement delta threshold</label>
+        {{ form.improvement_delta_threshold }}
+        {% for e in form.improvement_delta_threshold.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Deadline mode</label>
+        {{ form.deadline_mode }}
+        {% for e in form.deadline_mode.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          {{ form.use_promotion_rule_for_pass }}
+          <label class="form-check-label ms-1" for="{{ form.use_promotion_rule_for_pass.id_for_label }}">
+            Use promotion rule for pass mark
+          </label>
+        </div>
+      </div>
+    </div>
+
     <div class="d-flex gap-2">
       <button class="btn btn-primary" name="_action" value="save" type="submit">Save Settings</button>
 

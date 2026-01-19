@@ -1,0 +1,411 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Analytics Dashboard</h2>
+    <div class="text-muted">School-wide performance insights based on submitted scores.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:master_sheet' %}">Master Sheet</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:deadlines' %}">Grading Deadlines</a>
+  </div>
+</div>
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-2">
+        <label class="form-label small">Academic year</label>
+        <select class="form-select" name="year">
+          {% for y in years %}
+            <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Term</label>
+        <select class="form-select" name="term">
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Classroom</label>
+        <select class="form-select" name="classroom">
+          <option value="">All</option>
+          {% for c in classrooms %}
+            <option value="{{ c.id }}" {% if selected_classroom and c.id == selected_classroom.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Specialty</label>
+        <select class="form-select" name="specialty">
+          <option value="">All</option>
+          {% for s in specialties %}
+            <option value="{{ s.id }}" {% if selected_specialty and s.id == selected_specialty.id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Top students</label>
+        <input class="form-control" type="number" name="top_n" min="1" max="100" value="{{ top_n }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Deadline mode</label>
+        <select class="form-select" name="deadline_mode">
+          {% for value, label in deadline_modes %}
+            <option value="{{ value }}" {% if value == deadline_mode %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Pass period</label>
+        <select class="form-select" name="pass_period">
+          <option value="term" {% if pass_period == "term" %}selected{% endif %}>Term</option>
+          <option value="annual" {% if pass_period == "annual" %}selected{% endif %}>Annual</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Pass mark</label>
+        <input class="form-control" type="number" step="0.01" name="pass_mark" value="{{ pass_mark }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Weak subject threshold</label>
+        <input class="form-control" type="number" step="0.01" name="weak_threshold" value="{{ weak_threshold }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Improvement delta</label>
+        <input class="form-control" type="number" step="0.01" name="improve_delta" value="{{ improve_delta }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Improve from</label>
+        <select class="form-select" name="improve_from">
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if improve_from and t.id == improve_from.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">Improve to</label>
+        <select class="form-select" name="improve_to">
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if improve_to and t.id == improve_to.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="use_promotion_rule" value="1" id="usePromotionRule" {% if use_promotion_rule %}checked{% endif %}>
+          <label class="form-check-label" for="usePromotionRule">Use promotion rule</label>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100">Apply Filters</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+{% if selected_classroom %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="mb-2">Ranking per class</h5>
+      <div class="text-muted small mb-2">{{ selected_classroom.name }} - {{ term.get_name_display }}</div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th style="width:80px;">Rank</th>
+              <th>Student</th>
+              <th class="text-end">Average</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in class_rankings %}
+              <tr>
+                <td><span class="badge bg-dark">{{ forloop.counter }}</span></td>
+                <td>{{ row.0 }}</td>
+                <td class="text-end">{{ row.1|floatformat:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-muted">No data for this class/term.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Top students (class, term)</h5>
+        {% if selected_classroom %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th style="width:80px;">Rank</th>
+                  <th>Student</th>
+                  <th class="text-end">Average</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in top_class_students %}
+                  <tr>
+                    <td><span class="badge bg-primary">{{ row.rank }}</span></td>
+                    <td>{{ row.student }}</td>
+                    <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="3" class="text-muted">Select a classroom to view.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-muted">Select a classroom to see class rankings.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Top students (school, term)</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width:80px;">Rank</th>
+                <th>Student</th>
+                <th class="text-end">Average</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in top_school_students %}
+                <tr>
+                  <td><span class="badge bg-primary">{{ row.rank }}</span></td>
+                  <td>{{ row.student }}</td>
+                  <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-muted">No data for this term.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Top students (class, annual)</h5>
+        {% if selected_classroom %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th style="width:80px;">Rank</th>
+                  <th>Student</th>
+                  <th class="text-end">Average</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in top_annual_class %}
+                  <tr>
+                    <td><span class="badge bg-success">{{ row.rank }}</span></td>
+                    <td>{{ row.student }}</td>
+                    <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="3" class="text-muted">Select a classroom to view.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-muted">Select a classroom to see class rankings.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Top students (school, annual)</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width:80px;">Rank</th>
+                <th>Student</th>
+                <th class="text-end">Average</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in top_annual_school %}
+                <tr>
+                  <td><span class="badge bg-success">{{ row.rank }}</span></td>
+                  <td>{{ row.student }}</td>
+                  <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-muted">No data for annual ranking.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Weak subject focus</h5>
+        <div class="text-muted small mb-2">Subjects below the selected threshold.</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th class="text-end">Average</th>
+                <th class="text-end">Entries</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in weak_subjects %}
+                <tr>
+                  <td>{{ row.subject.name }}</td>
+                  <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.count }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="3" class="text-muted">No weak subjects found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Student improvement list</h5>
+        <div class="text-muted small mb-2">Students whose averages improved between terms.</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th class="text-end">From</th>
+                <th class="text-end">To</th>
+                <th class="text-end">Delta</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in improvements %}
+                <tr>
+                  <td>{{ row.student }}</td>
+                  <td class="text-end">{{ row.from_average|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.to_average|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.delta|floatformat:2 }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-muted">No improvements matched the threshold.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Teacher deadline compliance</h5>
+        <div class="text-muted small mb-2">Based on selected deadline mode.</div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Teacher</th>
+                <th class="text-end">Expected</th>
+                <th class="text-end">On time</th>
+                <th class="text-end">Late</th>
+                <th class="text-end">Missing</th>
+                <th class="text-end">On-time %</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in teacher_stats %}
+                <tr>
+                  <td>{{ row.teacher }}</td>
+                  <td class="text-end">{{ row.expected }}</td>
+                  <td class="text-end">{{ row.on_time }}</td>
+                  <td class="text-end">{{ row.late }}</td>
+                  <td class="text-end">{{ row.missing }}</td>
+                  <td class="text-end">{{ row.on_time_rate|floatformat:2 }}%</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" class="text-muted">No teacher data for this term.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Specialty pass rates</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Specialty</th>
+                <th class="text-end">Passed</th>
+                <th class="text-end">Total</th>
+                <th class="text-end">Missing</th>
+                <th class="text-end">Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in specialty_rates %}
+                <tr>
+                  <td>{{ row.specialty.name }}</td>
+                  <td class="text-end">{{ row.passed }}</td>
+                  <td class="text-end">{{ row.total }}</td>
+                  <td class="text-end">{{ row.missing }}</td>
+                  <td class="text-end">{{ row.rate|floatformat:2 }}%</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="5" class="text-muted">No data for specialties.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

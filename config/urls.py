@@ -38,6 +38,7 @@ urlpatterns = [
     path('evals/', include('apps.evals.urls')),
     path('portal/', include('apps.portal.urls')),
     path('reports/', include('apps.reports.urls')),
+    path('analytics/', include('apps.analytics.urls')),
 ]
 
 if settings.DEBUG:

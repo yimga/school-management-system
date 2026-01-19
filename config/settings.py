@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.people",
     "apps.reports",
     "apps.siteconfig",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [

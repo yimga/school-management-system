@@ -53,6 +53,16 @@ class SiteSettingsAdmin(ModelAdmin):
                 "enable_reports_pdf",
             )
         }),
+        ("Analytics Defaults", {
+            "fields": (
+                "top_students_default_limit",
+                "pass_mark",
+                "use_promotion_rule_for_pass",
+                "weak_subject_threshold",
+                "improvement_delta_threshold",
+                "deadline_mode",
+            )
+        }),
         ("Metadata", {
             "fields": ("updated_at",),
         }),
