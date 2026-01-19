@@ -26,21 +26,42 @@
     <div class="stat-grid">
       <div class="stat-pill">
         <div class="stat-label">{% trans "Apps" %}</div>
-          <div class="stat-value">{{ app_list|length }}</div>
-          <div class="small opacity-80">{% trans "Registered modules" %}</div>
-        </div>
-        <div class="stat-pill">
-          <div class="stat-label">{% trans "Recent actions" %}</div>
-          <div class="stat-value">↗</div>
-          <div class="small opacity-80">{% trans "See audit log on the right" %}</div>
-        </div>
+        <div class="stat-value">{{ app_list|length }}</div>
+        <div class="small opacity-80">{% trans "Registered modules" %}</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label">{% trans "System health" %}</div>
+        <div class="stat-value">✓</div>
+        <div class="small opacity-80">{% trans "Checks ready to run" %}</div>
       </div>
     </div>
   </div>
+</div>
 
-  {% if app_list %}
-    <div class="module">
-      <h2>{% trans "Applications" %}</h2>
+<div class="card-grid">
+  <div class="card-neutral">
+    <h4>{% trans "Quick actions" %}</h4>
+    <div class="d-flex flex-wrap gap-2">
+      {% if add_user_url %}<a class="button default" href="{{ add_user_url }}">{% trans "Add User" %}</a>{% endif %}
+      {% if roles_url %}<a class="button" href="{{ roles_url }}">{% trans "Manage Roles" %}</a>{% endif %}
+      {% if settings_url %}<a class="button" href="{{ settings_url }}">{% trans "Site Settings" %}</a>{% endif %}
+    </div>
+  </div>
+  <div class="card-neutral">
+    <h4>{% trans "Theme & appearance" %}</h4>
+    <p class="small mb-2">{% trans "Adjust theme packs and colors from Site Settings." %}</p>
+    {% if settings_url %}<a class="button" href="{{ settings_url }}">{% trans "Open Theme settings" %}</a>{% endif %}
+  </div>
+  <div class="card-neutral">
+    <h4>{% trans "Recent actions" %}</h4>
+    <p class="small mb-2">{% trans "See audit log on the right sidebar." %}</p>
+    <a class="button" href="/admin/">↗ {% trans "Open audit log" %}</a>
+  </div>
+</div>
+
+{% if app_list %}
+  <div class="module">
+    <h2>{% trans "Applications" %}</h2>
       {% for app in app_list %}
         <div class="dashboard-module mb-3" id="app-{{ app.app_label }}">
           <table>
