@@ -24,6 +24,8 @@ from .models import (
     TaxBracket,
     PaymentReminder,
     PaymentReminderLog,
+    Notification,
+    ReportRequest,
 )
 
 
@@ -160,3 +162,17 @@ class GrantAdmin(ModelAdmin):
     list_display = ("name", "funder", "amount", "start_date", "end_date")
     search_fields = ("name", "funder")
     inlines = [GrantAllocationInline]
+
+
+@admin.register(Notification)
+class NotificationAdmin(ModelAdmin):
+    list_display = ("title", "severity", "is_read", "created_at", "created_by")
+    list_filter = ("severity", "is_read")
+    search_fields = ("title", "message", "created_by__username")
+
+
+@admin.register(ReportRequest)
+class ReportRequestAdmin(ModelAdmin):
+    list_display = ("report_type", "requested_by", "status", "created_at")
+    list_filter = ("report_type", "status")
+    search_fields = ("requested_by__username", "description")

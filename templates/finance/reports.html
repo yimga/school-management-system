@@ -1,0 +1,123 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Finance Reports{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Finance Intelligence</h2>
+    <div class="text-muted">Reports, overdue insights, and payroll liabilities.</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:notifications' %}">Notifications</a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Collection rate</h5>
+        <div class="display-6 fw-semibold">{{ collection_rate|floatformat:2 }}%</div>
+        <p class="text-muted small mb-0">Paid vs issued invoices</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Payroll liabilities (all runs)</h5>
+        <div class="row g-2">
+          <div class="col-6">
+            <div class="text-muted small">Employee contributions</div>
+            <div class="fw-semibold">{{ liabilities.total_employee|default:"0.00" }}</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted small">Employer contributions</div>
+            <div class="fw-semibold">{{ liabilities.total_employer|default:"0.00" }}</div>
+          </div>
+        </div>
+        <div class="text-muted small mt-2">Taxes withheld: {{ liabilities.total_taxes|default:"0.00" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="mb-3">Overdue by classroom</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Classroom</th>
+                <th class="text-end">Overdue</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in overdue %}
+                <tr>
+                  <td>{{ row.student__classroom__name|default:"Unassigned" }}</td>
+                  <td class="text-end">{{ row.overdue_total }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="2" class="text-muted">No overdue invoices.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h5 class="mb-3">Report requests</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Requested by</th>
+                <th>Status</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in report_form.instance.report_requests.all %}
+                <tr>
+                  <td>{{ req.get_report_type_display }}</td>
+                  <td>{{ req.requested_by }}</td>
+                  <td>{{ req.get_status_display }}</td>
+                  <td>{{ req.created_at|date:"M d, Y" }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-muted">No report requests yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-3">Request a custom report</h5>
+        <form method="post" action="{% url 'finance:report_request' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Report type</label>
+            {{ report_form.report_type }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Details</label>
+            {{ report_form.description }}
+          </div>
+          <button class="btn btn-primary">Submit request</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

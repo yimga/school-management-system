@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
+from calendar import monthrange
 from decimal import Decimal
-from django.template.loader import render_to_string
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import models
+from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import (
     HttpRequest,
@@ -20,10 +21,23 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
+from django.template.loader import render_to_string
+
 from apps.academics.models import AcademicYear
+from apps.payroll.models import Payslip
 from apps.siteconfig.models import SiteSettings
 
-from .models import ComplianceProfile, FeePlan, Invoice, LedgerAccount, Payment, PaymentMethod
+from .forms import ReportRequestForm
+from .models import (
+    ComplianceProfile,
+    FeePlan,
+    Invoice,
+    LedgerAccount,
+    Notification,
+    Payment,
+    PaymentMethod,
+    ReportRequest,
+)
 from .services import (
     PROVIDER_SLUG_TO_METHOD,
     create_fee_invoices,
@@ -270,3 +284,96 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return JsonResponse({"status": "ignored"})
 
     return JsonResponse({"status": "ok", "payment_id": payment.id})
+
+
+@staff_member_required
+def finance_reports(request: HttpRequest):
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+
+    today = timezone.localdate()
+    arrears_qs = Invoice.objects.filter(
+        profile=profile,
+        balance_amount__gt=0,
+        due_date__lt=today,
+    ).select_related("student__classroom", "student__specialty")
+
+    overdue_by_class = arrears_qs.values(
+        "student__classroom__name"
+    ).annotate(overdue_total=Sum("balance_amount"))
+
+    total_ar = Invoice.objects.filter(profile=profile, invoice_type=Invoice.InvoiceType.AR).aggregate(
+        total=Sum("total_amount"),
+        balance=Sum("balance_amount"),
+    )
+    paid_total = Invoice.objects.filter(
+        profile=profile,
+        invoice_type=Invoice.InvoiceType.AR,
+        status=Invoice.Status.PAID,
+    ).aggregate(total=Sum("total_amount"))["total"] or Decimal("0.00")
+    issued_total = total_ar.get("total") or Decimal("0.00")
+    collection_rate = (paid_total / issued_total * 100) if issued_total else Decimal("0.00")
+
+    payroll_liabilities = Payslip.objects.filter(
+        payroll_run__profile=profile
+    ).aggregate(
+        total_taxes=Sum("tax_amount"),
+        total_employee=Sum("employee_contributions"),
+        total_employer=Sum("employer_contributions"),
+    )
+
+    report_form = ReportRequestForm()
+
+    return render(request, "finance/reports.html", {
+        "profile": profile,
+        "overdue": overdue_by_class,
+        "collection_rate": collection_rate,
+        "liabilities": payroll_liabilities,
+        "report_form": report_form,
+    })
+
+
+@staff_member_required
+def submit_report_request(request: HttpRequest):
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+
+    if request.method != "POST":
+        return redirect("finance:reports")
+
+    form = ReportRequestForm(request.POST)
+    if form.is_valid():
+        report = form.save(commit=False)
+        report.requested_by = request.user
+        report.save()
+        Notification.objects.create(
+            title="Report request received",
+            message=f"{request.user.get_full_name()} requested {report.get_report_type_display()}",
+            severity=Notification.Severity.INFO,
+            created_by=request.user,
+        )
+        messages.success(request, "Report request logged. We will notify you once ready.")
+        return redirect("finance:reports")
+
+    messages.error(request, "Please fix the errors below.")
+    return render(request, "finance/reports.html", {
+        "profile": profile,
+        "overdue": [],
+        "collection_rate": Decimal("0.00"),
+        "liabilities": {},
+        "report_form": form,
+    })
+
+
+@staff_member_required
+def notifications(request: HttpRequest):
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+
+    alerts = Notification.objects.order_by("-created_at")[:25]
+    return render(request, "finance/notifications.html", {
+        "alerts": alerts,
+    })

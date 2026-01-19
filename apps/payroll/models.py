@@ -151,6 +151,8 @@ class PayrollRun(models.Model):
     class Status(models.TextChoices):
         DRAFT = "DRAFT", "Draft"
         PROCESSED = "PROCESSED", "Processed"
+        REVIEWED = "REVIEWED", "Reviewed"
+        APPROVED = "APPROVED", "Approved"
         PAID = "PAID", "Paid"
 
     profile = models.ForeignKey(ComplianceProfile, on_delete=models.PROTECT, related_name="payroll_runs")
@@ -174,6 +176,26 @@ class PayrollRun(models.Model):
 
     def __str__(self) -> str:
         return f"Payroll {self.period_start} - {self.period_end}"
+
+
+class PayrollRunApproval(models.Model):
+    run = models.ForeignKey(PayrollRun, on_delete=models.CASCADE, related_name="approvals")
+    status = models.CharField(max_length=20, choices=PayrollRun.Status.choices)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_payroll_runs",
+    )
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.run} -> {self.status}"
 
 
 class Payslip(models.Model):

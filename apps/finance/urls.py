@@ -9,6 +9,9 @@ from .views import (
     payment_list,
     payment_provider_webhook,
     trial_balance,
+    finance_reports,
+    notifications,
+    submit_report_request,
 )
 
 app_name = "finance"
@@ -22,4 +25,7 @@ urlpatterns = [
     path("fees/generate/", generate_fees, name="generate_fees"),
     path("trial-balance/", trial_balance, name="trial_balance"),
     path("payments/webhook/<str:provider_slug>/", payment_provider_webhook, name="payment_webhook"),
+    path("reports/", finance_reports, name="reports"),
+    path("reports/request/", submit_report_request, name="report_request"),
+    path("notifications/", notifications, name="notifications"),
 ]
