@@ -15,7 +15,7 @@
 {% if SITE and SITE.is_preview %}
   <div class="alert alert-warning">
     <b>Preview mode is ON.</b> You are seeing draft settings (not saved).
-    <a class="btn btn-sm btn-outline-dark ms-2" href="{% url 'siteconfig_clear_preview' %}">
+    <a class="btn btn-sm btn-outline-dark ms-2" href="{% url 'siteconfig:clear_preview' %}">
       Clear preview
     </a>
   </div>
