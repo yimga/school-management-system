@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from decimal import Decimal
 from typing import Iterable
+import hashlib
+import hmac
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
 from apps.people.models import StudentProfile
+from apps.siteconfig.models import Integration
 
 from .models import (
     ComplianceProfile,
@@ -17,6 +21,7 @@ from .models import (
     JournalLine,
     LedgerAccount,
     Payment,
+    PaymentMethod,
 )
 
 
@@ -31,6 +36,31 @@ def _account(profile: ComplianceProfile, code: str, name: str, account_type: str
         },
     )
     return account
+
+
+def generate_payment_link(invoice: Invoice, method: str | None = None) -> dict | None:
+    if not invoice:
+        return None
+    chosen = method or invoice.preferred_payment_method or PaymentMethod.MTN_MOMO
+    integration = (
+        Integration.objects.filter(provider="payments", enabled=True)
+        .order_by("-id")
+        .first()
+    )
+    config = integration.config if integration and integration.config else {}
+    base_url = config.get("base_url")
+    secret = config.get("secret", settings.SECRET_KEY)
+    if not base_url:
+        return None
+
+    payload = f"{invoice.id}:{chosen}:{invoice.total_amount}"
+    signature = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+
+    return {
+        "url": f"{base_url}?invoice={invoice.id}&method={chosen}&amount={invoice.total_amount}&sig={signature}",
+        "method": chosen,
+        "integration": integration,
+    }
 
 
 def post_invoice_to_ledger(invoice: Invoice) -> None:
@@ -93,9 +123,9 @@ def post_payment_to_ledger(payment: Payment) -> None:
     bank_account = _account(profile, "512", "Bank", LedgerAccount.AccountType.ASSET)
     mobile_account = _account(profile, "514", "Mobile Money", LedgerAccount.AccountType.ASSET)
 
-    if payment.method in {Payment.Method.CASH}:
+    if payment.method in {PaymentMethod.CASH}:
         debit_account = cash_account
-    elif payment.method in {Payment.Method.MTN_MOMO, Payment.Method.ORANGE_MOMO}:
+    elif payment.method in {PaymentMethod.MTN_MOMO, PaymentMethod.ORANGE_MOMO}:
         debit_account = mobile_account
     else:
         debit_account = bank_account

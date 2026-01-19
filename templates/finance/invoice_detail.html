@@ -1,0 +1,101 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Invoice Detail{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Invoice {{ invoice.reference|default:invoice.id }}</h2>
+    <div class="text-muted">{{ invoice.get_invoice_type_display }} • {{ invoice.student|default:invoice.counterparty }}</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoices' %}">All invoices</a>
+    {% if invoice.payments.first %}
+      <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:invoice_receipt' invoice.id %}">Download receipt</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="mb-2">Amounts</h5>
+        <div class="d-flex justify-content-between">
+          <span>Total</span><strong>{{ invoice.total_amount }}</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Balance</span><strong>{{ invoice.balance_amount }}</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Status</span><strong>{{ invoice.get_status_display }}</strong>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span>Due</span><strong>{{ invoice.due_date|default:"TBD" }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="mb-2">Payment link</h5>
+        {% if payment_link %}
+          <p class="small text-muted mb-2">Preferred channel: {{ payment_link.method }}</p>
+          <div class="d-grid">
+            <a class="btn btn-primary" href="{{ payment_link.url }}" target="_blank">Open payment link</a>
+          </div>
+        {% else %}
+          <p class="text-muted">No payment integration configured.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if reminder %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="mb-2">Reminder</h5>
+      <div class="row g-2">
+        <div class="col-md-4">
+          <div class="text-muted small">Next send</div>
+          <div>{{ reminder.next_send_at|default:"Not scheduled" }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-muted small">Window (days before)</div>
+          <div>{{ reminder.reminder_days_before }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-muted small">Last sent</div>
+          <div>{{ reminder.last_sent_at|default:"Never" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="mb-2">Lines</h5>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th class="text-end">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for line in invoice.lines.all %}
+            <tr>
+              <td>{{ line.description }}</td>
+              <td class="text-end">{{ line.amount }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

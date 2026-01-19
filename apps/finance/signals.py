@@ -1,7 +1,7 @@
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .models import Invoice, InvoiceLine, Payment
+from .models import Invoice, InvoiceLine, Payment, PaymentReminder
 from .services import apply_payment, recalculate_invoice
 
 
@@ -10,6 +10,16 @@ def ensure_invoice_reference(sender, instance: Invoice, created: bool, **kwargs)
     if instance.reference:
         return
     Invoice.objects.filter(id=instance.id, reference="").update(reference=f"INV-{instance.id:05d}")
+
+
+@receiver(post_save, sender=Invoice)
+def ensure_payment_reminder(sender, instance: Invoice, created: bool, **kwargs):
+    if instance.invoice_type != Invoice.InvoiceType.AR or not instance.due_date:
+        return
+
+    reminder, _ = PaymentReminder.objects.get_or_create(invoice=instance)
+    reminder.is_active = instance.status not in {Invoice.Status.PAID, Invoice.Status.VOID}
+    reminder.schedule_next()
 
 
 @receiver(post_save, sender=InvoiceLine)
