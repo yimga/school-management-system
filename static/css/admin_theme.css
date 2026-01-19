@@ -10,7 +10,7 @@
 }
 
 body {
-  background: linear-gradient(180deg, #f8fbff 0%, #fefefe 100%);
+  background: linear-gradient(180deg, #f8fbff 0%, #fdfdfd 100%);
   color: var(--admin-ink);
   min-height: 100vh;
 }
@@ -54,7 +54,7 @@ body {
 }
 
 .module tbody tr:nth-child(odd) {
-  background: rgba(15, 23, 42, 0.015);
+  background: rgba(15, 23, 42, 0.01);
 }
 
 .module tbody tr:hover {
@@ -86,11 +86,33 @@ a:link, a:visited {
 
 .button,
 .submit-row input {
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 8px 14px;
   background: #f7f9fc;
   border: 1px solid rgba(34, 49, 78, 0.12);
   color: #22314e;
+}
+
+.dashboard-module a.button,
+.module a.button {
+  background: #f7f9fc;
+  border: 1px solid rgba(34, 49, 78, 0.12);
+  color: #22314e;
+  box-shadow: none;
+}
+
+.dashboard-module a.button.default,
+.module a.button.default {
+  background: #eef2ff;
+  border: 1px solid rgba(124, 144, 191, 0.35);
+  color: #1f2a44;
+  box-shadow: none;
+}
+
+.dashboard-module a.button:hover,
+.module a.button:hover {
+  background: #e8eef8;
+  border-color: rgba(34, 49, 78, 0.18);
 }
 
 .kpi-bar {
@@ -206,6 +228,29 @@ a:link, a:visited {
 
 #nav-sidebar a:hover {
   color: #fff;
+}
+
+#nav-sidebar .module {
+  background: transparent;
+}
+
+#nav-sidebar .module h2,
+#nav-sidebar .module caption {
+  background: transparent;
+  color: rgba(226, 232, 240, 0.78);
+  padding: 10px 0;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+#nav-sidebar .module ul {
+  padding-left: 0;
+}
+
+#nav-sidebar .module li a {
+  padding: 6px 0;
+  display: block;
 }
 
 .module tbody th, .module tbody td {
