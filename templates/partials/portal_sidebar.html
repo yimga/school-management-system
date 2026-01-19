@@ -34,10 +34,10 @@
     </a>
 
   {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'parent_dashboard' %}">
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:parent_dashboard' %}">
       <i class="bi bi-speedometer2 me-2"></i>Dashboard
     </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'parent_dashboard' %}#children">
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:parent_dashboard' %}#children">
       <i class="bi bi-people me-2"></i>My Children
     </a>
 
@@ -74,7 +74,7 @@
   {% endif %}
 </div>
 
-{% with portal_cfg=SITE.portal_features|default:{} %}
+{% with portal_cfg=SITE.portal_features %}
   {% if portal_cfg.messaging or portal_cfg.forums or portal_cfg.video or portal_cfg.documents %}
     <div class="small text-uppercase text-muted mb-2 mt-3" style="letter-spacing:.08em;">Portal Tools</div>
     <div class="nav flex-column gap-1 mb-3">

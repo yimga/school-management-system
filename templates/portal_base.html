@@ -13,10 +13,10 @@
     <style>
       {% with theme=SITE_THEME %}
       :root {
-        --school-primary: {{ theme.primary_color|default:SITE.primary_color|default:"#0d6efd" }};
-        --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#198754" }};
+        --school-primary: {{ theme.primary_color|default:"#0d6efd" }};
+        --school-accent: {{ theme.accent_color|default:"#198754" }};
         --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
-        --portal-font: {{ theme.font_family|default:SITE.brand_font|default:"Inter, system-ui, sans-serif" }};
+        --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
       }
       {% endwith %}
 

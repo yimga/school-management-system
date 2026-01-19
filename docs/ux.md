@@ -29,3 +29,4 @@ Deliver a modern, unified experience across admin, teacher, and parent dashboard
 - Validate each widget via `python manage.py check`/`test`, run `run_phase7_checks`, and refresh static assets before merges.
 - Continue refining analytics cards (enrollment by cohort, performance heatmaps) and ensure every report (students, teachers, subjects, payments) is exportable as described in `docs/phase6-checklist.md`.
 - Revisit breadcrumbs/SEO docs (`docs/urls.md`) whenever routes change to keep `phase7-Roadmap` accurate.
+- Theme control lives in Site Settings: whatever theme is installed/applied should expose its palette, appearance, and feature toggles under `siteconfig` so admins can adjust colors/branding at any time.

@@ -86,8 +86,8 @@ class EvaluationScoreTests(TestCase):
             exam_score=Decimal("18"),
         )
 
-        # (10*20 + 15*20 + 18*60) / 100 = 15.6
-        self.assertEqual(evaluation.total_score, 15.6)
+        # (10*20 + 15*20 + 18*60) / 100 = 15.8
+        self.assertEqual(evaluation.total_score, 15.8)
 
     def test_total_score_handles_missing_components(self):
         AssessmentWeights.objects.create(
