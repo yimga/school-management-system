@@ -1,0 +1,210 @@
+{% if widget_data %}
+  <div class="row g-3 mb-4">
+    {% with attendance=widget_data.attendance performance=widget_data.performance finance=widget_data.finance events=widget_data.events %}
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-primary shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Attendance snapshot</div>
+            <div class="d-flex align-items-end gap-2">
+              <span class="display-6">{{ attendance.today }}%</span>
+              <span class="text-muted small">today</span>
+            </div>
+            <div class="text-muted small">
+              Overall {{ attendance.overall }}% · Missing {{ attendance.missing }} evaluations
+            </div>
+            <div class="text-muted small mt-2">
+              {{ attendance.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-success shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Performance overview</div>
+            <h3 class="fw-bold mb-1">{{ performance.average|default:"-" }}</h3>
+            {% if performance.top_student %}
+              <div class="small text-muted">
+                Top: {{ performance.top_student.student }} · {{ performance.top_student.average|floatformat:2 }}
+              </div>
+            {% endif %}
+            <div class="text-muted small">
+              Trend: {{ performance.trend }}
+            </div>
+            <div class="text-muted small mt-2">
+              {{ performance.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-warning shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Financial summary</div>
+            <div class="display-6 mb-1">{{ finance.total_due|floatformat:2 }}</div>
+            <div class="small text-muted">Due / Paid / Balance</div>
+            <div class="d-flex justify-content-between mt-2">
+              <small>Paid</small>
+              <small class="fw-semibold">{{ finance.paid|floatformat:2 }}</small>
+            </div>
+            <div class="d-flex justify-content-between">
+              <small>Balance</small>
+              <small class="fw-semibold">{{ finance.balance|floatformat:2 }}</small>
+            </div>
+            <div class="text-muted small mt-2">
+              {{ finance.label }} · Overdue invoices: {{ finance.overdue }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-info shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Upcoming events & alerts</div>
+            {% if events %}
+              <ul class="list-unstyled mb-1 small">
+                {% for event in events %}
+                  <li class="mb-2">
+                    <strong>{{ event.title }}</strong> · {{ event.detail }}<br>
+                    <span class="text-muted">{{ event.when|date:"M d, H:i" }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="small text-muted mb-1">No queued deadlines yet.</p>
+            {% endif %}
+            <div class="text-muted small">
+              {{ events|length }} reminders scheduled.
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endwith %}
+  </div>
+
+  {% with tasks=widget_data.tasks access=widget_data.access timetable=widget_data.timetable communication=widget_data.communication %}
+    <div class="row g-3 mb-4">
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-danger shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Task tracker</div>
+            <div class="fw-semibold display-5 mb-1">{{ tasks.pending_evaluations }}</div>
+            <div class="text-muted small">Missing evaluations</div>
+            <div class="fw-semibold display-5 mt-3">{{ tasks.pending_payments }}</div>
+            <div class="text-muted small">Pending payments</div>
+            <div class="text-muted small mt-2">{{ tasks.description }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-secondary shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Portal access</div>
+            <div class="d-flex flex-wrap gap-2">
+              {% for link in access %}
+                <a class="btn btn-sm btn-outline-dark" href="{{ link.url }}">{{ link.label }}</a>
+              {% endfor %}
+            </div>
+            <div class="text-muted small mt-2">Quick shortcuts to results, fees, and stats.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-info shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Class timetable</div>
+            {% if timetable %}
+              <ul class="list-unstyled mb-1 small">
+                {% for session in timetable %}
+                  <li class="mb-2">
+                    <span class="fw-semibold">{{ session.subject }}</span><br>
+                    <span class="text-muted">{{ session.classroom }} · coef {{ session.coefficient|floatformat:1 }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="small text-muted mb-1">Schedule fills once timetables are finalized.</p>
+            {% endif %}
+            <div class="text-muted small">Shows next subjects for your linked classrooms.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-success shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Communication center</div>
+            {% if communication.items %}
+              <ul class="list-unstyled mb-1 small">
+                {% for item in communication.items %}
+                  <li class="mb-2">
+                    <span class="fw-semibold">{{ item.label }}</span><br>
+                    <span class="text-muted">{{ item.value }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="small text-muted mb-1">Add contact details in site settings.</p>
+            {% endif %}
+            {% if communication.links %}
+              <div class="d-flex flex-wrap gap-2 mt-2">
+                {% for link in communication.links %}
+                  <a
+                    class="btn btn-sm btn-outline-success communication-link d-flex align-items-center gap-1"
+                    href="{{ link.url }}"
+                    {% if link.target %}target="{{ link.target }}"{% endif %}
+                  >
+                    {% if link.icon %}<i class="bi {{ link.icon }}"></i>{% endif %}
+                    {{ link.label }}
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="small text-muted mt-2">Add contact details in site settings.</p>
+            {% endif %}
+            <div class="text-muted small mt-2">{{ communication.note }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endwith %}
+{% endif %}
+
+{% if widget_data.analytics %}
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm p-3">
+        <div class="widget-title mb-2">{{ widget_data.analytics.label }}</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="widget-grid">
+              {% for item in widget_data.analytics.highlights %}
+                <div class="widget-card border">
+                  <div class="fw-semibold">{{ item.subject }}</div>
+                  <div class="display-6 text-success">{{ item.average }}</div>
+                  <div class="text-muted small">Top subject</div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="widget-grid">
+              {% for item in widget_data.analytics.lowlights %}
+                <div class="widget-card border">
+                  <div class="fw-semibold">{{ item.subject }}</div>
+                  <div class="display-6 text-danger">{{ item.average }}</div>
+                  <div class="text-muted small">Needs attention</div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}

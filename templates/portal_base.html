@@ -48,6 +48,38 @@
         border-radius: 18px;
         box-shadow: 0 8px 22px rgba(0,0,0,.08);
         background: rgba(255, 255, 255, 0.95);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(15,23,42,0.2);
+      }
+
+      .widget-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .widget-card {
+        border-radius: 16px;
+        padding: 1.3rem;
+        background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+      }
+
+      .communication-link {
+        border-radius: 12px;
+        min-width: 170px;
+        box-shadow: 0 8px 18px rgba(13, 110, 253, 0.12);
+      }
+
+      .widget-title {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(15,23,42,0.7);
       }
 
       .sidebar {
@@ -75,6 +107,32 @@
         background: var(--portal-bg);
         padding: 18px;
         border: 1px solid rgba(15,23,42,.08);
+      }
+
+      .dashboard-hero {
+        border-radius: 18px;
+        padding: 1.75rem;
+        background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
+        color: #fff;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      }
+
+      .dashboard-hero .hero-title {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        opacity: 0.85;
+      }
+
+      .dashboard-hero .hero-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .dashboard-hero .hero-metric {
+        font-size: 0.9rem;
+        margin-left: auto;
+        text-align: right;
       }
 
       .kpi {
@@ -132,18 +190,19 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
           </div>
           <div class="offcanvas-body">
-            {% include "partials/portal_sidebar.html" %}
-          </div>
+          {% include "partials/portal_sidebar.html" %}
         </div>
+      </div>
 
-        <!-- Content -->
-        <div class="col-lg-9 col-xl-10">
-          <div class="page-wrap">
-            {% if messages %}
-              <div class="mb-3">
-                {% for message in messages %}
-                  <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
-                {% endfor %}
+      <!-- Content -->
+      <div class="col-lg-9 col-xl-10">
+        <div class="page-wrap">
+          {% include "partials/breadcrumbs.html" %}
+          {% if messages %}
+            <div class="mb-3">
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
+              {% endfor %}
               </div>
             {% endif %}
 

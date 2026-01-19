@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseForbidden, HttpRequest, Http404
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 
 from apps.accounts.decorators import (
     role_required,
@@ -25,6 +26,7 @@ from apps.analytics.services import (
     term_rankings,
 )
 from .models import PortalFeatureItem
+from .services import parent_dashboard_widget_data
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {
@@ -74,10 +76,12 @@ def parent_dashboard(request: HttpRequest):
     ).select_related("student", "student__classroom", "student__specialty", "student__academic_year")
 
     portal_features = _portal_features_status()
+    widget_data = parent_dashboard_widget_data([link.student for link in links])
 
     return render(request, "parent/dashboard.html", {
         "links": links,
         "portal_features": portal_features,
+        "widget_data": widget_data,
     })
 
 
@@ -152,6 +156,16 @@ def portal_stats(request: HttpRequest):
         "weak_subjects": weak_subjects,
         "improvement_rows": improvement_rows,
     })
+
+
+def student_portal_grades(request: HttpRequest) -> HttpResponseRedirect:
+    """Semantic alias for parent dashboard (grades overview)."""
+    return redirect("portal:parent_dashboard")
+
+
+def admissions_application_status(request: HttpRequest) -> HttpResponseRedirect:
+    """Semantic alias for application status (re-uses parent dashboard context)."""
+    return redirect("portal:parent_dashboard")
 
 
 @parent_portal_required

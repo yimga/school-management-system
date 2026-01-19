@@ -1,0 +1,95 @@
+{% if widget_data %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Assignments / Completion</div>
+          <div class="display-6 fw-semibold">{{ widget_data.assignments_count }}</div>
+          <div class="small text-muted">
+            Completion: {{ widget_data.completion_pct }}%
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Pending tasks</div>
+          <div class="display-6 fw-semibold">{{ widget_data.tasks.pending_evaluations }}</div>
+          <div class="small text-muted">{{ widget_data.tasks.description }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">Communication</div>
+          {% if widget_data.communication.items %}
+            <ul class="list-unstyled mb-2">
+              {% for item in widget_data.communication.items %}
+                <li class="small">
+                  <span class="fw-semibold">{{ item.label }}</span>: {{ item.value }}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="small text-muted">Contact details appear in site settings.</p>
+          {% endif %}
+          {% if widget_data.communication.links %}
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              {% for link in widget_data.communication.links %}
+                <a
+                  class="btn btn-sm btn-outline-success communication-link d-flex align-items-center gap-1"
+                  href="{{ link.url }}"
+                  {% if link.target %}target="{{ link.target }}"{% endif %}
+                >
+                  {% if link.icon %}<i class="bi {{ link.icon }}"></i>{% endif %}
+                  {{ link.label }}
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="small text-muted mt-2">Add contact details in site settings.</p>
+          {% endif %}
+          <div class="text-muted small mt-2">{{ widget_data.communication.note }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-8">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Upcoming classes</h5>
+          </div>
+          {% if widget_data.upcoming %}
+            <div class="list-group list-group-flush">
+              {% for session in widget_data.upcoming %}
+                <div class="list-group-item px-0 border-0">
+                  <div class="fw-semibold">{{ session.subject }}</div>
+                  <div class="text-muted small">{{ session.classroom }} · {{ session.term }}</div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="small text-muted mb-0">Schedule updates once subjects are assigned.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small mb-2">Quick actions</div>
+          <div class="d-flex flex-wrap gap-2">
+            {% for link in widget_data.links %}
+              <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}

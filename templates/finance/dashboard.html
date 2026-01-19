@@ -1,98 +1,95 @@
 {% extends "portal_base.html" %}
-
 {% block title %}Finance Dashboard{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Finance Dashboard</h2>
-    <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-3">
+    <div>
+      <h2 class="mb-0">Finance Dashboard</h2>
+      <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:generate_fees' %}">Generate Fee Invoices</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:invoices' %}">All Invoices</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:payments' %}">Payments</a>
+      <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:trial_balance' %}">Trial Balance</a>
+    </div>
   </div>
-  <div class="d-flex gap-2">
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:generate_fees' %}">Generate Fee Invoices</a>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoices' %}">All Invoices</a>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:payments' %}">Payments</a>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:trial_balance' %}">Trial Balance</a>
-  </div>
-</div>
 
-<div class="row g-3 mb-3">
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-body">
-        <div class="text-muted small">Total Receivables</div>
-        <div class="display-6 fw-semibold">{{ total_receivables }}</div>
+  <div class="dashboard-hero mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      <div>
+        <div class="hero-title">Total outstanding receivables</div>
+        <div class="hero-value">{{ summary.receivables|floatformat:2 }}</div>
+        <div class="small opacity-75">Includes all issued invoices minus payments</div>
+      </div>
+      <div class="hero-metric">
+        <div><strong>{{ summary.payables|floatformat:2 }}</strong> payables</div>
+        <div><strong>{{ summary.paid|floatformat:2 }}</strong> collected</div>
+        <div><strong>{{ summary.overdue }}</strong> overdue</div>
       </div>
     </div>
   </div>
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-body">
-        <div class="text-muted small">Total Payables</div>
-        <div class="display-6 fw-semibold">{{ total_payables }}</div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<div class="row g-3">
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5 class="mb-2">Recent Invoices</h5>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle">
-            <thead>
-              <tr>
-                <th>Reference</th>
-                <th>Status</th>
-                <th class="text-end">Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for inv in invoices %}
+  {% include "widgets/finance_dashboard_widgets.html" %}
+
+  <div class="row g-3 mt-2">
+    <div class="col-lg-6">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-3">Recent Invoices</h5>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
                 <tr>
-                  <td>{{ inv.reference|default:inv.id }}</td>
-                  <td>{{ inv.get_status_display }}</td>
-                  <td class="text-end">{{ inv.balance_amount }}</td>
+                  <th>Reference</th>
+                  <th>Status</th>
+                  <th class="text-end">Balance</th>
                 </tr>
-              {% empty %}
-                <tr><td colspan="3" class="text-muted">No invoices found.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {% for inv in recent_invoices %}
+                  <tr>
+                    <td>{{ inv.reference|default:inv.id }}</td>
+                    <td>{{ inv.get_status_display }}</td>
+                    <td class="text-end">{{ inv.balance_amount|floatformat:2 }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="3" class="text-muted">No invoices found.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-3">Recent Payments</h5>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th>Method</th>
+                  <th class="text-end">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pay in recent_payments %}
+                  <tr>
+                    <td>{{ pay.invoice.reference|default:pay.invoice.id }}</td>
+                    <td>{{ pay.get_method_display }}</td>
+                    <td class="text-end">{{ pay.amount|floatformat:2 }}</td>
+                  </tr>
+                {% empty %}
+                  <tr><td colspan="3" class="text-muted">No payments recorded.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-body">
-        <h5 class="mb-2">Recent Payments</h5>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle">
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Method</th>
-                <th class="text-end">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for pay in payments %}
-                <tr>
-                  <td>{{ pay.invoice.reference|default:pay.invoice.id }}</td>
-                  <td>{{ pay.get_method_display }}</td>
-                  <td class="text-end">{{ pay.amount }}</td>
-                </tr>
-              {% empty %}
-                <tr><td colspan="3" class="text-muted">No payments recorded.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}
