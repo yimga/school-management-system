@@ -57,9 +57,17 @@
     {% if settings_url %}<a class="button" href="{{ settings_url }}">{% trans "Open Theme settings" %}</a>{% endif %}
   </div>
   <div class="card-neutral">
-    <h4>{% trans "Recent actions" %}</h4>
+    <h4 id="recent-actions-card">{% trans "Recent actions" %}</h4>
     <p class="small mb-2">{% trans "See audit log on the right sidebar." %}</p>
     <a class="button" href="/admin/">↗ {% trans "Open audit log" %}</a>
+  </div>
+  <div class="card-neutral">
+    <h4>{% trans "System health" %}</h4>
+    <p class="small mb-2">{% trans "Run health checks and review automation status." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="button" href="/admin/">↗ {% trans "Audit log" %}</a>
+      <a class="button default" href="/admin/siteconfig/sitesettings/">{% trans "Theme & Settings" %}</a>
+    </div>
   </div>
 </div>
 
