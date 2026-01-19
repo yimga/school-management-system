@@ -13,6 +13,9 @@ class TeacherProfileAdmin(ModelAdmin):
         "department",
         "position_title",
         "pay_grade",
+        "default_dashboard_view",
+        "next_pay_date",
+        "allow_finance_panel",
         "profile_photo",
     )
     search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "staff_id")
