@@ -311,6 +311,63 @@ class PaymentReminderLog(models.Model):
         return f"{self.reminder} @ {self.sent_at}"
 
 
+class Notification(models.Model):
+    class Severity(models.TextChoices):
+        INFO = "INFO", "Info"
+        WARNING = "WARNING", "Warning"
+        ALERT = "ALERT", "Alert"
+
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    link = models.CharField(max_length=256, blank=True)
+    severity = models.CharField(max_length=20, choices=Severity.choices, default=Severity.INFO)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="notifications",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.title} ({self.severity})"
+
+
+class ReportRequest(models.Model):
+    class RequestStatus(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        IN_PROGRESS = "IN_PROGRESS", "In Progress"
+        COMPLETED = "COMPLETED", "Completed"
+
+    class ReportType(models.TextChoices):
+        COLLECTION = "COLLECTION", "Collection summary"
+        PAYROLL_LIABILITY = "PAYROLL_LIABILITY", "Payroll liability"
+        CUSTOM = "CUSTOM", "Custom"
+
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="report_requests",
+    )
+    report_type = models.CharField(max_length=40, choices=ReportType.choices)
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=RequestStatus.choices, default=RequestStatus.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.report_type} requested by {self.requested_by}"
+
+
 class Budget(models.Model):
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="budgets")
     name = models.CharField(max_length=120)
