@@ -1,0 +1,104 @@
+/* Warm, modern admin styling override */
+:root {
+  --admin-sand: #f6f0e9;
+  --admin-sand-2: #f0e6dc;
+  --admin-ink: #1f2937;
+  --admin-rose: #e76f51;
+  --admin-rose-soft: #f4a261;
+  --admin-mint: #2a9d8f;
+  --admin-card: #ffffff;
+  --admin-border: rgba(31, 41, 55, 0.06);
+  --admin-shadow: 0 16px 38px rgba(17, 24, 39, 0.08);
+}
+
+body {
+  background: radial-gradient(circle at 15% 20%, rgba(244, 162, 97, 0.18), transparent 30%),
+              radial-gradient(circle at 85% 15%, rgba(42, 157, 143, 0.18), transparent 32%),
+              linear-gradient(180deg, var(--admin-sand) 0%, var(--admin-sand-2) 100%);
+  color: var(--admin-ink);
+}
+
+#header {
+  background: linear-gradient(90deg, var(--admin-rose) 0%, var(--admin-mint) 100%);
+  border-bottom: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+#branding h1,
+#user-tools a {
+  color: #fff !important;
+  text-shadow: none;
+}
+
+#content {
+  background: transparent;
+}
+
+.module {
+  background: var(--admin-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  box-shadow: var(--admin-shadow);
+}
+
+.module h2, .module caption {
+  background: linear-gradient(135deg, rgba(231, 111, 81, 0.08), rgba(42, 157, 143, 0.06));
+  color: var(--admin-ink);
+  border-bottom: 1px solid var(--admin-border);
+  border-radius: 14px 14px 0 0;
+  padding: 0.85em 1.2em;
+}
+
+.module table {
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+}
+
+.module tbody tr:nth-child(odd) {
+  background: rgba(31, 41, 55, 0.02);
+}
+
+.module tbody tr:hover {
+  background: rgba(42, 157, 143, 0.08);
+}
+
+#content-related .module,
+div.breadcrumbs {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  box-shadow: var(--admin-shadow);
+}
+
+div.breadcrumbs {
+  color: var(--admin-ink);
+}
+
+a:link, a:visited {
+  color: var(--admin-rose);
+}
+
+.button.default,
+.submit-row input.default {
+  background: linear-gradient(135deg, var(--admin-rose) 0%, var(--admin-mint) 100%);
+  border: none;
+  box-shadow: 0 12px 24px rgba(231, 111, 81, 0.25);
+}
+
+.button,
+.submit-row input {
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+
+/* Login */
+.login #container {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 16px;
+  box-shadow: var(--admin-shadow);
+}
+
+.login #header {
+  background: transparent;
+  box-shadow: none;
+}
