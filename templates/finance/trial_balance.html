@@ -1,0 +1,65 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Trial Balance{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Trial Balance</h2>
+    <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:dashboard' %}">Back</a>
+</div>
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small">Start date</label>
+        <input class="form-control" type="date" name="start" value="{{ start }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">End date</label>
+        <input class="form-control" type="date" name="end" value="{{ end }}">
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-primary w-100">Filter</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th class="text-end">Debit</th>
+            <th class="text-end">Credit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for acc in accounts %}
+            <tr>
+              <td>{{ acc.code }} - {{ acc.name }}</td>
+              <td class="text-end">{{ acc.debit_total }}</td>
+              <td class="text-end">{{ acc.credit_total }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="text-muted">No ledger activity yet.</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="fw-semibold">
+            <td>Total</td>
+            <td class="text-end">{{ total_debit }}</td>
+            <td class="text-end">{{ total_credit }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

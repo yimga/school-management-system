@@ -1,0 +1,33 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Generate Fee Invoices{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Generate Fee Invoices</h2>
+    <div class="text-muted">Create invoices for all students in a fee plan.</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:dashboard' %}">Back to Finance</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="row g-2 align-items-end">
+      {% csrf_token %}
+      <div class="col-md-8">
+        <label class="form-label small">Fee plan</label>
+        <select class="form-select" name="plan_id" required>
+          <option value="">Select a plan</option>
+          {% for plan in plans %}
+            <option value="{{ plan.id }}">{{ plan.name }} - {{ plan.classroom.name }} / {{ plan.specialty.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-grid">
+        <button class="btn btn-primary" type="submit">Generate Invoices</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

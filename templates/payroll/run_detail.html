@@ -1,0 +1,75 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Payroll Run{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Payroll Run</h2>
+    <div class="text-muted">{{ run.period_start }} - {{ run.period_end }}</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:dashboard' %}">Back</a>
+    {% if run.status != "PAID" %}
+      <a class="btn btn-sm btn-primary" href="{% url 'payroll:generate_run' run.id %}">Generate Payslips</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-muted small">Gross Total</div>
+        <div class="h5 mb-0">{{ totals.gross|default:"0.00" }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-muted small">Net Total</div>
+        <div class="h5 mb-0">{{ totals.net|default:"0.00" }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <div class="text-muted small">Taxes</div>
+        <div class="h5 mb-0">{{ totals.taxes|default:"0.00" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="mb-2">Payslips</h5>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Status</th>
+            <th class="text-end">Gross</th>
+            <th class="text-end">Net</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for slip in payslips %}
+            <tr>
+              <td>{{ slip.employee }}</td>
+              <td>{{ slip.get_status_display }}</td>
+              <td class="text-end">{{ slip.gross_pay }}</td>
+              <td class="text-end">{{ slip.net_pay }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-muted">No payslips generated yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
