@@ -78,6 +78,9 @@
     <ul class="small mt-2 mb-0">
       <li>{% trans "Unpublished terms" %}: {{ health.unpublished_terms }}</li>
       <li>{% trans "Overdue invoices" %}: {{ health.overdue_invoices }}</li>
+      <li>{% trans "Draft invoices" %}: {{ health.draft_invoices }}</li>
+      <li>{% trans "Active reminders" %}: {{ health.active_reminders }}</li>
+      <li>{% trans "Reminders due now" %}: {{ health.reminders_due }}</li>
       <li>{% trans "Parent portal" %}: {{ health.portal_parent_enabled|yesno:"On,Off" }}</li>
       <li>{% trans "Teacher portal" %}: {{ health.portal_teacher_enabled|yesno:"On,Off" }}</li>
     </ul>
