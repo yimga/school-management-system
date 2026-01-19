@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseForbidden, HttpRequest, Http404
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 
 from apps.accounts.decorators import (
     role_required,
@@ -155,6 +156,16 @@ def portal_stats(request: HttpRequest):
         "weak_subjects": weak_subjects,
         "improvement_rows": improvement_rows,
     })
+
+
+def student_portal_grades(request: HttpRequest) -> HttpResponseRedirect:
+    """Semantic alias for parent dashboard (grades overview)."""
+    return redirect("portal:parent_dashboard")
+
+
+def admissions_application_status(request: HttpRequest) -> HttpResponseRedirect:
+    """Semantic alias for application status (re-uses parent dashboard context)."""
+    return redirect("portal:parent_dashboard")
 
 
 @parent_portal_required

@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from decimal import Decimal
 from typing import Iterable
+import re
 
 from django.db.models import Sum
 from django.urls import reverse
@@ -229,23 +230,90 @@ def _timetable_overview(students, year, term):
     ]
 
 
+_PHONE_CLEANER = re.compile(r"[^\d]")
+
+
+def _normalize_phone(phone: str | None) -> str | None:
+    if not phone:
+        return None
+    digits = _PHONE_CLEANER.sub("", phone)
+    return digits if digits else None
+
+
 def _communication_center():
     site = SiteSettings.get_solo()
     items = []
+    links: list[dict[str, str]] = []
+
     if site.company_phone:
-        items.append({"type": "phone", "label": "Call customer service", "value": site.company_phone})
+        items.append(
+            {"type": "phone", "label": "Call customer service", "value": site.company_phone}
+        )
+        phone_digits = _normalize_phone(site.company_phone)
+        if phone_digits:
+            links.append(
+                {
+                    "label": "Call customer service",
+                    "url": f"tel:+{phone_digits}",
+                    "icon": "bi-telephone",
+                }
+            )
+
     if site.company_email:
         items.append({"type": "email", "label": "Email support", "value": site.company_email})
+        links.append(
+            {
+                "label": "Email customer service",
+                "url": f"mailto:{site.company_email}",
+                "icon": "bi-envelope",
+            }
+        )
 
-    whatsapp = Integration.objects.filter(enabled=True, name__icontains="whatsapp").first()
+    whatsapp = (
+        Integration.objects.filter(enabled=True, name__icontains="whatsapp")
+        .order_by("updated_at")
+        .first()
+    )
     if whatsapp:
         wa_number = whatsapp.config.get("phone") or whatsapp.config.get("whatsapp_number")
+        wa_digits = _normalize_phone(wa_number)
         if wa_number:
             items.append({"type": "whatsapp", "label": whatsapp.name, "value": wa_number})
+        if wa_digits:
+            links.insert(
+                0,
+                {
+                    "label": f"Chat on {whatsapp.name}",
+                    "url": f"https://wa.me/{wa_digits}",
+                    "icon": "bi-whatsapp",
+                    "target": "_blank",
+                },
+            )
 
+    other_integrations = (
+        Integration.objects.filter(enabled=True)
+        .exclude(pk=whatsapp.pk if whatsapp else None)
+        .order_by("-updated_at")
+    )
+    for integration in other_integrations:
+        config_url = integration.config.get("url")
+        if not config_url:
+            continue
+        links.append(
+            {
+                "label": integration.name,
+                "url": config_url,
+                "icon": "bi-box-arrow-up-right",
+                "target": "_blank",
+            }
+        )
+
+    primary_action = links[0] if links else None
     return {
         "items": items,
-        "cta": "Start a chat on WhatsApp" if whatsapp else "Connect with us",
+        "links": links,
+        "primary_action": primary_action,
+        "cta": primary_action["label"] if primary_action else "Connect with us",
         "note": "We also send reminders via SMS/email; update preferences in portal settings.",
     }
 

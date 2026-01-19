@@ -22,6 +22,7 @@ urlpatterns = [
     path("invoices/<int:invoice_id>/", invoice_detail, name="invoice_detail"),
     path("invoices/<int:invoice_id>/receipt/", invoice_receipt, name="invoice_receipt"),
     path("payments/", payment_list, name="payments"),
+    path("payments/receipts/", payment_list, name="payment_receipts"),
     path("fees/generate/", generate_fees, name="generate_fees"),
     path("trial-balance/", trial_balance, name="trial_balance"),
     path("payments/webhook/<str:provider_slug>/", payment_provider_webhook, name="payment_webhook"),

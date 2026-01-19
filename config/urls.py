@@ -33,14 +33,14 @@ urlpatterns = [
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
 
     # Apps
-    path('siteconfig/', include('apps.siteconfig.urls')),
-    path('authentication/', include('apps.accounts.urls')),
-    path('evals/', include('apps.evals.urls')),
-    path('portal/', include('apps.portal.urls')),
-    path('reports/', include('apps.reports.urls')),
-    path('analytics/', include('apps.analytics.urls')),
-    path('finance/', include('apps.finance.urls')),
-    path('payroll/', include('apps.payroll.urls')),
+    path('siteconfig/', include(('apps.siteconfig.urls', 'siteconfig'), namespace='siteconfig')),
+    path('authentication/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
+    path('evals/', include(('apps.evals.urls', 'evals'), namespace='evals')),
+    path('portal/', include(('apps.portal.urls', 'portal'), namespace='portal')),
+    path('reports/', include(('apps.reports.urls', 'reports'), namespace='reports')),
+    path('analytics/', include(('apps.analytics.urls', 'analytics'), namespace='analytics')),
+    path('finance/', include(('apps.finance.urls', 'finance'), namespace='finance')),
+    path('payroll/', include(('apps.payroll.urls', 'payroll'), namespace='payroll')),
 ]
 
 if settings.DEBUG:

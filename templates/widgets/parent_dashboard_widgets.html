@@ -151,7 +151,22 @@
             {% else %}
               <p class="small text-muted mb-1">Add contact details in site settings.</p>
             {% endif %}
-            <a class="btn btn-sm btn-outline-success mt-2" href="#">{{ communication.cta }}</a>
+            {% if communication.links %}
+              <div class="d-flex flex-wrap gap-2 mt-2">
+                {% for link in communication.links %}
+                  <a
+                    class="btn btn-sm btn-outline-success communication-link d-flex align-items-center gap-1"
+                    href="{{ link.url }}"
+                    {% if link.target %}target="{{ link.target }}"{% endif %}
+                  >
+                    {% if link.icon %}<i class="bi {{ link.icon }}"></i>{% endif %}
+                    {{ link.label }}
+                  </a>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="small text-muted mt-2">Add contact details in site settings.</p>
+            {% endif %}
             <div class="text-muted small mt-2">{{ communication.note }}</div>
           </div>
         </div>

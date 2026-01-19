@@ -35,7 +35,23 @@
           {% else %}
             <p class="small text-muted">Contact details appear in site settings.</p>
           {% endif %}
-          <a class="btn btn-sm btn-outline-success" href="#">{{ widget_data.communication.cta }}</a>
+          {% if widget_data.communication.links %}
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              {% for link in widget_data.communication.links %}
+                <a
+                  class="btn btn-sm btn-outline-success communication-link d-flex align-items-center gap-1"
+                  href="{{ link.url }}"
+                  {% if link.target %}target="{{ link.target }}"{% endif %}
+                >
+                  {% if link.icon %}<i class="bi {{ link.icon }}"></i>{% endif %}
+                  {{ link.label }}
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="small text-muted mt-2">Add contact details in site settings.</p>
+          {% endif %}
+          <div class="text-muted small mt-2">{{ widget_data.communication.note }}</div>
         </div>
       </div>
     </div>

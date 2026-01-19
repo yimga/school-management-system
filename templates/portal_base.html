@@ -69,6 +69,12 @@
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
       }
 
+      .communication-link {
+        border-radius: 12px;
+        min-width: 170px;
+        box-shadow: 0 8px 18px rgba(13, 110, 253, 0.12);
+      }
+
       .widget-title {
         font-size: 0.85rem;
         letter-spacing: 0.08em;
@@ -184,18 +190,19 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
           </div>
           <div class="offcanvas-body">
-            {% include "partials/portal_sidebar.html" %}
-          </div>
+          {% include "partials/portal_sidebar.html" %}
         </div>
+      </div>
 
-        <!-- Content -->
-        <div class="col-lg-9 col-xl-10">
-          <div class="page-wrap">
-            {% if messages %}
-              <div class="mb-3">
-                {% for message in messages %}
-                  <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
-                {% endfor %}
+      <!-- Content -->
+      <div class="col-lg-9 col-xl-10">
+        <div class="page-wrap">
+          {% include "partials/breadcrumbs.html" %}
+          {% if messages %}
+            <div class="mb-3">
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
+              {% endfor %}
               </div>
             {% endif %}
 
