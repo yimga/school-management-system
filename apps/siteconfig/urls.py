@@ -14,8 +14,8 @@ app_name = "siteconfig"
 
 urlpatterns = [
     path("maintenance/", maintenance_view, name="maintenance"),
-    # Redirect legacy customizer paths into settings
-    path("customizer/", lambda request: redirect("siteconfig:user_preferences")),
+    # Redirect legacy customizer paths into settings (keep name for templates)
+    path("customizer/", customizer, name="customizer"),
     path("customizer/clear-preview/", clear_preview, name="clear_preview"),
     path("preferences/", user_preferences, name="user_preferences"),
     path("reports/", report_library, name="report_library"),
