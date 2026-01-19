@@ -51,6 +51,7 @@ body {
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.05);
 }
 
 .module tbody tr:nth-child(odd) {
@@ -59,6 +60,10 @@ body {
 
 .module tbody tr:hover {
   background: rgba(34, 49, 78, 0.06);
+}
+
+.module tbody tr + tr {
+  border-top: 1px solid rgba(15, 23, 42, 0.05);
 }
 
 #content-related .module,
@@ -91,6 +96,7 @@ a:link, a:visited {
   background: #f7f9fc;
   border: 1px solid rgba(34, 49, 78, 0.12);
   color: #22314e;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .dashboard-module a.button,
@@ -251,6 +257,45 @@ a:link, a:visited {
 #nav-sidebar .module li a {
   padding: 6px 0;
   display: block;
+  outline: none;
+}
+
+#nav-sidebar .module li a:focus-visible,
+.button:focus-visible,
+.submit-row input:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 2px;
+}
+
+.nav-search {
+  width: 100%;
+  padding: 8px 10px;
+  margin: 8px 0 12px 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+}
+
+.nav-search::placeholder {
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.nav-accordion-toggle {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: rgba(226, 232, 240, 0.82);
+  padding: 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.nav-accordion-toggle:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 2px;
 }
 
 .module tbody th, .module tbody td {
