@@ -6,13 +6,23 @@ from django.db import models
 from apps.academics.models import Subject
 
 
+PORTAL_FEATURE_OPTIONS: list[tuple[str, str]] = [
+    ("messaging", "Messaging"),
+    ("forums", "Community Forums"),
+    ("video", "Video Hub"),
+    ("documents", "Document Library"),
+]
+
+PORTAL_FEATURE_DEFAULTS: dict[str, bool] = {
+    "messaging": True,
+    "forums": False,
+    "video": False,
+    "documents": True,
+}
+
+
 def default_portal_features():
-    return {
-        "messaging": True,
-        "forums": False,
-        "video": False,
-        "documents": True,
-    }
+    return dict(PORTAL_FEATURE_DEFAULTS)
 from apps.finance.models import ComplianceProfile, Invoice, Payment
 from apps.people.models import StudentProfile, TeacherProfile
 
@@ -124,12 +134,15 @@ class SiteSettings(models.Model):
             return self.theme_pack
         return ThemePack.objects.filter(is_default=True, is_active=True).first()
 
-    def apply_theme_pack(self, pack: "ThemePack") -> None:
+    def apply_theme_pack(self, pack: "ThemePack", save: bool = True) -> None:
         self.theme_pack = pack
         self.primary_color = pack.primary_color
         self.accent_color = pack.accent_color
         self.custom_css = pack.custom_css or ""
-        self.save(update_fields=["theme_pack", "primary_color", "accent_color", "custom_css"])
+        self.brand_font = pack.font_family or self.brand_font
+        update_fields = ["theme_pack", "primary_color", "accent_color", "custom_css", "brand_font"]
+        if save:
+            self.save(update_fields=update_fields)
 
 
 class ThemePack(models.Model):

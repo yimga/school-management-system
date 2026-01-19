@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import SiteSettingsForm, UserPreferenceForm
-from .models import ReportTemplate, SiteSettings, UserPreference
+from .models import ReportTemplate, SiteSettings, ThemePack, UserPreference
 
 CACHE_KEY = "site_settings_v1"
 SESSION_KEY = "site_preview_settings"
@@ -75,7 +75,14 @@ def customizer(request):
     else:
         form = SiteSettingsForm(instance=settings_obj)
 
-    return render(request, "siteconfig/customizer.html", {"form": form})
+    theme_packs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
+    report_templates = ReportTemplate.objects.filter(is_active=True)
+    context = {
+        "form": form,
+        "theme_packs": theme_packs,
+        "report_templates": report_templates,
+    }
+    return render(request, "siteconfig/customizer.html", context)
 
 
 @staff_member_required

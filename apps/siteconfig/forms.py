@@ -2,38 +2,71 @@ from zoneinfo import available_timezones
 
 from django import forms
 
-from .models import DashboardView, SiteSettings, UserPreference
+from .models import (
+    DashboardView,
+    PORTAL_FEATURE_DEFAULTS,
+    PORTAL_FEATURE_OPTIONS,
+    SiteSettings,
+    UserPreference,
+)
 
 
 class SiteSettingsForm(forms.ModelForm):
+    portal_features = forms.MultipleChoiceField(
+        choices=PORTAL_FEATURE_OPTIONS,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Portal feature toggles",
+    )
+    notification_channels = forms.MultipleChoiceField(
+        choices=UserPreference.NotificationChannel.choices,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Notification channels",
+    )
+
     class Meta:
         model = SiteSettings
         fields = [
-        # Branding
-        "site_name", "tagline", "logo", "background_image", "brand_font",
-        "company_name", "company_address", "company_phone", "company_email", "ministry_registration_code", "company_slug",
-        "custom_css", "theme_pack",
-        # Theme
-        "primary_color", "accent_color", "use_dark_mode",
-        # Behavior
-        "maintenance_mode", "default_dashboard_view", "default_refresh_rate",
-        # Feature toggles
-        "enable_parent_portal",
-        "enable_teacher_portal",
-        "enable_reports_pdf",
-        "report_downloads_enabled",
-        "portal_features",
-        "notification_channels",
-        # Compliance
-        "compliance_profile",
-        # Analytics defaults
-        "top_students_default_limit",
-        "pass_mark",
-        "use_promotion_rule_for_pass",
-        "weak_subject_threshold",
-        "improvement_delta_threshold",
-        "deadline_mode",
-    ]
+            # Branding
+            "site_name",
+            "tagline",
+            "logo",
+            "background_image",
+            "brand_font",
+            "company_name",
+            "company_address",
+            "company_phone",
+            "company_email",
+            "ministry_registration_code",
+            "company_slug",
+            "custom_css",
+            "theme_pack",
+            # Theme
+            "primary_color",
+            "accent_color",
+            "use_dark_mode",
+            # Behavior
+            "maintenance_mode",
+            "default_dashboard_view",
+            "default_refresh_rate",
+            # Feature toggles
+            "enable_parent_portal",
+            "enable_teacher_portal",
+            "enable_reports_pdf",
+            "report_downloads_enabled",
+            "portal_features",
+            "notification_channels",
+            # Compliance
+            "compliance_profile",
+            # Analytics defaults
+            "top_students_default_limit",
+            "pass_mark",
+            "use_promotion_rule_for_pass",
+            "weak_subject_threshold",
+            "improvement_delta_threshold",
+            "deadline_mode",
+        ]
 
         widgets = {
             "site_name": forms.TextInput(attrs={"class": "form-control"}),
@@ -52,7 +85,8 @@ class SiteSettingsForm(forms.ModelForm):
             "theme_pack": forms.Select(attrs={"class": "form-select"}),
             "default_dashboard_view": forms.Select(attrs={"class": "form-select"}),
             "default_refresh_rate": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
-            "portal_features": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "portal_features": forms.CheckboxSelectMultiple(),
+            "notification_channels": forms.CheckboxSelectMultiple(),
             "top_students_default_limit": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
             "pass_mark": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
             "weak_subject_threshold": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
@@ -60,6 +94,35 @@ class SiteSettingsForm(forms.ModelForm):
             "deadline_mode": forms.Select(attrs={"class": "form-select"}),
             "compliance_profile": forms.Select(attrs={"class": "form-select"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.portal_features:
+            enabled = [
+                key
+                for key, _ in PORTAL_FEATURE_OPTIONS
+                if self.instance.portal_features.get(key, False)
+            ]
+        else:
+            enabled = [key for key, _ in PORTAL_FEATURE_OPTIONS if PORTAL_FEATURE_DEFAULTS.get(key)]
+        self.fields["portal_features"].initial = enabled
+        self.fields["notification_channels"].initial = self.instance.notification_channels or []
+
+    def clean_portal_features(self):
+        selected = self.cleaned_data.get("portal_features") or []
+        return {key: key in selected for key, _ in PORTAL_FEATURE_OPTIONS}
+
+    def clean_notification_channels(self):
+        return self.cleaned_data.get("notification_channels") or []
+
+    def save(self, commit=True):
+        pack = self.cleaned_data.get("theme_pack")
+        instance = super().save(commit=False)
+        if pack:
+            instance.apply_theme_pack(pack, save=False)
+        if commit:
+            instance.save()
+        return instance
 
 
 class UserPreferenceForm(forms.ModelForm):
@@ -100,4 +163,3 @@ class UserPreferenceForm(forms.ModelForm):
         if commit:
             preference.save()
         return preference
-
