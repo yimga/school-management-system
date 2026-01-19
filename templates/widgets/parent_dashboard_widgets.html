@@ -84,4 +84,78 @@
       </div>
     {% endwith %}
   </div>
+
+  {% with tasks=widget_data.tasks access=widget_data.access timetable=widget_data.timetable communication=widget_data.communication %}
+    <div class="row g-3 mb-4">
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-danger shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Task tracker</div>
+            <div class="fw-semibold display-5 mb-1">{{ tasks.pending_evaluations }}</div>
+            <div class="text-muted small">Missing evaluations</div>
+            <div class="fw-semibold display-5 mt-3">{{ tasks.pending_payments }}</div>
+            <div class="text-muted small">Pending payments</div>
+            <div class="text-muted small mt-2">{{ tasks.description }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-secondary shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Portal access</div>
+            <div class="d-flex flex-wrap gap-2">
+              {% for link in access %}
+                <a class="btn btn-sm btn-outline-dark" href="{{ link.url }}">{{ link.label }}</a>
+              {% endfor %}
+            </div>
+            <div class="text-muted small mt-2">Quick shortcuts to results, fees, and stats.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-info shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Class timetable</div>
+            {% if timetable %}
+              <ul class="list-unstyled mb-1 small">
+                {% for session in timetable %}
+                  <li class="mb-2">
+                    <span class="fw-semibold">{{ session.subject }}</span><br>
+                    <span class="text-muted">{{ session.classroom }} · coef {{ session.coefficient|floatformat:1 }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="small text-muted mb-1">Schedule fills once timetables are finalized.</p>
+            {% endif %}
+            <div class="text-muted small">Shows next subjects for your linked classrooms.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-success shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Communication center</div>
+            {% if communication.items %}
+              <ul class="list-unstyled mb-1 small">
+                {% for item in communication.items %}
+                  <li class="mb-2">
+                    <span class="fw-semibold">{{ item.label }}</span><br>
+                    <span class="text-muted">{{ item.value }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="small text-muted mb-1">Add contact details in site settings.</p>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-success mt-2" href="#">{{ communication.cta }}</a>
+            <div class="text-muted small mt-2">{{ communication.note }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endwith %}
 {% endif %}
