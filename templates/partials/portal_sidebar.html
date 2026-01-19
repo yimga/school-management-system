@@ -17,13 +17,13 @@
 
 <div class="nav flex-column gap-1">
   {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'teacher_dashboard' %}">
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:teacher_dashboard' %}">
       <i class="bi bi-speedometer2 me-2"></i>Dashboard
     </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'teacher_marks_entry' %}">
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:teacher_marks_entry' %}">
       <i class="bi bi-pencil-square me-2"></i>Enter Marks
     </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'teacher_marks_list' %}">
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:teacher_marks_list' %}">
       <i class="bi bi-table me-2"></i>Marks History
     </a>
     <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:employee_payslips' %}">
@@ -46,7 +46,7 @@
       <a class="nav-link nav-pill px-3 py-2" href="/admin/">
         <i class="bi bi-shield-lock me-2"></i>Admin
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'evaluation_admin' %}">
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:evaluation_admin' %}">
         <i class="bi bi-clipboard-data me-2"></i>Evaluation Manager
       </a>
       <a class="nav-link nav-pill px-3 py-2" href="{% url 'analytics:dashboard' %}">
@@ -61,13 +61,13 @@
       <a class="nav-link nav-pill px-3 py-2" href="{% url 'accounts:rbac' %}">
         <i class="bi bi-diagram-3 me-2"></i>Access Control
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'class_ranking' %}">
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:class_ranking' %}">
         <i class="bi bi-trophy me-2"></i>Class Ranking
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'school_ranking' %}">
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:school_ranking' %}">
         <i class="bi bi-bar-chart-line me-2"></i>School Ranking
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'publish_term_results' %}">
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'reports:publish_term_results' %}">
         <i class="bi bi-megaphone me-2"></i>Publish Results
       </a>
     {% endif %}

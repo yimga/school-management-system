@@ -1,4 +1,6 @@
 from django.urls import path
+
+app_name = "evals"
 from .views import (
     teacher_dashboard,
     teacher_marks_entry,
