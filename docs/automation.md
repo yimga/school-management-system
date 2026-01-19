@@ -15,6 +15,7 @@ We added `python manage.py run_phase7_checks` (see `apps/siteconfig/management/c
 4. `run_attendance_cycle`
 4. `python manage.py send_payment_reminders` (if needed)
 5. `check_integrations` (verifies required keys for enabled providers)
+6. `check_roles` (reports empty roles, unused permissions, and users without roles)
 
 Use `--require-automation` to fail if optional automation commands are missing:
 ```
