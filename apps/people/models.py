@@ -10,6 +10,12 @@ from apps.academics.models import AcademicYear, Classroom, Specialty, Department
 
 
 class TeacherProfile(models.Model):
+    class DashboardView(models.TextChoices):
+        OVERVIEW = "OVERVIEW", "Overview"
+        FINANCE = "FINANCE", "Finances"
+        ACADEMICS = "ACADEMICS", "Academics"
+        ATTENDANCE = "ATTENDANCE", "Attendance"
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
     staff_id = models.CharField(max_length=50, blank=True)
     phone = models.CharField(max_length=50, blank=True)
@@ -32,6 +38,8 @@ class TeacherProfile(models.Model):
     pay_grade = models.CharField(max_length=50, blank=True)
     salary_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    next_pay_date = models.DateField(null=True, blank=True)
+    paystub_notes = models.TextField(blank=True)
 
     class PaymentMethod(models.TextChoices):
         MTN_MOMO = "MTN_MOMO", "MTN Mobile Money"
@@ -45,6 +53,15 @@ class TeacherProfile(models.Model):
         choices=PaymentMethod.choices,
         default=PaymentMethod.BANK_TRANSFER,
     )
+    default_dashboard_view = models.CharField(
+        max_length=20,
+        choices=DashboardView.choices,
+        default=DashboardView.OVERVIEW,
+    )
+    allow_finance_panel = models.BooleanField(default=True)
+    allow_paystub_access = models.BooleanField(default=True)
+    allow_leave_approvals = models.BooleanField(default=False)
+    mark_reminder_opt_in = models.BooleanField(default=True)
 
     def clean(self):
         # Ensure the linked user is a TEACHER
