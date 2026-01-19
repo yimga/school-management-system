@@ -101,6 +101,9 @@
           {% if app.models and app.models.0.add_url %}
             <a class="button" href="{{ app.models.0.add_url }}">{% trans "Add" %}</a>
           {% endif %}
+          {% if app.app_label == "siteconfig" %}
+            <a class="button" href="{% url 'siteconfig:customizer' %}">{% trans "Customizer" %}</a>
+          {% endif %}
         </div>
       </div>
     {% endfor %}
