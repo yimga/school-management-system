@@ -63,7 +63,7 @@
                   </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 pt-0">
-                  <a class="btn btn-sm btn-primary w-100" href="{% url 'parent_child_results' link.student.id %}">
+                  <a class="btn btn-sm btn-primary w-100" href="{% url 'portal:parent_child_results' link.student.id %}">
                     View Results
                   </a>
                 </div>
@@ -89,7 +89,7 @@
         <div class="row g-3">
           {% for feature in portal_features %}
             <div class="col-md-6">
-              <div class="card border {{ "border-success" if feature.enabled else "border-secondary" }} h-100">
+              <div class="card border {% if feature.enabled %}border-success{% else %}border-secondary{% endif %} h-100">
                 <div class="card-body">
                   <div class="d-flex align-items-start gap-3">
                     {% if feature.icon %}

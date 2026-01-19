@@ -18,6 +18,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
+from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
@@ -101,12 +102,18 @@ def invoice_list(request: HttpRequest):
     if year_id:
         qs = qs.filter(academic_year_id=year_id)
 
+    paginator = Paginator(qs.order_by("-issued_date"), 25)
+    page_number = request.GET.get("page") or 1
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "finance/invoices.html", {
-        "invoices": qs.order_by("-issued_date"),
+        "invoices": page_obj,
         "statuses": Invoice.Status.choices,
         "selected_status": status or "",
         "years": AcademicYear.objects.order_by("-start_date"),
         "selected_year": year_id or "",
+        "page_obj": page_obj,
+        "paginator": paginator,
     })
 
 
@@ -116,9 +123,19 @@ def payment_list(request: HttpRequest):
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    qs = Payment.objects.filter(invoice__profile=profile).select_related("invoice", "invoice__student")
+    qs = Payment.objects.filter(invoice__profile=profile).select_related(
+        "invoice",
+        "invoice__student",
+        "invoice__academic_year",
+    )
+    paginator = Paginator(qs.order_by("-paid_at"), 25)
+    page_number = request.GET.get("page") or 1
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "finance/payments.html", {
-        "payments": qs.order_by("-paid_at"),
+        "payments": page_obj,
+        "page_obj": page_obj,
+        "paginator": paginator,
     })
 
 

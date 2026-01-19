@@ -13,10 +13,10 @@
     <style>
       {% with theme=SITE_THEME %}
       :root {
-        --school-primary: {{ theme.primary_color|default:SITE.primary_color|default:"#0d6efd" }};
-        --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#198754" }};
+        --school-primary: {{ theme.primary_color|default:"#0d6efd" }};
+        --school-accent: {{ theme.accent_color|default:"#198754" }};
         --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
-        --portal-font: {{ theme.font_family|default:SITE.brand_font|default:"Inter, system-ui, sans-serif" }};
+        --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
       }
       {% endwith %}
 
@@ -149,6 +149,7 @@
   </head>
 
   <body>
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 bg-white rounded" href="#main-content">Skip to main content</a>
     <nav class="navbar navbar-expand-lg navbar-dark topbar">
       <div class="container-fluid px-3">
         <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar">
@@ -196,7 +197,7 @@
       </div>
 
       <!-- Content -->
-      <div class="col-lg-9 col-xl-10">
+      <div class="col-lg-9 col-xl-10" id="main-content" role="main">
         <div class="page-wrap">
           {% include "partials/breadcrumbs.html" %}
           {% if messages %}

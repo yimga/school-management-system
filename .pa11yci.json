@@ -1,0 +1,14 @@
+{
+  "defaults": {
+    "chromeLaunchConfig": {
+      "args": ["--no-sandbox"]
+    },
+    "standard": "WCAG2AA",
+    "timeout": 120000
+  },
+  "urls": [
+    "http://localhost:8000/portal/parent/",
+    "http://localhost:8000/teacher/",
+    "http://localhost:8000/finance/"
+  ]
+}

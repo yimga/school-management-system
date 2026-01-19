@@ -1,0 +1,11 @@
+{
+  "name": "sms-portal",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "lint:accessibility": "npx pa11y-ci http://localhost:8000/portal/parent/ http://localhost:8000/teacher/ http://localhost:8000/finance/ || true"
+  },
+  "devDependencies": {
+    "pa11y-ci": "^3.1.0"
+  }
+}

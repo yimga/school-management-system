@@ -7,13 +7,19 @@
 - `python manage.py run_payment_reminders` — send fee reminders; review logs via `PaymentReminderLog`.
 - `python manage.py collectstatic --noinput` — rebuild static assets before deployments.
 
-## Custom Phase 7 command
+## Custom Phase 7 command
 We added `python manage.py run_phase7_checks` (see `apps/siteconfig/management/commands/run_phase7_checks.py`) to group together:
 1. `check`
 2. `test`
 3. `run_payment_reminders`
 4. `run_attendance_cycle`
 4. `python manage.py send_payment_reminders` (if needed)
+5. `check_integrations` (verifies required keys for enabled providers)
+
+Use `--require-automation` to fail if optional automation commands are missing:
+```
+python manage.py run_phase7_checks --require-automation
+```
 
 ## Scheduled workflows
 - Set Render cron to execute `python manage.py run_phase7_checks` nightly.

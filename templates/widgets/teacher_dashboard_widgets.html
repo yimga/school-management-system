@@ -17,6 +17,10 @@
           <div class="text-muted small">Pending tasks</div>
           <div class="display-6 fw-semibold">{{ widget_data.tasks.pending_evaluations }}</div>
           <div class="small text-muted">{{ widget_data.tasks.description }}</div>
+          <div class="d-flex gap-2 mt-2">
+            <a class="btn btn-sm btn-primary" href="{% url 'teacher_marks_entry' %}">Enter marks</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'teacher_marks_list' %}?missing=1">View missing</a>
+          </div>
         </div>
       </div>
     </div>
