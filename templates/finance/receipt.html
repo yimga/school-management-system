@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Receipt {{ payment.reference|default:payment.id }}</title>
+    <style>
+      body { font-family: "Segoe UI", "Helvetica Neue", sans-serif; margin: 32px; color: #111; }
+      .header { border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 16px; }
+      .header h1 { margin: 0; font-size: 28px; }
+      .meta { font-size: 14px; color: #475569; }
+      .section { margin-bottom: 16px; }
+      .section strong { display: block; font-size: 12px; color: #475569; }
+      .table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+      .table th, .table td { border-bottom: 1px solid #cbd5f5; padding: 8px 0; text-align: left; }
+      .table td.text-right { text-align: right; }
+      .total { font-size: 18px; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>{{ school }} Receipt</h1>
+      <div class="meta">
+        Payment #: {{ payment.reference|default:payment.id }} · {{ payment.paid_at|date:"M d, Y H:i" }}
+      </div>
+    </div>
+
+    <div class="section">
+      <strong>Billed to</strong>
+      <div>{{ invoice.student|default:invoice.counterparty }}</div>
+      <div>Invoice: {{ invoice.reference|default:invoice.id }}</div>
+      <div>Due: {{ invoice.due_date|default:"n/a" }}</div>
+    </div>
+
+    <div class="section">
+      <strong>Payment details</strong>
+      <div>Method: {{ payment.get_method_display }}</div>
+      <div>Amount: {{ payment.amount }}</div>
+      <div>Invoice total: {{ invoice.total_amount }}</div>
+      <div>Remaining balance: {{ invoice.balance_amount }}</div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th class="text-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in invoice.lines.all %}
+          <tr>
+            <td>{{ line.description }}</td>
+            <td class="text-right">{{ line.amount }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th class="total">Amount paid</th>
+          <td class="text-right total">{{ payment.amount }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </body>
+</html>

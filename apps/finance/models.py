@@ -1,4 +1,5 @@
 from decimal import Decimal
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.db import models
@@ -190,6 +191,15 @@ class FeeInstallment(models.Model):
         return f"{self.fee_item} #{self.installment_number}"
 
 
+class PaymentMethod(models.TextChoices):
+    CASH = "CASH", "Cash"
+    BANK = "BANK", "Bank Transfer"
+    MTN_MOMO = "MTN_MOMO", "MTN MoMo"
+    ORANGE_MOMO = "ORANGE_MOMO", "Orange Money"
+    CHECK = "CHECK", "Check"
+    OTHER = "OTHER", "Other"
+
+
 class Invoice(models.Model):
     class InvoiceType(models.TextChoices):
         AR = "AR", "Accounts Receivable"
@@ -215,6 +225,12 @@ class Invoice(models.Model):
     notes = models.TextField(blank=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     balance_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    preferred_payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        blank=True,
+        default="",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -241,17 +257,9 @@ class InvoiceLine(models.Model):
 
 
 class Payment(models.Model):
-    class Method(models.TextChoices):
-        CASH = "CASH", "Cash"
-        BANK = "BANK", "Bank"
-        MTN_MOMO = "MTN_MOMO", "MTN MoMo"
-        ORANGE_MOMO = "ORANGE_MOMO", "Orange Money"
-        CHECK = "CHECK", "Check"
-        OTHER = "OTHER", "Other"
-
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    method = models.CharField(max_length=20, choices=Method.choices)
+    method = models.CharField(max_length=20, choices=PaymentMethod.choices)
     reference = models.CharField(max_length=80, blank=True)
     paid_at = models.DateTimeField(default=timezone.now)
     receipt_number = models.CharField(max_length=64, blank=True)
@@ -262,6 +270,44 @@ class Payment(models.Model):
 
     def __str__(self) -> str:
         return f"{self.invoice} {self.amount}"
+
+
+class PaymentReminder(models.Model):
+    invoice = models.OneToOneField(Invoice, on_delete=models.CASCADE, related_name="reminder")
+    reminder_days_before = models.PositiveSmallIntegerField(default=3)
+    next_send_at = models.DateTimeField(null=True, blank=True)
+    last_sent_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    message_template = models.TextField(
+        default="Dear {guardian}, please pay {amount} for {invoice} by {due_date}.",
+    )
+
+    class Meta:
+        ordering = ["-invoice__due_date"]
+
+    def __str__(self) -> str:
+        return f"Reminder for {self.invoice}"
+
+    def schedule_next(self):
+        if not self.invoice.due_date:
+            return
+        target = datetime.combine(self.invoice.due_date, datetime.min.time())
+        remind_at = target - timedelta(days=self.reminder_days_before)
+        self.next_send_at = timezone.make_aware(remind_at, timezone=timezone.get_current_timezone())
+        self.save(update_fields=["next_send_at"])
+
+
+class PaymentReminderLog(models.Model):
+    reminder = models.ForeignKey(PaymentReminder, on_delete=models.CASCADE, related_name="logs")
+    sent_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default="SENT")
+    note = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-sent_at"]
+
+    def __str__(self) -> str:
+        return f"{self.reminder} @ {self.sent_at}"
 
 
 class Budget(models.Model):

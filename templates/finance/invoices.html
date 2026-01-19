@@ -48,22 +48,35 @@
             <th>Reference</th>
             <th>Type</th>
             <th>Status</th>
+            <th>Due</th>
             <th>Student</th>
             <th class="text-end">Total</th>
             <th class="text-end">Balance</th>
-            <th>Issued</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for inv in invoices %}
             <tr>
-              <td>{{ inv.reference|default:inv.id }}</td>
+              <td>
+                <a href="{% url 'finance:invoice_detail' inv.id %}">
+                  {{ inv.reference|default:inv.id }}
+                </a>
+              </td>
               <td>{{ inv.get_invoice_type_display }}</td>
               <td>{{ inv.get_status_display }}</td>
+              <td>{{ inv.due_date|default:"-" }}</td>
               <td>{{ inv.student|default:"-" }}</td>
               <td class="text-end">{{ inv.total_amount }}</td>
               <td class="text-end">{{ inv.balance_amount }}</td>
-              <td>{{ inv.issued_date }}</td>
+              <td>
+                <div class="d-flex gap-2">
+                  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoice_detail' inv.id %}">View</a>
+                  {% if inv.payments.first %}
+                    <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:invoice_receipt' inv.id %}">Receipt</a>
+                  {% endif %}
+                </div>
+              </td>
             </tr>
           {% empty %}
             <tr><td colspan="7" class="text-muted">No invoices found.</td></tr>

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from django.template.loader import render_to_string
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import models
 from django.db.models.functions import Coalesce
-from django.http import HttpRequest, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -14,7 +15,10 @@ from apps.academics.models import AcademicYear
 from apps.siteconfig.models import SiteSettings
 
 from .models import ComplianceProfile, FeePlan, Invoice, LedgerAccount, Payment
-from .services import create_fee_invoices
+from .services import (
+    create_fee_invoices,
+    generate_payment_link,
+)
 
 
 def _active_profile() -> ComplianceProfile | None:
@@ -148,3 +152,58 @@ def trial_balance(request: HttpRequest):
         "start": start or "",
         "end": end or "",
     })
+
+
+@staff_member_required
+def invoice_detail(request: HttpRequest, invoice_id: int):
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+
+    invoice = get_object_or_404(
+        Invoice.objects.select_related("student", "academic_year", "counterparty"),
+        id=invoice_id,
+        profile=profile,
+    )
+    payment_link = generate_payment_link(invoice)
+    reminder = getattr(invoice, "reminder", None)
+
+    return render(request, "finance/invoice_detail.html", {
+        "invoice": invoice,
+        "payment_link": payment_link,
+        "reminder": reminder,
+    })
+
+
+@staff_member_required
+def invoice_receipt(request: HttpRequest, invoice_id: int, payment_id: int | None = None):
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+
+    invoice = get_object_or_404(Invoice, id=invoice_id, profile=profile)
+    if payment_id:
+        payment = get_object_or_404(Payment, id=payment_id, invoice=invoice)
+    else:
+        payment = invoice.payments.order_by("-paid_at").first()
+
+    if not payment:
+        return HttpResponseForbidden("No payment available for this invoice.")
+
+    try:
+        from weasyprint import HTML
+    except ImportError:
+        return HttpResponse("PDF support unavailable (missing WeasyPrint).", status=503)
+
+    context = {
+        "invoice": invoice,
+        "payment": payment,
+        "school": profile.name,
+    }
+    html = render_to_string("finance/receipt.html", context)
+    pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response[
+        "Content-Disposition"
+    ] = f'attachment; filename="receipt-{payment.id}.pdf"'
+    return response

@@ -22,6 +22,8 @@ from .models import (
     LedgerAccount,
     Payment,
     TaxBracket,
+    PaymentReminder,
+    PaymentReminderLog,
 )
 
 
@@ -109,6 +111,19 @@ class PaymentAdmin(ModelAdmin):
     list_display = ("invoice", "amount", "method", "paid_at", "receipt_number")
     list_filter = ("method", "paid_at")
     search_fields = ("reference", "receipt_number")
+
+
+@admin.register(PaymentReminder)
+class PaymentReminderAdmin(ModelAdmin):
+    list_display = ("invoice", "is_active", "next_send_at", "reminder_days_before")
+    list_filter = ("is_active",)
+    search_fields = ("invoice__reference", "invoice__student__student_code")
+
+
+@admin.register(PaymentReminderLog)
+class PaymentReminderLogAdmin(ModelAdmin):
+    list_display = ("reminder", "sent_at", "status")
+    list_filter = ("status",)
 
 
 @admin.register(Budget)
