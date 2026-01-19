@@ -20,7 +20,12 @@ class Command(BaseCommand):
         call_command("check")
         call_command("test")
 
-        optional_commands = ["run_attendance_cycle", "run_payroll_cycle", "run_payment_reminders"]
+        optional_commands = [
+            "run_attendance_cycle",
+            "run_payroll_cycle",
+            "run_payment_reminders",
+            "check_integrations",
+        ]
         for cmd in optional_commands:
             try:
                 call_command(cmd)
