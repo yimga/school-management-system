@@ -66,6 +66,18 @@
     {% if settings_url %}<a class="button default" href="{{ settings_url }}">{% trans "Open Theme settings" %}</a>{% endif %}
   </div>
   <div class="card-neutral">
+    <h4 id="grade-import">{% trans "Marks & imports" %}</h4>
+    <p class="small mb-2">{% trans "Track completion and bulk-import grades when needed." %}</p>
+    <ul class="small mb-2">
+      <li>{% trans "Use completion widgets on teacher dashboard to spot missing marks." %}</li>
+      <li>{% trans "Download CSV template and import via CLI for bulk updates." %}</li>
+    </ul>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="button default" href="#app-list">{% trans "Go to assignments" %}</a>
+      <a class="button" href="{{ request.path }}#grade-import-template">{% trans "Download CSV template" %}</a>
+    </div>
+  </div>
+  <div class="card-neutral">
     <h4 id="recent-actions-card">{% trans "Recent actions" %}</h4>
     <p class="small mb-2">{% trans "See audit log on the right sidebar." %}</p>
     <a class="button" href="{{ log_url|default:'/admin/admin/logentry/' }}">↗ {% trans "Open audit log" %}</a>
