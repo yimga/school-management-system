@@ -24,16 +24,20 @@
       </div>
     </div>
     <div class="stat-grid">
-      <div class="stat-pill">
-        <div class="stat-label">{% trans "Apps" %}</div>
-        <div class="stat-value">{{ app_list|length }}</div>
-        <div class="small opacity-80">{% trans "Registered modules" %}</div>
-      </div>
-      <div class="stat-pill">
-        <div class="stat-label">{% trans "System health" %}</div>
-        <div class="stat-value">✓</div>
-        <div class="small opacity-80">{% trans "Checks ready to run" %}</div>
-      </div>
+      <a class="stat-link" href="#app-list">
+        <div class="stat-pill">
+          <div class="stat-label">{% trans "Apps" %}</div>
+          <div class="stat-value">{{ app_list|length }}</div>
+          <div class="small opacity-80">{% trans "Registered modules" %}</div>
+        </div>
+      </a>
+      <a class="stat-link" href="#recent-actions-card">
+        <div class="stat-pill">
+          <div class="stat-label">{% trans "Recent actions" %}</div>
+          <div class="stat-value">↗</div>
+          <div class="small opacity-80">{% trans "See audit log on the right" %}</div>
+        </div>
+      </a>
     </div>
   </div>
 </div>
@@ -61,10 +65,10 @@
 
 {% if app_list %}
   <div class="module">
-    <h2>{% trans "Applications" %}</h2>
-      {% for app in app_list %}
-        <div class="dashboard-module mb-3" id="app-{{ app.app_label }}">
-          <table>
+    <h2 id="app-list">{% trans "Applications" %}</h2>
+    {% for app in app_list %}
+      <div class="dashboard-module mb-3" id="app-{{ app.app_label }}">
+        <table>
             <caption class="d-flex justify-content-between align-items-center">
               <span>{{ app.name }}</span>
               <span class="small opacity-75 text-muted">{{ app.models|length }} {% trans "sections" %}</span>
