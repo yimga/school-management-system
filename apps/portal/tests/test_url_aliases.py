@@ -11,15 +11,18 @@ from apps.people.models import StudentProfile, StudentGuardian
 class UrlAliasTests(TestCase):
     def test_student_portal_grades_alias_redirects(self):
         resp = self.client.get("/portal/student-portal/grades/", follow=True)
+        urls = [url for url, _ in resp.redirect_chain]
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "name=\"username\"")
-        self.assertTrue(any("authentication/login" in url for url, _ in resp.redirect_chain))
+        self.assertTrue(any("/portal/parent/" in url for url in urls))
+        self.assertTrue(any("authentication/login" in url for url in urls))
 
     def test_admissions_application_status_alias_redirects(self):
         resp = self.client.get("/portal/admissions/application-status/", follow=True)
+        urls = [url for url, _ in resp.redirect_chain]
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "name=\"username\"")
-        self.assertTrue(any("authentication/login" in url for url, _ in resp.redirect_chain))
+        self.assertTrue(any("/portal/parent/" in url for url in urls))
+        self.assertTrue(any("authentication/login" in url for url in urls))
+
 
     def test_alias_renders_parent_dashboard_when_authenticated(self):
         year = AcademicYear.objects.create(
