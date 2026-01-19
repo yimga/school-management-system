@@ -23,6 +23,8 @@ def admin_health():
         "reminders_due": 0,
         "portal_parent_enabled": True,
         "portal_teacher_enabled": True,
+        "backup_status": "Not configured",
+        "backup_last": "N/A",
     }
 
     # Migrations pending

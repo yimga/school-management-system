@@ -83,6 +83,7 @@
       <li>{% trans "Reminders due now" %}: {{ health.reminders_due }}</li>
       <li>{% trans "Parent portal" %}: {{ health.portal_parent_enabled|yesno:"On,Off" }}</li>
       <li>{% trans "Teacher portal" %}: {{ health.portal_teacher_enabled|yesno:"On,Off" }}</li>
+      <li>{% trans "Backup status" %}: {{ health.backup_status }} ({{ health.backup_last }})</li>
     </ul>
   </div>
 </div>
