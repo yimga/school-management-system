@@ -33,7 +33,7 @@
           <div class="small opacity-80">{% trans "Registered modules" %}</div>
         </div>
       </a>
-      <a class="stat-link" href="{% url 'admin:logentry_changelist' %}">
+      <a class="stat-link" href="/admin/admin/logentry/">
         <div class="stat-pill">
           <div class="stat-label">{% trans "Recent actions" %}</div>
           <div class="stat-value">↗</div>
@@ -66,13 +66,13 @@
   <div class="card-neutral">
     <h4 id="recent-actions-card">{% trans "Recent actions" %}</h4>
     <p class="small mb-2">{% trans "See audit log on the right sidebar." %}</p>
-    <a class="button" href="{% url 'admin:logentry_changelist' %}">↗ {% trans "Open audit log" %}</a>
+    <a class="button" href="/admin/admin/logentry/">↗ {% trans "Open audit log" %}</a>
   </div>
   <div class="card-neutral">
     <h4>{% trans "System health" %}</h4>
     <p class="small mb-2">{% trans "Run health checks and review automation status." %}</p>
     <div class="d-flex flex-wrap gap-2">
-      <a class="button" href="{% url 'admin:logentry_changelist' %}">↗ {% trans "Audit log" %}</a>
+      <a class="button" href="/admin/admin/logentry/">↗ {% trans "Audit log" %}</a>
       <a class="button default" href="{{ settings_url|default:'/siteconfig/sitesettings/' }}">{% trans "Theme & Settings" %}</a>
     </div>
     <ul class="small mt-2 mb-0">
