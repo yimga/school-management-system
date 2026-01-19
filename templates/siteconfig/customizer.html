@@ -118,6 +118,17 @@
 
     <hr class="my-4">
 
+    <h5 class="mb-3">Compliance</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="form-label">Compliance profile</label>
+        {{ form.compliance_profile }}
+        {% for e in form.compliance_profile.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <hr class="my-4">
+
     <h5 class="mb-3">Analytics</h5>
     <div class="row g-3 mb-4">
       <div class="col-md-4">

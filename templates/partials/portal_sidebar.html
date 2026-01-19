@@ -26,6 +26,12 @@
     <a class="nav-link nav-pill px-3 py-2" href="{% url 'teacher_marks_list' %}">
       <i class="bi bi-table me-2"></i>Marks History
     </a>
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:employee_payslips' %}">
+      <i class="bi bi-wallet2 me-2"></i>Payslips
+    </a>
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:employee_leave' %}">
+      <i class="bi bi-calendar-check me-2"></i>Leave Requests
+    </a>
 
   {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
     <a class="nav-link nav-pill px-3 py-2" href="{% url 'parent_dashboard' %}">
@@ -45,6 +51,12 @@
       </a>
       <a class="nav-link nav-pill px-3 py-2" href="{% url 'analytics:dashboard' %}">
         <i class="bi bi-graph-up-arrow me-2"></i>Analytics
+      </a>
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'finance:dashboard' %}">
+        <i class="bi bi-currency-exchange me-2"></i>Finance
+      </a>
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:dashboard' %}">
+        <i class="bi bi-cash-stack me-2"></i>Payroll
       </a>
       <a class="nav-link nav-pill px-3 py-2" href="{% url 'accounts:rbac' %}">
         <i class="bi bi-diagram-3 me-2"></i>Access Control

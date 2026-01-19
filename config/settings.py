@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     "apps.reports",
     "apps.siteconfig",
     "apps.analytics",
+    "apps.finance",
+    "apps.payroll",
 ]
 
 MIDDLEWARE = [

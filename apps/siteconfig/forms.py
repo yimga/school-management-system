@@ -14,6 +14,8 @@ class SiteSettingsForm(forms.ModelForm):
             "maintenance_mode",
             # Feature toggles
             "enable_parent_portal", "enable_teacher_portal", "enable_reports_pdf",
+            # Compliance
+            "compliance_profile",
             # Analytics defaults
             "top_students_default_limit",
             "pass_mark",
@@ -33,5 +35,6 @@ class SiteSettingsForm(forms.ModelForm):
             "weak_subject_threshold": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
             "improvement_delta_threshold": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
             "deadline_mode": forms.Select(attrs={"class": "form-select"}),
+            "compliance_profile": forms.Select(attrs={"class": "form-select"}),
         }
 
