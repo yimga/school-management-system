@@ -18,6 +18,7 @@ body {
     radial-gradient(circle at 22% 78%, rgba(45, 212, 191, 0.20), transparent 32%),
     linear-gradient(180deg, #fff7f2 0%, #f5f1ff 40%, #f2fbff 100%);
   color: var(--ink);
+  font-size: 15px;
 }
 
 .topbar {
@@ -105,6 +106,7 @@ body {
 
 .btn {
   border-radius: 999px;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .btn-primary,
@@ -117,6 +119,7 @@ body {
 .btn-outline-primary {
   color: var(--sunset-3);
   border-color: rgba(160, 75, 254, 0.35);
+  background: #f7f9fc;
 }
 
 .badge {
@@ -175,4 +178,15 @@ body {
 .list-group-item {
   border: none;
   background: transparent;
+}
+
+table thead th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 2;
+}
+
+.table td, .table th {
+  padding: 10px 12px;
 }
