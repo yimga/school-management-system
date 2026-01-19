@@ -63,8 +63,25 @@ def dashboard(request: HttpRequest):
         return HttpResponseForbidden("No compliance profile configured.")
 
     dashboard_data = finance_dashboard_data(profile)
+    summary = dashboard_data.get("summary", {})
+    hero = {
+        "tagline": "Finance Dashboard",
+        "title": profile.name,
+        "subtitle": "Receivables, collections, and alerts",
+        "icon": "bi-cash-coin",
+        "stats": [
+            {"label": "Receivables", "value": summary.get("receivables"), "meta": "Outstanding AR"},
+            {"label": "Collected", "value": summary.get("paid"), "meta": "YTD payments"},
+            {"label": "Overdue", "value": summary.get("overdue"), "meta": "Invoices late"},
+        ],
+        "actions": [
+            {"label": "All Invoices", "url": "/finance/invoices/"},
+            {"label": "Payments", "url": "/finance/payments/"},
+        ],
+    }
     return render(request, "finance/dashboard.html", {
         "profile": profile,
+        "hero": hero,
         **dashboard_data,
     })
 

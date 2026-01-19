@@ -112,6 +112,21 @@ def teacher_dashboard(request: HttpRequest):
         progress[a.id] = {"filled": filled, "total": total}
 
     widget_data = teacher_dashboard_widget_data(assignments, progress, year, term)
+    hero = {
+        "tagline": "Teacher Dashboard",
+        "title": "Your classes at a glance",
+        "subtitle": f"{year.name} · {term.get_name_display()}",
+        "icon": "bi-easel",
+        "stats": [
+            {"label": "Assignments", "value": widget_data["assignments_count"], "meta": "Active subjects"},
+            {"label": "Completion", "value": f"{widget_data['completion_pct']}%", "progress": widget_data["completion_pct"], "meta": "Marks entered"},
+            {"label": "Pending", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Marks remaining"},
+        ],
+        "actions": [
+            {"label": "Enter Marks", "url": "/evals/marks/entry/"},
+            {"label": "View Marks", "url": "/evals/marks/"},
+        ],
+    }
 
     return render(request, "teacher/dashboard.html", {
         "year": year,
@@ -119,6 +134,7 @@ def teacher_dashboard(request: HttpRequest):
         "assignments": assignments,
         "progress": progress,
         "widget_data": widget_data,
+        "hero": hero,
     })
 
 @teacher_portal_required

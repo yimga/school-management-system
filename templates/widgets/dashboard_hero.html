@@ -1,0 +1,45 @@
+{% if hero %}
+  <div class="dashboard-hero p-4 mb-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-lg-7">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          {% if hero.icon %}
+            <div class="bg-white bg-opacity-20 rounded-3 p-3">
+              <i class="bi {{ hero.icon }} fs-2 text-light"></i>
+            </div>
+          {% endif %}
+          <div>
+            <div class="text-uppercase small opacity-75 mb-1">{{ hero.tagline|default:"Dashboard" }}</div>
+            <h2 class="mb-1">{{ hero.title }}</h2>
+            {% if hero.subtitle %}<div class="small opacity-85">{{ hero.subtitle }}</div>{% endif %}
+          </div>
+        </div>
+        {% if hero.actions %}
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            {% for action in hero.actions %}
+              <a class="btn btn-sm btn-light text-primary" href="{{ action.url }}">{{ action.label }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-5">
+        <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+          {% for stat in hero.stats %}
+            <div class="kpi-pill">
+              <div class="kpi-label">{{ stat.label }}</div>
+              <div class="kpi-value">{{ stat.value }}</div>
+              {% if stat.meta %}
+                <div class="small opacity-75">{{ stat.meta }}</div>
+              {% endif %}
+              {% if stat.progress %}
+                <div class="pill-bar mt-2">
+                  <div class="pill-fill" style="width: {{ stat.progress }}%;"></div>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
