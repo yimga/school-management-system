@@ -42,6 +42,7 @@ class SiteSettingsAdmin(ModelAdmin):
             "fields": (
                 "company_name",
                 "company_slug",
+                "school_code",
                 "company_address",
                 "company_phone",
                 "company_email",

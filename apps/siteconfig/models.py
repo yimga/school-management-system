@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.db import models
+from django.apps import apps as django_apps
 
 from apps.academics.models import Subject
 
@@ -24,7 +25,6 @@ PORTAL_FEATURE_DEFAULTS: dict[str, bool] = {
 def default_portal_features():
     return dict(PORTAL_FEATURE_DEFAULTS)
 from apps.finance.models import ComplianceProfile, Invoice, Payment
-from apps.people.models import StudentProfile, TeacherProfile
 
 
 class DashboardView(models.TextChoices):
@@ -49,6 +49,11 @@ class SiteSettings(models.Model):
     logo = models.ImageField(upload_to="branding/", blank=True, null=True)
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
+    school_code = models.CharField(
+        max_length=20,
+        default="GIL",
+        help_text="Short code used in admission numbers (e.g., GIL).",
+    )
     company_name = models.CharField(max_length=160, blank=True, default="")
     company_address = models.TextField(blank=True, default="")
     company_phone = models.CharField(max_length=50, blank=True, default="")
@@ -239,6 +244,7 @@ def report_exporter(slug):
 
 @report_exporter("students")
 def _student_export():
+    StudentProfile = django_apps.get_model("people", "StudentProfile")
     headers = [
         "Student Code",
         "Name",
@@ -265,6 +271,7 @@ def _student_export():
 
 @report_exporter("teachers")
 def _teacher_export():
+    TeacherProfile = django_apps.get_model("people", "TeacherProfile")
     headers = ["Username", "Full Name", "Department", "Position", "Payment Method"]
     rows = []
     qs = TeacherProfile.objects.select_related("department", "user")
