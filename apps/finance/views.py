@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 from django.template.loader import render_to_string
 
@@ -7,17 +8,29 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import models
 from django.db.models.functions import Coalesce
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    HttpResponseNotAllowed,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 
 from apps.academics.models import AcademicYear
 from apps.siteconfig.models import SiteSettings
 
-from .models import ComplianceProfile, FeePlan, Invoice, LedgerAccount, Payment
+from .models import ComplianceProfile, FeePlan, Invoice, LedgerAccount, Payment, PaymentMethod
 from .services import (
+    PROVIDER_SLUG_TO_METHOD,
     create_fee_invoices,
     generate_payment_link,
+    get_payment_integration_by_slug,
+    record_provider_payment,
+    verify_payment_signature,
 )
 
 
@@ -207,3 +220,53 @@ def invoice_receipt(request: HttpRequest, invoice_id: int, payment_id: int | Non
         "Content-Disposition"
     ] = f'attachment; filename="receipt-{payment.id}.pdf"'
     return response
+
+
+@csrf_exempt
+def payment_provider_webhook(request: HttpRequest, provider_slug: str):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    integration = get_payment_integration_by_slug(provider_slug)
+    if not integration:
+        return HttpResponseForbidden("Unknown provider.")
+
+    try:
+        data = json.loads(request.body.decode() or "{}")
+    except json.JSONDecodeError:
+        return HttpResponseBadRequest("Invalid JSON payload.")
+
+    signature_header = integration.config.get("signature_header", "X-Signature")
+    signature = (
+        request.headers.get(signature_header)
+        or request.META.get(f"HTTP_{signature_header.upper().replace('-', '_')}")
+    )
+
+    if not verify_payment_signature(integration, data, signature):
+        return HttpResponseForbidden("Invalid signature.")
+
+    invoice_id = data.get("invoice_id") or data.get("invoice")
+    amount = data.get("amount")
+    reference = data.get("reference") or data.get("payment_reference")
+    external_ref = data.get("external_reference") or reference
+    method = data.get("method") or PROVIDER_SLUG_TO_METHOD.get(provider_slug)
+
+    if not invoice_id or amount is None:
+        return HttpResponseBadRequest("Missing invoice_id or amount.")
+
+    invoice = Invoice.objects.filter(id=invoice_id).first()
+    if not invoice:
+        return HttpResponseBadRequest("Invoice not found.")
+
+    payment = record_provider_payment(
+        invoice=invoice,
+        amount=amount,
+        method=method or PaymentMethod.MTN_MOMO,
+        reference=reference,
+        external_reference=external_ref,
+    )
+
+    if not payment:
+        return JsonResponse({"status": "ignored"})
+
+    return JsonResponse({"status": "ok", "payment_id": payment.id})

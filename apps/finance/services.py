@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import Iterable
 import hashlib
 import hmac
+from decimal import Decimal
+from typing import Iterable
 
 from django.conf import settings
 from django.db import transaction
@@ -25,6 +25,56 @@ from .models import (
 )
 
 
+PAYMENT_METHOD_PROVIDER_SLUGS = {
+    PaymentMethod.MTN_MOMO: "mtn_momo",
+    PaymentMethod.ORANGE_MOMO: "orange_momo",
+}
+PROVIDER_SLUG_TO_METHOD = {v: k for k, v in PAYMENT_METHOD_PROVIDER_SLUGS.items()}
+DEFAULT_SIGNATURE_FORMAT = "{invoice_id}:{amount}"
+DEFAULT_SIGNATURE_HEADER = "X-Signature"
+
+
+def _signature_mapping(data: dict) -> dict:
+    return {
+        "invoice_id": data.get("invoice_id"),
+        "amount": str(data.get("amount")),
+        "method": data.get("method"),
+        "reference": data.get("reference"),
+    }
+
+
+def _format_signature_payload(fmt: str, mapping: dict) -> str:
+    class MissingDict(dict):
+        def __missing__(self, key):
+            return ""
+
+    return fmt.format_map(MissingDict(mapping))
+
+
+def _build_signature(secret: str, payload: str) -> str:
+    return hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+
+
+def get_payment_integration_by_method(method: str) -> Integration | None:
+    slug = PAYMENT_METHOD_PROVIDER_SLUGS.get(method)
+    if not slug:
+        return None
+    return Integration.objects.filter(
+        provider="payments",
+        enabled=True,
+        config__provider_slug=slug,
+    ).order_by("-id").first()
+
+
+def get_payment_integration_by_slug(slug: str) -> Integration | None:
+    return Integration.objects.filter(
+        provider="payments",
+        enabled=True,
+        config__provider_slug=slug,
+    ).order_by("-id").first()
+
+
+
 def _account(profile: ComplianceProfile, code: str, name: str, account_type: str) -> LedgerAccount:
     account, _ = LedgerAccount.objects.get_or_create(
         profile=profile,
@@ -42,25 +92,81 @@ def generate_payment_link(invoice: Invoice, method: str | None = None) -> dict |
     if not invoice:
         return None
     chosen = method or invoice.preferred_payment_method or PaymentMethod.MTN_MOMO
-    integration = (
-        Integration.objects.filter(provider="payments", enabled=True)
-        .order_by("-id")
-        .first()
-    )
-    config = integration.config if integration and integration.config else {}
+    integration = get_payment_integration_by_method(chosen)
+    if not integration:
+        return None
+
+    config = integration.config or {}
     base_url = config.get("base_url")
-    secret = config.get("secret", settings.SECRET_KEY)
     if not base_url:
         return None
 
-    payload = f"{invoice.id}:{chosen}:{invoice.total_amount}"
-    signature = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    callback_path = config.get(
+        "callback_path",
+        f"/finance/payments/webhook/{config.get('provider_slug', PAYMENT_METHOD_PROVIDER_SLUGS.get(chosen))}/",
+    )
+    site_url = getattr(settings, "SITE_URL", "https://school.example/").rstrip("/")
+    callback_url = config.get("callback_url") or f"{site_url}{callback_path}"
+
+    payload_data = _signature_mapping({
+        "invoice_id": invoice.id,
+        "amount": str(invoice.total_amount),
+        "method": chosen,
+    })
+    signature_fmt = config.get("signature_format", DEFAULT_SIGNATURE_FORMAT)
+    payload = _format_signature_payload(signature_fmt, payload_data)
+    signature = _build_signature(config.get("secret", settings.SECRET_KEY), payload)
 
     return {
-        "url": f"{base_url}?invoice={invoice.id}&method={chosen}&amount={invoice.total_amount}&sig={signature}",
+        "url": f"{base_url}?invoice={invoice.id}&method={chosen}&amount={invoice.total_amount}&sig={signature}&callback={callback_url}",
         "method": chosen,
         "integration": integration,
+        "signature_header": config.get("signature_header", DEFAULT_SIGNATURE_HEADER),
+        "callback_url": callback_url,
     }
+
+
+def verify_payment_signature(integration: Integration, data: dict, signature: str | None) -> bool:
+    if not signature:
+        return False
+    config = integration.config or {}
+    fmt = config.get("signature_format", DEFAULT_SIGNATURE_FORMAT)
+    payload = _format_signature_payload(fmt, _signature_mapping(data))
+    expected = _build_signature(config.get("secret", settings.SECRET_KEY), payload)
+    return hmac.compare_digest(expected, signature)
+
+
+def record_provider_payment(
+    invoice: Invoice,
+    amount: Decimal | str | float,
+    method: str,
+    reference: str | None = None,
+    external_reference: str | None = None,
+) -> Payment | None:
+    if not invoice:
+        return None
+
+    amount_val = Decimal(str(amount))
+    if amount_val <= 0:
+        return None
+
+    ext_ref = external_reference or reference
+    defaults = {
+        "amount": amount_val,
+        "method": method,
+        "reference": reference or ext_ref or "",
+    }
+    if ext_ref:
+        defaults["external_reference"] = ext_ref
+        payment, _ = Payment.objects.update_or_create(
+            invoice=invoice,
+            external_reference=ext_ref,
+            defaults=defaults,
+        )
+    else:
+        payment = Payment.objects.create(invoice=invoice, **defaults)
+    apply_payment(payment)
+    return payment
 
 
 def post_invoice_to_ledger(invoice: Invoice) -> None:
