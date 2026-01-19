@@ -1,0 +1,60 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="admin-hero">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <div class="text-uppercase small opacity-75 mb-1">{% trans "Admin Console" %}</div>
+        <h2 class="mb-1">{% if site_header %}{{ site_header }}{% else %}{% trans "Site administration" %}{% endif %}</h2>
+        <div class="small opacity-85">{% trans "All apps, users, and configuration in one place." %}</div>
+      </div>
+      <div class="kpi-bar">
+        <div class="kpi-pill">
+          <div class="kpi-label">{% trans "Apps" %}</div>
+          <div class="kpi-value">{{ app_list|length }}</div>
+          <div class="small opacity-75">{% trans "Registered admin modules" %}</div>
+        </div>
+        <div class="kpi-pill">
+          <div class="kpi-label">{% trans "Quick action" %}</div>
+          <div class="kpi-value">+</div>
+          <div class="small opacity-75">{% trans "Add user / manage roles" %}</div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="button default" href="{% url 'admin:auth_user_add' %}">{% trans "Add User" %}</a>
+        <a class="button" href="{% url 'admin:login' %}">{% trans "Switch user" %}</a>
+      </div>
+    </div>
+  </div>
+
+  {% if app_list %}
+    <div class="module">
+      <h2>{% trans "Applications" %}</h2>
+      {% for app in app_list %}
+        <div class="dashboard-module" id="app-{{ app.app_label }}">
+          <table>
+            <caption>{{ app.name }}</caption>
+            <tbody>
+              {% for model in app.models %}
+                <tr>
+                  <th scope="row">
+                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                  </th>
+                  <td class="text-end">
+                    {% if model.add_url %}
+                      <a class="button" href="{{ model.add_url }}">{% trans "Add" %}</a>
+                    {% endif %}
+                    <a class="button default" href="{{ model.admin_url }}">{% trans "Manage" %}</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>{% trans "You don't have permission to view or edit anything." %}</p>
+  {% endif %}
+{% endblock %}
