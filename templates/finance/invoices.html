@@ -1,0 +1,76 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Invoices</h2>
+    <div class="text-muted">Accounts receivable and payable.</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:dashboard' %}">Back to Finance</a>
+</div>
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small">Status</label>
+        <select class="form-select" name="status">
+          <option value="">All</option>
+          {% for value, label in statuses %}
+            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">Academic year</label>
+        <select class="form-select" name="year">
+          <option value="">All</option>
+          {% for y in years %}
+            <option value="{{ y.id }}" {% if selected_year == y.id|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 d-grid">
+        <button class="btn btn-primary">Filter</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Student</th>
+            <th class="text-end">Total</th>
+            <th class="text-end">Balance</th>
+            <th>Issued</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+            <tr>
+              <td>{{ inv.reference|default:inv.id }}</td>
+              <td>{{ inv.get_invoice_type_display }}</td>
+              <td>{{ inv.get_status_display }}</td>
+              <td>{{ inv.student|default:"-" }}</td>
+              <td class="text-end">{{ inv.total_amount }}</td>
+              <td class="text-end">{{ inv.balance_amount }}</td>
+              <td>{{ inv.issued_date }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-muted">No invoices found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

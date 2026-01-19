@@ -1,0 +1,69 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Payroll Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Payroll Dashboard</h2>
+    <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:create_run' %}">New Payroll Run</a>
+  </div>
+</div>
+
+{% if latest_run %}
+  <div class="card mb-3">
+    <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+      <div>
+        <div class="text-muted small">Latest run</div>
+        <div class="fw-semibold">{{ latest_run.period_start }} - {{ latest_run.period_end }}</div>
+      </div>
+      <div>
+        <div class="text-muted small">Status</div>
+        <div class="fw-semibold">{{ latest_run.get_status_display }}</div>
+      </div>
+      <div>
+        <div class="text-muted small">Payslips</div>
+        <div class="fw-semibold">{{ payslip_count }}</div>
+      </div>
+      <div class="ms-auto">
+        <a class="btn btn-sm btn-primary" href="{% url 'payroll:run_detail' latest_run.id %}">Open Run</a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="mb-2">Payroll Runs</h5>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>Status</th>
+            <th class="text-end">Payslips</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for run in runs %}
+            <tr>
+              <td>{{ run.period_start }} - {{ run.period_end }}</td>
+              <td>{{ run.get_status_display }}</td>
+              <td class="text-end">{{ run.payslips.count }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'payroll:run_detail' run.id %}">View</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-muted">No payroll runs yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

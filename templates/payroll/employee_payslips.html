@@ -1,0 +1,42 @@
+{% extends "portal_base.html" %}
+
+{% block title %}My Payslips{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">My Payslips</h2>
+    <div class="text-muted">{{ employee }}</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:employee_leave' %}">Leave Requests</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>Status</th>
+            <th class="text-end">Gross</th>
+            <th class="text-end">Net</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for slip in payslips %}
+            <tr>
+              <td>{{ slip.payroll_run.period_start }} - {{ slip.payroll_run.period_end }}</td>
+              <td>{{ slip.get_status_display }}</td>
+              <td class="text-end">{{ slip.gross_pay }}</td>
+              <td class="text-end">{{ slip.net_pay }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-muted">No payslips yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

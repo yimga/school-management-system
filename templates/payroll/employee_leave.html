@@ -1,0 +1,75 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Leave Requests{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Leave Requests</h2>
+    <div class="text-muted">{{ employee }}</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:employee_payslips' %}">My Payslips</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <form method="post" class="card">
+      {% csrf_token %}
+      <div class="card-body">
+        <h5 class="mb-3">Request Leave</h5>
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+          <label class="form-label">Leave type</label>
+          {{ form.leave_type }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Start date</label>
+          {{ form.start_date }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">End date</label>
+          {{ form.end_date }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Reason</label>
+          {{ form.reason }}
+        </div>
+      </div>
+      <div class="card-footer d-flex justify-content-end">
+        <button class="btn btn-primary">Submit</button>
+      </div>
+    </form>
+  </div>
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="mb-3">History</h5>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Dates</th>
+                <th>Status</th>
+                <th class="text-end">Days</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for leave in leaves %}
+                <tr>
+                  <td>{{ leave.get_leave_type_display }}</td>
+                  <td>{{ leave.start_date }} - {{ leave.end_date }}</td>
+                  <td>{{ leave.get_status_display }}</td>
+                  <td class="text-end">{{ leave.days }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="4" class="text-muted">No leave requests yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

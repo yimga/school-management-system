@@ -1,0 +1,32 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Create Payroll Run{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Create Payroll Run</h2>
+    <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:dashboard' %}">Back</a>
+</div>
+
+<form method="post" class="card">
+  {% csrf_token %}
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Period start</label>
+        <input class="form-control" type="date" name="period_start" value="{{ today }}" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Period end</label>
+        <input class="form-control" type="date" name="period_end" value="{{ today }}" required>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer d-flex justify-content-end">
+    <button class="btn btn-primary">Create Run</button>
+  </div>
+</form>
+{% endblock %}
