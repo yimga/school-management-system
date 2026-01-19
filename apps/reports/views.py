@@ -7,7 +7,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from apps.accounts.decorators import role_required
+from apps.accounts.decorators import role_required, parent_portal_required
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
@@ -29,7 +29,7 @@ from apps.siteconfig.models import SiteSettings
 
 def _reports_enabled() -> bool:
     site = SiteSettings.get_solo()
-    return bool(site.enable_reports_pdf)
+    return bool(site.enable_reports_pdf and site.report_downloads_enabled)
 
 
 def _get_guardian_student(request: HttpRequest, student_id: int) -> StudentProfile | None:
@@ -45,10 +45,11 @@ def _get_guardian_student(request: HttpRequest, student_id: int) -> StudentProfi
     return link.student if link else None
 
 
+@parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_download_term_report(request: HttpRequest, student_id: int):
     if not _reports_enabled():
-        return HttpResponseForbidden("PDF reports are disabled by the school.")
+        return HttpResponseForbidden("Report downloads are disabled by the school.")
 
     year, term = get_active_year_and_term()
     if not year or not term:
@@ -89,10 +90,11 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     return resp
 
 
+@parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_download_annual_report(request: HttpRequest, student_id: int):
     if not _reports_enabled():
-        return HttpResponseForbidden("PDF reports are disabled by the school.")
+        return HttpResponseForbidden("Report downloads are disabled by the school.")
 
     year, _term = get_active_year_and_term()
     if not year:
@@ -130,10 +132,11 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
     return resp
 
 
+@parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_share_report(request: HttpRequest, student_id: int, report_type: str):
     if not _reports_enabled():
-        return HttpResponseForbidden("PDF reports are disabled by the school.")
+        return HttpResponseForbidden("Report downloads are disabled by the school.")
 
     year, term = get_active_year_and_term()
     if not year:
@@ -193,8 +196,10 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
 
 
 def report_share(request: HttpRequest, token: str):
+    if not SiteSettings.get_solo().enable_parent_portal:
+        return HttpResponseForbidden("Parent portal is disabled.")
     if not _reports_enabled():
-        return HttpResponseForbidden("PDF reports are disabled by the school.")
+        return HttpResponseForbidden("Report downloads are disabled by the school.")
 
     payload = parse_share_token(token)
     if not payload:

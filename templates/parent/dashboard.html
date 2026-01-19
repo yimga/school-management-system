@@ -74,4 +74,39 @@
       {% endif %}
     </div>
   </div>
+
+  {% if portal_features %}
+    <div class="card mt-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Portal Features</h5>
+          <span class="text-muted small">Toggle modules from the customizer</span>
+        </div>
+        <div class="row g-3">
+          {% for feature in portal_features %}
+            <div class="col-md-6">
+              <div class="card border {{ "border-success" if feature.enabled else "border-secondary" }} h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-start gap-3">
+                    {% if feature.icon %}
+                      <i class="bi fs-3 {{ feature.icon }} text-primary"></i>
+                    {% endif %}
+                    <div class="flex-grow-1">
+                      <div class="small text-uppercase text-muted">{{ feature.label }}</div>
+                      <p class="mb-2 small text-muted">{{ feature.description }}</p>
+                      {% if feature.enabled %}
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:portal_feature' feature.key %}">Open</a>
+                      {% else %}
+                        <span class="badge text-bg-secondary">Disabled</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}

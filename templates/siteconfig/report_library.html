@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Report Library · {{ SITE.site_name }}{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3">Reports & Downloads</h1>
+      <p class="text-muted mb-0">Every major register is exportable and ready for offline analysis.</p>
+    </div>
+    <span class="badge bg-success">CSV-ready</span>
+  </div>
+
+  {% if reports %}
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th scope="col">Report</th>
+            <th scope="col">Description</th>
+            <th scope="col">Format</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in reports %}
+            <tr>
+              <td>{{ report.name }}</td>
+              <td class="text-muted">{{ report.description }}</td>
+              <td>{{ report.get_preferred_format_display }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:report_download' report.slug %}">
+                  Download
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      No downloadable reports are available yet. Check back after the finance team seeds the templates.
+    </div>
+  {% endif %}
+{% endblock %}

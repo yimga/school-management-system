@@ -12,6 +12,22 @@
     <div>
       <p class="title">{{ SITE.site_name|default:"School" }}</p>
       <p class="sub">Annual Report Card - {{ year.name|default:"" }}</p>
+      {% if SITE.company_phone or SITE.company_email %}
+        <p class="sub">
+          {% if SITE.company_phone %}Tel {{ SITE.company_phone }}{% endif %}
+          {% if SITE.company_phone and SITE.company_email %} • {% endif %}
+          {% if SITE.company_email %}{{ SITE.company_email }}{% endif %}
+        </p>
+      {% endif %}
+      {% if SITE.company_address %}
+        <p class="sub">{{ SITE.company_address|linebreaksbr }}</p>
+      {% endif %}
+      {% if SITE.ministry_registration_code %}
+        <p class="sub">Ministry Reg: {{ SITE.ministry_registration_code }}</p>
+      {% endif %}
+      {% if SITE.company_slug %}
+        <p class="sub text-uppercase">Slug: {{ SITE.company_slug }}</p>
+      {% endif %}
     </div>
     <div class="ms-auto" style="text-align:right;">
       <div class="pill">AVERAGE: {{ annual_average|floatformat:2|default:"-" }}</div>

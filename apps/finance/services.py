@@ -108,9 +108,10 @@ def generate_payment_link(invoice: Invoice, method: str | None = None) -> dict |
     site_url = getattr(settings, "SITE_URL", "https://school.example/").rstrip("/")
     callback_url = config.get("callback_url") or f"{site_url}{callback_path}"
 
+    amount_to_pay = max(invoice.balance_amount or Decimal("0.00"), Decimal("0.00"))
     payload_data = _signature_mapping({
         "invoice_id": invoice.id,
-        "amount": str(invoice.total_amount),
+        "amount": str(amount_to_pay),
         "method": chosen,
     })
     signature_fmt = config.get("signature_format", DEFAULT_SIGNATURE_FORMAT)
@@ -118,7 +119,7 @@ def generate_payment_link(invoice: Invoice, method: str | None = None) -> dict |
     signature = _build_signature(config.get("secret", settings.SECRET_KEY), payload)
 
     return {
-        "url": f"{base_url}?invoice={invoice.id}&method={chosen}&amount={invoice.total_amount}&sig={signature}&callback={callback_url}",
+        "url": f"{base_url}?invoice={invoice.id}&method={chosen}&amount={amount_to_pay}&sig={signature}&callback={callback_url}",
         "method": chosen,
         "integration": integration,
         "signature_header": config.get("signature_header", DEFAULT_SIGNATURE_HEADER),

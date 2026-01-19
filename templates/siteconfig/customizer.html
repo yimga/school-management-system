@@ -55,6 +55,42 @@
 
     <hr class="my-4">
 
+    <h5 class="mb-3">Company Details</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label class="form-label">Legal Name</label>
+        {{ form.company_name }}
+        {% for e in form.company_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Company Slug</label>
+        {{ form.company_slug }}
+        {% for e in form.company_slug.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Address</label>
+        {{ form.company_address }}
+        {% for e in form.company_address.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Phone</label>
+        {{ form.company_phone }}
+        {% for e in form.company_phone.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email</label>
+        {{ form.company_email }}
+        {% for e in form.company_email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Ministry Registration Code</label>
+        {{ form.ministry_registration_code }}
+        {% for e in form.ministry_registration_code.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+    </div>
+
+    <hr class="my-4">
+
     <h5 class="mb-3">Theme</h5>
     <div class="row g-3 mb-4">
       <div class="col-md-4">
