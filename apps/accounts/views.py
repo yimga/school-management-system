@@ -21,7 +21,7 @@ def redirect_view(request):
     if getattr(user, "role", None) == "TEACHER":
         return redirect("evals:teacher_dashboard")
     if getattr(user, "role", None) == "PARENT":
-        return redirect("parent_dashboard")
+        return redirect("portal:parent_dashboard")
 
     # Default: admin
     return redirect("admin:index")

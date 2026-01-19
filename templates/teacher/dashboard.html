@@ -1,7 +1,9 @@
 {% extends "portal_base.html" %}
+{% load admin_health %}
 {% block title %}Teacher Dashboard{% endblock %}
 
 {% block content %}
+  {% admin_health as health %}
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
       <h2 class="mb-1">Teacher Dashboard</h2>
@@ -17,6 +19,23 @@
   </div>
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="text-muted small mb-1">System status</div>
+          <ul class="list-unstyled small mb-0">
+            <li>Unpublished terms: {{ health.unpublished_terms }}</li>
+            <li>Overdue invoices: {{ health.overdue_invoices }}</li>
+            <li>Draft invoices: {{ health.draft_invoices }}</li>
+            <li>Reminders due: {{ health.reminders_due }}</li>
+            <li>Teacher portal: {{ health.portal_teacher_enabled|yesno:"On,Off" }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 
   {% include "widgets/teacher_dashboard_widgets.html" %}
 
