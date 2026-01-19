@@ -7,7 +7,7 @@ from pathlib import Path
 
 from apps.reports.models import TermPublishStatus, ReportCard
 from apps.finance.models import Invoice, PaymentReminder
-from apps.siteconfig.models import SiteSettings, ReportTemplate
+from apps.siteconfig.models import SiteSettings, ReportTemplate, ThemePack
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.academics.models import Classroom, Subject
 from apps.accounts.models import User
@@ -105,11 +105,16 @@ def admin_section_stats():
             "Students": StudentProfile.objects.count(),
             "Classrooms": Classroom.objects.count(),
             "Subjects": Subject.objects.count(),
+            "Reports generated": ReportCard.objects.count(),
         },
         "accounts": {
             "Users": User.objects.count(),
+            "Teachers": TeacherProfile.objects.count(),
+            "Guardians": StudentGuardian.objects.count(),
         },
-        "analytics": {},
+        "analytics": {
+            "Grading deadlines": 0,
+        },
         "evals": {
             "Evaluations": Evaluation.objects.count(),
             "Report cards": ReportCard.objects.count(),
@@ -117,18 +122,22 @@ def admin_section_stats():
         "finance": {
             "Invoices": Invoice.objects.count(),
             "Overdue": Invoice.objects.filter(status=Invoice.Status.OVERDUE).count(),
+            "Draft": Invoice.objects.filter(status=Invoice.Status.DRAFT).count(),
         },
         "payroll": {
             "Employees": PayrollEmployee.objects.count(),
             "Runs": PayrollRun.objects.count(),
         },
-        "people": {
-            "Teachers": TeacherProfile.objects.count(),
-            "Guardians": StudentGuardian.objects.count(),
+        "people": {},
+        "portal": {
+            "Parent portal": "On" if SiteSettings.get_solo().enable_parent_portal else "Off",
+            "Teacher portal": "On" if SiteSettings.get_solo().enable_teacher_portal else "Off",
         },
-        "portal": {},
         "reports": {
             "Templates": ReportTemplate.objects.filter(is_active=True).count(),
         },
-        "siteconfig": {},
+        "siteconfig": {
+            "Theme packs": ThemePack.objects.filter(is_active=True).count(),
+            "School code": SiteSettings.get_solo().school_code or "N/A",
+        },
     }
