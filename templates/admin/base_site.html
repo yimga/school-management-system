@@ -6,6 +6,65 @@
   <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
 {% endblock %}
 
+{% block extrahead %}
+  {{ block.super }}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const sidebar = document.getElementById("nav-sidebar");
+      if (!sidebar) return;
+
+      // Inject a quick "jump to model" search
+      const searchBox = document.createElement("input");
+      searchBox.type = "search";
+      searchBox.placeholder = "Jump to model…";
+      searchBox.className = "nav-search";
+      sidebar.prepend(searchBox);
+
+      // Accordion for each app group
+      const modules = sidebar.querySelectorAll(".module");
+      modules.forEach((module, idx) => {
+        const header = module.querySelector("h2, caption");
+        const list = module.querySelector("ul");
+        if (!header || !list) return;
+
+        const title = header.textContent.trim() || `group-${idx}`;
+        const stateKey = `nav-accordion-${title}`;
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "nav-accordion-toggle";
+        toggle.textContent = title;
+        toggle.setAttribute("aria-expanded", "true");
+
+        header.replaceWith(toggle);
+
+        const applyState = (open) => {
+          list.style.display = open ? "" : "none";
+          toggle.setAttribute("aria-expanded", open);
+        };
+
+        const initial = localStorage.getItem(stateKey);
+        applyState(initial !== "false");
+
+        toggle.addEventListener("click", () => {
+          const open = list.style.display === "none";
+          applyState(open);
+          localStorage.setItem(stateKey, open);
+        });
+      });
+
+      // Filter models on search
+      const allLinks = sidebar.querySelectorAll("ul li");
+      searchBox.addEventListener("input", () => {
+        const term = searchBox.value.toLowerCase();
+        allLinks.forEach((li) => {
+          const text = li.textContent.toLowerCase();
+          li.style.display = text.includes(term) ? "" : "none";
+        });
+      });
+    });
+  </script>
+{% endblock %}
+
 {% block title %}{% if site_title %}{{ site_title }}{% else %}{% trans 'Site administration' %}{% endif %}{% endblock %}
 
 {% block branding %}
