@@ -11,7 +11,7 @@
       {% if request.user.profile_photo %}
         <img src="{{ request.user.profile_photo.url }}" alt="Teacher profile photo" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;">
       {% endif %}
-      <a class="btn btn-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter Marks</a>
+      <a class="btn btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter Marks</a>
       <a class="btn btn-outline-primary" href="{% url 'evals:teacher_marks_list' %}">View Marks</a>
     </div>
   </div>
@@ -58,7 +58,7 @@
                     {% endwith %}
                   </td>
                   <td class="text-end">
-                    <a class="btn btn-sm btn-primary" href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}">Enter marks</a>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}">Enter marks</a>
                     <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">View</a>
                   </td>
                 </tr>
