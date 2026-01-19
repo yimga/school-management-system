@@ -34,6 +34,7 @@ Branch: `phase7-Roadmap` (keep all work here until you’re ready to PR).
   * Communication Center (messages, announcements, WhatsApp/Zoom link).
   * Data Visualization quick filters.
   * Resource/File Manager.
+- ✅ Implemented attendance, performance, financial, and event widgets on the parent dashboard plus a reusable partial (`templates/widgets/parent_dashboard_widgets.html`).
 - Add modular layout support (drag-and-drop, stored order per user via `UserPreference.dashboard_layout`) + adaptive rendering per role.
 - Enforce mobile-first styles (≥44x44 tap targets), micro-animations, high contrast theming, dark/light modes, and RTL support via CSS variables and `ThemePack` entries.
 - Include breadcrumbs navigation (`templates/partials/breadcrumbs.html`) and consistent component styling (icons, charts, colors).

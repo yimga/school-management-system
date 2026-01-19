@@ -25,6 +25,7 @@ from apps.analytics.services import (
     term_rankings,
 )
 from .models import PortalFeatureItem
+from .services import parent_dashboard_widget_data
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {
@@ -74,10 +75,12 @@ def parent_dashboard(request: HttpRequest):
     ).select_related("student", "student__classroom", "student__specialty", "student__academic_year")
 
     portal_features = _portal_features_status()
+    widget_data = parent_dashboard_widget_data([link.student for link in links])
 
     return render(request, "parent/dashboard.html", {
         "links": links,
         "portal_features": portal_features,
+        "widget_data": widget_data,
     })
 
 

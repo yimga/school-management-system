@@ -1,0 +1,87 @@
+{% if widget_data %}
+  <div class="row g-3 mb-4">
+    {% with attendance=widget_data.attendance performance=widget_data.performance finance=widget_data.finance events=widget_data.events %}
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-primary shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Attendance snapshot</div>
+            <div class="d-flex align-items-end gap-2">
+              <span class="display-6">{{ attendance.today }}%</span>
+              <span class="text-muted small">today</span>
+            </div>
+            <div class="text-muted small">
+              Overall {{ attendance.overall }}% · Missing {{ attendance.missing }} evaluations
+            </div>
+            <div class="text-muted small mt-2">
+              {{ attendance.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-success shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Performance overview</div>
+            <h3 class="fw-bold mb-1">{{ performance.average|default:"-" }}</h3>
+            {% if performance.top_student %}
+              <div class="small text-muted">
+                Top: {{ performance.top_student.student }} · {{ performance.top_student.average|floatformat:2 }}
+              </div>
+            {% endif %}
+            <div class="text-muted small">
+              Trend: {{ performance.trend }}
+            </div>
+            <div class="text-muted small mt-2">
+              {{ performance.label }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-warning shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Financial summary</div>
+            <div class="display-6 mb-1">{{ finance.total_due|floatformat:2 }}</div>
+            <div class="small text-muted">Due / Paid / Balance</div>
+            <div class="d-flex justify-content-between mt-2">
+              <small>Paid</small>
+              <small class="fw-semibold">{{ finance.paid|floatformat:2 }}</small>
+            </div>
+            <div class="d-flex justify-content-between">
+              <small>Balance</small>
+              <small class="fw-semibold">{{ finance.balance|floatformat:2 }}</small>
+            </div>
+            <div class="text-muted small mt-2">
+              {{ finance.label }} · Overdue invoices: {{ finance.overdue }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-info shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Upcoming events & alerts</div>
+            {% if events %}
+              <ul class="list-unstyled mb-1 small">
+                {% for event in events %}
+                  <li class="mb-2">
+                    <strong>{{ event.title }}</strong> · {{ event.detail }}<br>
+                    <span class="text-muted">{{ event.when|date:"M d, H:i" }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="small text-muted mb-1">No queued deadlines yet.</p>
+            {% endif %}
+            <div class="text-muted small">
+              {{ events|length }} reminders scheduled.
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endwith %}
+  </div>
+{% endif %}
