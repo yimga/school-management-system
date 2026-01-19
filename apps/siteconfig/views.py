@@ -40,6 +40,12 @@ def customizer(request):
                     "enable_parent_portal": cleaned.get("enable_parent_portal"),
                     "enable_teacher_portal": cleaned.get("enable_teacher_portal"),
                     "enable_reports_pdf": cleaned.get("enable_reports_pdf"),
+                    "top_students_default_limit": cleaned.get("top_students_default_limit"),
+                    "pass_mark": cleaned.get("pass_mark"),
+                    "use_promotion_rule_for_pass": cleaned.get("use_promotion_rule_for_pass"),
+                    "weak_subject_threshold": cleaned.get("weak_subject_threshold"),
+                    "improvement_delta_threshold": cleaned.get("improvement_delta_threshold"),
+                    "deadline_mode": cleaned.get("deadline_mode"),
                 }
                 request.session.modified = True
                 messages.success(request, "✅ Preview mode enabled (not saved).")

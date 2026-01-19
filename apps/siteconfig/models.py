@@ -20,6 +20,23 @@ class SiteSettings(models.Model):
     enable_teacher_portal = models.BooleanField(default=True)
     enable_reports_pdf = models.BooleanField(default=True)
 
+    class DeadlineMode(models.TextChoices):
+        TERM_END = "TERM_END", "Term end date"
+        CUSTOM_DEADLINE = "CUSTOM_DEADLINE", "Custom deadline"
+        PUBLISH_DATE = "PUBLISH_DATE", "Publish date"
+
+    # Analytics defaults
+    top_students_default_limit = models.PositiveSmallIntegerField(default=10)
+    pass_mark = models.DecimalField(max_digits=5, decimal_places=2, default=10)
+    use_promotion_rule_for_pass = models.BooleanField(default=False)
+    weak_subject_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10)
+    improvement_delta_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=1)
+    deadline_mode = models.CharField(
+        max_length=20,
+        choices=DeadlineMode.choices,
+        default=DeadlineMode.TERM_END,
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
