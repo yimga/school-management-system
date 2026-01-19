@@ -18,7 +18,7 @@ Branch: `phase7-Roadmap` (keep all work here until you’re ready to PR).
 
 ### B. URL/SEO Cleanup
 - Audit and remove unused routes from `apps/**/urls.py`; rename key paths to semantic forms (`/admissions/application-status`, `/student-portal/grades`, `/finance/payments/receipts`).
-- Add breadcrumbs via a context processor and render them in `templates/partials/breadcrumbs.html`.
+- ✅ Add breadcrumbs via a context processor and render them in `templates/partials/breadcrumbs.html`.
 - Ensure HTTPS enforcement in `config/settings.py`/`render.yaml` and add canonical/local SEO tags to admissions/public pages (keywords like “sixth form admissions [city]”).
 - Create a mapping doc (`docs/urls.md`) outlining the cleaned structure and redirect rules for legacy paths.
 
