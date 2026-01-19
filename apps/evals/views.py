@@ -20,6 +20,7 @@ from .forms import (
     BatchFillMissingForm,
 )
 from .models import EvaluationEvidence
+from apps.portal.services import teacher_dashboard_widget_data
 
 
 def _required_fields(academic_year, classroom, term):
@@ -110,11 +111,14 @@ def teacher_dashboard(request: HttpRequest):
         filled = qs.count()
         progress[a.id] = {"filled": filled, "total": total}
 
+    widget_data = teacher_dashboard_widget_data(assignments, progress, year, term)
+
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
         "assignments": assignments,
         "progress": progress,
+        "widget_data": widget_data,
     })
 
 @teacher_portal_required

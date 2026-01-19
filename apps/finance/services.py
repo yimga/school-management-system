@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from calendar import monthrange
 from decimal import Decimal
 from typing import Iterable
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Count, Sum
 from django.utils import timezone
 
 from apps.people.models import StudentProfile
@@ -72,7 +74,6 @@ def get_payment_integration_by_slug(slug: str) -> Integration | None:
         enabled=True,
         config__provider_slug=slug,
     ).order_by("-id").first()
-
 
 
 def _account(profile: ComplianceProfile, code: str, name: str, account_type: str) -> LedgerAccount:
@@ -363,3 +364,50 @@ def create_fee_invoices(
         invoices.append(invoice)
 
     return invoices
+
+
+def get_month_name(dt: date) -> str:
+    return dt.strftime("%b %Y")
+
+
+def finance_dashboard_data(profile):
+    invoices = Invoice.objects.filter(profile=profile)
+    payments = Payment.objects.filter(invoice__profile=profile)
+
+    receivables = invoices.filter(invoice_type=Invoice.InvoiceType.AR).aggregate(total=Sum("balance_amount"))["total"] or Decimal("0.00")
+    payables = invoices.filter(invoice_type=Invoice.InvoiceType.AP).aggregate(total=Sum("balance_amount"))["total"] or Decimal("0.00")
+    total_paid = payments.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+    status_counts = (
+        invoices.values("status")
+        .annotate(count=Count("id"))
+        .order_by("status")
+    )
+
+    now = timezone.now()
+    month_series = []
+    for offset in range(3, -1, -1):
+        month_point = (now - timezone.timedelta(days=30 * offset)).date()
+        month_total = invoices.filter(
+            issued_date__year=month_point.year,
+            issued_date__month=month_point.month,
+        ).aggregate(total=Sum("total_amount"))["total"] or Decimal("0.00")
+        month_series.append({
+            "label": get_month_name(month_point),
+            "total": month_total,
+        })
+
+    overdue = invoices.filter(status=Invoice.Status.OVERDUE).count()
+
+    return {
+        "summary": {
+            "receivables": receivables,
+            "payables": payables,
+            "paid": total_paid,
+            "overdue": overdue,
+        },
+        "status_counts": status_counts,
+        "recent_invoices": invoices.order_by("-issued_date")[:5],
+        "recent_payments": payments.order_by("-paid_at")[:5],
+        "trend": month_series,
+    }

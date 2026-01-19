@@ -247,3 +247,38 @@ def _communication_center():
         "cta": "Start a chat on WhatsApp" if whatsapp else "Connect with us",
         "note": "We also send reminders via SMS/email; update preferences in portal settings.",
     }
+
+
+def teacher_dashboard_widget_data(assignments, progress, year, term):
+    total_slots = sum((item.get("total", 0) for item in progress.values()), 0) or 1
+    filled = sum((item.get("filled", 0) for item in progress.values()))
+    missing = total_slots - filled
+    completion_pct = int(round((filled / total_slots) * 100))
+
+    upcoming = []
+    for assignment in assignments[:3]:
+        sa = assignment.subject_assignment
+        upcoming.append({
+            "subject": sa.subject.name,
+            "classroom": sa.classroom.name,
+            "term": sa.term.get_name_display(),
+        })
+
+    links = [
+        {"label": "Enter marks", "url": reverse("teacher_marks_entry")},
+        {"label": "View marks", "url": reverse("teacher_marks_list")},
+        {"label": "My assignments", "url": reverse("teacher_dashboard")},
+    ]
+
+    return {
+        "completion_pct": completion_pct,
+        "missing": missing,
+        "assignments_count": len(assignments),
+        "links": links,
+        "upcoming": upcoming,
+        "tasks": {
+            "pending_evaluations": missing,
+            "description": "Missing marks show what still needs entry.",
+        },
+        "communication": _communication_center(),
+    }

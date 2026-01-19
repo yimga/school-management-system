@@ -41,6 +41,7 @@ from .models import (
 from .services import (
     PROVIDER_SLUG_TO_METHOD,
     create_fee_invoices,
+    finance_dashboard_data,
     generate_payment_link,
     get_payment_integration_by_slug,
     record_provider_payment,
@@ -61,28 +62,10 @@ def dashboard(request: HttpRequest):
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    invoices = Invoice.objects.filter(profile=profile).order_by("-issued_date")[:10]
-    payments = Payment.objects.filter(invoice__profile=profile).order_by("-paid_at")[:10]
-
-    total_receivables = (
-        Invoice.objects.filter(profile=profile, invoice_type=Invoice.InvoiceType.AR)
-        .aggregate(total=models.Sum("balance_amount"))
-        .get("total")
-        or Decimal("0.00")
-    )
-    total_payables = (
-        Invoice.objects.filter(profile=profile, invoice_type=Invoice.InvoiceType.AP)
-        .aggregate(total=models.Sum("balance_amount"))
-        .get("total")
-        or Decimal("0.00")
-    )
-
+    dashboard_data = finance_dashboard_data(profile)
     return render(request, "finance/dashboard.html", {
         "profile": profile,
-        "invoices": invoices,
-        "payments": payments,
-        "total_receivables": total_receivables,
-        "total_payables": total_payables,
+        **dashboard_data,
     })
 
 

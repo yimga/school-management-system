@@ -2,60 +2,22 @@
 {% block title %}Teacher Dashboard{% endblock %}
 
 {% block content %}
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
       <h2 class="mb-1">Teacher Dashboard</h2>
       <div class="text-muted">Welcome back{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}.</div>
     </div>
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2">
       {% if request.user.profile_photo %}
         <img src="{{ request.user.profile_photo.url }}" alt="Teacher profile photo" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;">
       {% endif %}
-      <div class="d-flex gap-2">
-        <a class="btn btn-primary" href="{% url 'teacher_marks_entry' %}">Enter Marks</a>
-        <a class="btn btn-outline-primary" href="{% url 'teacher_marks_list' %}">View Marks</a>
-      </div>
+      <a class="btn btn-primary" href="{% url 'teacher_marks_entry' %}">Enter Marks</a>
+      <a class="btn btn-outline-primary" href="{% url 'teacher_marks_list' %}">View Marks</a>
     </div>
   </div>
 
-  <!-- Summary cards -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <div class="text-muted small">My Assignments</div>
-          <div class="display-6 fw-semibold">{{ assignments|length }}</div>
-          <div class="small text-muted">Subject/Class combinations you’re teaching.</div>
-        </div>
-      </div>
-    </div>
+  {% include "widgets/teacher_dashboard_widgets.html" %}
 
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <div class="text-muted small">Active Term</div>
-          <div class="h4 fw-semibold mb-0">
-            {% if term %}{{ term.get_name_display }}{% else %}Not set{% endif %}
-          </div>
-          <div class="small text-muted">Marks entry depends on current term selection.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-body">
-          <div class="text-muted small">Results Publishing</div>
-          <div class="h4 fw-semibold mb-0">
-            <span class="badge bg-secondary">Admin Controlled</span>
-          </div>
-          <div class="small text-muted">Parents only see results after an admin publishes the term.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Assignments table -->
   <div class="card">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -63,45 +25,45 @@
       </div>
 
       {% if assignments %}
-      <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Academic Year</th>
-              <th>Term</th>
-              <th>Class</th>
-              <th>Subject</th>
-              <th class="text-end">Marks filled</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for a in assignments %}
-            <tr>
-              <td>{{ a.academic_year }}</td>
-              <td>{{ a.term }}</td>
-              <td>{{ a.classroom }}</td>
-              <td>{{ a.subject }}</td>
-              <td class="text-end">
-                {% with p=progress|get_item:a.id %}
-                  {% if p %}
-                    <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">
-                      {{ p.filled }}/{{ p.total }}
-                    </span>
-                  {% else %}
-                    <span class="badge bg-secondary">0/0</span>
-                  {% endif %}
-                {% endwith %}
-              </td>
-              <td class="text-end">
-                <a class="btn btn-sm btn-primary" href="{% url 'teacher_marks_entry' %}?assignment={{ a.id }}">Enter marks</a>
-                <a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_marks_list' %}?assignment={{ a.id }}">View</a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Academic Year</th>
+                <th>Term</th>
+                <th>Class</th>
+                <th>Subject</th>
+                <th class="text-end">Marks filled</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in assignments %}
+                <tr>
+                  <td>{{ a.academic_year }}</td>
+                  <td>{{ a.term }}</td>
+                  <td>{{ a.classroom }}</td>
+                  <td>{{ a.subject }}</td>
+                  <td class="text-end">
+                    {% with p=progress|get_item:a.id %}
+                      {% if p %}
+                        <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                          {{ p.filled }}/{{ p.total }}
+                        </span>
+                      {% else %}
+                        <span class="badge bg-secondary">0/0</span>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                  <td class="text-end">
+                    <a class="btn btn-sm btn-primary" href="{% url 'teacher_marks_entry' %}?assignment={{ a.id }}">Enter marks</a>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'teacher_marks_list' %}?assignment={{ a.id }}">View</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       {% else %}
         <div class="alert alert-info mb-0">
           No teaching assignments found. Ask the admin to assign you to a subject/class.
@@ -109,5 +71,4 @@
       {% endif %}
     </div>
   </div>
-
 {% endblock %}
