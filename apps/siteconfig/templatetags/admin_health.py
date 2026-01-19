@@ -2,6 +2,8 @@ from django import template
 from django.db import connections
 from django.db.migrations.loader import MigrationLoader
 from django.utils import timezone
+import os
+from pathlib import Path
 
 from apps.reports.models import TermPublishStatus
 from apps.finance.models import Invoice, PaymentReminder
@@ -61,5 +63,22 @@ def admin_health():
         metrics["portal_teacher_enabled"] = getattr(site, "enable_teacher_portal", True)
     except Exception:
         pass
+
+    # Backup status: check env hint or file marker
+    try:
+        last_env = os.getenv("BACKUP_LAST_ISO") or os.getenv("BACKUP_LAST_TS")
+        marker = Path(os.getenv("BACKUP_MARKER_PATH", "backups/latest.txt"))
+        if last_env:
+            metrics["backup_status"] = "OK"
+            metrics["backup_last"] = last_env
+        elif marker.exists():
+            metrics["backup_status"] = "OK"
+            metrics["backup_last"] = marker.read_text().strip() or "unknown"
+        else:
+            metrics["backup_status"] = "Not configured"
+            metrics["backup_last"] = "N/A"
+    except Exception:
+        metrics["backup_status"] = "Not configured"
+        metrics["backup_last"] = "N/A"
 
     return metrics

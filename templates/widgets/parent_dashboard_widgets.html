@@ -1,4 +1,6 @@
+{% load admin_health %}
 {% if widget_data %}
+  {% admin_health as health %}
   <div class="row g-3 mb-4">
     {% with attendance=widget_data.attendance performance=widget_data.performance finance=widget_data.finance events=widget_data.events %}
       <div class="col-lg-6 col-xl-3">
@@ -95,6 +97,20 @@
 
   {% with tasks=widget_data.tasks access=widget_data.access timetable=widget_data.timetable communication=widget_data.communication %}
     <div class="row g-3 mb-4">
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-secondary shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">System status</div>
+            <ul class="list-unstyled small mb-2">
+              <li>Unpublished terms: {{ health.unpublished_terms }}</li>
+              <li>Overdue invoices: {{ health.overdue_invoices }}</li>
+              <li>Draft invoices: {{ health.draft_invoices }}</li>
+              <li>Reminders due: {{ health.reminders_due }}</li>
+              <li>Parent portal: {{ health.portal_parent_enabled|yesno:"On,Off" }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-danger shadow-sm">
           <div class="card-body">
