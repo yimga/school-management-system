@@ -10,19 +10,9 @@ from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from apps.siteconfig.models import SiteSettings
-from apps.finance.models import ComplianceProfile
-
 from .forms import LeaveRequestForm
 from .models import LeaveRequest, PayrollEmployee, PayrollRun, Payslip
-from .services import generate_payslips
-
-
-def _active_profile() -> ComplianceProfile | None:
-    site = SiteSettings.get_solo()
-    if getattr(site, "compliance_profile", None):
-        return site.compliance_profile
-    return ComplianceProfile.objects.filter(is_active=True).first()
+from .services import generate_payslips, get_active_payroll_profile
 
 
 def _employee_for_user(user) -> PayrollEmployee | None:
@@ -34,7 +24,7 @@ def _employee_for_user(user) -> PayrollEmployee | None:
 
 @staff_member_required
 def dashboard(request: HttpRequest):
-    profile = _active_profile()
+    profile = get_active_payroll_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
@@ -121,7 +111,7 @@ def employee_leave(request: HttpRequest):
 
 @staff_member_required
 def create_run(request: HttpRequest):
-    profile = _active_profile()
+    profile = get_active_payroll_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
