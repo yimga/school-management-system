@@ -5,8 +5,9 @@
 {% block content %}
 {% url 'admin:accounts_user_add' as add_user_url %}
 {% url 'admin:accounts_accessrole_changelist' as roles_url %}
-{% url 'admin:siteconfig_sitesettings_change' as settings_url %}
+{% url 'admin:siteconfig_sitesettings_changelist' as settings_url %}
 {% admin_health as health %}
+{% admin_section_stats as stats %}
 
 <div class="admin-hero">
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
@@ -33,7 +34,7 @@
           <div class="small opacity-80">{% trans "Registered modules" %}</div>
         </div>
       </a>
-      <a class="stat-link" href="/admin/admin/logentry/">
+      <a class="stat-link" href="{% url 'admin:logentry_changelist' %}">
         <div class="stat-pill">
           <div class="stat-label">{% trans "Recent actions" %}</div>
           <div class="stat-value">↗</div>
@@ -66,14 +67,14 @@
   <div class="card-neutral">
     <h4 id="recent-actions-card">{% trans "Recent actions" %}</h4>
     <p class="small mb-2">{% trans "See audit log on the right sidebar." %}</p>
-    <a class="button" href="/admin/admin/logentry/">↗ {% trans "Open audit log" %}</a>
+    <a class="button" href="{% url 'admin:logentry_changelist' %}">↗ {% trans "Open audit log" %}</a>
   </div>
   <div class="card-neutral">
     <h4>{% trans "System health" %}</h4>
     <p class="small mb-2">{% trans "Run health checks and review automation status." %}</p>
     <div class="d-flex flex-wrap gap-2">
-      <a class="button" href="/admin/admin/logentry/">↗ {% trans "Audit log" %}</a>
-      <a class="button default" href="{{ settings_url|default:'/siteconfig/sitesettings/' }}">{% trans "Theme & Settings" %}</a>
+      <a class="button" href="{% url 'admin:logentry_changelist' %}">↗ {% trans "Audit log" %}</a>
+      <a class="button default" href="{{ settings_url|default:'/admin/siteconfig/sitesettings/' }}">{% trans "Theme & Settings" %}</a>
     </div>
     <ul class="small mt-2 mb-0">
       <li>{% trans "Unpublished terms" %}: {{ health.unpublished_terms }}</li>
@@ -98,16 +99,22 @@
           {% if app.models and app.models.0.admin_url %}
             <a class="button default" href="{{ app.models.0.admin_url }}">{% trans "Open" %}</a>
           {% endif %}
-          {% if app.models and app.models.0.add_url %}
-            <a class="button" href="{{ app.models.0.add_url }}">{% trans "Add" %}</a>
-          {% endif %}
-          {% if app.app_label == "siteconfig" %}
-            <a class="button" href="{% url 'siteconfig:customizer' %}">{% trans "Customizer" %}</a>
-          {% endif %}
-        </div>
-      </div>
-    {% endfor %}
+      {% if app.models and app.models.0.add_url %}
+        <a class="button" href="{{ app.models.0.add_url }}">{% trans "Add" %}</a>
+      {% endif %}
+    </div>
+    {% with stat=stats|get_item:app.app_label %}
+      {% if stat %}
+        <ul class="small mt-2 mb-0">
+          {% for label, val in stat.items %}
+            <li>{{ label }}: {{ val }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
   </div>
+{% endfor %}
+</div>
 
   <div class="module">
     <h2 id="app-list">{% trans "Applications" %}</h2>
