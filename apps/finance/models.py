@@ -263,6 +263,7 @@ class Payment(models.Model):
     reference = models.CharField(max_length=80, blank=True)
     paid_at = models.DateTimeField(default=timezone.now)
     receipt_number = models.CharField(max_length=64, blank=True)
+    external_reference = models.CharField(max_length=128, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
