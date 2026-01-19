@@ -39,6 +39,8 @@ urlpatterns = [
     path('portal/', include('apps.portal.urls')),
     path('reports/', include('apps.reports.urls')),
     path('analytics/', include('apps.analytics.urls')),
+    path('finance/', include('apps.finance.urls')),
+    path('payroll/', include('apps.payroll.urls')),
 ]
 
 if settings.DEBUG:

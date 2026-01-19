@@ -53,6 +53,11 @@ class SiteSettingsAdmin(ModelAdmin):
                 "enable_reports_pdf",
             )
         }),
+        ("Compliance & Payroll", {
+            "fields": (
+                "compliance_profile",
+            )
+        }),
         ("Analytics Defaults", {
             "fields": (
                 "top_students_default_limit",

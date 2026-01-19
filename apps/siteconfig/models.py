@@ -20,6 +20,15 @@ class SiteSettings(models.Model):
     enable_teacher_portal = models.BooleanField(default=True)
     enable_reports_pdf = models.BooleanField(default=True)
 
+    # Compliance profile (finance/payroll)
+    compliance_profile = models.ForeignKey(
+        "finance.ComplianceProfile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="site_settings",
+    )
+
     class DeadlineMode(models.TextChoices):
         TERM_END = "TERM_END", "Term end date"
         CUSTOM_DEADLINE = "CUSTOM_DEADLINE", "Custom deadline"
