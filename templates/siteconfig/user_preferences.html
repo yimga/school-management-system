@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Preferences · {{ SITE.site_name }}{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="h4 mb-3">Portal Preferences</h1>
+          <p class="text-muted">Customize your dashboard view, timezone, and notification channels.</p>
+
+          <form method="post">
+            {% csrf_token %}
+            {% for field in form.visible_fields %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% if field.errors %}
+                  <div class="invalid-feedback d-block">
+                    {{ field.errors|join:", " }}
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary">Save preferences</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

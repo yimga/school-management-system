@@ -23,5 +23,9 @@ def site_settings(request):
     else:
         setattr(site, "is_preview", False)
 
-    return {"SITE": site}
+    return {
+        "SITE": site,
+        "SITE_THEME": site.active_theme,
+        "REPORT_DOWNLOADS_ENABLED": site.report_downloads_enabled,
+    }
 
