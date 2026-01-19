@@ -2,31 +2,38 @@
 {% load i18n %}
 
 {% block content %}
+  {% url 'admin:accounts_user_add' as add_user_url %}
+  {% url 'admin:accounts_accessrole_changelist' as roles_url %}
+  {% url 'admin:siteconfig_sitesettings_change' as settings_url %}
+
   <div class="admin-hero">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-      <div>
-        <div class="text-uppercase small opacity-75 mb-1">{% trans "Admin Console" %}</div>
-        <h2 class="mb-1">{% if site_header %}{{ site_header }}{% else %}{% trans "Site administration" %}{% endif %}</h2>
-        <div class="small opacity-85">{% trans "All apps, users, and configuration in one place." %}</div>
-      </div>
-      <div class="kpi-bar">
-        <div class="kpi-pill">
-          <div class="kpi-label">{% trans "Apps" %}</div>
-          <div class="kpi-value">{{ app_list|length }}</div>
-          <div class="small opacity-75">{% trans "Registered admin modules" %}</div>
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+      <div class="d-flex align-items-start gap-3">
+        <div class="hero-icon">
+          <i class="bi bi-speedometer fs-4 text-white"></i>
         </div>
-        <div class="kpi-pill">
-          <div class="kpi-label">{% trans "Quick action" %}</div>
-          <div class="kpi-value">+</div>
-          <div class="small opacity-75">{% trans "Add user / manage roles" %}</div>
+        <div>
+          <div class="text-uppercase small opacity-75 mb-1">{% trans "Admin Console" %}</div>
+          <h2 class="mb-1">{% if site_header %}{{ site_header }}{% else %}{% trans "Site administration" %}{% endif %}</h2>
+          <div class="small opacity-85">{% trans "Configure apps, roles, and data from one warm, modern hub." %}</div>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            {% if add_user_url %}<a class="button default" href="{{ add_user_url }}">{% trans "Add User" %}</a>{% endif %}
+            {% if roles_url %}<a class="button" href="{{ roles_url }}">{% trans "Manage Roles" %}</a>{% endif %}
+            {% if settings_url %}<a class="button" href="{{ settings_url }}">{% trans "Site Settings" %}</a>{% endif %}
+          </div>
         </div>
       </div>
-      <div class="d-flex flex-wrap gap-2">
-        {% url 'admin:accounts_user_add' as add_user_url %}
-        {% if add_user_url %}
-          <a class="button default" href="{{ add_user_url }}">{% trans "Add User" %}</a>
-        {% endif %}
-        <a class="button" href="{% url 'admin:login' %}">{% trans "Switch user" %}</a>
+      <div class="stat-grid">
+        <div class="stat-pill">
+          <div class="stat-label">{% trans "Apps" %}</div>
+          <div class="stat-value">{{ app_list|length }}</div>
+          <div class="small opacity-80">{% trans "Registered modules" %}</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label">{% trans "Recent actions" %}</div>
+          <div class="stat-value">↗</div>
+          <div class="small opacity-80">{% trans "See audit log on the right" %}</div>
+        </div>
       </div>
     </div>
   </div>
@@ -35,9 +42,12 @@
     <div class="module">
       <h2>{% trans "Applications" %}</h2>
       {% for app in app_list %}
-        <div class="dashboard-module" id="app-{{ app.app_label }}">
+        <div class="dashboard-module mb-3" id="app-{{ app.app_label }}">
           <table>
-            <caption>{{ app.name }}</caption>
+            <caption class="d-flex justify-content-between align-items-center">
+              <span>{{ app.name }}</span>
+              <span class="small opacity-75 text-muted">{{ app.models|length }} {% trans "sections" %}</span>
+            </caption>
             <tbody>
               {% for model in app.models %}
                 <tr>
