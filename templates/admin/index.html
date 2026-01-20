@@ -98,7 +98,7 @@
     </ul>
     <div class="d-flex flex-wrap gap-2">
       <a class="button default" href="#app-list">{% trans "Go to assignments" %}</a>
-      <span class="help">{% trans "CSV template available via manage.py grade_import_template" %}</span>
+      <a class="button" href="{% url 'evals:grade_import_template' %}">{% trans "Download CSV template" %}</a>
     </div>
   </div>
   <div class="card-neutral">

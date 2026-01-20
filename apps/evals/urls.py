@@ -9,6 +9,7 @@ from .views import (
     school_ranking_view,
     evaluation_admin,
     evaluation_evidence_upload,
+    grade_import_template_view,
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path("rankings/school/", school_ranking_view, name="school_ranking"),
     path("admin/evaluations/", evaluation_admin, name="evaluation_admin"),
     path("admin/evaluations/evidence/", evaluation_evidence_upload, name="evaluation_evidence_upload"),
+    path("grade-import-template/", grade_import_template_view, name="grade_import_template"),
 ]

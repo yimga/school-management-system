@@ -678,3 +678,30 @@ def evaluation_evidence_upload(request: HttpRequest):
         "evaluation": evaluation,
         "evidence_items": evidence_items,
     })
+
+
+@staff_member_required
+def grade_import_template_view(request: HttpRequest):
+    """
+    Serve a CSV template for bulk grade imports (same fields as the management command).
+    """
+    fieldnames = [
+        "student_code",
+        "subject_assignment_id",
+        "term_id",
+        "teacher_username",
+        "seq1",
+        "seq2",
+        "exam",
+        "mock",
+        "practical",
+        "test1",
+        "test2",
+        "remarks",
+    ]
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename=\"grade_import_template.csv\"'
+    writer = csv.DictWriter(response, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerow({})
+    return response
