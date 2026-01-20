@@ -7,6 +7,9 @@
   <div>
     <a class="btn btn-outline-primary btn-sm" href="/evals/teacher/">Dashboard</a>
     <a class="btn btn-primary btn-sm" href="/evals/teacher/marks/entry/">Enter Marks</a>
+    {% with qs=request.GET.urlencode %}
+      <a class="btn btn-outline-secondary btn-sm" href="?{% if qs %}{{ qs }}&{% endif %}export=csv">Export CSV</a>
+    {% endwith %}
   </div>
 </div>
 
