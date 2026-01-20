@@ -180,7 +180,7 @@
       </div>
     </div>
     <div class="table-responsive">
-      <table class="table align-middle">
+      <table class="table align-middle table-sticky">
         <thead>
           <tr>
             <th>Student</th>
@@ -223,4 +223,12 @@
     </div>
   </div>
 </div>
+<style>
+  .table-sticky thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--bs-light, #f8f9fa);
+  }
+</style>
 {% endblock %}
