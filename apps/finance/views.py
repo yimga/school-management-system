@@ -209,6 +209,12 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         id=invoice_id,
         profile=profile,
     )
+    if request.method == "POST" and request.FILES.get("attachment"):
+        invoice.attachment = request.FILES["attachment"]
+        invoice.save(update_fields=["attachment"])
+        messages.success(request, "Attachment uploaded.")
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+
     payment_link = generate_payment_link(invoice)
     reminder = getattr(invoice, "reminder", None)
 

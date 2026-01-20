@@ -3,7 +3,10 @@ from django.http import HttpResponseForbidden, HttpRequest, Http404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.utils import timezone
+from django.urls import reverse
 import uuid
+from decimal import Decimal
+from django.db.models import Sum
 
 from apps.accounts.decorators import (
     role_required,
@@ -22,6 +25,8 @@ from apps.people.models import (
 from apps.academics.models import Term
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
+from apps.finance.models import Invoice
+from apps.finance.services import generate_payment_link
 from apps.reports.services import (
     are_terms_published,
     is_term_published,
@@ -101,7 +106,7 @@ def parent_dashboard(request: HttpRequest):
         "actions": [
             {"label": "View Results", "url": "#children"},
             {"label": "Link a Child", "url": "#link-child"},
-            {"label": "Pay Fees", "url": "/finance/"},
+            {"label": "Pay Fees", "url": reverse("portal:parent_finance")},
         ],
     }
 
@@ -111,6 +116,69 @@ def parent_dashboard(request: HttpRequest):
         "widget_data": widget_data,
         "hero": hero,
     })
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_finance(request: HttpRequest):
+    links = StudentGuardian.objects.filter(
+        guardian_user=request.user,
+        can_view_finance=True,
+    ).select_related("student", "student__classroom", "student__specialty", "student__academic_year")
+
+    if not links:
+        messages.info(request, "Link a student first to view finance details.")
+        return redirect("portal:link_child")
+
+    students = [link.student for link in links]
+    invoices_qs = (
+        Invoice.objects.filter(student__in=students)
+        .exclude(status=Invoice.Status.DRAFT)
+        .select_related("student", "academic_year")
+        .order_by("-issued_date")
+    )
+    aggregates = invoices_qs.aggregate(
+        total_due=Sum("total_amount"),
+        balance=Sum("balance_amount"),
+    )
+    total_due = aggregates.get("total_due") or Decimal("0.00")
+    balance = aggregates.get("balance") or Decimal("0.00")
+    paid = total_due - balance
+    overdue_count = invoices_qs.filter(status=Invoice.Status.OVERDUE).count()
+
+    invoice_rows = []
+    for inv in invoices_qs:
+        invoice_rows.append(
+            {
+                "invoice": inv,
+                "payment_link": generate_payment_link(inv),
+            }
+        )
+
+    hero = {
+        "title": "Finances",
+        "subtitle": "Balances, invoices, and secure payment links",
+        "stats": [
+            {"label": "Total due", "value": total_due},
+            {"label": "Paid", "value": paid},
+            {"label": "Outstanding", "value": balance},
+            {"label": "Overdue", "value": overdue_count},
+        ],
+    }
+
+    return render(
+        request,
+        "parent/finance.html",
+        {
+            "links": links,
+            "hero": hero,
+            "invoice_rows": invoice_rows,
+            "total_due": total_due,
+            "balance": balance,
+            "paid": paid,
+            "overdue_count": overdue_count,
+        },
+    )
 
 
 @parent_portal_required
@@ -263,16 +331,27 @@ def teacher_pay_history(request: HttpRequest):
         messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
         return redirect("evals:teacher_dashboard")
 
-    pay_records = profile.pay_records.select_related("created_by")
+    pay_records = profile.pay_records.select_related("created_by").order_by("-effective_date", "-created_at")
+    latest_pay = pay_records.filter(record_type=TeacherPayRecord.RecordType.PAY).first()
+    raises_count = pay_records.filter(record_type=TeacherPayRecord.RecordType.RAISE).count()
+    bonus_count = pay_records.filter(record_type=TeacherPayRecord.RecordType.BONUS).count()
     hero = {
         "title": "Pay history",
         "subtitle": "Recent pay, raises, and stipends",
         "actions": [],
+        "stats": [
+            {"label": "Last pay", "value": latest_pay.amount if latest_pay else "—", "meta": latest_pay.effective_date if latest_pay else "Not set"},
+            {"label": "Next pay date", "value": profile.next_pay_date or "Not set", "meta": profile.pay_grade or "Pay grade"},
+            {"label": "Raises", "value": raises_count, "meta": f"Bonuses: {bonus_count}"},
+        ],
     }
     return render(request, "teacher/pay_history.html", {
         "hero": hero,
         "pay_records": pay_records,
         "teacher_profile": profile,
+        "latest_pay": latest_pay,
+        "raises_count": raises_count,
+        "bonus_count": bonus_count,
     })
 
 

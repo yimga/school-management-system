@@ -1,0 +1,102 @@
+{% extends "portal_base.html" %}
+
+{% block title %}Finances{% endblock %}
+
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Total due</div>
+          <div class="fs-5 fw-semibold">{{ total_due }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Paid</div>
+          <div class="fs-5 fw-semibold">{{ paid }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Outstanding</div>
+          <div class="fs-5 fw-semibold">{{ balance }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Overdue invoices</div>
+          <div class="fs-5 fw-semibold">{{ overdue_count }}</div>
+          <div class="small text-muted">Contact finance if this looks off.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Invoices</h5>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}#finance">Back to dashboard</a>
+      </div>
+      {% if invoice_rows %}
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Reference</th>
+                <th>Student</th>
+                <th>Due</th>
+                <th>Status</th>
+                <th class="text-end">Total</th>
+                <th class="text-end">Balance</th>
+                <th>Attachment</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in invoice_rows %}
+                {% with invoice=row.invoice link=row.payment_link %}
+                  <tr>
+                    <td>{{ invoice.reference|default:invoice.id }}</td>
+                    <td>{{ invoice.student|default:"-" }}</td>
+                    <td>{{ invoice.due_date|default:"TBD" }}</td>
+                    <td>
+                      <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
+                    </td>
+                    <td class="text-end">{{ invoice.total_amount }}</td>
+                    <td class="text-end">{{ invoice.balance_amount }}</td>
+                    <td>
+                      {% if invoice.attachment %}
+                        <a href="{{ invoice.attachment.url }}" target="_blank">Download</a>
+                      {% else %}
+                        <span class="text-muted small">None</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      {% if link %}
+                        <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank">Pay now</a>
+                      {% else %}
+                        <span class="text-muted small">No link</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endwith %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info mb-0">No invoices yet. Finance will publish them here when ready.</div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
