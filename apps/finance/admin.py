@@ -102,7 +102,16 @@ class InvoiceLineInline(admin.TabularInline):
 
 @admin.register(Invoice)
 class InvoiceAdmin(ModelAdmin):
-    list_display = ("invoice_type", "reference", "status", "student", "total_amount", "balance_amount", "issued_date")
+    list_display = (
+        "invoice_type",
+        "reference",
+        "status",
+        "student",
+        "total_amount",
+        "balance_amount",
+        "issued_date",
+        "attachment",
+    )
     list_filter = ("invoice_type", "status", "issued_date")
     search_fields = ("reference", "student__student_code", "counterparty__name")
     inlines = [InvoiceLineInline]
@@ -110,7 +119,7 @@ class InvoiceAdmin(ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(ModelAdmin):
-    list_display = ("invoice", "amount", "method", "paid_at", "receipt_number")
+    list_display = ("invoice", "amount", "method", "paid_at", "receipt_number", "receipt_file")
     list_filter = ("method", "paid_at")
     search_fields = ("reference", "receipt_number")
 

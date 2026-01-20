@@ -95,7 +95,7 @@
     {% endwith %}
   </div>
 
-  {% with tasks=widget_data.tasks access=widget_data.access timetable=widget_data.timetable communication=widget_data.communication %}
+  {% with tasks=widget_data.tasks access=widget_data.access timetable=widget_data.timetable communication=widget_data.communication referral=widget_data.referral %}
     <div class="row g-3 mb-4">
       <div class="col-lg-6 col-xl-3">
         <div class="card h-100 border-secondary shadow-sm">
@@ -120,6 +120,24 @@
             <div class="fw-semibold display-5 mt-3">{{ tasks.pending_payments }}</div>
             <div class="text-muted small">Pending payments</div>
             <div class="text-muted small mt-2">{{ tasks.description }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xl-3">
+        <div class="card h-100 border-info shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Referrals & parent data</div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="badge text-bg-primary">Code: {{ referral.code|default:"Pending" }}</span>
+            </div>
+            <div class="small text-muted mb-1">Profile completeness</div>
+            <div class="progress mb-2" style="height: 6px;">
+              <div class="progress-bar" role="progressbar" style="width: {{ referral.completeness_avg }}%;"></div>
+            </div>
+            <div class="small text-muted mb-0">
+              Avg completeness {{ referral.completeness_avg }}%. {{ referral.note }}
+            </div>
           </div>
         </div>
       </div>

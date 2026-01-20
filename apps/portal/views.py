@@ -189,6 +189,14 @@ def teacher_dashboard_alias(request: HttpRequest) -> HttpResponseRedirect:
     return redirect("evals:teacher_dashboard")
 
 
+def teacher_attendance(request: HttpRequest) -> HttpResponseRedirect:
+    """
+    Placeholder attendance hook for teachers; can later be replaced with
+    a dedicated attendance view. Currently routes to teacher dashboard.
+    """
+    return redirect("evals:teacher_dashboard")
+
+
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_child_results(request: HttpRequest, student_id: int):
