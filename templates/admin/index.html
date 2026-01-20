@@ -1,6 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
 {% load admin_health %}
+{% load admin_kpis %}
 
 {% block content %}
 {% url 'admin:accounts_user_add' as add_user_url %}
@@ -10,6 +11,7 @@
 {% url 'admin:logentry_changelist' as audit_url %}
 {% admin_health as health %}
 {% admin_section_stats as stats %}
+{% admin_kpis as kpis %}
 
 <div class="admin-hero">
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
@@ -47,6 +49,28 @@
         <div class="stat-label">{% trans "Pending migrations" %}</div>
         <div class="stat-value">{{ health.pending_migrations }}</div>
         <div class="small opacity-80">{% trans "Keep schema in sync" %}</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-pill">
+        <div class="stat-label">{% trans "Students" %}</div>
+        <div class="stat-value">{{ kpis.students }}</div>
+        <div class="small opacity-80">{% trans "All active students" %}</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label">{% trans "Subjects" %}</div>
+        <div class="stat-value">{{ kpis.subjects }}</div>
+        <div class="small opacity-80">{% trans "Catalog size" %}</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label">{% trans "Report cards" %}</div>
+        <div class="stat-value">{{ kpis.report_cards }}</div>
+        <div class="small opacity-80">{% trans "Generated" %}</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label">{% trans "Overdue invoices" %}</div>
+        <div class="stat-value">{{ kpis.invoices_overdue }}</div>
+        <div class="small opacity-80">{% trans "Finance snapshot" %}</div>
       </div>
     </div>
   </div>
