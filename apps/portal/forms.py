@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from apps.people.models import StudentGuardian, StudentProfile
+from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
 from apps.siteconfig.models import SiteSettings
 
 
@@ -125,3 +125,14 @@ class ClaimInviteForm(forms.Form):
             raise forms.ValidationError(_("This invite has already been claimed."))
         self.invite = invite
         return token
+
+
+class TeacherLeaveForm(forms.ModelForm):
+    class Meta:
+        model = TeacherLeaveRequest
+        fields = ("start_date", "end_date", "reason")
+        widgets = {
+            "start_date": forms.DateInput(attrs={"type": "date"}),
+            "end_date": forms.DateInput(attrs={"type": "date"}),
+            "reason": forms.Textarea(attrs={"rows": 3, "placeholder": "Reason for leave"}),
+        }
