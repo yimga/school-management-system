@@ -222,7 +222,7 @@ def _portal_access_links():
     links = [
         {"label": "View results", "url": reverse("portal:parent_dashboard") + "#children"},
         {"label": "Portal stats", "url": reverse("portal:portal_stats")},
-        {"label": "Pay fees", "url": reverse("finance:dashboard")},
+        {"label": "Pay fees", "url": reverse("portal:parent_finance")},
         {"label": "Finance reports", "url": reverse("finance:reports")},
         {"label": "Scheduler", "url": reverse("portal:parent_dashboard") + "#children"},
     ]

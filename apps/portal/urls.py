@@ -5,6 +5,7 @@ from .views import (
     parent_child_results,
     portal_feature_page,
     portal_stats,
+    parent_finance,
     link_child,
     claim_invite,
     teacher_dashboard_alias,
@@ -23,6 +24,7 @@ urlpatterns = [
     path("parent/link-child/", link_child, name="link_child"),
     path("parent/claim-invite/", claim_invite, name="claim_invite"),
     path("parent/claim-invite/<str:token>/", claim_invite, name="claim_invite_token"),
+    path("parent/finance/", parent_finance, name="parent_finance"),
     path("features/<str:feature>/", portal_feature_page, name="portal_feature"),
     path("parent/stats/", portal_stats, name="portal_stats"),
     # Teacher dashboard alias for consistency
