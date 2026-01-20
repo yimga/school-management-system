@@ -100,6 +100,15 @@ def get_item(obj, key):
 @register.simple_tag
 def admin_section_stats():
     """Lightweight stats per major app section."""
+    # Completion: percentage of evaluations that meet required components
+    eval_total = Evaluation.objects.count()
+    eval_complete = Evaluation.objects.filter().count()
+    try:
+        eval_complete = sum(1 for e in Evaluation.objects.all().iterator() if e.is_complete_for_ranking)
+    except Exception:
+        eval_complete = 0
+    completion_pct = round((eval_complete / eval_total) * 100, 2) if eval_total else 0
+
     return {
         "academics": {
             "Students": StudentProfile.objects.count(),
@@ -118,6 +127,7 @@ def admin_section_stats():
         "evals": {
             "Evaluations": Evaluation.objects.count(),
             "Report cards": ReportCard.objects.count(),
+            "Completion %": completion_pct,
         },
         "finance": {
             "Invoices": Invoice.objects.count(),

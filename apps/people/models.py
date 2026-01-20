@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.apps import apps as django_apps
+from django.utils.translation import gettext_lazy as _
 
 import re
 import uuid
@@ -101,6 +102,26 @@ class StudentProfile(models.Model):
     def __str__(self):
         return f"{self.last_name} {self.first_name} ({self.student_code})"
 
+    @property
+    def parent_completeness(self) -> int:
+        """
+        Rough completeness meter based on guardian links and contact fields.
+        """
+        guardians = list(self.guardian_links.all())
+        if not guardians:
+            return 0
+        score = 0
+        for g in guardians:
+            if g.phone:
+                score += 1
+            if g.address:
+                score += 1
+            if g.preferred_contact:
+                score += 1
+        # max 3 points per guardian; normalize to 100
+        max_points = len(guardians) * 3
+        return int(round((score / max_points) * 100)) if max_points else 0
+
     @staticmethod
     def _class_segment(classroom: Classroom) -> str:
         """
@@ -145,6 +166,7 @@ class StudentProfile(models.Model):
         return f"{yy}-{school_code}-{seq_str}-{spec_segment}-{class_segment}"
 
     def save(self, *args, **kwargs):
+        # Auto-generate admission number when not provided
         if not self.admission_number and self.academic_year and self.specialty and self.classroom:
             self.admission_number = self.generate_admission_number(
                 self.academic_year,
@@ -153,7 +175,21 @@ class StudentProfile(models.Model):
             )
         if not self.student_code:
             self.student_code = self.admission_number or f"TEMP-{uuid.uuid4().hex[:8].upper()}"
+        if not self.referral_code:
+            self.referral_code = f"REF-{uuid.uuid4().hex[:6].upper()}"
         super().save(*args, **kwargs)
+
+    def clean(self):
+        """
+        Validate admission number format; keep editable but enforce structure.
+        """
+        if self.admission_number:
+            pattern = r"^\d{2}-[A-Z0-9]{2,10}-\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4}$"
+            if not re.match(pattern, self.admission_number):
+                raise ValidationError(
+                    {"admission_number": _("Admission number must match YY-SCHOOL-####-SPEC-CLASS format.")}
+                )
+        super().clean()
 
 
 class StudentGuardian(models.Model):
