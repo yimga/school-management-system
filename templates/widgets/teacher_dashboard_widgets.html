@@ -1,18 +1,32 @@
 {% if widget_data %}
   <div class="row g-3 mb-4">
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
-          <div class="text-muted small">Assignments / Completion</div>
-          <div class="display-6 fw-semibold">{{ widget_data.assignments_count }}</div>
-          <div class="small text-muted">
-            Completion: {{ widget_data.completion_pct }}%
+          <div class="text-muted small mb-1">Completion status</div>
+          <div class="d-flex align-items-end gap-2">
+            <span class="display-6 fw-semibold">{{ widget_data.completion.overall_pct }}%</span>
+            <span class="text-muted small">of {{ widget_data.completion.total }} slots</span>
+          </div>
+          <div class="progress mt-2" style="height:6px;">
+            <div
+              class="progress-bar bg-success"
+              role="progressbar"
+              style="width: {{ widget_data.completion.overall_pct }}%;"
+              aria-valuenow="{{ widget_data.completion.overall_pct }}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ></div>
+          </div>
+          <div class="d-flex justify-content-between text-muted small mt-2">
+            <span>Filled: {{ widget_data.completion.filled }}</span>
+            <span>Pending: {{ widget_data.completion.pending }}</span>
           </div>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="text-muted small">Pending tasks</div>
           <div class="display-6 fw-semibold">{{ widget_data.tasks.pending_evaluations }}</div>
@@ -25,7 +39,60 @@
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small mb-1">Finance & leave</div>
+          {% if widget_data.finance.net_pay %}
+            <div class="d-flex align-items-end gap-2">
+              <span class="display-6 fw-semibold">{{ widget_data.finance.net_pay }}</span>
+              <span class="text-muted small">{{ widget_data.finance.status }}</span>
+            </div>
+            <div class="small text-muted">Period: {{ widget_data.finance.period }}</div>
+          {% else %}
+            <p class="small text-muted mb-1">No paystub yet.</p>
+          {% endif %}
+          {% if widget_data.finance.next_pay %}
+            <div class="small text-muted">Next pay date: {{ widget_data.finance.next_pay }}</div>
+          {% endif %}
+          <div class="small text-muted">Pending leave requests: {{ widget_data.finance.pending_leaves|default:"0" }}</div>
+          {% if widget_data.finance.notes %}
+            <div class="small text-muted mt-1">{{ widget_data.finance.notes }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-8">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Lowest completion subjects</h5>
+          </div>
+          {% if widget_data.completion.spotlight %}
+            <div class="list-group list-group-flush">
+              {% for item in widget_data.completion.spotlight %}
+                <div class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-semibold">{{ item.label }}</div>
+                    <div class="text-muted small">Pending {{ item.pending }} of {{ item.total }}</div>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="text-muted small">{{ item.pct }}%</div>
+                    <a class="btn btn-sm btn-outline-primary" href="{{ item.url }}">Fill</a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="small text-muted mb-0">Completion spotlight appears once assignments are active.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Communication</div>
           {% if widget_data.communication.items %}

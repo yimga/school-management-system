@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from decimal import Decimal
-from typing import Iterable
+from typing import Iterable, List
 import re
 
 from django.db.models import Sum
@@ -13,8 +13,10 @@ from apps.academics.models import SubjectAssignment
 from apps.academics.services import get_active_year_and_term
 from apps.analytics.models import GradingDeadline
 from apps.evals.models import Evaluation
+from apps.evals.services import completion_for_assignment
 from apps.finance.models import Invoice, PaymentReminder
 from apps.people.models import StudentProfile
+from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
 from apps.siteconfig.models import Integration, SiteSettings
 
@@ -354,7 +356,45 @@ def _analytics_insights(students, year, term):
     }
 
 
-def teacher_dashboard_widget_data(assignments, progress, year, term):
+def _assignment_completion_spotlight(assignments, term) -> List[dict]:
+    spotlight = []
+    for assignment in assignments:
+        sa = assignment.subject_assignment
+        stats = completion_for_assignment(sa, term)
+        spotlight.append({
+            "label": f"{sa.subject.name} \u2013 {sa.classroom.name}",
+            "pct": stats.completion_pct,
+            "pending": stats.pending,
+            "total": stats.total,
+            "url": reverse("evals:teacher_marks_entry") + f"?subject_assignment_id={sa.id}",
+        })
+    spotlight.sort(key=lambda x: x["pct"])
+    return spotlight[:4]
+
+
+def _teacher_finance_block(teacher):
+    if not getattr(teacher, "allow_finance_panel", False):
+        return {}
+
+    payroll_profile = PayrollEmployee.objects.filter(user=teacher.user).first()
+    if not payroll_profile:
+        return {"label": "No payroll profile yet."}
+
+    latest_payslip = payroll_profile.payslips.select_related("payroll_run").first()
+    pending_leaves = payroll_profile.leave_requests.filter(status=LeaveRequest.Status.PENDING).count()
+
+    return {
+        "net_pay": latest_payslip.net_pay if latest_payslip else None,
+        "status": latest_payslip.status if latest_payslip else "N/A",
+        "period": f"{latest_payslip.payroll_run.period_start} \u2192 {latest_payslip.payroll_run.period_end}"
+        if latest_payslip else "",
+        "next_pay": getattr(teacher, "next_pay_date", None),
+        "notes": getattr(teacher, "paystub_notes", ""),
+        "pending_leaves": pending_leaves,
+    }
+
+
+def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=None):
     total_slots = sum((item.get("total", 0) for item in progress.values()), 0) or 1
     filled = sum((item.get("filled", 0) for item in progress.values()))
     missing = total_slots - filled
@@ -375,15 +415,25 @@ def teacher_dashboard_widget_data(assignments, progress, year, term):
         {"label": "My assignments", "url": reverse("evals:teacher_dashboard")},
     ]
 
+    completion = {
+        "overall_pct": completion_pct,
+        "filled": filled,
+        "total": total_slots,
+        "pending": missing,
+        "spotlight": _assignment_completion_spotlight(assignments, term),
+    }
+
     return {
         "completion_pct": completion_pct,
+        "completion": completion,
         "missing": missing,
         "assignments_count": len(assignments),
         "links": links,
         "upcoming": upcoming,
         "tasks": {
-            "pending_evaluations": missing,
-            "description": "Missing marks show what still needs entry.",
+          "pending_evaluations": missing,
+          "description": "Missing marks show what still needs entry.",
         },
         "communication": _communication_center(),
+        "finance": _teacher_finance_block(teacher) if teacher else {},
     }

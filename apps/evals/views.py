@@ -111,7 +111,7 @@ def teacher_dashboard(request: HttpRequest):
         filled = qs.count()
         progress[a.id] = {"filled": filled, "total": total}
 
-    widget_data = teacher_dashboard_widget_data(assignments, progress, year, term)
+    widget_data = teacher_dashboard_widget_data(assignments, progress, year, term, teacher=teacher)
     hero = {
         "tagline": "Teacher Dashboard",
         "title": "Your classes at a glance",
@@ -276,6 +276,7 @@ def teacher_marks_list(request: HttpRequest):
     subject_id = request.GET.get("subject")
     term_id = request.GET.get("term")
     missing_only = request.GET.get("missing") == "1"
+    export_csv = request.GET.get("export") == "csv"
 
     qs = Evaluation.objects.filter(teacher=teacher, academic_year=year)
 
@@ -299,6 +300,38 @@ def teacher_marks_list(request: HttpRequest):
             e for e in evals
             if any(getattr(e, field) is None for field in _required_fields_for_evaluation(e))
         ]
+    if export_csv:
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="teacher-marks.csv"'
+        writer = csv.writer(response)
+        writer.writerow([
+            "Updated",
+            "Student",
+            "Class",
+            "Subject",
+            "Term",
+            "Seq1/Test1",
+            "Seq2/Test2",
+            "Exam",
+            "Mock",
+            "Practical",
+            "Remarks",
+        ])
+        for e in evals:
+            writer.writerow([
+                e.updated_at,
+                f"{e.student.last_name} {e.student.first_name} ({e.student.student_code})",
+                e.subject_assignment.classroom.name if e.subject_assignment else "",
+                e.subject_assignment.subject.name if e.subject_assignment else "",
+                e.term.get_name_display(),
+                e.seq1_score or e.test1,
+                e.seq2_score or e.test2,
+                e.exam_score,
+                e.mock_score,
+                e.practical_score,
+                e.remarks,
+            ])
+        return response
 
     # Filter option lists
     classrooms = (
@@ -316,8 +349,9 @@ def teacher_marks_list(request: HttpRequest):
         "year": year,
         "term": term,
         "evals": evals,
-        "filter_classrooms": list(classrooms),
-        "filter_subjects": list(subjects),
+        "classrooms": list(classrooms),
+        "subjects": list(subjects),
+        "term_choices": list(Term.objects.all()),
         "selected": {
             "classroom": classroom_id or "",
             "subject": subject_id or "",
