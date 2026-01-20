@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponseForbidden, HttpResponse
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django import forms
 import csv
+import io
 from decimal import Decimal
 
 from apps.accounts.decorators import role_required, teacher_portal_required
@@ -11,6 +13,7 @@ from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Te
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.evals.models import TeacherAssignment, Evaluation, AssessmentWeights
+from apps.evals.importers import preview_import, apply_import, build_template_headers
 from apps.reports.services import is_term_published
 from .forms import (
     BulkEvaluationCreateForm,
@@ -677,6 +680,43 @@ def evaluation_evidence_upload(request: HttpRequest):
         "form": form,
         "evaluation": evaluation,
         "evidence_items": evidence_items,
+    })
+
+class GradeImportUploadForm(forms.Form):
+    file = forms.FileField(help_text="Upload a CSV with the expected headers.")
+
+
+@staff_member_required
+def grade_import_upload_view(request: HttpRequest):
+    """
+    Staff-facing CSV upload with preview + apply.
+    """
+    form = GradeImportUploadForm(request.POST or None, request.FILES or None)
+    preview = None
+    result = None
+    active_year, _ = get_active_year_and_term()
+    if request.method == "POST" and form.is_valid():
+        upload = form.cleaned_data["file"]
+        try:
+            reader = csv.DictReader(io.TextIOWrapper(upload, encoding="utf-8"))
+            preview = preview_import(reader)
+        except Exception as exc:  # pragma: no cover - defensive
+            messages.error(request, f"Could not read CSV: {exc}")
+        else:
+            if preview.errors:
+                messages.error(request, "Please fix the errors below before applying.")
+            elif request.POST.get("action") == "apply":
+                if not active_year:
+                    messages.error(request, "No active academic year found.")
+                else:
+                    result = apply_import(preview, active_year)
+                    messages.success(request, f"Imported grades (created: {result['created']}, updated: {result['updated']}).")
+    return render(request, "evals/grade_import_upload.html", {
+        "form": form,
+        "preview": preview,
+        "result": result,
+        "template_headers": build_template_headers(),
+        "active_year": active_year,
     })
 
 
