@@ -1,0 +1,91 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Grade import" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Bulk grade import" %}</h1>
+<p class="help">
+  {% trans "Upload a CSV using the template headers. You can preview before applying." %}
+</p>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-row">
+      {{ form.file.label_tag }}<br/>
+      {{ form.file }}
+      <p class="help">{% trans "Expected headers" %}: {{ template_headers|join:", " }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="button default" type="submit" name="action" value="preview">{% trans "Preview" %}</button>
+      <button class="button" type="submit" name="action" value="apply">{% trans "Apply import" %}</button>
+    </div>
+  </form>
+</div>
+
+{% if preview %}
+  <div class="card mt-3">
+    <h3>{% trans "Preview results" %}</h3>
+    {% if preview.errors %}
+      <div class="errornote">
+        <p>{% trans "Fix these errors before applying" %}:</p>
+        <ul>
+          {% for err in preview.errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <p class="success">
+        {% trans "Preview looks good." %} {% if active_year %}{% trans "Active year" %}: {{ active_year }}{% endif %}
+      </p>
+      <table class="listtable">
+        <thead>
+          <tr>
+            <th>{% trans "Student" %}</th>
+            <th>{% trans "Assignment ID" %}</th>
+            <th>{% trans "Term ID" %}</th>
+            <th>{% trans "Seq1" %}</th>
+            <th>{% trans "Seq2" %}</th>
+            <th>{% trans "Exam" %}</th>
+            <th>{% trans "Mock" %}</th>
+            <th>{% trans "Practical" %}</th>
+            <th>{% trans "Remarks" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in preview.rows|slice:":25" %}
+            <tr>
+              <td>{{ row.student_code }}</td>
+              <td>{{ row.subject_assignment_id }}</td>
+              <td>{{ row.term_id }}</td>
+              <td>{{ row.seq1 }}</td>
+              <td>{{ row.seq2 }}</td>
+              <td>{{ row.exam }}</td>
+              <td>{{ row.mock }}</td>
+              <td>{{ row.practical }}</td>
+              <td>{{ row.remarks }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if preview.rows|length > 25 %}
+        <p class="help">{% trans "Showing first 25 rows." %}</p>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if result %}
+  <div class="card mt-3">
+    <p class="success">
+      {% trans "Import applied." %} {% trans "Created" %}: {{ result.created }}, {% trans "Updated" %}: {{ result.updated }}
+    </p>
+  </div>
+{% endif %}
+
+<p class="help mt-2">
+  {% trans "Tip: use the CSV template download from the dashboard or /evals/grade-import-template/." %}
+</p>
+{% endblock %}

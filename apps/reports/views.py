@@ -6,6 +6,7 @@ from django.core.mail import EmailMessage
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+import csv
 
 from apps.accounts.decorators import role_required, parent_portal_required
 from apps.accounts.models import User
@@ -90,6 +91,60 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     return resp
 
 
+def _csv_response(filename: str, headers: list[str], rows: list[list]):
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    writer = csv.writer(response)
+    writer.writerow(headers)
+    for row in rows:
+        writer.writerow(row)
+    return response
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_download_term_report_csv(request: HttpRequest, student_id: int):
+    """CSV export of the active term report."""
+    if not _reports_enabled():
+        return HttpResponseForbidden("Report downloads are disabled by the school.")
+
+    year, term = get_active_year_and_term()
+    if not year or not term:
+        return HttpResponseForbidden("No active academic year/term configured yet.")
+
+    student = _get_guardian_student(request, student_id)
+    if not student:
+        return HttpResponseForbidden("Not authorized.")
+
+    if term.name == Term.Name.THIRD and not student.classroom.allows_third_term:
+        return HttpResponseForbidden("Third term report is not available for this classroom.")
+
+    if not is_term_published(year.id, term.id, student.classroom_id):
+        return HttpResponseForbidden("Results not published yet.")
+
+    context = term_report_context(student, year, term)
+    rows = []
+    for r in context["rows"]:
+        rows.append([
+            r["subject"],
+            r["coef"],
+            r["seq1"],
+            r["seq2"],
+            r["exam"],
+            r["mock"],
+            r["practical"],
+            r["total"],
+            "yes" if r["complete"] else "no",
+            r["remark"],
+        ])
+    summary = context["summary"]
+    rows.append([])
+    rows.append(["Average", summary["average"], "Class pos", summary["class_position"], "Size", summary["class_size"]])
+    filename = f"{student.last_name}_{student.first_name}_{term.name}_{year.name}.csv".replace(" ", "_")
+    headers = ["Subject", "Coef", "Seq1", "Seq2", "Exam", "Mock", "Practical", "Total", "Complete", "Remark"]
+    return _csv_response(filename, headers, rows)
+
+
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_download_annual_report(request: HttpRequest, student_id: int):
@@ -130,6 +185,44 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
+    """CSV export of annual report (all terms)."""
+    if not _reports_enabled():
+        return HttpResponseForbidden("Report downloads are disabled by the school.")
+
+    year, _term = get_active_year_and_term()
+    if not year:
+        return HttpResponseForbidden("No active academic year configured yet.")
+
+    student = _get_guardian_student(request, student_id)
+    if not student:
+        return HttpResponseForbidden("Not authorized.")
+
+    context = annual_report_context(student, year)
+    rows = []
+    for term_row in context["term_rows"]:
+        rows.append([
+            term_row["term"],
+            term_row["avg"],
+            term_row["pos"],
+            term_row["class_size"],
+        ])
+    rows.append([])
+    rows.append([
+        "Annual average",
+        context["annual_average"],
+        "Class position",
+        context["class_position"],
+        "School position",
+        context["school_position"],
+    ])
+    filename = f"{student.last_name}_{student.first_name}_annual_{year.name}.csv".replace(" ", "_")
+    headers = ["Term", "Average", "Class position", "Class size"]
+    return _csv_response(filename, headers, rows)
 
 
 @parent_portal_required
