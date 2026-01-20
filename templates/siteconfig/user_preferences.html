@@ -4,12 +4,28 @@
 
 {% block content %}
   <div class="row justify-content-center">
-    <div class="col-lg-6">
+    <div class="col-lg-7">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h1 class="h4 mb-2">Portal Preferences</h1>
+          <p class="text-muted mb-0">Choose your default dashboard, timezone, refresh cadence, and notification channels.</p>
+        </div>
+        <div class="border-top px-4 py-3 bg-light small">
+          {% with settings=SITE_SETTINGS|default:None %}
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+              <div><strong>School code:</strong> {{ settings.school_code|default:"GIL" }}</div>
+              <div><strong>Theme pack:</strong> {{ settings.theme_pack|default:"Not set" }}</div>
+              <div><strong>Logo:</strong> {{ settings.logo|yesno:"Uploaded,Missing" }}</div>
+              <a class="btn btn-sm btn-outline-secondary" href="/admin/siteconfig/sitesettings/">
+                Manage Site Settings
+              </a>
+            </div>
+          {% endwith %}
+        </div>
+      </div>
+
       <div class="card shadow-sm">
         <div class="card-body">
-          <h1 class="h4 mb-3">Portal Preferences</h1>
-          <p class="text-muted">Customize your dashboard view, timezone, and notification channels.</p>
-
           <form method="post">
             {% csrf_token %}
             {% for field in form.visible_fields %}
@@ -27,7 +43,10 @@
               </div>
             {% endfor %}
 
-            <button type="submit" class="btn btn-primary">Save preferences</button>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">Save preferences</button>
+              <a class="btn btn-outline-secondary" href="/admin/siteconfig/sitesettings/">Open full Site Settings</a>
+            </div>
           </form>
         </div>
       </div>

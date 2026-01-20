@@ -74,6 +74,7 @@ def site_settings(request):
 
     return {
         "SITE": site,
+        "SITE_SETTINGS": site,
         "SITE_THEME": site.active_theme,
         "REPORT_DOWNLOADS_ENABLED": site.report_downloads_enabled,
         "BREADCRUMBS": breadcrumbs,
