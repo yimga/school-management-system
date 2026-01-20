@@ -58,6 +58,10 @@
           {% if widget_data.finance.notes %}
             <div class="small text-muted mt-1">{{ widget_data.finance.notes }}</div>
           {% endif %}
+          <div class="d-flex gap-2 mt-2">
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:teacher_pay_history' %}">Pay history</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_leave' %}">Leave</a>
+          </div>
         </div>
       </div>
     </div>
@@ -76,6 +80,10 @@
           {% else %}
             <p class="small text-muted mb-0">Attendance updates as marks are recorded.</p>
           {% endif %}
+          <div class="d-flex gap-2 mt-2">
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:teacher_attendance' %}">Open attendance</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_attendance' %}#history">History</a>
+          </div>
         </div>
       </div>
     </div>
