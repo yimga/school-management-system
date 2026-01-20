@@ -64,6 +64,27 @@ class TeacherProfile(models.Model):
     allow_leave_approvals = models.BooleanField(default=False)
     mark_reminder_opt_in = models.BooleanField(default=True)
 
+    def suggested_dashboard_view(self) -> str:
+        """
+        Suggest a dashboard based on position/role keywords.
+        """
+        title = (self.position_title or "").lower()
+        if any(k in title for k in ["finance", "hr", "bursar"]):
+            return self.DashboardView.FINANCE
+        if any(k in title for k in ["discipline", "attendance", "pastoral"]):
+            return self.DashboardView.ATTENDANCE
+        if any(k in title for k in ["principal", "director", "dean", "head", "vice principal"]):
+            return self.DashboardView.OVERVIEW
+        return self.default_dashboard_view or self.DashboardView.OVERVIEW
+
+    def save(self, *args, **kwargs):
+        # Only auto-adjust if a specific default hasn't been chosen yet.
+        if self.position_title and self.default_dashboard_view == self.DashboardView.OVERVIEW:
+            suggested = self.suggested_dashboard_view()
+            if suggested != self.default_dashboard_view:
+                self.default_dashboard_view = suggested
+        super().save(*args, **kwargs)
+
     def clean(self):
         # Ensure the linked user is a TEACHER
         if self.user and self.user.role != User.Role.TEACHER:
@@ -71,6 +92,72 @@ class TeacherProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username}"
+
+
+class TeacherPayRecord(models.Model):
+    class RecordType(models.TextChoices):
+        PAY = "PAY", "Pay"
+        RAISE = "RAISE", "Raise/Stipend"
+        BONUS = "BONUS", "Bonus"
+
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="pay_records")
+    record_type = models.CharField(max_length=12, choices=RecordType.choices, default=RecordType.PAY)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    effective_date = models.DateField()
+    description = models.CharField(max_length=255, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="created_pay_records")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-effective_date", "-created_at"]
+
+    def __str__(self):
+        return f"{self.get_record_type_display()} {self.amount} for {self.teacher}"
+
+
+class TeacherLeaveRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="leave_requests")
+    start_date = models.DateField()
+    end_date = models.DateField()
+    reason = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    approver = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="approved_leave_requests")
+    decision_notes = models.TextField(blank=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Leave {self.teacher} {self.start_date} -> {self.end_date} ({self.status})"
+
+
+class TeacherAttendance(models.Model):
+    class Status(models.TextChoices):
+        PRESENT = "PRESENT", "Present"
+        ABSENT = "ABSENT", "Absent"
+        LATE = "LATE", "Late"
+        ON_LEAVE = "ON_LEAVE", "On leave"
+
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="attendance_logs")
+    date = models.DateField()
+    check_in = models.DateTimeField(null=True, blank=True)
+    check_out = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PRESENT)
+    remarks = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        unique_together = ("teacher", "date")
+        ordering = ["-date", "-check_in"]
+
+    def __str__(self):
+        return f"{self.teacher} {self.date} ({self.status})"
 
 
 class StudentProfile(models.Model):
