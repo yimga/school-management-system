@@ -4,7 +4,14 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from apps.portal.models import PendingGuardianInvite
-from .models import TeacherProfile, StudentProfile, StudentGuardian
+from .models import (
+    TeacherProfile,
+    StudentProfile,
+    StudentGuardian,
+    TeacherPayRecord,
+    TeacherLeaveRequest,
+    TeacherAttendance,
+)
 
 
 class StudentGuardianInline(admin.TabularInline):
@@ -94,6 +101,7 @@ class TeacherProfileAdmin(ModelAdmin):
         "profile_photo",
     )
     search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "staff_id")
+    list_filter = ("department", "default_dashboard_view", "allow_leave_approvals", "allow_finance_panel")
 
 
 @admin.register(StudentProfile)
@@ -212,3 +220,27 @@ class StudentGuardianAdmin(ModelAdmin):
         "can_view_finance",
     )
     search_fields = ("guardian_user__username", "guardian_user__email", "student__student_code", "student__last_name")
+
+
+@admin.register(TeacherPayRecord)
+class TeacherPayRecordAdmin(ModelAdmin):
+    list_display = ("teacher", "record_type", "amount", "effective_date", "created_by", "created_at")
+    list_filter = ("record_type", "effective_date")
+    search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
+    autocomplete_fields = ("teacher", "created_by")
+
+
+@admin.register(TeacherLeaveRequest)
+class TeacherLeaveRequestAdmin(ModelAdmin):
+    list_display = ("teacher", "start_date", "end_date", "status", "approver", "decided_at")
+    list_filter = ("status", "start_date", "end_date")
+    search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
+    autocomplete_fields = ("teacher", "approver")
+
+
+@admin.register(TeacherAttendance)
+class TeacherAttendanceAdmin(ModelAdmin):
+    list_display = ("teacher", "date", "status", "check_in", "check_out")
+    list_filter = ("status", "date")
+    search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
+    autocomplete_fields = ("teacher",)
