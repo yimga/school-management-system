@@ -17,6 +17,19 @@ class StudentProfileAdminForm(forms.ModelForm):
         model = StudentProfile
         fields = "__all__"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["admission_number"].help_text = _(
+            "Format: YY-SCHOOL-####-SPEC-CLASS. Leave blank to auto-generate from year/school code/specialty/class."
+        )
+        self.fields["parent_phone"].help_text = _(
+            "If blank, we’ll reuse the first guardian phone on save."
+        )
+        if "referral_code" in self.fields:
+            self.fields["referral_code"].help_text = _(
+                "Auto-generated referral code; editable if you need to override."
+            )
+
     def clean(self):
         cleaned = super().clean()
         # Auto-generate admission if missing but prerequisites are present.
@@ -76,9 +89,45 @@ class StudentProfileAdmin(ModelAdmin):
         "specialty",
         "is_active",
         "profile_photo",
+        "parent_completeness",
     )
     list_filter = ("academic_year", "classroom", "specialty", "is_active")
     search_fields = ("student_code", "admission_number", "first_name", "last_name")
+    readonly_fields = ("parent_completeness",)
+    fieldsets = (
+        (
+            "Identity",
+            {
+                "fields": (
+                    ("first_name", "last_name", "student_code"),
+                    ("admission_number", "academic_year"),
+                    ("classroom", "specialty"),
+                    ("status", "section"),
+                )
+            },
+        ),
+        (
+            "Profile",
+            {
+                "fields": (
+                    ("gender", "date_of_birth", "place_of_birth"),
+                    ("joined_term", "joined_date"),
+                    "profile_photo",
+                )
+            },
+        ),
+        (
+            "Guardians & contact",
+            {
+                "fields": (
+                    "parent_phone",
+                    "referral_code",
+                    "parent_completeness",
+                )
+            },
+        ),
+        ("Flags", {"fields": ("is_active",)}),
+    )
 
 
 @admin.register(StudentGuardian)

@@ -99,7 +99,7 @@
     </ul>
     <div class="d-flex flex-wrap gap-2">
       <a class="button default" href="#app-list">{% trans "Go to assignments" %}</a>
-      <a class="button" href="{{ request.path }}#grade-import-template">{% trans "Download CSV template" %}</a>
+      <a class="button" href="{% url 'evals:grade_import_template' %}">{% trans "Download CSV template" %}</a>
     </div>
   </div>
   <div class="card-neutral">
