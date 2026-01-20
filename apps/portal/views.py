@@ -335,12 +335,14 @@ def teacher_pay_history(request: HttpRequest):
     latest_pay = pay_records.filter(record_type=TeacherPayRecord.RecordType.PAY).first()
     raises_count = pay_records.filter(record_type=TeacherPayRecord.RecordType.RAISE).count()
     bonus_count = pay_records.filter(record_type=TeacherPayRecord.RecordType.BONUS).count()
+    last_pay_amount = latest_pay.amount if latest_pay else None
+    last_pay_date = latest_pay.effective_date if latest_pay else None
     hero = {
         "title": "Pay history",
         "subtitle": "Recent pay, raises, and stipends",
         "actions": [],
         "stats": [
-            {"label": "Last pay", "value": latest_pay.amount if latest_pay else "—", "meta": latest_pay.effective_date if latest_pay else "Not set"},
+            {"label": "Last pay", "value": last_pay_amount or "—", "meta": last_pay_date or "Not set"},
             {"label": "Next pay date", "value": profile.next_pay_date or "Not set", "meta": profile.pay_grade or "Pay grade"},
             {"label": "Raises", "value": raises_count, "meta": f"Bonuses: {bonus_count}"},
         ],
