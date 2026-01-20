@@ -16,6 +16,45 @@
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
+  <div class="row g-3 mb-4" id="link-child">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="fw-semibold">Link a child</div>
+              <div class="small text-muted">Use the admission number to connect your student profile.</div>
+            </div>
+            <a class="btn btn-sm btn-primary" href="{% url 'portal:link_child' %}">Link now</a>
+          </div>
+          <ul class="small text-muted mb-0">
+            <li>You can choose contact preferences and permissions.</li>
+            <li>Parent data completeness updates automatically when guardian info is filled.</li>
+            <li>Referral credits are reviewed by finance after onboarding.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="fw-semibold">Claim an invite</div>
+              <div class="small text-muted">Use an invite code sent by the school to link your child securely.</div>
+            </div>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:claim_invite' %}">Claim code</a>
+          </div>
+          <ul class="small text-muted mb-0">
+            <li>Prevents impersonation—codes are issued by the school.</li>
+            <li>We’ll copy the invited phone/email to your contact preferences.</li>
+            <li>Referral stipends apply when invites are claimed.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-3 mb-4">
     <div class="col-md-4">
       <div class="card">

@@ -1,15 +1,34 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
+from apps.portal.models import PendingGuardianInvite
 from .models import TeacherProfile, StudentProfile, StudentGuardian
+
+
+class StudentGuardianInline(admin.TabularInline):
+    model = StudentGuardian
+    extra = 1
+    autocomplete_fields = ("guardian_user",)
+    fields = (
+        "guardian_user",
+        "relationship",
+        "phone",
+        "address",
+        "preferred_contact",
+        "receives_email",
+        "receives_sms",
+        "receives_whatsapp",
+        "can_view_results",
+        "can_view_finance",
+    )
 
 
 class StudentProfileAdminForm(forms.ModelForm):
     """
     Admin form that keeps admission numbers editable but convenient:
-    - If blank, auto-generate using the model helper (YY-SCHOOL-####-SPEC-CLASS).
+    - If blank, auto-generate using the model helper (YY + SCHOOL + #### + SPEC + CLASS).
     - If parent_phone is blank, fall back to the first guardian phone on save.
     - Exposes referral_code and parent_phone with clearer help text.
     """
@@ -21,10 +40,10 @@ class StudentProfileAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["admission_number"].help_text = _(
-            "Format: YY-SCHOOL-####-SPEC-CLASS. Leave blank to auto-generate from year/school code/specialty/class."
+            "Format: YY + SCHOOL + #### + SPEC + CLASS (no dashes). Leave blank to auto-generate."
         )
         self.fields["parent_phone"].help_text = _(
-            "If blank, we’ll reuse the first guardian phone on save."
+            "If blank, we'll reuse the first guardian phone on save."
         )
         if "referral_code" in self.fields:
             self.fields["referral_code"].help_text = _(
@@ -80,6 +99,7 @@ class TeacherProfileAdmin(ModelAdmin):
 @admin.register(StudentProfile)
 class StudentProfileAdmin(ModelAdmin):
     form = StudentProfileAdminForm
+    inlines = (StudentGuardianInline,)
     list_display = (
         "admission_number",
         "student_code",
@@ -130,6 +150,42 @@ class StudentProfileAdmin(ModelAdmin):
         ("Flags", {"fields": ("is_active",)}),
     )
 
+    actions = ("create_guardian_invites",)
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+
+        student = form.instance
+        if student and not student.parent_phone:
+            guardian = student.guardian_links.exclude(phone="").first()
+            if guardian and guardian.phone:
+                student.parent_phone = guardian.phone
+                student.save(update_fields=["parent_phone"])
+
+    def create_guardian_invites(self, request, queryset):
+        created = 0
+        for student in queryset:
+            PendingGuardianInvite.objects.create(
+                student=student,
+                invited_phone=student.parent_phone or "",
+                relationship=PendingGuardianInvite.Relationship.GUARDIAN,
+                preferred_contact=(
+                    PendingGuardianInvite.PreferredContact.SMS
+                    if student.parent_phone
+                    else PendingGuardianInvite.PreferredContact.EMAIL
+                ),
+                referral_code=student.referral_code or "",
+                created_by=request.user,
+            )
+            created += 1
+        self.message_user(
+            request,
+            _(f"Created {created} guardian invite(s). Parents can claim via the portal."),
+            level=messages.SUCCESS,
+        )
+
+    create_guardian_invites.short_description = _("Create guardian invites")
+
 
 @admin.register(StudentGuardian)
 class StudentGuardianAdmin(ModelAdmin):
@@ -145,6 +201,7 @@ class StudentGuardianAdmin(ModelAdmin):
         "can_view_results",
         "can_view_finance",
     )
+    autocomplete_fields = ("guardian_user", "student")
     list_filter = (
         "relationship",
         "preferred_contact",

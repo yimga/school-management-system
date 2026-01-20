@@ -1,0 +1,30 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{% trans "Claim an invite" %}</h5>
+          <p class="text-muted mb-3">{% trans "Enter the invite code you received to link the student to your account." %}</p>
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+              <label class="form-label">{{ form.token.label }}</label>
+              {{ form.token }}
+              {% if form.token.errors %}
+                <div class="text-danger small">{{ form.token.errors|striptags }}</div>
+              {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary">{% trans "Claim invite" %}</button>
+            <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-link">{% trans "Back to dashboard" %}</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
