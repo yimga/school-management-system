@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from .models import TeacherProfile, StudentProfile, StudentGuardian
 
