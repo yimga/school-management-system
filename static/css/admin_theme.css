@@ -298,6 +298,16 @@ a:link, a:visited {
   outline-offset: 2px;
 }
 
+/* Sticky headers for long tables and export grids */
+.module table thead th,
+.results table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
 .nav-search {
   width: 100%;
   padding: 8px 10px;
