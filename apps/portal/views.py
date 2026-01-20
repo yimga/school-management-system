@@ -8,9 +8,17 @@ import uuid
 from apps.accounts.decorators import (
     role_required,
     parent_portal_required,
+    teacher_portal_required,
 )
 from apps.accounts.models import User
-from apps.people.models import StudentGuardian, StudentProfile
+from apps.people.models import (
+    StudentGuardian,
+    StudentProfile,
+    TeacherProfile,
+    TeacherPayRecord,
+    TeacherLeaveRequest,
+    TeacherAttendance,
+)
 from apps.academics.models import Term
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
@@ -29,7 +37,7 @@ from apps.analytics.services import (
 )
 from .models import PortalFeatureItem, PendingGuardianInvite
 from .services import parent_dashboard_widget_data
-from .forms import LinkChildForm, ClaimInviteForm
+from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {
@@ -247,12 +255,81 @@ def teacher_dashboard_alias(request: HttpRequest) -> HttpResponseRedirect:
     return redirect("evals:teacher_dashboard")
 
 
-def teacher_attendance(request: HttpRequest) -> HttpResponseRedirect:
-    """
-    Placeholder attendance hook for teachers; can later be replaced with
-    a dedicated attendance view. Currently routes to teacher dashboard.
-    """
-    return redirect("evals:teacher_dashboard")
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_pay_history(request: HttpRequest):
+    profile = getattr(request.user, "teacher_profile", None)
+    if not profile:
+        messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
+        return redirect("evals:teacher_dashboard")
+
+    pay_records = profile.pay_records.select_related("created_by")
+    hero = {
+        "title": "Pay history",
+        "subtitle": "Recent pay, raises, and stipends",
+        "actions": [],
+    }
+    return render(request, "teacher/pay_history.html", {
+        "hero": hero,
+        "pay_records": pay_records,
+        "teacher_profile": profile,
+    })
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_leave(request: HttpRequest):
+    profile = getattr(request.user, "teacher_profile", None)
+    if not profile:
+        messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
+        return redirect("evals:teacher_dashboard")
+
+    form = TeacherLeaveForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        leave = form.save(commit=False)
+        leave.teacher = profile
+        leave.status = TeacherLeaveRequest.Status.PENDING
+        leave.save()
+        messages.success(request, "Leave request submitted for approval.")
+        return redirect("portal:teacher_leave")
+
+    leave_requests = profile.leave_requests.select_related("approver")
+    hero = {
+        "title": "Leave requests",
+        "subtitle": "Submit a request and track approvals",
+        "actions": [],
+    }
+    return render(request, "teacher/leave.html", {
+        "hero": hero,
+        "form": form,
+        "leave_requests": leave_requests,
+    })
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_attendance_view(request: HttpRequest):
+    profile = getattr(request.user, "teacher_profile", None)
+    if not profile:
+        messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
+        return redirect("evals:teacher_dashboard")
+
+    logs = profile.attendance_logs.all()
+    present = logs.filter(status=TeacherAttendance.Status.PRESENT).count()
+    absences = logs.filter(status=TeacherAttendance.Status.ABSENT).count()
+    late = logs.filter(status=TeacherAttendance.Status.LATE).count()
+    hero = {
+        "title": "Attendance",
+        "subtitle": "Check-ins, check-outs, and leave days",
+        "actions": [],
+    }
+    return render(request, "teacher/attendance.html", {
+        "hero": hero,
+        "logs": logs,
+        "present": present,
+        "absences": absences,
+        "late": late,
+    })
 
 
 @parent_portal_required
