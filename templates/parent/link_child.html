@@ -1,0 +1,78 @@
+{% extends "portal_base.html" %}
+{% block title %}Link a Child{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <h2 class="mb-1">Link a Child</h2>
+    <div class="text-muted">Use the admission number you received from the school.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      {% if school_code %}
+        <div class="alert alert-info small">
+          School code: <strong>{{ school_code }}</strong>. Admission format: YY + {{ school_code }} + #### + SPEC + CLASS (no dashes).
+          Use the code provided by the school to avoid typos.
+        </div>
+      {% endif %}
+
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="col-12">
+            <div class="alert alert-danger mb-2">
+              {{ form.non_field_errors }}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="col-md-6">
+          <label class="form-label">{{ form.admission_number.label }}</label>
+          {{ form.admission_number }}
+          {% if form.admission_number.help_text %}<div class="form-text">{{ form.admission_number.help_text }}</div>{% endif %}
+          {{ form.admission_number.errors }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ form.relationship.label }}</label>
+          {{ form.relationship }}
+          {{ form.relationship.errors }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ form.phone.label }}</label>
+          {{ form.phone }}
+          {% if form.phone.help_text %}<div class="form-text">{{ form.phone.help_text }}</div>{% endif %}
+          {{ form.phone.errors }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ form.preferred_contact.label }}</label>
+          {{ form.preferred_contact }}
+          {{ form.preferred_contact.errors }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ form.referral_code.label }}</label>
+          {{ form.referral_code }}
+          {% if form.referral_code.help_text %}<div class="form-text">{{ form.referral_code.help_text }}</div>{% endif %}
+          {{ form.referral_code.errors }}
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-check mb-2">
+            {{ form.can_view_results }} <label class="form-check-label">{{ form.can_view_results.label }}</label>
+          </div>
+          <div class="form-check">
+            {{ form.can_view_finance }} <label class="form-check-label">{{ form.can_view_finance.label }}</label>
+          </div>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+          <button class="btn btn-primary" type="submit">Link child</button>
+          <a class="btn btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -143,12 +143,12 @@ class StudentProfile(models.Model):
         classroom: Classroom,
     ) -> str:
         """
-        Build YY-SCHOOLCODE-####-SPEC-CLASS.
+        Build YY + SCHOOLCODE + #### + SPEC + CLASS (no dashes, no trailing F).
         - YY: start year suffix from AcademicYear.name (first four digits -> last two)
         - SCHOOLCODE: from SiteSettings.school_code (default GIL)
         - ####: zero-padded sequence per academic year
         - SPEC: Specialty.code
-        - CLASS: classroom segment (numeric tail or first two chars)
+        - CLASS: classroom segment (numeric tail or first two chars), digits only when available
         """
         SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
         settings = SiteSettings.get_solo()
@@ -163,7 +163,11 @@ class StudentProfile(models.Model):
         spec_segment = (specialty.code or "XX").upper()[:6] if specialty else "XX"
         class_segment = cls._class_segment(classroom)
 
-        return f"{yy}-{school_code}-{seq_str}-{spec_segment}-{class_segment}"
+        # Remove non-alphanumerics to keep the ID compact and numeric-friendly at the tail.
+        spec_segment = re.sub(r"[^A-Z0-9]", "", spec_segment)
+        class_segment = re.sub(r"[^A-Z0-9]", "", class_segment)
+
+        return f"{yy}{school_code}{seq_str}{spec_segment}{class_segment}"
 
     def save(self, *args, **kwargs):
         # Auto-generate admission number when not provided
@@ -184,10 +188,16 @@ class StudentProfile(models.Model):
         Validate admission number format; keep editable but enforce structure.
         """
         if self.admission_number:
-            pattern = r"^\d{2}-[A-Z0-9]{2,10}-\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4}$"
+            new_style = r"^\d{2}[A-Z0-9]{2,10}\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4}$"
+            legacy = r"^\d{2}-[A-Z0-9]{2,10}-\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4}$"
+            pattern = rf"({new_style}|{legacy})"
             if not re.match(pattern, self.admission_number):
                 raise ValidationError(
-                    {"admission_number": _("Admission number must match YY-SCHOOL-####-SPEC-CLASS format.")}
+                    {
+                        "admission_number": _(
+                            "Admission number must match YY + SCHOOL + #### + SPEC + CLASS (no dashes) or the legacy dashed format."
+                        )
+                    }
                 )
         super().clean()
 

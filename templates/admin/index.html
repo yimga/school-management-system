@@ -40,7 +40,7 @@
       <a class="stat-link" href="{{ log_url|default:'/admin/admin/logentry/' }}">
         <div class="stat-pill">
           <div class="stat-label">{% trans "Recent actions" %}</div>
-          <div class="stat-value">↗</div>
+          <div class="stat-value">&rarr;</div>
           <div class="small opacity-80">{% trans "See audit log on the right" %}</div>
         </div>
       </a>
@@ -104,7 +104,7 @@
   <div class="card-neutral">
     <h4 id="recent-actions-card">{% trans "Recent actions" %}</h4>
     <p class="small mb-2">{% trans "See audit log on the right sidebar." %}</p>
-    <a class="button" href="{{ log_url|default:'/admin/admin/logentry/' }}">↗ {% trans "Open audit log" %}</a>
+    <a class="button" href="{{ log_url|default:'/admin/admin/logentry/' }}">&rarr; {% trans "Open audit log" %}</a>
   </div>
   <div class="card-neutral">
     <h4>{% trans "System health" %}</h4>

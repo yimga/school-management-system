@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseForbidden, HttpRequest, Http404
 from django.contrib import messages
 from django.http import HttpResponseRedirect
+from django.utils import timezone
+import uuid
 
 from apps.accounts.decorators import (
     role_required,
@@ -25,8 +27,9 @@ from apps.analytics.services import (
     subject_weaknesses,
     term_rankings,
 )
-from .models import PortalFeatureItem
+from .models import PortalFeatureItem, PendingGuardianInvite
 from .services import parent_dashboard_widget_data
+from .forms import LinkChildForm, ClaimInviteForm
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {
@@ -89,6 +92,7 @@ def parent_dashboard(request: HttpRequest):
         ],
         "actions": [
             {"label": "View Results", "url": "#children"},
+            {"label": "Link a Child", "url": "#link-child"},
             {"label": "Pay Fees", "url": "/finance/"},
         ],
     }
@@ -99,6 +103,60 @@ def parent_dashboard(request: HttpRequest):
         "widget_data": widget_data,
         "hero": hero,
     })
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def claim_invite(request: HttpRequest, token: str | None = None):
+    """
+    Claim a pending guardian invite using a token and link the student to the logged-in parent.
+    """
+    initial = {"token": token} if token else None
+    form = ClaimInviteForm(request.POST or None, initial=initial)
+
+    if request.method == "POST" and form.is_valid():
+        invite = form.invite
+        student = invite.student
+
+        # Prevent duplicate links
+        exists = StudentGuardian.objects.filter(
+            guardian_user=request.user,
+            student=student,
+        ).exists()
+        if exists:
+            messages.info(request, "You are already linked to this student.")
+            return redirect("portal:parent_dashboard")
+
+        guardian = StudentGuardian.objects.create(
+            guardian_user=request.user,
+            student=student,
+            relationship=invite.relationship,
+            phone=invite.invited_phone,
+            preferred_contact=invite.preferred_contact,
+            receives_email=True,
+            receives_sms=False,
+            receives_whatsapp=False,
+            can_view_results=True,
+            can_view_finance=True,
+        )
+
+        invite.guardian_user = request.user
+        invite.claimed_at = timezone.now()
+        invite.save(update_fields=["guardian_user", "claimed_at"])
+
+        if invite.referral_code and not student.referral_code:
+            student.referral_code = invite.referral_code
+            student.save(update_fields=["referral_code"])
+
+        # If student missing parent phone, reuse invited phone
+        if not student.parent_phone and guardian.phone:
+            student.parent_phone = guardian.phone
+            student.save(update_fields=["parent_phone"])
+
+        messages.success(request, f"Invite claimed. You are now linked to {student}.")
+        return redirect("portal:parent_dashboard")
+
+    return render(request, "parent/claim_invite.html", {"form": form})
 
 
 @parent_portal_required
@@ -258,4 +316,32 @@ def parent_child_results(request: HttpRequest, student_id: int):
         "completion_pct": completion_pct,
     }
     return render(request, "parent/results.html", context)
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def link_child(request: HttpRequest):
+    site = SiteSettings.get_solo()
+    form = LinkChildForm(
+        request.POST or None,
+        guardian_user=request.user,
+        school_code=site.school_code,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        guardian_link = form.save()
+        messages.success(
+            request,
+            f"Linked {guardian_link.student} successfully. Results and finance access will reflect your choices.",
+        )
+        return redirect("portal:parent_dashboard")
+
+    return render(
+        request,
+        "parent/link_child.html",
+        {
+            "form": form,
+            "school_code": site.school_code,
+        },
+    )
 

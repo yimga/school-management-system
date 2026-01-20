@@ -6,12 +6,12 @@ from django.urls import include, path
 
 
 def home(request):
-    # Staff/admin users: go straight to admin
+    # Staff/admin users: go straight to admin; everyone else to portal login
     if request.user.is_authenticated:
         if request.user.is_staff or request.user.is_superuser:
             return redirect('/admin/')
         return redirect('/portal/')
-    return render(request, 'home.html')
+    return redirect('/authentication/login/')
 
 
 def admin_siteconfig_customizer_redirect(request):
