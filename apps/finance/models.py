@@ -223,6 +223,12 @@ class Invoice(models.Model):
     due_date = models.DateField(null=True, blank=True)
     reference = models.CharField(max_length=64, blank=True)
     notes = models.TextField(blank=True)
+    attachment = models.FileField(
+        upload_to="finance/invoices/",
+        blank=True,
+        null=True,
+        help_text="Optional PDF or image attachment for this invoice.",
+    )
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     balance_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     preferred_payment_method = models.CharField(
@@ -264,6 +270,12 @@ class Payment(models.Model):
     paid_at = models.DateTimeField(default=timezone.now)
     receipt_number = models.CharField(max_length=64, blank=True)
     external_reference = models.CharField(max_length=128, blank=True)
+    receipt_file = models.FileField(
+        upload_to="finance/receipts/",
+        blank=True,
+        null=True,
+        help_text="Optional uploaded receipt or slip.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -8,7 +8,10 @@
     <h2 class="mb-1">Evaluation Manager</h2>
     <div class="text-muted">Create evaluations in bulk and track missing scores.</div>
   </div>
-  <a class="btn btn-outline-secondary" href="/admin/">Back to Admin</a>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-secondary" href="/admin/">Back to Admin</a>
+    <a class="btn btn-outline-primary" href="{% url 'evals:grade_import_template' %}">Download CSV template</a>
+  </div>
 </div>
 
 <div class="row g-3 mb-4">

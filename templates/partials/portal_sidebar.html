@@ -32,6 +32,12 @@
     <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:employee_leave' %}">
       <i class="bi bi-calendar-check me-2"></i>Leave Requests
     </a>
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:teacher_attendance' %}">
+      <i class="bi bi-clipboard-check me-2"></i>Attendance
+    </a>
+    <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:employee_payslips' %}">
+      <i class="bi bi-receipt me-2"></i>Pay History
+    </a>
 
   {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
     <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:parent_dashboard' %}">

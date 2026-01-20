@@ -37,6 +37,28 @@ def parent_dashboard_widget_data(
         "timetable": _timetable_overview(students, year, term),
         "communication": _communication_center(),
         "analytics": _analytics_insights(students, year, term),
+        "referral": _referral_overview(students),
+    }
+
+
+def _referral_overview(students: list[StudentProfile]):
+    if not students:
+        return {
+            "code": None,
+            "total_codes": 0,
+            "completeness_avg": 0,
+            "note": "Referral codes appear after student onboarding.",
+        }
+
+    codes = [s.referral_code for s in students if s.referral_code]
+    code = codes[0] if codes else None
+    completeness_vals = [s.parent_completeness for s in students if hasattr(s, "parent_completeness")]
+    completeness_avg = int(round(sum(completeness_vals) / len(completeness_vals))) if completeness_vals else 0
+    return {
+        "code": code,
+        "total_codes": len(codes),
+        "completeness_avg": completeness_avg,
+        "note": "Share your referral code during onboarding to unlock bonuses.",
     }
 
 
@@ -423,6 +445,8 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
         "spotlight": _assignment_completion_spotlight(assignments, term),
     }
 
+    attendance = _attendance_snapshot([a.subject_assignment.classroom for a in assignments], year, term) if assignments else None
+
     return {
         "completion_pct": completion_pct,
         "completion": completion,
@@ -436,4 +460,5 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
         },
         "communication": _communication_center(),
         "finance": _teacher_finance_block(teacher) if teacher else {},
+        "attendance": attendance,
     }

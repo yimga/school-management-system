@@ -61,6 +61,24 @@
         </div>
       </div>
     </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small mb-1">Attendance snapshot</div>
+          {% if widget_data.attendance %}
+            <div class="d-flex align-items-end gap-2">
+              <span class="display-6 fw-semibold">{{ widget_data.attendance.overall }}%</span>
+              <span class="text-muted small">overall</span>
+            </div>
+            <div class="small text-muted">Today: {{ widget_data.attendance.today }}%</div>
+            <div class="small text-muted">Missing: {{ widget_data.attendance.missing }}</div>
+            <div class="small text-muted mt-2">{{ widget_data.attendance.label }}</div>
+          {% else %}
+            <p class="small text-muted mb-0">Attendance updates as marks are recorded.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="row g-3 mb-4">

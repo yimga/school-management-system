@@ -77,6 +77,21 @@
                     <span class="badge text-bg-light">{{ link.student.classroom.name }}</span>
                     <span class="badge text-bg-light">{{ link.student.specialty.name }}</span>
                   </div>
+                  <div class="small text-muted mt-2">
+                    Admission: {{ link.student.admission_number|default:"Pending" }}
+                  </div>
+                  <div class="small text-muted">
+                    Referral: {{ link.student.referral_code|default:"-" }}
+                  </div>
+                  <div class="mt-2">
+                    <div class="small d-flex justify-content-between">
+                      <span class="text-muted">Parent data</span>
+                      <span class="text-muted">{{ link.student.parent_completeness }}%</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar" role="progressbar" style="width: {{ link.student.parent_completeness }}%;"></div>
+                    </div>
+                  </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 pt-0">
                   <a class="btn btn-sm btn-primary w-100" href="{% url 'portal:parent_child_results' link.student.id %}">
