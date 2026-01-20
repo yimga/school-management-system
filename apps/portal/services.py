@@ -445,7 +445,12 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
         "spotlight": _assignment_completion_spotlight(assignments, term),
     }
 
-    attendance = _attendance_snapshot([a.subject_assignment.classroom for a in assignments], year, term) if assignments else None
+    attendance = None
+    if assignments:
+        classroom_ids = {a.subject_assignment.classroom_id for a in assignments if getattr(a, "subject_assignment", None)}
+        if classroom_ids and year:
+            students = list(StudentProfile.objects.filter(classroom_id__in=classroom_ids, academic_year=year))
+            attendance = _attendance_snapshot(students, year, term)
 
     return {
         "completion_pct": completion_pct,
