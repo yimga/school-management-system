@@ -5,14 +5,75 @@
 
 {% block extrastyle %}
   <style>
+    body {
+      background: #f5f7fb;
+    }
+
     .auth-landing {
-      min-height: 70vh;
+      min-height: 100vh;
+      padding-bottom: 4rem;
+    }
+
+    .auth-hero {
+      border-radius: 0 0 18px 18px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      color: white;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 8px 18px rgba(124, 58, 237, 0.25);
+    }
+
+    .auth-hero .hero-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    .auth-hero .hero-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.9);
+      display: grid;
+      place-items: center;
+      font-size: 1.3rem;
+    }
+
+    .auth-hero h1 {
+      font-size: 1.1rem;
+      margin-bottom: 0;
+    }
+
+    .auth-hero small {
+      display: block;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.08em;
+    }
+
+    .auth-hero .hero-meta {
+      text-align: right;
+    }
+
+    .auth-breadcrumb {
+      background: white;
+      padding: 0.8rem 1.2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
     }
 
     .login-card,
     .info-card {
       border-radius: 18px;
       border: 1px solid rgba(15, 23, 42, 0.08);
+      background: white;
     }
 
     .login-card .form-control {
@@ -22,8 +83,8 @@
     }
 
     .info-card {
-      background: rgba(255, 255, 255, 0.9);
-      padding: 1.3rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
@@ -54,13 +115,34 @@
       letter-spacing: 0.08em;
     }
 
+    .info-card .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .hero-actions a {
+      margin-right: 0.35rem;
+    }
+
     @media (max-width: 991px) {
       .info-card {
         flex-direction: column;
       }
 
-      .auth-landing { 
-        min-height: auto;
+      .auth-hero {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+      }
+
+      .auth-hero .hero-meta {
+        text-align: left;
+      }
+
+      .auth-breadcrumb {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
@@ -68,76 +150,91 @@
 
 {% block content %}
   <section class="auth-landing py-5">
-    <div class="text-center mb-4">
-      <p class="text-uppercase small text-muted mb-1">
-        {% trans "Gilead School System" %}
-      </p>
-      <h1 class="h3 fw-bold mb-2">{% trans "Staff & family portal" %}</h1>
-      <p class="text-muted mb-0">
-        {% trans "Choose the path that fits your role and keep school operations, attendance, and finance flowing." %}
-      </p>
-    </div>
-
-    <div class="row justify-content-center g-4 align-items-stretch">
-      <div class="col-lg-5">
-        <div class="card shadow-sm login-card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
-              <div>
-                <p class="text-uppercase small text-muted mb-1">{% trans "Staff & admin access" %}</p>
-                <h2 class="h5 mb-0">{% trans "Secure sign in" %}</h2>
-              </div>
-              <span class="badge rounded-pill text-primary border border-primary px-3 py-1">
-                {% trans "Portal credentials" %}
-              </span>
-            </div>
-
-            <form method="post" novalidate>
-              {% csrf_token %}
-              {% if request.GET.next %}
-                <input type="hidden" name="next" value="{{ request.GET.next }}">
-              {% elif request.POST.next %}
-                <input type="hidden" name="next" value="{{ request.POST.next }}">
-              {% endif %}
-              <div class="mb-3">
-                <label class="form-label">{% trans "Username" %}</label>
-                <input class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">{% trans "Password" %}</label>
-                <input class="form-control" type="password" name="password" autocomplete="current-password" required>
-              </div>
-              <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
-            </form>
-
-            <p class="small text-muted mt-3 mb-0">
-              {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
-            </p>
+    <div class="container">
+      <div class="auth-hero">
+        <div class="hero-brand">
+          <div class="hero-logo">
+            <span>G</span>
+          </div>
+          <div>
+            <strong>Gilead School System Management System</strong>
+            <small>Splash onboard for staff, families, and admins</small>
+          </div>
+        </div>
+        <div class="auth-hero hero-meta">
+          <div class="d-flex align-items-center gap-2">
+            <span>Logged in as {{ request.user.username|default:"admin" }}</span>
+            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm px-3">Logout</a>
           </div>
         </div>
       </div>
+      <div class="auth-breadcrumb text-muted text-uppercase small">
+        <span>Home / Authentication / Login</span>
+      </div>
 
-      <div class="col-lg-5">
-        <div class="card shadow-sm info-card">
-          <div>
-            <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>
-            <h3 class="h5 mb-2">{% trans "Link your children securely" %}</h3>
-            <p class="text-muted mb-3">
-              {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
-            </p>
-            <a class="btn btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Claim an invite" %}</a>
-          </div>
+      <div class="row justify-content-center g-4 align-items-stretch">
+        <div class="col-lg-5">
+          <div class="card shadow-sm login-card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                <div>
+                  <p class="text-uppercase small text-muted mb-1">{% trans "Staff & admin access" %}</p>
+                  <h2 class="h5 mb-0">{% trans "Secure sign in" %}</h2>
+                </div>
+                <span class="badge rounded-pill text-primary border border-primary px-3 py-1">
+                  {% trans "Portal credentials" %}
+                </span>
+              </div>
 
-          <div>
-            <p class="text-uppercase small text-muted mb-2">{% trans "Quick links" %}</p>
-            <div class="d-flex flex-wrap gap-2">
-              <a class="quick-link" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
-              <a class="quick-link" href="{% url 'siteconfig:customizer' %}">{% trans "Customizer" %}</a>
-              <a class="quick-link" href="{% url 'siteconfig:user_preferences' %}">{% trans "Preferences" %}</a>
+              <form method="post" novalidate>
+                {% csrf_token %}
+                {% if request.GET.next %}
+                  <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% elif request.POST.next %}
+                  <input type="hidden" name="next" value="{{ request.POST.next }}">
+                {% endif %}
+                <div class="mb-3">
+                  <label class="form-label">{% trans "Username" %}</label>
+                  <input class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">{% trans "Password" %}</label>
+                  <input class="form-control" type="password" name="password" autocomplete="current-password" required>
+                </div>
+                <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
+              </form>
+
+              <p class="small text-muted mt-3 mb-0">
+                {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
+                <br>
+                {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
+              </p>
             </div>
-            <p class="small text-muted mt-3 mb-0">
-              {% trans "Portal and customizer links surface after login so you can preview themes and stay on top of tools." %}
-            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card shadow-sm info-card">
+            <div>
+              <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>
+              <h3 class="h5 mb-2">{% trans "Link your children securely" %}</h3>
+              <p class="text-muted mb-3">
+                {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
+              </p>
+              <a class="btn btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Claim an invite" %}</a>
+            </div>
+
+            <div>
+              <p class="text-uppercase small text-muted mb-2">{% trans "Quick links" %}</p>
+              <div class="d-flex flex-wrap gap-2">
+                <a class="quick-link" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
+                <a class="quick-link" href="{% url 'siteconfig:customizer' %}">{% trans "Customizer" %}</a>
+                <a class="quick-link" href="{% url 'siteconfig:user_preferences' %}">{% trans "Preferences" %}</a>
+              </div>
+              <p class="small text-muted mt-3 mb-0">
+                {% trans "Portal and customizer links surface after login so you can preview themes and stay on top of tools." %}
+              </p>
+            </div>
           </div>
         </div>
       </div>

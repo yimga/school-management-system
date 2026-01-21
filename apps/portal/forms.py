@@ -93,6 +93,23 @@ class LinkChildForm(forms.Form):
         label=_("Allow viewing finance"),
     )
 
+    ONBOARDING_FIELDS = [
+        "student_date_of_birth",
+        "student_place_of_birth",
+        "student_gender",
+        "student_status",
+        "student_joined_term",
+        "student_joined_date",
+        "parent_first_name",
+        "parent_last_name",
+        "parent_email",
+        "parent_whatsapp",
+        "parent_address",
+        "phone",
+        "preferred_contact",
+        "referral_code",
+    ]
+
     def __init__(self, *args, **kwargs):
         self.guardian_user = kwargs.pop("guardian_user", None)
         school_code = kwargs.pop("school_code", None) or SiteSettings.get_solo().school_code
@@ -101,6 +118,9 @@ class LinkChildForm(forms.Form):
             self.fields["admission_number"].help_text = _(
                 f"Format: YY + {school_code} + #### + SPEC + CLASS (no dashes)."
             )
+        self.fields["referral_code"].help_text = _(
+            "Include a referral code if someone shared one with you; this unlocks bonus credits."
+        )
 
     def clean_admission_number(self):
         admission = self.cleaned_data["admission_number"].strip()
@@ -185,6 +205,19 @@ class LinkChildForm(forms.Form):
         if self.cleaned_data.get("parent_email"):
             updates["email"] = self.cleaned_data["parent_email"]
         return updates
+
+    def completeness_score(self) -> int:
+        fields = self.ONBOARDING_FIELDS
+        if not fields:
+            return 0
+        filled = 0
+        for field in fields:
+            value = self.data.get(field, "")
+            if isinstance(value, (list, tuple)):
+                value = value[0]
+            if value and str(value).strip():
+                filled += 1
+        return int(round((filled / len(fields)) * 100)) if fields else 0
 
 
 class ClaimInviteForm(forms.Form):

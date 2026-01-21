@@ -3,8 +3,16 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from apps.finance.models import Invoice, ReferralReward
+from apps.portal.models import PendingGuardianInvite
+from apps.people.models import StudentGuardian, StudentProfile
+from apps.reports.models import TermPublishStatus
+from apps.siteconfig.models import SiteSettings
+from apps.academics.services import get_active_year_and_term
+from apps.portal.services import link_guardian_via_invite
+from apps.accounts.decorators import permission_required
 
-from .forms import PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
+from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
 from .models import AccessRole, Permission, User
 
 
@@ -17,6 +25,9 @@ def redirect_view(request):
     user = request.user
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
+
+    if user.has_feature_permission("settings.manage"):
+        return redirect("accounts:backend_dashboard")
 
     if getattr(user, "role", None) == "TEACHER":
         return redirect("evals:teacher_dashboard")
@@ -83,6 +94,37 @@ def rbac_dashboard(request):
     return render(request, "accounts/rbac_dashboard.html", context)
 
 
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+def backend_dashboard(request):
+    site = SiteSettings.get_solo()
+    year, term = get_active_year_and_term()
+    stats = {
+        "students": StudentProfile.objects.filter(is_active=True).count(),
+        "guardians": StudentGuardian.objects.count(),
+        "pending_invites": PendingGuardianInvite.objects.filter(guardian_user__isnull=True).count(),
+        "pending_referrals": ReferralReward.objects.filter(status=ReferralReward.Status.PENDING).count(),
+        "overdue_invoices": Invoice.objects.filter(status=Invoice.Status.OVERDUE).count(),
+        "published_terms": TermPublishStatus.objects.filter(is_published=True).count(),
+    }
+    context = {
+        "site": site,
+        "stats": stats,
+        "roles": AccessRole.objects.prefetch_related("permissions").order_by("code"),
+        "permissions": Permission.objects.order_by("code"),
+        "pending_invites": stats["pending_invites"],
+        "hero_actions": [
+            {"label": "RBAC console", "url": reverse("accounts:rbac")},
+            {"label": "Site settings", "url": reverse("siteconfig:customizer")},
+        ],
+        "grade_import_upload_url": reverse("evals:grade_import_upload"),
+        "grade_import_template_url": reverse("evals:grade_import_template"),
+        "active_year": year,
+        "active_term": term,
+    }
+    return render(request, "accounts/backend_dashboard.html", context)
+
+
 def login_view(request):
     if request.method == "POST":
         user = authenticate(
@@ -100,3 +142,22 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect(reverse("accounts:login"))
+
+
+def claim_invite(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("accounts:redirect"))
+
+    form = ClaimInviteAccountForm(request.POST or None)
+    if form.is_valid():
+        invite = form.invite
+        user = form.save_user()
+        link_guardian_via_invite(invite, user, awarded_by=user)
+        login(request, user)
+        messages.success(
+            request,
+            f"Welcome! You are now linked to {invite.student} and can view reports/finance."
+        )
+        return redirect("portal:parent_dashboard")
+
+    return render(request, "accounts/claim_invite.html", {"form": form})

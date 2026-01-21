@@ -6,6 +6,7 @@ from django import forms
 import csv
 import io
 from decimal import Decimal
+from django.urls import reverse
 
 from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
@@ -115,19 +116,31 @@ def teacher_dashboard(request: HttpRequest):
         progress[a.id] = {"filled": filled, "total": total}
 
     widget_data = teacher_dashboard_widget_data(assignments, progress, year, term, teacher=teacher)
+    attendance = widget_data.get("attendance") or {}
+    attendance_pct = attendance.get("overall")
+    hero_stats = [
+        {"label": "Assignments", "value": widget_data["assignments_count"], "meta": "Active subjects"},
+        {"label": "Completion", "value": f"{widget_data['completion_pct']}%", "progress": widget_data["completion_pct"], "meta": "Marks entered"},
+        {"label": "Pending", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Marks remaining"},
+    ]
+    if attendance_pct is not None:
+        hero_stats.append({
+            "label": "Attendance",
+            "value": f"{attendance_pct}%",
+            "meta": "Class average",
+        })
+    missing_records_url = f"{reverse('evals:evaluation_admin')}?missing=1"
     hero = {
         "tagline": "Teacher Dashboard",
         "title": "Your classes at a glance",
         "subtitle": f"{year.name} · {term.get_name_display()}",
         "icon": "bi-easel",
-        "stats": [
-            {"label": "Assignments", "value": widget_data["assignments_count"], "meta": "Active subjects"},
-            {"label": "Completion", "value": f"{widget_data['completion_pct']}%", "progress": widget_data["completion_pct"], "meta": "Marks entered"},
-            {"label": "Pending", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Marks remaining"},
-        ],
+        "stats": hero_stats,
         "actions": [
-            {"label": "Enter Marks", "url": "/evals/marks/entry/"},
-            {"label": "View Marks", "url": "/evals/marks/"},
+            {"label": "Enter marks", "url": reverse("evals:teacher_marks_entry")},
+            {"label": "Finish missing records", "url": missing_records_url},
+            {"label": "Grade import", "url": reverse("evals:grade_import_upload")},
+            {"label": "Download template", "url": reverse("evals:grade_import_template")},
         ],
     }
 
@@ -138,6 +151,9 @@ def teacher_dashboard(request: HttpRequest):
         "progress": progress,
         "widget_data": widget_data,
         "hero": hero,
+        "missing_records_url": missing_records_url,
+        "grade_import_upload_url": reverse("evals:grade_import_upload"),
+        "grade_import_template_url": reverse("evals:grade_import_template"),
     })
 
 @teacher_portal_required
@@ -533,24 +549,40 @@ def evaluation_admin(request: HttpRequest):
     if request.method == "POST" and request.POST.get("action") == "update_weights":
         if weights_form.is_valid():
             data = weights_form.cleaned_data
-            AssessmentWeights.objects.update_or_create(
-                academic_year=data["academic_year"],
-                term=data["term"],
-                classroom=data["classroom"],
-                defaults={
-                    "seq1_weight": data["seq1_weight"],
-                    "seq2_weight": data["seq2_weight"],
-                    "exam_weight": data["exam_weight"],
-                    "mock_weight": data["mock_weight"],
-                    "practical_weight": data["practical_weight"],
-                    "score_scale": data["score_scale"],
-                },
-            )
-            messages.success(request, "Assessment weights saved.")
-            redirect_target = request.path + f"?year={year_obj.id}&term={term_obj.id}"
-            if classroom_id:
-                redirect_target += f"&classroom={classroom_id}"
-            return redirect(redirect_target)
+            term_value = data.get("term")
+            classroom_value = data.get("classroom")
+            classroom_id_target = classroom_value.id if classroom_value else 0
+            term_locked = False
+            if term_value:
+                term_locked = is_term_published(
+                    data["academic_year"].id,
+                    term_value.id,
+                    classroom_id_target,
+                )
+            if term_locked:
+                messages.error(
+                    request,
+                    "Assessment weights cannot be changed because the selected term has been published.",
+                )
+            else:
+                AssessmentWeights.objects.update_or_create(
+                    academic_year=data["academic_year"],
+                    term=term_value,
+                    classroom=classroom_value,
+                    defaults={
+                        "seq1_weight": data["seq1_weight"],
+                        "seq2_weight": data["seq2_weight"],
+                        "exam_weight": data["exam_weight"],
+                        "mock_weight": data["mock_weight"],
+                        "practical_weight": data["practical_weight"],
+                        "score_scale": data["score_scale"],
+                    },
+                )
+                messages.success(request, "Assessment weights saved.")
+                redirect_target = request.path + f"?year={year_obj.id}&term={term_obj.id}"
+                if classroom_id:
+                    redirect_target += f"&classroom={classroom_id}"
+                return redirect(redirect_target)
 
     evals = Evaluation.objects.filter(academic_year=year_obj, term=term_obj).select_related(
         "student",

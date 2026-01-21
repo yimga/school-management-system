@@ -7,6 +7,7 @@ from django.urls import reverse
 import uuid
 from decimal import Decimal
 from django.db.models import Sum
+from urllib.parse import quote_plus
 
 from apps.accounts.decorators import (
     role_required,
@@ -33,7 +34,7 @@ from apps.reports.services import (
     terms_for_student,
     term_report_context,
 )
-from apps.siteconfig.models import SiteSettings, default_portal_features
+from apps.siteconfig.models import Integration, SiteSettings, default_portal_features
 from apps.analytics.services import (
     student_improvements,
     specialty_pass_rates,
@@ -41,7 +42,7 @@ from apps.analytics.services import (
     term_rankings,
 )
 from .models import PortalFeatureItem, PendingGuardianInvite
-from .services import parent_dashboard_widget_data
+from .services import parent_dashboard_widget_data, award_referral_reward, link_guardian_via_invite
 from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
 
 # Portal feature metadata for the navigation and UI
@@ -194,7 +195,6 @@ def claim_invite(request: HttpRequest, token: str | None = None):
         invite = form.invite
         student = invite.student
 
-        # Prevent duplicate links
         exists = StudentGuardian.objects.filter(
             guardian_user=request.user,
             student=student,
@@ -203,33 +203,13 @@ def claim_invite(request: HttpRequest, token: str | None = None):
             messages.info(request, "You are already linked to this student.")
             return redirect("portal:parent_dashboard")
 
-        guardian = StudentGuardian.objects.create(
-            guardian_user=request.user,
-            student=student,
-            relationship=invite.relationship,
-            phone=invite.invited_phone,
-            preferred_contact=invite.preferred_contact,
-            receives_email=True,
-            receives_sms=False,
-            receives_whatsapp=False,
-            can_view_results=True,
-            can_view_finance=True,
-        )
-
-        invite.guardian_user = request.user
-        invite.claimed_at = timezone.now()
-        invite.save(update_fields=["guardian_user", "claimed_at"])
-
-        if invite.referral_code and not student.referral_code:
-            student.referral_code = invite.referral_code
-            student.save(update_fields=["referral_code"])
-
-        # If student missing parent phone, reuse invited phone
-        if not student.parent_phone and guardian.phone:
-            student.parent_phone = guardian.phone
-            student.save(update_fields=["parent_phone"])
-
-        messages.success(request, f"Invite claimed. You are now linked to {student}.")
+        guardian, reward = link_guardian_via_invite(invite, request.user, awarded_by=request.user)
+        messages.success(request, f"Invite claimed. You are now linked to {guardian.student}.")
+        if reward and reward.amount > Decimal("0.00"):
+            messages.info(
+                request,
+                f"Referral bonus of {reward.amount:.2f} will be reviewed by finance.",
+            )
         return redirect("portal:parent_dashboard")
 
     return render(request, "parent/claim_invite.html", {"form": form})
@@ -476,6 +456,25 @@ def parent_child_results(request: HttpRequest, student_id: int):
     return render(request, "parent/results.html", context)
 
 
+def _whatsapp_invite_link() -> str | None:
+    whatsapp = (
+        Integration.objects.filter(enabled=True, name__icontains="whatsapp")
+        .order_by("-updated_at")
+        .first()
+    )
+    if not whatsapp:
+        return None
+    number = whatsapp.config.get("phone") or whatsapp.config.get("whatsapp_number")
+    if not number:
+        return None
+    digits = "".join(ch for ch in number if ch.isdigit())
+    if not digits:
+        return None
+    site_name = SiteSettings.get_solo().site_name or "Gilead School System"
+    message = quote_plus(f"Hi, I'd like to claim a portal invite for {site_name}.")
+    return f"https://wa.me/{digits}?text={message}"
+
+
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def link_child(request: HttpRequest):
@@ -507,6 +506,13 @@ def link_child(request: HttpRequest):
             request,
             f"Linked {guardian_link.student} successfully. Results and finance access will reflect your choices.",
         )
+        referral_code = form.cleaned_data.get("referral_code", "").strip()
+        reward = award_referral_reward(guardian_link, referral_code, request.user)
+        if reward and reward.amount > Decimal("0.00"):
+            messages.info(
+                request,
+                f"Referral bonus of {reward.amount:.2f} will appear in your finance view once approved.",
+            )
         return redirect("portal:parent_dashboard")
 
     return render(
@@ -515,6 +521,11 @@ def link_child(request: HttpRequest):
         {
             "form": form,
             "school_code": site.school_code,
+            "completeness_pct": form.completeness_score(),
+            "referral_bonus": site.referral_bonus_amount,
+            "support_email": site.company_email,
+            "support_phone": site.company_phone,
+            "whatsapp_invite_link": _whatsapp_invite_link(),
         },
     )
 
