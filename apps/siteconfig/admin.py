@@ -55,6 +55,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "company_phone",
                 "company_email",
                 "ministry_registration_code",
+                "social_links",
             )
         }),
         ("Theme & Experience", {

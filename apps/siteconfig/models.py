@@ -33,6 +33,14 @@ def default_portal_features():
     return dict(PORTAL_FEATURE_DEFAULTS)
 
 
+def default_social_links():
+    return [
+        {"platform": "Facebook", "url": "", "icon": "bi bi-facebook", "enabled": False},
+        {"platform": "Instagram", "url": "", "icon": "bi bi-instagram", "enabled": False},
+        {"platform": "YouTube", "url": "", "icon": "bi bi-youtube", "enabled": False},
+    ]
+
+
 class DashboardView(models.TextChoices):
     OVERVIEW = "OVERVIEW", "Overview"
     FINANCE = "FINANCE", "Finances"
@@ -184,6 +192,7 @@ class SiteSettings(models.Model):
     enable_reports_pdf = models.BooleanField(default=True)
     report_downloads_enabled = models.BooleanField(default=True)
     portal_features = models.JSONField(default=default_portal_features, blank=True)
+    social_links = models.JSONField(default=default_social_links, blank=True)
     default_term_report_style = models.ForeignKey(
         "siteconfig.ReportCardStyle",
         on_delete=models.SET_NULL,
@@ -259,6 +268,18 @@ class SiteSettings(models.Model):
         update_fields = ["theme_pack", "primary_color", "accent_color", "custom_css", "brand_font"]
         if save:
             self.save(update_fields=update_fields)
+
+    @property
+    def active_social_links(self) -> list[dict]:
+        links = []
+        for item in self.social_links or []:
+            if not item.get("enabled"):
+                continue
+            url = item.get("url")
+            if not url:
+                continue
+            links.append(item)
+        return links
 
 
 class ThemePack(models.Model):

@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from zoneinfo import available_timezones
 
@@ -47,6 +48,7 @@ class SiteSettingsForm(forms.ModelForm):
             "company_phone",
             "company_email",
             "ministry_registration_code",
+            "social_links",
             "company_slug",
             "custom_css",
             "theme_pack",
@@ -92,6 +94,7 @@ class SiteSettingsForm(forms.ModelForm):
             "company_phone": forms.TextInput(attrs={"class": "form-control"}),
             "company_email": forms.EmailInput(attrs={"class": "form-control"}),
             "ministry_registration_code": forms.TextInput(attrs={"class": "form-control"}),
+            "social_links": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
             "company_slug": forms.TextInput(attrs={"class": "form-control"}),
             "custom_css": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "theme_pack": forms.Select(attrs={"class": "form-select"}),
@@ -123,6 +126,7 @@ class SiteSettingsForm(forms.ModelForm):
         self.fields["portal_features"].initial = enabled
         self.fields["notification_channels"].initial = self.instance.notification_channels or []
         self.initial["referral_bonus_amount"] = self.instance.referral_bonus_amount or Decimal("0.00")
+        self.initial["social_links"] = json.dumps(self.instance.social_links or [], indent=2)
 
     def clean_portal_features(self):
         selected = self.cleaned_data.get("portal_features") or []
@@ -131,9 +135,22 @@ class SiteSettingsForm(forms.ModelForm):
     def clean_notification_channels(self):
         return self.cleaned_data.get("notification_channels") or []
 
+    def clean_social_links(self):
+        raw = self.cleaned_data.get("social_links")
+        if not raw:
+            return []
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise forms.ValidationError("Enter valid JSON for social/contact links.") from exc
+        if not isinstance(data, list):
+            raise forms.ValidationError("Social links must be a JSON list.")
+        return data
+
     def save(self, commit=True):
         pack = self.cleaned_data.get("theme_pack")
         instance = super().save(commit=False)
+        instance.social_links = self.cleaned_data.get("social_links") or []
         if pack:
             instance.apply_theme_pack(pack, save=False)
         if commit:
