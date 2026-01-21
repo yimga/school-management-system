@@ -8,6 +8,7 @@ from .views import (
     report_library,
     download_report,
     reportcard_builder,
+    reportcard_style_preview,
     user_preferences,
 )
 
@@ -22,4 +23,5 @@ urlpatterns = [
     path("reports/", report_library, name="report_library"),
     path("reports/download/<slug:slug>/", download_report, name="report_download"),
     path("reports/builder/", reportcard_builder, name="reportcard_builder"),
+    path("reports/preview/<slug:slug>/", reportcard_style_preview, name="reportcard_style_preview"),
 ]
