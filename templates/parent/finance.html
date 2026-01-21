@@ -6,6 +6,44 @@
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
   <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Invoice attachments</div>
+          <div class="fs-4 fw-semibold">{{ attachment_count }}</div>
+          <p class="small text-muted mb-0">Receipts, slips, and PDFs uploaded by finance.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Payment methods</div>
+          <div class="d-flex flex-column gap-1">
+            {% for method in payment_method_summary %}
+              <div class="d-flex justify-content-between">
+                <span class="small">{{ method.method }}</span>
+                <strong>{{ method.count }}</strong>
+              </div>
+            {% empty %}
+              <div class="small text-muted">No payments recorded yet.</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="text-muted small">Referral rewards</div>
+          <div class="fs-4 fw-semibold">{{ referral_total|default:"0.00" }}</div>
+          <p class="small text-muted mb-0">{{ referral_pending }} pending for approval.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
     <div class="col-md-3">
       <div class="card h-100">
         <div class="card-body">
@@ -51,44 +89,46 @@
         <div class="table-responsive">
           <table class="table align-middle">
             <thead class="table-light">
-              <tr>
-                <th>Reference</th>
-                <th>Student</th>
-                <th>Due</th>
-                <th>Status</th>
-                <th class="text-end">Total</th>
-                <th class="text-end">Balance</th>
-                <th>Attachment</th>
-                <th class="text-end">Action</th>
-              </tr>
+            <tr>
+              <th>Reference</th>
+              <th>Student</th>
+              <th>Due</th>
+              <th>Status</th>
+              <th>Method</th>
+              <th class="text-end">Total</th>
+              <th class="text-end">Balance</th>
+              <th>Attachment</th>
+              <th class="text-end">Action</th>
+            </tr>
             </thead>
             <tbody>
               {% for row in invoice_rows %}
                 {% with invoice=row.invoice link=row.payment_link %}
-                  <tr>
-                    <td>{{ invoice.reference|default:invoice.id }}</td>
-                    <td>{{ invoice.student|default:"-" }}</td>
-                    <td>{{ invoice.due_date|default:"TBD" }}</td>
-                    <td>
-                      <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
-                    </td>
-                    <td class="text-end">{{ invoice.total_amount }}</td>
-                    <td class="text-end">{{ invoice.balance_amount }}</td>
-                    <td>
-                      {% if invoice.attachment %}
-                        <a href="{{ invoice.attachment.url }}" target="_blank">Download</a>
-                      {% else %}
-                        <span class="text-muted small">None</span>
-                      {% endif %}
-                    </td>
-                    <td class="text-end">
-                      {% if link %}
-                        <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank">Pay now</a>
-                      {% else %}
-                        <span class="text-muted small">No link</span>
-                      {% endif %}
-                    </td>
-                  </tr>
+              <tr>
+                <td>{{ invoice.reference|default:invoice.id }}</td>
+                <td>{{ invoice.student|default:"-" }}</td>
+                <td>{{ invoice.due_date|default:"TBD" }}</td>
+                <td>
+                  <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
+                </td>
+                <td>{{ row.preferred_method }}</td>
+                <td class="text-end">{{ invoice.total_amount }}</td>
+                <td class="text-end">{{ invoice.balance_amount }}</td>
+                <td class="text-center">
+                  {% if row.attachment_url %}
+                    <a href="{{ row.attachment_url }}" target="_blank">View</a>
+                  {% else %}
+                    <span class="text-muted small">N/A</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  {% if link %}
+                    <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank">Pay now</a>
+                  {% else %}
+                    <span class="text-muted small">No link</span>
+                  {% endif %}
+                </td>
+              </tr>
                 {% endwith %}
               {% endfor %}
             </tbody>
@@ -96,6 +136,36 @@
         </div>
       {% else %}
         <div class="alert alert-info mb-0">No invoices yet. Finance will publish them here when ready.</div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="card mt-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Payment reminders</h5>
+        <span class="small text-muted">{{ reminders|length }} queued</span>
+      </div>
+      {% if reminders %}
+        <div class="list-group list-group-flush">
+          {% for entry in reminders %}
+            <div class="list-group-item d-flex justify-content-between align-items-start px-0 py-2 border-0">
+              <div>
+                <div class="fw-semibold">{{ entry.invoice.student }}</div>
+                <div class="small text-muted">
+                  Due {{ entry.invoice.due_date|default:"TBD" }} · Balance {{ entry.invoice.balance_amount }}
+                </div>
+                <div class="small text-muted">Next send {{ entry.reminder.next_send_at|date:"M d, Y H:i" }}</div>
+              </div>
+              {% if entry.payment_link %}
+                <a class="btn btn-sm btn-outline-primary" href="{{ entry.payment_link.url }}" target="_blank">Send pay link</a>
+              {% else %}
+                <span class="badge bg-secondary">No integration</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-info mb-0">No active reminders. Finance will queue reminders once invoices become due.</div>
       {% endif %}
     </div>
   </div>

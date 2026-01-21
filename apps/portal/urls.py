@@ -14,6 +14,7 @@ from .views import (
     teacher_leave,
     student_portal_grades,
     admissions_application_status,
+    portal_syllabus,
 )
 
 app_name = "portal"
@@ -27,6 +28,7 @@ urlpatterns = [
     path("parent/finance/", parent_finance, name="parent_finance"),
     path("features/<str:feature>/", portal_feature_page, name="portal_feature"),
     path("parent/stats/", portal_stats, name="portal_stats"),
+    path("syllabus/", portal_syllabus, name="portal_syllabus"),
     # Teacher dashboard alias for consistency
     path("teacher/", teacher_dashboard_alias, name="teacher_dashboard_alias"),
     path("teacher/attendance/", teacher_attendance_view, name="teacher_attendance"),

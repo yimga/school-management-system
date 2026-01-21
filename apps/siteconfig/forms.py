@@ -3,12 +3,18 @@ from zoneinfo import available_timezones
 
 from django import forms
 
+from apps.academics.models import Classroom
+
 from .models import (
     DashboardView,
     PORTAL_FEATURE_DEFAULTS,
     PORTAL_FEATURE_OPTIONS,
+    ReportCardStyle,
+    ReportCardStyleAssignment,
     SiteSettings,
     UserPreference,
+    default_dashboard_widgets,
+    get_dashboard_widget_choices,
 )
 
 
@@ -58,6 +64,8 @@ class SiteSettingsForm(forms.ModelForm):
             "enable_reports_pdf",
             "report_downloads_enabled",
             "portal_features",
+            "default_term_report_style",
+            "default_annual_report_style",
             "notification_channels",
             "referral_bonus_amount",
             # Compliance
@@ -90,6 +98,8 @@ class SiteSettingsForm(forms.ModelForm):
             "default_dashboard_view": forms.Select(attrs={"class": "form-select"}),
             "default_refresh_rate": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
             "portal_features": forms.CheckboxSelectMultiple(),
+            "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
+            "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
             "notification_channels": forms.CheckboxSelectMultiple(),
             "referral_bonus_amount": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
             "top_students_default_limit": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
@@ -137,6 +147,13 @@ class UserPreferenceForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         required=False,
     )
+    dashboard_widgets = forms.MultipleChoiceField(
+        choices=[],
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Dashboard widgets",
+        help_text="Select which widgets display when you choose the Custom dashboard view.",
+    )
 
     class Meta:
         model = UserPreference
@@ -154,18 +171,96 @@ class UserPreferenceForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         tz_choices = sorted([(tz, tz) for tz in available_timezones()])
         self.fields["timezone"].choices = tz_choices
         if self.instance and self.instance.notification_channels:
             self.initial["notification_channels"] = self.instance.notification_channels
+        role = getattr(self.user, "role", None)
+        widget_choices = get_dashboard_widget_choices(role)
+        self.fields["dashboard_widgets"].choices = widget_choices
+        if self.instance and self.instance.dashboard_widgets:
+            selected = [key for key in self.instance.dashboard_widgets if key in {key for key, _ in widget_choices}]
+        else:
+            selected = default_dashboard_widgets(role)
+        self.initial["dashboard_widgets"] = selected
 
     def clean_notification_channels(self):
         return self.cleaned_data.get("notification_channels") or []
 
+    def clean_dashboard_widgets(self):
+        choices = {key for key, _ in self.fields["dashboard_widgets"].choices}
+        widgets = self.cleaned_data.get("dashboard_widgets") or []
+        return [key for key in widgets if key in choices]
+
     def save(self, commit=True):
         preference = super().save(commit=False)
         preference.notification_channels = self.cleaned_data.get("notification_channels", [])
+        preference.dashboard_widgets = self.cleaned_data.get("dashboard_widgets", [])
         if commit:
             preference.save()
         return preference
+
+
+class ReportCardStyleForm(forms.ModelForm):
+    class Meta:
+        model = ReportCardStyle
+        fields = [
+            "name",
+            "slug",
+            "description",
+            "term_template",
+            "annual_template",
+            "primary_color",
+            "accent_color",
+            "watermark_text",
+            "header_tagline",
+            "css_snippet",
+            "is_active",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "slug": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+            "term_template": forms.Select(attrs={"class": "form-select"}),
+            "annual_template": forms.Select(attrs={"class": "form-select"}),
+            "primary_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
+            "accent_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
+            "watermark_text": forms.TextInput(attrs={"class": "form-control"}),
+            "header_tagline": forms.TextInput(attrs={"class": "form-control"}),
+            "css_snippet": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        }
+
+
+class ReportCardStyleAssignmentForm(forms.Form):
+    style = forms.ModelChoiceField(
+        queryset=ReportCardStyle.objects.active(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    classrooms = forms.ModelMultipleChoiceField(
+        queryset=Classroom.objects.order_by("name"),
+        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
+    )
+
+    def save(self):
+        style = self.cleaned_data["style"]
+        classrooms = self.cleaned_data["classrooms"]
+        created = []
+        for classroom in classrooms:
+            assignment, _ = ReportCardStyleAssignment.objects.update_or_create(
+                classroom=classroom,
+                defaults={"style": style},
+            )
+            created.append(assignment)
+        return created
+
+
+class ReportCardStyleSelectionForm(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = ["default_term_report_style", "default_annual_report_style"]
+        widgets = {
+            "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
+            "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
+        }

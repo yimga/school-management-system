@@ -25,7 +25,7 @@ from apps.reports.services import (
     terms_for_student,
 )
 from apps.reports.weasy import render_pdf_bytes
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, get_report_card_style_for_student
 
 
 def _reports_enabled() -> bool:
@@ -75,7 +75,10 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         "generated_at": timezone.now(),
     })
 
-    pdf_bytes = render_pdf_bytes(request, "reports/term_report.html", context)
+    style = get_report_card_style_for_student(student, ReportCard.Type.TERM)
+    template_name = style.template_for(ReportCard.Type.TERM) if style else "reports/term_report.html"
+    context["report_style"] = style
+    pdf_bytes = render_pdf_bytes(request, template_name, context)
 
     rc, _ = ReportCard.objects.get_or_create(
         academic_year=year,
@@ -171,7 +174,10 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
         "generated_at": timezone.now(),
     })
 
-    pdf_bytes = render_pdf_bytes(request, "reports/annual_report.html", context)
+    style = get_report_card_style_for_student(student, ReportCard.Type.ANNUAL)
+    template_name = style.template_for(ReportCard.Type.ANNUAL) if style else "reports/annual_report.html"
+    context["report_style"] = style
+    pdf_bytes = render_pdf_bytes(request, template_name, context)
 
     rc, _ = ReportCard.objects.get_or_create(
         academic_year=year,
@@ -320,7 +326,10 @@ def report_share(request: HttpRequest, token: str):
             "term": term,
             "generated_at": timezone.now(),
         })
-        pdf_bytes = render_pdf_bytes(request, "reports/term_report.html", context)
+        style = get_report_card_style_for_student(student, ReportCard.Type.TERM)
+        template_name = style.template_for(ReportCard.Type.TERM) if style else "reports/term_report.html"
+        context["report_style"] = style
+        pdf_bytes = render_pdf_bytes(request, template_name, context)
         resp = HttpResponse(pdf_bytes, content_type="application/pdf")
         resp["Content-Disposition"] = 'inline; filename="report.pdf"'
         return resp
@@ -337,7 +346,10 @@ def report_share(request: HttpRequest, token: str):
             "year": year,
             "generated_at": timezone.now(),
         })
-        pdf_bytes = render_pdf_bytes(request, "reports/annual_report.html", context)
+        style = get_report_card_style_for_student(student, ReportCard.Type.ANNUAL)
+        template_name = style.template_for(ReportCard.Type.ANNUAL) if style else "reports/annual_report.html"
+        context["report_style"] = style
+        pdf_bytes = render_pdf_bytes(request, template_name, context)
         resp = HttpResponse(pdf_bytes, content_type="application/pdf")
         resp["Content-Disposition"] = 'inline; filename="annual-report.pdf"'
         return resp

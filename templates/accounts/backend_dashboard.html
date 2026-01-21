@@ -3,75 +3,70 @@
 
 {% block title %}Backend Configuration{% endblock %}
 
-{% block extrastyle %}
-  <style>
-    .backend-hero {
-      border-radius: 28px;
-      background: linear-gradient(135deg, #4b3bff, #ff6a88);
-      color: white;
-    }
-    .backend-hero .card-body {
-      padding: 2rem;
-    }
-    .backend-hero .hero-metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-    .backend-hero .metric-card {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 1rem;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-    }
-  </style>
-{% endblock %}
+{% block extrastyle %}{% endblock %}
 
 {% block content %}
   {% admin_health as health %}
-  <div class="backend-hero card shadow-sm mb-4">
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="card filter-card shadow-sm mb-4">
     <div class="card-body">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-3">
         <div>
-          <h1 class="mb-1">Backend configuration</h1>
-          <p class="text-white-50 mb-0">
-            Keep RBAC, feature toggles, referral rewards, and analytics exports aligned from one polished console.
-          </p>
-          {% if active_year and active_term %}
-            <p class="text-white-50 small mt-2">
-              Active year: {{ active_year.name }} · {{ active_term.get_name_display }}
-            </p>
-          {% endif %}
+          <h5 class="mb-1">Analytics filters</h5>
+          <p class="text-muted small mb-0">Mirror the portal inputs so you can tune KPIs exactly as parents and teachers see them.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-          {% for action in hero_actions %}
-            <a class="btn btn-outline-white btn-sm px-3" href="{{ action.url }}">{{ action.label }}</a>
-          {% endfor %}
-          <a class="btn btn-white btn-sm px-3" href="{% url 'admin:index' %}">Frontend admin</a>
+          <button class="btn btn-sm btn-outline-secondary">Sync to portal</button>
+          <button class="btn btn-sm btn-gradient-pill">Refresh stats</button>
         </div>
       </div>
-
-      <div class="hero-metrics mt-4">
-        <div class="metric-card">
-          <div class="text-uppercase small opacity-75">Students</div>
-          <div class="fs-4 fw-bold">{{ stats.students }}</div>
-          <div class="small text-white-50">Active profiles</div>
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Academic year</label>
+          <select class="form-select form-select-sm">
+            {% if active_year %}<option>{{ active_year.name }}</option>{% else %}<option>2025/2026</option>{% endif %}
+          </select>
         </div>
-        <div class="metric-card">
-          <div class="text-uppercase small opacity-75">Guardians</div>
-          <div class="fs-4 fw-bold">{{ stats.guardians }}</div>
-          <div class="small text-white-50">Linked parents</div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Term</label>
+          <select class="form-select form-select-sm">
+            {% if active_term %}<option>{{ active_term.get_name_display }}</option>{% else %}<option>First</option>{% endif %}
+          </select>
         </div>
-        <div class="metric-card">
-          <div class="text-uppercase small opacity-75">Pending invites</div>
-          <div class="fs-4 fw-bold">{{ stats.pending_invites }}</div>
-          <div class="small text-white-50">Awaiting claims</div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Classroom</label>
+          <select class="form-select form-select-sm">
+            <option>All</option>
+          </select>
         </div>
-        <div class="metric-card">
-          <div class="text-uppercase small opacity-75">Published terms</div>
-          <div class="fs-4 fw-bold">{{ stats.published_terms }}</div>
-          <div class="small text-white-50">Term snapshots</div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Specialty</label>
+          <select class="form-select form-select-sm">
+            <option>All</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Top students</label>
+          <input class="form-control form-control-sm" type="number" value="10">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Pass mark</label>
+          <input class="form-control form-control-sm" type="number" value="{{ site.pass_mark }}" min="0" step="0.5">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Weak subject threshold</label>
+          <input class="form-control form-control-sm" type="number" value="{{ site.weak_subject_threshold }}" min="0" step="0.5">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Improvement delta</label>
+          <input class="form-control form-control-sm" type="number" value="{{ site.improvement_delta_threshold }}" min="0" step="0.1">
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="promoRule" {% if site.use_promotion_rule_for_pass %}checked{% endif %}>
+            <label class="form-check-label small" for="promoRule">Use promotion rule</label>
+          </div>
         </div>
       </div>
     </div>
@@ -114,6 +109,96 @@
           {% if permissions|length > 6 %}
             <p class="small text-muted mt-3">Additional permissions power finance, reports, settings, and data exports.</p>
           {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4 col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Finance snapshot</h5>
+          <div class="d-flex justify-content-between">
+            <div>
+              <div class="text-muted small">Receivables</div>
+              <div class="fs-4 fw-bold">{{ finance_summary.receivables|default:0|floatformat:2 }}</div>
+            </div>
+            <div>
+              <div class="text-muted small">Paid this term</div>
+              <div class="fs-4 fw-bold">{{ finance_summary.paid|default:0|floatformat:2 }}</div>
+            </div>
+            <div>
+              <div class="text-muted small">Overdue</div>
+              <div class="fs-4 fw-bold text-danger">{{ finance_summary.overdue|default:0|floatformat:0 }}</div>
+            </div>
+          </div>
+          <div class="mt-3 d-flex flex-wrap gap-2">
+            {% for stat in finance_status_counts %}
+              <span class="badge bg-light text-dark">{{ stat.status|default:"Status" }}: {{ stat.count }}</span>
+            {% empty %}
+              <span class="badge bg-light text-muted">No invoice data</span>
+            {% endfor %}
+          </div>
+          <div class="mt-3 small text-muted">
+            {{ compliance_profile.name|default:"Compliance profile missing" }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="mb-3">Attendance snapshot</h5>
+          <div class="row g-2">
+            {% for label, count in attendance_counts.items %}
+              <div class="col-6">
+                <div class="text-muted small">{{ label }}</div>
+                <div class="fs-5 fw-semibold">{{ count }}</div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="mt-3">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span>Last 7 days present</span>
+              {% if attendance_trend %}
+                <span>{{ attendance_trend|first.present }}</span>
+              {% else %}
+                <span>0</span>
+              {% endif %}
+            </div>
+            <div class="progress" style="height:6px;">
+              {% with total=attendance_trend|sum:"present" %}
+                <div class="progress-bar bg-success" role="progressbar" style="width:{{ total|default:0 }}%;" aria-valuenow="{{ total|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+              {% endwith %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-12">
+      <div class="card shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="mb-3">Finance reminders</h5>
+          {% if reminder_alerts %}
+            <p class="text-muted small">Upcoming reminders are queued to hit guardians shortly.</p>
+            <div class="list-group list-group-flush mb-3">
+              {% for reminder in reminders %}
+                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-start">
+                  <div>
+                    <strong>{{ reminder.invoice.student }}</strong><br>
+                    <span class="small text-muted">Due {{ reminder.invoice.due_date }}</span>
+                  </div>
+                  <span class="badge bg-outline-success text-uppercase">{{ reminder.next_send_at|date:"M d" }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info py-2 mb-3 small">
+              No active reminders. Add payment reminders via finance settings.
+            </div>
+          {% endif %}
+          <a class="btn btn-sm btn-outline-secondary mt-auto" href="{% url 'finance:dashboard' %}">Open finance console</a>
         </div>
       </div>
     </div>
@@ -184,4 +269,40 @@
       </div>
     </div>
   </div>
+
+  {% if section_stats %}
+    <div class="card shadow-sm mt-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Section KPIs</h5>
+          <p class="small text-muted mb-0">Use these snapshots to tune dashboards by role.</p>
+        </div>
+        <div class="row g-3">
+          {% for section, stats in section_stats.items %}
+            <div class="col-md-6 col-lg-4">
+              <div class="card border border-secondary h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 text-uppercase text-muted">{{ section }}</h6>
+                    <span class="badge bg-light text-dark">{{ stats|length }} stats</span>
+                  </div>
+                  <ul class="list-unstyled mb-0 small">
+                    {% for label,value in stats.items|dictsort %}
+                      <li class="mb-1 d-flex justify-content-between">
+                        <span>{{ label }}</span>
+                        <strong class="text-dark">{{ value }}</strong>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            {% if forloop.counter == 3 %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}

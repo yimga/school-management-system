@@ -4,10 +4,10 @@
 
 {% block content %}
   {% admin_health as health %}
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
       <h2 class="mb-1">Parent Dashboard</h2>
-      <div class="text-muted">Quick access to your childrens results.</div>
+      <div class="text-muted">Quick access to your children’s results, attendance, and finance snapshots.</div>
     </div>
     {% if request.user.profile_photo %}
       <img src="{{ request.user.profile_photo.url }}" alt="Parent profile photo" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;">
@@ -16,39 +16,125 @@
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
-  <div class="row g-3 mb-4" id="link-child">
-    <div class="col-md-6">
+  <div class="row g-3 mb-4" id="children">
+    <div class="col-12">
       <div class="card h-100">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
             <div>
-              <div class="fw-semibold">Link a child</div>
-              <div class="small text-muted">Use the admission number to connect your student profile.</div>
+              <h5 class="mb-1">My Children</h5>
+              <p class="text-muted small mb-0">Tap through to view reports, tuition balances, and progress per student.</p>
+            </div>
+            <div class="d-flex gap-2">
+              <a class="btn btn-outline-secondary btn-sm" href="{{ request.path }}#children">Refresh</a>
+            </div>
+          </div>
+          {% if links %}
+            <div class="row g-3">
+              {% for link in links %}
+                <div class="col-md-6 col-xl-4">
+                  <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center gap-2 mb-2">
+                        {% if link.student.profile_photo %}
+                          <img src="{{ link.student.profile_photo.url }}" alt="Student photo" class="rounded-circle border" style="width:38px;height:38px;object-fit:cover;">
+                        {% endif %}
+                        <div>
+                          <div class="fw-semibold">{{ link.student.last_name }} {{ link.student.first_name }}</div>
+                          <div class="small text-muted">{{ link.student.student_code }}</div>
+                        </div>
+                      </div>
+                      <div class="small">
+                        <span class="badge text-bg-light">{{ link.student.classroom.name }}</span>
+                        <span class="badge text-bg-light">{{ link.student.specialty.name }}</span>
+                      </div>
+                      <div class="small text-muted mt-2">
+                        Admission: {{ link.student.admission_number|default:"Pending" }}
+                      </div>
+                      <div class="small text-muted">
+                        Referral: {{ link.student.referral_code|default:"-" }}
+                      </div>
+                      <div class="mt-3">
+                        <div class="small d-flex justify-content-between">
+                          <span>Parent completeness</span>
+                          <span>{{ link.student.parent_completeness }}%</span>
+                        </div>
+                        <div class="progress" style="height:6px;">
+                          <div class="progress-bar" role="progressbar" style="width: {{ link.student.parent_completeness }}%;"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                      <div class="d-flex gap-2">
+                        <a class="btn btn-sm btn-primary w-100" href="{% url 'portal:parent_child_results' link.student.id %}">View Results</a>
+                        <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'portal:parent_finance' %}">Pay Fees</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-info mb-0">
+              No children are linked to your account yet. Please contact the school admin.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4" id="link-child">
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <div class="text-uppercase small text-muted mb-1">Link a child</div>
+              <h5 class="mb-0">Secure account access</h5>
             </div>
             <a class="btn btn-sm btn-primary" href="{% url 'portal:link_child' %}">Link now</a>
           </div>
-          <ul class="small text-muted mb-0">
-            <li>You can choose contact preferences and permissions.</li>
-            <li>Parent data completeness updates automatically when guardian info is filled.</li>
-            <li>Referral credits are reviewed by finance after onboarding.</li>
+          <p class="small text-muted mb-3">Use the admission number to connect your student and unlock marks, attendance, and finance.</p>
+          <ul class="list-unstyled small mb-0 text-muted">
+            <li>Completeness meters update as you fill contact fields.</li>
+            <li>Gate results by guardian permissions and referrals.</li>
           </ul>
         </div>
       </div>
     </div>
-    <div class="col-md-6">
-      <div class="card h-100">
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <div class="fw-semibold">Claim an invite</div>
-              <div class="small text-muted">Use an invite code sent by the school to link your child securely.</div>
+              <div class="text-uppercase small text-muted mb-1">Invite code</div>
+              <h5 class="mb-0">Claim an invite</h5>
             </div>
             <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:claim_invite' %}">Claim code</a>
           </div>
-          <ul class="small text-muted mb-0">
-            <li>Prevents impersonation—codes are issued by the school.</li>
-            <li>We’ll copy the invited phone/email to your contact preferences.</li>
-            <li>Referral stipends apply when invites are claimed.</li>
+          <p class="small text-muted mb-3">Enter the token issued by the school to instantly link your guardian profile.</p>
+          <ul class="list-unstyled small mb-0 text-muted">
+            <li>Tokens work via email, SMS, or WhatsApp.</li>
+            <li>Referral bonuses trigger once finance approves.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <div class="text-uppercase small text-muted mb-1">Class Syllabus</div>
+              <h5 class="mb-0">Curriculum access</h5>
+            </div>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:portal_syllabus' %}">Explore</a>
+          </div>
+          <p class="small text-muted mb-3">Get the latest term planners, timetables, and resource links curated by your teachers.</p>
+          <ul class="list-unstyled small mb-0 text-muted">
+            <li>Downloadable PDFs and links per subject.</li>
+            <li>Progress updates appear after each evaluation completes.</li>
           </ul>
         </div>
       </div>
@@ -57,24 +143,32 @@
 
   <div class="row g-3 mb-4">
     <div class="col-md-4">
-      <div class="card">
+      <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <div class="text-muted small">Linked Children</div>
+          <div class="text-muted small mb-1">Linked children</div>
           <div class="display-6 kpi">{{ links|length }}</div>
-          <div class="small text-muted">Students connected to your account.</div>
+          <p class="small text-muted mb-1">Students connected to your account.</p>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:link_child' %}">Add another</a>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card">
+      <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <div class="fw-semibold mb-1">How results work</div>
-          <div class="text-muted small">Results become visible after the school publishes the term. If you can’t see marks yet, it usually means the term is not published.</div>
+          <div class="text-muted small mb-1">Progress snapshot</div>
+          <h5 class="mb-1">{{ widget_data.attendance.overall|default:0 }}% completion</h5>
+          <div class="progress mb-2" style="height:6px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ widget_data.attendance.overall|default:0 }}%;" aria-valuenow="{{ widget_data.attendance.overall|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <p class="small text-muted">{{ widget_data.attendance.label }}</p>
+          <div class="small text-muted">
+            Balance: {{ widget_data.finance.balance|default:"0.00" }} · Overdue: {{ widget_data.finance.overdue|default:0 }}
+          </div>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card h-100">
+      <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small mb-1">System status</div>
           <ul class="list-unstyled small mb-0">
@@ -90,64 +184,6 @@
   </div>
 
   {% include "widgets/parent_dashboard_widgets.html" %}
-
-  <div class="card" id="children">
-    <div class="card-body">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h5 class="mb-0">My Children</h5>
-      </div>
-
-      {% if links %}
-        <div class="row g-3">
-          {% for link in links %}
-            <div class="col-md-6 col-xl-4">
-              <div class="card h-100">
-                <div class="card-body">
-                  <div class="d-flex align-items-center gap-2 mb-2">
-                    {% if link.student.profile_photo %}
-                      <img src="{{ link.student.profile_photo.url }}" alt="Student photo" class="rounded-circle border" style="width:36px;height:36px;object-fit:cover;">
-                    {% endif %}
-                    <div>
-                      <div class="fw-semibold">{{ link.student.last_name }} {{ link.student.first_name }}</div>
-                      <div class="small text-muted">{{ link.student.student_code }}</div>
-                    </div>
-                  </div>
-                  <div class="small">
-                    <span class="badge text-bg-light">{{ link.student.classroom.name }}</span>
-                    <span class="badge text-bg-light">{{ link.student.specialty.name }}</span>
-                  </div>
-                  <div class="small text-muted mt-2">
-                    Admission: {{ link.student.admission_number|default:"Pending" }}
-                  </div>
-                  <div class="small text-muted">
-                    Referral: {{ link.student.referral_code|default:"-" }}
-                  </div>
-                  <div class="mt-2">
-                    <div class="small d-flex justify-content-between">
-                      <span class="text-muted">Parent data</span>
-                      <span class="text-muted">{{ link.student.parent_completeness }}%</span>
-                    </div>
-                    <div class="progress" style="height: 6px;">
-                      <div class="progress-bar" role="progressbar" style="width: {{ link.student.parent_completeness }}%;"></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="card-footer bg-transparent border-0 pt-0">
-                  <a class="btn btn-sm btn-primary w-100" href="{% url 'portal:parent_child_results' link.student.id %}">
-                    View Results
-                  </a>
-                </div>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="alert alert-info mb-0">
-          No children are linked to your account yet. Please contact the school admin.
-        </div>
-      {% endif %}
-    </div>
-  </div>
 
   {% if portal_features %}
     <div class="card mt-4">

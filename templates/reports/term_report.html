@@ -12,6 +12,9 @@
     <div>
       <p class="title">{{ SITE.site_name|default:"School" }}</p>
       <p class="sub">{{ SITE.tagline|default:"Excellence & Character" }}</p>
+      {% if report_style and report_style.header_tagline %}
+        <p class="sub text-uppercase">{{ report_style.header_tagline }}</p>
+      {% endif %}
       {% if SITE.company_phone or SITE.company_email %}
         <p class="sub">
           {% if SITE.company_phone %}Tel {{ SITE.company_phone }}{% endif %}
