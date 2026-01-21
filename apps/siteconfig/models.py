@@ -62,6 +62,24 @@ class SiteSettings(models.Model):
     company_email = models.EmailField(blank=True, default="")
     ministry_registration_code = models.CharField(max_length=80, blank=True, default="")
     company_slug = models.SlugField(max_length=120, blank=True, default="")
+    country = models.CharField(
+        max_length=80,
+        blank=True,
+        default="",
+        help_text="Country where the school is located.",
+    )
+    region = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        help_text="Region, division, or state where the school operates.",
+    )
+    ministry = models.CharField(
+        max_length=160,
+        blank=True,
+        default="",
+        help_text="Oversight ministry, delegation, or authority.",
+    )
 
     # Theme configuration
     primary_color = models.CharField(max_length=20, default="#0d6efd")

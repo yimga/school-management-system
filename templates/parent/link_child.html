@@ -7,6 +7,60 @@
     <div class="text-muted">Use the admission number you received from the school.</div>
   </div>
 
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <p class="text-uppercase small text-muted mb-1">Completeness meter</p>
+              <h5 class="mb-0">{{ completeness_pct }}%</h5>
+            </div>
+            <span class="badge bg-primary">{{ completeness_pct }}%</span>
+          </div>
+          <div class="progress" style="height: 8px;">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              style="width: {{ completeness_pct }}%;"
+              aria-valuenow="{{ completeness_pct }}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ></div>
+          </div>
+          <p class="small text-muted mt-3 mb-0">
+            Completing guardian contact fields unlocks attendance, marks, and finance insights for your family.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-1">Referral & invitations</p>
+          <h5 class="mb-1">Bonus per referral</h5>
+          <p class="h6 mb-3 text-primary">
+            {{ referral_bonus|default:"0.00"|floatformat:2 }} bonus credits
+          </p>
+          <p class="small text-muted">
+            Share referral codes or ask the admissions team for an invite via email, SMS, or WhatsApp if you don't have one yet.
+          </p>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            {% if support_email %}
+              <a class="btn btn-outline-primary btn-sm" href="mailto:{{ support_email }}">Request invite (Email)</a>
+            {% endif %}
+            {% if support_phone %}
+              <a class="btn btn-outline-secondary btn-sm" href="tel:{{ support_phone|default_if_none:''|replace:' ','' }}">Request invite (Phone)</a>
+            {% endif %}
+            {% if whatsapp_invite_link %}
+              <a class="btn btn-outline-success btn-sm" href="{{ whatsapp_invite_link }}" target="_blank">Request invite (WhatsApp)</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-body">
       {% if school_code %}

@@ -30,6 +30,7 @@ class AccessRole(models.Model):
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Admin"
+        LEADERSHIP = "LEADERSHIP", "Leadership"
         TEACHER = "TEACHER", "Teacher"
         PARENT = "PARENT", "Parent"
 

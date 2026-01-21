@@ -9,13 +9,14 @@ from django.db.models import Sum
 from django.urls import reverse
 from django.utils import timezone
 
+from apps.accounts.models import User
 from apps.academics.models import SubjectAssignment
 from apps.academics.services import get_active_year_and_term
 from apps.analytics.models import GradingDeadline
 from apps.evals.models import Evaluation
 from apps.evals.services import completion_for_assignment
-from apps.finance.models import Invoice, PaymentReminder
-from apps.people.models import StudentProfile
+from apps.finance.models import Invoice, PaymentReminder, ReferralReward
+from apps.people.models import StudentGuardian, StudentProfile
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
 from apps.siteconfig.models import Integration, SiteSettings
@@ -467,3 +468,78 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
         "finance": _teacher_finance_block(teacher) if teacher else {},
         "attendance": attendance,
     }
+
+
+def award_referral_reward(
+    guardian_link: StudentGuardian,
+    referral_code: str,
+    awarded_by: User,
+) -> ReferralReward | None:
+    if not guardian_link or not referral_code:
+        return None
+    site = SiteSettings.get_solo()
+    amount = site.referral_bonus_amount or Decimal("0.00")
+    if amount <= Decimal("0.00"):
+        return None
+    invoice = (
+        Invoice.objects.filter(student=guardian_link.student)
+        .order_by("-issued_date")
+        .first()
+    )
+    description = f"Referral code {referral_code} used during onboarding."
+    reward, created = ReferralReward.objects.get_or_create(
+        student=guardian_link.student,
+        guardian=guardian_link,
+        defaults={
+            "amount": amount,
+            "description": description,
+            "awarded_by": awarded_by,
+            "invoice": invoice,
+        },
+    )
+    if not created:
+        reward.amount = amount
+        reward.description = description
+        reward.awarded_by = awarded_by
+        reward.invoice = invoice
+        reward.status = ReferralReward.Status.PENDING
+        reward.save(update_fields=["amount", "description", "awarded_by", "invoice", "status"])
+    return reward
+
+
+def link_guardian_via_invite(
+    invite: "PendingGuardianInvite",
+    user: User,
+    awarded_by: User | None = None,
+) -> tuple[StudentGuardian, ReferralReward | None]:
+    guardian = StudentGuardian.objects.create(
+        guardian_user=user,
+        student=invite.student,
+        relationship=invite.relationship,
+        phone=invite.invited_phone or "",
+        preferred_contact=invite.preferred_contact,
+        receives_email=True,
+        receives_sms=False,
+        receives_whatsapp=False,
+        can_view_results=True,
+        can_view_finance=True,
+    )
+
+    invite.guardian_user = user
+    invite.claimed_at = timezone.now()
+    invite.save(update_fields=["guardian_user", "claimed_at"])
+
+    student = invite.student
+    if invite.referral_code and not student.referral_code:
+        student.referral_code = invite.referral_code
+        student.save(update_fields=["referral_code"])
+    if not student.parent_phone and guardian.phone:
+        student.parent_phone = guardian.phone
+        student.save(update_fields=["parent_phone"])
+
+    reward = award_referral_reward(
+        guardian,
+        invite.referral_code or "",
+        awarded_by or user,
+    )
+    return guardian, reward
