@@ -110,6 +110,19 @@
       border-color: #0d6efd;
     }
 
+    .quick-link-muted {
+      opacity: 0.6;
+      border-color: rgba(108, 117, 125, 0.4);
+      color: #6c757d;
+      background: rgba(108, 117, 125, 0.08);
+    }
+
+    .quick-link-muted:hover {
+      opacity: 1;
+      color: #6c757d;
+      border-color: rgba(108, 117, 125, 0.6);
+    }
+
     .badge {
       font-size: 0.7rem;
       letter-spacing: 0.08em;
@@ -228,11 +241,17 @@
               <p class="text-uppercase small text-muted mb-2">{% trans "Quick links" %}</p>
               <div class="d-flex flex-wrap gap-2">
                 <a class="quick-link" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
-                <a class="quick-link" href="{% url 'siteconfig:customizer' %}">{% trans "Customizer" %}</a>
                 <a class="quick-link" href="{% url 'siteconfig:user_preferences' %}">{% trans "Preferences" %}</a>
+                <a
+                  class="quick-link quick-link-muted"
+                  href="{% url 'siteconfig:customizer' %}"
+                  title="{% trans "Admins only: Site Settings & theme packs" %}"
+                >
+                  {% trans "Site Settings (admin only)" %}
+                </a>
               </div>
               <p class="small text-muted mt-3 mb-0">
-                {% trans "Portal and customizer links surface after login so you can preview themes and stay on top of tools." %}
+                {% trans "Customizer controls now live inside Site Settings or your Preferences so you can always control how the dashboard looks." %}
               </p>
             </div>
           </div>

@@ -29,18 +29,33 @@
           <form method="post">
             {% csrf_token %}
             {% for field in form.visible_fields %}
-              <div class="mb-3">
-                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                  <div class="form-text">{{ field.help_text }}</div>
-                {% endif %}
-                {% if field.errors %}
-                  <div class="invalid-feedback d-block">
-                    {{ field.errors|join:", " }}
-                  </div>
-                {% endif %}
-              </div>
+              {% if field.name == "dashboard_widgets" %}
+                <div class="mb-3" id="dashboard-widgets-row">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
             {% endfor %}
 
             <div class="d-flex gap-2">
@@ -52,4 +67,20 @@
       </div>
     </div>
   </div>
+  <script>
+    (function () {
+      const viewSelect = document.getElementById("id_dashboard_view");
+      const widgetRow = document.getElementById("dashboard-widgets-row");
+      if (!viewSelect || !widgetRow) {
+        return;
+      }
+
+      const toggleWidgets = () => {
+        widgetRow.style.display = viewSelect.value === "CUSTOM" ? "block" : "none";
+      };
+
+      viewSelect.addEventListener("change", toggleWidgets);
+      toggleWidgets();
+    })();
+  </script>
 {% endblock %}

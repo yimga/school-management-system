@@ -30,6 +30,7 @@ from .models import (
     ThemePack,
     UserPreference,
 )
+from apps.accounts.decorators import permission_required
 
 CACHE_KEY = "site_settings_v1"
 SESSION_KEY = "site_preview_settings"
@@ -39,7 +40,7 @@ def maintenance_view(request):
     return render(request, "siteconfig/maintenance.html")
 
 
-@staff_member_required
+@permission_required("settings.manage")
 def customizer(request):
     settings_obj = SiteSettings.get_solo()
     messages.info(
@@ -54,7 +55,7 @@ def customizer(request):
         "theme_packs": theme_packs,
     })
 
-@staff_member_required
+@permission_required("settings.manage")
 def reportcard_builder(request):
     settings_obj = SiteSettings.get_solo()
     styles = ReportCardStyle.objects.order_by("name")
@@ -111,7 +112,7 @@ class _PreviewTerm(SimpleNamespace):
         return getattr(self, "name", "First term")
 
 
-@staff_member_required
+@permission_required("settings.manage")
 def reportcard_style_preview(request, slug: str):
     style = get_object_or_404(ReportCardStyle, slug=slug)
     site = SiteSettings.get_solo()
@@ -172,7 +173,7 @@ def reportcard_style_preview(request, slug: str):
         "preview_mode": True,
     }
     return render(request, "siteconfig/reportcard_style_preview.html", context)
-@staff_member_required
+@permission_required("settings.manage")
 def clear_preview(request):
     request.session.pop(SESSION_KEY, None)
     messages.info(request, "Preview cleared.")
@@ -196,13 +197,13 @@ def user_preferences(request):
     return render(request, "siteconfig/user_preferences.html", {"form": form})
 
 
-@staff_member_required
+@permission_required("settings.manage")
 def report_library(request):
     templates = ReportTemplate.objects.filter(is_active=True)
     return render(request, "siteconfig/report_library.html", {"reports": templates})
 
 
-@staff_member_required
+@permission_required("settings.manage")
 def download_report(request, slug):
     template = get_object_or_404(ReportTemplate, slug=slug, is_active=True)
     headers, rows = template.get_export_data()

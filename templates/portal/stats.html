@@ -10,6 +10,51 @@
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back</a>
   </div>
 
+  {% if widget_data %}
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Attendance</div>
+            <div class="display-6 fw-bold">{{ widget_data.attendance.overall|default:"0" }}%</div>
+            <p class="small text-muted mb-2">{{ widget_data.attendance.label }}</p>
+            <div class="progress mb-2" style="height:6px;">
+              <div class="progress-bar" role="progressbar" style="width: {{ widget_data.attendance.overall|default:0 }}%;" aria-valuenow="{{ widget_data.attendance.overall|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="small text-muted">
+              Missing: {{ widget_data.attendance.missing|default:"0" }} · Late: {{ widget_data.attendance.late|default:"0" }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Finances</div>
+            <div class="display-6 fw-bold">{{ widget_data.finance.balance|default:"0.00" }}</div>
+            <p class="small text-muted mb-2">Balance outstanding</p>
+            <div class="small text-muted">
+              Overdue invoices: {{ widget_data.finance.overdue|default:0 }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Tasks & progress</div>
+            <div class="display-6 fw-bold">{{ widget_data.tasks.pending_evaluations|default:"0" }}</div>
+            <p class="small text-muted mb-2">Pending evaluation entries</p>
+            <div class="d-flex gap-2">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:portal_stats' %}#">View tasks</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">Back to portal</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
       <div class="card">
