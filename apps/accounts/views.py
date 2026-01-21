@@ -151,6 +151,10 @@ def backend_dashboard(request):
         {"date": week_start + timedelta(days=offset), "present": present_map.get(week_start + timedelta(days=offset), 0)}
         for offset in range(7)
     ]
+    attendance_trend_total = sum(item["present"] for item in attendance_trend)
+    attendance_trend_progress = min(attendance_trend_total, 100)
+    avg_weekly_present = attendance_trend_total / 7 if attendance_trend else 0
+    ai_insight = f"Average daily presence last week: {avg_weekly_present:.0f} students."
 
     reminders_qs = (
         PaymentReminder.objects.select_related("invoice__student")
@@ -198,12 +202,17 @@ def backend_dashboard(request):
         "finance_status_counts": finance_status_counts,
         "attendance_counts": attendance_counts,
         "attendance_trend": attendance_trend,
+        "attendance_trend_total": attendance_trend_total,
+        "attendance_trend_progress": attendance_trend_progress,
         "attended_today": attendance_today.count(),
         "reminders": reminders,
         "reminder_alerts": reminder_alerts,
         "compliance_profile": compliance_profile,
         "section_stats": section_stats,
         "can_manage_settings": can_manage_settings,
+        "ai_insight": ai_insight,
+        "social_links": site.active_social_links,
+        "avg_weekly_present": avg_weekly_present,
         "hero": hero,
         "app_list": app_context.get("available_apps", []),
     }
