@@ -522,7 +522,32 @@ def teacher_attendance_view(request: HttpRequest):
         "present": present,
         "absences": absences,
         "late": late,
+        "export_url": reverse("portal:teacher_attendance_export"),
     })
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_attendance_export(request: HttpRequest):
+    profile = getattr(request.user, "teacher_profile", None)
+    if not profile:
+        messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
+        return redirect("evals:teacher_dashboard")
+
+    logs = profile.attendance_logs.order_by("-date")
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="teacher_attendance.csv"'
+    writer = csv.writer(response)
+    writer.writerow(["Date", "Status", "Check-in", "Check-out", "Remarks"])
+    for entry in logs:
+        writer.writerow([
+            entry.date,
+            entry.get_status_display(),
+            entry.check_in or "",
+            entry.check_out or "",
+            entry.remarks or "",
+        ])
+    return response
 
 
 @parent_portal_required

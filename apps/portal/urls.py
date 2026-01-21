@@ -12,6 +12,7 @@ from .views import (
     teacher_attendance_view,
     teacher_pay_history,
     teacher_leave,
+    teacher_attendance_export,
     student_portal_grades,
     admissions_application_status,
     portal_syllabus,
@@ -32,6 +33,7 @@ urlpatterns = [
     # Teacher dashboard alias for consistency
     path("teacher/", teacher_dashboard_alias, name="teacher_dashboard_alias"),
     path("teacher/attendance/", teacher_attendance_view, name="teacher_attendance"),
+    path("teacher/attendance/export/", teacher_attendance_export, name="teacher_attendance_export"),
     path("teacher/pay-history/", teacher_pay_history, name="teacher_pay_history"),
     path("teacher/leave/", teacher_leave, name="teacher_leave"),
     # Semantic aliases for Phase 7 URL cleanup

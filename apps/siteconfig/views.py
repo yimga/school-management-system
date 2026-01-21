@@ -8,6 +8,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+
+from apps.academics.services import get_active_year_and_term
+from apps.people.models import StudentProfile
+from apps.reports.services import term_report_context
+
+from types import SimpleNamespace
 
 from .forms import (
     ReportCardStyleAssignmentForm,
@@ -88,6 +95,83 @@ def reportcard_builder(request):
         "selection_form": selection_form,
     })
 
+def _build_style_metadata(site: SiteSettings) -> dict:
+    return {
+        "school_name": site.site_name,
+        "school_code": site.school_code,
+        "country": site.country,
+        "region": site.region,
+        "ministry": site.ministry,
+        "tagline": site.tagline,
+    }
+
+
+class _PreviewTerm(SimpleNamespace):
+    def get_name_display(self):
+        return getattr(self, "name", "First term")
+
+
+@staff_member_required
+def reportcard_style_preview(request, slug: str):
+    style = get_object_or_404(ReportCardStyle, slug=slug)
+    site = SiteSettings.get_solo()
+    year, term = get_active_year_and_term()
+    student = StudentProfile.objects.filter(is_active=True).select_related("classroom", "specialty").first()
+    metadata = _build_style_metadata(site)
+
+    if student and year and term:
+        base_ctx = term_report_context(student, year, term)
+        rows = base_ctx["rows"][:6]
+        summary = base_ctx["summary"]
+        weights = base_ctx["weights"]
+        student_obj = student
+        student_name = f"{student.last_name} {student.first_name}"
+        year_obj = year
+        term_obj = term
+    else:
+        student_obj = SimpleNamespace(
+            last_name="Sample",
+            first_name="Learner",
+            classroom=SimpleNamespace(name="Form One"),
+            specialty=SimpleNamespace(name="Carpentry"),
+            student_code="00SAMPLE",
+        )
+        student_name = f"{student_obj.last_name} {student_obj.first_name}"
+        year_obj = SimpleNamespace(name="2025/2026")
+        term_obj = _PreviewTerm(name="First Term")
+        rows = [
+            {"subject": "English", "coef": 2, "seq1": 12.0, "seq2": 13.5, "exam": 14.0, "mock": 0, "practical": 0, "total": 13.25, "remark": "Very good", "complete": True},
+            {"subject": "Mathematics", "coef": 4, "seq1": 11.0, "seq2": 12.0, "exam": 15.5, "mock": 0, "practical": 0, "total": 13.74, "remark": "Excellent", "complete": True},
+            {"subject": "Physics", "coef": 3, "seq1": 10.0, "seq2": 11.0, "exam": 12.0, "mock": 0, "practical": 0, "total": 11.66, "remark": "Solid", "complete": True},
+            {"subject": "Technical Drawing", "coef": 2, "seq1": 9.0, "seq2": 10.5, "exam": 11.0, "mock": 0, "practical": 0, "total": 10.19, "remark": "Improving", "complete": True},
+            {"subject": "ICT", "coef": 1, "seq1": 13.0, "seq2": 14.0, "exam": 15.0, "mock": 0, "practical": 0, "total": 14.29, "remark": "Strong", "complete": True},
+            {"subject": "Sports", "coef": 1, "seq1": 14.0, "seq2": 14.5, "exam": 0, "mock": 0, "practical": 0, "total": 14.25, "remark": "Active", "complete": False},
+        ]
+        summary = {
+            "average": 13.21,
+            "class_position": 2,
+            "class_size": 28,
+            "school_position": 5,
+            "school_size": 120,
+            "promotion_status": "PROMOTED",
+            "teacher_remark": "Consistent dedication.",
+        }
+        weights = SimpleNamespace(seq1_weight=20, seq2_weight=20, exam_weight=60, mock_weight=0, practical_weight=0)
+
+    context = {
+        "report_style": style,
+        "student": student_obj,
+        "student_name": student_name,
+        "year": year_obj,
+        "term": term_obj,
+        "rows": rows,
+        "summary": summary,
+        "weights": weights,
+        "metadata": metadata,
+        "generated_at": timezone.now(),
+        "preview_mode": True,
+    }
+    return render(request, "siteconfig/reportcard_style_preview.html", context)
 @staff_member_required
 def clear_preview(request):
     request.session.pop(SESSION_KEY, None)
