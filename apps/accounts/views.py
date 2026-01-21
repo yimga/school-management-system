@@ -163,10 +163,9 @@ def backend_dashboard(request):
     )[:4]
     reminders = list(reminders_qs)
     reminder_alerts = bool(reminders)
-    section_stats = admin_section_stats()
-    section_stats_sorted = {
-        section: sorted(stats.items())
-        for section, stats in section_stats.items()
+    section_stats = {
+        section: dict(sorted(stats.items()))
+        for section, stats in admin_section_stats().items()
     }
     can_manage_settings = request.user.has_feature_permission("settings.manage")
 
@@ -212,7 +211,7 @@ def backend_dashboard(request):
         "reminders": reminders,
         "reminder_alerts": reminder_alerts,
         "compliance_profile": compliance_profile,
-        "section_stats": section_stats_sorted,
+        "section_stats": section_stats,
         "can_manage_settings": can_manage_settings,
         "ai_insight": ai_insight,
         "social_links": site.active_social_links,
