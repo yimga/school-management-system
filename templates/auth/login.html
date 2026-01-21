@@ -1,56 +1,146 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "School portal login" %}{% endblock %}
+
+{% block extrastyle %}
+  <style>
+    .auth-landing {
+      min-height: 70vh;
+    }
+
+    .login-card,
+    .info-card {
+      border-radius: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .login-card .form-control {
+      border-radius: 12px;
+      border: 1px solid rgba(15, 23, 42, 0.15);
+      padding: 0.75rem 0.85rem;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 1.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .quick-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      padding: 0.35rem 0.9rem;
+      border: 1px solid rgba(13, 110, 253, 0.4);
+      color: #0d6efd;
+      font-weight: 600;
+      text-decoration: none;
+      background: rgba(13, 110, 253, 0.05);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .quick-link:hover {
+      background: #0d6efd;
+      color: #fff;
+      border-color: #0d6efd;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+    }
+
+    @media (max-width: 991px) {
+      .info-card {
+        flex-direction: column;
+      }
+
+      .auth-landing { 
+        min-height: auto;
+      }
+    }
+  </style>
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
-    <div class="text-center mb-3">
-      <div class="fw-semibold">Sign in to continue</div>
-      <div class="small text-muted">Use the credentials provided by the school.</div>
+  <section class="auth-landing py-5">
+    <div class="text-center mb-4">
+      <p class="text-uppercase small text-muted mb-1">
+        {% trans "Gilead School System" %}
+      </p>
+      <h1 class="h3 fw-bold mb-2">{% trans "Staff & family portal" %}</h1>
+      <p class="text-muted mb-0">
+        {% trans "Choose the path that fits your role and keep school operations, attendance, and finance flowing." %}
+      </p>
     </div>
 
-    <div class="card">
-      <div class="card-body p-4">
-        <form method="post" novalidate>
-          {% csrf_token %}
-
-          <div class="mb-3">
-            <label class="form-label">Username</label>
-            <input class="form-control" name="username" autocomplete="username" placeholder="e.g. jdoe" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            <div class="input-group">
-              <input class="form-control" id="password" type="password" name="password" autocomplete="current-password" placeholder="••••••••" required>
-              <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Show password">
-                <i class="bi bi-eye"></i>
-              </button>
+    <div class="row justify-content-center g-4 align-items-stretch">
+      <div class="col-lg-5">
+        <div class="card shadow-sm login-card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+              <div>
+                <p class="text-uppercase small text-muted mb-1">{% trans "Staff & admin access" %}</p>
+                <h2 class="h5 mb-0">{% trans "Secure sign in" %}</h2>
+              </div>
+              <span class="badge rounded-pill text-primary border border-primary px-3 py-1">
+                {% trans "Portal credentials" %}
+              </span>
             </div>
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+              {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+              {% elif request.POST.next %}
+                <input type="hidden" name="next" value="{{ request.POST.next }}">
+              {% endif %}
+              <div class="mb-3">
+                <label class="form-label">{% trans "Username" %}</label>
+                <input class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">{% trans "Password" %}</label>
+                <input class="form-control" type="password" name="password" autocomplete="current-password" required>
+              </div>
+              <button class="btn btn-primary w-100" type="submit">{% trans "Log in" %}</button>
+            </form>
+
+            <p class="small text-muted mt-3 mb-0">
+              {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="card shadow-sm info-card">
+          <div>
+            <p class="text-uppercase small text-muted mb-1">{% trans "Families & guardians" %}</p>
+            <h3 class="h5 mb-2">{% trans "Link your children securely" %}</h3>
+            <p class="text-muted mb-3">
+              {% trans "Use the invite email, SMS, or WhatsApp token sent by the school to claim your learner and unlock attendance, marks, and open invoices." %}
+            </p>
+            <a class="btn btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Claim an invite" %}</a>
           </div>
 
-          <button class="btn btn-primary w-100" type="submit">Login</button>
-        </form>
+          <div>
+            <p class="text-uppercase small text-muted mb-2">{% trans "Quick links" %}</p>
+            <div class="d-flex flex-wrap gap-2">
+              <a class="quick-link" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent portal" %}</a>
+              <a class="quick-link" href="{% url 'siteconfig:customizer' %}">{% trans "Customizer" %}</a>
+              <a class="quick-link" href="{% url 'siteconfig:user_preferences' %}">{% trans "Preferences" %}</a>
+            </div>
+            <p class="small text-muted mt-3 mb-0">
+              {% trans "Portal and customizer links surface after login so you can preview themes and stay on top of tools." %}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div class="text-center small text-muted mt-3">
-      Trouble signing in? Contact the school administrator.
-    </div>
-  </div>
-</div>
-
-<script>
-  (function () {
-    const btn = document.getElementById('togglePassword');
-    const input = document.getElementById('password');
-    if (!btn || !input) return;
-
-    btn.addEventListener('click', function () {
-      const isPw = input.getAttribute('type') === 'password';
-      input.setAttribute('type', isPw ? 'text' : 'password');
-      this.innerHTML = isPw ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
-    });
-  })();
-</script>
+  </section>
 {% endblock %}
