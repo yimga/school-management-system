@@ -5,60 +5,151 @@
   {% admin_health as health %}
   {% admin_kpis as kpis %}
 
-  <div class="admin-hero hero-v2">
-    <div class="hero-content">
-      <div class="text-uppercase small opacity-75 mb-1">{% trans "Admin hub" %}</div>
-      <h1 class="hero-title mb-2">{% trans "Gilead School System Management" %}</h1>
-      <p class="hero-subtitle mb-3">
-        {% trans "Configure school apps, monitor health, and keep reports, finance, and portals aligned from one warm, modern dashboard." %}
-      </p>
-      <div class="hero-actions">
-        <a class="btn btn-light" href="{% url 'portal:parent_dashboard' %}">{% trans "Open parent portal" %}</a>
-        {% if settings_url %}
-          <a class="btn btn-outline-light" href="{{ settings_url }}">{% trans "Site settings" %}</a>
-        {% endif %}
-        {% if log_url %}
-          <a class="btn btn-outline-light" href="{{ log_url }}">{% trans "Audit log" %}</a>
-        {% endif %}
+  <div class="admin-page">
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-icon">
+          <i class="bi bi-grid-fill"></i>
+        </div>
+        <div>
+          <strong>Gilead Portal</strong>
+          <div class="small text-muted">admin</div>
+        </div>
       </div>
-    </div>
 
-    <div class="hero-metrics">
-      <div class="hero-stat">
-        <div class="hero-label">{% trans "Students" %}</div>
-        <div class="hero-value">{{ kpis.students }}</div>
-        <div class="hero-meta">{% trans "Active profiles" %}</div>
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Navigation</div>
+        <ul>
+          <li><i class="bi bi-braces"></i> Admin</li>
+          <li><i class="bi bi-clipboard-data"></i> Evaluation Manager</li>
+          <li><i class="bi bi-pie-chart"></i> Analytics</li>
+          <li><i class="bi bi-wallet2"></i> Finance</li>
+          <li><i class="bi bi-person-badge"></i> Payroll</li>
+          <li><i class="bi bi-shield-lock"></i> Access Control</li>
+          <li><i class="bi bi-trophy"></i> Class Ranking</li>
+          <li><i class="bi bi-award"></i> School Ranking</li>
+          <li><i class="bi bi-file-earmark-post"></i> Publish Results</li>
+        </ul>
       </div>
-      <div class="hero-stat">
-        <div class="hero-label">{% trans "Subjects" %}</div>
-        <div class="hero-value">{{ kpis.subjects }}</div>
-        <div class="hero-meta">{% trans "Catalog size" %}</div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Portal Tools</div>
+        <ul>
+          <li><i class="bi bi-chat-left-text"></i> Messaging</li>
+          <li><i class="bi bi-folder2-open"></i> Document Library</li>
+          <li><i class="bi bi-bar-chart-line"></i> School Stats</li>
+          <li><i class="bi bi-sliders2"></i> Site Settings</li>
+        </ul>
       </div>
-      <div class="hero-stat">
-        <div class="hero-label">{% trans "Report cards" %}</div>
-        <div class="hero-value">{{ kpis.report_cards }}</div>
-        <div class="hero-meta">{% trans "Generated" %}</div>
+
+      <div class="sidebar-actions">
+        <a class="btn btn-outline-light btn-sm w-100 mb-2" href="/admin/">Open Admin</a>
+        <a class="btn btn-light btn-sm w-100" href="/">{% trans "Home" %}</a>
       </div>
-      <div class="hero-stat">
-        <div class="hero-label">{% trans "Modules" %}</div>
-        <div class="hero-value">{{ app_list|length }}</div>
-        <div class="hero-meta">{% trans "Registered apps" %}</div>
+    </aside>
+
+    <section class="admin-content">
+      <header class="admin-header">
+        <div>
+          <div class="breadcrumbs text-muted">Home / Portal / Analytics</div>
+          <h1>Analytics Dashboard</h1>
+          <div class="text-muted">School-wide performance insights based on submitted scores.</div>
+        </div>
+        <div class="admin-header-actions">
+          <button class="btn btn-pill btn-outline-secondary">Master Sheet</button>
+          <button class="btn btn-pill btn-outline-secondary">Grading Deadlines</button>
+        </div>
+      </header>
+
+      <div class="admin-hero hero-v3">
+        <div class="hero-top">
+          <div>
+            <div class="text-uppercase small opacity-75 mb-1">{% trans "Admin hub" %}</div>
+            <h2>Gilead School System Management</h2>
+            <p class="hero-subtitle">
+              {% trans "Configure school apps, monitor health, and keep reports, finance, and portals aligned from one warm, modern dashboard." %}
+            </p>
+          </div>
+          <div class="hero-actions">
+            <a class="btn btn-gradient-pill" href="{% url 'portal:parent_dashboard' %}">{% trans "Open parent portal" %}</a>
+            {% if settings_url %}
+              <a class="btn btn-outline-white" href="{{ settings_url }}">{% trans "Site settings" %}</a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="hero-metrics">
+          <article>
+            <div class="hero-label">{% trans "Students" %}</div>
+            <div class="hero-value">{{ kpis.students }}</div>
+            <div class="hero-meta">{% trans "Active profiles" %}</div>
+          </article>
+          <article>
+            <div class="hero-label">{% trans "Subjects" %}</div>
+            <div class="hero-value">{{ kpis.subjects }}</div>
+            <div class="hero-meta">{% trans "Catalog size" %}</div>
+          </article>
+          <article>
+            <div class="hero-label">{% trans "Report cards" %}</div>
+            <div class="hero-value">{{ kpis.report_cards }}</div>
+            <div class="hero-meta">{% trans "Generated" %}</div>
+          </article>
+          <article>
+            <div class="hero-label">{% trans "Modules" %}</div>
+            <div class="hero-value">{{ app_list|length }}</div>
+            <div class="hero-meta">{% trans "Registered apps" %}</div>
+          </article>
+        </div>
       </div>
-    </div>
+
+      <div class="filter-card">
+        <div class="filter-grid">
+          <div class="form-control"><label>Academic year</label><select><option>2024/2025</option></select></div>
+          <div class="form-control"><label>Term</label><select><option>First</option></select></div>
+          <div class="form-control"><label>Classroom</label><select><option>All</option></select></div>
+          <div class="form-control"><label>Specialty</label><select><option>All</option></select></div>
+          <div class="form-control"><label>Top students</label><input type="number" value="10"></div>
+          <div class="form-control"><label>Deadline mode</label><select><option>Term end</option></select></div>
+          <div class="form-control"><label>Pass mark</label><input type="number" value="10.00"></div>
+          <div class="form-control"><label>Weak subject threshold</label><input type="number" value="10.00"></div>
+          <div class="form-control"><label>Improvement delta</label><input type="number" value="1.00"></div>
+        </div>
+        <div class="filter-actions">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="promoCheck">
+            <label for="promoCheck" class="form-check-label small">Use promotion rule</label>
+          </div>
+          <button class="btn btn-gradient">Apply Filters</button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h5>Top students (class, term)</h5>
+          <p class="text-muted small">Select a classroom to see class rankings.</p>
+        </div>
+        <div class="stat-card">
+          <h5>Top students (school, term)</h5>
+          <table class="table table-borderless mb-0">
+            <tbody>
+              <tr><td>1</td><td>One Student</td><td class="text-end">17.40</td></tr>
+              <tr><td>2</td><td>Two Student</td><td class="text-end">14.40</td></tr>
+              <tr><td>3</td><td>Three Student</td><td class="text-end">11.40</td></tr>
+              <tr><td>4</td><td>Shama Andong</td><td class="text-end">0.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stat-card">
+          <h5>Top students (class, annual)</h5>
+          <p class="text-muted small">Select a classroom to see class rankings.</p>
+        </div>
+        <div class="stat-card">
+          <h5>Top students (school, annual)</h5>
+          <p class="text-muted small">Select a classroom to see class rankings.</p>
+        </div>
+      </div>
+    </section>
   </div>
-
-  <div class="admin-card-grid">
-    <article class="card-neutral">
-      <div class="card-label">{% trans "Apps" %}</div>
-      <div class="card-value display-4 mb-2">{{ app_list|length }}</div>
-      <p class="text-muted mb-3">{% trans "Active modules drive classrooms, finance, and reporting. Tap through to manage each section quickly." %}</p>
-      <div class="d-flex flex-wrap gap-2 card-actions">
-        <a class="btn btn-outline-primary" href="#app-list">{% trans "Browse modules" %}</a>
-        {% if grade_import_template_url %}
-          <a class="btn btn-outline-secondary" href="{{ grade_import_template_url }}">{% trans "Download grade template" %}</a>
-        {% endif %}
-      </div>
-    </article>
+{% endblock %}
 
     <article class="card-neutral">
       <div class="card-label">{% trans "Health" %}</div>
