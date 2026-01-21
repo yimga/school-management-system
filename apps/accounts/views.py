@@ -1,16 +1,24 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from apps.finance.models import Invoice, ReferralReward
+from django.utils import timezone
+from django.contrib import admin as django_admin
+from apps.finance.models import Invoice, ReferralReward, PaymentReminder
+from apps.finance.services import finance_dashboard_data
 from apps.portal.models import PendingGuardianInvite
-from apps.people.models import StudentGuardian, StudentProfile
+from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance
 from apps.reports.models import TermPublishStatus
 from apps.siteconfig.models import SiteSettings
 from apps.academics.services import get_active_year_and_term
 from apps.portal.services import link_guardian_via_invite
 from apps.accounts.decorators import permission_required
+from apps.siteconfig.templatetags.admin_health import admin_section_stats
+from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 
 from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
 from .models import AccessRole, Permission, User
@@ -107,20 +115,92 @@ def backend_dashboard(request):
         "overdue_invoices": Invoice.objects.filter(status=Invoice.Status.OVERDUE).count(),
         "published_terms": TermPublishStatus.objects.filter(is_published=True).count(),
     }
+    finance_overview = {}
+    finance_summary = {}
+    finance_trend = []
+    finance_status_counts = []
+    compliance_profile = site.compliance_profile
+    if compliance_profile:
+        finance_overview = finance_dashboard_data(compliance_profile)
+        finance_summary = finance_overview.get("summary", {})
+        finance_trend = finance_overview.get("trend", [])
+        finance_status_counts = finance_overview.get("status_counts", [])
+
+    today = timezone.localdate()
+    attendance_today = TeacherAttendance.objects.filter(date=today)
+    status_labels = {choice.value: choice.label for choice in TeacherAttendance.Status}
+    attendance_counts = {label: 0 for label in status_labels.values()}
+    for row in attendance_today.values("status").annotate(count=Count("id")):
+        label = status_labels.get(row["status"], row["status"])
+        attendance_counts[label] = row["count"]
+
+    week_start = today - timedelta(days=6)
+    window = TeacherAttendance.objects.filter(date__range=(week_start, today))
+    present_map = {
+        entry["date"]: entry["count"]
+        for entry in window.filter(status=TeacherAttendance.Status.PRESENT)
+        .values("date")
+        .annotate(count=Count("id"))
+    }
+    attendance_trend = [
+        {"date": week_start + timedelta(days=offset), "present": present_map.get(week_start + timedelta(days=offset), 0)}
+        for offset in range(7)
+    ]
+
+    reminders_qs = (
+        PaymentReminder.objects.select_related("invoice__student")
+        .filter(is_active=True)
+        .order_by("next_send_at")
+    )[:4]
+    reminders = list(reminders_qs)
+    reminder_alerts = bool(reminders)
+    section_stats = admin_section_stats()
+    can_manage_settings = request.user.has_feature_permission("settings.manage")
+
+    app_context = django_admin.site.each_context(request)
+    modules = sum(len(app.get("models") or []) for app in app_context.get("available_apps", []))
+    kpi_data = admin_kpis()
+    hero_stats = [
+        {"label": "Students", "value": kpi_data["students"], "meta": "Active profiles"},
+        {"label": "Subjects", "value": kpi_data["subjects"], "meta": "Catalog size"},
+        {"label": "Report cards", "value": kpi_data["report_cards"], "meta": "Generated"},
+        {"label": "Modules", "value": modules, "meta": "Registered apps"},
+    ]
+    hero = {
+        "tagline": "Admin hub",
+        "title": "Gilead School System Management",
+        "subtitle": "Configure school apps, monitor health, and keep reports, finance, and portals aligned from one warm, modern dashboard.",
+        "icon": "bi bi-pie-chart",
+        "stats": hero_stats,
+        "actions": [
+            {"label": "Open parent portal", "url": reverse("portal:parent_dashboard")},
+            {"label": "Backend config", "url": reverse("accounts:backend_dashboard")},
+            {"label": "Frontend admin", "url": reverse("admin:index")},
+        ],
+    }
     context = {
         "site": site,
         "stats": stats,
         "roles": AccessRole.objects.prefetch_related("permissions").order_by("code"),
         "permissions": Permission.objects.order_by("code"),
         "pending_invites": stats["pending_invites"],
-        "hero_actions": [
-            {"label": "RBAC console", "url": reverse("accounts:rbac")},
-            {"label": "Site settings", "url": reverse("siteconfig:customizer")},
-        ],
         "grade_import_upload_url": reverse("evals:grade_import_upload"),
         "grade_import_template_url": reverse("evals:grade_import_template"),
         "active_year": year,
         "active_term": term,
+        "finance_summary": finance_summary,
+        "finance_trend": finance_trend,
+        "finance_status_counts": finance_status_counts,
+        "attendance_counts": attendance_counts,
+        "attendance_trend": attendance_trend,
+        "attended_today": attendance_today.count(),
+        "reminders": reminders,
+        "reminder_alerts": reminder_alerts,
+        "compliance_profile": compliance_profile,
+        "section_stats": section_stats,
+        "can_manage_settings": can_manage_settings,
+        "hero": hero,
+        "app_list": app_context.get("available_apps", []),
     }
     return render(request, "accounts/backend_dashboard.html", context)
 

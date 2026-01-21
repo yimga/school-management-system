@@ -3,7 +3,15 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin
 from django.utils.html import format_html
 
-from .models import Integration, ReportTemplate, SiteSettings, ThemePack, UserPreference
+from .models import (
+    Integration,
+    ReportCardStyle,
+    ReportCardStyleAssignment,
+    ReportTemplate,
+    SiteSettings,
+    ThemePack,
+    UserPreference,
+)
 
 
 # ==========================
@@ -57,6 +65,8 @@ class SiteSettingsAdmin(ModelAdmin):
                 "report_downloads_enabled",
                 "default_dashboard_view",
                 "default_refresh_rate",
+                "default_term_report_style",
+                "default_annual_report_style",
             )
         }),
         ("System Behavior", {
@@ -110,10 +120,17 @@ class SiteSettingsAdmin(ModelAdmin):
 
 @admin.register(ThemePack)
 class ThemePackAdmin(ModelAdmin):
-    list_display = ("name", "is_active", "is_default", "layout")
+    list_display = ("name", "is_active", "is_default", "layout", "palette_preview")
     list_filter = ("is_active", "layout")
     prepopulated_fields = {"slug": ("name",)}
     search_fields = ("name", "slug")
+
+    def palette_preview(self, obj):
+        start, end = obj.gradient_colors
+        style = f"background: linear-gradient(135deg, {start}, {end}); width: 160px; height: 36px; border-radius: 12px;"
+        return format_html("<div style='{}'></div>", style)
+
+    palette_preview.short_description = "Gradient"
 
 
 @admin.register(UserPreference)
@@ -129,6 +146,20 @@ class ReportTemplateAdmin(ModelAdmin):
     list_filter = ("preferred_format", "is_active")
     search_fields = ("name", "slug")
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(ReportCardStyle)
+class ReportCardStyleAdmin(ModelAdmin):
+    list_display = ("name", "slug", "is_active", "term_template", "annual_template")
+    list_filter = ("is_active",)
+    search_fields = ("name", "slug")
+    prepopulated_fields = {"slug": ("name",)}
+
+
+@admin.register(ReportCardStyleAssignment)
+class ReportCardStyleAssignmentAdmin(ModelAdmin):
+    list_display = ("classroom", "style")
+    search_fields = ("classroom__name", "style__name")
 
 
 # ==========================

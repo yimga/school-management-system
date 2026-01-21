@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_health admin_kpis accounts_extras %}
+{% load i18n admin_health admin_kpis %}
 
 {% block content %}
   {% admin_health as health %}
@@ -75,7 +75,7 @@
             {% if settings_url %}
               <a class="btn btn-outline-white" href="{{ settings_url }}">{% trans "Site settings" %}</a>
             {% endif %}
-            {% if request.user|has_feature_permission:"settings.manage" %}
+            {% if can_manage_settings %}
               <a class="btn btn-outline-white" href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend config" %}</a>
             {% endif %}
           </div>
@@ -103,8 +103,6 @@
           </article>
         </div>
       </div>
-
-      {% admin_section_stats as section_stats %}
 
       <div class="filter-card">
         <div class="filter-grid">

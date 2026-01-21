@@ -6,14 +6,18 @@ from django.conf import settings
 from django.db import models
 from django.apps import apps as django_apps
 
-from apps.academics.models import Subject
-
+from apps.accounts.models import User
+from apps.academics.models import Classroom, Subject
+from apps.finance.models import ComplianceProfile, Invoice, Payment
+from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
+from apps.reports.models import ReportCard
 
 PORTAL_FEATURE_OPTIONS: list[tuple[str, str]] = [
     ("messaging", "Messaging"),
     ("forums", "Community Forums"),
     ("video", "Video Hub"),
     ("documents", "Document Library"),
+    ("syllabus", "Class Syllabus"),
 ]
 
 PORTAL_FEATURE_DEFAULTS: dict[str, bool] = {
@@ -21,12 +25,12 @@ PORTAL_FEATURE_DEFAULTS: dict[str, bool] = {
     "forums": False,
     "video": False,
     "documents": True,
+    "syllabus": True,
 }
 
 
 def default_portal_features():
     return dict(PORTAL_FEATURE_DEFAULTS)
-from apps.finance.models import ComplianceProfile, Invoice, Payment
 
 
 class DashboardView(models.TextChoices):
@@ -42,6 +46,73 @@ class ThemeLayout(models.TextChoices):
     WIDE = "WIDE", "Wide"
     CARD = "CARD", "Card focus"
     MINIMAL = "MINIMAL", "Minimal"
+
+
+DASHBOARD_WIDGET_OPTIONS = [
+    ("attendance", "Attendance snapshot"),
+    ("performance", "Performance overview"),
+    ("finance", "Financial summary"),
+    ("events", "Events & alerts"),
+    ("tasks", "Task tracker"),
+    ("communications", "Communication center"),
+    ("referral", "Referral health"),
+    ("access", "Portal access"),
+    ("system_status", "System status"),
+    ("completion", "Completion drill"),
+    ("analytics", "Analytics insights"),
+    ("upcoming", "Upcoming classes"),
+    ("links", "Quick actions"),
+]
+
+ROLE_WIDGET_DEFAULTS = {
+    User.Role.PARENT: [
+        "attendance",
+        "performance",
+        "finance",
+        "events",
+        "tasks",
+        "communications",
+        "referral",
+        "access",
+        "system_status",
+        "analytics",
+    ],
+    User.Role.TEACHER: [
+        "completion",
+        "tasks",
+        "finance",
+        "attendance",
+        "communications",
+        "upcoming",
+        "links",
+        "analytics",
+    ],
+    User.Role.ADMIN: [
+        "system_status",
+        "finance",
+        "attendance",
+        "events",
+        "analytics",
+        "access",
+    ],
+}
+
+
+def default_dashboard_widgets(role: str | None) -> list[str]:
+    return list(ROLE_WIDGET_DEFAULTS.get(role, [key for key, _ in DASHBOARD_WIDGET_OPTIONS]))
+
+
+def get_dashboard_widget_choices(role: str | None) -> list[tuple[str, str]]:
+    allowed = set(default_dashboard_widgets(role))
+    return [(key, label) for key, label in DASHBOARD_WIDGET_OPTIONS if key in allowed]
+
+
+def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | None" = None) -> list[str]:
+    allowed = default_dashboard_widgets(role)
+    if preference and preference.dashboard_view == DashboardView.CUSTOM and preference.dashboard_widgets:
+        selected = [key for key in preference.dashboard_widgets if key in allowed]
+        return selected or allowed
+    return allowed
 
 
 class SiteSettings(models.Model):
@@ -113,6 +184,20 @@ class SiteSettings(models.Model):
     enable_reports_pdf = models.BooleanField(default=True)
     report_downloads_enabled = models.BooleanField(default=True)
     portal_features = models.JSONField(default=default_portal_features, blank=True)
+    default_term_report_style = models.ForeignKey(
+        "siteconfig.ReportCardStyle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="term_default_for",
+    )
+    default_annual_report_style = models.ForeignKey(
+        "siteconfig.ReportCardStyle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="annual_default_for",
+    )
     referral_bonus_amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -203,6 +288,17 @@ class ThemePack(models.Model):
             ThemePack.objects.exclude(pk=self.pk).filter(is_default=True).update(is_default=False)
         super().save(*args, **kwargs)
 
+    @property
+    def gradient_colors(self) -> tuple[str, str]:
+        gradient = (self.palette or {}).get("gradient", [])
+        if len(gradient) >= 2:
+            return gradient[0], gradient[1]
+        return self.primary_color, self.accent_color
+
+    def preview_style(self) -> str:
+        start, end = self.gradient_colors
+        return f"background: linear-gradient(135deg, {start}, {end}); color: white;"
+
 
 class Integration(models.Model):
     """
@@ -248,6 +344,7 @@ class UserPreference(models.Model):
     refresh_rate_minutes = models.PositiveSmallIntegerField(default=60)
     notification_channels = models.JSONField(default=list, blank=True)
     receive_weekly_summary = models.BooleanField(default=True)
+    dashboard_widgets = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -374,3 +471,81 @@ class ReportTemplate(models.Model):
 
     def filename(self):
         return f"{self.slug}.{self.preferred_format.lower()}"
+
+
+class ReportCardStyleQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_active=True)
+
+
+class ReportCardStyle(models.Model):
+    TERM_TEMPLATE_CHOICES = [
+        ("reports/term_report.html", "Standard term template"),
+        ("reports/term_report_cameroon.html", "Cameroon term template"),
+    ]
+    ANNUAL_TEMPLATE_CHOICES = [
+        ("reports/annual_report.html", "Standard annual template"),
+        ("reports/annual_report_cameroon.html", "Cameroon annual template"),
+    ]
+
+    slug = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    term_template = models.CharField(max_length=120, choices=TERM_TEMPLATE_CHOICES, default=TERM_TEMPLATE_CHOICES[0][0])
+    annual_template = models.CharField(max_length=120, choices=ANNUAL_TEMPLATE_CHOICES, default=ANNUAL_TEMPLATE_CHOICES[0][0])
+    primary_color = models.CharField(max_length=20, default="#0d6efd")
+    accent_color = models.CharField(max_length=20, default="#198754")
+    watermark_text = models.CharField(max_length=150, blank=True)
+    header_tagline = models.CharField(max_length=200, blank=True)
+    css_snippet = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = ReportCardStyleQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def template_for(self, report_type: str) -> str:
+        if report_type == ReportCard.Type.TERM:
+            return self.term_template
+        return self.annual_template
+
+
+class ReportCardStyleAssignment(models.Model):
+    classroom = models.OneToOneField(
+        Classroom,
+        on_delete=models.CASCADE,
+        related_name="report_card_style_assignment",
+    )
+    style = models.ForeignKey(
+        ReportCardStyle,
+        on_delete=models.PROTECT,
+        related_name="assignments",
+    )
+
+    class Meta:
+        ordering = ["classroom__name"]
+
+    def __str__(self):
+        return f"{self.classroom} → {self.style.name}"
+
+
+def get_report_card_style_for_student(student: StudentProfile, report_type: str) -> ReportCardStyle | None:
+    if not student or not student.classroom:
+        return None
+    assignment = getattr(student.classroom, "report_card_style_assignment", None)
+    if assignment and assignment.style and assignment.style.is_active:
+        return assignment.style
+
+    site = SiteSettings.get_solo()
+    default_field = "default_term_report_style" if report_type == ReportCard.Type.TERM else "default_annual_report_style"
+    style = getattr(site, default_field, None)
+    if style and style.is_active:
+        return style
+
+    return ReportCardStyle.objects.active().first()

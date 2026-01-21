@@ -1,13 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseForbidden, HttpRequest, Http404
+from datetime import timedelta
+from django.http import HttpResponseForbidden, HttpRequest, Http404, HttpResponse, HttpResponseRedirect
+from collections import Counter
 from django.contrib import messages
-from django.http import HttpResponseRedirect
 from django.utils import timezone
 from django.urls import reverse
 import uuid
 from decimal import Decimal
 from django.db.models import Sum
 from urllib.parse import quote_plus
+import csv
 
 from apps.accounts.decorators import (
     role_required,
@@ -26,7 +28,7 @@ from apps.people.models import (
 from apps.academics.models import Term
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
-from apps.finance.models import Invoice
+from apps.finance.models import Invoice, PaymentReminder, ReferralReward
 from apps.finance.services import generate_payment_link
 from apps.reports.services import (
     are_terms_published,
@@ -34,7 +36,7 @@ from apps.reports.services import (
     terms_for_student,
     term_report_context,
 )
-from apps.siteconfig.models import Integration, SiteSettings, default_portal_features
+from apps.siteconfig.models import Integration, SiteSettings, default_portal_features, resolve_dashboard_widgets
 from apps.analytics.services import (
     student_improvements,
     specialty_pass_rates,
@@ -67,6 +69,11 @@ PORTAL_FEATURES_META = {
         "description": "Publish handbooks, timetables, and policy updates for anyone to download.",
         "icon": "bi-file-earmark-text",
     },
+    "syllabus": {
+        "label": "Class Syllabus",
+        "description": "Download lesson plans, term agendas, and curriculum outlines for every specialty.",
+        "icon": "bi-journal-text",
+    },
 }
 
 
@@ -93,7 +100,14 @@ def parent_dashboard(request: HttpRequest):
     ).select_related("student", "student__classroom", "student__specialty", "student__academic_year")
 
     portal_features = _portal_features_status()
-    widget_data = parent_dashboard_widget_data([link.student for link in links])
+    students = [link.student for link in links]
+    widget_data = parent_dashboard_widget_data(students)
+    preference = getattr(request.user, "preferences", None)
+    display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
+    reminders_count = PaymentReminder.objects.filter(
+        invoice__student__in=students,
+        is_active=True,
+    ).count()
     hero = {
         "tagline": "Student Management Dashboard",
         "title": "Welcome back",
@@ -110,12 +124,16 @@ def parent_dashboard(request: HttpRequest):
             {"label": "Pay Fees", "url": reverse("portal:parent_finance")},
         ],
     }
+    hero["stats"].append({"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
+    hero["actions"].insert(1, {"label": "View Attendance", "url": reverse("portal:portal_stats")})
 
     return render(request, "parent/dashboard.html", {
         "links": links,
         "portal_features": portal_features,
         "widget_data": widget_data,
+        "display_widgets": display_widgets,
         "hero": hero,
+        "reminders_count": reminders_count,
     })
 
 
@@ -136,6 +154,7 @@ def parent_finance(request: HttpRequest):
         Invoice.objects.filter(student__in=students)
         .exclude(status=Invoice.Status.DRAFT)
         .select_related("student", "academic_year")
+        .prefetch_related("payments")
         .order_by("-issued_date")
     )
     aggregates = invoices_qs.aggregate(
@@ -147,15 +166,39 @@ def parent_finance(request: HttpRequest):
     paid = total_due - balance
     overdue_count = invoices_qs.filter(status=Invoice.Status.OVERDUE).count()
 
+    payment_method_counts = Counter()
     invoice_rows = []
+    reminders = []
     for inv in invoices_qs:
+        link = generate_payment_link(inv)
+        payments = list(inv.payments.all())
+        receipt = payments[0] if payments else None
+        if payments:
+            for payment in payments:
+                payment_method_counts[payment.get_method_display()] += 1
         invoice_rows.append(
             {
                 "invoice": inv,
-                "payment_link": generate_payment_link(inv),
+                "payment_link": link,
+                "receipt_url": reverse("finance:invoice_receipt", args=(inv.id, receipt.id)) if receipt else None,
+                "preferred_method": inv.get_preferred_payment_method_display() or "Any",
+                "attachment_url": inv.attachment.url if inv.attachment else None,
+                "recent_payment": receipt,
             }
         )
+        reminder = getattr(inv, "reminder", None)
+        if reminder and reminder.is_active:
+            reminders.append(
+                {
+                    "invoice": inv,
+                    "reminder": reminder,
+                    "payment_link": link,
+                }
+            )
 
+    referral_qs = ReferralReward.objects.filter(guardian__guardian_user=request.user)
+    referral_total = referral_qs.filter(status=ReferralReward.Status.APPROVED).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    referral_pending = referral_qs.filter(status=ReferralReward.Status.PENDING).count()
     hero = {
         "title": "Finances",
         "subtitle": "Balances, invoices, and secure payment links",
@@ -164,8 +207,16 @@ def parent_finance(request: HttpRequest):
             {"label": "Paid", "value": paid},
             {"label": "Outstanding", "value": balance},
             {"label": "Overdue", "value": overdue_count},
+            {"label": "Reminders", "value": len(reminders), "meta": "Queued notices"},
+            {"label": "Referral credits", "value": f"{referral_total:.2f}", "meta": "Approved bonuses"},
         ],
     }
+
+    attachment_count = invoices_qs.filter(attachment__isnull=False).count()
+    payment_method_summary = [
+        {"method": method, "count": count}
+        for method, count in payment_method_counts.most_common()
+    ]
 
     return render(
         request,
@@ -178,6 +229,11 @@ def parent_finance(request: HttpRequest):
             "balance": balance,
             "paid": paid,
             "overdue_count": overdue_count,
+            "reminders": reminders,
+            "attachment_count": attachment_count,
+            "payment_method_summary": payment_method_summary,
+            "referral_total": referral_total,
+            "referral_pending": referral_pending,
         },
     )
 
@@ -230,6 +286,26 @@ def portal_feature_page(request: HttpRequest, feature: str):
     items = PortalFeatureItem.objects.filter(feature=feature, is_active=True).select_related("created_by")
     return render(request, "portal/feature_page.html", {
         "feature": entry,
+        "items": items,
+    })
+
+
+@role_required(User.Role.PARENT, User.Role.TEACHER)
+def portal_syllabus(request: HttpRequest):
+    site = SiteSettings.get_solo()
+    role = getattr(request.user, "role", None)
+    if role == User.Role.PARENT and not site.enable_parent_portal:
+        return HttpResponseForbidden("Parent portal is disabled.")
+    if role == User.Role.TEACHER and not site.enable_teacher_portal:
+        return HttpResponseForbidden("Teacher portal is disabled.")
+
+    items = PortalFeatureItem.objects.filter(
+        feature=PortalFeatureItem.Feature.SYLLABUS,
+        is_active=True,
+    ).select_related("created_by").order_by("-created_at")
+
+    return render(request, "portal/syllabus.html", {
+        "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
         "items": items,
     })
 
@@ -317,16 +393,50 @@ def teacher_pay_history(request: HttpRequest):
     bonus_count = pay_records.filter(record_type=TeacherPayRecord.RecordType.BONUS).count()
     last_pay_amount = latest_pay.amount if latest_pay else None
     last_pay_date = latest_pay.effective_date if latest_pay else None
+    payment_totals = Counter()
+    for record in pay_records:
+        payment_totals[record.record_type] += record.amount
+
+    total_paid_amount = sum(
+        record.amount for record in pay_records if record.record_type == TeacherPayRecord.RecordType.PAY
+    )
+    raise_total = sum(
+        record.amount for record in pay_records if record.record_type == TeacherPayRecord.RecordType.RAISE
+    )
+    bonus_total = sum(
+        record.amount for record in pay_records if record.record_type == TeacherPayRecord.RecordType.BONUS
+    )
+
+    attendance_logs = list(profile.attendance_logs.order_by("-date")[:30])
+    streak = _compute_attendance_streak(attendance_logs)
+    recent_absence = next((entry for entry in attendance_logs if entry.status in {
+        TeacherAttendance.Status.ABSENT,
+        TeacherAttendance.Status.LATE,
+        TeacherAttendance.Status.ON_LEAVE,
+    }), None)
+    absence_alert = (
+        f"Last absence recorded on {recent_absence.date}: {recent_absence.remarks or recent_absence.get_status_display()}."
+        if recent_absence else None
+    )
+
     hero = {
         "title": "Pay history",
         "subtitle": "Recent pay, raises, and stipends",
         "actions": [],
         "stats": [
-            {"label": "Last pay", "value": last_pay_amount or "—", "meta": last_pay_date or "Not set"},
+            {"label": "Last pay", "value": last_pay_amount or "-", "meta": last_pay_date or "Not set"},
             {"label": "Next pay date", "value": profile.next_pay_date or "Not set", "meta": profile.pay_grade or "Pay grade"},
             {"label": "Raises", "value": raises_count, "meta": f"Bonuses: {bonus_count}"},
+            {"label": "Streak", "value": streak, "meta": "days present"},
         ],
     }
+    payment_type_breakdown = [
+        {
+            "label": TeacherPayRecord.RecordType(record_type).label,
+            "amount": amount,
+        }
+        for record_type, amount in payment_totals.items()
+    ]
     return render(request, "teacher/pay_history.html", {
         "hero": hero,
         "pay_records": pay_records,
@@ -334,7 +444,29 @@ def teacher_pay_history(request: HttpRequest):
         "latest_pay": latest_pay,
         "raises_count": raises_count,
         "bonus_count": bonus_count,
+        "payment_type_breakdown": payment_type_breakdown,
+        "total_paid_amount": total_paid_amount,
+        "raise_total": raise_total,
+        "bonus_total": bonus_total,
+        "attendance_logs": attendance_logs,
+        "attendance_streak": streak,
+        "attendance_alert": absence_alert,
     })
+
+
+def _compute_attendance_streak(logs):
+    today = timezone.localdate()
+    log_lookup = {entry.date: entry for entry in logs}
+    streak = 0
+    cursor = today
+    while True:
+        entry = log_lookup.get(cursor)
+        if entry and entry.status == TeacherAttendance.Status.PRESENT:
+            streak += 1
+            cursor -= timedelta(days=1)
+            continue
+        break
+    return streak
 
 
 @teacher_portal_required

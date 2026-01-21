@@ -7,15 +7,17 @@ import csv
 import io
 from decimal import Decimal
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
-from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Term
+from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Term, Subject
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.evals.models import TeacherAssignment, Evaluation, AssessmentWeights
 from apps.evals.importers import preview_import, apply_import, build_template_headers
 from apps.reports.services import is_term_published
+from apps.reports.weasy import render_pdf_bytes
 from .forms import (
     BulkEvaluationCreateForm,
     EvaluationFilterForm,
@@ -25,6 +27,7 @@ from .forms import (
 )
 from .models import EvaluationEvidence
 from apps.portal.services import teacher_dashboard_widget_data
+from apps.siteconfig.models import resolve_dashboard_widgets
 
 
 def _required_fields(academic_year, classroom, term):
@@ -71,6 +74,45 @@ def _required_fields_for_evaluation(evaluation: Evaluation) -> list[str]:
     if weights.practical_weight > 0:
         fields.append("practical_score")
     return fields or ["seq1_score", "seq2_score", "exam_score"]
+
+
+def _serialize_evaluation(evaluation: Evaluation) -> dict[str, str]:
+    sa = evaluation.subject_assignment
+    student_name = f"{evaluation.student.last_name} {evaluation.student.first_name} ({evaluation.student.student_code})"
+    return {
+        "updated_at": evaluation.updated_at.strftime("%Y-%m-%d %H:%M"),
+        "student": student_name,
+        "classroom": sa.classroom.name if sa and sa.classroom else "",
+        "subject": sa.subject.name if sa and sa.subject else "",
+        "seq1": evaluation.seq1_score or evaluation.test1 or "",
+        "seq2": evaluation.seq2_score or evaluation.test2 or "",
+        "exam": evaluation.exam_score or "",
+        "mock": evaluation.mock_score or "",
+        "practical": evaluation.practical_score or "",
+        "total": f"{evaluation.total_score:.2f}",
+        "remarks": evaluation.remarks or "",
+    }
+
+
+def _build_filter_labels(
+    classroom_id: str | None,
+    subject_id: str | None,
+    term_id: str | None,
+    missing_only: bool,
+    classroom_map: dict[str, str],
+    subject_map: dict[str, str],
+) -> dict[str, str]:
+    labels = {}
+    if classroom_id:
+        labels["Classroom"] = classroom_map.get(classroom_id, classroom_id)
+    if subject_id:
+        labels["Subject"] = subject_map.get(subject_id, subject_id)
+    if term_id:
+        term = Term.objects.filter(id=term_id).first()
+        if term:
+            labels["Term"] = term.get_name_display()
+    labels["Missing"] = "Yes" if missing_only else "All"
+    return labels
 
 
 @teacher_portal_required
@@ -144,6 +186,8 @@ def teacher_dashboard(request: HttpRequest):
         ],
     }
 
+    preference = getattr(request.user, "preferences", None)
+    display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -154,6 +198,7 @@ def teacher_dashboard(request: HttpRequest):
         "missing_records_url": missing_records_url,
         "grade_import_upload_url": reverse("evals:grade_import_upload"),
         "grade_import_template_url": reverse("evals:grade_import_template"),
+        "display_widgets": display_widgets,
     })
 
 @teacher_portal_required
@@ -286,19 +331,36 @@ def teacher_marks_entry(request: HttpRequest):
 @role_required(User.Role.TEACHER)
 def teacher_marks_list(request: HttpRequest):
     teacher = get_object_or_404(TeacherProfile, user=request.user)
+    user_name = request.user.get_full_name() or request.user.username
     year, term = get_active_year_and_term()
     if not year or not term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
-    # Filters
     classroom_id = request.GET.get("classroom")
     subject_id = request.GET.get("subject")
     term_id = request.GET.get("term")
     missing_only = request.GET.get("missing") == "1"
     export_csv = request.GET.get("export") == "csv"
+    export_pdf = request.GET.get("export") == "pdf"
+
+    teacher_assignments = TeacherAssignment.objects.filter(
+        teacher=teacher,
+        academic_year=year,
+        is_active=True
+    )
+
+    classrooms = (
+        teacher_assignments.values_list("subject_assignment__classroom_id", "subject_assignment__classroom__name")
+        .distinct()
+    )
+    subjects = (
+        teacher_assignments.values_list("subject_assignment__subject_id", "subject_assignment__subject__name")
+        .distinct()
+    )
+    classroom_map = {str(item[0]): item[1] for item in classrooms if item[0]}
+    subject_map = {str(item[0]): item[1] for item in subjects if item[0]}
 
     qs = Evaluation.objects.filter(teacher=teacher, academic_year=year)
-
     if classroom_id:
         qs = qs.filter(subject_assignment__classroom_id=classroom_id)
     if subject_id:
@@ -319,6 +381,27 @@ def teacher_marks_list(request: HttpRequest):
             e for e in evals
             if any(getattr(e, field) is None for field in _required_fields_for_evaluation(e))
         ]
+
+    evals_list = list(evals)
+
+    if export_pdf:
+        rows = [_serialize_evaluation(e) for e in evals_list]
+        filters = _build_filter_labels(classroom_id, subject_id, term_id, missing_only, classroom_map, subject_map)
+        pdf_context = {
+            "report_title": f"{user_name} Marks Export",
+            "report_period": f"{term.get_name_display()} · {year.name}",
+            "report_total": f"{len(rows)} records",
+            "rows": rows,
+            "filters": filters,
+            "generated_at": timezone.now(),
+            "summary": f"{len(rows)} evaluations",
+        }
+        pdf_bytes = render_pdf_bytes(request, "reports/evaluation_grid.html", pdf_context)
+        filename = f"teacher-marks-{year.name}-{term.name}.pdf".replace(" ", "_")
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
     if export_csv:
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="teacher-marks.csv"'
@@ -336,7 +419,7 @@ def teacher_marks_list(request: HttpRequest):
             "Practical",
             "Remarks",
         ])
-        for e in evals:
+        for e in evals_list:
             writer.writerow([
                 e.updated_at,
                 f"{e.student.last_name} {e.student.first_name} ({e.student.student_code})",
@@ -352,22 +435,15 @@ def teacher_marks_list(request: HttpRequest):
             ])
         return response
 
-    # Filter option lists
-    classrooms = (
-        TeacherAssignment.objects.filter(teacher=teacher, academic_year=year, is_active=True)
-        .values_list("subject_assignment__classroom_id", "subject_assignment__classroom__name")
-        .distinct()
-    )
-    subjects = (
-        TeacherAssignment.objects.filter(teacher=teacher, academic_year=year, is_active=True)
-        .values_list("subject_assignment__subject_id", "subject_assignment__subject__name")
-        .distinct()
-    )
+    export_csv_params = request.GET.copy()
+    export_csv_params["export"] = "csv"
+    export_pdf_params = request.GET.copy()
+    export_pdf_params["export"] = "pdf"
 
     return render(request, "teacher/marks_list.html", {
         "year": year,
         "term": term,
-        "evals": evals,
+        "evals": evals_list,
         "classrooms": list(classrooms),
         "subjects": list(subjects),
         "term_choices": list(Term.objects.all()),
@@ -377,6 +453,8 @@ def teacher_marks_list(request: HttpRequest):
             "term": term_id or "",
             "missing": "1" if missing_only else "",
         },
+        "export_csv_query": export_csv_params.urlencode(),
+        "export_pdf_query": export_pdf_params.urlencode(),
     })
 
 
@@ -629,6 +707,30 @@ def evaluation_admin(request: HttpRequest):
                 redirect_target += "&missing=1"
             return redirect(redirect_target)
 
+    subject_obj = Subject.objects.filter(id=subject_id).first() if subject_id else None
+    filters = {
+        "Classroom": classroom_obj.name if classroom_obj else None,
+        "Subject": subject_obj.name if subject_obj else None,
+        "Missing": "Yes" if missing_only else "All",
+    }
+
+    if request.GET.get("export") == "pdf":
+        rows = [_serialize_evaluation(e) for e in evals_list]
+        pdf_context = {
+            "report_title": f"Evaluation Manager · {year_obj.name}",
+            "report_period": term_obj.get_name_display(),
+            "report_total": f"{len(rows)} rows",
+            "rows": rows,
+            "filters": filters,
+            "generated_at": timezone.now(),
+            "summary": f"{len(rows)} evaluations",
+        }
+        pdf_bytes = render_pdf_bytes(request, "reports/evaluation_grid.html", pdf_context)
+        filename = f"grading-sheet-{year_obj.name}-{term_obj.get_name_display()}.pdf".replace(" ", "_")
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
     if request.GET.get("export") == "csv":
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = f'attachment; filename="grading-sheet-{year_obj.name}-{term_obj.get_name_display()}.csv"'
@@ -662,8 +764,10 @@ def evaluation_admin(request: HttpRequest):
             ])
         return response
 
-    export_params = request.GET.copy()
-    export_params["export"] = "csv"
+    export_csv_params = request.GET.copy()
+    export_csv_params["export"] = "csv"
+    export_pdf_params = request.GET.copy()
+    export_pdf_params["export"] = "pdf"
 
     return render(request, "evals/evaluation_admin.html", {
         "year": year_obj,
@@ -678,7 +782,8 @@ def evaluation_admin(request: HttpRequest):
         "evals": evals_list,
         "missing_only": missing_only,
         "required_fields": required_fields,
-        "export_query": export_params.urlencode(),
+        "export_csv_query": export_csv_params.urlencode(),
+        "export_pdf_query": export_pdf_params.urlencode(),
     })
 
 

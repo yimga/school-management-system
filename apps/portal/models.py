@@ -11,6 +11,7 @@ class PortalFeatureItem(models.Model):
         FORUMS = "forums", "Forums"
         VIDEO = "video", "Video"
         DOCUMENTS = "documents", "Documents"
+        SYLLABUS = "syllabus", "Syllabus"
 
     feature = models.CharField(max_length=20, choices=Feature.choices)
     title = models.CharField(max_length=200)
