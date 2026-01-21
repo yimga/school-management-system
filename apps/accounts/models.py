@@ -29,10 +29,19 @@ class AccessRole(models.Model):
 
 class User(AbstractUser):
     class Role(models.TextChoices):
-        ADMIN = "ADMIN", "Admin"
+        ADMIN = "ADMIN", "Administrator"
         LEADERSHIP = "LEADERSHIP", "Leadership"
+        PRINCIPAL = "PRINCIPAL", "Principal"
+        VICE_PRINCIPAL = "VICE_PRINCIPAL", "Vice Principal"
+        DEAN = "DEAN", "Dean"
+        CENSOR = "CENSOR", "Censor"
+        BURSAR = "BURSAR", "Bursar"
+        HOD = "HOD", "Head of Department"
         TEACHER = "TEACHER", "Teacher"
+        IT_ADMIN = "IT_ADMIN", "IT Administrator"
+        BOARDING_MANAGER = "BOARDING_MANAGER", "Boarding Manager"
         PARENT = "PARENT", "Parent"
+        STUDENT = "STUDENT", "Student"
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.ADMIN)
     roles = models.ManyToManyField(AccessRole, blank=True, related_name="users")
