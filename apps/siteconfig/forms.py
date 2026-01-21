@@ -1,6 +1,6 @@
 import json
 from decimal import Decimal
-from zoneinfo import available_timezones
+import pytz
 
 from django import forms
 
@@ -190,7 +190,7 @@ class UserPreferenceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        tz_choices = sorted([(tz, tz) for tz in available_timezones()])
+        tz_choices = [(tz, tz) for tz in pytz.common_timezones]
         self.fields["timezone"].choices = tz_choices
         if self.instance and self.instance.notification_channels:
             self.initial["notification_channels"] = self.instance.notification_channels

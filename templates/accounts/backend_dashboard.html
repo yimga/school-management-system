@@ -28,9 +28,20 @@
     gap: 1rem;
     margin-top: 1.5rem;
   }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+  .hero-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
   .hero-kpi-card {
     background: rgba(255, 255, 255, 0.15);
     border-radius: 14px;
+    min-height: 110px;
     padding: 1rem;
   }
   .hero-kpi-label {
@@ -119,6 +130,77 @@
     color: #0f5132;
     background: rgba(25, 135, 84, 0.08);
   }
+  .hero-info-panel {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+    min-height: 100%;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .hero-actions a {
+    min-width: 160px;
+  }
+  .hero-status-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .hero-kpi-sparkline {
+    height: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(13,110,253,0.8));
+    border-radius: 20px;
+    margin-top: 0.7rem;
+  }
+  .hero-status-chip {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .modular-card {
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .modular-card .card-body {
+    padding: 1.5rem;
+  }
+  .modular-card .card-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modular-card .card-title h5 {
+    margin: 0;
+  }
+  .modular-card .meta-tag {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.6;
+  }
+  .modular-card .mini-sparkline {
+    height: 30px;
+    background: linear-gradient(90deg, rgba(13,110,253,0.4), rgba(99,102,241,0.9));
+    border-radius: 12px;
+    margin-top: 1rem;
+  }
+  .modular-card .card-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
   .contact-card .social-link {
     border-radius: 12px;
     padding: 0.65rem 1rem;
@@ -133,12 +215,29 @@
 {% block content %}
   {% admin_health as health %}
   <div class="admin-hero mb-4">
-    <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
-      <div class="flex-fill">
-        <div class="text-uppercase small opacity-75 mb-1">{{ hero.tagline|default:"Operations" }}</div>
-        <h1 class="fw-bold mb-1">{{ hero.title }}</h1>
-        <p class="opacity-85 mb-2">{{ hero.subtitle }}</p>
-        <div class="hero-edits">
+    <div class="hero-grid">
+      <div class="hero-main">
+        <div>
+          <div class="text-uppercase small opacity-75 mb-1">{{ hero.tagline|default:"Operations" }}</div>
+          <h1 class="fw-bold mb-1">{{ hero.title }}</h1>
+          <p class="opacity-85 mb-2">{{ hero.subtitle }}</p>
+        </div>
+        <div class="hero-kpi-grid">
+          {% for stat in hero.stats %}
+            <div class="hero-kpi-card">
+              <div class="hero-kpi-label">{{ stat.label }}</div>
+              <div class="hero-kpi-value">{{ stat.value }}</div>
+              {% if stat.meta %}
+                <div class="hero-kpi-meta">{{ stat.meta }}</div>
+              {% endif %}
+              <div class="hero-kpi-sparkline" aria-hidden="true"></div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="hero-ai-note">{{ ai_insight }}</div>
+      </div>
+      <div class="hero-info-panel">
+        <div class="hero-actions">
           {% for action in hero.actions %}
             <a class="btn btn-sm btn-light text-primary fw-semibold" href="{{ action.url }}">{{ action.label }}</a>
           {% endfor %}
@@ -146,25 +245,15 @@
             <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:customizer' %}">Open Full Site Settings</a>
           {% endif %}
         </div>
-        <div class="hero-status">
+        <div class="hero-status-grid">
           <span class="hero-status-chip">Overdue invoices: {{ finance_summary.overdue|default:0 }}</span>
           <span class="hero-status-chip">Pending referrals: {{ stats.pending_referrals }}</span>
-          <span class="hero-status-chip">
-            Last 7 days present: {{ attendance_trend_total|default:0 }}
-          </span>
+          <span class="hero-status-chip">Last 7 days present: {{ attendance_trend_total|default:0 }}</span>
         </div>
-        <div class="hero-ai-note">{{ ai_insight }}</div>
-      </div>
-      <div class="hero-kpi-grid flex-fill">
-        {% for stat in hero.stats %}
-          <div class="hero-kpi-card">
-            <div class="hero-kpi-label">{{ stat.label }}</div>
-            <div class="hero-kpi-value">{{ stat.value }}</div>
-            {% if stat.meta %}
-              <div class="hero-kpi-meta">{{ stat.meta }}</div>
-            {% endif %}
-          </div>
-        {% endfor %}
+        <div class="d-flex justify-content-between align-items-center small">
+          <span class="text-uppercase opacity-75">Data source: finance + attendance</span>
+          <span class="text-uppercase opacity-75">Updated {{ now "H:i" }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -234,65 +323,89 @@
 
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
-      <div class="card shadow-sm h-100">
+      <div class="card modular-card shadow-sm h-100">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h5 class="mb-0">Finance & trend</h5>
-              <small class="text-muted">Receivables vs paid</small>
-            </div>
-            <small class="text-muted">Last updated {% now "H:i" %}</small>
+          <div class="card-title">
+            <h5>Finance & trend</h5>
+            <span class="meta-tag">Receivables vs paid</span>
           </div>
-          <div class="d-flex justify-content-between mb-3">
+          <div class="d-flex flex-wrap justify-content-between mt-3 gap-3">
             <div>
               <div class="text-muted small">Receivables</div>
-              <div class="fs-4 fw-bold">{{ finance_summary.receivables|default:0|floatformat:2 }}</div>
+              <div class="fs-3 fw-bold">{{ finance_summary.receivables|default:0|floatformat:2 }}</div>
             </div>
             <div>
               <div class="text-muted small">Paid this term</div>
-              <div class="fs-4 fw-bold">{{ finance_summary.paid|default:0|floatformat:2 }}</div>
+              <div class="fs-3 fw-bold">{{ finance_summary.paid|default:0|floatformat:2 }}</div>
             </div>
             <div>
               <div class="text-muted small">Overdue</div>
-              <div class="fs-4 fw-bold text-danger">{{ finance_summary.overdue|default:0|floatformat:0 }}</div>
+              <div class="fs-3 fw-bold text-danger">{{ finance_summary.overdue|default:0|floatformat:0 }}</div>
             </div>
           </div>
-          <div class="widget-chart">
-            <div class="d-flex flex-wrap gap-2">
-              {% for point in finance_trend %}
-                <div class="trend-pill">
-                  <div class="trend-label">{{ point.label }}</div>
-                  <div class="trend-value">{{ point.total|default:0|floatformat:0 }}</div>
-                </div>
-              {% empty %}
-                <div class="text-muted">Trend data coming soon.</div>
-              {% endfor %}
-            </div>
+          <div class="d-flex gap-3 flex-wrap mt-3">
+            {% for point in finance_trend %}
+              <div class="trend-pill">
+                <div class="trend-label">{{ point.label }}</div>
+                <div class="trend-value">{{ point.total|default:0|floatformat:0 }}</div>
+              </div>
+            {% empty %}
+              <div class="trend-pill">
+                <div class="trend-label">Trend</div>
+                <div class="trend-value">Coming soon</div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="mini-sparkline" aria-hidden="true"></div>
+          <div class="small text-muted mt-2">{{ compliance_profile.name|default:"Compliance profile missing" }}</div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            {% for stat in finance_status_counts %}
+              <span class="portal-pill {% if stat.count > 0 %}enabled{% endif %}">
+                {{ stat.status|default:"Status" }}: {{ stat.count }}
+              </span>
+            {% empty %}
+              <span class="small text-muted">No invoice data</span>
+            {% endfor %}
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-outline-light">Share overview</button>
+            <button class="btn btn-sm btn-outline-light">Export CSV</button>
           </div>
         </div>
       </div>
     </div>
     <div class="col-lg-6">
-      <div class="card shadow-sm h-100">
+      <div class="card modular-card shadow-sm h-100">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h5 class="mb-0">Attendance insights</h5>
-              <small class="text-muted">Daily classroom coverage</small>
+          <div class="card-title">
+            <h5>Attendance snapshot</h5>
+            <span class="meta-tag">Weekly presence</span>
+          </div>
+          <div class="row g-2 mt-3">
+            {% for label, count in attendance_counts.items %}
+              <div class="col-4">
+                <div class="text-muted small">{{ label }}</div>
+                <div class="fs-4 fw-semibold">{{ count }}</div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="mt-3">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+              <span>Progress</span>
+              <span>{{ attendance_trend_progress|default:0 }}% goal</span>
             </div>
-            <small class="text-muted">Average {{ avg_weekly_present|floatformat:0 }} present</small>
+            <div class="progress" style="height:6px;">
+              <div class="progress-bar bg-success" role="progressbar" style="width:{{ attendance_trend_progress|default:0 }}%;" aria-valuenow="{{ attendance_trend_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
           </div>
-          <div class="progress" style="height:6px;">
-            <div class="progress-bar bg-success" role="progressbar" style="width:{{ attendance_trend_progress|default:0 }}%;" aria-valuenow="{{ attendance_trend_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
-          <div class="attendance-trend mt-3">
+          <div class="attendance-trend">
             {% for day in attendance_trend %}
               <div class="attendance-trend-item">
                 <div class="small text-muted mb-1">{{ day.date|date:"D" }}</div>
                 <strong>{{ day.present }}</strong>
               </div>
             {% empty %}
-              <div class="text-muted">Attendance data will appear once teachers submit.</div>
+              <div class="text-muted">Attendance data will appear once submissions finish.</div>
             {% endfor %}
           </div>
           <details class="mt-3">
@@ -306,27 +419,74 @@
               {% endfor %}
             </ul>
           </details>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-outline-light">Invite teachers</button>
+            <button class="btn btn-sm btn-outline-light">Download attendance</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-lg-12">
-      <div class="card shadow-sm h-100">
+    <div class="col-lg-4 col-md-6">
+      <div class="card modular-card shadow-sm h-100">
         <div class="card-body">
-          <h5 class="mb-3">Portal insights</h5>
-          <div class="d-flex flex-wrap gap-2">
+          <div class="card-title">
+            <h5>Portal insights</h5>
+            <span class="meta-tag">Features & toggles</span>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-3">
             {% for key, value in site.portal_features.items %}
               <span class="portal-pill {% if value %}enabled{% endif %}">
-                {{ key|capfirst }} – {{ value|yesno:"Enabled,Disabled" }}
+                {{ key|capfirst }} – {{ value|yesno:"On,Off" }}
               </span>
             {% endfor %}
           </div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-outline-light">Share dashboard</button>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'portal:parent_dashboard' %}">Preview portal</a>
+          </div>
           <details class="mt-3">
-            <summary class="fw-semibold">Top subjects + actions</summary>
-            <p class="small text-muted mb-0">Review GA dashboards or open quick actions from the status area above.</p>
+            <summary class="fw-semibold">Top/bottom subjects</summary>
+            <p class="small text-muted mt-2">Evaluation evidence surfaces here once teachers publish marks.</p>
           </details>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+      <div class="card modular-card shadow-sm h-100">
+        <div class="card-body">
+          <div class="card-title">
+            <h5>Pending referrals</h5>
+            <span class="meta-tag">Finance pipeline</span>
+          </div>
+          <p class="display-6 fw-bold">{{ stats.pending_referrals }}</p>
+          <p class="small text-muted mb-2">Awaiting finance approval or invoice assignment.</p>
+          <p class="small text-muted mb-0">Overdue invoices: {{ stats.overdue_invoices }}</p>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-outline-light">Notify finance</button>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'finance:dashboard' %}">Open finance console</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-12">
+      <div class="card modular-card shadow-sm h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="card-title">
+              <h5>Grade imports</h5>
+              <span class="meta-tag">Bulk uploads</span>
+            </div>
+            <p class="text-muted small">
+              Template download + upload preview ensure clean bulk updates.
+            </p>
+          </div>
+          <div class="card-actions">
+            <a class="btn btn-sm btn-primary" href="{{ grade_import_upload_url }}">Upload grades</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ grade_import_template_url }}">Download template</a>
+          </div>
         </div>
       </div>
     </div>
@@ -374,161 +534,6 @@
     </div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-lg-4 col-md-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="mb-3">Finance snapshot</h5>
-          <div class="d-flex justify-content-between">
-            <div>
-              <div class="text-muted small">Receivables</div>
-              <div class="fs-4 fw-bold">{{ finance_summary.receivables|default:0|floatformat:2 }}</div>
-            </div>
-            <div>
-              <div class="text-muted small">Paid this term</div>
-              <div class="fs-4 fw-bold">{{ finance_summary.paid|default:0|floatformat:2 }}</div>
-            </div>
-            <div>
-              <div class="text-muted small">Overdue</div>
-              <div class="fs-4 fw-bold text-danger">{{ finance_summary.overdue|default:0|floatformat:0 }}</div>
-            </div>
-          </div>
-          <div class="mt-3 d-flex flex-wrap gap-2">
-            {% for stat in finance_status_counts %}
-              <span class="badge bg-light text-dark">{{ stat.status|default:"Status" }}: {{ stat.count }}</span>
-            {% empty %}
-              <span class="badge bg-light text-muted">No invoice data</span>
-            {% endfor %}
-          </div>
-          <div class="mt-3 small text-muted">
-            {{ compliance_profile.name|default:"Compliance profile missing" }}
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4 col-md-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="mb-3">Attendance snapshot</h5>
-          <div class="row g-2">
-            {% for label, count in attendance_counts.items %}
-              <div class="col-6">
-                <div class="text-muted small">{{ label }}</div>
-                <div class="fs-5 fw-semibold">{{ count }}</div>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="mt-3">
-            <div class="d-flex justify-content-between small text-muted mb-1">
-              <span>Last 7 days present</span>
-              {% if attendance_trend %}
-                {% with latest_trend=attendance_trend|first %}
-                  <span>{{ latest_trend.present }}</span>
-                {% endwith %}
-              {% else %}
-                <span>0</span>
-              {% endif %}
-            </div>
-            <div class="progress" style="height:6px;">
-              <div class="progress-bar bg-success" role="progressbar" style="width:{{ attendance_trend_progress|default:0 }}%;" aria-valuenow="{{ attendance_trend_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4 col-md-12">
-      <div class="card shadow-sm h-100">
-        <div class="card-body d-flex flex-column">
-          <h5 class="mb-3">Finance reminders</h5>
-          {% if reminder_alerts %}
-            <p class="text-muted small">Upcoming reminders are queued to hit guardians shortly.</p>
-            <div class="list-group list-group-flush mb-3">
-              {% for reminder in reminders %}
-                <div class="list-group-item px-0 py-2 border-0 d-flex justify-content-between align-items-start">
-                  <div>
-                    <strong>{{ reminder.invoice.student }}</strong><br>
-                    <span class="small text-muted">Due {{ reminder.invoice.due_date }}</span>
-                  </div>
-                  <span class="badge bg-outline-success text-uppercase">{{ reminder.next_send_at|date:"M d" }}</span>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="alert alert-info py-2 mb-3 small">
-              No active reminders. Add payment reminders via finance settings.
-            </div>
-          {% endif %}
-          <a class="btn btn-sm btn-outline-secondary mt-auto" href="{% url 'finance:dashboard' %}">Open finance console</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-3">
-    <div class="col-lg-4 col-md-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="mb-2">Site toggles</h5>
-          <div class="d-flex flex-column gap-1 small">
-            <span>Parent portal: {{ site.enable_parent_portal|yesno:"On,Off" }}</span>
-            <span>Teacher portal: {{ site.enable_teacher_portal|yesno:"On,Off" }}</span>
-            <span>Report downloads: {{ site.report_downloads_enabled|yesno:"Enabled,Disabled" }}</span>
-            <span>PDF exports: {{ site.enable_reports_pdf|yesno:"Enabled,Disabled" }}</span>
-          </div>
-          <a class="btn btn-sm btn-outline-primary mt-3" href="{% url 'siteconfig:customizer' %}">Edit toggles</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4 col-md-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h5 class="mb-2">Pending referrals</h5>
-          <p class="display-6 fw-bold">{{ stats.pending_referrals }}</p>
-          <p class="small text-muted">Awaiting finance approval or invoice assignment.</p>
-          <p class="small text-muted mb-0">Overdue invoices: {{ stats.overdue_invoices }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4 col-md-12">
-      <div class="card shadow-sm h-100">
-        <div class="card-body d-flex flex-column justify-content-between">
-          <div>
-            <h5 class="mb-2">Grade imports</h5>
-            <p class="text-muted small">
-              Template download + upload preview ensure clean bulk updates.
-            </p>
-          </div>
-          <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-sm btn-primary" href="{{ grade_import_upload_url }}">Upload grades</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{{ grade_import_template_url }}">Download template</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Portal features</h5>
-        <span class="text-muted small">Managed via Site Settings</span>
-      </div>
-      <div class="row g-3">
-        {% for key, value in site.portal_features.items %}
-          <div class="col-md-6 col-lg-3">
-            <div class="card border {% if value %}border-success{% else %}border-secondary{% endif %}">
-              <div class="card-body py-2">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="small text-uppercase text-muted">{{ key }}</div>
-                  <span class="badge {% if value %}bg-success{% else %}bg-secondary{% endif %}">{{ value|yesno:"Enabled,Disabled" }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
 
   <div class="card shadow-sm mt-4 contact-card">
     <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
@@ -571,7 +576,7 @@
                     <span class="badge bg-light text-dark">{{ stats|length }} stats</span>
                   </div>
                   <ul class="list-unstyled mb-0 small">
-                    {% for label, value in stats.items|dictsort %}
+                    {% for label, value in stats.items|dictsort:"0" %}
                       <li class="mb-1 d-flex justify-content-between">
                         <span>{{ label }}</span>
                         <strong class="text-dark">{{ value }}</strong>

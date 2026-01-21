@@ -2,6 +2,55 @@
 {% load admin_health %}
 {% block title %}Parent Dashboard{% endblock %}
 
+{% block extrastyle %}
+<style>
+  .dashboard-quick-panel {
+    border-radius: 18px;
+    padding: 1.25rem;
+    background: rgba(13, 110, 253, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+  }
+  .dashboard-quick-panel .social-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    background: rgba(13, 110, 253, 0.08);
+    border: 1px solid rgba(13, 110, 253, 0.18);
+    color: #0b5ed7;
+  }
+  .mini-sparkline {
+    height: 36px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(13, 110, 253, 0.08);
+    display: flex;
+    gap: 2px;
+  }
+  .mini-sparkline span {
+    flex: 1;
+    border-radius: 4px;
+    background: linear-gradient(180deg, rgba(13, 110, 253, 0.25), rgba(13, 110, 253, 0.9));
+  }
+  .children-metric-card {
+    border-radius: 14px;
+    padding: 0.85rem;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.95);
+  }
+  .subject-pair {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+  }
+  .subject-pair span:last-child {
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
   {% admin_health as health %}
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
@@ -17,43 +66,77 @@
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
   <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="text-muted small mb-1">Linked children</div>
-          <div class="display-6 fw-bold">{{ links|length }}</div>
-          <p class="small text-muted">Students connected to your account.</p>
-          <div class="d-flex gap-2">
-            <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_dashboard' %}#link-child">Link a child</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:claim_invite' %}">Claim invite</a>
-          </div>
+    <div class="col-xl-3 col-lg-4 order-lg-1 order-2">
+      <div class="dashboard-quick-panel h-100">
+        <h6 class="text-uppercase small mb-2 text-muted">Quick actions</h6>
+        <div class="d-flex flex-column gap-2 mb-3">
+          <a class="btn btn-sm btn-primary w-100" href="{% url 'portal:link_child' %}">Link a child</a>
+          <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'portal:claim_invite' %}">Claim invite</a>
+          {% if portal_features %}
+            {% for feature in portal_features|slice:":2" %}
+              {% if feature.enabled %}
+                <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'portal:portal_feature' feature.key %}">{{ feature.label }}</a>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        </div>
+        <div class="mb-2">
+          <div class="text-uppercase small text-muted mb-1">Contact</div>
+          {% if SITE.company_phone %}<div class="small text-dark">Phone: {{ SITE.company_phone }}</div>{% endif %}
+          {% if SITE.company_email %}<div class="small text-dark">Email: {{ SITE.company_email }}</div>{% endif %}
+        </div>
+        <div>
+          <div class="text-uppercase small text-muted mb-2">Socials</div>
+          {% for link in SITE.active_social_links %}
+            <span class="social-chip">
+              <i class="{{ link.icon }}"></i> {{ link.platform }}
+            </span>
+          {% empty %}
+            <div class="small text-muted">No social links published.</div>
+          {% endfor %}
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="text-muted small mb-1">Attendance snapshot</div>
-          <div class="display-6 fw-semibold">{{ widget_data.attendance.overall|default:"0" }}%</div>
-          <p class="small text-muted mb-3">{{ widget_data.attendance.label }}</p>
-          <div class="progress" style="height:6px;">
-            <div class="progress-bar" role="progressbar" style="width: {{ widget_data.attendance.overall|default:0 }}%;" aria-valuenow="{{ widget_data.attendance.overall|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
-          </div>
-          <div class="mt-2 small text-muted">
-            Balance: {{ widget_data.finance.balance|default:"0.00" }} · Outstanding: {{ widget_data.finance.overdue|default:0 }}
+    <div class="col-xl-9 col-lg-8 order-lg-2 order-1">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+              <div class="text-uppercase small text-muted mb-1">Linked children</div>
+              <h5 class="mb-0">{{ links|length }}</h5>
+              <p class="small text-muted mb-2">Students connected to your account.</p>
+              <div class="mini-sparkline mb-2">
+                <span style="height: {{ widget_data.attendance.overall|default:30 }}%;"></span>
+                <span style="height: {{ widget_data.attendance.today|default:60 }}%;"></span>
+                <span style="height: {{ widget_data.attendance.missing|default:20 }}%;"></span>
+              </div>
+              <small class="text-muted">Completeness trend</small>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="text-muted small mb-1">Progress alerts</div>
-          <div class="display-6 fw-semibold">{{ widget_data.referral.completeness_avg|default:"0" }}%</div>
-          <p class="small text-muted mb-0">{{ widget_data.referral.note }}</p>
-          <small class="text-muted d-block mt-2">
-            Referral code: {{ widget_data.referral.code|default:"Pending" }}
-          </small>
+        <div class="col-md-4">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+              <div class="text-uppercase small text-muted mb-1">Attendance</div>
+              <h5 class="mb-0">{{ widget_data.attendance.overall|default:"0" }}%</h5>
+              <div class="progress mb-2" style="height:6px;">
+                <div class="progress-bar" style="width: {{ widget_data.attendance.overall|default:0 }}%;"></div>
+              </div>
+              <p class="small text-muted mb-0">{{ widget_data.attendance.label }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+              <div class="text-uppercase small text-muted mb-1">Progress</div>
+              <h5 class="mb-0">{{ widget_data.completion_pct }}%</h5>
+              <div class="progress mb-2" style="height:6px;">
+                <div class="progress-bar bg-success" style="width: {{ widget_data.completion_pct }}%;"></div>
+              </div>
+              <p class="small text-muted mb-0">Balance: {{ widget_data.finance.balance|default:"0.00" }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -116,7 +199,7 @@
     </div>
   </div>
 
-  <div class="row g-3 mb-4" id="my-children">
+  <div class="row g-3 mb-4">
     <div class="col-12">
       <div class="card h-100">
         <div class="card-body">
@@ -181,48 +264,48 @@
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-12">
       <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <div class="text-muted small mb-1">Linked children</div>
-          <div class="display-6 kpi">{{ links|length }}</div>
-          <p class="small text-muted mb-1">Students connected to your account.</p>
-          <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:link_child' %}">Add another</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="text-muted small mb-1">Progress snapshot</div>
-          <h5 class="mb-1">{{ widget_data.attendance.overall|default:0 }}% completion</h5>
-          <div class="progress mb-2" style="height:6px;">
-            <div class="progress-bar bg-success" role="progressbar" style="width: {{ widget_data.attendance.overall|default:0 }}%;" aria-valuenow="{{ widget_data.attendance.overall|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <div class="text-uppercase small text-muted mb-1">My Children</div>
+              <h5 class="mb-0">Subject highlights</h5>
+            </div>
+            <span class="badge text-bg-light">{{ links|length }} students</span>
           </div>
-          <p class="small text-muted">{{ widget_data.attendance.label }}</p>
-          <div class="small text-muted">
-            Balance: {{ widget_data.finance.balance|default:"0.00" }} · Overdue: {{ widget_data.finance.overdue|default:0 }}
+          <div class="row g-3">
+            {% if widget_data.analytics.highlights %}
+              <div class="col-md-6">
+                <div class="children-metric-card">
+                  <div class="text-uppercase small text-muted mb-2">Top subjects</div>
+                  {% for subject in widget_data.analytics.highlights|slice:":3" %}
+                    <div class="subject-pair">
+                      <span>{{ subject.subject }}</span>
+                      <span>{{ subject.average }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+            {% if widget_data.analytics.lowlights %}
+              <div class="col-md-6">
+                <div class="children-metric-card">
+                  <div class="text-uppercase small text-muted mb-2">Needs attention</div>
+                  {% for subject in widget_data.analytics.lowlights|slice:":3" %}
+                    <div class="subject-pair">
+                      <span>{{ subject.subject }}</span>
+                      <span>{{ subject.average }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
           </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="text-muted small mb-1">System status</div>
-          <ul class="list-unstyled small mb-0">
-            <li>Unpublished terms: {{ health.unpublished_terms }}</li>
-            <li>Overdue invoices: {{ health.overdue_invoices }}</li>
-            <li>Draft invoices: {{ health.draft_invoices }}</li>
-            <li>Reminders due: {{ health.reminders_due }}</li>
-            <li>Parent portal: {{ health.portal_parent_enabled|yesno:"On,Off" }}</li>
-          </ul>
         </div>
       </div>
     </div>
   </div>
-
-  {% include "widgets/parent_dashboard_widgets.html" %}
 
   {% if portal_features %}
     <div class="card mt-4">
