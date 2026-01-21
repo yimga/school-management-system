@@ -27,6 +27,35 @@
     </div>
   </div>
 
+  {% if metadata %}
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <div class="card border-secondary">
+          <div class="card-body">
+            <h6 class="mb-1">School geography</h6>
+            <p class="small mb-1">
+              <b>Country:</b> {{ metadata.country|default:"Not set" }} ·
+              <b>Region:</b> {{ metadata.region|default:"Not set" }}
+            </p>
+            <p class="small mb-0">
+              <b>Ministry:</b> {{ metadata.ministry|default:"Not set" }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card border-secondary">
+          <div class="card-body">
+            <h6 class="mb-1">Branding</h6>
+            <p class="small mb-0">
+              {{ metadata.school_name }} ({{ metadata.school_code|default:"" }}) · {{ metadata.tagline|default:"" }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
   {% if published and summary %}
     <div class="row g-3 mb-3">
       <div class="col-md-4">

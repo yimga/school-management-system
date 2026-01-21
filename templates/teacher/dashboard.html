@@ -99,6 +99,64 @@
   </div>
 
   <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <p class="text-uppercase small text-muted mb-1">Analytics</p>
+              <h5 class="mb-0">Top/bottom subjects</h5>
+            </div>
+            <span class="badge text-bg-light">{{ widget_data.analytics.label }}</span>
+          </div>
+          <ul class="list-unstyled small mb-0">
+            {% for subject in widget_data.analytics.highlights|slice:":2" %}
+              <li class="d-flex justify-content-between">
+                <span>{{ subject.subject }}</span>
+                <span class="text-primary">{{ subject.average }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+          {% if widget_data.analytics.lowlights %}
+            <div class="mt-3 small text-muted">Watch these:</div>
+            <ul class="list-unstyled mb-0">
+              {% for subject in widget_data.analytics.lowlights|slice:":2" %}
+                <li class="d-flex justify-content-between">
+                  <span>{{ subject.subject }}</span>
+                  <span class="text-danger">{{ subject.average }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <p class="text-uppercase small text-muted mb-1">Grade readiness</p>
+              <h5 class="mb-0">Missing records</h5>
+            </div>
+            <span class="badge text-bg-light">{{ widget_data.missing|default:"0" }}</span>
+          </div>
+          <p class="small text-muted mb-2">
+            Pending evaluations: {{ widget_data.tasks.pending_evaluations|default:"0" }}
+          </p>
+          <p class="small text-muted mb-3">
+            Pending payments: {{ widget_data.tasks.pending_payments|default:"0" }}
+          </p>
+          <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}?missing=1">Fill missing marks</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ grade_import_upload_url }}">Upload grades</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
     <div class="col-lg-4 col-md-6">
       <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
