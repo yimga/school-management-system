@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
 from apps.siteconfig.models import SiteSettings
+from apps.academics.models import Term
 
 
 class LinkChildForm(forms.Form):
@@ -29,6 +30,57 @@ class LinkChildForm(forms.Form):
         required=False,
         label=_("Referral code"),
         help_text=_("Optional: provide the referral code you received."),
+    )
+    student_date_of_birth = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}),
+        label=_("Student date of birth"),
+    )
+    student_place_of_birth = forms.CharField(
+        required=False,
+        label=_("Place of birth"),
+        help_text=_("City or town where the student was born."),
+    )
+    student_gender = forms.ChoiceField(
+        required=False,
+        choices=StudentProfile.Gender.choices,
+        label=_("Gender"),
+    )
+    student_status = forms.ChoiceField(
+        required=False,
+        choices=StudentProfile.Status.choices,
+        label=_("Student status"),
+    )
+    student_joined_term = forms.ChoiceField(
+        required=False,
+        choices=Term.Name.choices,
+        label=_("Joined term"),
+    )
+    student_joined_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}),
+        label=_("Joined date"),
+    )
+    parent_first_name = forms.CharField(
+        required=False,
+        label=_("Parent first name"),
+    )
+    parent_last_name = forms.CharField(
+        required=False,
+        label=_("Parent last name"),
+    )
+    parent_email = forms.EmailField(
+        required=False,
+        label=_("Parent email"),
+    )
+    parent_whatsapp = forms.CharField(
+        required=False,
+        label=_("Parent WhatsApp"),
+    )
+    parent_address = forms.CharField(
+        required=False,
+        label=_("Parent address"),
+        widget=forms.Textarea(attrs={"rows": 2}),
     )
     can_view_results = forms.BooleanField(
         required=False,
@@ -90,6 +142,9 @@ class LinkChildForm(forms.Form):
             receives_whatsapp=False,
             can_view_results=data.get("can_view_results", False),
             can_view_finance=data.get("can_view_finance", False),
+            email=data.get("parent_email", ""),
+            whatsapp_number=data.get("parent_whatsapp", ""),
+            address=data.get("parent_address", ""),
         )
 
         # If student is missing a parent phone, reuse the provided one.
@@ -104,6 +159,32 @@ class LinkChildForm(forms.Form):
             student.save(update_fields=["referral_code"])
 
         return guardian
+
+    def student_updates(self) -> dict:
+        updates = {}
+        mapping = {
+            "student_date_of_birth": "date_of_birth",
+            "student_place_of_birth": "place_of_birth",
+            "student_gender": "gender",
+            "student_status": "status",
+            "student_joined_term": "joined_term",
+            "student_joined_date": "joined_date",
+        }
+        for field, attr in mapping.items():
+            value = self.cleaned_data.get(field)
+            if value not in (None, "", []):
+                updates[attr] = value
+        return updates
+
+    def parent_updates(self) -> dict:
+        updates = {}
+        if self.cleaned_data.get("parent_first_name"):
+            updates["first_name"] = self.cleaned_data["parent_first_name"]
+        if self.cleaned_data.get("parent_last_name"):
+            updates["last_name"] = self.cleaned_data["parent_last_name"]
+        if self.cleaned_data.get("parent_email"):
+            updates["email"] = self.cleaned_data["parent_email"]
+        return updates
 
 
 class ClaimInviteForm(forms.Form):

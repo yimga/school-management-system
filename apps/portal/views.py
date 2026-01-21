@@ -488,6 +488,21 @@ def link_child(request: HttpRequest):
 
     if request.method == "POST" and form.is_valid():
         guardian_link = form.save()
+        student = guardian_link.student
+        student_updates = form.student_updates()
+        if student_updates:
+            StudentProfile.objects.filter(pk=student.pk).update(**student_updates)
+            student.refresh_from_db()
+
+        parent_updates = form.parent_updates()
+        if parent_updates:
+            changed = []
+            for attr, value in parent_updates.items():
+                setattr(request.user, attr, value)
+                changed.append(attr)
+            if changed:
+                request.user.save(update_fields=changed)
+
         messages.success(
             request,
             f"Linked {guardian_link.student} successfully. Results and finance access will reflect your choices.",

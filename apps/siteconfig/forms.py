@@ -1,3 +1,4 @@
+from decimal import Decimal
 from zoneinfo import available_timezones
 
 from django import forms
@@ -31,6 +32,7 @@ class SiteSettingsForm(forms.ModelForm):
             # Branding
             "site_name",
             "tagline",
+            "school_code",
             "logo",
             "background_image",
             "brand_font",
@@ -57,6 +59,7 @@ class SiteSettingsForm(forms.ModelForm):
             "report_downloads_enabled",
             "portal_features",
             "notification_channels",
+            "referral_bonus_amount",
             # Compliance
             "compliance_profile",
             # Analytics defaults
@@ -71,6 +74,7 @@ class SiteSettingsForm(forms.ModelForm):
         widgets = {
             "site_name": forms.TextInput(attrs={"class": "form-control"}),
             "tagline": forms.TextInput(attrs={"class": "form-control"}),
+            "school_code": forms.TextInput(attrs={"class": "form-control", "maxlength": 20}),
             "primary_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
             "accent_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
             "background_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
@@ -87,6 +91,7 @@ class SiteSettingsForm(forms.ModelForm):
             "default_refresh_rate": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
             "portal_features": forms.CheckboxSelectMultiple(),
             "notification_channels": forms.CheckboxSelectMultiple(),
+            "referral_bonus_amount": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
             "top_students_default_limit": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
             "pass_mark": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
             "weak_subject_threshold": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
@@ -107,6 +112,7 @@ class SiteSettingsForm(forms.ModelForm):
             enabled = [key for key, _ in PORTAL_FEATURE_OPTIONS if PORTAL_FEATURE_DEFAULTS.get(key)]
         self.fields["portal_features"].initial = enabled
         self.fields["notification_channels"].initial = self.instance.notification_channels or []
+        self.initial["referral_bonus_amount"] = self.instance.referral_bonus_amount or Decimal("0.00")
 
     def clean_portal_features(self):
         selected = self.cleaned_data.get("portal_features") or []
