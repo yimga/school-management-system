@@ -5,6 +5,7 @@ from typing import Iterable, Optional
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.urls import reverse
+from apps.siteconfig.models import SiteSettings
 
 from apps.academics.models import Term
 from apps.evals.models import AssessmentWeights, Evaluation
@@ -108,6 +109,18 @@ def _auto_teacher_remark(average: Optional[float]) -> str:
     return "Unsatisfactory performance."
 
 
+def _school_report_metadata() -> dict:
+    site = SiteSettings.get_solo()
+    return {
+        "school_name": site.site_name,
+        "school_code": site.school_code,
+        "country": site.country,
+        "region": site.region,
+        "ministry": site.ministry,
+        "tagline": site.tagline,
+    }
+
+
 def term_report_context(student: StudentProfile, academic_year, term: Term) -> dict:
     evaluations = (
         Evaluation.objects.filter(student=student, term=term, academic_year=academic_year)
@@ -171,6 +184,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "rows": rows,
         "summary": summary,
         "weights": weights,
+        "metadata": _school_report_metadata(),
     }
 
 
@@ -260,6 +274,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "promotion_average": thresholds.get("promotion_average"),
         "demotion_average": thresholds.get("demotion_average"),
         "teacher_remark": _auto_teacher_remark(annual_average),
+        "metadata": _school_report_metadata(),
     }
 
 
