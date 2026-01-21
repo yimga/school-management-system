@@ -91,7 +91,7 @@ def rbac_dashboard(request):
                 messages.success(request, f"Permissions updated for {user.username}.")
                 return redirect("accounts:rbac")
 
-    attendance_trend_total = sum(item['present'] for item in attendance_trend)
+    attendance_trend_total = sum(item["present"] for item in attendance_trend)
     attendance_trend_progress = min(attendance_trend_total, 100)
     context = {
         "roles": AccessRole.objects.prefetch_related("permissions").order_by("code"),
@@ -100,6 +100,9 @@ def rbac_dashboard(request):
         "permission_form": permission_form,
         "user_role_form": user_role_form,
         "user_permission_form": user_permission_form,
+        "attendance_trend_total": attendance_trend_total,
+        "attendance_trend_progress": attendance_trend_progress,
+
     }
     return render(request, "accounts/rbac_dashboard.html", context)
 
