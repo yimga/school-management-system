@@ -162,7 +162,9 @@
             <div class="d-flex justify-content-between small text-muted mb-1">
               <span>Last 7 days present</span>
               {% if attendance_trend %}
-                <span>{{ attendance_trend|first.present }}</span>
+                {% with latest_trend=attendance_trend|first %}
+                  <span>{{ latest_trend.present }}</span>
+                {% endwith %}
               {% else %}
                 <span>0</span>
               {% endif %}
