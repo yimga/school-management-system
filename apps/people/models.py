@@ -7,7 +7,7 @@ import re
 import uuid
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Classroom, Specialty, Department
+from apps.academics.models import AcademicYear, Classroom, Specialty, Department, Term
 
 
 class TeacherProfile(models.Model):
@@ -167,11 +167,22 @@ class StudentProfile(models.Model):
     admission_number = models.CharField(max_length=64, unique=True, blank=True, null=True)
     profile_photo = models.ImageField(upload_to="profiles/students/", blank=True, null=True)
 
-    gender = models.CharField(max_length=10, blank=True)
+    class Gender(models.TextChoices):
+        MALE = "MALE", "Male"
+        FEMALE = "FEMALE", "Female"
+        OTHER = "OTHER", "Other"
+
+    class Status(models.TextChoices):
+        NEW = "NEW", "New"
+        RETURNING = "RETURNING", "Returning"
+        PROBATION = "PROBATION", "Probation"
+        ALUMNI = "ALUMNI", "Alumni"
+
+    gender = models.CharField(max_length=10, choices=Gender.choices, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     place_of_birth = models.CharField(max_length=120, blank=True)
-    status = models.CharField(max_length=20, blank=True)  # NEW | OLD
-    joined_term = models.CharField(max_length=20, blank=True)
+    status = models.CharField(max_length=20, blank=True, choices=Status.choices)
+    joined_term = models.CharField(max_length=20, blank=True, choices=Term.Name.choices)
     joined_date = models.DateField(null=True, blank=True)
     section = models.CharField(max_length=80, blank=True)
     parent_phone = models.CharField(max_length=50, blank=True)
@@ -310,6 +321,8 @@ class StudentGuardian(models.Model):
 
     relationship = models.CharField(max_length=20, choices=Relationship.choices, default=Relationship.GUARDIAN)
     phone = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(blank=True)
+    whatsapp_number = models.CharField(max_length=50, blank=True)
     address = models.CharField(max_length=255, blank=True)
     preferred_contact = models.CharField(
         max_length=20,

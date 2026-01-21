@@ -6,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
-from apps.people.models import StudentProfile
+from apps.people.models import StudentProfile, StudentGuardian
 
 
 class ComplianceProfile(models.Model):
@@ -378,6 +378,52 @@ class ReportRequest(models.Model):
 
     def __str__(self) -> str:
         return f"{self.report_type} requested by {self.requested_by}"
+
+
+class ReferralReward(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        APPROVED = "APPROVED", "Approved"
+        PAID = "PAID", "Paid"
+
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.PROTECT,
+        related_name="referral_rewards",
+    )
+    guardian = models.ForeignKey(
+        StudentGuardian,
+        on_delete=models.PROTECT,
+        related_name="referral_rewards",
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    description = models.CharField(max_length=255, blank=True)
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="referral_rewards",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    awarded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="awarded_referral_rewards",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.student} referral reward ({self.amount})"
+
+    def mark_paid(self):
+        self.status = self.Status.PAID
+        self.save(update_fields=["status"])
 
 
 class Budget(models.Model):

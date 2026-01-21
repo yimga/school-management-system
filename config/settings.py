@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     "apps.academics",
     "apps.people",
     "apps.reports",
-    "apps.siteconfig",
+    "apps.siteconfig.apps.SiteconfigConfig",
     "apps.analytics",
     "apps.finance",
     "apps.payroll",

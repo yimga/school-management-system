@@ -21,6 +21,7 @@ from .models import (
     JournalLine,
     LedgerAccount,
     Payment,
+    ReferralReward,
     TaxBracket,
     PaymentReminder,
     PaymentReminderLog,
@@ -185,3 +186,10 @@ class ReportRequestAdmin(ModelAdmin):
     list_display = ("report_type", "requested_by", "status", "created_at")
     list_filter = ("report_type", "status")
     search_fields = ("requested_by__username", "description")
+
+
+@admin.register(ReferralReward)
+class ReferralRewardAdmin(ModelAdmin):
+    list_display = ("student", "guardian", "amount", "status", "awarded_by", "created_at")
+    list_filter = ("status",)
+    search_fields = ("student__student_code", "guardian__guardian_user__username", "guardian__guardian_user__email")

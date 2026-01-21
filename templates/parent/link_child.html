@@ -26,17 +26,81 @@
           </div>
         {% endif %}
 
+        <div class="col-12">
+          <h5 class="mb-2">Student details</h5>
+        </div>
+
         <div class="col-md-6">
           <label class="form-label">{{ form.admission_number.label }}</label>
           {{ form.admission_number }}
           {% if form.admission_number.help_text %}<div class="form-text">{{ form.admission_number.help_text }}</div>{% endif %}
           {{ form.admission_number.errors }}
         </div>
-
         <div class="col-md-6">
           <label class="form-label">{{ form.relationship.label }}</label>
           {{ form.relationship }}
           {{ form.relationship.errors }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">{{ form.student_date_of_birth.label }}</label>
+          {{ form.student_date_of_birth }}
+          {{ form.student_date_of_birth.errors }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.student_place_of_birth.label }}</label>
+          {{ form.student_place_of_birth }}
+          {{ form.student_place_of_birth.errors }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.student_gender.label }}</label>
+          {{ form.student_gender }}
+          {{ form.student_gender.errors }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.student_status.label }}</label>
+          {{ form.student_status }}
+          {{ form.student_status.errors }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.student_joined_term.label }}</label>
+          {{ form.student_joined_term }}
+          {{ form.student_joined_term.errors }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.student_joined_date.label }}</label>
+          {{ form.student_joined_date }}
+          {{ form.student_joined_date.errors }}
+        </div>
+
+        <div class="col-12">
+          <h5 class="mb-2">Parent & contact</h5>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">{{ form.parent_first_name.label }}</label>
+          {{ form.parent_first_name }}
+          {{ form.parent_first_name.errors }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.parent_last_name.label }}</label>
+          {{ form.parent_last_name }}
+          {{ form.parent_last_name.errors }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.parent_email.label }}</label>
+          {{ form.parent_email }}
+          {{ form.parent_email.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.parent_whatsapp.label }}</label>
+          {{ form.parent_whatsapp }}
+          {{ form.parent_whatsapp.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.parent_address.label }}</label>
+          {{ form.parent_address }}
+          {{ form.parent_address.errors }}
         </div>
 
         <div class="col-md-6">
@@ -45,7 +109,6 @@
           {% if form.phone.help_text %}<div class="form-text">{{ form.phone.help_text }}</div>{% endif %}
           {{ form.phone.errors }}
         </div>
-
         <div class="col-md-6">
           <label class="form-label">{{ form.preferred_contact.label }}</label>
           {{ form.preferred_contact }}

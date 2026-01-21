@@ -27,16 +27,23 @@
 
     <h5 class="mb-3">Branding</h5>
     <div class="row g-3 mb-4">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label class="form-label">Site Name</label>
         {{ form.site_name }}
         {% for e in form.site_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
       </div>
 
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label class="form-label">Tagline</label>
         {{ form.tagline }}
         {% for e in form.tagline.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">School code</label>
+        {{ form.school_code }}
+        {% for e in form.school_code.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        <div class="text-muted small mt-1">Used in admission numbers (YY + code + sequence + specialty + class).</div>
       </div>
 
       <div class="col-md-6">
@@ -182,6 +189,20 @@
     </div>
     <div class="text-muted small mb-3">
       When enabled, the public site shows a maintenance page (admins still get through). The refresh rate controls how often dashboards auto-update.
+    </div>
+
+    <hr class="my-4">
+
+    <h5 class="mb-3">Referral rewards</h5>
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Referral bonus amount</label>
+        {{ form.referral_bonus_amount }}
+        {% for e in form.referral_bonus_amount.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        <div class="text-muted small mt-1">
+          Amount issued per successful parent referral credit (linked to referral rewards in Finance).
+        </div>
+      </div>
     </div>
 
     <hr class="my-4">

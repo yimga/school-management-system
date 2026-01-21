@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from django.apps import apps as django_apps
@@ -93,6 +95,12 @@ class SiteSettings(models.Model):
     enable_reports_pdf = models.BooleanField(default=True)
     report_downloads_enabled = models.BooleanField(default=True)
     portal_features = models.JSONField(default=default_portal_features, blank=True)
+    referral_bonus_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Default credit amount awarded per successful referral.",
+    )
 
     # Compliance profile (finance/payroll)
     compliance_profile = models.ForeignKey(

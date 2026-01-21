@@ -1,9 +1,12 @@
+from decimal import Decimal
 from django.contrib import admin, messages
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from apps.portal.models import PendingGuardianInvite
+from apps.finance.models import ReferralReward
+from apps.siteconfig.models import SiteSettings
 from .models import (
     TeacherProfile,
     StudentProfile,
@@ -22,6 +25,8 @@ class StudentGuardianInline(admin.TabularInline):
         "guardian_user",
         "relationship",
         "phone",
+        "email",
+        "whatsapp_number",
         "address",
         "preferred_contact",
         "receives_email",
@@ -158,7 +163,7 @@ class StudentProfileAdmin(ModelAdmin):
         ("Flags", {"fields": ("is_active",)}),
     )
 
-    actions = ("create_guardian_invites",)
+    actions = ("create_guardian_invites", "issue_referral_rewards")
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
@@ -194,6 +199,40 @@ class StudentProfileAdmin(ModelAdmin):
 
     create_guardian_invites.short_description = _("Create guardian invites")
 
+    def issue_referral_rewards(self, request, queryset):
+        site = SiteSettings.get_solo()
+        amount = site.referral_bonus_amount or Decimal("0.00")
+        created = 0
+        for student in queryset:
+            guardian = student.guardian_links.first()
+            if not guardian:
+                continue
+            reward, new = ReferralReward.objects.get_or_create(
+                student=student,
+                guardian=guardian,
+                defaults={
+                    "amount": amount,
+                    "description": "Referral reward issued via admin action.",
+                    "awarded_by": request.user,
+                },
+            )
+            if new:
+                created += 1
+        if created:
+            self.message_user(
+                request,
+                _(f"Issued {created} referral reward(s)."),
+                level=messages.SUCCESS,
+            )
+        else:
+            self.message_user(
+                request,
+                _("No reward created (no guardians or rewards already exist)."),
+                level=messages.WARNING,
+            )
+
+    issue_referral_rewards.short_description = _("Issue referral rewards")
+
 
 @admin.register(StudentGuardian)
 class StudentGuardianAdmin(ModelAdmin):
@@ -202,6 +241,8 @@ class StudentGuardianAdmin(ModelAdmin):
         "student",
         "relationship",
         "phone",
+        "email",
+        "whatsapp_number",
         "preferred_contact",
         "receives_email",
         "receives_sms",
