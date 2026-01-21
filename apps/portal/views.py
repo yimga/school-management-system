@@ -354,6 +354,11 @@ def portal_stats(request: HttpRequest):
             min_delta=improvement_delta,
         )
 
+    students = [link.student for link in StudentGuardian.objects.filter(
+        guardian_user=request.user
+    ).select_related("student")]
+    widget_data = parent_dashboard_widget_data(students)
+
     return render(request, "portal/stats.html", {
         "year": year,
         "term": term,
@@ -361,6 +366,7 @@ def portal_stats(request: HttpRequest):
         "specialty_rows": specialty_rows,
         "weak_subjects": weak_subjects,
         "improvement_rows": improvement_rows,
+        "widget_data": widget_data,
     })
 
 
