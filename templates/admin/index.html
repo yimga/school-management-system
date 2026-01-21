@@ -278,9 +278,8 @@
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-heading">Navigation</div>
+        <div class="sidebar-heading">Academics</div>
         <ul>
-          <li><i class="bi bi-braces"></i> Admin</li>
           <li><i class="bi bi-clipboard-data"></i> Evaluation Manager</li>
           <li><i class="bi bi-pie-chart"></i> Analytics</li>
           <li><i class="bi bi-wallet2"></i> Finance</li>
@@ -289,6 +288,16 @@
           <li><i class="bi bi-trophy"></i> Class Ranking</li>
           <li><i class="bi bi-award"></i> School Ranking</li>
           <li><i class="bi bi-file-earmark-post"></i> Publish Results</li>
+          <li><i class="bi bi-clock-history"></i> Grading Deadlines</li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">User Account &amp; Group Management</div>
+        <ul>
+          <li><i class="bi bi-people"></i> Accounts</li>
+          <li><i class="bi bi-shield-lock-fill"></i> Authentication</li>
+          <li><i class="bi bi-person"></i> People</li>
         </ul>
       </div>
 
@@ -320,6 +329,33 @@
           <button class="btn btn-pill btn-outline-secondary">Grading Deadlines</button>
         </div>
       </header>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
+          <div>
+            <h5 class="mb-1">Contact &amp; social</h5>
+            <p class="text-muted small mb-1">
+              Share the channels parents, staff, and community use to reach you. These links are toggled from Site Settings.
+            </p>
+            {% if SITE.company_phone %}<div class="small text-dark">Phone: {{ SITE.company_phone }}</div>{% endif %}
+            {% if SITE.company_email %}<div class="small text-dark">Email: {{ SITE.company_email }}</div>{% endif %}
+            <div class="mt-2 d-flex flex-wrap gap-2">
+              <span class="badge text-bg-light">Parents: {{ SITE.enable_parent_portal|yesno:"Enabled,Disabled" }}</span>
+              <span class="badge text-bg-light">Teachers: {{ SITE.enable_teacher_portal|yesno:"Enabled,Disabled" }}</span>
+              <span class="badge text-bg-light">Reports: {{ SITE.report_downloads_enabled|yesno:"On,Off" }}</span>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            {% for link in SITE.active_social_links %}
+              <a class="btn btn-outline-secondary btn-sm" href="{{ link.url }}" target="_blank">
+                <i class="{{ link.icon }}"></i> {{ link.platform }}
+              </a>
+            {% empty %}
+              <span class="small text-muted">No social links configured.</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
 
       <div class="admin-hero hero-panel">
         <div class="hero-wrapper">
