@@ -4,8 +4,17 @@ Enables visibility and control over all system actions and access patterns.
 """
 
 from django.contrib import admin
+from django.utils import timezone
 from unfold.admin import ModelAdmin
-from .models_audit import AuditLog, UserActivitySession, AccessLog, ComplianceReport
+from .models_audit import (
+    AuditLog,
+    UserActivitySession,
+    AccessLog,
+    ComplianceReport,
+    ThreatDetectionConfig,
+    IPAccessRule,
+    CountryAccessRule,
+)
 
 
 @admin.register(AuditLog)
@@ -195,3 +204,142 @@ class ComplianceReportAdmin(ModelAdmin):
         response['Content-Disposition'] = 'attachment; filename="compliance_reports.pdf"'
         return response
     export_as_pdf.short_description = "Export selected as PDF"
+
+
+@admin.register(ThreatDetectionConfig)
+class ThreatDetectionConfigAdmin(ModelAdmin):
+    list_display = ("window_minutes", "failed_per_user", "failed_per_ip", "mute_status", "updated_at", "updated_by")
+    readonly_fields = ("updated_at", "updated_by")
+    fieldsets = (
+        ("Detection Thresholds", {
+            "fields": ("window_minutes", "failed_per_user", "failed_per_ip"),
+            "description": "Configure how many failed attempts trigger alerts"
+        }),
+        ("After-Hours Detection", {
+            "fields": ("after_hours_start", "after_hours_end", "after_hours_threshold"),
+            "description": "Define off-hours time window (24h format) and threshold"
+        }),
+        ("Mute Window", {
+            "fields": ("mute_until",),
+            "description": "Temporarily suppress all threat alerts until specified time"
+        }),
+        ("Metadata", {
+            "fields": ("updated_at", "updated_by"),
+            "classes": ("collapse",)
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        """Track who updated the configuration."""
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def mute_status(self, obj):
+        """Display whether alerts are currently muted."""
+        if obj.is_muted():
+            remaining = obj.mute_until - timezone.now()
+            hours = int(remaining.total_seconds() // 3600)
+            minutes = int((remaining.total_seconds() % 3600) // 60)
+            return f"🔇 Muted ({hours}h {minutes}m remaining)"
+        return "🔔 Active"
+    mute_status.short_description = "Alert Status"
+
+    def has_add_permission(self, request):
+        """Only allow one configuration to exist."""
+        return not ThreatDetectionConfig.objects.filter(is_active=True).exists()
+
+    def has_delete_permission(self, request, obj=None):
+        """Prevent deletion of active configuration."""
+        return False
+
+
+@admin.register(IPAccessRule)
+class IPAccessRuleAdmin(ModelAdmin):
+    list_display = ("ip_address", "rule_type", "is_active", "description", "created_at", "expires_at", "expired_status")
+    list_filter = ("rule_type", "is_active", "created_at")
+    search_fields = ("ip_address", "description")
+    readonly_fields = ("created_at", "created_by")
+    fieldsets = (
+        ("Rule Configuration", {
+            "fields": ("rule_type", "ip_address", "is_active"),
+            "description": "Define allow/deny rule for IP or CIDR range"
+        }),
+        ("Details", {
+            "fields": ("description", "expires_at")
+        }),
+        ("Metadata", {
+            "fields": ("created_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        """Track who created the rule."""
+        if not change:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+    def expired_status(self, obj):
+        """Display expiration status."""
+        if not obj.expires_at:
+            return "—"
+        if obj.is_expired():
+            return "⚠️ Expired"
+        return "✓ Valid"
+    expired_status.short_description = "Status"
+
+    actions = ["activate_rules", "deactivate_rules"]
+
+    def activate_rules(self, request, queryset):
+        """Bulk activate selected rules."""
+        count = queryset.update(is_active=True)
+        self.message_user(request, f"Activated {count} rule(s)")
+    activate_rules.short_description = "Activate selected rules"
+
+    def deactivate_rules(self, request, queryset):
+        """Bulk deactivate selected rules."""
+        count = queryset.update(is_active=False)
+        self.message_user(request, f"Deactivated {count} rule(s)")
+    deactivate_rules.short_description = "Deactivate selected rules"
+
+
+@admin.register(CountryAccessRule)
+class CountryAccessRuleAdmin(ModelAdmin):
+    list_display = ("country_code", "country_name", "rule_type", "is_active", "description", "created_at")
+    list_filter = ("rule_type", "is_active", "created_at")
+    search_fields = ("country_code", "country_name", "description")
+    readonly_fields = ("created_at", "created_by")
+    fieldsets = (
+        ("Rule Configuration", {
+            "fields": ("rule_type", "country_code", "country_name", "is_active"),
+            "description": "Define allow/deny rule for country (ISO 3166-1 alpha-2 code)"
+        }),
+        ("Details", {
+            "fields": ("description",)
+        }),
+        ("Metadata", {
+            "fields": ("created_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        """Track who created the rule."""
+        if not change:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+    actions = ["activate_rules", "deactivate_rules"]
+
+    def activate_rules(self, request, queryset):
+        """Bulk activate selected rules."""
+        count = queryset.update(is_active=True)
+        self.message_user(request, f"Activated {count} rule(s)")
+    activate_rules.short_description = "Activate selected rules"
+
+    def deactivate_rules(self, request, queryset):
+        """Bulk deactivate selected rules."""
+        count = queryset.update(is_active=False)
+        self.message_user(request, f"Deactivated {count} rule(s)")
+    deactivate_rules.short_description = "Deactivate selected rules"
+

@@ -10,20 +10,35 @@ from django.db.models import Count, Q
 from django.db.models.functions import ExtractHour
 from django.utils import timezone
 
-from apps.compliance.models_audit import AccessLog
+from apps.compliance.models_audit import AccessLog, ThreatDetectionConfig
 from apps.compliance.alerts import send_threat_alert
 
 
 def detect_threats(window_minutes: int | None = None) -> List[Dict]:
-    cfg = getattr(settings, "THREAT_DETECTION", {})
-    window = window_minutes or cfg.get("window_minutes", 60)
-    since = timezone.now() - timedelta(minutes=window)
+    # Get configuration from DB first, fall back to settings
+    try:
+        db_config = ThreatDetectionConfig.get_active()
+        window = window_minutes or db_config.window_minutes
+        failed_per_user_threshold = db_config.failed_per_user
+        failed_per_ip_threshold = db_config.failed_per_ip
+        after_hours_start = db_config.after_hours_start
+        after_hours_end = db_config.after_hours_end
+        after_hours_threshold = db_config.after_hours_threshold
+        
+        # Check if muted
+        if db_config.is_muted():
+            return []
+    except Exception:
+        # Fall back to settings if DB unavailable
+        cfg = getattr(settings, "THREAT_DETECTION", {})
+        window = window_minutes or cfg.get("window_minutes", 60)
+        failed_per_user_threshold = cfg.get("failed_per_user", 10)
+        failed_per_ip_threshold = cfg.get("failed_per_ip", 20)
+        after_hours_start = cfg.get("after_hours_start", 22)
+        after_hours_end = cfg.get("after_hours_end", 6)
+        after_hours_threshold = cfg.get("after_hours_threshold", 5)
 
-    failed_per_user_threshold = cfg.get("failed_per_user", 10)
-    failed_per_ip_threshold = cfg.get("failed_per_ip", 20)
-    after_hours_start = cfg.get("after_hours_start", 22)
-    after_hours_end = cfg.get("after_hours_end", 6)
-    after_hours_threshold = cfg.get("after_hours_threshold", 5)
+    since = timezone.now() - timedelta(minutes=window)
 
     qs = AccessLog.objects.filter(timestamp__gte=since)
 

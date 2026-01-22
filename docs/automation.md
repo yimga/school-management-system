@@ -25,3 +25,21 @@ python manage.py run_phase7_checks --require-automation
 ## Scheduled workflows
 - Set Render cron to execute `python manage.py run_phase7_checks` nightly.
 - Hook accessibility audits (axe/pa11y) into CI, writing results to `docs/qa-reports/`.
+
+## Threat detection and incident response
+- Env vars (defaults):
+	- `THREAT_WINDOW_MINUTES=60` (lookback window in minutes)
+	- `THREAT_FAILED_PER_USER=10` and `THREAT_FAILED_PER_IP=20` (failed attempts before alert)
+	- `THREAT_AFTER_HOURS_START=22`, `THREAT_AFTER_HOURS_END=6`, `THREAT_AFTER_HOURS_THRESHOLD=5` (off-hours band and threshold)
+	- `THREAT_MUTE_MINUTES=0` (set >0 to temporarily suppress alerts)
+	- `ONCALL_EMAILS=` comma-separated emails for escalations
+	- `INCIDENT_TICKET_WEBHOOK=` URL to create tickets/incidents
+	- `INCIDENT_PLAYBOOK_URL=https://runbooks.gileadschool.com/security/incident-response`
+- Manual run:
+	- `python manage.py detect_threats` (uses defaults)
+	- `python manage.py detect_threats --window 30` (custom lookback)
+	- Add `--no-alert` to dry-run without sending notifications
+- Scheduling guidance:
+	- Run every 15 minutes for near-real-time detection: `*/15 * * * * python manage.py detect_threats`
+	- On Render cron, add a 15m job; on Windows Task Scheduler use an Action pointing to `python manage.py detect_threats` with a 15m trigger.
+	- Keep Sentry DSN configured so errors in the command bubble to monitoring.

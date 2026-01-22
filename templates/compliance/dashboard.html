@@ -7,6 +7,28 @@
 <div class="compliance-dashboard">
     <h1>📊 Compliance & Audit Dashboard</h1>
     
+    <!-- Incident Response & Playbook Links -->
+    <div class="alert-banner info">
+        <div class="alert-content">
+            <span class="alert-icon">📋</span>
+            <div class="alert-text">
+                <strong>Incident Response Resources</strong>
+                <p>
+                    {% if playbook_url %}
+                        <a href="{{ playbook_url }}" target="_blank" rel="noopener" class="playbook-link">
+                            📖 View Security Playbook & Runbooks
+                        </a>
+                    {% else %}
+                        Security playbook not configured (set INCIDENT_PLAYBOOK_URL)
+                    {% endif %}
+                    {% if oncall_emails %}
+                        | 🚨 On-call team: {{ oncall_emails|join:", " }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
     <!-- Key Metrics Section -->
     <div class="metrics-grid">
         <div class="metric-card">

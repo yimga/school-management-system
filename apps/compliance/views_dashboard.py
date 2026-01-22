@@ -56,6 +56,11 @@ class ComplianceDashboardView(View):
                 'integrity_status': self._get_integrity_status(),
             }
             cache.set(cache_key, context, cache_ttl)
+        
+        # Add incident response config (not cached, always fresh)
+        incident_cfg = getattr(settings, "INCIDENT_RESPONSE", {})
+        context['playbook_url'] = incident_cfg.get('playbook_url')
+        context['oncall_emails'] = incident_cfg.get('oncall_emails', [])
 
         return render(request, 'compliance/dashboard.html', context)
 

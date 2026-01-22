@@ -4,6 +4,7 @@ Phase 4: Audit logging for all model changes, user actions, and system events.
 """
 
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from django.conf import settings
 import json
@@ -257,3 +258,172 @@ class ComplianceReport(models.Model):
 
     def __str__(self):
         return f"{self.get_report_type_display()} ({self.start_date} to {self.end_date}) @ {self.generated_at.isoformat()}"
+
+
+class ThreatDetectionConfig(models.Model):
+    """
+    Persistent threat detection configuration (mute windows, thresholds).
+    Overrides environment variables when present.
+    """
+
+    # Singleton pattern - only one active config
+    is_active = models.BooleanField(default=True, unique=True, help_text="Only one config can be active")
+
+    # Thresholds
+    window_minutes = models.PositiveIntegerField(default=60, help_text="Lookback window in minutes")
+    failed_per_user = models.PositiveIntegerField(default=10, help_text="Failed logins per user before alert")
+    failed_per_ip = models.PositiveIntegerField(default=20, help_text="Failed attempts per IP before alert")
+    after_hours_start = models.PositiveIntegerField(
+        default=22,
+        validators=[MinValueValidator(0), MaxValueValidator(23)],
+        help_text="After-hours start (hour, 24h format)"
+    )
+    after_hours_end = models.PositiveIntegerField(
+        default=6,
+        validators=[MinValueValidator(0), MaxValueValidator(23)],
+        help_text="After-hours end (hour, 24h format)"
+    )
+    after_hours_threshold = models.PositiveIntegerField(default=5, help_text="Accesses during after-hours before alert")
+
+    # Mute window (persisted, survives restarts)
+    mute_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Suppress alerts until this time (leave empty to disable mute)"
+    )
+
+    # Metadata
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="threat_config_updates"
+    )
+
+    class Meta:
+        verbose_name = "Threat Detection Configuration"
+        verbose_name_plural = "Threat Detection Configuration"
+
+    def __str__(self):
+        mute_status = f"(muted until {self.mute_until.isoformat()})" if self.mute_until else ""
+        return f"Threat Detection Config {mute_status}"
+
+    def is_muted(self) -> bool:
+        """Check if alerts are currently muted."""
+        if not self.mute_until:
+            return False
+        return timezone.now() < self.mute_until
+
+    @classmethod
+    def get_active(cls):
+        """Get or create the active configuration."""
+        config, _ = cls.objects.get_or_create(is_active=True)
+        return config
+
+
+class IPAccessRule(models.Model):
+    """
+    IP address allow/deny list for access control.
+    Supports CIDR notation for IP ranges.
+    """
+
+    class RuleType(models.TextChoices):
+        ALLOW = "ALLOW", "Allow (Whitelist)"
+        DENY = "DENY", "Deny (Blacklist)"
+
+    rule_type = models.CharField(max_length=10, choices=RuleType.choices)
+    ip_address = models.CharField(
+        max_length=100,
+        help_text="IP address or CIDR range (e.g., 192.168.1.0/24)"
+    )
+    description = models.CharField(max_length=255, blank=True, help_text="Reason for this rule")
+    is_active = models.BooleanField(default=True)
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="ip_rules_created"
+    )
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Auto-disable rule after this time (optional)"
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["rule_type", "is_active"]),
+        ]
+        verbose_name = "IP Access Rule"
+        verbose_name_plural = "IP Access Rules"
+
+    def __str__(self):
+        status = "✓" if self.is_active else "✗"
+        return f"{status} {self.get_rule_type_display()}: {self.ip_address}"
+
+    def is_expired(self) -> bool:
+        """Check if rule has expired."""
+        if not self.expires_at:
+            return False
+        return timezone.now() > self.expires_at
+
+    def matches(self, ip_address: str) -> bool:
+        """Check if given IP matches this rule (supports CIDR)."""
+        import ipaddress
+        try:
+            if "/" in self.ip_address:
+                # CIDR notation
+                network = ipaddress.ip_network(self.ip_address, strict=False)
+                return ipaddress.ip_address(ip_address) in network
+            else:
+                # Exact match
+                return self.ip_address == ip_address
+        except (ValueError, TypeError):
+            return False
+
+
+class CountryAccessRule(models.Model):
+    """
+    Country-based access control using ISO 3166-1 alpha-2 codes.
+    Requires GeoIP2 or similar service for IP-to-country mapping.
+    """
+
+    class RuleType(models.TextChoices):
+        ALLOW = "ALLOW", "Allow (Whitelist)"
+        DENY = "DENY", "Deny (Blacklist)"
+
+    rule_type = models.CharField(max_length=10, choices=RuleType.choices)
+    country_code = models.CharField(
+        max_length=2,
+        help_text="ISO 3166-1 alpha-2 code (e.g., CM, NG, US)"
+    )
+    country_name = models.CharField(max_length=100, blank=True, help_text="Human-readable name")
+    description = models.CharField(max_length=255, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="country_rules_created"
+    )
+
+    class Meta:
+        ordering = ["country_code"]
+        indexes = [
+            models.Index(fields=["rule_type", "is_active"]),
+        ]
+        verbose_name = "Country Access Rule"
+        verbose_name_plural = "Country Access Rules"
+
+    def __str__(self):
+        status = "✓" if self.is_active else "✗"
+        name = self.country_name or self.country_code
+        return f"{status} {self.get_rule_type_display()}: {name} ({self.country_code})"

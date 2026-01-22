@@ -104,6 +104,34 @@ def _send_webhook(payload: dict):
         logger.warning("Failed to send webhook alert: %s", exc)
 
 
+def _create_incident_ticket(payload: dict):
+    """Create an incident ticket via webhook (e.g., Jira, PagerDuty, ServiceNow)."""
+    incident_cfg = getattr(settings, "INCIDENT_RESPONSE", {})
+    webhook = incident_cfg.get("ticket_webhook")
+    if not webhook:
+        return
+    
+    # Enrich payload with incident metadata
+    ticket_payload = {
+        "title": payload.get("title", "Security Incident"),
+        "description": payload.get("description", ""),
+        "severity": payload.get("severity", "MEDIUM"),
+        "type": payload.get("type", "security.incident"),
+        "occurred_at": payload.get("occurred_at"),
+        "user": payload.get("user"),
+        "ip_address": payload.get("ip_address"),
+        "playbook_url": incident_cfg.get("playbook_url"),
+        "oncall_emails": incident_cfg.get("oncall_emails", []),
+        "metadata": payload.get("metadata", {}),
+    }
+    
+    try:
+        _post_json(webhook, ticket_payload)
+        logger.info("Incident ticket created for: %s", payload.get("title"))
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to create incident ticket: %s", exc)
+
+
 def notify_audit_event(audit_log):
     """Dispatch alerts for qualifying audit events."""
     if not _should_alert(audit_log):
@@ -131,11 +159,29 @@ def notify_audit_event(audit_log):
         "runbook": settings.COMPLIANCE_ALERTS.get("runbook_url") if hasattr(settings, "COMPLIANCE_ALERTS") else None,
     }
     _send_webhook(structured)
+    
+    # Create incident ticket for HIGH/CRITICAL events
+    if audit_log.sensitivity in ["HIGH", "CRITICAL"]:
+        _create_incident_ticket({
+            "title": f"[{audit_log.sensitivity}] {audit_log.get_action_display()} on {audit_log.model_name}",
+            "description": message["text"],
+            "severity": audit_log.sensitivity,
+            "type": "compliance.audit",
+            "occurred_at": audit_log.timestamp.isoformat(),
+            "user": audit_log.user.get_username() if audit_log.user else "System",
+            "ip_address": audit_log.ip_address,
+            "metadata": {
+                "action": audit_log.action,
+                "model": audit_log.model_name,
+                "object_id": audit_log.object_id,
+            },
+        })
 
 
 def send_threat_alert(finding: dict):
     """Send threat detection alerts via configured channels."""
     cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
+    incident_cfg = getattr(settings, "INCIDENT_RESPONSE", {})
     if not cfg.get("enabled", True):
         return
 
@@ -148,7 +194,7 @@ def send_threat_alert(finding: dict):
         f"Count: {finding.get('count', 'N/A')}\n"
         f"Window: {finding.get('window', 'N/A')}\n"
         f"Details: {finding.get('description', '')}\n"
-        f"Runbook: {cfg.get('runbook_url', 'N/A')}\n"
+        f"Playbook: {incident_cfg.get('playbook_url', 'N/A')}\n"
     )
 
     _send_email(subject, message)
@@ -164,6 +210,22 @@ def send_threat_alert(finding: dict):
         "runbook": cfg.get("runbook_url"),
     }
     _send_webhook(structured)
+    
+    # Create incident ticket for all threat alerts
+    _create_incident_ticket({
+        "title": subject,
+        "description": message,
+        "severity": finding.get("severity", "HIGH"),
+        "type": "threat.detection",
+        "occurred_at": timezone.now().isoformat(),
+        "user": finding.get("user"),
+        "ip_address": finding.get("ip_address"),
+        "metadata": {
+            "threat_type": finding.get("type"),
+            "count": finding.get("count"),
+            "window": finding.get("window"),
+        },
+    })
 
 
 def send_compliance_report_email(reports):

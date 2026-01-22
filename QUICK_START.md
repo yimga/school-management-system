@@ -12,6 +12,10 @@ c1bb9e5 - PHASE 2: Backend services (6 views, 2 management commands, analytics)
 d428f99 - PHASE 1: Database models (5 new models, 4 migrations)
 ```
 
+**Ops note (Threat detection):**
+- Configure detection env vars: `THREAT_WINDOW_MINUTES`, `THREAT_FAILED_PER_USER`, `THREAT_FAILED_PER_IP`, `THREAT_AFTER_HOURS_START`, `THREAT_AFTER_HOURS_END`, `THREAT_AFTER_HOURS_THRESHOLD`, `THREAT_MUTE_MINUTES`, `ONCALL_EMAILS`, `INCIDENT_TICKET_WEBHOOK`, `INCIDENT_PLAYBOOK_URL`.
+- Run detection manually with `python manage.py detect_threats --window 60` (add `--no-alert` to dry-run); schedule every 15 minutes in cron/Task Scheduler for ongoing coverage.
+
 ---
 
 ## What's Implemented
