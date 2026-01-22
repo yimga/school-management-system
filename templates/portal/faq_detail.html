@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ faq.question }} - FAQ{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'kb:faq_list' %}">FAQ</a></li>
+            {% if faq.category %}
+            <li class="breadcrumb-item">
+                <a href="{% url 'kb:faq_list' %}?category={{ faq.category.slug }}">
+                    {{ faq.category.name }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ faq.question|truncatewords:10 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- FAQ Content -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">{{ faq.question }}</h1>
+                </div>
+                <div class="card-body">
+                    <!-- Meta Info -->
+                    <div class="mb-3 pb-3 border-bottom">
+                        <small class="text-muted">
+                            <i class="fas fa-folder"></i> 
+                            {% if faq.category %}
+                            <a href="{% url 'kb:faq_list' %}?category={{ faq.category.slug }}">
+                                {{ faq.category.name }}
+                            </a>
+                            {% else %}
+                            Uncategorized
+                            {% endif %}
+                        </small>
+                        <br>
+                        <small class="text-muted">
+                            <i class="fas fa-eye"></i> {{ faq.views }} views
+                        </small>
+                        {% if faq.is_featured %}
+                        <span class="badge badge-success ml-2">
+                            <i class="fas fa-star"></i> Featured
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Answer -->
+                    <div class="faq-answer mb-4">
+                        {{ faq.answer|safe }}
+                    </div>
+
+                    <!-- Tags -->
+                    {% if faq.tags.all %}
+                    <div class="mb-4">
+                        <strong>Tags:</strong><br>
+                        {% for tag in faq.tags.all %}
+                        <a href="{% url 'kb:faq_list' %}?q={{ tag.name }}" class="badge badge-info">
+                            {{ tag.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Engagement: Vote & Share -->
+                    <div class="border-top pt-3">
+                        <h6 class="mb-3">Was this helpful?</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {% if user.is_authenticated %}
+                                <div class="btn-group" role="group">
+                                    <button type="button" 
+                                            class="btn btn-outline-success vote-btn" 
+                                            data-faq-id="{{ faq.id }}" 
+                                            data-vote="helpful">
+                                        <i class="fas fa-thumbs-up"></i> Yes ({{ faq.helpful_count }})
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-outline-danger vote-btn" 
+                                            data-faq-id="{{ faq.id }}" 
+                                            data-vote="unhelpful">
+                                        <i class="fas fa-thumbs-down"></i> No ({{ faq.unhelpful_count }})
+                                    </button>
+                                </div>
+                                {% else %}
+                                <a href="{% url 'accounts:login' %}?next={% url 'kb:faq_detail' faq.id %}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-sign-in-alt"></i> Login to vote
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                        onclick="shareThis()">
+                                    <i class="fas fa-share-alt"></i> Share
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related FAQs -->
+            {% if related_faqs %}
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-link"></i> Related Questions
+                    </h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for related in related_faqs %}
+                    <a href="{% url 'kb:faq_detail' related.id %}" 
+                       class="list-group-item list-group-item-action">
+                        <h6 class="mb-1">{{ related.question }}</h6>
+                        <small class="text-muted">{{ related.category.name }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Help Widget -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb"></i> Need More Help?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-3">
+                        Browse our Knowledge Base for detailed guides and tutorials.
+                    </p>
+                    <a href="{% url 'kb:kb_home' %}" class="btn btn-info btn-sm btn-block">
+                        <i class="fas fa-book"></i> Knowledge Base
+                    </a>
+                </div>
+            </div>
+
+            <!-- Report Issue -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-warning">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Found an Issue?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-3">
+                        Help us improve by reporting errors or suggesting updates.
+                    </p>
+                    <button class="btn btn-warning btn-sm btn-block" data-toggle="modal" data-target="#reportModal">
+                        <i class="fas fa-flag"></i> Report Problem
+                    </button>
+                </div>
+            </div>
+
+            <!-- Related Category -->
+            {% if faq.category %}
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-folder"></i> {{ faq.category.name }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">
+                        {{ faq.category.description|truncatewords:20 }}
+                    </p>
+                    <a href="{% url 'kb:faq_list' %}?category={{ faq.category.slug }}" 
+                       class="btn btn-outline-primary btn-sm btn-block">
+                        View All in {{ faq.category.name }}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">Report an Issue</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" action="{% url 'kb:faq_detail' faq.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>What's the issue?</label>
+                        <textarea class="form-control" name="issue_description" rows="4" required></textarea>
+                        <small class="form-text text-muted">
+                            Be specific so we can help better
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-flag"></i> Submit Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const voteBtns = document.querySelectorAll('.vote-btn');
+    
+    voteBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const faqId = this.dataset.faqId;
+            const voteType = this.dataset.vote;
+            const url = `{% url 'kb:faq_vote' %}`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    faq_id: faqId,
+                    vote_type: voteType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.classList.add('active');
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+
+function shareThis() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ faq.question }}',
+            text: 'Check out this FAQ on our help center',
+            url: window.location.href
+        });
+    } else {
+        alert('Copy the URL to share: ' + window.location.href);
+    }
+}
+</script>
+
+<style>
+.faq-answer {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #555;
+}
+
+.vote-btn {
+    cursor: pointer;
+}
+
+.vote-btn.active {
+    background-color: #28a745;
+    color: white;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Search - Help Center{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="h2 mb-4">
+                <i class="fas fa-search"></i> Search Results
+            </h1>
+
+            <!-- Search Form -->
+            <form method="get" action="{% url 'kb:kb_search' %}" class="input-group input-group-lg mb-4">
+                <input type="text" 
+                       name="q" 
+                       class="form-control" 
+                       placeholder="Search FAQs and Knowledge Base..." 
+                       value="{{ query }}"
+                       autocomplete="off">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+
+            <!-- Search Info -->
+            {% if query %}
+            <p class="text-muted">
+                Results for: <strong>"{{ query }}"</strong>
+                <span class="badge badge-info">{{ total_results }} result{{ total_results|pluralize }}</span>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-filter"></i> Filters
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'kb:kb_search' %}" class="filter-form">
+                        <input type="hidden" name="q" value="{{ query }}">
+                        
+                        <!-- Content Type Filter -->
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Content Type</label>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input filter-checkbox" 
+                                       id="filterFAQ" name="type" value="faq"
+                                       {% if 'faq' in selected_types %}checked{% endif %}>
+                                <label class="custom-control-label" for="filterFAQ">
+                                    FAQ Questions
+                                </label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input filter-checkbox" 
+                                       id="filterArticle" name="type" value="article"
+                                       {% if 'article' in selected_types %}checked{% endif %}>
+                                <label class="custom-control-label" for="filterArticle">
+                                    KB Articles
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Difficulty Filter -->
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold">Difficulty</label>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input filter-checkbox" 
+                                       id="diffBeginner" name="difficulty" value="BEGINNER"
+                                       {% if 'BEGINNER' in selected_difficulties %}checked{% endif %}>
+                                <label class="custom-control-label" for="diffBeginner">
+                                    <span class="badge badge-success">Beginner</span>
+                                </label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input filter-checkbox" 
+                                       id="diffIntermediate" name="difficulty" value="INTERMEDIATE"
+                                       {% if 'INTERMEDIATE' in selected_difficulties %}checked{% endif %}>
+                                <label class="custom-control-label" for="diffIntermediate">
+                                    <span class="badge badge-warning">Intermediate</span>
+                                </label>
+                            </div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input filter-checkbox" 
+                                       id="diffAdvanced" name="difficulty" value="ADVANCED"
+                                       {% if 'ADVANCED' in selected_difficulties %}checked{% endif %}>
+                                <label class="custom-control-label" for="diffAdvanced">
+                                    <span class="badge badge-danger">Advanced</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Sort Options -->
+                        <div class="mb-3">
+                            <label for="sortBy" class="form-label font-weight-bold">Sort By</label>
+                            <select class="form-control form-control-sm" name="sort" id="sortBy">
+                                <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>
+                                    Relevance
+                                </option>
+                                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>
+                                    Newest
+                                </option>
+                                <option value="views" {% if sort == 'views' %}selected{% endif %}>
+                                    Most Viewed
+                                </option>
+                                <option value="helpful" {% if sort == 'helpful' %}selected{% endif %}>
+                                    Most Helpful
+                                </option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-sm">
+                            <i class="fas fa-check"></i> Apply Filters
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div class="col-lg-9">
+            {% if query %}
+                {% if faq_results or article_results %}
+                    <!-- FAQ Results -->
+                    {% if faq_results %}
+                    <div class="mb-5">
+                        <h4 class="mb-3">
+                            <i class="fas fa-question-circle text-primary"></i> 
+                            FAQ Results ({{ faq_results.count }})
+                        </h4>
+                        {% for faq in faq_results %}
+                        <div class="card shadow-sm mb-3 result-card transition">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <a href="{% url 'kb:faq_detail' faq.id %}" class="text-primary">
+                                        <i class="fas fa-question-circle"></i> {{ faq.question }}
+                                    </a>
+                                </h6>
+                                <p class="card-text text-muted small">
+                                    {{ faq.answer|truncatewords:30 }}
+                                </p>
+                                <div class="result-meta">
+                                    {% if faq.category %}
+                                    <span class="badge badge-light">
+                                        {{ faq.category.name }}
+                                    </span>
+                                    {% endif %}
+                                    <span class="badge badge-light">
+                                        <i class="fas fa-eye"></i> {{ faq.views }} views
+                                    </span>
+                                    {% if faq.is_featured %}
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-star"></i> Featured
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- KB Article Results -->
+                    {% if article_results %}
+                    <div>
+                        <h4 class="mb-3">
+                            <i class="fas fa-book text-info"></i> 
+                            Knowledge Base Results ({{ article_results.count }})
+                        </h4>
+                        {% for article in article_results %}
+                        <div class="card shadow-sm mb-3 result-card transition">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-9">
+                                        <h6 class="card-title">
+                                            <a href="{% url 'kb:kb_article' article.slug %}" class="text-primary">
+                                                <i class="fas fa-file-alt"></i> {{ article.title }}
+                                            </a>
+                                        </h6>
+                                        <p class="card-text text-muted small">
+                                            {{ article.summary|truncatewords:40 }}
+                                        </p>
+                                        <div class="result-meta">
+                                            {% if article.category %}
+                                            <span class="badge badge-light">
+                                                {{ article.category.name }}
+                                            </span>
+                                            {% endif %}
+                                            {% if article.difficulty %}
+                                            <span class="badge 
+                                                {% if article.difficulty == 'BEGINNER' %}badge-success
+                                                {% elif article.difficulty == 'INTERMEDIATE' %}badge-warning
+                                                {% else %}badge-danger{% endif %}">
+                                                {{ article.get_difficulty_display }}
+                                            </span>
+                                            {% endif %}
+                                            <span class="badge badge-light">
+                                                <i class="fas fa-clock"></i> {{ article.read_time }} min
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 text-right">
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-eye"></i> {{ article.views }} views
+                                        </small>
+                                        <a href="{% url 'kb:kb_article' article.slug %}" 
+                                           class="btn btn-sm btn-outline-primary mt-2">
+                                            Read <i class="fas fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Search results pagination">
+                        <ul class="pagination justify-content-center mt-4">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                    Previous
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                    Next
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <!-- No Results -->
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>No results found</strong> for "{{ query }}"
+                        <p class="mt-2 mb-0">
+                            Try different keywords or browse by category
+                        </p>
+                    </div>
+
+                    <!-- Suggestions -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Browse by Category</h6>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <a href="{% url 'kb:faq_list' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-question-circle"></i> View All FAQs
+                            </a>
+                            <a href="{% url 'kb:kb_home' %}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-book"></i> View Knowledge Base
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <!-- Initial State -->
+                <div class="alert alert-light" role="alert">
+                    <i class="fas fa-search"></i>
+                    <strong>Start searching</strong> to find FAQs and articles
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.result-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.result-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.result-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.transition {
+    transition: all 0.3s ease;
+}
+</style>
+{% endblock %}

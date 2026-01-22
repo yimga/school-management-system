@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}FAQ - Help Center{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <!-- Sidebar: Categories -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Categories
+                    </h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'kb:faq_list' %}" 
+                       class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
+                        <i class="fas fa-question-circle"></i> All FAQs
+                        <span class="badge badge-primary float-right">{{ all_count }}</span>
+                    </a>
+                    {% for cat in categories %}
+                    <a href="?category={{ cat.slug }}" 
+                       class="list-group-item list-group-item-action {% if category.slug == cat.slug %}active{% endif %}">
+                        <i class="fas {{ cat.icon }}"></i> {{ cat.name }}
+                        <span class="badge badge-secondary float-right">{{ cat.faq_count }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <input type="text" 
+                               name="q" 
+                               class="form-control w-100" 
+                               placeholder="Search FAQs..." 
+                               value="{{ query }}"
+                               autocomplete="off">
+                        <small class="form-text text-muted mt-2">
+                            Search by question, answer, or keywords
+                        </small>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card shadow-sm mt-3 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-lightbulb text-warning"></i> Tips
+                    </h6>
+                    <ul class="small">
+                        <li>Browse by category</li>
+                        <li>Use search bar above</li>
+                        <li>Vote helpful FAQs</li>
+                        <li><a href="{% url 'kb:faq_submit' %}">Submit your question</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: FAQ List -->
+        <div class="col-lg-9">
+            <!-- Header -->
+            <div class="mb-4">
+                <h1 class="h3 mb-2">
+                    <i class="fas fa-question-circle text-primary"></i> 
+                    Frequently Asked Questions
+                </h1>
+                {% if category %}
+                <p class="text-muted">
+                    <strong>Category:</strong> {{ category.name }}
+                    <a href="{% url 'kb:faq_list' %}" class="badge badge-warning">Clear filter</a>
+                </p>
+                {% endif %}
+                {% if query %}
+                <p class="text-muted">
+                    <strong>Search Results for:</strong> "{{ query }}"
+                    <a href="{% url 'kb:faq_list' %}" class="badge badge-warning">Clear search</a>
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- FAQ Items -->
+            {% if faqs %}
+                <div class="accordion" id="faqAccordion">
+                    {% for faq in faqs %}
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header" id="heading{{ faq.id }}">
+                            <h2 class="mb-0">
+                                <button class="btn btn-link btn-block text-left" 
+                                        type="button" 
+                                        data-toggle="collapse" 
+                                        data-target="#collapse{{ faq.id }}" 
+                                        aria-expanded="false">
+                                    <i class="fas fa-chevron-down"></i>
+                                    {{ faq.question }}
+                                    {% if faq.is_featured %}
+                                    <span class="badge badge-success ml-2">
+                                        <i class="fas fa-star"></i> Featured
+                                    </span>
+                                    {% endif %}
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="collapse{{ faq.id }}" 
+                             class="collapse" 
+                             aria-labelledby="heading{{ faq.id }}" 
+                             data-parent="#faqAccordion">
+                            <div class="card-body">
+                                <div class="faq-answer mb-3">
+                                    {{ faq.answer|safe }}
+                                </div>
+
+                                <!-- Engagement Section -->
+                                <div class="border-top pt-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-eye"></i> {{ faq.views }} views
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6 text-right">
+                                            {% if user.is_authenticated %}
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" 
+                                                        class="btn btn-outline-success vote-btn" 
+                                                        data-faq-id="{{ faq.id }}" 
+                                                        data-vote="helpful"
+                                                        title="Mark as helpful">
+                                                    <i class="fas fa-thumbs-up"></i> Helpful ({{ faq.helpful_count }})
+                                                </button>
+                                                <button type="button" 
+                                                        class="btn btn-outline-danger vote-btn" 
+                                                        data-faq-id="{{ faq.id }}" 
+                                                        data-vote="unhelpful"
+                                                        title="Mark as unhelpful">
+                                                    <i class="fas fa-thumbs-down"></i> Unhelpful ({{ faq.unhelpful_count }})
+                                                </button>
+                                            </div>
+                                            {% else %}
+                                            <small class="text-muted">
+                                                <a href="{% url 'accounts:login' %}">Login</a> to vote
+                                            </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {% if faq.tags.all %}
+                                    <div class="mt-2">
+                                        {% for tag in faq.tags.all %}
+                                        <a href="?q={{ tag.name }}" class="badge badge-info">{{ tag.name }}</a>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="FAQ pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                Previous
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                Next
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>No FAQs found.</strong>
+                    Try adjusting your search or browse other categories.
+                </div>
+            {% endif %}
+
+            <!-- CTA: Submit FAQ -->
+            <div class="alert alert-light border border-primary mt-4">
+                <h6 class="alert-heading">
+                    <i class="fas fa-plus-circle text-primary"></i> Couldn't find your answer?
+                </h6>
+                <p>Submit your question and our team will add it to the FAQ!</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'kb:faq_submit' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Submit a Question
+                </a>
+                {% else %}
+                <a href="{% url 'accounts:login' %}?next={% url 'kb:faq_submit' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-sign-in-alt"></i> Login & Submit
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AJAX Vote Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const voteBtns = document.querySelectorAll('.vote-btn');
+    
+    voteBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const faqId = this.dataset.faqId;
+            const voteType = this.dataset.vote;
+            const url = `{% url 'kb:faq_vote' %}`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    faq_id: faqId,
+                    vote_type: voteType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.classList.add('active');
+                    alert(data.message);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+
+<style>
+.btn-link {
+    color: #333;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    color: #0056b3;
+}
+
+.btn-link:focus {
+    box-shadow: none;
+}
+
+.faq-answer {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #555;
+}
+
+.vote-btn {
+    cursor: pointer;
+}
+
+.vote-btn.active {
+    background-color: #28a745;
+    color: white;
+}
+</style>
+{% endblock %}
