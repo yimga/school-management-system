@@ -1,5 +1,5 @@
 """URLs for Compliance App Dashboard"""
-from django.urls import path
+from django.urls import path, include
 from apps.compliance.views import (
     ComplianceDashboardView,
     ComplianceOverviewAPI,
@@ -27,4 +27,7 @@ urlpatterns = [
     path('api/timeline-data/', TimelineDataAPI.as_view(), name='api_timeline_data'),
     path('api/regional-comparison/', RegionalComparisonAPI.as_view(), name='api_regional_comparison'),
     path('api/critical-items/', CriticalItemsAPI.as_view(), name='api_critical_items'),
+    
+    # Phase 4: Compliance reporting
+    path('reports/', include('apps.compliance.urls_reporting')),
 ]
