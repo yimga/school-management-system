@@ -190,8 +190,12 @@ class UserPreferenceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        tz_choices = [("", "— Select timezone —")] + [(tz, tz) for tz in pytz.common_timezones]
+        
+        # Build timezone choices without empty option (model has default)
+        tz_choices = [(tz, tz) for tz in pytz.common_timezones]
         self.fields["timezone"].choices = tz_choices
+        self.fields["timezone"].required = False  # Allow optional selection since model has default
+        
         if self.instance and self.instance.notification_channels:
             self.initial["notification_channels"] = self.instance.notification_channels
         role = getattr(self.user, "role", None)
@@ -203,6 +207,13 @@ class UserPreferenceForm(forms.ModelForm):
             selected = default_dashboard_widgets(role)
         self.initial["dashboard_widgets"] = selected
 
+    def clean_timezone(self):
+        """Allow empty timezone - model default will be used."""
+        timezone = self.cleaned_data.get("timezone") or ""
+        if timezone and timezone not in pytz.common_timezones:
+            raise forms.ValidationError("Invalid timezone selected.")
+        return timezone
+
     def clean_notification_channels(self):
         return self.cleaned_data.get("notification_channels") or []
 
@@ -213,6 +224,11 @@ class UserPreferenceForm(forms.ModelForm):
 
     def save(self, commit=True):
         preference = super().save(commit=False)
+        # Only set timezone if one was explicitly provided
+        timezone_value = self.cleaned_data.get("timezone") or ""
+        if timezone_value:
+            preference.timezone = timezone_value
+        # If no timezone provided, model default will be used
         preference.notification_channels = self.cleaned_data.get("notification_channels", [])
         preference.dashboard_widgets = self.cleaned_data.get("dashboard_widgets", [])
         if commit:
