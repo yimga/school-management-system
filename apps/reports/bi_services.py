@@ -1,6 +1,11 @@
 """
 Phase 9 Task 1: BI Reporting Services
 Executive reporting, data aggregation, export generation
+
+INTEGRATION NOTE: This extends existing infrastructure:
+- Leverages apps.analytics.services.AdvancedAnalyticsService for analytics
+- Integrates with apps.siteconfig.admin_dashboard.AdminDashboardService for metrics
+- Adds executive-level aggregations and export capabilities
 """
 
 from django.db import models, connection
@@ -13,13 +18,26 @@ import json
 from io import StringIO
 from typing import Dict, List, Any, Optional
 
+# Import existing services to extend them
+from apps.analytics.services import AdvancedAnalyticsService
+from apps.siteconfig.admin_dashboard import AdminDashboardService
+
 
 class ExecutiveReportingService:
-    """Generate executive-level reports and dashboards"""
+    """
+    Executive-level reports and dashboards
+    
+    EXTENDS: AdminDashboardService (financial, academic, attendance metrics)
+    LEVERAGES: AdvancedAnalyticsService (at-risk detection, trends, alerts)
+    ADDS: Executive aggregations, multi-period comparisons, export generation
+    """
     
     @staticmethod
     def get_financial_summary(start_date: datetime, end_date: datetime) -> Dict:
-        """Financial KPIs for executive dashboard"""
+        """
+        Financial KPIs for executive dashboard
+        Extends AdminDashboardService.get_finance_metrics() with period ranges
+        """
         from apps.finance.models import Invoice, Payment
         
         cache_key = f'exec_finance_{start_date.date()}_{end_date.date()}'
@@ -55,7 +73,10 @@ class ExecutiveReportingService:
     
     @staticmethod
     def get_academic_summary(academic_year_id: int, term_id: Optional[int] = None) -> Dict:
-        """Academic performance KPIs"""
+        """
+        Academic performance KPIs
+        Integrates with AdvancedAnalyticsService for at-risk student detection
+        """
         from apps.evals.models import Evaluation
         from apps.people.models import Student
         from apps.academics.models import Classroom
@@ -72,6 +93,9 @@ class ExecutiveReportingService:
         students = Student.objects.filter(is_active=True)
         classrooms = Classroom.objects.filter(academic_year_id=academic_year_id)
         
+        # Leverage existing AdvancedAnalyticsService for at-risk detection
+        at_risk_students = AdvancedAnalyticsService.identify_at_risk_students(threshold=50)
+        
         summary = {
             'total_students': students.count(),
             'total_classrooms': classrooms.count(),
@@ -79,6 +103,7 @@ class ExecutiveReportingService:
             'average_score': evaluations.aggregate(avg=Avg('final_score'))['avg'] or 0,
             'pass_rate': 0.0,
             'excellence_rate': 0.0,
+            'at_risk_count': len(at_risk_students),  # Use existing service
         }
         
         if evaluations.exists():

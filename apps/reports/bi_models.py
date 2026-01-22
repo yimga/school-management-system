@@ -1,12 +1,18 @@
 """
 Phase 9 Task 1: Business Intelligence & Reporting Platform
 Executive dashboards, ad-hoc reports, data export, scheduled reporting
+
+INTEGRATION NOTE: This module extends existing infrastructure:
+- Uses existing DashboardWidget from apps.siteconfig.models_dashboard
+- Extends AdminDashboardService and AdvancedAnalyticsService
+- Adds ReportDefinition, ScheduledReport, MaterializedReportCache
 """
 
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.cache import cache
+from apps.siteconfig.models_dashboard import DashboardWidget  # Use existing
 import json
 
 User = get_user_model()
@@ -78,38 +84,8 @@ class ReportExecution(models.Model):
         return f"{self.report_definition.name} - {self.status}"
 
 
-class DashboardWidget(models.Model):
-    """Configurable dashboard widgets"""
-    
-    WIDGET_TYPES = [
-        ('KPI', 'Key Performance Indicator'),
-        ('CHART', 'Chart'),
-        ('TABLE', 'Data Table'),
-        ('METRIC', 'Single Metric'),
-    ]
-    
-    CHART_TYPES = [
-        ('BAR', 'Bar Chart'),
-        ('LINE', 'Line Chart'),
-        ('PIE', 'Pie Chart'),
-        ('AREA', 'Area Chart'),
-    ]
-    
-    name = models.CharField(max_length=255)
-    widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES)
-    chart_type = models.CharField(max_length=20, choices=CHART_TYPES, blank=True)
-    data_source = models.TextField()  # Query or service method
-    refresh_interval = models.IntegerField(default=300)  # seconds
-    configuration = models.JSONField(default=dict)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['name']
-    
-    def __str__(self):
-        return f"{self.name} ({self.widget_type})"
+# NOTE: DashboardWidget already exists in apps.siteconfig.models_dashboard
+# We import and reuse it instead of creating a duplicate
 
 
 class UserDashboard(models.Model):
