@@ -16,6 +16,7 @@ from apps.accounts.decorators import (
     parent_portal_required,
     teacher_portal_required,
 )
+from apps.evals.views import teacher_dashboard as evals_teacher_dashboard
 from apps.accounts.models import User
 from apps.people.models import (
     StudentGuardian,
@@ -380,9 +381,9 @@ def admissions_application_status(request: HttpRequest) -> HttpResponseRedirect:
     return redirect("portal:parent_dashboard")
 
 
-def teacher_dashboard_alias(request: HttpRequest) -> HttpResponseRedirect:
-    """Alias for the teacher dashboard path so legacy links don't 404."""
-    return redirect("evals:teacher_dashboard")
+def teacher_dashboard_alias(request: HttpRequest):
+    """Render the teacher dashboard layout under the portal path."""
+    return evals_teacher_dashboard(request)
 
 
 @teacher_portal_required

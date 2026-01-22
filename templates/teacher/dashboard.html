@@ -183,18 +183,18 @@
                   <div class="fw-semibold">{{ assign.classroom }}</div>
                   <div class="small text-muted">{{ assign.subject }}</div>
                 </div>
-                {% with prog=progress|get_item:assign.id %}
-                  {% if prog %}
-                    <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
-                  {% else %}
-                    <span class="badge bg-secondary">0/0</span>
-                  {% endif %}
-                {% endwith %}
+                    {% with prog=progress|get_item:assign.id %}
+                      {% if prog %}
+                        <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
+                      {% else %}
+                        <span class="badge bg-secondary">0/0</span>
+                      {% endif %}
+                    {% endwith %}
               </div>
               <div class="progress mt-1">
                 {% with prog=progress|get_item:assign.id %}
                   {% if prog %}
-                    <div class="progress-bar" role="progressbar" style="width: {{ (prog.filled / prog.total)|floatformat:0 }}%;" aria-valuenow="{{ prog.filled }}" aria-valuemin="0" aria-valuemax="{{ prog.total }}"></div>
+                    <div class="progress-bar" role="progressbar" style="width: {{ prog.width }}%;" aria-valuenow="{{ prog.filled }}" aria-valuemin="0" aria-valuemax="{{ prog.total }}"></div>
                   {% else %}
                     <div class="progress-bar" role="progressbar" style="width:0%;"></div>
                   {% endif %}
