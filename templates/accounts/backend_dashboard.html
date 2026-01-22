@@ -676,4 +676,101 @@
       </div>
     </div>
   {% endif %}
+
+  <!-- Quick Actions & Recent Activity Row -->
+  <div class="row g-4 mt-4">
+    <div class="col-lg-6">
+      {% include 'components/quick_actions.html' %}
+    </div>
+    <div class="col-lg-6">
+      {% include 'components/recent_activity.html' %}
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts -->
+  {% include 'components/keyboard_shortcuts.html' %}
+
+  <!-- Mobile Quick Actions FAB -->
+  <div class="mobile-fab d-lg-none">
+    <button class="btn btn-primary btn-fab" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileQuickActions">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+
+  <!-- Mobile Quick Actions Offcanvas -->
+  <div class="offcanvas offcanvas-bottom" tabindex="-1" id="mobileQuickActions">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Quick Actions</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="row g-2">
+        <div class="col-6"><a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100"><i class="fas fa-user-plus"></i> Add User</a></div>
+        <div class="col-6"><a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100"><i class="fas fa-user-graduate"></i> Add Student</a></div>
+        <div class="col-6"><a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100"><i class="fas fa-chalkboard-teacher"></i> Add Teacher</a></div>
+        <div class="col-6"><a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100"><i class="fas fa-file-invoice"></i> Create Invoice</a></div>
+        <div class="col-12"><a href="{% url 'admin:index' %}" class="btn btn-dark w-100"><i class="fas fa-th"></i> View All Admin</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Responsive Styles -->
+  <style>
+    .mobile-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    
+    .btn-fab {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn-fab:hover {
+      transform: scale(1.1);
+      transition: transform 0.2s ease;
+    }
+    
+    @media (max-width: 992px) {
+      .admin-hero {
+        padding: 1.5rem !important;
+      }
+      
+      .hero-kpi-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+      
+      .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .admin-hero h1 {
+        font-size: 1.5rem !important;
+      }
+      
+      .hero-kpi-card {
+        min-height: 90px !important;
+      }
+      
+      .quick-action-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 12px !important;
+      }
+      
+      .quick-action-icon {
+        margin: 0 auto 8px !important;
+      }
+    }
+  </style>
 {% endblock %}

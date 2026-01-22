@@ -159,3 +159,33 @@
     })();
   </script>
 {% endblock %}
+
+<!-- Include Keyboard Shortcuts for Power Users -->
+{% block footer %}
+  {{ block.super }}
+  {% include 'components/keyboard_shortcuts.html' %}
+  
+  <!-- Quick Access Hint -->
+  <div class="admin-hint text-center py-2 small text-muted border-top">
+    <i class="fas fa-keyboard"></i> Press <kbd>?</kbd> for keyboard shortcuts
+    | <kbd>Ctrl+R</kbd> to refresh counts
+    | <kbd>f</kbd> to focus search
+  </div>
+  
+  <style>
+    .admin-hint {
+      background: #f8fafc;
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+    }
+    
+    .admin-hint kbd {
+      background: white;
+      border: 1px solid #cbd5e1;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.85em;
+    }
+  </style>
+{% endblock %}
