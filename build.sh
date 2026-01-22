@@ -13,13 +13,24 @@ find . -type f -name "*.pyo" -delete 2>/dev/null || true
 
 # Clear pip cache
 echo "Clearing pip cache..."
-python -m pip cache purge 2>/dev/null || true
+python3 -m pip cache purge 2>/dev/null || true
 
-# Force reinstall without cache
+# Force reinstall without cache (Render PEP 668 externally-managed env)
 echo "Installing dependencies..."
-python -m pip install --upgrade pip --no-cache-dir
-pip install -r requirements.txt --no-cache-dir --force-reinstall
+export PIP_BREAK_SYSTEM_PACKAGES=1
+python3 -m pip install --upgrade pip --no-cache-dir
+python3 -m pip install -r requirements.txt --no-cache-dir --force-reinstall
 
 # Never run makemigrations in CI/production.
-python manage.py migrate --noinput
-python manage.py collectstatic --noinput
+python3 manage.py migrate --noinput
+python3 manage.py collectstatic --noinput
+
+# Create activation shim so Render runner can source .venv/bin/activate
+echo "Creating activation shim for runtime..."
+mkdir -p .venv/bin
+cat > .venv/bin/activate << 'EOF'
+#!/usr/bin/env bash
+# Ensure pip-installed console scripts (gunicorn, django-admin) are discoverable
+export PATH="/opt/render/.local/bin:$PATH"
+EOF
+chmod +x .venv/bin/activate
