@@ -42,6 +42,7 @@ urlpatterns = [
     path('analytics/', include(('apps.analytics.urls', 'analytics'), namespace='analytics')),
     path('finance/', include(('apps.finance.urls', 'finance'), namespace='finance')),
     path('payroll/', include(('apps.payroll.urls', 'payroll'), namespace='payroll')),
+    path('compliance/', include(('apps.compliance.urls', 'compliance'), namespace='compliance')),
 ]
 
 if settings.DEBUG:
