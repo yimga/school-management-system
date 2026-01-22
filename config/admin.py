@@ -17,14 +17,25 @@ class GileadAdminSite(AdminSite):
     
     def get_urls(self):
         """Add custom URLs including 'home' for Unfold navigation."""
+        from django.contrib.admin.views.main import ChangeList
         urls = super().get_urls()
         custom_urls = [
             path('home/', lambda request: redirect('/'), name='home'),
+            path('search/', self.admin_view(self.search_view), name='search'),
             # Placeholder URLs for missing admin routes (prevent template errors)
             path('activity-logs/', lambda request: redirect('/compliance/access-logs/'), name='activity_logs'),
             path('system-health/', lambda request: redirect('/healthz/'), name='system_health'),
         ]
         return custom_urls + urls
+    
+    def search_view(self, request):
+        """Global admin search across all registered models."""
+        from django.shortcuts import render
+        query = request.GET.get('q', '')
+        # Redirect to default admin index with search applied
+        if query:
+            return redirect(f'{self.name}:index?q={query}')
+        return redirect(f'{self.name}:index')
     
     def get_app_list(self, request, app_label=None):
         """
