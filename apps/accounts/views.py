@@ -7,8 +7,8 @@ from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib import admin as django_admin
 from django_ratelimit.decorators import ratelimit
+from config.admin import admin_site
 from apps.finance.models import Invoice, ReferralReward, PaymentReminder
 from apps.finance.services import finance_dashboard_data
 from apps.portal.models import PendingGuardianInvite
@@ -190,7 +190,7 @@ def backend_dashboard(request):
     }
     can_manage_settings = request.user.has_feature_permission("settings.manage")
 
-    app_context = django_admin.site.each_context(request)
+    app_context = admin_site.each_context(request)
     modules = sum(len(app.get("models") or []) for app in app_context.get("available_apps", []))
     kpi_data = admin_kpis()
     hero_stats = [
