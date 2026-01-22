@@ -80,3 +80,39 @@ def site_settings(request):
         "BREADCRUMBS": breadcrumbs,
     }
 
+
+def region_settings(request):
+    """
+    Provides region-specific settings and utilities to all templates.
+    Phase 1.2.4: Internationalization & Multi-Region Support
+    """
+    from django.conf import settings
+    from .models import RegionConfig
+    from apps.evals.grading import CURRENCY_SYMBOLS
+    
+    try:
+        # Try to get region from user preferences, session, or use default
+        region_code = getattr(request.user, 'profile', {}).get('region', None) if request.user.is_authenticated else None
+        region_code = region_code or request.session.get('region_code', settings.REGION_CODE)
+        
+        region = RegionConfig.objects.get(code=region_code)
+    except RegionConfig.DoesNotExist:
+        # Fallback to default region (Cameroon)
+        region = RegionConfig.get_default()
+    
+    currency_symbol = CURRENCY_SYMBOLS.get(region.default_currency, region.default_currency)
+    
+    return {
+        'region': region,
+        'region_code': region.code,
+        'region_name': region.name,
+        'currency_symbol': currency_symbol,
+        'date_format': region.date_format,
+        'timezone': region.timezone,
+        'default_language': region.default_language,
+        'grading_scale': region.grading_scale,
+        'decimal_separator': region.decimal_separator,
+        'thousands_separator': region.thousands_separator,
+    }
+
+

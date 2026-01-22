@@ -40,6 +40,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",  # Add for i18n
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -61,7 +62,9 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.static",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
                 "apps.siteconfig.context_processors.site_settings",
+                "apps.siteconfig.context_processors.region_settings",
             ]
         },
     }
@@ -231,4 +234,39 @@ LOGGING = {
         },
     },
 }
+
+
+# ============================================================================
+# Phase 1.2.4: Internationalization & Multi-Region Support
+# ============================================================================
+
+# --- Django i18n Settings ---
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+
+LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', 'en')
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'Français (French)'),
+    ('pid', 'Pidgin English'),
+    ('sw', 'Kiswahili'),
+    ('ha', 'Hausa'),
+    ('yo', 'Yorùbá'),
+]
+
+TIME_ZONE = os.getenv('TIME_ZONE', 'Africa/Douala')
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+
+# --- Multi-Region Configuration ---
+REGION_CODE = os.getenv('REGION_CODE', 'CMR')  # Default to Cameroon
+DEFAULT_GRADING_SCALE = os.getenv('DEFAULT_GRADING_SCALE', '0-20')
+DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', 'XAF')
+ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true'
+
+# Global grading scales (imported from apps.evals.grading module at runtime)
+# Reference: GRADING_SCALES, CURRENCY_SYMBOLS defined in apps/evals/grading.py
+
 
