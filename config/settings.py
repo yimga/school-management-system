@@ -160,3 +160,19 @@ LOGGING = {
     },
 }
 
+# --- Webhook Security Configuration ---
+WEBHOOK_CONFIG = {
+    "rate_limit": int(os.getenv("WEBHOOK_RATE_LIMIT", "100")),  # requests per minute
+    "signature_algorithm": os.getenv("WEBHOOK_SIGNATURE_ALGORITHM", "sha256"),
+    "signature_header": os.getenv("WEBHOOK_SIGNATURE_HEADER", "X-Signature"),
+    "ip_whitelist": os.getenv("WEBHOOK_IP_WHITELIST", "").split(",") if os.getenv("WEBHOOK_IP_WHITELIST") else [],
+}
+
+# --- Payment Provider Configuration ---
+# Each provider should have config in PaymentIntegration model:
+# {
+#     "webhook_secret": "api_key_from_provider",
+#     "webhook_ips": ["1.2.3.4", "5.6.7.8"],
+#     "rate_limit": 100,
+#     "signature_header": "X-Signature"
+# }

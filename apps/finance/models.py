@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.people.models import StudentProfile, StudentGuardian
@@ -229,7 +231,12 @@ class Invoice(models.Model):
         null=True,
         help_text="Optional PDF or image attachment for this invoice.",
     )
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    total_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.01"))],  # Must be positive
+    )
     balance_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     preferred_payment_method = models.CharField(
         max_length=20,
@@ -242,6 +249,16 @@ class Invoice(models.Model):
 
     class Meta:
         ordering = ["-issued_date", "-id"]
+
+    def clean(self):
+        """Validate invoice data before saving."""
+        if self.total_amount < Decimal("0.01"):
+            raise ValidationError({"total_amount": "Invoice total must be at least 0.01"})
+
+    def save(self, *args, **kwargs):
+        """Call full_clean() before saving to validate."""
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.invoice_type} {self.reference or self.id}"
@@ -264,7 +281,11 @@ class InvoiceLine(models.Model):
 
 class Payment(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],  # Must be positive
+    )
     method = models.CharField(max_length=20, choices=PaymentMethod.choices)
     reference = models.CharField(max_length=80, blank=True)
     paid_at = models.DateTimeField(default=timezone.now)
@@ -280,6 +301,29 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ["-paid_at"]
+
+    def clean(self):
+        """Validate payment data before saving."""
+        if self.amount < Decimal("0.01"):
+            raise ValidationError({"amount": "Payment amount must be at least 0.01"})
+        
+        # If invoice is set, check payment doesn't exceed balance
+        if self.invoice:
+            # Get total already paid (excluding this payment if editing)
+            paid_amount = sum(
+                p.amount for p in self.invoice.payments.exclude(pk=self.pk)
+            ) or Decimal("0")
+            remaining_balance = self.invoice.total_amount - paid_amount
+            
+            if self.amount > remaining_balance:
+                raise ValidationError({
+                    "amount": f"Payment {self.amount} exceeds remaining balance {remaining_balance}"
+                })
+
+    def save(self, *args, **kwargs):
+        """Call full_clean() before saving to validate."""
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.invoice} {self.amount}"
@@ -507,3 +551,56 @@ class GrantAllocation(models.Model):
 
     def __str__(self) -> str:
         return f"{self.grant} {self.amount}"
+
+
+class WebhookLog(models.Model):
+    """Audit trail for payment webhook processing.
+    
+    Tracks all incoming webhooks for debugging, compliance, and duplicate detection.
+    """
+    
+    class Status(models.TextChoices):
+        RECEIVED = "RECEIVED", "Received"
+        VALIDATED = "VALIDATED", "Validated"
+        PROCESSING = "PROCESSING", "Processing"
+        PROCESSED = "PROCESSED", "Successfully Processed"
+        FAILED = "FAILED", "Failed"
+        DUPLICATE = "DUPLICATE", "Duplicate (Already Processed)"
+        INVALID = "INVALID", "Invalid Data"
+
+    provider = models.CharField(max_length=50)
+    reference_id = models.CharField(max_length=255)
+    client_ip = models.GenericIPAddressField()
+    signature_valid = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.RECEIVED)
+    request_body = models.TextField(blank=True)
+    response_status = models.PositiveSmallIntegerField(null=True, blank=True)
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_logs"
+    )
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_logs"
+    )
+    error_message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["provider", "reference_id", "-created_at"]),
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["client_ip", "-created_at"]),
+            models.Index(fields=["-created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.provider} {self.reference_id} {self.status}"

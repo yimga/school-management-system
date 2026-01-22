@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.people.models import TeacherProfile, StudentProfile
@@ -199,11 +200,47 @@ class Evaluation(models.Model):
     test2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     # Expanded components (Cameroon English sub-system + technical schools)
-    seq1_score = models.DecimalField("Seq 1", max_digits=5, decimal_places=2, null=True, blank=True)
-    seq2_score = models.DecimalField("Seq 2", max_digits=5, decimal_places=2, null=True, blank=True)
-    exam_score = models.DecimalField("Exam", max_digits=5, decimal_places=2, null=True, blank=True)
-    mock_score = models.DecimalField("Mock", max_digits=5, decimal_places=2, null=True, blank=True)
-    practical_score = models.DecimalField("Practical", max_digits=5, decimal_places=2, null=True, blank=True)
+    # Validators: 0-20 scale for Cameroon. Override if using different scale.
+    seq1_score = models.DecimalField(
+        "Seq 1",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
+    seq2_score = models.DecimalField(
+        "Seq 2",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
+    exam_score = models.DecimalField(
+        "Exam",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
+    mock_score = models.DecimalField(
+        "Mock",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
+    practical_score = models.DecimalField(
+        "Practical",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
     remarks = models.CharField(max_length=255, blank=True)
     
     # NEW: Grade conversion & practical assessment
@@ -291,6 +328,27 @@ class Evaluation(models.Model):
         unique_together = ("academic_year", "term", "subject_assignment", "student")
 
     def clean(self):
+        # Validate score ranges (0-20 for Cameroon)
+        score_fields = {
+            'seq1_score': self.seq1_score,
+            'seq2_score': self.seq2_score,
+            'exam_score': self.exam_score,
+            'mock_score': self.mock_score,
+            'practical_score': self.practical_score,
+        }
+        
+        for field_name, score in score_fields.items():
+            if score is not None:
+                if score < 0:
+                    raise ValidationError({field_name: f"{field_name} cannot be negative"})
+                if score > 20:
+                    raise ValidationError({field_name: f"{field_name} cannot exceed 20"})
+        
+        # At least one score must be entered
+        scores = [s for s in score_fields.values() if s is not None]
+        if not scores and not self.test1 and not self.test2:
+            raise ValidationError("At least one score must be entered")
+        
         # enforce year/term match
         if self.term and self.academic_year and self.term.academic_year_id != self.academic_year_id:
             raise ValidationError("Term academic year must match Evaluation academic year.")
@@ -306,6 +364,11 @@ class Evaluation(models.Model):
                 raise ValidationError("Student year must match SubjectAssignment year.")
             if self.student.classroom_id != sa.classroom_id or self.student.specialty_id != sa.specialty_id:
                 raise ValidationError("Student class/specialty must match SubjectAssignment class/specialty.")
+
+    def save(self, *args, **kwargs):
+        """Call full_clean() before saving to validate scores."""
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.student} | {self.subject_assignment.subject} | {self.term}"
