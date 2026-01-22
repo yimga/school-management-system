@@ -10,25 +10,19 @@ find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 find . -type f -name "*.pyc" -delete 2>/dev/null || true
 find . -type f -name "*.pyo" -delete 2>/dev/null || true
 
-# Create a fresh virtual environment to avoid PEP 668 restrictions
-echo "Creating virtual environment..."
-python3 -m venv .venv
+# Render uses an externally managed Python environment (PEP 668)
+# Use break-system-packages to allow installation during build.
+export PIP_BREAK_SYSTEM_PACKAGES=1
 
-# Define venv executables
-VENV_PY=".venv/bin/python"
-VENV_PIP=".venv/bin/pip"
+echo "Clearing pip cache..."
+python3 -m pip cache purge 2>/dev/null || true
 
-# Clear pip cache within venv
-echo "Clearing pip cache (venv)..."
-$VENV_PY -m pip cache purge 2>/dev/null || true
-
-# Install dependencies within venv
-echo "Installing dependencies (venv)..."
-$VENV_PY -m pip install --upgrade pip --no-cache-dir
-$VENV_PIP install --no-cache-dir --force-reinstall -r requirements.txt
+echo "Installing dependencies..."
+python3 -m pip install --upgrade pip --no-cache-dir
+python3 -m pip install --no-cache-dir --force-reinstall -r requirements.txt
 
 # Never run makemigrations in CI/production.
 echo "Running migrations..."
-$VENV_PY manage.py migrate --noinput
+python3 manage.py migrate --noinput
 echo "Collecting static files..."
-$VENV_PY manage.py collectstatic --noinput
+python3 manage.py collectstatic --noinput
