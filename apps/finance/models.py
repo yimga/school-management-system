@@ -9,6 +9,12 @@ from django.core.exceptions import ValidationError
 
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.people.models import StudentProfile, StudentGuardian
+from apps.accounts.validators import (
+    validate_document_file,
+    validate_file_size_5mb,
+    validate_receipt_file,
+    validate_file_size_2mb
+)
 
 
 class ComplianceProfile(models.Model):
@@ -229,7 +235,8 @@ class Invoice(models.Model):
         upload_to="finance/invoices/",
         blank=True,
         null=True,
-        help_text="Optional PDF or image attachment for this invoice.",
+        validators=[validate_document_file, validate_file_size_5mb],
+        help_text="Optional PDF or image attachment for this invoice (max 5MB).",
     )
     total_amount = models.DecimalField(
         max_digits=12,
@@ -246,6 +253,29 @@ class Invoice(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Audit logging fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoices_created',
+        help_text="User who created this invoice"
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoices_updated',
+        help_text="User who last updated this invoice"
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp - set instead of deleting"
+    )
 
     class Meta:
         ordering = ["-issued_date", "-id"]
@@ -259,9 +289,40 @@ class Invoice(models.Model):
         """Call full_clean() before saving to validate."""
         self.full_clean()
         super().save(*args, **kwargs)
+    
+    @property
+    def computed_balance(self) -> Decimal:
+        \"\"\"
+        Compute remaining balance from total_amount - sum(payments).
+        
+        This replaces the denormalized balance_amount field with a reliable 
+        computed property that always reflects the true state.
+        
+        Note: The balance_amount field is deprecated and should be migrated to 
+        use this property. For now, both exist for backwards compatibility.
+        \"\"\"
+        total_paid = sum(
+            p.amount for p in self.payments.all()
+        ) or Decimal(\"0.00\")
+        return max(self.total_amount - total_paid, Decimal(\"0.00\"))
+    
+    def reconcile_balance(self) -> bool:
+        \"\"\"
+        Sync the denormalized balance_amount field with computed value.
+        Returns True if balance was out of sync and updated.
+        
+        This method should be called after payment changes to maintain 
+        backwards compatibility with code that relies on balance_amount field.
+        \"\"\"
+        correct_balance = self.computed_balance
+        if self.balance_amount != correct_balance:
+            self.balance_amount = correct_balance
+            self.save(update_fields=['balance_amount', 'updated_at'])
+            return True
+        return False
 
     def __str__(self) -> str:
-        return f"{self.invoice_type} {self.reference or self.id}"
+        return f\"{self.invoice_type} {self.reference or self.id}\"
 
 
 class InvoiceLine(models.Model):
@@ -295,9 +356,25 @@ class Payment(models.Model):
         upload_to="finance/receipts/",
         blank=True,
         null=True,
-        help_text="Optional uploaded receipt or slip.",
+        validators=[validate_receipt_file, validate_file_size_2mb],
+        help_text="Optional uploaded receipt or slip (PDF/image, max 2MB).",
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Audit logging fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payments_created',
+        help_text="User who recorded this payment"
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp - set instead of deleting"
+    )
 
     class Meta:
         ordering = ["-paid_at"]

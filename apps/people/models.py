@@ -193,6 +193,29 @@ class StudentProfile(models.Model):
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="students")
 
     is_active = models.BooleanField(default=True)
+    
+    # Audit logging fields for data integrity
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp - preserves grade history when student leaves"
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students_created',
+        help_text="User who created this student record"
+    )
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students_updated',
+        help_text="User who last updated this student record"
+    )
 
     class Meta:
         ordering = ["last_name", "first_name"]

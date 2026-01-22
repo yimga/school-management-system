@@ -96,8 +96,14 @@ def dashboard(request: HttpRequest):
     })
 
 
-@staff_member_required
 def invoice_list(request: HttpRequest):
+    """
+    Invoice list view with role-based filtering.
+    Staff see all invoices; parents see only their children's invoices.
+    """
+    from apps.accounts.models import User
+    from apps.people.models import StudentGuardian
+    
     profile = _active_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -105,6 +111,18 @@ def invoice_list(request: HttpRequest):
     status = request.GET.get("status")
     year_id = request.GET.get("year")
     qs = Invoice.objects.filter(profile=profile).select_related("student", "academic_year")
+    
+    # Filter invoices based on user role
+    if request.user.role == User.Role.PARENT:
+        # Parents can only see invoices for their children
+        parent_students = StudentGuardian.objects.filter(
+            guardian__user=request.user
+        ).values_list('student_id', flat=True)
+        qs = qs.filter(student_id__in=parent_students)
+    elif not (request.user.is_staff or request.user.is_superuser or request.user.role == User.Role.ADMIN):
+        return HttpResponseForbidden("You don't have permission to view invoices.")
+    
+    # Continue with existing filtering logic
 
     if status:
         qs = qs.filter(status=status)
@@ -207,8 +225,21 @@ def trial_balance(request: HttpRequest):
     })
 
 
-@staff_member_required
 def invoice_detail(request: HttpRequest, invoice_id: int):
+    """
+    Invoice detail view with object-level permission check.
+    Staff can view all invoices; parents can only view their children's invoices.
+    """
+    from apps.accounts.decorators import parent_can_access_invoice
+    from apps.accounts.models import User
+    
+    # Check permission based on user role
+    if request.user.role == User.Role.PARENT:
+        if not parent_can_access_invoice(request, invoice_id):
+            return HttpResponseForbidden("You don't have permission to view this invoice.")
+    elif not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden("You don't have permission to view invoices.")
+    
     profile = _active_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")

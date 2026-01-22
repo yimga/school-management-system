@@ -260,6 +260,29 @@ class Evaluation(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Audit logging fields for data integrity
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='evaluations_created',
+        help_text="User who created this evaluation"
+    )
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='evaluations_updated',
+        help_text="User who last updated this evaluation"
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp - preserves evaluation history"
+    )
 
 
     @property
