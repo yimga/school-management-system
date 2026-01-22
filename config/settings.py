@@ -306,6 +306,26 @@ DATA_RETENTION = {
 COMPLIANCE_DASHBOARD_CACHE_SECONDS = int(os.getenv("COMPLIANCE_DASHBOARD_CACHE_SECONDS", "60"))
 COMPLIANCE_EXPORT_MAX_ROWS = int(os.getenv("COMPLIANCE_EXPORT_MAX_ROWS", "5000"))
 
+# --- Threat Detection & Incident Response ---
+THREAT_DETECTION = {
+    "window_minutes": int(os.getenv("THREAT_WINDOW_MINUTES", "60")),
+    "failed_per_user": int(os.getenv("THREAT_FAILED_PER_USER", "10")),
+    "failed_per_ip": int(os.getenv("THREAT_FAILED_PER_IP", "20")),
+    "after_hours_start": int(os.getenv("THREAT_AFTER_HOURS_START", "22")),
+    "after_hours_end": int(os.getenv("THREAT_AFTER_HOURS_END", "6")),
+    "after_hours_threshold": int(os.getenv("THREAT_AFTER_HOURS_THRESHOLD", "5")),
+    "mute_minutes": int(os.getenv("THREAT_MUTE_MINUTES", "0")),
+}
+
+INCIDENT_RESPONSE = {
+    "oncall_emails": [e for e in os.getenv("ONCALL_EMAILS", "").split(",") if e],
+    "ticket_webhook": os.getenv("INCIDENT_TICKET_WEBHOOK", ""),
+    "playbook_url": os.getenv(
+        "INCIDENT_PLAYBOOK_URL",
+        "https://runbooks.gileadschool.com/security/incident-response"
+    ),
+}
+
 
 # ============================================================================
 # Phase 1.2.4: Internationalization & Multi-Region Support

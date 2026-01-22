@@ -133,6 +133,39 @@ def notify_audit_event(audit_log):
     _send_webhook(structured)
 
 
+def send_threat_alert(finding: dict):
+    """Send threat detection alerts via configured channels."""
+    cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
+    if not cfg.get("enabled", True):
+        return
+
+    subject = f"[Threat Alert] {finding.get('type', 'Unknown')}"
+    message = (
+        f"Type: {finding.get('type')}\n"
+        f"Severity: {finding.get('severity')}\n"
+        f"User: {finding.get('user', 'N/A')}\n"
+        f"IP: {finding.get('ip_address', 'N/A')}\n"
+        f"Count: {finding.get('count', 'N/A')}\n"
+        f"Window: {finding.get('window', 'N/A')}\n"
+        f"Details: {finding.get('description', '')}\n"
+        f"Runbook: {cfg.get('runbook_url', 'N/A')}\n"
+    )
+
+    _send_email(subject, message)
+    _send_slack(message)
+    structured = {
+        "type": "threat.alert",
+        "severity": finding.get("severity"),
+        "user": finding.get("user"),
+        "ip_address": finding.get("ip_address"),
+        "count": finding.get("count"),
+        "window": finding.get("window"),
+        "description": finding.get("description"),
+        "runbook": cfg.get("runbook_url"),
+    }
+    _send_webhook(structured)
+
+
 def send_compliance_report_email(reports):
     """Send scheduled compliance report summaries via email."""
     cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
