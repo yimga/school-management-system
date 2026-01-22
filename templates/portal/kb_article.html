@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ article.title }} - Knowledge Base{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'kb:kb_home' %}">Knowledge Base</a></li>
+            {% if article.category %}
+            <li class="breadcrumb-item">
+                <a href="{% url 'kb:kb_category' article.category.slug %}">
+                    {{ article.category.name }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ article.title|truncatewords:5 }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Article Header -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="h3 mb-2">{{ article.title }}</h1>
+                            {% if article.difficulty %}
+                            <span class="badge 
+                                {% if article.difficulty == 'BEGINNER' %}badge-success
+                                {% elif article.difficulty == 'INTERMEDIATE' %}badge-warning
+                                {% else %}badge-danger{% endif %}">
+                                {{ article.get_difficulty_display }}
+                            </span>
+                            {% endif %}
+                            {% if article.is_featured %}
+                            <span class="badge badge-warning ml-2">
+                                <i class="fas fa-star"></i> Featured
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% if user.is_authenticated %}
+                        <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#shareModal">
+                            <i class="fas fa-share-alt"></i> Share
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Meta Info -->
+                    <div class="row small text-muted py-2 border-top border-bottom">
+                        <div class="col-md-6">
+                            <i class="fas fa-calendar"></i> 
+                            {{ article.updated_at|date:"F d, Y" }}
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <i class="fas fa-clock"></i> {{ article.read_time }} min read
+                        </div>
+                        <div class="col-md-6 mt-2">
+                            <i class="fas fa-eye"></i> {{ article.views }} views
+                        </div>
+                        <div class="col-md-6 mt-2 text-right">
+                            <i class="fas fa-user"></i> By {{ article.author.get_full_name|default:article.author.username }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Article Content -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <!-- Table of Contents (if article has sections) -->
+                    <div class="article-toc mb-4 p-3 bg-light rounded">
+                        <h6>On this page</h6>
+                        <ul class="small mb-0">
+                            <li><a href="#content">Overview</a></li>
+                            {% if article.attachments.count %}
+                            <li><a href="#attachments">Visuals & Screenshots</a></li>
+                            {% endif %}
+                            <li><a href="#comments">Comments</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div id="content" class="article-content mb-4">
+                        {{ article.content|safe }}
+                    </div>
+
+                    <!-- Attachments/Screenshots -->
+                    {% if article.attachments.count %}
+                    <div id="attachments" class="mt-4 pt-4 border-top">
+                        <h5 class="mb-3">
+                            <i class="fas fa-images"></i> Screenshots & Visuals
+                        </h5>
+                        <div class="row">
+                            {% for attachment in article.attachments.all %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card shadow-sm">
+                                    {% if attachment.is_image %}
+                                    <img src="{{ attachment.file.url }}" class="card-img-top" alt="{{ attachment.caption }}">
+                                    {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                         style="height: 200px;">
+                                        <i class="fas fa-file text-muted fa-2x"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <p class="card-text small">{{ attachment.caption }}</p>
+                                        <a href="{{ attachment.file.url }}" class="btn btn-sm btn-outline-primary" 
+                                           target="_blank">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Tags -->
+                    {% if article.tags.all %}
+                    <div class="mt-4 pt-4 border-top">
+                        <strong>Tags:</strong><br>
+                        {% for tag in article.tags.all %}
+                        <a href="{% url 'kb:kb_search' %}?q={{ tag.name }}" class="badge badge-info">
+                            {{ tag.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Related Articles -->
+            {% if article.related_articles.all %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-link"></i> Related Articles
+                    </h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for related in article.related_articles.all %}
+                    <a href="{% url 'kb:kb_article' related.slug %}" 
+                       class="list-group-item list-group-item-action">
+                        <h6 class="mb-1">{{ related.title }}</h6>
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> {{ related.read_time }} min read
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Comments Section -->
+            <div id="comments" class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments"></i> Comments ({{ article.comments.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated %}
+                    <!-- Comment Form -->
+                    <form method="post" action="{% url 'kb:kb_comment_add' article.id %}" class="mb-4">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="comment">Add a Comment</label>
+                            <textarea class="form-control" id="comment" name="text" rows="3" 
+                                      placeholder="Share your thoughts or questions..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-comment"></i> Post Comment
+                        </button>
+                    </form>
+                    {% else %}
+                    <p class="text-muted">
+                        <a href="{% url 'accounts:login' %}?next={% url 'kb:kb_article' article.slug %}">
+                            Login
+                        </a> to leave a comment
+                    </p>
+                    {% endif %}
+
+                    <!-- Comments List -->
+                    {% if article.comments.all %}
+                    <div class="comments-list">
+                        {% for comment in article.comments.all %}
+                        <div class="comment-item mb-3 p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                                    <small class="text-muted ml-2">
+                                        <i class="fas fa-calendar"></i> {{ comment.created_at|date:"M d, Y H:i" }}
+                                    </small>
+                                </div>
+                                {% if comment.is_helpful %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check"></i> Helpful
+                                </span>
+                                {% endif %}
+                            </div>
+                            <p class="mb-2">{{ comment.text }}</p>
+                            {% if user.is_authenticated and not comment.is_helpful %}
+                            <button class="btn btn-sm btn-outline-success mark-helpful-btn" 
+                                    data-comment-id="{{ comment.id }}">
+                                <i class="fas fa-thumbs-up"></i> Mark as helpful
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No comments yet. Be the first to comment!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Author Info -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user"></i> Article Info
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <small>
+                        <strong>Author:</strong> {{ article.author.get_full_name|default:article.author.username }}<br>
+                        {% if article.contributors.count %}
+                        <strong>Contributors:</strong> {{ article.contributors.count }}<br>
+                        {% endif %}
+                        <strong>Category:</strong> 
+                        {% if article.category %}
+                        <a href="{% url 'kb:kb_category' article.category.slug %}">
+                            {{ article.category.name }}
+                        </a>
+                        {% else %}
+                        Uncategorized
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Engagement -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Engagement
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <strong>{{ article.views }}</strong><br>
+                            <small class="text-muted">Views</small>
+                        </div>
+                        <div class="col-4">
+                            <strong>{{ article.helpful_votes }}</strong><br>
+                            <small class="text-muted">Helpful</small>
+                        </div>
+                        <div class="col-4">
+                            <strong>{{ article.comments.count }}</strong><br>
+                            <small class="text-muted">Comments</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KB Home Link -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-book"></i> Knowledge Base
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">
+                        Explore more articles and guides.
+                    </p>
+                    <a href="{% url 'kb:kb_home' %}" class="btn btn-outline-primary btn-sm btn-block">
+                        Browse KB
+                    </a>
+                </div>
+            </div>
+
+            <!-- FAQ Link -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle"></i> Quick Answers
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">
+                        Need a quick answer? Check our FAQ.
+                    </p>
+                    <a href="{% url 'kb:faq_list' %}" class="btn btn-info btn-sm btn-block">
+                        View FAQ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Article</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Article URL</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="articleUrl" 
+                               value="{{ request.build_absolute_uri }}" readonly>
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" onclick="copyUrl()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="social-share">
+                    <button onclick="shareOn('twitter')" class="btn btn-info btn-sm">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </button>
+                    <button onclick="shareOn('facebook')" class="btn btn-primary btn-sm">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </button>
+                    <button onclick="shareOn('linkedin')" class="btn btn-info btn-sm">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.article-content {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #555;
+}
+
+.article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+}
+
+.article-content h2, .article-content h3, .article-content h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.comment-item {
+    border-left: 3px solid #667eea;
+}
+
+.social-share {
+    margin-top: 1rem;
+}
+
+.social-share button {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+</style>
+
+<script>
+function copyUrl() {
+    const url = document.getElementById('articleUrl');
+    url.select();
+    document.execCommand('copy');
+    alert('URL copied to clipboard!');
+}
+
+function shareOn(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('{{ article.title }}');
+    let shareUrl;
+    
+    switch(platform) {
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+            break;
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+            break;
+    }
+    
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+}
+</script>
+{% endblock %}

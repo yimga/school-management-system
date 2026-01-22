@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Submit a Question - FAQ{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'kb:faq_list' %}">FAQ</a></li>
+            <li class="breadcrumb-item active">Submit Question</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h4 mb-0">
+                        <i class="fas fa-plus-circle"></i> Submit a Question
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Help us improve! Submit your frequently asked question and our team will add it to the FAQ.
+                        Your contribution will earn you points!
+                    </p>
+
+                    <form method="post" action="{% url 'kb:faq_submit' %}" class="faq-form">
+                        {% csrf_token %}
+
+                        <!-- Question Field -->
+                        <div class="form-group">
+                            <label for="{{ form.question.id_for_label }}">
+                                <strong>Your Question</strong>
+                                <span class="badge badge-danger">Required</span>
+                            </label>
+                            {{ form.question }}
+                            {% if form.question.help_text %}
+                            <small class="form-text text-muted d-block mt-1">
+                                {{ form.question.help_text|safe }}
+                            </small>
+                            {% endif %}
+                            {% if form.question.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.question.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Answer Field -->
+                        <div class="form-group">
+                            <label for="{{ form.answer.id_for_label }}">
+                                <strong>Your Answer</strong>
+                                <span class="badge badge-danger">Required</span>
+                            </label>
+                            <p class="small text-muted mb-2">
+                                Provide a detailed answer to help other users. You can use basic formatting.
+                            </p>
+                            {{ form.answer }}
+                            {% if form.answer.help_text %}
+                            <small class="form-text text-muted d-block mt-1">
+                                {{ form.answer.help_text|safe }}
+                            </small>
+                            {% endif %}
+                            {% if form.answer.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.answer.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Category Field -->
+                        <div class="form-group">
+                            <label for="{{ form.category.id_for_label }}">
+                                <strong>Category</strong>
+                            </label>
+                            {{ form.category }}
+                            <small class="form-text text-muted d-block mt-1">
+                                Select the most relevant category. This helps organize the FAQ.
+                            </small>
+                            {% if form.category.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.category.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Tags Field -->
+                        <div class="form-group">
+                            <label for="{{ form.tags.id_for_label }}">
+                                <strong>Tags</strong>
+                            </label>
+                            {{ form.tags }}
+                            <small class="form-text text-muted d-block mt-1">
+                                Add relevant tags (comma-separated) to improve searchability.
+                                Example: login, password, authentication
+                            </small>
+                            {% if form.tags.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.tags.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="alert alert-info" role="alert">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle"></i> What happens next?
+                            </h6>
+                            <ul class="small mb-0">
+                                <li>Your submission will be reviewed by our team</li>
+                                <li>You'll earn <strong>5 points</strong> for every approved question</li>
+                                <li>Featured questions may earn bonus points</li>
+                                <li>See your contributions on your <a href="{% url 'kb:user_contributions' %}">dashboard</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Submit Question
+                            </button>
+                            <a href="{% url 'kb:faq_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Guidelines -->
+                    <div class="mt-4 p-3 bg-light border rounded">
+                        <h6>
+                            <i class="fas fa-check-circle text-success"></i> Guidelines for Quality Questions
+                        </h6>
+                        <ul class="small mb-0">
+                            <li><strong>Be specific:</strong> Clear, detailed questions get better answers</li>
+                            <li><strong>Be helpful:</strong> Think about what would help other users</li>
+                            <li><strong>Avoid duplicates:</strong> Search before submitting</li>
+                            <li><strong>Use clear language:</strong> Easy to read and understand</li>
+                            <li><strong>Format nicely:</strong> Use paragraphs and lists</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, textarea {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+}
+
+textarea {
+    min-height: 200px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.form-control:focus, textarea:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.invalid-feedback {
+    color: #dc3545;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
