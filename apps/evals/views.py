@@ -464,6 +464,9 @@ def class_ranking_view(request: HttpRequest):
     """Class ranking (best to worst) for a given year/term/classroom.
 
     This is a staff-only view intended for Admin/Leadership.
+
+    Optimization: Uses cached rankings with 15-minute TTL and batch-loaded
+    evaluations to avoid N+1 queries.
     """
     year, active_term = get_active_year_and_term()
     if not year or not active_term:
@@ -485,13 +488,24 @@ def class_ranking_view(request: HttpRequest):
     if classroom_id:
         selected_classroom = get_object_or_404(Classroom, id=classroom_id)
 
-        from .services import get_class_ranking, get_class_stats
+        from .services import get_class_stats
+        from .ranking import get_class_ranking
 
-        ranking = get_class_ranking(selected_classroom, year_obj, term_obj)
+        # Get optimized ranking with tie handling and caching
+        ranking = get_class_ranking(selected_classroom, term_obj)
         stats = get_class_stats(selected_classroom, year_obj, term_obj)
+
+        # Build rows from ranking entries (rank already included)
         rows = [
-            {"rank": idx + 1, "student": agg.student, "average": agg.average}
-            for idx, agg in enumerate(ranking)
+            {
+                "rank": entry.rank,
+                "student": entry.student,
+                "average": entry.average,
+                "is_tied": entry.is_tied,
+                "tied_count": entry.tied_count,
+                "percentile": entry.percentile,
+            }
+            for entry in ranking
         ]
 
     return render(request, "evals/class_ranking.html", {
@@ -510,7 +524,12 @@ def class_ranking_view(request: HttpRequest):
 
 @staff_member_required
 def school_ranking_view(request: HttpRequest):
-    """School-wide ranking for a given year/term."""
+    """School-wide ranking for a given year/term.
+
+    Optimization: Uses cached rankings with 15-minute TTL and batch-loaded
+    evaluations to avoid N+1 queries. Proper tie handling ensures deterministic
+    ranking even when students have identical averages.
+    """
     year, active_term = get_active_year_and_term()
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
@@ -521,12 +540,22 @@ def school_ranking_view(request: HttpRequest):
     year_obj = get_object_or_404(AcademicYear, id=year_id)
     term_obj = get_object_or_404(Term, id=term_id)
 
-    from .services import get_school_ranking
+    from .ranking import get_school_ranking
 
-    ranking = get_school_ranking(year_obj, term_obj)
+    # Get optimized ranking with tie handling and caching
+    ranking = get_school_ranking(term_obj)
+
+    # Build rows from ranking entries (rank already included with tie handling)
     rows = [
-        {"rank": idx + 1, "student": agg.student, "average": agg.average}
-        for idx, agg in enumerate(ranking)
+        {
+            "rank": entry.rank,
+            "student": entry.student,
+            "average": entry.average,
+            "is_tied": entry.is_tied,
+            "tied_count": entry.tied_count,
+            "percentile": entry.percentile,
+        }
+        for entry in ranking
     ]
 
     return render(request, "evals/school_ranking.html", {
