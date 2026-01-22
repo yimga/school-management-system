@@ -23,6 +23,8 @@ class Term(models.Model):
 
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="terms")
     name = models.CharField(max_length=10, choices=Name.choices)
+    # Phase 3: Optional custom label for flexible naming (e.g., "Semester 1")
+    custom_label = models.CharField(max_length=30, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=False)
@@ -33,6 +35,11 @@ class Term(models.Model):
 
     def __str__(self):
         return f"{self.academic_year} - {self.get_name_display()}"
+
+    @property
+    def label(self) -> str:
+        """Return display label, preferring custom_label if set."""
+        return self.custom_label or self.get_name_display()
 
 
 class Department(models.Model):

@@ -262,7 +262,7 @@ LANGUAGES = [
     ('yo', 'Yorùbá'),
 ]
 
-TIME_ZONE = os.getenv('TIME_ZONE', 'Africa/Douala')
+TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]

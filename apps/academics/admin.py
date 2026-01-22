@@ -15,7 +15,7 @@ class AcademicYearAdmin(ModelAdmin):
 
 @admin.register(Term)
 class TermAdmin(ModelAdmin):
-    list_display = ("academic_year", "name", "start_date", "end_date", "is_active")
+    list_display = ("academic_year", "name", "custom_label", "start_date", "end_date", "is_active")
     list_filter = ("academic_year", "name", "is_active")
     search_fields = ("academic_year__name",)
 
