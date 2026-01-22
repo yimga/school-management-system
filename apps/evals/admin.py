@@ -8,6 +8,7 @@ from .models import TeacherAssignment, Evaluation, AssessmentWeights, Evaluation
 class TeacherAssignmentAdmin(ModelAdmin):
     list_display = ("teacher", "academic_year", "subject_assignment", "is_active")
     list_filter = ("academic_year", "is_active")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = (
         "teacher__user__username",
         "teacher__user__first_name",
@@ -35,6 +36,7 @@ class EvaluationAdmin(ModelAdmin):
         "letter_grade",
     )
     list_filter = ("academic_year", "term", "subject_assignment__classroom", "subject_assignment__specialty", "subject_assignment__subject")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("student__student_code", "student__first_name", "student__last_name")
 
 
@@ -42,12 +44,14 @@ class EvaluationAdmin(ModelAdmin):
 class AssessmentWeightsAdmin(ModelAdmin):
     list_display = ("academic_year", "term", "classroom", "seq1_weight", "seq2_weight", "exam_weight", "mock_weight", "practical_weight", "score_scale")
     list_filter = ("academic_year", "term", "classroom", "grading_scale", "region")
+    list_per_page = 50  # PERFORMANCE: Add pagination
 
 
 @admin.register(EvaluationEvidence)
 class EvaluationEvidenceAdmin(ModelAdmin):
     list_display = ("evaluation", "media_type", "uploaded_by", "uploaded_at")
     list_filter = ("media_type", "uploaded_at")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("evaluation__student__student_code", "evaluation__student__first_name", "evaluation__student__last_name")
 
 
@@ -55,6 +59,7 @@ class EvaluationEvidenceAdmin(ModelAdmin):
 class GradeAuditAdmin(ModelAdmin):
     list_display = ('evaluation', 'changed_by', 'change_type', 'changed_at')
     list_filter = ('change_type', 'changed_at')
+    list_per_page = 50  # PERFORMANCE: Add pagination
     readonly_fields = (
         'evaluation', 'changed_by', 'changed_at', 'change_type',
         'seq1_before', 'seq1_after', 'seq2_before', 'seq2_after',
@@ -68,6 +73,7 @@ class GradeAuditAdmin(ModelAdmin):
 class OfflineMarkEntryAdmin(ModelAdmin):
     list_display = ('student', 'subject_assignment', 'status', 'created_offline_at')
     list_filter = ('status', 'created_offline_at')
+    list_per_page = 50  # PERFORMANCE: Add pagination
     fieldsets = (
         ('Grade Entry', {
             'fields': ('student', 'subject_assignment', 'teacher', 'seq1_score', 'seq2_score', 'exam_score', 'mock_score', 'practical_score', 'remarks'),

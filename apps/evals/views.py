@@ -369,6 +369,17 @@ def teacher_marks_list(request: HttpRequest):
     if term_id:
         qs = qs.filter(term_id=term_id)
 
+    # PERFORMANCE FIX: Apply missing_only filter at database level to avoid loading all records into memory
+    if missing_only:
+        # Filter for records where any required score field is NULL
+        from django.db.models import Q
+        qs = qs.filter(
+            Q(seq1_score__isnull=True) | Q(test1__isnull=True) |
+            Q(seq2_score__isnull=True) | Q(test2__isnull=True) |
+            Q(exam_score__isnull=True) | Q(mock_score__isnull=True) |
+            Q(practical_score__isnull=True)
+        )
+
     evals = qs.select_related(
         "student",
         "term",
@@ -377,13 +388,19 @@ def teacher_marks_list(request: HttpRequest):
         "subject_assignment__specialty",
     ).order_by("-updated_at")
 
-    if missing_only:
-        evals = [
-            e for e in evals
-            if any(getattr(e, field) is None for field in _required_fields_for_evaluation(e))
-        ]
-
-    evals_list = list(evals)
+    # PERFORMANCE FIX: Add pagination to prevent memory exhaustion with 15,000+ records
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(evals, 50)  # 50 records per page
+    
+    try:
+        evals_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        evals_page = paginator.page(1)
+    except EmptyPage:
+        evals_page = paginator.page(paginator.num_pages)
+    
+    evals_list = list(evals_page)
 
     if export_pdf:
         rows = [_serialize_evaluation(e) for e in evals_list]
@@ -445,6 +462,8 @@ def teacher_marks_list(request: HttpRequest):
         "year": year,
         "term": term,
         "evals": evals_list,
+        "paginator": paginator,
+        "page_obj": evals_page,
         "classrooms": list(classrooms),
         "subjects": list(subjects),
         "term_choices": list(Term.objects.all()),

@@ -34,6 +34,7 @@ from .models import (
 class ComplianceProfileAdmin(ModelAdmin):
     list_display = ("name", "country_code", "currency_code", "chart_template", "is_active")
     list_filter = ("country_code", "chart_template", "is_active")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("name", "country_code")
 
 
@@ -41,12 +42,14 @@ class ComplianceProfileAdmin(ModelAdmin):
 class TaxBracketAdmin(ModelAdmin):
     list_display = ("profile", "lower_bound", "upper_bound", "rate")
     list_filter = ("profile",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
 
 
 @admin.register(ContributionRule)
 class ContributionRuleAdmin(ModelAdmin):
     list_display = ("profile", "code", "name", "employee_rate", "employer_rate", "cap_amount")
     list_filter = ("profile",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("code", "name")
 
 
@@ -54,6 +57,7 @@ class ContributionRuleAdmin(ModelAdmin):
 class LedgerAccountAdmin(ModelAdmin):
     list_display = ("profile", "code", "name", "account_type", "is_active")
     list_filter = ("profile", "account_type", "is_active")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("code", "name")
 
 
@@ -66,6 +70,7 @@ class JournalLineInline(admin.TabularInline):
 class JournalEntryAdmin(ModelAdmin):
     list_display = ("entry_date", "reference", "profile", "posted_at")
     list_filter = ("profile",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("reference", "memo")
     inlines = [JournalLineInline]
 
@@ -74,6 +79,7 @@ class JournalEntryAdmin(ModelAdmin):
 class CounterpartyAdmin(ModelAdmin):
     list_display = ("name", "counterparty_type", "student", "user")
     list_filter = ("counterparty_type",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("name", "email", "phone")
 
 
@@ -86,6 +92,7 @@ class FeeItemInline(admin.TabularInline):
 class FeePlanAdmin(ModelAdmin):
     list_display = ("name", "academic_year", "classroom", "specialty", "is_active")
     list_filter = ("academic_year", "classroom", "specialty", "is_active")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("name",)
     inlines = [FeeItemInline]
 
@@ -94,6 +101,7 @@ class FeePlanAdmin(ModelAdmin):
 class FeeInstallmentAdmin(ModelAdmin):
     list_display = ("fee_item", "installment_number", "amount", "due_date")
     list_filter = ("fee_item",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
 
 
 class InvoiceLineInline(admin.TabularInline):
@@ -114,6 +122,7 @@ class InvoiceAdmin(ModelAdmin):
         "attachment",
     )
     list_filter = ("invoice_type", "status", "issued_date")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("reference", "student__student_code", "counterparty__name")
     inlines = [InvoiceLineInline]
 
@@ -122,6 +131,7 @@ class InvoiceAdmin(ModelAdmin):
 class PaymentAdmin(ModelAdmin):
     list_display = ("invoice", "amount", "method", "paid_at", "receipt_number", "receipt_file")
     list_filter = ("method", "paid_at")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("reference", "receipt_number")
 
 
@@ -129,6 +139,7 @@ class PaymentAdmin(ModelAdmin):
 class PaymentReminderAdmin(ModelAdmin):
     list_display = ("invoice", "is_active", "next_send_at", "reminder_days_before")
     list_filter = ("is_active",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("invoice__reference", "invoice__student__student_code")
 
 
@@ -136,29 +147,34 @@ class PaymentReminderAdmin(ModelAdmin):
 class PaymentReminderLogAdmin(ModelAdmin):
     list_display = ("reminder", "sent_at", "status")
     list_filter = ("status",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
 
 
 @admin.register(Budget)
 class BudgetAdmin(ModelAdmin):
     list_display = ("name", "academic_year", "department", "total_amount")
     list_filter = ("academic_year", "department")
+    list_per_page = 50  # PERFORMANCE: Add pagination
 
 
 @admin.register(BudgetLine)
 class BudgetLineAdmin(ModelAdmin):
     list_display = ("budget", "account", "amount")
     list_filter = ("budget",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
 
 
 @admin.register(AssetCategory)
 class AssetCategoryAdmin(ModelAdmin):
     list_display = ("name",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
 
 
 @admin.register(Asset)
 class AssetAdmin(ModelAdmin):
     list_display = ("name", "category", "status", "purchase_cost")
     list_filter = ("status", "category")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("name", "asset_tag")
 
 
@@ -170,6 +186,7 @@ class GrantAllocationInline(admin.TabularInline):
 @admin.register(Grant)
 class GrantAdmin(ModelAdmin):
     list_display = ("name", "funder", "amount", "start_date", "end_date")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("name", "funder")
     inlines = [GrantAllocationInline]
 
@@ -178,6 +195,7 @@ class GrantAdmin(ModelAdmin):
 class NotificationAdmin(ModelAdmin):
     list_display = ("title", "severity", "is_read", "created_at", "created_by")
     list_filter = ("severity", "is_read")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("title", "message", "created_by__username")
 
 
@@ -185,6 +203,7 @@ class NotificationAdmin(ModelAdmin):
 class ReportRequestAdmin(ModelAdmin):
     list_display = ("report_type", "requested_by", "status", "created_at")
     list_filter = ("report_type", "status")
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("requested_by__username", "description")
 
 
@@ -192,4 +211,5 @@ class ReportRequestAdmin(ModelAdmin):
 class ReferralRewardAdmin(ModelAdmin):
     list_display = ("student", "guardian", "amount", "status", "awarded_by", "created_at")
     list_filter = ("status",)
+    list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("student__student_code", "guardian__guardian_user__username", "guardian__guardian_user__email")

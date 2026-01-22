@@ -292,7 +292,7 @@ class Invoice(models.Model):
     
     @property
     def computed_balance(self) -> Decimal:
-        \"\"\"
+        """
         Compute remaining balance from total_amount - sum(payments).
         
         This replaces the denormalized balance_amount field with a reliable 
@@ -300,20 +300,20 @@ class Invoice(models.Model):
         
         Note: The balance_amount field is deprecated and should be migrated to 
         use this property. For now, both exist for backwards compatibility.
-        \"\"\"
+        """
         total_paid = sum(
             p.amount for p in self.payments.all()
-        ) or Decimal(\"0.00\")
-        return max(self.total_amount - total_paid, Decimal(\"0.00\"))
+        ) or Decimal("0.00")
+        return max(self.total_amount - total_paid, Decimal("0.00"))
     
     def reconcile_balance(self) -> bool:
-        \"\"\"
+        """
         Sync the denormalized balance_amount field with computed value.
         Returns True if balance was out of sync and updated.
         
         This method should be called after payment changes to maintain 
         backwards compatibility with code that relies on balance_amount field.
-        \"\"\"
+        """
         correct_balance = self.computed_balance
         if self.balance_amount != correct_balance:
             self.balance_amount = correct_balance
@@ -322,7 +322,7 @@ class Invoice(models.Model):
         return False
 
     def __str__(self) -> str:
-        return f\"{self.invoice_type} {self.reference or self.id}\"
+        return f"{self.invoice_type} {self.reference or self.id}"
 
 
 class InvoiceLine(models.Model):

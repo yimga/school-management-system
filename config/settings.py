@@ -98,6 +98,11 @@ else:
         }
     }
 
+# PERFORMANCE: Enable persistent database connections (600 seconds = 10 minutes)
+# Reduces overhead of creating new connection for each request
+for db_config in DATABASES.values():
+    db_config['CONN_MAX_AGE'] = 600
+
 
 AUTH_USER_MODEL = "accounts.User"
 
