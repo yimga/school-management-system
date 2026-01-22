@@ -25,6 +25,7 @@ class RankingEntry:
     """Entry in a ranking with position, ties, and metadata."""
     rank: int
     student: StudentProfile
+    student_id: int
     average: float
     tied_count: int = 1  # Number of students tied at this rank
     percentile: float = 0.0  # Percentile ranking (0-100)
@@ -131,8 +132,8 @@ def _compute_rankings(
     if use_mock_blending and classroom:
         mock_setting = MockExamSetting.get_for(term.academic_year, classroom, term)
 
-    # Batch-load all evaluations for this term
-    evaluations = Evaluation.objects.filter(
+    # Batch-load all evaluations for this term (once)
+    evaluations_qs = Evaluation.objects.filter(
         term=term,
         student__in=students,
     ).select_related(
@@ -141,20 +142,20 @@ def _compute_rankings(
         "subject_assignment__classroom",
     )
 
-    # Compute averages efficiently
-    student_averages: dict[int, float] = {}
+    evaluations = list(evaluations_qs)
+    student_evals_map: dict[int, list[Evaluation]] = {}
 
     for eval_obj in evaluations:
-        student_id = eval_obj.student_id
-        if student_id not in student_averages:
-            # Compute average for this student
-            student_evals = evaluations.filter(student_id=student_id)
-            avg = _compute_student_average(
-                student_evals,
-                use_mock_blending=use_mock_blending,
-                mock_setting=mock_setting
-            )
-            student_averages[student_id] = avg
+        student_evals_map.setdefault(eval_obj.student_id, []).append(eval_obj)
+
+    student_averages: dict[int, float] = {}
+    for student_id, eval_list in student_evals_map.items():
+        avg = _compute_student_average(
+            eval_list,
+            use_mock_blending=use_mock_blending,
+            mock_setting=mock_setting,
+        )
+        student_averages[student_id] = avg
 
     # Create aggregates: (student, average) tuples
     aggregates = []
@@ -168,42 +169,35 @@ def _compute_rankings(
         key=lambda x: (-x[1], x[0].last_name, x[0].first_name, x[0].id)
     )
 
-    # Build ranking entries with tie handling
     rankings = []
+    idx = 0
     current_rank = 1
-    prev_average = None
+    group_eps = 0.001
+    total_students = len(aggregates)
 
-    for idx, (student, average) in enumerate(aggregates):
-        # Check for tie with previous student
-        if prev_average is not None and abs(average - prev_average) < 0.001:
-            # Tied with previous student
-            rank = rankings[-1].rank
-        else:
-            # New rank
-            rank = idx + 1
-            current_rank = rank
+    while idx < total_students:
+        student, average = aggregates[idx]
+        group_end = idx + 1
+        while group_end < total_students and abs(aggregates[group_end][1] - average) < group_eps:
+            group_end += 1
 
-        # Count how many students are tied at this rank
-        tied_count = 1
-        if idx + 1 < len(aggregates):
-            next_avg = aggregates[idx + 1][1]
-            tied_count = sum(
-                1 for _, a in aggregates[idx:]
-                if abs(a - average) < 0.001
+        group_size = group_end - idx
+        percentile = 100.0 - ((current_rank - 1) / max(total_students, 1)) * 100.0
+
+        for j in range(idx, group_end):
+            student_j, avg_j = aggregates[j]
+            entry = RankingEntry(
+                rank=current_rank,
+                student=student_j,
+                student_id=student_j.id,
+                average=round(avg_j, 2),
+                tied_count=group_size,
+                percentile=round(percentile, 2),
             )
+            rankings.append(entry)
 
-        # Calculate percentile (0-100)
-        percentile = 100.0 - ((current_rank - 1) / max(len(aggregates), 1)) * 100.0
-
-        entry = RankingEntry(
-            rank=rank,
-            student=student,
-            average=round(average, 2),
-            tied_count=tied_count,
-            percentile=round(percentile, 2),
-        )
-        rankings.append(entry)
-        prev_average = average
+        current_rank += group_size
+        idx = group_end
 
     return rankings
 
@@ -254,6 +248,7 @@ def get_class_ranking(
     classroom: Classroom,
     term: Term,
     use_mock_blending: bool = False,
+    use_cache: bool = True,
 ) -> List[RankingEntry]:
     """
     Get class ranking with caching and tie handling.
@@ -266,10 +261,15 @@ def get_class_ranking(
     Returns:
         List of ranking entries with positions and percentiles
     """
-    return RankingCache.get_rankings(term, classroom, use_mock_blending=use_mock_blending)
+    return RankingCache.get_rankings(
+        term,
+        classroom,
+        use_mock_blending=use_mock_blending,
+        use_cache=use_cache,
+    )
 
 
-def get_school_ranking(term: Term, use_mock_blending: bool = False) -> List[RankingEntry]:
+def get_school_ranking(term: Term, use_mock_blending: bool = False, use_cache: bool = True,) -> List[RankingEntry]:
     """
     Get school-wide ranking with caching and tie handling.
     
@@ -280,7 +280,12 @@ def get_school_ranking(term: Term, use_mock_blending: bool = False) -> List[Rank
     Returns:
         List of ranking entries with positions and percentiles
     """
-    return RankingCache.get_rankings(term, None, use_mock_blending=use_mock_blending)
+    return RankingCache.get_rankings(
+        term,
+        None,
+        use_mock_blending=use_mock_blending,
+        use_cache=use_cache,
+    )
 
 
 def get_student_rank(

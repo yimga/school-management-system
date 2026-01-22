@@ -5,11 +5,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-only")
+SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "1") == "1"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "dev-only-change-in-production"
+    else:
+        raise ImproperlyConfigured("SECRET_KEY must be set in production.")
+
+ALLOWED_HOSTS_RAW = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.local")
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_RAW.split(",") if host.strip()]
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured("ALLOWED_HOSTS must be configured for production.")
 
 INSTALLED_APPS = [
     # Admin theme (must be first)
@@ -146,6 +157,17 @@ LOGOUT_REDIRECT_URL = "/authentication/login/"
 
 # --- Site behavior ---
 MAINTENANCE_MODE = False
+
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "1") == "1" and not DEBUG
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "1") == "1" and not DEBUG
+CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "1") == "1" and not DEBUG
+SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "60")) if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"
+SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "1") == "1"
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 
 # --- Admin theme (Unfold) ---
 # Docs: https://unfoldadmin.com/docs/configuration/settings/

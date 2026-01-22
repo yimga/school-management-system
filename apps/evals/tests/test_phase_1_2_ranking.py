@@ -10,6 +10,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 from apps.academics.models import AcademicYear, Term, Classroom, Subject, SubjectAssignment, Department, Specialty
+from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.evals.models import Evaluation
 from apps.evals.ranking import (
@@ -269,7 +270,20 @@ class RankingCachingTest(TestCase):
             name="General",
             code="GSPEC",
         )
-
+        position_user = User.objects.create_user(
+            username="positionteacher",
+            password="pospass",
+            first_name="Position",
+            last_name="Teacher",
+        )
+        cls.teacher = TeacherProfile.objects.create(user=position_user)
+        position_user = User.objects.create_user(
+            username="positionteacher",
+            password="pospass",
+            first_name="Position",
+            last_name="Teacher",
+        )
+        cls.teacher = TeacherProfile.objects.create(user=position_user)
         cls.math = Subject.objects.create(name="Mathematics")
         cls.math_assign = SubjectAssignment.objects.create(
             academic_year=cls.year,
@@ -289,6 +303,15 @@ class RankingCachingTest(TestCase):
             academic_year=cls.year,
             specialty=cls.specialty,
         )
+        user_teacher = User.objects.create_user(
+            username="cacheteacher",
+            password="teachpass",
+            first_name="Cache",
+            last_name="Teacher",
+        )
+        cls.teacher = TeacherProfile.objects.create(
+            user=user_teacher,
+        )
 
         Evaluation.objects.create(
             student=cls.student,
@@ -297,7 +320,7 @@ class RankingCachingTest(TestCase):
             term=cls.term,
             seq1_score=16,
             exam_score=16,
-            teacher=cls.student,
+            teacher=cls.teacher,
         )
 
     def setUp(self):
@@ -415,7 +438,7 @@ class RankingPositionTest(TestCase):
             term=cls.term,
             seq1_score=18,
             exam_score=18,
-            teacher=cls.student_top,
+            teacher=cls.teacher,
         )
         Evaluation.objects.create(
             student=cls.student_mid,
@@ -424,7 +447,7 @@ class RankingPositionTest(TestCase):
             term=cls.term,
             seq1_score=15,
             exam_score=15,
-            teacher=cls.student_mid,
+            teacher=cls.teacher,
         )
         Evaluation.objects.create(
             student=cls.student_low,
@@ -433,7 +456,7 @@ class RankingPositionTest(TestCase):
             term=cls.term,
             seq1_score=12,
             exam_score=12,
-            teacher=cls.student_low,
+            teacher=cls.teacher,
         )
 
     def setUp(self):

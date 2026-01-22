@@ -20,7 +20,6 @@ def is_admin_or_staff(user):
 @require_POST
 @login_required
 @user_passes_test(is_admin_or_staff)
-@csrf_exempt  # For AJAX requests; alternatively handle CSRF token in template
 @ratelimit(key='user', rate='10/m', method='POST', block=True)
 def mute_threats(request):
     """

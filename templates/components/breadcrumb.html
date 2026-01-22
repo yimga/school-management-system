@@ -1,9 +1,9 @@
-{% load static %}
+{% load static breadcrumb_extras %}
 {# Dynamic breadcrumb navigation #}
 <nav aria-label="breadcrumb" class="breadcrumb-nav">
   <ol class="breadcrumb">
     <li class="breadcrumb-item">
-      <a href="{% url 'accounts:dashboard' %}">
+      <a href="{% url 'accounts:backend_dashboard' %}">
         <i class="bi bi-house-door"></i>
         <span>Home</span>
       </a>
@@ -29,13 +29,9 @@
       {# Auto-generate breadcrumbs from URL path #}
       {% with path_parts=request.path|slice:"1:"|split:"/" %}
         {% for part in path_parts %}
-          {% if not forloop.last %}
-            <li class="breadcrumb-item">
-              <a href="{% url part %}">{{ part|title|replace:"_":" " }}</a>
-            </li>
-          {% else %}
-            <li class="breadcrumb-item active" aria-current="page">
-              {{ part|title|replace:"_":" "|replace:"-":" " }}
+          {% if part %}
+            <li class="breadcrumb-item{% if forloop.last %} active{% endif %}" {% if forloop.last %}aria-current="page"{% endif %}>
+              <span>{{ part|title|replace:"_":" "|replace:"-":" " }}</span>
             </li>
           {% endif %}
         {% endfor %}

@@ -2,6 +2,9 @@
 {% load admin_health %}
 {% block title %}Parent Dashboard{% endblock %}
 {% block extrastyle %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
   :root {
     --primary: #0d6efd;
@@ -11,122 +14,126 @@
     --danger: #dc3545;
   }
 
-  /* Parent Dashboard Enhanced Styles */
+  /* Parent Dashboard Redesigned - Compact & Data-Dense */
   .parent-welcome-section {
     background: linear-gradient(135deg, var(--primary) 0%, rgba(13, 110, 253, 0.7) 100%);
-    border-radius: 20px;
-    padding: 2rem;
+    border-radius: 12px;
+    padding: 1rem;
     color: white;
-    margin-bottom: 2rem;
-    box-shadow: 0 12px 30px rgba(13, 110, 253, 0.15);
+    margin-bottom: 0.75rem;
+    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.1);
   }
 
   .welcome-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1.5rem;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   .welcome-content h1 {
-    font-size: 2rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    margin: 0.5rem 0;
+    margin: 0.15rem 0;
   }
 
   .welcome-content p {
-    font-size: 1rem;
-    opacity: 0.95;
+    font-size: 0.85rem;
+    opacity: 0.9;
     margin: 0;
   }
 
   .welcome-date {
     text-align: right;
-    opacity: 0.85;
-    font-size: 0.9rem;
+    opacity: 0.8;
+    font-size: 0.75rem;
+    white-space: nowrap;
   }
 
   .quick-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1rem;
-    margin-top: 1.5rem;
-  }
-
-  .stat-item {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
-    padding: 1rem;
-    border-left: 3px solid rgba(255, 255, 255, 0.5);
-  }
-
-  .stat-value {
-    font-size: 1.8rem;
-    font-weight: 700;
-    display: block;
-  }
-
-  .stat-label {
-    font-size: 0.75rem;
-    opacity: 0.85;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.5rem;
     margin-top: 0.5rem;
   }
 
-  /* Children Cards */
+  .stat-item {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.5rem;
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: block;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+    opacity: 0.75;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-top: 0.2rem;
+  }
+
+  /* Children Cards - Compact */
   .children-section {
-    margin-bottom: 2rem;
+    margin-bottom: 0.75rem;
   }
 
   .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
   }
 
   .section-header h2 {
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: 700;
     margin: 0;
   }
 
   .section-header-meta {
     color: #6c757d;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
   }
 
   .children-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
   }
 
   .child-card-enhanced {
     background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 0.65rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.15s ease;
+    border: 1px solid rgba(0, 0, 0, 0.04);
   }
 
   .child-card-enhanced:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
   }
 
   .child-header-enhanced {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .child-avatar-large {
-    width: 60px;
-    height: 60px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     object-fit: cover;
     background: linear-gradient(135deg, var(--primary), var(--success));
@@ -135,30 +142,31 @@
     justify-content: center;
     color: white;
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: 1rem;
     flex-shrink: 0;
   }
 
   .child-info h3 {
-    font-size: 1.1rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    margin: 0 0 0.25rem 0;
+    margin: 0 0 0.05rem 0;
   }
 
   .child-info p {
-    font-size: 0.85rem;
+    font-size: 0.7rem;
     color: #6c757d;
     margin: 0;
+    line-height: 1.2;
   }
 
   .child-metrics {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    margin: 1rem 0;
-    padding: 1rem 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    gap: 0.35rem;
+    margin: 0.5rem 0;
+    padding: 0.5rem 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
   }
 
   .metric {
@@ -167,387 +175,331 @@
 
   .metric-value {
     display: block;
-    font-size: 1.3rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--primary);
+    line-height: 1;
   }
 
   .metric-label {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     color: #6c757d;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.03em;
+    margin-top: 0.1rem;
   }
+
+  /* Status Badge System */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .status-badge.success { background: rgba(25, 135, 84, 0.12); color: #155724; }
+  .status-badge.warning { background: rgba(255, 193, 7, 0.12); color: #856404; }
+  .status-badge.danger { background: rgba(220, 53, 69, 0.12); color: #721c24; }
+
+  .badge-pulse { animation: pulse-badge 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  @keyframes pulse-badge { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
   .child-actions {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.4rem;
   }
 
   .child-actions .btn {
     flex: 1;
-    font-size: 0.85rem;
-    padding: 0.6rem 0.75rem;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.4rem;
+    line-height: 1;
   }
 
-  /* Features Grid */
+  /* Metric Cards - 4 Column Compact */
+  .metrics-section {
+    margin-bottom: 0.75rem;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .metric-card {
+    background: white;
+    border-radius: 10px;
+    padding: 0.65rem;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    transition: all 0.15s ease;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .metric-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+  }
+
+  .metric-card-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6c757d;
+    margin: 0;
+  }
+
+  .metric-card-icon {
+    font-size: 1rem;
+    color: var(--primary);
+  }
+
+  .metric-card-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.2rem;
+    line-height: 1;
+  }
+
+  .metric-card-desc {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin: 0;
+  }
+
+  .metric-card-chart {
+    height: 70px;
+    margin-top: 0.3rem;
+  }
+
+  /* Chart Container Styles */
+  .chart-container {
+    position: relative;
+    height: 220px;
+    margin: 0.5rem 0;
+  }
+
+  .small-chart-container {
+    position: relative;
+    height: 50px;
+  }
+
+  /* Quick Tools Sidebar */
+  .quick-tools-sidebar {
+    position: sticky;
+    top: 70px;
+    background: white;
+    border-radius: 10px;
+    padding: 0.65rem;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    margin-bottom: 0.75rem;
+  }
+
+  .quick-tools-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+
+  .quick-tool-item {
+    margin-bottom: 0.4rem;
+  }
+
+  .quick-tool-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .quick-tool-item .btn {
+    width: 100%;
+    font-size: 0.7rem;
+    padding: 0.4rem;
+  }
+
+  /* Features Grid - Condensed */
   .features-section {
-    margin-top: 2rem;
+    margin-top: 0.75rem;
   }
 
   .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
   }
 
-  .feature-card-enhanced {
-    background: white;
-    border-radius: 12px;
-    padding: 1.2rem;
+  .feature-card {
+    border-radius: 10px;
+    padding: 0.6rem;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    background: rgba(13, 110, 253, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
   }
 
-  .feature-card-enhanced:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  .feature-card:hover {
+    background: rgba(13, 110, 253, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
   }
 
-  .feature-card-enhanced.enabled {
-    border-color: var(--success);
-    background: rgba(25, 135, 84, 0.05);
+  .feature-card.enabled {
+    background: rgba(25, 135, 84, 0.08);
+    border-color: rgba(25, 135, 84, 0.15);
   }
 
-  .feature-icon {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    display: block;
+  .feature-card i {
+    font-size: 1.2rem;
+    color: var(--primary);
   }
 
-  .feature-name {
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .feature-status {
-    font-size: 0.75rem;
+  .feature-card .feature-label {
+    font-size: 0.65rem;
     font-weight: 500;
   }
 
   /* Activity Section */
   .activity-section {
-    margin-top: 2rem;
+    margin-top: 0.75rem;
   }
 
   .activity-list {
     list-style: none;
     padding: 0;
+    margin: 0;
   }
 
   .activity-item-enhanced {
-    padding: 1rem;
-    border-left: 3px solid var(--primary);
-    margin-bottom: 0.75rem;
-    background: rgba(13, 110, 253, 0.03);
-    border-radius: 6px;
+    padding: 0.5rem;
+    border-left: 2px solid var(--primary);
+    margin-bottom: 0.4rem;
+    background: rgba(13, 110, 253, 0.02);
+    border-radius: 4px;
+    font-size: 0.8rem;
   }
 
   .activity-title {
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.15rem;
   }
 
   .activity-detail {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: #6c757d;
   }
 
-  /* Sidebar Enhancements */
-  .hero-label {
-    text-transform: uppercase;
-    letter-spacing: 0.3em;
+  /* Contact Section */
+  .contact-section {
+    background: white;
+    border-radius: 10px;
+    padding: 0.65rem;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    margin-top: 0.75rem;
     font-size: 0.8rem;
-    opacity: 0.8;
   }
-  .hero-title {
-    font-size: 1.5rem;
-    margin: 0.25rem 0 0.5rem;
-  }
-  .hero-subtitle {
-    font-size: 0.9rem;
-    opacity: 0.9;
-    max-width: 600px;
-  }
-  .hero-actions {
-    margin-top: 1rem;
+
+  .contact-item {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-  }
-  .btn-hero {
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: transform 0.2s ease;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-  }
-  .btn-hero:hover {
-    transform: translateY(-1px);
-  }
-  .hero-stats {
-    margin-top: 1.5rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1rem;
-  }
-  .hero-stat-card {
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 12px;
-    padding: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-  .hero-stat-label {
-    font-size: 0.65rem;
-    opacity: 0.7;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .hero-stat-value {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-top: 0.3rem;
-  }
-  .hero-stat-progress {
-    margin-top: 0.4rem;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .hero-stat-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #06b6d4);
-  }
-  .hero-status {
-    margin-top: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .hero-pill {
-    background: rgba(255, 255, 255, 0.12);
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-    min-width: 130px;
-    font-size: 0.8rem;
-  }
-  .hero-pill-meta {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    opacity: 0.6;
-  }
-  .hero-pill-aux {
-    font-size: 0.8rem;
-    opacity: 0.8;
-  }
-  .quick-panel {
-    border-radius: 20px;
-    background: var(--card-bg);
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.1);
-    min-height: 100%;
-  }
-  .quick-panel .panel-title {
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-size: 0.75rem;
-    opacity: 0.7;
-    margin-bottom: 0.8rem;
-  }
-  .btn-wider {
-    width: 100%;
-  }
-  .social-chip {
-    display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.3rem 0.8rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    margin-bottom: 0.3rem;
   }
-  .widget-card {
-    border-radius: 24px;
-    background: var(--card-bg);
-    border: 1px solid rgba(15, 23, 42, 0.05);
+
+  .contact-item:last-child {
+    margin-bottom: 0;
   }
-  .widget-title {
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.2em;
-    opacity: 0.7;
+
+  .contact-item i {
+    min-width: 18px;
   }
-  .widget-value {
-    font-size: 2.3rem;
-    font-weight: 700;
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .parent-welcome-section {
+      padding: 0.75rem;
+    }
+
+    .welcome-header {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .welcome-date {
+      text-align: left;
+    }
+
+    .children-grid,
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-tools-sidebar {
+      position: static;
+    }
   }
-  .mini-bars {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.8rem;
-  }
-  .mini-bars span {
-    flex: 1;
-    border-radius: 4px;
-    background: linear-gradient(180deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.9));
-  }
-  .grid-card {
-    border-radius: 26px;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: var(--card-bg);
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
-  }
-  .grid-card .card-header {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-  .grid-card .card-title h5 {
-    margin: 0;
-  }
-  .performance-graph {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.5rem;
-    height: 120px;
-  }
-  .performance-graph .bar-bar {
-    flex: 1;
-    border-radius: 10px;
-    background: linear-gradient(180deg, rgba(14, 165, 233, 0.4), rgba(59, 130, 246, 0.8));
-  }
-  .perf-card {
-    border-radius: 16px;
-    padding: 1rem;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: rgba(15, 23, 42, 0.02);
-  }
-  .perf-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    opacity: 0.6;
-  }
-  .perf-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-  .task-pill {
-    display: flex;
-    justify-content: space-between;
-    background: rgba(5, 150, 105, 0.1);
-    border-radius: 999px;
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-  }
-  .activity-item {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    padding: 0.3rem 0;
-  }
-  .activity-date {
-    min-width: 55px;
-    text-align: right;
-    font-weight: 600;
-  }
-  .child-card {
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 16px;
-    padding: 1rem;
-    background: var(--card-bg);
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05);
-  }
-  .child-header {
-    display: flex;
-    gap: 0.85rem;
-    align-items: center;
-  }
-  .child-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(59, 130, 246, 0.5);
-  }
-  .child-avatar-placeholder {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(59, 130, 246, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    color: rgba(15, 23, 42, 0.6);
-  }
-  .child-progress-value {
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    opacity: 0.7;
-  }
-  .child-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-  .feature-card {
-    border-radius: 16px;
-    padding: 1rem;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: rgba(59, 130, 246, 0.08);
-    display: flex;
-    gap: 0.9rem;
-    align-items: center;
-  }
-  .feature-card.enabled {
-    background: rgba(34, 197, 94, 0.1);
-    border-color: rgba(34, 197, 94, 0.3);
-  }
-  .feature-card i {
-    font-size: 1.6rem;
-    color: var(--accent-blue);
+
+  @media (max-width: 480px) {
+    .quick-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .metric-card-chart {
+      height: 120px;
+    }
   }
 </style>
 {% endblock %}
 
 {% block content %}
-  <!-- Welcome Section -->
+<div class="container-fluid">
+  <!-- Welcome Section - Condensed -->
   <div class="parent-welcome-section">
     <div class="welcome-header">
       <div class="welcome-content">
-        <p class="hero-label" style="margin-bottom: 0.5rem;">Welcome back,</p>
-        <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
-        <p>Monitor your children's progress and manage school matters effortlessly.</p>
+        <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h1>
+        <p>Monitor your children's progress and manage school matters.</p>
       </div>
       <div class="welcome-date">
-        <div style="font-weight: 600;">Today</div>
-        <div style="font-size: 0.85rem;">{{ now|date:"M d, Y" }}</div>
+        <div>{{ now|date:"M d, Y" }}</div>
       </div>
     </div>
 
-    <!-- Quick Stats -->
+    <!-- Quick Stats - At a Glance -->
     <div class="quick-stats">
       <div class="stat-item">
         <span class="stat-value">{{ links|length }}</span>
@@ -558,295 +510,331 @@
         <span class="stat-label">Pending</span>
       </div>
       <div class="stat-item">
-        <span class="stat-value">{{ widget_data.finance.balance|default:"0.00" }}</span>
-        <span class="stat-label">Outstanding</span>
-      </div>
-      <div class="stat-item">
         <span class="stat-value">{{ widget_data.attendance.overall|default:0 }}%</span>
         <span class="stat-label">Attendance</span>
       </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ widget_data.finance.balance|default:"0.00" }}</span>
+        <span class="stat-label">Due</span>
+      </div>
     </div>
   </div>
 
-  <!-- Children Section -->
-  <div class="children-section">
-    <div class="section-header">
-      <div>
-        <h2>My Children</h2>
-        <p class="section-header-meta">Manage {{ links|length }} enrolled student(s)</p>
-      </div>
-      <a href="{% url 'portal:link_child' %}" class="btn btn-sm btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Link Child
-      </a>
-    </div>
-
-    {% if links %}
-      <div class="children-grid">
-        {% for link in links %}
-          <div class="child-card-enhanced">
-            <div class="child-header-enhanced">
-              {% if link.student.profile_photo %}
-                <img src="{{ link.student.profile_photo.url }}" alt="" class="child-avatar-large" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
-              {% else %}
-                <div class="child-avatar-large">
-                  {{ link.student.first_name|slice:":1" }}
-                </div>
-              {% endif %}
-              <div class="child-info">
-                <h3>{{ link.student.first_name }} {{ link.student.last_name }}</h3>
-                <p>{{ link.student.classroom.name }} • {{ link.student.specialty.name }}</p>
-              </div>
+  <div class="row g-2">
+    <!-- Main Content Area -->
+    <div class="col-lg-9">
+      <!-- Metric Cards - 4 Columns Compact -->
+      <div class="metrics-section">
+        <h2 class="section-header" style="font-size: 1rem; margin-bottom: 0.5rem;">
+          <i class="bi bi-speedometer2 me-2"></i>Performance Snapshot
+        </h2>
+        <div class="metrics-grid">
+          <!-- Performance Card -->
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <h3 class="metric-card-title">Performance</h3>
+              <i class="bi bi-graph-up metric-card-icon"></i>
             </div>
-
-            <!-- Performance Metrics -->
-            <div class="child-metrics">
-              <div class="metric">
-                <span class="metric-value">{{ widget_data.performance.average|default:"0" }}</span>
-                <span class="metric-label">Avg Score</span>
-              </div>
-              <div class="metric">
-                <span class="metric-value">{{ widget_data.attendance.overall|default:0 }}%</span>
-                <span class="metric-label">Attendance</span>
-              </div>
-              <div class="metric">
-                <span class="metric-value">{{ link.student.parent_completeness|default:0 }}%</span>
-                <span class="metric-label">Profile</span>
-              </div>
-              <div class="metric">
-                <span class="metric-value">
-                  {% if widget_data.tasks.pending_evaluations > 0 %}
-                    {{ widget_data.tasks.pending_evaluations }}
-                  {% else %}
-                    0
-                  {% endif %}
-                </span>
-                <span class="metric-label">Pending</span>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="child-actions">
-              <a href="{% url 'portal:parent_child_results' link.student.id %}" class="btn btn-sm btn-primary">
-                <i class="bi bi-graph-up me-1"></i>Results
-              </a>
-              <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-wallet2 me-1"></i>Fees
-              </a>
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="alert alert-info border-0" role="alert">
-        <div class="d-flex align-items-center">
-          <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
-          <div>
-            <strong>No children linked yet.</strong>
-            <p class="mb-0 small mt-1">Get started by linking your child to access their academic records.</p>
-            <a href="{% url 'portal:link_child' %}" class="btn btn-sm btn-primary mt-2">Link a Child</a>
-          </div>
-        </div>
-      </div>
-    {% endif %}
-  </div>
-
-  <!-- Performance & Finance Overview -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-3">
-            <i class="bi bi-graph-up me-2"></i>Academic Performance
-          </h5>
-          <div style="background: linear-gradient(90deg, rgba(13,110,253,0.1), rgba(25,135,84,0.1)); border-radius: 8px; padding: 1.5rem; text-align: center;">
-            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">
-              {{ widget_data.performance.average|default:"0" }}%
-            </div>
-            <div class="text-muted small mt-2">Class Average</div>
-            <div class="progress mt-3" style="height: 6px;">
-              <div class="progress-bar" style="width: {{ widget_data.performance.average|default:0 }}%; background: linear-gradient(90deg, var(--primary), var(--success));"></div>
-            </div>
-            <p class="text-muted small mt-3 mb-0">
+            <div class="metric-card-value">{{ widget_data.performance.average|default:"0" }}%</div>
+            <p class="metric-card-desc">
               {% if widget_data.performance.trend == "UP" %}
-                <i class="bi bi-arrow-up text-success"></i> Improving trend
+                <span class="status-badge success"><i class="bi bi-arrow-up"></i>Improving</span>
               {% elif widget_data.performance.trend == "DOWN" %}
-                <i class="bi bi-arrow-down text-danger"></i> Declining trend
+                <span class="status-badge danger"><i class="bi bi-arrow-down"></i>Declining</span>
               {% else %}
-                <i class="bi bi-dash text-warning"></i> Stable performance
+                <span class="status-badge warning"><i class="bi bi-dash"></i>Stable</span>
               {% endif %}
             </p>
+            <div class="metric-card-chart" id="performanceChart"></div>
+          </div>
+
+          <!-- Attendance Card -->
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <h3 class="metric-card-title">Attendance</h3>
+              <i class="bi bi-calendar-check metric-card-icon"></i>
+            </div>
+            <div class="metric-card-value">{{ widget_data.attendance.overall|default:0 }}%</div>
+            <p class="metric-card-desc">
+              Present: {{ widget_data.attendance.present|default:0 }} | Absent: {{ widget_data.attendance.missing|default:0 }}
+            </p>
+            <div class="metric-card-chart" id="attendanceChart"></div>
+          </div>
+
+          <!-- Finance Card -->
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <h3 class="metric-card-title">Finance</h3>
+              <i class="bi bi-wallet2 metric-card-icon"></i>
+            </div>
+            <div class="metric-card-value">{{ widget_data.finance.balance|default:"0.00" }}</div>
+            <p class="metric-card-desc">
+              {% if widget_data.finance.total_due|floatformat:2 > "0" %}
+                <span class="status-badge danger">Pending</span>
+              {% else %}
+                <span class="status-badge success">Clear</span>
+              {% endif %}
+            </p>
+            <div class="metric-card-chart" id="financeChart"></div>
+          </div>
+
+          <!-- Pending Tasks Card -->
+          <div class="metric-card">
+            <div class="metric-card-header">
+              <h3 class="metric-card-title">Pending</h3>
+              <i class="bi bi-clipboard-check metric-card-icon"></i>
+            </div>
+            <div class="metric-card-value">{{ widget_data.tasks.pending_evaluations|default:0 }}</div>
+            <p class="metric-card-desc">
+              Evaluations pending review
+            </p>
+            <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-sm btn-primary w-100" style="margin-top: 0.3rem;">View</a>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-3">
-            <i class="bi bi-wallet2 me-2"></i>Finance Status
-          </h5>
-          <div style="background: linear-gradient(90deg, rgba(220,53,69,0.1), rgba(255,193,7,0.1)); border-radius: 8px; padding: 1.5rem;">
-            <div class="row text-center g-3">
-              <div class="col-6">
-                <div class="text-muted small mb-2">Total Paid</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">
-                  {{ widget_data.finance.paid|default:"0.00" }}
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="text-muted small mb-2">Outstanding</div>
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger);">
-                  {{ widget_data.finance.total_due|default:"0.00" }}
-                </div>
-              </div>
-            </div>
-            <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary w-100 mt-3">
-              View & Pay Invoices
-            </a>
-          </div>
+      <!-- Children Section -->
+      <div class="children-section">
+        <div class="section-header">
+          <h2>My Children</h2>
+          <a href="{% url 'portal:link_child' %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Link
+          </a>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Attendance & Activities -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-5">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-3">
-            <i class="bi bi-calendar-check me-2"></i>Attendance Summary
-          </h5>
-          <div class="d-flex align-items-center justify-content-center" style="height: 150px; background: rgba(34,197,94,0.08); border-radius: 8px;">
-            <div class="text-center">
-              <div style="font-size: 2.5rem; font-weight: 700; color: var(--success);">
-                {{ widget_data.attendance.overall|default:0 }}%
-              </div>
-              <div class="text-muted small">Current Attendance Rate</div>
-            </div>
-          </div>
-          <div class="row g-2 mt-3 text-center">
-            <div class="col-6">
-              <div class="text-muted small">Present</div>
-              <div style="font-weight: 600;">{{ widget_data.attendance.present|default:0 }}</div>
-            </div>
-            <div class="col-6">
-              <div class="text-muted small">Absent</div>
-              <div style="font-weight: 600; color: var(--danger);">{{ widget_data.attendance.missing|default:0 }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-7">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-3">
-            <i class="bi bi-bell me-2"></i>Recent Activity
-          </h5>
-          <ul class="activity-list">
-            {% for event in widget_data.events %}
-              <li class="activity-item-enhanced">
-                <div class="activity-title">{{ event.title }}</div>
-                <div class="activity-detail">
-                  <i class="bi bi-calendar me-1"></i>{{ event.when|date:"M d, Y" }}
-                  {% if event.detail %}<span class="ms-2">{{ event.detail }}</span>{% endif %}
+        {% if links %}
+          <div class="children-grid">
+            {% for link in links %}
+              <div class="child-card-enhanced">
+                <div class="child-header-enhanced">
+                  {% if link.student.profile_photo %}
+                    <img src="{{ link.student.profile_photo.url }}" alt="" class="child-avatar-large">
+                  {% else %}
+                    <div class="child-avatar-large">
+                      {{ link.student.first_name|slice:":1" }}
+                    </div>
+                  {% endif %}
+                  <div class="child-info">
+                    <h3>{{ link.student.first_name }}</h3>
+                    <p>{{ link.student.classroom.name }}</p>
+                  </div>
                 </div>
-              </li>
-            {% empty %}
-              <li class="text-muted" style="padding: 1rem; text-align: center;">
-                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
-                <p class="mt-2 mb-0">No recent activities</p>
-              </li>
+
+                <!-- Compact Metrics -->
+                <div class="child-metrics">
+                  <div class="metric">
+                    <span class="metric-value">{{ widget_data.performance.average|default:"0" }}</span>
+                    <span class="metric-label">Avg</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">{{ widget_data.attendance.overall|default:0 }}%</span>
+                    <span class="metric-label">Attend</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">{{ link.student.parent_completeness|default:0 }}%</span>
+                    <span class="metric-label">Profile</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-value">{{ widget_data.tasks.pending_evaluations|default:0 }}</span>
+                    <span class="metric-label">Pending</span>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="child-actions">
+                  <a href="{% url 'portal:parent_child_results' link.student.id %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-graph-up"></i>
+                  </a>
+                  <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-wallet2"></i>
+                  </a>
+                </div>
+              </div>
             {% endfor %}
-          </ul>
-        </div>
+          </div>
+        {% else %}
+          <div class="alert alert-info" role="alert" style="margin: 0; padding: 0.75rem 1rem;">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>No children linked yet.</strong>
+            <a href="{% url 'portal:link_child' %}" class="btn btn-sm btn-primary ms-2">Link Child</a>
+          </div>
+        {% endif %}
       </div>
-    </div>
-  </div>
 
-  <!-- Portal Features -->
-  <div class="features-section">
-    <div class="section-header">
-      <div>
-        <h2>Portal Features</h2>
-        <p class="section-header-meta">Available tools and services</p>
-      </div>
-    </div>
-
-    <div class="features-grid">
-      {% for feature in portal_features %}
-        <div class="feature-card-enhanced {% if feature.enabled %}enabled{% else %}disabled{% endif %}">
-          <span class="feature-icon">
-            {% if feature.icon %}
-              <i class="bi {{ feature.icon }}"></i>
-            {% else %}
-              <i class="bi bi-box"></i>
-            {% endif %}
-          </span>
-          <div class="feature-name">{{ feature.label }}</div>
-          <span class="feature-status badge {% if feature.enabled %}bg-success{% else %}bg-secondary{% endif %}">
-            {% if feature.enabled %}Active{% else %}Disabled{% endif %}
-          </span>
+      <!-- Recent Activity & Features Row -->
+      <div class="row g-2 mt-1">
+        <!-- Activity Section -->
+        <div class="col-md-6">
+          <div class="activity-section">
+            <h3 class="section-header" style="font-size: 0.95rem; margin-bottom: 0.5rem;">
+              <i class="bi bi-bell me-1"></i>Activity
+            </h3>
+            <div style="background: white; border-radius: 10px; padding: 0.65rem; border: 1px solid rgba(0,0,0,0.04); max-height: 180px; overflow-y: auto;">
+              <ul class="activity-list" style="margin: 0; padding: 0;">
+                {% for event in widget_data.events|slice:":3" %}
+                  <li class="activity-item-enhanced" style="margin: 0; padding: 0.4rem 0; border-left-width: 1px;">
+                    <div class="activity-title" style="font-size: 0.8rem;">{{ event.title }}</div>
+                    <div class="activity-detail" style="font-size: 0.7rem;">{{ event.when|date:"M d" }}</div>
+                  </li>
+                {% empty %}
+                  <li class="text-muted" style="padding: 1rem; text-align: center; font-size: 0.8rem;">
+                    No recent activities
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
         </div>
-      {% empty %}
-        <div class="alert alert-info" style="grid-column: 1 / -1;">
-          No features available at this time.
-        </div>
-      {% endfor %}
-    </div>
-  </div>
 
-  <!-- Quick Actions -->
-  <div class="row g-3 mt-4">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-3">
-            <i class="bi bi-lightning me-2"></i>Quick Actions
-          </h5>
-          <div class="d-flex flex-column gap-2">
-            <a href="{% url 'portal:link_child' %}" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-person-plus me-2"></i>Link Another Child
-            </a>
-            <a href="{% url 'portal:claim_invite' %}" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-ticket me-2"></i>Claim an Invite
-            </a>
-            <a href="{% url 'portal:portal_stats' %}" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-bar-chart me-2"></i>View Portal Stats
-            </a>
+        <!-- Portal Features Grid -->
+        <div class="col-md-6">
+          <div class="features-section" style="margin-top: 0;">
+            <h3 class="section-header" style="font-size: 0.95rem; margin-bottom: 0.5rem;">
+              <i class="bi bi-star me-1"></i>Features
+            </h3>
+            <div class="features-grid" style="gap: 0.4rem;">
+              {% for feature in portal_features|slice:":4" %}
+                <div class="feature-card {% if feature.enabled %}enabled{% endif %}">
+                  <i class="bi {{ feature.icon|default:'bi-box' }}"></i>
+                  <span class="feature-label" style="font-size: 0.6rem;">{{ feature.label|truncatewords:2 }}</span>
+                </div>
+              {% endfor %}
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title mb-3">
-            <i class="bi bi-telephone me-2"></i>Contact Information
-          </h5>
-          <div style="background: rgba(13,110,253,0.05); border-left: 3px solid var(--primary); padding: 1rem; border-radius: 6px;">
-            {% if SITE.company_name %}
-              <div style="font-weight: 600; margin-bottom: 0.5rem;">{{ SITE.company_name }}</div>
-            {% endif %}
-            {% if SITE.company_phone %}
-              <div class="small mb-2">
-                <i class="bi bi-telephone me-2"></i>
-                <a href="tel:{{ SITE.company_phone }}">{{ SITE.company_phone }}</a>
-              </div>
-            {% endif %}
-            {% if SITE.company_email %}
-              <div class="small">
-                <i class="bi bi-envelope me-2"></i>
-                <a href="mailto:{{ SITE.company_email }}">{{ SITE.company_email }}</a>
-              </div>
-            {% endif %}
-          </div>
+    <!-- Sidebar - Quick Tools & Info -->
+    <div class="col-lg-3">
+      <!-- Quick Tools Sticky -->
+      <div class="quick-tools-sidebar">
+        <div class="quick-tools-title">
+          <i class="bi bi-lightning"></i> Quick Tools
         </div>
+        <div class="quick-tool-item">
+          <a href="{% url 'portal:link_child' %}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Link Child
+          </a>
+        </div>
+        <div class="quick-tool-item">
+          <a href="{% url 'portal:parent_finance' %}" class="btn btn-outline-primary">
+            <i class="bi bi-wallet2"></i> Pay Fees
+          </a>
+        </div>
+        <div class="quick-tool-item">
+          <a href="{% url 'portal:portal_stats' %}" class="btn btn-outline-primary">
+            <i class="bi bi-bar-chart"></i> Statistics
+          </a>
+        </div>
+        <div class="quick-tool-item">
+          <a href="{% url 'portal:claim_invite' %}" class="btn btn-outline-primary">
+            <i class="bi bi-ticket"></i> Claim Invite
+          </a>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="contact-section">
+        <h4 style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; color: #6c757d;">
+          <i class="bi bi-telephone"></i> Contact
+        </h4>
+        {% if SITE.company_name %}
+          <div style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.3rem;">{{ SITE.company_name }}</div>
+        {% endif %}
+        {% if SITE.company_phone %}
+          <div class="contact-item">
+            <i class="bi bi-telephone"></i>
+            <a href="tel:{{ SITE.company_phone }}" style="font-size: 0.75rem;">{{ SITE.company_phone }}</a>
+          </div>
+        {% endif %}
+        {% if SITE.company_email %}
+          <div class="contact-item">
+            <i class="bi bi-envelope"></i>
+            <a href="mailto:{{ SITE.company_email }}" style="font-size: 0.75rem;">Email</a>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
+</div>
+
+<!-- Chart.js Initialization Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Performance Chart
+    const perfCtx = document.getElementById('performanceChart');
+    if (perfCtx) {
+      new Chart(perfCtx, {
+        type: 'line',
+        data: {
+          labels: ['W1', 'W2', 'W3', 'W4', 'W5'],
+          datasets: [{
+            label: 'Score',
+            data: [65, 70, 68, 75, {{ widget_data.performance.average|default:'70' }}],
+            borderColor: 'var(--primary)',
+            backgroundColor: 'rgba(13, 110, 253, 0.05)',
+            tension: 0.4,
+            fill: true,
+            borderWidth: 2,
+            pointRadius: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { min: 0, max: 100, display: false }, x: { display: false } }
+        }
+      });
+    }
+
+    // Attendance Chart
+    const attCtx = document.getElementById('attendanceChart');
+    if (attCtx) {
+      new Chart(attCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Present', 'Absent'],
+          datasets: [{
+            label: 'Days',
+            data: [{{ widget_data.attendance.present|default:0 }}, {{ widget_data.attendance.missing|default:0 }}],
+            backgroundColor: ['rgba(25, 135, 84, 0.6)', 'rgba(220, 53, 69, 0.6)'],
+            borderRadius: 4,
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { display: false }, x: { display: false } }
+        }
+      });
+    }
+
+    // Finance Chart
+    const finCtx = document.getElementById('financeChart');
+    if (finCtx) {
+      const due = {{ widget_data.finance.total_due|default:0 }};
+      const paid = {{ widget_data.finance.paid|default:0 }};
+      new Chart(finCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Paid', 'Pending'],
+          datasets: [{
+            data: [paid, due],
+            backgroundColor: ['rgba(25, 135, 84, 0.6)', 'rgba(220, 53, 69, 0.6)'],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}
