@@ -489,3 +489,76 @@ class OfflineMarkEntry(models.Model):
     
     def __str__(self):
         return f"Offline: {self.student.student_code} - {self.subject_assignment.subject.name}"
+
+
+class MockExamSetting(models.Model):
+    """Configuration for mock exam score blending (Phase 1.2.3).
+    
+    Allows schools to blend mock exam scores with final exam scores for advanced forms
+    (FORM 5, FORM 7, UPPER 6, etc.). One setting per classroom/term combination.
+    
+    Default: 70% final exam + 30% mock exam score (disabled by default).
+    """
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="mock_exam_settings")
+    classroom = models.ForeignKey("academics.Classroom", on_delete=models.CASCADE, related_name="mock_exam_settings")
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="mock_exam_settings")
+    
+    # Weight configuration (must sum to 100% if is_active=True)
+    final_weight = models.PositiveSmallIntegerField(
+        default=70,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Weight for final exam score (0-100%)"
+    )
+    mock_weight = models.PositiveSmallIntegerField(
+        default=30,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Weight for mock exam score (0-100%)"
+    )
+    is_active = models.BooleanField(
+        default=False,
+        help_text="Enable score blending for this classroom/term"
+    )
+    
+    # Audit timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ("academic_year", "classroom", "term")
+        indexes = [
+            models.Index(fields=["academic_year", "classroom", "term"]),
+            models.Index(fields=["is_active"]),
+        ]
+    
+    def __str__(self):
+        return f"Mock Settings: {self.classroom.name} ({self.term.name})"
+    
+    def clean(self):
+        """Validate that weights sum to 100% when active."""
+        if self.is_active:
+            total = self.final_weight + self.mock_weight
+            if total != 100:
+                raise ValidationError(
+                    f"When active, weights must sum to 100%. Got: {total}% "
+                    f"({self.final_weight}% final + {self.mock_weight}% mock)"
+                )
+    
+    def save(self, *args, **kwargs):
+        """Validate before saving."""
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_for(cls, academic_year, classroom, term):
+        """Get or create with defaults (disabled by default)."""
+        setting, _ = cls.objects.get_or_create(
+            academic_year=academic_year,
+            classroom=classroom,
+            term=term,
+            defaults={
+                "is_active": False,
+                "final_weight": 70,
+                "mock_weight": 30,
+            }
+        )
+        return setting

@@ -16,7 +16,8 @@ from django.db.models import Prefetch
 from apps.academics.models import Term, Classroom, AcademicYear
 from apps.people.models import StudentProfile
 
-from .models import Evaluation
+from .models import Evaluation, MockExamSetting
+from .mock_exams import calculate_blended_score, should_use_mock_blending
 
 
 @dataclass(frozen=True)
@@ -38,17 +39,19 @@ class RankingCache:
     """Cache strategy for rankings with proper invalidation."""
 
     @staticmethod
-    def get_cache_key(term: Term, classroom: Optional[Classroom] = None) -> str:
+    def get_cache_key(term: Term, classroom: Optional[Classroom] = None, use_mock_blending: bool = False) -> str:
         """Generate cache key for rankings."""
+        mock_suffix = ":mock" if use_mock_blending else ""
         if classroom:
-            return f"ranking:term:{term.id}:class:{classroom.id}"
-        return f"ranking:term:{term.id}:school"
+            return f"ranking:term:{term.id}:class:{classroom.id}{mock_suffix}"
+        return f"ranking:term:{term.id}:school{mock_suffix}"
 
     @staticmethod
     def get_rankings(
         term: Term,
         classroom: Optional[Classroom] = None,
         use_cache: bool = True,
+        use_mock_blending: bool = False,
     ) -> List[RankingEntry]:
         """
         Get rankings with caching and tie handling.
@@ -57,11 +60,12 @@ class RankingCache:
             term: Academic term
             classroom: Optional classroom (if None, returns school-wide)
             use_cache: Whether to use cache (default True)
+            use_mock_blending: Whether to blend mock exam scores for FORM 5/7 (default False)
 
         Returns:
             List of RankingEntry objects sorted by rank
         """
-        cache_key = RankingCache.get_cache_key(term, classroom)
+        cache_key = RankingCache.get_cache_key(term, classroom, use_mock_blending)
 
         if use_cache:
             cached = cache.get(cache_key)
@@ -69,7 +73,7 @@ class RankingCache:
                 return cached
 
         # Compute fresh rankings
-        rankings = _compute_rankings(term, classroom)
+        rankings = _compute_rankings(term, classroom, use_mock_blending)
 
         # Cache for 15 minutes
         cache.set(cache_key, rankings, 900)
@@ -78,22 +82,31 @@ class RankingCache:
 
     @staticmethod
     def invalidate(term: Term, classroom: Optional[Classroom] = None):
-        """Invalidate ranking cache for a term/classroom."""
-        cache_key = RankingCache.get_cache_key(term, classroom)
-        cache.delete(cache_key)
+        """Invalidate ranking cache for a term/classroom (both regular and mock-blended)."""
+        # Invalidate both regular and mock-blended versions
+        for use_mock in [False, True]:
+            cache_key = RankingCache.get_cache_key(term, classroom, use_mock)
+            cache.delete(cache_key)
 
         # Also invalidate school-wide if invalidating a class
         if classroom:
-            school_key = RankingCache.get_cache_key(term, None)
-            cache.delete(school_key)
+            for use_mock in [False, True]:
+                school_key = RankingCache.get_cache_key(term, None, use_mock)
+                cache.delete(school_key)
 
 
 def _compute_rankings(
     term: Term,
     classroom: Optional[Classroom] = None,
+    use_mock_blending: bool = False,
 ) -> List[RankingEntry]:
     """
     Compute rankings with proper tie handling and optimized queries.
+
+    Args:
+        term: Academic term
+        classroom: Optional classroom (if None, returns school-wide)
+        use_mock_blending: Whether to apply mock exam blending (for FORM 5/7)
 
     Optimization:
     - Single batch query for all evaluations
@@ -113,6 +126,11 @@ def _compute_rankings(
             is_active=True,
         ).select_related("classroom")
 
+    # Get mock exam setting if blending enabled
+    mock_setting = None
+    if use_mock_blending and classroom:
+        mock_setting = MockExamSetting.get_for(term.academic_year, classroom, term)
+
     # Batch-load all evaluations for this term
     evaluations = Evaluation.objects.filter(
         term=term,
@@ -131,7 +149,11 @@ def _compute_rankings(
         if student_id not in student_averages:
             # Compute average for this student
             student_evals = evaluations.filter(student_id=student_id)
-            avg = _compute_student_average(student_evals)
+            avg = _compute_student_average(
+                student_evals,
+                use_mock_blending=use_mock_blending,
+                mock_setting=mock_setting
+            )
             student_averages[student_id] = avg
 
     # Create aggregates: (student, average) tuples
@@ -186,9 +208,16 @@ def _compute_rankings(
     return rankings
 
 
-def _compute_student_average(evaluations) -> float:
+def _compute_student_average(evaluations, use_mock_blending: bool = False, mock_setting: Optional[MockExamSetting] = None) -> float:
     """
     Compute weighted average for a student from evaluations queryset.
+
+    With mock blending: replaces exam_score with blended (final × 0.7 + mock × 0.3).
+    
+    Args:
+        evaluations: Queryset of Evaluation objects
+        use_mock_blending: Whether to blend mock exam scores
+        mock_setting: MockExamSetting for blending weights (required if use_mock_blending=True)
 
     Uses subject coefficient for weighting:
     Average = sum(score * coefficient) / sum(coefficients)
@@ -201,7 +230,16 @@ def _compute_student_average(evaluations) -> float:
             continue
 
         coef = float(eval_obj.subject_assignment.coefficient or 1.0)
-        score = float(eval_obj.total_score)
+        
+        # Calculate score: use blended if mock exam enabled
+        if use_mock_blending and mock_setting and eval_obj.exam_score is not None:
+            score = float(calculate_blended_score(
+                eval_obj.exam_score,
+                eval_obj.mock_score,
+                mock_setting
+            ))
+        else:
+            score = float(eval_obj.total_score)
 
         total_weighted += score * coef
         total_coef += coef
@@ -215,28 +253,59 @@ def _compute_student_average(evaluations) -> float:
 def get_class_ranking(
     classroom: Classroom,
     term: Term,
+    use_mock_blending: bool = False,
 ) -> List[RankingEntry]:
-    """Get class ranking with caching and tie handling."""
-    return RankingCache.get_rankings(term, classroom)
+    """
+    Get class ranking with caching and tie handling.
+    
+    Args:
+        classroom: Classroom to rank
+        term: Academic term
+        use_mock_blending: Whether to blend mock exam scores
+    
+    Returns:
+        List of ranking entries with positions and percentiles
+    """
+    return RankingCache.get_rankings(term, classroom, use_mock_blending=use_mock_blending)
 
 
-def get_school_ranking(term: Term) -> List[RankingEntry]:
-    """Get school-wide ranking with caching and tie handling."""
-    return RankingCache.get_rankings(term, None)
+def get_school_ranking(term: Term, use_mock_blending: bool = False) -> List[RankingEntry]:
+    """
+    Get school-wide ranking with caching and tie handling.
+    
+    Args:
+        term: Academic term
+        use_mock_blending: Whether to blend mock exam scores
+    
+    Returns:
+        List of ranking entries with positions and percentiles
+    """
+    return RankingCache.get_rankings(term, None, use_mock_blending=use_mock_blending)
 
 
 def get_student_rank(
     student: StudentProfile,
     term: Term,
     classroom: Optional[Classroom] = None,
+    use_mock_blending: bool = False,
 ) -> Optional[int]:
     """
     Get a specific student's rank in the rankings.
-
+    
+    Args:
+        student: Student to find rank for
+        term: Academic term
+        classroom: Specific classroom (defaults to student's classroom)
+        use_mock_blending: Whether to blend mock exam scores
+    
     Returns:
         Rank number or None if student not found
     """
-    rankings = RankingCache.get_rankings(term, classroom or student.classroom)
+    rankings = RankingCache.get_rankings(
+        term, 
+        classroom or student.classroom,
+        use_mock_blending=use_mock_blending
+    )
     for entry in rankings:
         if entry.student_id == student.id:
             return entry.rank
