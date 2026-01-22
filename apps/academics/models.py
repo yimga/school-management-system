@@ -43,6 +43,11 @@ class Term(models.Model):
                 name="unique_term_position_per_year",
                 condition=Q(position__isnull=False),
             ),
+            models.UniqueConstraint(
+                fields=["academic_year", "custom_label"],
+                name="unique_term_custom_label_per_year",
+                condition=~Q(custom_label=""),
+            ),
             models.CheckConstraint(
                 check=(Q(position__isnull=True) | (Q(position__gte=1) & Q(position__lte=4))),
                 name="term_position_range_1_4_or_null",

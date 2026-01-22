@@ -15,9 +15,9 @@ class AcademicYearAdmin(ModelAdmin):
 
 @admin.register(Term)
 class TermAdmin(ModelAdmin):
-    list_display = ("academic_year", "name", "custom_label", "start_date", "end_date", "is_active")
-    list_filter = ("academic_year", "name", "is_active")
-    search_fields = ("academic_year__name",)
+    list_display = ("academic_year", "position", "name", "custom_label", "start_date", "end_date", "is_active")
+    list_filter = ("academic_year", "is_active")
+    search_fields = ("academic_year__name", "name", "custom_label")
 
 
 @admin.register(Department)
@@ -52,3 +52,27 @@ class SubjectAssignmentAdmin(ModelAdmin):
     list_display = ("academic_year", "term", "classroom", "specialty", "subject", "coefficient")
     list_filter = ("academic_year", "term", "classroom", "specialty", "subject")
     search_fields = ("classroom__name", "specialty__name", "subject__name", "academic_year__name")
+
+
+from django import forms
+
+
+class TermAdminForm(forms.ModelForm):
+    class Meta:
+        model = Term
+        fields = "__all__"
+        help_texts = {
+            "position": "Order of the term within the academic year (1–4).",
+            "custom_label": "Optional display name (e.g., Semester 1).",
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        is_active = cleaned.get("is_active")
+        position = cleaned.get("position")
+        if is_active and not position:
+            self.add_error("position", "Active terms must have a position (1–4).")
+        return cleaned
+
+
+TermAdmin.form = TermAdminForm
