@@ -24,7 +24,7 @@ class TermPublishStatus(models.Model):
 
     def __str__(self):
         scope = self.classroom.name if self.classroom else "Whole school"
-        return f"{self.academic_year} {self.term.get_name_display()} - {scope}: {'PUBLISHED' if self.is_published else 'NOT'}"
+        return f"{self.academic_year} {self.term.label} - {scope}: {'PUBLISHED' if self.is_published else 'NOT'}"
 
 
 class ReportCard(models.Model):

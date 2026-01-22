@@ -160,7 +160,7 @@ class AssessmentWeights(models.Model):
 
     def __str__(self) -> str:
         scope = f"{self.classroom}" if self.classroom_id else "School default"
-        term_label = self.term.get_name_display() if self.term_id else "All terms"
+        term_label = self.term.label if self.term_id else "All terms"
         return f"Weights ({scope}) {self.academic_year} • {term_label}"
 
 

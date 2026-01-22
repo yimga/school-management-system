@@ -110,7 +110,7 @@ def _build_filter_labels(
     if term_id:
         term = Term.objects.filter(id=term_id).first()
         if term:
-            labels["Term"] = term.get_name_display()
+            labels["Term"] = term.label
     labels["Missing"] = "Yes" if missing_only else "All"
     return labels
 
@@ -176,7 +176,7 @@ def teacher_dashboard(request: HttpRequest):
     hero = {
         "tagline": "Teacher Dashboard",
         "title": "Your classes at a glance",
-        "subtitle": f"{year.name} · {term.get_name_display()}",
+        "subtitle": f"{year.name} · {term.label}",
         "icon": "bi-easel",
         "stats": hero_stats,
         "actions": [
@@ -407,7 +407,7 @@ def teacher_marks_list(request: HttpRequest):
         filters = _build_filter_labels(classroom_id, subject_id, term_id, missing_only, classroom_map, subject_map)
         pdf_context = {
             "report_title": f"{user_name} Marks Export",
-            "report_period": f"{term.get_name_display()} · {year.name}",
+            "report_period": f"{term.label} · {year.name}",
             "report_total": f"{len(rows)} records",
             "rows": rows,
             "filters": filters,
@@ -443,7 +443,7 @@ def teacher_marks_list(request: HttpRequest):
                 f"{e.student.last_name} {e.student.first_name} ({e.student.student_code})",
                 e.subject_assignment.classroom.name if e.subject_assignment else "",
                 e.subject_assignment.subject.name if e.subject_assignment else "",
-                e.term.get_name_display(),
+                e.term.label,
                 e.seq1_score or e.test1,
                 e.seq2_score or e.test2,
                 e.exam_score,
@@ -767,7 +767,7 @@ def evaluation_admin(request: HttpRequest):
         rows = [_serialize_evaluation(e) for e in evals_list]
         pdf_context = {
             "report_title": f"Evaluation Manager · {year_obj.name}",
-            "report_period": term_obj.get_name_display(),
+            "report_period": term_obj.label,
             "report_total": f"{len(rows)} rows",
             "rows": rows,
             "filters": filters,
@@ -775,14 +775,14 @@ def evaluation_admin(request: HttpRequest):
             "summary": f"{len(rows)} evaluations",
         }
         pdf_bytes = render_pdf_bytes(request, "reports/evaluation_grid.html", pdf_context)
-        filename = f"grading-sheet-{year_obj.name}-{term_obj.get_name_display()}.pdf".replace(" ", "_")
+        filename = f"grading-sheet-{year_obj.name}-{term_obj.label}.pdf".replace(" ", "_")
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
 
     if request.GET.get("export") == "csv":
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = f'attachment; filename="grading-sheet-{year_obj.name}-{term_obj.get_name_display()}.csv"'
+        response["Content-Disposition"] = f'attachment; filename="grading-sheet-{year_obj.name}-{term_obj.label}.csv"'
         writer = csv.writer(response)
         writer.writerow([
             "Student Code",

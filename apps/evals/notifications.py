@@ -21,7 +21,7 @@ class NotificationService:
         try:
             context = {
                 'student_name': student.get_full_name(),
-                'term_name': term.get_name_display(),
+                'term_name': term.label,
                 'academic_year': term.academic_year.name,
                 'portal_link': f"{settings.BASE_URL}/portal/parent/results/{student.id}/" if hasattr(settings, 'BASE_URL') else '#',
             }
@@ -30,7 +30,7 @@ class NotificationService:
             plain_message = render_to_string('emails/grade_publication.txt', context)
             
             send_mail(
-                subject=f"Report Card: {student.get_full_name()} - {term.get_name_display()}",
+                subject=f"Report Card: {student.get_full_name()} - {term.label}",
                 message=plain_message,
                 from_email=self.site_settings.email_from_address if self.site_settings else settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[recipient_email],
@@ -49,7 +49,7 @@ class NotificationService:
             portal_link = f"{settings.BASE_URL}/portal/results/{student.id}/" if hasattr(settings, 'BASE_URL') else 'portal'
             message = (
                 f"Hi {guardian.guardian_user.first_name}, "
-                f"{student.get_full_name()}'s {term.get_name_display()} report is ready. "
+                f"{student.get_full_name()}'s {term.label} report is ready. "
                 f"View: {portal_link}"
             )
             return self.send_sms(guardian.phone, message)
