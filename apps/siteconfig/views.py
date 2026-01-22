@@ -29,6 +29,9 @@ from .models import (
     SiteSettings,
     ThemePack,
     UserPreference,
+    RegionConfig,
+    GradingScaleConfig,
+    HolidayCalendar,
 )
 from apps.accounts.decorators import permission_required
 
@@ -222,3 +225,163 @@ def render_csv_response(headers, rows, filename) -> HttpResponse:
     writer.writerow(headers)
     writer.writerows(rows)
     return response
+
+# ==========================
+# REGIONAL CONFIGURATION VIEWS
+# ==========================
+
+@staff_member_required
+def region_validation_dashboard(request):
+    """
+    Dashboard showing regional configuration status and validation warnings.
+    Displays completeness checks for each region.
+    """
+    from django.db.models import Count
+    import pytz
+    from apps.academics.models import AcademicYear
+    
+    regions = RegionConfig.objects.annotate(
+        grading_scales_count=Count('gradingscaleconfig'),
+        holidays_count=Count('holidaycalendar')
+    )
+    
+    validation_results = []
+    issues_count = 0
+    
+    for region in regions:
+        issues = []
+        severity = 'success'  # success, warning, danger
+        
+        # Check grading scales
+        if region.grading_scales_count < 5:
+            issues.append({
+                'icon': '❌',
+                'type': 'danger',
+                'message': f'Missing grading scales ({region.grading_scales_count}/5)'
+            })
+            severity = 'danger'
+            issues_count += 1
+        
+        # Check timezone validity
+        try:
+            pytz.timezone(region.timezone)
+        except pytz.exceptions.UnknownTimeZoneError:
+            issues.append({
+                'icon': '❌',
+                'type': 'danger',
+                'message': f'Invalid timezone: {region.timezone}'
+            })
+            severity = 'danger'
+            issues_count += 1
+        
+        # Check currency
+        valid_currencies = ['XAF', 'USD', 'EUR', 'GBP', 'KES', 'NGN', 'ZAR', 'GHS', 'TZS']
+        if region.default_currency not in valid_currencies:
+            issues.append({
+                'icon': '⚠️',
+                'type': 'warning',
+                'message': f'Unknown currency: {region.default_currency}'
+            })
+            if severity == 'success':
+                severity = 'warning'
+            issues_count += 1
+        
+        # Check portal features
+        portal_count = sum([
+            region.enable_online_admissions,
+            region.enable_parent_portal,
+            region.enable_student_portal
+        ])
+        if portal_count == 0:
+            issues.append({
+                'icon': '⚠️',
+                'type': 'warning',
+                'message': 'No portal features enabled'
+            })
+            if severity == 'success':
+                severity = 'warning'
+        
+        # Check holiday coverage for current year
+        current_year = AcademicYear.objects.filter(is_current=True).first()
+        if current_year:
+            holidays_for_year = HolidayCalendar.objects.filter(
+                region=region,
+                academic_year=current_year
+            ).count()
+            if holidays_for_year == 0:
+                issues.append({
+                    'icon': 'ℹ️',
+                    'type': 'info',
+                    'message': f'No holidays configured for {current_year}'
+                })
+        
+        validation_results.append({
+            'region': region,
+            'issues': issues,
+            'severity': severity,
+            'status_badge': '✓' if severity == 'success' else ('⚠️' if severity == 'warning' else '❌'),
+            'grading_scales': region.grading_scales_count,
+            'holidays': region.holidays_count,
+        })
+    
+    context = {
+        'validation_results': validation_results,
+        'total_regions': regions.count(),
+        'complete_regions': sum(1 for r in validation_results if r['severity'] == 'success'),
+        'regions_with_warnings': sum(1 for r in validation_results if r['severity'] in ['warning', 'danger']),
+        'total_issues': issues_count,
+    }
+    
+    return render(request, 'admin/region_validation_dashboard.html', context)
+
+
+@staff_member_required
+def region_comparison_view(request):
+    """
+    Comparison view for regional configurations.
+    Shows side-by-side comparison of settings across regions.
+    """
+    regions = RegionConfig.objects.all().order_by('code')
+    
+    # Prepare comparison data
+    comparison_data = {
+        'Timezone': [r.timezone for r in regions],
+        'Date Format': [r.date_format for r in regions],
+        'Grading Scale': [r.grading_scale for r in regions],
+        'Currency': [r.default_currency for r in regions],
+        'Year Starts (Month)': [r.academic_year_start_month for r in regions],
+        'Terms per Year': [r.term_count_per_year for r in regions],
+        'Online Admissions': ['✓' if r.enable_online_admissions else '✗' for r in regions],
+        'Parent Portal': ['✓' if r.enable_parent_portal else '✗' for r in regions],
+        'Student Portal': ['✓' if r.enable_student_portal else '✗' for r in regions],
+    }
+    
+    context = {
+        'regions': regions,
+        'comparison_data': comparison_data,
+        'settings_list': comparison_data.keys(),
+    }
+    
+    return render(request, 'admin/region_comparison.html', context)
+
+
+@staff_member_required
+def region_grading_scales_view(request):
+    """
+    Detailed view of all grading scales across all regions.
+    Shows breakpoints and allows comparison between scales.
+    """
+    scales_by_region = {}
+    
+    for region in RegionConfig.objects.all():
+        scales_by_region[region] = region.gradingscaleconfig_set.all().order_by('scale_type')
+    
+    # Prepare comparison matrix
+    scale_types = ['0-20', '0-100', '0-10', 'a-f', 'gpa']
+    
+    context = {
+        'scales_by_region': scales_by_region,
+        'scale_types': scale_types,
+    }
+    
+    return render(request, 'admin/region_grading_scales.html', context)
