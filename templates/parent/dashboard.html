@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load admin_health %}
+{% load portal_filters %}
 {% block title %}Parent Dashboard{% endblock %}
 {% block extrastyle %}
 <!-- Chart.js Library -->
@@ -189,7 +190,6 @@
     margin-top: 0.1rem;
   }
 
-  /* Status Badge System */
   .status-badge {
     display: inline-flex;
     align-items: center;
@@ -205,6 +205,11 @@
   .status-badge.success { background: rgba(25, 135, 84, 0.12); color: #155724; }
   .status-badge.warning { background: rgba(255, 193, 7, 0.12); color: #856404; }
   .status-badge.danger { background: rgba(220, 53, 69, 0.12); color: #721c24; }
+
+  /* Inline mini-badge variant */
+  .status-badge i {
+    font-size: 0.7em;
+  }
 
   .badge-pulse { animation: pulse-badge 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
   @keyframes pulse-badge { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
@@ -620,23 +625,35 @@
                   </div>
                 </div>
 
-                <!-- Compact Metrics -->
+                <!-- Compact Metrics with Status Indicators -->
                 <div class="child-metrics">
                   <div class="metric">
                     <span class="metric-value">{{ widget_data.performance.average|default:"0" }}</span>
                     <span class="metric-label">Avg</span>
+                    <span class="status-badge {{ widget_data.performance.average|status_color:"70" }}" style="font-size: 0.5rem; margin-top: 0.2rem;">
+                      <i class="bi {{ widget_data.performance.average|status_icon:"70" }}"></i>
+                    </span>
                   </div>
                   <div class="metric">
                     <span class="metric-value">{{ widget_data.attendance.overall|default:0 }}%</span>
                     <span class="metric-label">Attend</span>
+                    <span class="status-badge {{ widget_data.attendance.overall|status_color:"85" }}" style="font-size: 0.5rem; margin-top: 0.2rem;">
+                      <i class="bi {{ widget_data.attendance.overall|status_icon:"85" }}"></i>
+                    </span>
                   </div>
                   <div class="metric">
                     <span class="metric-value">{{ link.student.parent_completeness|default:0 }}%</span>
                     <span class="metric-label">Profile</span>
+                    <span class="status-badge {{ link.student.parent_completeness|status_color:"80" }}" style="font-size: 0.5rem; margin-top: 0.2rem;">
+                      <i class="bi {{ link.student.parent_completeness|status_icon:"80" }}"></i>
+                    </span>
                   </div>
                   <div class="metric">
                     <span class="metric-value">{{ widget_data.tasks.pending_evaluations|default:0 }}</span>
                     <span class="metric-label">Pending</span>
+                    <span class="status-badge {% if widget_data.tasks.pending_evaluations > 0 %}danger{% else %}success{% endif %}" style="font-size: 0.5rem; margin-top: 0.2rem;">
+                      {% if widget_data.tasks.pending_evaluations > 0 %}<i class="bi bi-exclamation-circle"></i>{% else %}<i class="bi bi-check-circle"></i>{% endif %}
+                    </span>
                   </div>
                 </div>
 

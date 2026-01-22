@@ -1,5 +1,6 @@
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','config.settings')
+os.environ['ALLOWED_HOSTS']= 'localhost,127.0.0.1,testserver'
 import django
 django.setup()
 from django.test import Client
