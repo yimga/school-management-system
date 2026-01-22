@@ -76,3 +76,52 @@ class TermAdminForm(forms.ModelForm):
 
 
 TermAdmin.form = TermAdminForm
+
+
+def assign_positions_to_year(modeladmin, request, queryset):
+    """Admin action to auto-assign positions 1–4 per year based on start_date order."""
+    from django.contrib import messages
+    from django.db import transaction
+    
+    years = set(queryset.values_list("academic_year_id", flat=True))
+    total_assigned = 0
+    
+    for year_id in years:
+        terms = Term.objects.filter(academic_year_id=year_id).order_by("start_date", "id")
+        used_positions = set(terms.exclude(position__isnull=True).values_list("position", flat=True))
+        
+        updates = []
+        next_pos = 1
+        for term in terms:
+            if term.position:
+                continue
+            while next_pos in used_positions and next_pos <= 4:
+                next_pos += 1
+            if next_pos > 4:
+                continue
+            updates.append(term)
+            used_positions.add(next_pos)
+            next_pos += 1
+        
+        with transaction.atomic():
+            for idx, term in enumerate(updates, start=1):
+                # Find next free position
+                pos = 1
+                while pos in set(
+                    Term.objects.filter(academic_year_id=year_id, position=pos).count()
+                    for pos in range(1, 5)
+                ):
+                    pos += 1
+                if pos <= 4:
+                    term.position = pos
+                    term.save(update_fields=["position"])
+                    total_assigned += 1
+    
+    messages.success(
+        request,
+        f"Assigned positions to {total_assigned} terms across {len(years)} academic year(s)."
+    )
+
+
+assign_positions_to_year.short_description = "Assign positions 1–4 per year (start_date order)"
+TermAdmin.actions = [assign_positions_to_year]

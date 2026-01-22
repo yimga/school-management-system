@@ -32,10 +32,16 @@ from .models import (
 
 @admin.register(ComplianceProfile)
 class ComplianceProfileAdmin(ModelAdmin):
-    list_display = ("name", "country_code", "currency_code", "chart_template", "is_active")
+    list_display = ("name", "country_code", "currency_code", "chart_template", "timezone", "is_active")
     list_filter = ("country_code", "chart_template", "is_active")
     list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("name", "country_code")
+    fieldsets = (
+        ("Identity", {"fields": ("name", "country_code", "currency_code")}),
+        ("Localization", {"fields": ("timezone",), "description": "Default timezone for date/time operations; overrides settings.TIME_ZONE."}),
+        ("Configuration", {"fields": ("chart_template", "available_payment_methods")}),
+        ("Status", {"fields": ("is_active",)}),
+    )
 
 
 @admin.register(TaxBracket)

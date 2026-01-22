@@ -59,17 +59,17 @@ class Command(BaseCommand):
         term1, _ = Term.objects.get_or_create(
             academic_year=year,
             name=Term.Name.FIRST,
-            defaults={"start_date": date(2025, 9, 1), "end_date": date(2025, 12, 15), "is_active": True},
+            defaults={"start_date": date(2025, 9, 1), "end_date": date(2025, 12, 15), "is_active": True, "position": 1},
         )
         term2, _ = Term.objects.get_or_create(
             academic_year=year,
             name=Term.Name.SECOND,
-            defaults={"start_date": date(2026, 1, 5), "end_date": date(2026, 3, 20), "is_active": False},
+            defaults={"start_date": date(2026, 1, 5), "end_date": date(2026, 3, 20), "is_active": False, "position": 2},
         )
         term3, _ = Term.objects.get_or_create(
             academic_year=year,
             name=Term.Name.THIRD,
-            defaults={"start_date": date(2026, 4, 6), "end_date": date(2026, 7, 10), "is_active": False},
+            defaults={"start_date": date(2026, 4, 6), "end_date": date(2026, 7, 10), "is_active": False, "position": 3},
         )
         # Make Term 1 active for demo
         Term.objects.filter(academic_year=year).update(is_active=False)
