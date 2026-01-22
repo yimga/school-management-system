@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "apps.payroll",
     "apps.compliance.apps.ComplianceConfig",
     "apps.communication",
+    "apps.observability",
     "apps.api",
 ]
 
