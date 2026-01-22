@@ -46,6 +46,34 @@ class AssessmentWeights(models.Model):
 
     # Score scale is usually /20 in Cameroon, but we keep this flexible.
     score_scale = models.PositiveSmallIntegerField(default=20)
+    
+    # NEW: Grading scale & locale configuration
+    grading_scale = models.CharField(
+        max_length=50,
+        choices=[
+            ('numeric_0_20', 'Numeric 0–20 (Cameroon Francophone)'),
+            ('letter_a_e', 'Letters A–E (Cameroon Anglophone)'),
+            ('gpa_4_0', 'GPA 4.0 Scale'),
+            ('percentage', 'Percentage 0–100'),
+        ],
+        default='numeric_0_20'
+    )
+    region = models.CharField(
+        max_length=50,
+        choices=[
+            ('cameroon_anglophone', 'Cameroon Anglophone'),
+            ('cameroon_francophone', 'Cameroon Francophone'),
+            ('global', 'Global/Other'),
+        ],
+        default='cameroon_anglophone'
+    )
+    
+    # Letter grade mapping thresholds (for A–E scales)
+    grade_a_min = models.DecimalField(max_digits=5, decimal_places=2, default=18.00, help_text="Minimum score for A")
+    grade_b_min = models.DecimalField(max_digits=5, decimal_places=2, default=16.00)
+    grade_c_min = models.DecimalField(max_digits=5, decimal_places=2, default=14.00)
+    grade_d_min = models.DecimalField(max_digits=5, decimal_places=2, default=10.00)
+    grade_e_min = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
     class Meta:
         unique_together = ("academic_year", "term", "classroom")
@@ -177,6 +205,21 @@ class Evaluation(models.Model):
     mock_score = models.DecimalField("Mock", max_digits=5, decimal_places=2, null=True, blank=True)
     practical_score = models.DecimalField("Practical", max_digits=5, decimal_places=2, null=True, blank=True)
     remarks = models.CharField(max_length=255, blank=True)
+    
+    # NEW: Grade conversion & practical assessment
+    letter_grade = models.CharField(max_length=1, choices=[
+        ('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D'), ('E', 'E'),
+        ('', 'Not Graded')
+    ], blank=True, default='')
+    clock_hours = models.PositiveIntegerField(default=0)
+    practical_status = models.CharField(max_length=20, choices=[
+        ('not_started', 'Not Started'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+    ], default='not_started')
+    assessment_date = models.DateField(null=True, blank=True)
+    validation_flags = models.JSONField(default=dict, blank=True)
+    last_validated_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -283,3 +326,103 @@ class EvaluationEvidence(models.Model):
 
     def __str__(self):
         return f"{self.evaluation} - {self.get_media_type_display()}"
+
+# ========== GRADE AUDIT TRAIL ==========
+
+class GradeAudit(models.Model):
+    """Immutable audit trail for all grade changes."""
+    
+    CHANGE_TYPE_CHOICES = [
+        ('create', 'Grade Created'),
+        ('update', 'Grade Updated'),
+        ('delete', 'Grade Deleted'),
+        ('rollback', 'Grade Rolled Back'),
+        ('import', 'Imported from CSV'),
+        ('offline_sync', 'Synced Offline Entry'),
+    ]
+    
+    evaluation = models.ForeignKey(
+        Evaluation,
+        on_delete=models.PROTECT,
+        related_name='audit_trail'
+    )
+    changed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    changed_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
+    change_type = models.CharField(max_length=20, choices=CHANGE_TYPE_CHOICES)
+    
+    # Before/after snapshots
+    seq1_before = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    seq1_after = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    seq2_before = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    seq2_after = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    exam_before = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    exam_after = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    mock_before = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    mock_after = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    practical_before = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    practical_after = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    remarks_before = models.TextField(null=True, blank=True)
+    remarks_after = models.TextField(null=True, blank=True)
+    
+    # Validation & conflict
+    validation_errors = models.JSONField(default=list, blank=True)
+    offline_conflict_resolved = models.BooleanField(default=False)
+    conflict_resolution_note = models.TextField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-changed_at']
+        indexes = [
+            models.Index(fields=['evaluation', '-changed_at']),
+            models.Index(fields=['changed_by', '-changed_at']),
+            models.Index(fields=['change_type', '-changed_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_change_type_display()} - {self.evaluation}"
+
+
+# ========== OFFLINE SYNC QUEUE ==========
+
+class OfflineMarkEntry(models.Model):
+    """Queue for marks entered offline, synced when connected."""
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending Sync'),
+        ('synced', 'Successfully Synced'),
+        ('conflict', 'Sync Conflict'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    teacher = models.ForeignKey(TeacherProfile, on_delete=models.PROTECT)
+    subject_assignment = models.ForeignKey(SubjectAssignment, on_delete=models.PROTECT)
+    student = models.ForeignKey(StudentProfile, on_delete=models.PROTECT)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT)
+    term = models.ForeignKey(Term, on_delete=models.PROTECT)
+    
+    # Grade data
+    seq1_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    seq2_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    exam_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    mock_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    practical_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    remarks = models.TextField(blank=True)
+    
+    # Sync metadata
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_offline_at = models.DateTimeField()
+    synced_at = models.DateTimeField(null=True, blank=True)
+    synced_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Conflict resolution
+    conflict_with_evaluation = models.ForeignKey(Evaluation, on_delete=models.SET_NULL, null=True, blank=True)
+    teacher_conflict_choice = models.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        ordering = ['status', 'created_offline_at']
+        indexes = [
+            models.Index(fields=['teacher', 'status']),
+            models.Index(fields=['created_offline_at']),
+        ]
+    
+    def __str__(self):
+        return f"Offline: {self.student.student_code} - {self.subject_assignment.subject.name}"
