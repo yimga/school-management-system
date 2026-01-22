@@ -6,7 +6,6 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.urls import path
 from django.shortcuts import redirect
-from django.utils.module_loading import autodiscover_modules
 
 
 class GileadAdminSite(AdminSite):
@@ -21,6 +20,9 @@ class GileadAdminSite(AdminSite):
         urls = super().get_urls()
         custom_urls = [
             path('home/', lambda request: redirect('/'), name='home'),
+            # Placeholder URLs for missing admin routes (prevent template errors)
+            path('activity-logs/', lambda request: redirect('/compliance/access-logs/'), name='activity_logs'),
+            path('system-health/', lambda request: redirect('/healthz/'), name='system_health'),
         ]
         return custom_urls + urls
     
@@ -87,4 +89,5 @@ admin_site = GileadAdminSite(name='admin')
 
 # Register app admin modules into the custom admin site
 # This ensures all @admin.register(...) in app admin.py files bind to our custom site
+from django.utils.module_loading import autodiscover_modules
 autodiscover_modules('admin', register_to=admin_site)
