@@ -198,7 +198,7 @@ def backend_dashboard(request):
         {"label": "Frontend admin", "url": reverse("admin:index")},
     ]
     if can_manage_settings:
-        hero_actions.append({"label": "Open Full Site Settings", "url": reverse("siteconfig:preferences")})
+        hero_actions.append({"label": "Open Full Site Settings", "url": reverse("siteconfig:user_preferences")})
 
     hero = {
         "tagline": "Admin hub",
