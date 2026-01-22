@@ -11,6 +11,12 @@ from .views import (
     evaluation_evidence_upload,
     grade_import_template_view,
     grade_import_upload_view,
+    compliance_dashboard_view,
+    extend_deadline_view,
+    grade_import_preview_api,
+    grade_import_apply_api,
+    audit_trail_view,
+    resolve_offline_conflict_view,
 )
 
 urlpatterns = [
@@ -25,4 +31,11 @@ urlpatterns = [
     path("admin/evaluations/evidence/", evaluation_evidence_upload, name="evaluation_evidence_upload"),
     path("grade-import/upload/", grade_import_upload_view, name="grade_import_upload"),
     path("grade-import-template/", grade_import_template_view, name="grade_import_template"),
-]
+    
+    # PHASE 2: Compliance & Advanced Import
+    path("compliance/dashboard/", compliance_dashboard_view, name="compliance_dashboard"),
+    path("compliance/deadline/<int:subject_assignment_id>/extend/", extend_deadline_view, name="extend_deadline"),
+    path("api/grade-import/preview/", grade_import_preview_api, name="grade_import_preview_api"),
+    path("api/grade-import/apply/", grade_import_apply_api, name="grade_import_apply_api"),
+    path("audit-trail/<int:evaluation_id>/", audit_trail_view, name="audit_trail"),
+    path("offline-conflict/<int:offline_entry_id>/resolve/", resolve_offline_conflict_view, name="resolve_offline_conflict"),]

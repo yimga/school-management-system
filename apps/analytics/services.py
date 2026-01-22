@@ -428,3 +428,179 @@ def specialty_pass_rates(
 
     rows.sort(key=lambda row: row.rate, reverse=True)
     return rows
+
+# ========== COMPLIANCE & AUDIT FUNCTIONS ==========
+
+def get_teacher_compliance(academic_year_id, term_id):
+    """
+    Get teacher submission compliance report.
+    
+    Returns:
+        List of dicts with:
+        - teacher_id, teacher_name, classroom_count
+        - deadlines: [{'subject_assignment_id', 'deadline_date', 'days_left', 'submission_status', 'completion_rate'}]
+        - overall_completion: float (0-100)
+        - status: 'compliant' | 'at_risk' | 'overdue'
+    """
+    from django.apps import apps as django_apps
+    from django.utils import timezone
+    
+    TeacherProfile = django_apps.get_model('people', 'TeacherProfile')
+    TeacherAssignment = django_apps.get_model('academics', 'TeacherAssignment')
+    SubjectAssignment = django_apps.get_model('academics', 'SubjectAssignment')
+    StudentProfile = django_apps.get_model('people', 'StudentProfile')
+    
+    today = timezone.now().date()
+    compliance_data = []
+    
+    # Get all teachers for academic year
+    teacher_assignments = TeacherAssignment.objects.filter(
+        academic_year_id=academic_year_id
+    ).select_related('teacher', 'classroom')
+    
+    for ta in teacher_assignments:
+        teacher = ta.teacher
+        classroom = ta.classroom
+        
+        # Get all subject assignments this teacher teaches in this classroom
+        subject_assignments = SubjectAssignment.objects.filter(
+            teacher=teacher,
+            classroom=classroom,
+            academic_year_id=academic_year_id
+        ).select_related('subject')
+        
+        # Get deadline info
+        deadlines_info = []
+        total_students = StudentProfile.objects.filter(classroom=classroom).count()
+        
+        for sa in subject_assignments:
+            try:
+                deadline = GradingDeadline.objects.get(
+                    academic_year_id=academic_year_id,
+                    term_id=term_id,
+                    subject_assignment=sa
+                )
+            except GradingDeadline.DoesNotExist:
+                continue
+            
+            # Count submissions
+            submitted_count = Evaluation.objects.filter(
+                academic_year_id=academic_year_id,
+                term_id=term_id,
+                subject_assignment=sa,
+                teacher=teacher
+            ).distinct('student').count()
+            
+            days_left = (deadline.deadline_date - today).days
+            
+            if days_left < 0:
+                submission_status = 'overdue'
+            elif days_left <= 3:
+                submission_status = 'at_risk'
+            else:
+                submission_status = 'on_track'
+            
+            completion_rate = (submitted_count / total_students * 100) if total_students > 0 else 0
+            
+            deadlines_info.append({
+                'subject_assignment_id': sa.id,
+                'subject_name': sa.subject.name,
+                'deadline_date': deadline.deadline_date.isoformat(),
+                'days_left': days_left,
+                'submission_status': submission_status,
+                'completion_rate': round(completion_rate, 1),
+                'submitted_count': submitted_count,
+                'total_students': total_students,
+            })
+        
+        # Calculate overall completion
+        if deadlines_info:
+            overall_completion = sum(d['completion_rate'] for d in deadlines_info) / len(deadlines_info)
+            
+            # Determine status
+            statuses = [d['submission_status'] for d in deadlines_info]
+            if 'overdue' in statuses:
+                overall_status = 'overdue'
+            elif 'at_risk' in statuses:
+                overall_status = 'at_risk'
+            else:
+                overall_status = 'compliant'
+        else:
+            overall_completion = 100
+            overall_status = 'compliant'
+        
+        compliance_data.append({
+            'teacher_id': teacher.id,
+            'teacher_name': f"{teacher.user.first_name} {teacher.user.last_name}",
+            'teacher_code': teacher.teacher_code,
+            'classroom_name': classroom.name,
+            'classroom_count': len(subject_assignments),
+            'deadlines': deadlines_info,
+            'overall_completion': round(overall_completion, 1),
+            'status': overall_status,
+        })
+    
+    return compliance_data
+
+
+def get_audit_trail(evaluation_id, limit=50):
+    """
+    Get audit trail for an evaluation with change history.
+    
+    Returns:
+        List of dicts: {'change_type', 'changed_by', 'changed_at', 'changes': {...}}
+    """
+    from apps.evals.models import GradeAudit
+    
+    audits = GradeAudit.objects.filter(
+        evaluation_id=evaluation_id
+    ).select_related('changed_by').order_by('-changed_at')[:limit]
+    
+    trail = []
+    for audit in audits:
+        changes = {}
+        if audit.seq1_before is not None or audit.seq1_after is not None:
+            changes['seq1'] = {'before': float(audit.seq1_before or 0), 'after': float(audit.seq1_after or 0)}
+        if audit.seq2_before is not None or audit.seq2_after is not None:
+            changes['seq2'] = {'before': float(audit.seq2_before or 0), 'after': float(audit.seq2_after or 0)}
+        if audit.exam_before is not None or audit.exam_after is not None:
+            changes['exam'] = {'before': float(audit.exam_before or 0), 'after': float(audit.exam_after or 0)}
+        if audit.mock_before is not None or audit.mock_after is not None:
+            changes['mock'] = {'before': float(audit.mock_before or 0) if audit.mock_before else None, 'after': float(audit.mock_after or 0) if audit.mock_after else None}
+        if audit.practical_before is not None or audit.practical_after is not None:
+            changes['practical'] = {'before': float(audit.practical_before or 0) if audit.practical_before else None, 'after': float(audit.practical_after or 0) if audit.practical_after else None}
+        if audit.remarks_before or audit.remarks_after:
+            changes['remarks'] = {'before': audit.remarks_before, 'after': audit.remarks_after}
+        
+        trail.append({
+            'change_type': audit.change_type,
+            'changed_by': f"{audit.changed_by.first_name} {audit.changed_by.last_name}",
+            'changed_at': audit.changed_at.isoformat(),
+            'changes': changes,
+            'validation_errors': audit.validation_errors or [],
+            'offline_conflict_resolved': audit.offline_conflict_resolved,
+        })
+    
+    return trail
+
+
+def get_import_job_status(import_job_id):
+    """Get detailed import job status."""
+    from apps.analytics.models import GradeImportJob
+    
+    try:
+        job = GradeImportJob.objects.get(id=import_job_id)
+        return {
+            'id': job.id,
+            'status': job.status,
+            'created_count': job.created_count,
+            'updated_count': job.updated_count,
+            'failed_count': job.failed_count,
+            'total_rows': job.created_count + job.updated_count + job.failed_count,
+            'error_log': job.error_log or [],
+            'created_at': job.created_at.isoformat(),
+            'completed_at': job.completed_at.isoformat() if job.completed_at else None,
+            'duration_seconds': (job.completed_at - job.created_at).total_seconds() if job.completed_at else None,
+        }
+    except Exception:
+        return None

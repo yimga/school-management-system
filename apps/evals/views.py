@@ -883,3 +883,282 @@ def grade_import_template_view(request: HttpRequest):
     writer.writeheader()
     writer.writerow({})
     return response
+
+# ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========
+
+@staff_member_required
+def compliance_dashboard_view(request):
+    """
+    Dashboard showing teacher grading compliance status.
+    
+    Displays:
+    - KPI cards (compliant, at-risk, overdue teachers)
+    - Compliance table with filter/sort
+    - Deadline extensions modal
+    """
+    from apps.analytics.services import get_teacher_compliance
+    
+    academic_year, term = get_active_year_and_term()
+    
+    if not academic_year or not term:
+        messages.warning(request, "No active academic year or term.")
+        return redirect("admin:index")
+    
+    # Get compliance data
+    compliance_data = get_teacher_compliance(academic_year.id, term.id)
+    
+    # Calculate KPIs
+    total_teachers = len(compliance_data)
+    compliant_count = sum(1 for t in compliance_data if t['status'] == 'compliant')
+    at_risk_count = sum(1 for t in compliance_data if t['status'] == 'at_risk')
+    overdue_count = sum(1 for t in compliance_data if t['status'] == 'overdue')
+    
+    # Filter by status if requested
+    status_filter = request.GET.get('status', 'all')
+    if status_filter != 'all':
+        compliance_data = [t for t in compliance_data if t['status'] == status_filter]
+    
+    context = {
+        'compliance_data': compliance_data,
+        'kpis': {
+            'total': total_teachers,
+            'compliant': compliant_count,
+            'at_risk': at_risk_count,
+            'overdue': overdue_count,
+        },
+        'current_term': f"{academic_year.name} - {term.name}",
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'evals/compliance_dashboard.html', context)
+
+
+@staff_member_required
+def extend_deadline_view(request, subject_assignment_id):
+    """Extend grading deadline for a subject assignment."""
+    from apps.analytics.models import GradingDeadline
+    
+    academic_year, term = get_active_year_and_term()
+    SubjectAssignment = __import__('apps.academics.models', fromlist=['SubjectAssignment']).SubjectAssignment
+    
+    try:
+        subject_assignment = SubjectAssignment.objects.get(id=subject_assignment_id)
+        deadline = GradingDeadline.objects.get(
+            academic_year=academic_year,
+            term=term,
+            subject_assignment=subject_assignment
+        )
+    except (SubjectAssignment.DoesNotExist, GradingDeadline.DoesNotExist):
+        messages.error(request, "Deadline not found.")
+        return redirect('compliance_dashboard')
+    
+    if request.method == 'POST':
+        days_extension = int(request.POST.get('days_extension', 0))
+        reason = request.POST.get('reason', '')
+        
+        if days_extension > 0:
+            new_deadline = deadline.deadline_date + timezone.timedelta(days=days_extension)
+            deadline.deadline_date = new_deadline
+            deadline.save()
+            
+            # Log in audit trail
+            from apps.evals.models import GradeAudit
+            GradeAudit.objects.create(
+                evaluation=None,  # Not linked to specific evaluation
+                change_type='deadline_extended',
+                changed_by=request.user,
+                remarks_after=f"Deadline extended by {days_extension} days. Reason: {reason}"
+            )
+            
+            messages.success(request, f"Deadline extended to {new_deadline.date()}")
+        
+        return redirect('compliance_dashboard')
+    
+    return render(request, 'evals/extend_deadline.html', {
+        'deadline': deadline,
+        'subject_assignment': subject_assignment,
+    })
+
+
+@staff_member_required
+def grade_import_preview_api(request):
+    """API endpoint for grade import preview with validation."""
+    from apps.evals.importers import preview_import_with_validation
+    import json
+    
+    if request.method != 'POST':
+        return HttpResponseForbidden("POST required")
+    
+    # Parse CSV from request
+    csv_file = request.FILES.get('file')
+    if not csv_file:
+        return HttpResponse(json.dumps({'error': 'No file provided'}), content_type='application/json', status=400)
+    
+    try:
+        import csv as csv_module
+        reader = csv_module.DictReader(io.TextIOWrapper(csv_file, encoding='utf-8'))
+        csv_rows = list(reader)
+        
+        # Run validation
+        rows_with_validation, errors = preview_import_with_validation(csv_rows)
+        
+        # Return preview
+        preview_data = []
+        for row in rows_with_validation:
+            preview_data.append({
+                'student_code': row.student_code,
+                'subject_assignment_id': row.subject_assignment_id,
+                'term_id': row.term_id,
+                'seq1': row.seq1,
+                'seq2': row.seq2,
+                'exam': row.exam,
+                'is_valid': row.is_valid,
+                'errors': row.errors,
+                'warnings': row.warnings,
+            })
+        
+        return HttpResponse(json.dumps({
+            'preview': preview_data,
+            'file_errors': errors,
+            'total_rows': len(rows_with_validation),
+            'valid_rows': sum(1 for r in rows_with_validation if r.is_valid),
+            'invalid_rows': sum(1 for r in rows_with_validation if not r.is_valid),
+        }), content_type='application/json')
+    
+    except Exception as e:
+        return HttpResponse(json.dumps({'error': str(e)}), content_type='application/json', status=400)
+
+
+@staff_member_required
+def grade_import_apply_api(request):
+    """API endpoint for applying (persisting) grade import."""
+    from apps.evals.importers import apply_import
+    from apps.analytics.models import GradeImportJob
+    import json
+    
+    if request.method != 'POST':
+        return HttpResponseForbidden("POST required")
+    
+    # Create job record
+    job = GradeImportJob.objects.create(
+        status='processing',
+        created_count=0,
+        updated_count=0,
+        failed_count=0,
+    )
+    
+    try:
+        csv_file = request.FILES.get('file')
+        csv_module = __import__('csv')
+        reader = csv_module.DictReader(io.TextIOWrapper(csv_file, encoding='utf-8'))
+        csv_rows = list(reader)
+        
+        # Apply import
+        result = apply_import(csv_rows)
+        
+        # Update job
+        job.created_count = result['created']
+        job.updated_count = result['updated']
+        job.status = 'completed'
+        job.completed_at = timezone.now()
+        job.save()
+        
+        return HttpResponse(json.dumps({
+            'job_id': job.id,
+            'status': 'completed',
+            'created': result['created'],
+            'updated': result['updated'],
+            'duration_seconds': result.get('duration_seconds', 0),
+        }), content_type='application/json')
+    
+    except Exception as e:
+        job.status = 'failed'
+        job.failed_count += 1
+        job.error_log = [str(e)]
+        job.save()
+        
+        return HttpResponse(json.dumps({
+            'job_id': job.id,
+            'status': 'failed',
+            'error': str(e),
+        }), content_type='application/json', status=400)
+
+
+@staff_member_required
+def audit_trail_view(request, evaluation_id):
+    """View audit trail for an evaluation."""
+    from apps.analytics.services import get_audit_trail
+    
+    try:
+        evaluation = Evaluation.objects.get(id=evaluation_id)
+    except Evaluation.DoesNotExist:
+        messages.error(request, "Evaluation not found.")
+        return redirect("admin:evals_evaluation_changelist")
+    
+    trail = get_audit_trail(evaluation_id, limit=100)
+    
+    context = {
+        'evaluation': evaluation,
+        'trail': trail,
+        'student_name': f"{evaluation.student.user.first_name} {evaluation.student.user.last_name}",
+        'subject_name': evaluation.subject_assignment.subject.name,
+    }
+    
+    return render(request, 'evals/audit_trail.html', context)
+
+
+@staff_member_required
+def resolve_offline_conflict_view(request, offline_entry_id):
+    """Manual conflict resolution for offline mark entries."""
+    from apps.evals.models import OfflineMarkEntry
+    
+    try:
+        offline_entry = OfflineMarkEntry.objects.get(id=offline_entry_id)
+    except OfflineMarkEntry.DoesNotExist:
+        messages.error(request, "Offline entry not found.")
+        return redirect("admin:evals_offlinemarkentry_changelist")
+    
+    if offline_entry.status != 'conflict':
+        messages.info(request, "This entry is not in conflict status.")
+        return redirect("admin:evals_offlinemarkentry_changelist")
+    
+    # Get online version
+    try:
+        online_entry = Evaluation.objects.get(
+            academic_year=offline_entry.academic_year,
+            term=offline_entry.term,
+            subject_assignment=offline_entry.subject_assignment,
+            student=offline_entry.student,
+        )
+    except Evaluation.DoesNotExist:
+        online_entry = None
+    
+    if request.method == 'POST':
+        # User chose to keep online or offline version
+        choice = request.POST.get('choice', 'online')
+        
+        if choice == 'offline' and online_entry:
+            # Merge offline into online
+            online_entry.seq1_score = offline_entry.seq1_score
+            online_entry.seq2_score = offline_entry.seq2_score
+            online_entry.exam_score = offline_entry.exam_score
+            online_entry.mock_score = offline_entry.mock_score
+            online_entry.practical_score = offline_entry.practical_score
+            online_entry.remarks = offline_entry.remarks
+            online_entry.save()
+        
+        # Mark as resolved
+        offline_entry.status = 'synced'
+        offline_entry.save()
+        
+        messages.success(request, "Conflict resolved.")
+        return redirect("admin:evals_offlinemarkentry_changelist")
+    
+    context = {
+        'offline_entry': offline_entry,
+        'online_entry': online_entry,
+        'student_name': f"{offline_entry.student.user.first_name} {offline_entry.student.user.last_name}",
+        'subject_name': offline_entry.subject_assignment.subject.name,
+    }
+    
+    return render(request, 'evals/resolve_offline_conflict.html', context)
