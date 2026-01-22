@@ -124,6 +124,11 @@ def parent_dashboard(request: HttpRequest):
             {"label": "Link a Child", "url": "#link-child"},
             {"label": "Pay Fees", "url": reverse("portal:parent_finance")},
         ],
+        "status_pills": [
+            {"label": "Active students", "value": links.count(), "meta": "Linked children"},
+            {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"},
+            {"label": "Tasks", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Eval gaps"},
+        ],
     }
     hero["stats"].append({"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
     hero["actions"].insert(1, {"label": "View Attendance", "url": reverse("portal:portal_stats")})

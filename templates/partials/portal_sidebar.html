@@ -52,8 +52,11 @@
       <a class="nav-link nav-pill px-3 py-2" href="/admin/">
         <i class="bi bi-shield-lock me-2"></i>Admin
       </a>
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'accounts:backend_dashboard' %}">
+        <i class="bi bi-gear-fill me-2"></i>Backend Console
+      </a>
       <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:evaluation_admin' %}">
-        <i class="bi bi-clipboard-data me-2"></i>Evaluation Manager
+        <i class="bi bi-clipboard-data me-2"></i>Evaluation Admin
       </a>
       <a class="nav-link nav-pill px-3 py-2" href="{% url 'analytics:dashboard' %}">
         <i class="bi bi-graph-up-arrow me-2"></i>Analytics
@@ -76,6 +79,12 @@
       <a class="nav-link nav-pill px-3 py-2" href="{% url 'reports:publish_term_results' %}">
         <i class="bi bi-megaphone me-2"></i>Publish Results
       </a>
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'siteconfig:customizer' %}">
+        <i class="bi bi-palette-fill me-2"></i>Customizer</a>
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'siteconfig:report_library' %}">
+        <i class="bi bi-journal-text me-2"></i>Report Library</a>
+      <a class="nav-link nav-pill px-3 py-2" href="{% url 'accounts:backend_dashboard_alt' %}">
+        <i class="bi bi-layout-wtf me-2"></i>Backend Tools</a>
     {% endif %}
   {% endif %}
 </div>
