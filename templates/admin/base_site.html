@@ -4,6 +4,7 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
 {% endblock %}
 
 {% block extrahead %}
@@ -68,6 +69,7 @@
 {% block title %}{% if site_title %}{{ site_title }}{% else %}{% trans 'Site administration' %}{% endif %}{% endblock %}
 
 {% block branding %}
+  {% include 'components/admin_nav_bridge.html' %}
   <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
       {{ site_header|default:_('Gilead Admin') }}

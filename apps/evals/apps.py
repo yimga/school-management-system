@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 class EvalsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.evals"
-    
+    name = 'apps.evals'
+    verbose_name = '📊 Evaluations & Grading'
     def ready(self):
         import apps.evals.signals  # Register signal handlers
