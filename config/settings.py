@@ -380,9 +380,6 @@ LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', 'en')
 LANGUAGES = [
     ('en', 'English'),
     ('fr', 'Français (French)'),
-    ('sw', 'Kiswahili'),
-    ('ha', 'Hausa'),
-    ('yo', 'Yorùbá'),
 ]
 
 TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
