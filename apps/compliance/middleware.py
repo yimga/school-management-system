@@ -61,9 +61,9 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             error_message = ""
             if response.status_code >= 400:
                 try:
-                    error_message = self._extract_error(response)
+                    error_message = self._extract_error(response) or ""
                 except Exception:
-                    pass
+                    error_message = ""
 
             # Get user
             user = None
@@ -82,7 +82,7 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 status=response.status_code,
                 response_time_ms=response_time_ms,
                 ip_address=ip_address,
-                error_message=error_message,
+                error_message=error_message or "",  # Ensure never None
             )
         except Exception as e:
             logger.warning(f"Failed to log access: {e}", exc_info=True)

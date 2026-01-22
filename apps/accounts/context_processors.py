@@ -58,22 +58,29 @@ def dashboard_context(request):
                 
                 # Pending tasks (grades not entered, attendance not marked, etc.)
                 from apps.evals.models import Assessment
-                from apps.attendance.models import TeacherAttendance
-                
-                # Count assessments without grades
-                pending_assessments = Assessment.objects.filter(
-                    subject__teachers=teacher_profile,
-                    is_published=False
-                ).count()
-                
-                # Count days without attendance
-                today = timezone.now().date()
-                attendance_today = TeacherAttendance.objects.filter(
-                    teacher=teacher_profile,
-                    date=today
-                ).exists()
-                
-                context['teacher_pending_tasks'] = pending_assessments + (0 if attendance_today else 1)
+                try:
+                    from apps.attendance.models import TeacherAttendance
+                    
+                    # Count assessments without grades
+                    pending_assessments = Assessment.objects.filter(
+                        subject__teachers=teacher_profile,
+                        is_published=False
+                    ).count()
+                    
+                    # Count days without attendance
+                    today = timezone.now().date()
+                    attendance_today = TeacherAttendance.objects.filter(
+                        teacher=teacher_profile,
+                        date=today
+                    ).exists()
+                    
+                    context['teacher_pending_tasks'] = pending_assessments + (0 if attendance_today else 1)
+                except ImportError:
+                    # attendance app not installed
+                    context['teacher_pending_tasks'] = Assessment.objects.filter(
+                        subject__teachers=teacher_profile,
+                        is_published=False
+                    ).count()
                 
             except AttributeError:
                 context['teacher_student_count'] = 0
@@ -84,7 +91,6 @@ def dashboard_context(request):
             # Parent metrics
             from apps.people.models import StudentGuardian, StudentProfile
             from apps.finance.models import Invoice
-            from apps.attendance.models import StudentAttendance
             
             # Get children
             children = StudentProfile.objects.filter(
@@ -95,16 +101,20 @@ def dashboard_context(request):
             
             if children.exists():
                 # Average attendance across all children
-                total_attendance = 0
-                for child in children:
-                    attendance_records = StudentAttendance.objects.filter(student=child)
-                    if attendance_records.exists():
-                        present_count = attendance_records.filter(status='PRESENT').count()
-                        total_count = attendance_records.count()
-                        if total_count > 0:
-                            total_attendance += (present_count / total_count * 100)
-                
-                context['parent_avg_attendance'] = round(total_attendance / children.count()) if children.count() > 0 else 0
+                try:
+                    from apps.attendance.models import StudentAttendance
+                    total_attendance = 0
+                    for child in children:
+                        attendance_records = StudentAttendance.objects.filter(student=child)
+                        if attendance_records.exists():
+                            present_count = attendance_records.filter(status='PRESENT').count()
+                            total_count = attendance_records.count()
+                            if total_count > 0:
+                                total_attendance += (present_count / total_count * 100)
+                    
+                    context['parent_avg_attendance'] = round(total_attendance / children.count()) if children.count() > 0 else 0
+                except ImportError:
+                    context['parent_avg_attendance'] = 0
                 
                 # Total balance for all children
                 invoices = Invoice.objects.filter(student__in=children, status__in=['PENDING', 'PARTIAL'])
@@ -117,16 +127,19 @@ def dashboard_context(request):
             # Student metrics
             try:
                 student_profile = user.student_profile
-                from apps.attendance.models import StudentAttendance
                 from apps.evals.models import MarkEntry
                 
                 # Attendance percentage
-                attendance_records = StudentAttendance.objects.filter(student=student_profile)
-                if attendance_records.exists():
-                    present_count = attendance_records.filter(status='PRESENT').count()
-                    total_count = attendance_records.count()
-                    context['student_attendance'] = round((present_count / total_count) * 100) if total_count > 0 else 0
-                else:
+                try:
+                    from apps.attendance.models import StudentAttendance
+                    attendance_records = StudentAttendance.objects.filter(student=student_profile)
+                    if attendance_records.exists():
+                        present_count = attendance_records.filter(status='PRESENT').count()
+                        total_count = attendance_records.count()
+                        context['student_attendance'] = round((present_count / total_count) * 100) if total_count > 0 else 0
+                    else:
+                        context['student_attendance'] = 0
+                except ImportError:
                     context['student_attendance'] = 0
                 
                 # Average grade
