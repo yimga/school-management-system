@@ -1,0 +1,339 @@
+"""
+Finance API Views
+Invoice, Payment, and Financial Analytics endpoints
+"""
+
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from django.db.models import Sum, Count, Q, F
+from django.utils import timezone
+from datetime import datetime
+
+from apps.finance.models import Invoice, Payment, Notification
+from apps.api.serializers import InvoiceSerializer, PaymentSerializer
+from apps.api.permissions import IsBursar, IsAdminUser
+
+
+class InvoiceViewSet(viewsets.ModelViewSet):
+    """
+    Invoice management API
+    
+    List, create, retrieve, update invoices
+    Filter by status, date range, student
+    """
+    serializer_class = InvoiceSerializer
+    permission_classes = [IsAuthenticated]
+    filterset_fields = ['status', 'student', 'created_at']
+    ordering_fields = ['created_at', 'amount', 'due_date']
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        if user.is_staff or user.role in ['ADMIN', 'BURSAR', 'LEADERSHIP', 'HOD']:
+            return Invoice.objects.all().select_related('student__user')
+        
+        from apps.people.models import StudentProfile
+        
+        student_profile = StudentProfile.objects.filter(user=user).first()
+        if student_profile:
+            return Invoice.objects.filter(
+                student=student_profile
+            ).select_related('student__user')
+        
+        from apps.people.models import StudentGuardian
+        guardian_children = StudentGuardian.objects.filter(
+            guardian__user=user
+        ).values_list('student_id', flat=True)
+        
+        return Invoice.objects.filter(
+            student_id__in=guardian_children
+        ).select_related('student__user')
+    
+    def list(self, request, *args, **kwargs):
+        """
+        List invoices with advanced filtering
+        
+        Query Parameters:
+        - status: pending, paid, overdue, cancelled
+        - from_date: YYYY-MM-DD
+        - to_date: YYYY-MM-DD
+        - student_id: specific student
+        - limit: results per page
+        """
+        queryset = self.get_queryset()
+        
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        
+        from_date = request.query_params.get('from_date')
+        to_date = request.query_params.get('to_date')
+        if from_date and to_date:
+            queryset = queryset.filter(
+                invoice_date__gte=from_date,
+                invoice_date__lte=to_date
+            )
+        
+        student_id = request.query_params.get('student_id')
+        if student_id:
+            queryset = queryset.filter(student_id=student_id)
+        
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+    def create(self, request, *args, **kwargs):
+        """Create new invoice"""
+        if not (request.user.is_staff or request.user.role in ['ADMIN', 'BURSAR']):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        return super().create(request, *args, **kwargs)
+    
+    @action(detail=True, methods=['post'])
+    def mark_paid(self, request, pk=None):
+        """Mark invoice as fully paid"""
+        if not (request.user.is_staff or request.user.role in ['ADMIN', 'BURSAR']):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        invoice = self.get_object()
+        invoice.status = 'paid'
+        invoice.paid_date = timezone.now().date()
+        invoice.save()
+        
+        Notification.objects.create(
+            title=f"Invoice Marked Paid",
+            message=f"Invoice {invoice.invoice_number} has been marked as paid",
+            created_by=request.user
+        )
+        
+        return Response({
+            'status': 'success',
+            'invoice_id': invoice.id,
+            'paid_date': invoice.paid_date
+        })
+    
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """Get invoice summary statistics"""
+        queryset = self.get_queryset()
+        
+        total_amount = queryset.aggregate(Sum('amount'))['amount__sum'] or 0
+        paid_amount = queryset.filter(
+            status__in=['paid', 'partially_paid']
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        pending_amount = queryset.filter(
+            status='pending'
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        overdue_amount = queryset.filter(
+            status='overdue'
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        count_by_status = queryset.values('status').annotate(
+            count=Count('id')
+        )
+        
+        return Response({
+            'total_amount': float(total_amount),
+            'paid_amount': float(paid_amount),
+            'pending_amount': float(pending_amount),
+            'overdue_amount': float(overdue_amount),
+            'payment_rate': round((paid_amount / total_amount * 100), 1) if total_amount > 0 else 0,
+            'by_status': list(count_by_status)
+        })
+
+
+class PaymentViewSet(viewsets.ModelViewSet):
+    """
+    Payment recording and tracking API
+    
+    Create and retrieve payment records
+    Filter by invoice, payment method, date
+    """
+    serializer_class = PaymentSerializer
+    permission_classes = [IsAuthenticated]
+    ordering_fields = ['created_at', 'amount', 'payment_date']
+    ordering = ['-payment_date']
+    
+    def get_queryset(self):
+        user = self.request.user
+        
+        if user.is_staff or user.role in ['ADMIN', 'BURSAR']:
+            return Payment.objects.all().select_related('invoice__student__user')
+        
+        from apps.people.models import StudentProfile
+        
+        student_profile = StudentProfile.objects.filter(user=user).first()
+        if student_profile:
+            return Payment.objects.filter(
+                invoice__student=student_profile
+            ).select_related('invoice__student__user')
+        
+        from apps.people.models import StudentGuardian
+        guardian_children = StudentGuardian.objects.filter(
+            guardian__user=user
+        ).values_list('student_id', flat=True)
+        
+        return Payment.objects.filter(
+            invoice__student_id__in=guardian_children
+        ).select_related('invoice__student__user')
+    
+    def create(self, request, *args, **kwargs):
+        """
+        Record a new payment
+        
+        Request Body:
+        {
+            "invoice": 1,
+            "amount": 25000.00,
+            "payment_method": "bank_transfer",
+            "reference": "REF123456",
+            "payment_date": "2025-01-22"
+        }
+        """
+        if not (request.user.is_staff or request.user.role in ['ADMIN', 'BURSAR']):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        payment = serializer.save()
+        
+        invoice = payment.invoice
+        if invoice.remaining_balance == 0:
+            invoice.status = 'paid'
+            invoice.paid_date = timezone.now().date()
+            invoice.save()
+        elif invoice.remaining_balance < invoice.amount:
+            invoice.status = 'partially_paid'
+            invoice.save()
+        
+        Notification.objects.create(
+            title="Payment Recorded",
+            message=f"Payment of {payment.amount} recorded for {invoice.student.user.get_full_name()}",
+            created_by=request.user
+        )
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+    
+    @action(detail=False, methods=['get'])
+    def by_method(self, request):
+        """Get payment breakdown by method"""
+        queryset = self.get_queryset()
+        
+        from_date = request.query_params.get('from_date')
+        to_date = request.query_params.get('to_date')
+        
+        if from_date and to_date:
+            queryset = queryset.filter(
+                payment_date__gte=from_date,
+                payment_date__lte=to_date
+            )
+        
+        breakdown = queryset.values('payment_method').annotate(
+            total=Sum('amount'),
+            count=Count('id')
+        )
+        
+        return Response({
+            'breakdown': list(breakdown),
+            'total': float(queryset.aggregate(Sum('amount'))['amount__sum'] or 0)
+        })
+    
+    @action(detail=False, methods=['get'])
+    def recent(self, request):
+        """Get recent payments"""
+        limit = int(request.query_params.get('limit', 10))
+        queryset = self.get_queryset()[:limit]
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class FinancialAnalyticsAPI(APIView):
+    """
+    Financial analytics and reporting
+    Revenue, collection rates, forecasting
+    """
+    permission_classes = [IsAdminUser]
+    
+    def get(self, request):
+        """Get comprehensive financial analytics"""
+        from_date = request.query_params.get('from_date')
+        to_date = request.query_params.get('to_date')
+        
+        queryset_invoices = Invoice.objects.all()
+        queryset_payments = Payment.objects.all()
+        
+        if from_date and to_date:
+            queryset_invoices = queryset_invoices.filter(
+                invoice_date__gte=from_date,
+                invoice_date__lte=to_date
+            )
+            queryset_payments = queryset_payments.filter(
+                payment_date__gte=from_date,
+                payment_date__lte=to_date
+            )
+        
+        total_invoiced = queryset_invoices.aggregate(
+            Sum('amount')
+        )['amount__sum'] or 0
+        
+        total_collected = queryset_payments.aggregate(
+            Sum('amount')
+        )['amount__sum'] or 0
+        
+        collection_rate = (total_collected / total_invoiced * 100) if total_invoiced > 0 else 0
+        
+        pending_invoices = Invoice.objects.filter(
+            status__in=['pending', 'partially_paid']
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        overdue_invoices = Invoice.objects.filter(
+            status='overdue'
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        outstanding_fees = pending_invoices + overdue_invoices
+        
+        payment_methods = queryset_payments.values('payment_method').annotate(
+            total=Sum('amount')
+        )
+        
+        monthly_revenue = queryset_payments.extra(
+            select={'month': 'EXTRACT(month FROM payment_date)'}
+        ).values('month').annotate(
+            total=Sum('amount')
+        ).order_by('month')
+        
+        return Response({
+            'total_invoiced': float(total_invoiced),
+            'total_collected': float(total_collected),
+            'collection_rate': round(collection_rate, 1),
+            'pending_amount': float(pending_invoices),
+            'overdue_amount': float(overdue_invoices),
+            'outstanding_fees': float(outstanding_fees),
+            'payment_methods': list(payment_methods),
+            'monthly_revenue': list(monthly_revenue),
+            'currency': 'GHS'
+        })

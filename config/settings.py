@@ -28,6 +28,10 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "django_otp.plugins.otp_static",
 
+    # REST Framework
+    "rest_framework",
+    "rest_framework_simplejwt",
+
     # Project apps
     "apps.accounts.apps.AccountsConfig",
     "apps.evals",
@@ -40,6 +44,8 @@ INSTALLED_APPS = [
     "apps.finance",
     "apps.payroll",
     "apps.compliance.apps.ComplianceConfig",
+    "apps.communication",
+    "apps.api",
 ]
 
 MIDDLEWARE = [

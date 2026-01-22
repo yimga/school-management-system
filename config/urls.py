@@ -49,6 +49,9 @@ urlpatterns = [
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
 
+    # API Routes
+    path('api/', include(('apps.api.urls', 'api'), namespace='api')),
+
     # Apps
     path('siteconfig/', include(('apps.siteconfig.urls', 'siteconfig'), namespace='siteconfig')),
     path('authentication/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
