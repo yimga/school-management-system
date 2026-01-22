@@ -1,4 +1,5 @@
 from django.contrib import admin
+from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 from .models import (
@@ -6,48 +7,41 @@ from .models import (
 )
 
 
-@admin.register(AcademicYear)
 class AcademicYearAdmin(ModelAdmin):
     list_display = ("name", "start_date", "end_date", "is_active")
     list_filter = ("is_active",)
     search_fields = ("name",)
 
 
-@admin.register(Term)
 class TermAdmin(ModelAdmin):
     list_display = ("academic_year", "position", "name", "custom_label", "start_date", "end_date", "is_active")
     list_filter = ("academic_year", "is_active")
     search_fields = ("academic_year__name", "name", "custom_label")
 
 
-@admin.register(Department)
 class DepartmentAdmin(ModelAdmin):
     list_display = ("name", "code")
     search_fields = ("name", "code")
 
 
-@admin.register(Specialty)
 class SpecialtyAdmin(ModelAdmin):
     list_display = ("name", "code", "department")
     list_filter = ("department",)
     search_fields = ("name", "code", "department__name")
 
 
-@admin.register(Classroom)
 class ClassroomAdmin(ModelAdmin):
     list_display = ("name", "code", "department", "academic_year", "allows_third_term")
     list_filter = ("department", "academic_year", "allows_third_term")
     search_fields = ("name", "code", "department__name", "academic_year__name")
 
 
-@admin.register(Subject)
 class SubjectAdmin(ModelAdmin):
     list_display = ("name", "category")
     list_filter = ("category",)
     search_fields = ("name",)
 
 
-@admin.register(SubjectAssignment)
 class SubjectAssignmentAdmin(ModelAdmin):
     list_display = ("academic_year", "term", "classroom", "specialty", "subject", "coefficient")
     list_filter = ("academic_year", "term", "classroom", "specialty", "subject")
@@ -125,3 +119,13 @@ def assign_positions_to_year(modeladmin, request, queryset):
 
 assign_positions_to_year.short_description = "Assign positions 1–4 per year (start_date order)"
 TermAdmin.actions = [assign_positions_to_year]
+
+
+# Register all models with custom admin site
+admin_site.register(AcademicYear, AcademicYearAdmin)
+admin_site.register(Term, TermAdmin)
+admin_site.register(Department, DepartmentAdmin)
+admin_site.register(Specialty, SpecialtyAdmin)
+admin_site.register(Classroom, ClassroomAdmin)
+admin_site.register(Subject, SubjectAdmin)
+admin_site.register(SubjectAssignment, SubjectAssignmentAdmin)

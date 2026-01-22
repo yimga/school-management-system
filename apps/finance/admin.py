@@ -1,4 +1,5 @@
 from django.contrib import admin
+from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 
@@ -30,7 +31,6 @@ from .models import (
 )
 
 
-@admin.register(ComplianceProfile)
 class ComplianceProfileAdmin(ModelAdmin):
     list_display = ("name", "country_code", "currency_code", "chart_template", "timezone", "is_active")
     list_filter = ("country_code", "chart_template", "is_active")
@@ -44,14 +44,12 @@ class ComplianceProfileAdmin(ModelAdmin):
     )
 
 
-@admin.register(TaxBracket)
 class TaxBracketAdmin(ModelAdmin):
     list_display = ("profile", "lower_bound", "upper_bound", "rate")
     list_filter = ("profile",)
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 
-@admin.register(ContributionRule)
 class ContributionRuleAdmin(ModelAdmin):
     list_display = ("profile", "code", "name", "employee_rate", "employer_rate", "cap_amount")
     list_filter = ("profile",)
@@ -59,7 +57,6 @@ class ContributionRuleAdmin(ModelAdmin):
     search_fields = ("code", "name")
 
 
-@admin.register(LedgerAccount)
 class LedgerAccountAdmin(ModelAdmin):
     list_display = ("profile", "code", "name", "account_type", "is_active")
     list_filter = ("profile", "account_type", "is_active")
@@ -72,7 +69,6 @@ class JournalLineInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(JournalEntry)
 class JournalEntryAdmin(ModelAdmin):
     list_display = ("entry_date", "reference", "profile", "posted_at")
     list_filter = ("profile",)
@@ -81,7 +77,6 @@ class JournalEntryAdmin(ModelAdmin):
     inlines = [JournalLineInline]
 
 
-@admin.register(Counterparty)
 class CounterpartyAdmin(ModelAdmin):
     list_display = ("name", "counterparty_type", "student", "user")
     list_filter = ("counterparty_type",)
@@ -94,7 +89,6 @@ class FeeItemInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(FeePlan)
 class FeePlanAdmin(ModelAdmin):
     list_display = ("name", "academic_year", "classroom", "specialty", "is_active")
     list_filter = ("academic_year", "classroom", "specialty", "is_active")
@@ -103,7 +97,6 @@ class FeePlanAdmin(ModelAdmin):
     inlines = [FeeItemInline]
 
 
-@admin.register(FeeInstallment)
 class FeeInstallmentAdmin(ModelAdmin):
     list_display = ("fee_item", "installment_number", "amount", "due_date")
     list_filter = ("fee_item",)
@@ -115,7 +108,6 @@ class InvoiceLineInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(Invoice)
 class InvoiceAdmin(ModelAdmin):
     list_display = (
         "invoice_type",
@@ -133,7 +125,6 @@ class InvoiceAdmin(ModelAdmin):
     inlines = [InvoiceLineInline]
 
 
-@admin.register(Payment)
 class PaymentAdmin(ModelAdmin):
     list_display = ("invoice", "amount", "method", "paid_at", "receipt_number", "receipt_file")
     list_filter = ("method", "paid_at")
@@ -141,7 +132,6 @@ class PaymentAdmin(ModelAdmin):
     search_fields = ("reference", "receipt_number")
 
 
-@admin.register(PaymentReminder)
 class PaymentReminderAdmin(ModelAdmin):
     list_display = ("invoice", "is_active", "next_send_at", "reminder_days_before")
     list_filter = ("is_active",)
@@ -149,34 +139,29 @@ class PaymentReminderAdmin(ModelAdmin):
     search_fields = ("invoice__reference", "invoice__student__student_code")
 
 
-@admin.register(PaymentReminderLog)
 class PaymentReminderLogAdmin(ModelAdmin):
     list_display = ("reminder", "sent_at", "status")
     list_filter = ("status",)
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 
-@admin.register(Budget)
 class BudgetAdmin(ModelAdmin):
     list_display = ("name", "academic_year", "department", "total_amount")
     list_filter = ("academic_year", "department")
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 
-@admin.register(BudgetLine)
 class BudgetLineAdmin(ModelAdmin):
     list_display = ("budget", "account", "amount")
     list_filter = ("budget",)
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 
-@admin.register(AssetCategory)
 class AssetCategoryAdmin(ModelAdmin):
     list_display = ("name",)
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 
-@admin.register(Asset)
 class AssetAdmin(ModelAdmin):
     list_display = ("name", "category", "status", "purchase_cost")
     list_filter = ("status", "category")
@@ -189,7 +174,6 @@ class GrantAllocationInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(Grant)
 class GrantAdmin(ModelAdmin):
     list_display = ("name", "funder", "amount", "start_date", "end_date")
     list_per_page = 50  # PERFORMANCE: Add pagination
@@ -197,7 +181,6 @@ class GrantAdmin(ModelAdmin):
     inlines = [GrantAllocationInline]
 
 
-@admin.register(Notification)
 class NotificationAdmin(ModelAdmin):
     list_display = ("title", "severity", "is_read", "created_at", "created_by")
     list_filter = ("severity", "is_read")
@@ -205,7 +188,6 @@ class NotificationAdmin(ModelAdmin):
     search_fields = ("title", "message", "created_by__username")
 
 
-@admin.register(ReportRequest)
 class ReportRequestAdmin(ModelAdmin):
     list_display = ("report_type", "requested_by", "status", "created_at")
     list_filter = ("report_type", "status")
@@ -213,9 +195,31 @@ class ReportRequestAdmin(ModelAdmin):
     search_fields = ("requested_by__username", "description")
 
 
-@admin.register(ReferralReward)
 class ReferralRewardAdmin(ModelAdmin):
     list_display = ("student", "guardian", "amount", "status", "awarded_by", "created_at")
     list_filter = ("status",)
     list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("student__student_code", "guardian__guardian_user__username", "guardian__guardian_user__email")
+
+
+# Register all models with custom admin site
+admin_site.register(ComplianceProfile, ComplianceProfileAdmin)
+admin_site.register(TaxBracket, TaxBracketAdmin)
+admin_site.register(ContributionRule, ContributionRuleAdmin)
+admin_site.register(LedgerAccount, LedgerAccountAdmin)
+admin_site.register(JournalEntry, JournalEntryAdmin)
+admin_site.register(Counterparty, CounterpartyAdmin)
+admin_site.register(FeePlan, FeePlanAdmin)
+admin_site.register(FeeInstallment, FeeInstallmentAdmin)
+admin_site.register(Invoice, InvoiceAdmin)
+admin_site.register(Payment, PaymentAdmin)
+admin_site.register(PaymentReminder, PaymentReminderAdmin)
+admin_site.register(PaymentReminderLog, PaymentReminderLogAdmin)
+admin_site.register(Budget, BudgetAdmin)
+admin_site.register(BudgetLine, BudgetLineAdmin)
+admin_site.register(AssetCategory, AssetCategoryAdmin)
+admin_site.register(Asset, AssetAdmin)
+admin_site.register(Grant, GrantAdmin)
+admin_site.register(Notification, NotificationAdmin)
+admin_site.register(ReportRequest, ReportRequestAdmin)
+admin_site.register(ReferralReward, ReferralRewardAdmin)

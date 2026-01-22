@@ -1,4 +1,5 @@
 from django.contrib import admin
+from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 
@@ -34,7 +35,6 @@ class LeaveRequestInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(PayrollEmployee)
 class PayrollEmployeeAdmin(ModelAdmin):
     list_display = ("user", "department", "pay_type", "base_salary", "is_active")
     list_filter = ("department", "pay_type", "is_active")
@@ -42,25 +42,21 @@ class PayrollEmployeeAdmin(ModelAdmin):
     inlines = [EmploymentContractInline, SalaryAdjustmentInline, TimeEntryInline, LeaveRequestInline]
 
 
-@admin.register(EmploymentContract)
 class EmploymentContractAdmin(ModelAdmin):
     list_display = ("employee", "contract_type", "start_date", "end_date", "pay_type", "is_active")
     list_filter = ("contract_type", "pay_type", "is_active")
 
 
-@admin.register(SalaryAdjustment)
 class SalaryAdjustmentAdmin(ModelAdmin):
     list_display = ("employee", "amount", "effective_date", "is_recurring")
     list_filter = ("effective_date", "is_recurring")
 
 
-@admin.register(TimeEntry)
 class TimeEntryAdmin(ModelAdmin):
     list_display = ("employee", "entry_date", "hours_worked", "is_approved")
     list_filter = ("entry_date", "is_approved")
 
 
-@admin.register(LeaveRequest)
 class LeaveRequestAdmin(ModelAdmin):
     list_display = ("employee", "leave_type", "start_date", "end_date", "status", "is_paid")
     list_filter = ("leave_type", "status", "is_paid")
@@ -71,7 +67,6 @@ class PayslipLineInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(Payslip)
 class PayslipAdmin(ModelAdmin):
     list_display = ("employee", "payroll_run", "gross_pay", "net_pay", "status")
     list_filter = ("status",)
@@ -84,8 +79,17 @@ class PayslipInline(admin.TabularInline):
     extra = 0
 
 
-@admin.register(PayrollRun)
 class PayrollRunAdmin(ModelAdmin):
     list_display = ("period_start", "period_end", "profile", "status", "processed_at")
     list_filter = ("status", "profile")
     inlines = [PayslipInline]
+
+
+# Register all models with custom admin site
+admin_site.register(PayrollEmployee, PayrollEmployeeAdmin)
+admin_site.register(EmploymentContract, EmploymentContractAdmin)
+admin_site.register(SalaryAdjustment, SalaryAdjustmentAdmin)
+admin_site.register(TimeEntry, TimeEntryAdmin)
+admin_site.register(LeaveRequest, LeaveRequestAdmin)
+admin_site.register(Payslip, PayslipAdmin)
+admin_site.register(PayrollRun, PayrollRunAdmin)

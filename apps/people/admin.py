@@ -7,6 +7,7 @@ from unfold.admin import ModelAdmin
 from apps.portal.models import PendingGuardianInvite
 from apps.finance.models import ReferralReward
 from apps.siteconfig.models import SiteSettings
+from config.admin import admin_site
 from .models import (
     TeacherProfile,
     StudentProfile,
@@ -91,7 +92,6 @@ class StudentProfileAdminForm(forms.ModelForm):
         return obj
 
 
-@admin.register(TeacherProfile)
 class TeacherProfileAdmin(ModelAdmin):
     list_display = (
         "user",
@@ -110,7 +110,6 @@ class TeacherProfileAdmin(ModelAdmin):
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 
-@admin.register(StudentProfile)
 class StudentProfileAdmin(ModelAdmin):
     form = StudentProfileAdminForm
     inlines = (StudentGuardianInline,)
@@ -236,7 +235,6 @@ class StudentProfileAdmin(ModelAdmin):
     issue_referral_rewards.short_description = _("Issue referral rewards")
 
 
-@admin.register(StudentGuardian)
 class StudentGuardianAdmin(ModelAdmin):
     list_display = (
         "guardian_user",
@@ -266,7 +264,6 @@ class StudentGuardianAdmin(ModelAdmin):
     search_fields = ("guardian_user__username", "guardian_user__email", "student__student_code", "student__last_name")
 
 
-@admin.register(TeacherPayRecord)
 class TeacherPayRecordAdmin(ModelAdmin):
     list_display = ("teacher", "record_type", "amount", "effective_date", "created_by", "created_at")
     list_filter = ("record_type", "effective_date")
@@ -275,7 +272,6 @@ class TeacherPayRecordAdmin(ModelAdmin):
     autocomplete_fields = ("teacher", "created_by")
 
 
-@admin.register(TeacherLeaveRequest)
 class TeacherLeaveRequestAdmin(ModelAdmin):
     list_display = ("teacher", "start_date", "end_date", "status", "approver", "decided_at")
     list_filter = ("status", "start_date", "end_date")
@@ -284,10 +280,19 @@ class TeacherLeaveRequestAdmin(ModelAdmin):
     autocomplete_fields = ("teacher", "approver")
 
 
-@admin.register(TeacherAttendance)
 class TeacherAttendanceAdmin(ModelAdmin):
     list_display = ("teacher", "date", "status", "check_in", "check_out")
     list_filter = ("status", "date")
     list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
     autocomplete_fields = ("teacher",)
+
+
+# Register all models with custom admin site
+admin_site.register(TeacherProfile, TeacherProfileAdmin)
+admin_site.register(StudentProfile, StudentProfileAdmin)
+admin_site.register(StudentGuardian, StudentGuardianAdmin)
+admin_site.register(TeacherPayRecord, TeacherPayRecordAdmin)
+admin_site.register(TeacherLeaveRequest, TeacherLeaveRequestAdmin)
+admin_site.register(TeacherAttendance, TeacherAttendanceAdmin)
+

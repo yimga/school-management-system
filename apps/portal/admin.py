@@ -1,9 +1,9 @@
 from django.contrib import admin
+from config.admin import admin_site
 
 from .models import PortalFeatureItem, PendingGuardianInvite
 
 
-@admin.register(PortalFeatureItem)
 class PortalFeatureItemAdmin(admin.ModelAdmin):
     list_display = ("title", "feature", "is_active", "created_by", "created_at")
     list_filter = ("feature", "is_active")
@@ -12,7 +12,6 @@ class PortalFeatureItemAdmin(admin.ModelAdmin):
     autocomplete_fields = ("created_by",)
 
 
-@admin.register(PendingGuardianInvite)
 class PendingGuardianInviteAdmin(admin.ModelAdmin):
     list_display = (
         "token",
@@ -28,3 +27,8 @@ class PendingGuardianInviteAdmin(admin.ModelAdmin):
     search_fields = ("token", "invited_email", "invited_phone", "student__last_name", "student__admission_number")
     autocomplete_fields = ("student", "created_by", "guardian_user")
     readonly_fields = ("claimed_at",)
+
+
+# Register all models with custom admin site
+admin_site.register(PortalFeatureItem, PortalFeatureItemAdmin)
+admin_site.register(PendingGuardianInvite, PendingGuardianInviteAdmin)

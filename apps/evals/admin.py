@@ -1,10 +1,10 @@
 from django.contrib import admin
+from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 from .models import TeacherAssignment, Evaluation, AssessmentWeights, EvaluationEvidence, GradeAudit, OfflineMarkEntry
 
 
-@admin.register(TeacherAssignment)
 class TeacherAssignmentAdmin(ModelAdmin):
     list_display = ("teacher", "academic_year", "subject_assignment", "is_active")
     list_filter = ("academic_year", "is_active")
@@ -19,7 +19,6 @@ class TeacherAssignmentAdmin(ModelAdmin):
     )
 
 
-@admin.register(Evaluation)
 class EvaluationAdmin(ModelAdmin):
     list_display = (
         "academic_year",
@@ -40,14 +39,12 @@ class EvaluationAdmin(ModelAdmin):
     search_fields = ("student__student_code", "student__first_name", "student__last_name")
 
 
-@admin.register(AssessmentWeights)
 class AssessmentWeightsAdmin(ModelAdmin):
     list_display = ("academic_year", "term", "classroom", "seq1_weight", "seq2_weight", "exam_weight", "mock_weight", "practical_weight", "score_scale")
     list_filter = ("academic_year", "term", "classroom", "grading_scale", "region")
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 
-@admin.register(EvaluationEvidence)
 class EvaluationEvidenceAdmin(ModelAdmin):
     list_display = ("evaluation", "media_type", "uploaded_by", "uploaded_at")
     list_filter = ("media_type", "uploaded_at")
@@ -55,7 +52,6 @@ class EvaluationEvidenceAdmin(ModelAdmin):
     search_fields = ("evaluation__student__student_code", "evaluation__student__first_name", "evaluation__student__last_name")
 
 
-@admin.register(GradeAudit)
 class GradeAuditAdmin(ModelAdmin):
     list_display = ('evaluation', 'changed_by', 'change_type', 'changed_at')
     list_filter = ('change_type', 'changed_at')
@@ -69,7 +65,6 @@ class GradeAuditAdmin(ModelAdmin):
     ordering = ['-changed_at']
 
 
-@admin.register(OfflineMarkEntry)
 class OfflineMarkEntryAdmin(ModelAdmin):
     list_display = ('student', 'subject_assignment', 'status', 'created_offline_at')
     list_filter = ('status', 'created_offline_at')
@@ -86,4 +81,13 @@ class OfflineMarkEntryAdmin(ModelAdmin):
         }),
     )
     readonly_fields = ('created_offline_at', 'synced_at', 'synced_by')
+
+
+# Register all models with custom admin site
+admin_site.register(TeacherAssignment, TeacherAssignmentAdmin)
+admin_site.register(Evaluation, EvaluationAdmin)
+admin_site.register(AssessmentWeights, AssessmentWeightsAdmin)
+admin_site.register(EvaluationEvidence, EvaluationEvidenceAdmin)
+admin_site.register(GradeAudit, GradeAuditAdmin)
+admin_site.register(OfflineMarkEntry, OfflineMarkEntryAdmin)
 

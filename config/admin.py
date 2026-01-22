@@ -86,8 +86,3 @@ class GileadAdminSite(AdminSite):
 
 # Create custom admin site instance
 admin_site = GileadAdminSite(name='admin')
-
-# Register app admin modules into the custom admin site
-# This ensures all @admin.register(...) in app admin.py files bind to our custom site
-from django.utils.module_loading import autodiscover_modules
-autodiscover_modules('admin', register_to=admin_site)
