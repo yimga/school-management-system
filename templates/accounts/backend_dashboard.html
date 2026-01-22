@@ -567,7 +567,7 @@
           <p class="small text-muted mb-0">Use these snapshots to tune dashboards by role.</p>
         </div>
         <div class="row g-3">
-          {% for section, stats in section_stats.items %}
+        {% for section, stats in section_stats.items|slice:":3" %}
             <div class="col-md-6 col-lg-4">
               <div class="card border border-secondary h-100">
                 <div class="card-body">

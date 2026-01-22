@@ -91,8 +91,6 @@ def rbac_dashboard(request):
                 messages.success(request, f"Permissions updated for {user.username}.")
                 return redirect("accounts:rbac")
 
-    attendance_trend_total = sum(item["present"] for item in attendance_trend)
-    attendance_trend_progress = min(attendance_trend_total, 100)
     context = {
         "roles": AccessRole.objects.prefetch_related("permissions").order_by("code"),
         "permissions": Permission.objects.order_by("code"),
@@ -178,16 +176,25 @@ def backend_dashboard(request):
         {"label": "Report cards", "value": kpi_data["report_cards"], "meta": "Generated"},
         {"label": "Modules", "value": modules, "meta": "Registered apps"},
     ]
+    hero_actions = [
+        {"label": "Open parent portal", "url": reverse("portal:parent_dashboard")},
+        {"label": "Backend config", "url": reverse("accounts:backend_dashboard")},
+        {"label": "Frontend admin", "url": reverse("admin:index")},
+    ]
+    if can_manage_settings:
+        hero_actions.append({"label": "Open Full Site Settings", "url": reverse("siteconfig:preferences")})
+
     hero = {
         "tagline": "Admin hub",
         "title": "Gilead School System Management",
         "subtitle": "Configure school apps, monitor health, and keep reports, finance, and portals aligned from one warm, modern dashboard.",
         "icon": "bi bi-pie-chart",
         "stats": hero_stats,
-        "actions": [
-            {"label": "Open parent portal", "url": reverse("portal:parent_dashboard")},
-            {"label": "Backend config", "url": reverse("accounts:backend_dashboard")},
-            {"label": "Frontend admin", "url": reverse("admin:index")},
+        "actions": hero_actions,
+        "insight": ai_insight,
+        "status_pills": [
+            {"label": "Today’s reminders", "value": len(reminders), "meta": "queued alerts"},
+            {"label": "Published terms", "value": stats["published_terms"], "meta": "published"},
         ],
     }
     context = {
