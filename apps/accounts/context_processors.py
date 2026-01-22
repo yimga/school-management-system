@@ -35,7 +35,7 @@ def dashboard_context(request):
             from apps.finance.models import Invoice
             
             context['total_students'] = StudentProfile.objects.filter(is_active=True).count()
-            context['total_teachers'] = TeacherProfile.objects.filter(is_active=True).count()
+            context['total_teachers'] = TeacherProfile.objects.count()
             
             # Pending invoices
             pending_invoices = Invoice.objects.filter(status__in=['PENDING', 'PARTIAL'])
