@@ -4,6 +4,8 @@ Provides enhanced admin interface with logical app grouping and custom ordering
 """
 from django.contrib import admin
 from django.contrib.admin import AdminSite
+from django.urls import path
+from django.shortcuts import redirect
 
 
 class GileadAdminSite(AdminSite):
@@ -12,6 +14,14 @@ class GileadAdminSite(AdminSite):
     site_header = "Gilead Tech High - Admin"
     site_title = "Gilead Admin"
     index_title = "Administration Dashboard"
+    
+    def get_urls(self):
+        """Add custom URLs including 'home' for Unfold navigation."""
+        urls = super().get_urls()
+        custom_urls = [
+            path('home/', lambda request: redirect('/'), name='home'),
+        ]
+        return custom_urls + urls
     
     def get_app_list(self, request, app_label=None):
         """
