@@ -56,3 +56,19 @@ python manage.py run_phase7_checks --require-automation
 	- Run every 15 minutes for near-real-time detection: `*/15 * * * * python manage.py detect_threats`
 	- On Render cron, add a 15m job; on Windows Task Scheduler use an Action pointing to `python manage.py detect_threats` with a 15m trigger.
 	- Keep Sentry DSN configured so errors in the command bubble to monitoring.
+
+## Alert digest mode
+- Batches LOW/MEDIUM severity alerts to reduce notification noise
+- HIGH/CRITICAL alerts still sent immediately
+- Alert digests stored in AlertDigest model until sent
+- **Send digests**: `python manage.py send_digest_alerts [--frequency=hourly|daily] [--dry-run]`
+	- Hourly: aggregates alerts from last hour, sends batch email
+	- Daily: aggregates alerts from last 24 hours
+	- Use `--dry-run` to preview what would be sent
+- Recommended cron schedules:
+	- Hourly: `0 * * * * python manage.py send_digest_alerts --frequency=hourly` (every hour on the hour)
+	- Daily: `0 8 * * * python manage.py send_digest_alerts --frequency=daily` (8 AM daily)
+- Digest email includes:
+	- Total alert count by type and severity
+	- Full list of alerts with timestamps and details
+	- Requires `send_email_alert` function in alerts.py (uses COMPLIANCE_ALERTS settings)

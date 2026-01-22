@@ -133,10 +133,29 @@ def _create_incident_ticket(payload: dict):
 
 
 def notify_audit_event(audit_log):
-    """Dispatch alerts for qualifying audit events."""
+    """Dispatch alerts for qualifying audit events. Use digest mode for LOW/MEDIUM severity."""
     if not _should_alert(audit_log):
         return
-
+    
+    severity = (audit_log.sensitivity or "MEDIUM").upper()
+    
+    # Use digest mode for LOW/MEDIUM severity
+    if severity in ("LOW", "MEDIUM"):
+        from apps.compliance.models_audit import AlertDigest
+        
+        AlertDigest.objects.create(
+            alert_type=AlertDigest.AlertType.AUDIT,
+            severity=severity,
+            subject=f"{audit_log.get_action_display()} {audit_log.model_name}",
+            message=_build_alert_message(audit_log)["text"],
+            source="alerts.notify_audit_event",
+            related_model=audit_log.model_name,
+            related_id=audit_log.id,
+        )
+        logger.info(f"Added {severity} audit alert to digest: {audit_log}")
+        return  # Don't send immediately
+    
+    # For HIGH/CRITICAL, send immediately
     message = _build_alert_message(audit_log)
 
     # Email
