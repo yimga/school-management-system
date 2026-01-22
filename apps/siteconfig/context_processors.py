@@ -1,5 +1,6 @@
 from .models import SiteSettings, RegionConfig
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
+from django.urls import NoReverseMatch, reverse
 from django.utils import translation
 
 SESSION_KEY = "site_preview_settings"
@@ -74,12 +75,18 @@ def site_settings(request):
 
     breadcrumbs = _build_breadcrumbs(request.path)
 
+    try:
+        portal_home_url = reverse("portal:home")
+    except NoReverseMatch:
+        portal_home_url = "/"
+
     return {
         "SITE": site,
         "SITE_SETTINGS": site,
         "SITE_THEME": site.active_theme,
         "REPORT_DOWNLOADS_ENABLED": site.report_downloads_enabled,
         "BREADCRUMBS": breadcrumbs,
+        "portal_home_url": portal_home_url,
     }
 
 
