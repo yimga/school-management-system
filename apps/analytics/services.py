@@ -429,6 +429,7 @@ def specialty_pass_rates(
     rows.sort(key=lambda row: row.rate, reverse=True)
     return rows
 
+
 # ========== COMPLIANCE & AUDIT FUNCTIONS ==========
 
 def get_teacher_compliance(academic_year_id, term_id):
@@ -604,3 +605,83 @@ def get_import_job_status(import_job_id):
         }
     except Exception:
         return None
+
+
+# Phase 8 Task 2: Advanced Analytics Extensions
+# Additional analytics methods for performance insights
+
+
+class AdvancedAnalyticsService:
+    """Advanced analytics and performance tracking"""
+    
+    @staticmethod
+    def identify_at_risk_students(threshold=50):
+        """Identify students at risk of failing"""
+        from apps.evals.models import Evaluation
+        
+        at_risk = []
+        
+        for student in StudentProfile.objects.all():
+            recent_evals = Evaluation.objects.filter(
+                student=student.student,
+                created_at__gte=timezone.now() - __import__('datetime').timedelta(days=30)
+            )
+            
+            if recent_evals.exists():
+                avg_score = recent_evals.aggregate(
+                    avg=__import__('django.db.models').Avg('score')
+                )['avg']
+                
+                if avg_score and avg_score < threshold:
+                    at_risk.append({
+                        'student': student.student.get_full_name(),
+                        'average': round(avg_score, 2),
+                        'count': recent_evals.count(),
+                        'action': 'Intervention needed'
+                    })
+        
+        return at_risk
+    
+    @staticmethod
+    def get_performance_trends(student, days=90):
+        """Get performance trend data"""
+        from apps.evals.models import Evaluation
+        
+        start_date = timezone.now() - __import__('datetime').timedelta(days=days)
+        
+        evals = Evaluation.objects.filter(
+            student=student,
+            created_at__gte=start_date
+        ).order_by('created_at')
+        
+        return [{
+            'date': e.created_at.isoformat(),
+            'score': e.score,
+        } for e in evals]
+    
+    @staticmethod
+    def generate_performance_alerts(student):
+        """Generate alerts for student performance issues"""
+        from apps.evals.models import Evaluation
+        
+        alerts = []
+        
+        recent = Evaluation.objects.filter(
+            student=student,
+            created_at__gte=timezone.now() - __import__('datetime').timedelta(days=7)
+        )
+        
+        if recent.exists():
+            import statistics
+            scores = [e.score for e in recent]
+            avg = statistics.mean(scores)
+            
+            if avg < 50:
+                alerts.append({
+                    'type': 'LOW_GRADE',
+                    'severity': 'CRITICAL',
+                    'message': f'Average score is {avg:.1f}%'
+                })
+        
+        return alerts
+

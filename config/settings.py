@@ -23,6 +23,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    # Django OTP (MFA)
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
+
     # Project apps
     "apps.accounts.apps.AccountsConfig",
     "apps.evals",
@@ -43,6 +48,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -62,6 +68,8 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.contrib.messages.context_processors.messages",
                 "apps.siteconfig.context_processors.site_settings",
+                "apps.siteconfig.breadcrumb_context.breadcrumbs_context",
+                "apps.siteconfig.breadcrumb_context.page_metadata_context",
             ]
         },
     }

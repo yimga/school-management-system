@@ -1,0 +1,330 @@
+"""
+Phase 8 Task 5: Reports Localization
+Regional report generation, country-specific customization
+"""
+
+import json
+from datetime import datetime, timedelta
+from django.db.models import Q, Avg, Count
+from django.utils import timezone
+
+
+class RegionalReportGenerator:
+    """Generate region-specific reports"""
+    
+    REGION_METRICS = {
+        'west_africa': {
+            'focus': 'Student Performance & Teacher Workload',
+            'key_indicators': ['average_score', 'pass_rate', 'attendance_rate', 'teacher_hours'],
+            'reporting_frequency': 'monthly',
+        },
+        'east_africa': {
+            'focus': 'Academic Excellence & Community Engagement',
+            'key_indicators': ['pass_rate', 'college_prep_rate', 'parent_satisfaction'],
+            'reporting_frequency': 'quarterly',
+        },
+        'central_africa': {
+            'focus': 'Resource Utilization & Equity',
+            'key_indicators': ['cost_per_student', 'infrastructure_quality', 'equity_score'],
+            'reporting_frequency': 'monthly',
+        },
+    }
+    
+    @classmethod
+    def generate_regional_report(cls, region, school_id, start_date, end_date, language='en'):
+        """Generate comprehensive regional report"""
+        
+        report = {
+            'region': region,
+            'school_id': school_id,
+            'period': {
+                'start': start_date.isoformat(),
+                'end': end_date.isoformat(),
+            },
+            'generated_at': timezone.now().isoformat(),
+            'language': language,
+            'metrics': cls.REGION_METRICS.get(region, {}),
+        }
+        
+        return report
+    
+    @classmethod
+    def generate_country_profile_report(cls, country_code, language='en'):
+        """Generate country-specific profile report"""
+        
+        from apps.siteconfig.translations import Regionalizer
+        
+        region = Regionalizer.get_region_for_country(country_code)
+        settings = Regionalizer.get_region_settings(region)
+        
+        report = {
+            'country_code': country_code,
+            'region': region,
+            'settings': settings,
+            'languages': settings.get('languages', ['en']),
+            'currency': settings.get('currency'),
+            'generated_at': timezone.now().isoformat(),
+            'language': language,
+        }
+        
+        return report
+    
+    @classmethod
+    def get_region_performance_summary(cls, region, school_id):
+        """Get performance summary for region"""
+        
+        from apps.academics.models import Evaluation, StudentProfile
+        
+        # Query student evaluations in region
+        students = StudentProfile.objects.filter(
+            classroom__school_id=school_id
+        )
+        
+        evaluations = Evaluation.objects.filter(
+            student__in=students
+        ).aggregate(
+            avg_score=Avg('score'),
+            total_evaluations=Count('id'),
+        )
+        
+        summary = {
+            'region': region,
+            'student_count': students.count(),
+            'average_score': evaluations.get('avg_score', 0),
+            'total_evaluations': evaluations.get('total_evaluations', 0),
+        }
+        
+        return summary
+
+
+class LocalizedReportFormatter:
+    """Format reports with localization"""
+    
+    @staticmethod
+    def format_report_header(school_name, report_type, language='en', region=None):
+        """Format report header with localization"""
+        
+        from apps.siteconfig.translations import TextTranslator
+        
+        headers = {
+            'en': f"{school_name} - {report_type} Report",
+            'fr': f"Rapport {report_type} - {school_name}",
+            'sw': f"Ripoti ya {report_type} - {school_name}",
+        }
+        
+        header = headers.get(language, headers['en'])
+        
+        if region:
+            header += f" ({region})"
+        
+        return header
+    
+    @staticmethod
+    def format_summary_section(data, language='en'):
+        """Format summary section with proper localization"""
+        
+        from apps.siteconfig.translations import LocalizationService
+        
+        formatted = {
+            'section_title': 'Summary' if language == 'en' else 'Résumé',
+            'items': [],
+        }
+        
+        for key, value in data.items():
+            if isinstance(value, float):
+                formatted_value = LocalizationService.format_number(value)
+            elif isinstance(value, datetime):
+                formatted_value = LocalizationService.format_date(value, language)
+            else:
+                formatted_value = str(value)
+            
+            formatted['items'].append({
+                'label': key,
+                'value': formatted_value,
+            })
+        
+        return formatted
+    
+    @staticmethod
+    def add_report_footer(region, language='en'):
+        """Add region-appropriate footer"""
+        
+        footers = {
+            'en': "Generated by School Management System",
+            'fr': "Généré par le système de gestion scolaire",
+            'sw': "Iliyotengenezwa na Mfumo wa Usimamizi wa Shule",
+        }
+        
+        footer = footers.get(language, footers['en'])
+        
+        return {
+            'footer_text': footer,
+            'region': region,
+            'timestamp': timezone.now().isoformat(),
+        }
+
+
+class CurrencyLocalization:
+    """Handle currency localization by region"""
+    
+    REGIONAL_CURRENCIES = {
+        'west_africa': {
+            'primary': 'NGN',
+            'alternatives': ['GHS', 'XOF'],
+        },
+        'east_africa': {
+            'primary': 'KES',
+            'alternatives': ['TZS', 'UGX'],
+        },
+        'central_africa': {
+            'primary': 'XAF',
+            'alternatives': ['CDF'],
+        },
+        'southern_africa': {
+            'primary': 'ZAR',
+            'alternatives': ['BWP', 'ZWL'],
+        },
+    }
+    
+    EXCHANGE_RATES = {
+        'NGN': 1545.50,
+        'GHS': 12.50,
+        'XOF': 614.50,
+        'KES': 139.25,
+        'TZS': 2580.00,
+        'UGX': 3850.00,
+        'XAF': 614.50,
+        'CDF': 2850.00,
+        'ZAR': 18.50,
+        'BWP': 13.75,
+        'ZWL': 125.00,
+    }
+    
+    @classmethod
+    def get_regional_currency(cls, region):
+        """Get primary currency for region"""
+        return cls.REGIONAL_CURRENCIES.get(region, {}).get('primary', 'USD')
+    
+    @classmethod
+    def convert_currency(cls, amount, from_currency, to_currency):
+        """Convert between currencies"""
+        
+        if from_currency == to_currency:
+            return amount
+        
+        from_rate = cls.EXCHANGE_RATES.get(from_currency, 1)
+        to_rate = cls.EXCHANGE_RATES.get(to_currency, 1)
+        
+        usd_amount = amount / from_rate
+        converted = usd_amount * to_rate
+        
+        return round(converted, 2)
+    
+    @classmethod
+    def format_currency_by_region(cls, amount, region):
+        """Format currency for region"""
+        
+        currency = cls.get_regional_currency(region)
+        
+        from apps.siteconfig.translations import LocalizationService
+        
+        return LocalizationService.format_currency(amount, currency)
+
+
+class DateTimeLocalization:
+    """Handle date/time localization"""
+    
+    TIMEZONE_MAPPING = {
+        'west_africa': 'Africa/Lagos',
+        'east_africa': 'Africa/Nairobi',
+        'central_africa': 'Africa/Kinshasa',
+        'southern_africa': 'Africa/Johannesburg',
+    }
+    
+    @classmethod
+    def localize_datetime(cls, dt, region):
+        """Convert datetime to region timezone"""
+        
+        from django.utils.timezone import make_aware
+        import pytz
+        
+        if not dt.tzinfo:
+            dt = make_aware(dt)
+        
+        region_tz = cls.TIMEZONE_MAPPING.get(region, 'UTC')
+        tz = pytz.timezone(region_tz)
+        
+        return dt.astimezone(tz)
+    
+    @classmethod
+    def get_region_timezone(cls, region):
+        """Get timezone for region"""
+        return cls.TIMEZONE_MAPPING.get(region, 'UTC')
+
+
+class ReportCompilationService:
+    """Service to compile localized reports"""
+    
+    @staticmethod
+    def compile_monthly_regional_report(region, school_id, month, language='en'):
+        """Compile monthly report for region"""
+        
+        from datetime import datetime
+        
+        # Calculate date range for month
+        year = datetime.now().year
+        start = datetime(year, month, 1)
+        if month == 12:
+            end = datetime(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            end = datetime(year, month + 1, 1) - timedelta(days=1)
+        
+        report = {
+            'report_type': 'monthly_regional',
+            'region': region,
+            'school_id': school_id,
+            'period': {
+                'month': month,
+                'year': year,
+                'start': start.isoformat(),
+                'end': end.isoformat(),
+            },
+            'language': language,
+            'sections': {
+                'header': RegionalReportGenerator.generate_regional_report(
+                    region, school_id, start, end, language
+                ),
+                'summary': RegionalReportGenerator.get_region_performance_summary(region, school_id),
+            },
+            'generated_at': timezone.now().isoformat(),
+        }
+        
+        return report
+    
+    @staticmethod
+    def compile_quarterly_report(region, school_id, quarter, language='en'):
+        """Compile quarterly report with regional focus"""
+        
+        from datetime import datetime
+        
+        year = datetime.now().year
+        month = (quarter - 1) * 3 + 1
+        start = datetime(year, month, 1)
+        end = datetime(year, month + 2, 1) if month + 2 <= 12 else datetime(year + 1, (month + 2) % 12 or 12, 1)
+        end = end - timedelta(days=1)
+        
+        report = {
+            'report_type': 'quarterly_regional',
+            'region': region,
+            'school_id': school_id,
+            'quarter': quarter,
+            'year': year,
+            'language': language,
+            'period': {
+                'start': start.isoformat(),
+                'end': end.isoformat(),
+            },
+            'generated_at': timezone.now().isoformat(),
+        }
+        
+        return report

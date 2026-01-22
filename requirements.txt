@@ -8,4 +8,8 @@ dj-database-url>=2.1
 reportlab==4.2.2
 django-unfold==0.76.0
 pytz>=2024.1
+requests>=2.31.0
+django-otp>=1.7.0
+qrcode[pil]>=8.0
+axe-selenium-python>=2.1.6
 

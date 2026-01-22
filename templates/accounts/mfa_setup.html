@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MFA Setup - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt"></i> Multi-Factor Authentication (MFA)
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if not has_mfa and not qr_code %}
+                        <!-- MFA Not Enabled -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>MFA is currently disabled</strong> for your account.
+                        </div>
+                        
+                        <p>Multi-Factor Authentication adds an extra layer of security to your account by requiring a one-time code from your mobile device in addition to your password.</p>
+                        
+                        <h5 class="mt-4">How it works:</h5>
+                        <ol>
+                            <li>Install an authenticator app (Google Authenticator, Authy, Microsoft Authenticator)</li>
+                            <li>Click "Enable MFA" below to generate a QR code</li>
+                            <li>Scan the QR code with your authenticator app</li>
+                            <li>Enter the 6-digit code to verify</li>
+                        </ol>
+
+                        <form method="post" class="mt-4">
+                            {% csrf_token %}
+                            <button type="submit" name="enable_mfa" class="btn btn-success btn-lg">
+                                <i class="fas fa-lock"></i> Enable MFA
+                            </button>
+                        </form>
+
+                    {% elif qr_code %}
+                        <!-- QR Code Display -->
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Important:</strong> Save your secret key in a secure location. You'll need it if you lose access to your authenticator app.
+                        </div>
+
+                        <h5 class="mb-3">Step 1: Scan this QR code</h5>
+                        <div class="text-center mb-4">
+                            <img src="data:image/png;base64,{{ qr_code }}" alt="MFA QR Code" class="img-fluid" style="max-width: 300px;">
+                        </div>
+
+                        <h5>Step 2: Manual entry code (if needed)</h5>
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <code class="fs-5">{{ secret_key }}</code>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="navigator.clipboard.writeText('{{ secret_key }}')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+
+                        <h5>Step 3: Verify with a token</h5>
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="device_id" value="{{ device_id }}">
+                            <div class="input-group mb-3">
+                                <input type="text" name="token" class="form-control form-control-lg" 
+                                       placeholder="Enter 6-digit code" maxlength="6" pattern="\d{6}" required 
+                                       autocomplete="off">
+                                <button type="submit" name="verify_token" class="btn btn-primary">
+                                    <i class="fas fa-check"></i> Verify & Enable
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="text-muted">
+                            <small>
+                                <i class="fas fa-lightbulb"></i> 
+                                Enter the 6-digit code from your authenticator app to complete setup.
+                            </small>
+                        </div>
+
+                    {% else %}
+                        <!-- MFA Already Enabled -->
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>MFA is enabled</strong> and protecting your account.
+                        </div>
+
+                        <p>Your account is protected with Multi-Factor Authentication. You'll need to enter a code from your authenticator app every time you log in.</p>
+
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h6>Status</h6>
+                                <ul class="mb-0">
+                                    <li>MFA Type: <strong>Time-based One-Time Password (TOTP)</strong></li>
+                                    <li>Authenticator: <strong>Configured</strong></li>
+                                    <li>Last Verified: <strong>This session</strong></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h5 class="text-danger">Disable MFA</h5>
+                        <p class="text-muted">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Disabling MFA will remove the extra security layer from your account. Only do this if absolutely necessary.
+                        </p>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            <button type="submit" name="disable_mfa" class="btn btn-danger" 
+                                    onclick="return confirm('Are you sure you want to disable MFA? This will make your account less secure.')">
+                                <i class="fas fa-unlock"></i> Disable MFA
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-muted">
+                    <small>
+                        <i class="fas fa-question-circle"></i>
+                        Need help? Contact IT support or refer to the <a href="/docs/security/">security documentation</a>.
+                    </small>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'accounts:redirect' %}" class="btn btn-link">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    code {
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+    }
+</style>
+{% endblock %}
