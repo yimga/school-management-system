@@ -214,6 +214,42 @@ if os.getenv("REDIS_URL"):
 
 # --- Logging Configuration ---
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# Create logs directory if it doesn't exist (for file logging)
+LOG_DIR = BASE_DIR / "logs"
+USE_FILE_LOGGING = os.getenv("USE_FILE_LOGGING", str(DEBUG)) == "True"
+
+# Only create logs directory if file logging is enabled
+if USE_FILE_LOGGING:
+    try:
+        os.makedirs(LOG_DIR, exist_ok=True)
+    except (OSError, PermissionError):
+        # If we can't create the directory, disable file logging
+        USE_FILE_LOGGING = False
+
+# Build handlers list
+LOGGING_HANDLERS = {
+    "console": {
+        "class": "logging.StreamHandler",
+        "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
+        "level": LOG_LEVEL,
+    },
+}
+
+# Add file handler only if file logging is enabled and directory exists
+if USE_FILE_LOGGING:
+    LOGGING_HANDLERS["file"] = {
+        "class": "logging.handlers.RotatingFileHandler",
+        "filename": LOG_DIR / "django.log",
+        "maxBytes": 1024 * 1024 * 10,  # 10MB
+        "backupCount": 10,
+        "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
+        "level": LOG_LEVEL,
+    }
+
+# Determine which handlers to use
+ACTIVE_HANDLERS = ["console", "file"] if USE_FILE_LOGGING else ["console"]
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -227,28 +263,14 @@ LOGGING = {
             "fmt": "%(levelname)s %(asctime)s %(name)s %(module)s %(process)d %(thread)d %(message)s",
         },
     },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
-            "level": LOG_LEVEL,
-        },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": BASE_DIR / "logs" / "django.log",
-            "maxBytes": 1024 * 1024 * 10,  # 10MB
-            "backupCount": 10,
-            "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
-            "level": LOG_LEVEL,
-        },
-    },
+    "handlers": LOGGING_HANDLERS,
     "root": {
-        "handlers": ["console", "file"],
+        "handlers": ACTIVE_HANDLERS,
         "level": LOG_LEVEL,
     },
     "loggers": {
         "django.request": {
-            "handlers": ["console", "file"],
+            "handlers": ACTIVE_HANDLERS,
             "level": "ERROR",
             "propagate": False,
         },
