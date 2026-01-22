@@ -75,7 +75,7 @@ def get_promotion_thresholds(student: StudentProfile, academic_year) -> Optional
 def terms_for_student(academic_year, classroom) -> list[Term]:
     terms = list(Term.objects.filter(academic_year=academic_year).order_by("start_date", "name"))
     if not classroom.allows_third_term:
-        terms = [t for t in terms if t.name != Term.Name.THIRD]
+        terms = [t for t in terms if getattr(t, "position", None) != 3]
     return terms
 
 

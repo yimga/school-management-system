@@ -102,7 +102,7 @@ class BulkEvaluationCreateForm(forms.Form):
         if subject_assignment.term_id != term.id:
             self.add_error("subject_assignment", "Subject assignment does not match the selected term.")
 
-        if term.name == Term.Name.THIRD and not subject_assignment.classroom.allows_third_term:
+        if getattr(term, "position", None) == 3 and not subject_assignment.classroom.allows_third_term:
             self.add_error("term", "Third term is not allowed for the selected classroom.")
 
         assignment = TeacherAssignment.objects.filter(

@@ -576,7 +576,7 @@
                     <span class="badge bg-light text-dark">{{ stats|length }} stats</span>
                   </div>
                   <ul class="list-unstyled mb-0 small">
-                    {% for label, value in stats.items %}
+                    {% for label, value in stats.items|dictsort:"key" %}
                       <li class="mb-1 d-flex justify-content-between">
                         <span>{{ label }}</span>
                         <strong class="text-dark">{{ value }}</strong>

@@ -182,7 +182,8 @@ class StudentProfile(models.Model):
     date_of_birth = models.DateField(null=True, blank=True)
     place_of_birth = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=20, blank=True, choices=Status.choices)
-    joined_term = models.CharField(max_length=20, blank=True, choices=Term.Name.choices)
+    # Free-text code to store the joined term (now dynamic). Use portal form for choices.
+    joined_term = models.CharField(max_length=20, blank=True)
     joined_date = models.DateField(null=True, blank=True)
     section = models.CharField(max_length=80, blank=True)
     parent_phone = models.CharField(max_length=50, blank=True)

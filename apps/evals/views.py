@@ -233,7 +233,7 @@ def teacher_marks_entry(request: HttpRequest):
             return HttpResponseForbidden("You are not assigned to this subject/class.")
 
         sa = get_object_or_404(SubjectAssignment, id=selected_sa_id)
-        if active_term.name == Term.Name.THIRD and not sa.classroom.allows_third_term:
+        if getattr(active_term, "position", None) == 3 and not sa.classroom.allows_third_term:
             return HttpResponseForbidden("Third term is not enabled for this classroom.")
 
         # Publish lock check
