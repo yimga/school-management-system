@@ -1,0 +1,4 @@
+{% load admin_extras %}
+<span class="admin-sidebar-badge{% if not has_items %} admin-sidebar-badge--empty{% endif %}">
+    {{ formatted_count }}
+</span>

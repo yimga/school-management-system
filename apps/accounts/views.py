@@ -125,6 +125,8 @@ def rbac_dashboard(request):
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def backend_dashboard(request):
+    from .activity_helper import get_recent_activity
+    
     site = SiteSettings.get_solo()
     year, term = get_active_year_and_term()
     stats = {
@@ -135,6 +137,10 @@ def backend_dashboard(request):
         "overdue_invoices": Invoice.objects.filter(status=Invoice.Status.OVERDUE).count(),
         "published_terms": TermPublishStatus.objects.filter(is_published=True).count(),
     }
+    
+    # Get recent activity
+    recent_activities = get_recent_activity(limit=10)
+    
     finance_overview = {}
     finance_summary = {}
     finance_trend = []
@@ -224,6 +230,7 @@ def backend_dashboard(request):
         "grade_import_template_url": reverse("evals:grade_import_template"),
         "active_year": year,
         "active_term": term,
+        "recent_activities": recent_activities,
         "finance_summary": finance_summary,
         "finance_trend": finance_trend,
         "finance_status_counts": finance_status_counts,

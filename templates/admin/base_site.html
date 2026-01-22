@@ -1,13 +1,23 @@
 {% extends "admin/base.html" %}
-{% load i18n static %}
+{% load i18n static admin_extras %}
 
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
 {% endblock %}
 
 {% block extrahead %}
   {{ block.super }}
+  {% get_all_model_counts as model_counts %}
+  <script>
+    // Model counts from Django (injected at render time)
+    const MODEL_COUNTS = {
+      {% for key, count in model_counts.items %}
+        "{{ key }}": {{ count }}{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    };
+  </script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const sidebar = document.getElementById("nav-sidebar");
@@ -19,6 +29,47 @@
       searchBox.placeholder = "Jump to model…";
       searchBox.className = "nav-search";
       sidebar.prepend(searchBox);
+
+      // Add count badges to model links
+      const addCountBadges = () => {
+        const modelLinks = sidebar.querySelectorAll("ul li a");
+        modelLinks.forEach((link) => {
+          const href = link.getAttribute("href");
+          if (!href || !href.includes("/admin/")) return;
+          
+          // Extract app_label and model_name from URL
+          // Format: /admin/app_label/model_name/
+          const match = href.match(/\/admin\/([^\/]+)\/([^\/]+)\//);
+          if (!match) return;
+          
+          const [, appLabel, modelName] = match;
+          const countKey = `${appLabel}.${modelName}`;
+          const count = MODEL_COUNTS[countKey];
+          
+          if (count !== undefined) {
+            // Remove existing badge if any
+            const existingBadge = link.querySelector(".admin-sidebar-badge");
+            if (existingBadge) existingBadge.remove();
+            
+            // Create and append badge
+            const badge = document.createElement("span");
+            badge.className = count > 0 ? "admin-sidebar-badge" : "admin-sidebar-badge admin-sidebar-badge--empty";
+            badge.textContent = formatCount(count);
+            badge.title = `${count} record${count !== 1 ? 's' : ''}`;
+            link.appendChild(badge);
+          }
+        });
+      };
+
+      // Format count for display
+      const formatCount = (count) => {
+        if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+        if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+        return count.toString();
+      };
+
+      // Add badges after DOM is ready
+      addCountBadges();
 
       // Accordion for each app group
       const modules = sidebar.querySelectorAll(".module");
@@ -68,6 +119,7 @@
 {% block title %}{% if site_title %}{{ site_title }}{% else %}{% trans 'Site administration' %}{% endif %}{% endblock %}
 
 {% block branding %}
+  {% include 'components/admin_nav_bridge.html' %}
   <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
       {{ site_header|default:_('Gilead Admin') }}
@@ -106,4 +158,54 @@
       });
     })();
   </script>
+{% endblock %}
+
+<!-- Include Keyboard Shortcuts for Power Users -->
+{% block footer %}
+  {{ block.super }}
+  
+  {# Role-based dashboard header (positioned at top via CSS) #}
+  {% include 'components/dashboard_header.html' with admin_mode=True %}
+  
+  {% include 'components/keyboard_shortcuts.html' %}
+  
+  {# Role-based dashboard footer #}
+  {% include 'components/dashboard_footer.html' %}
+  
+  <!-- Quick Access Hint -->
+  <div class="admin-hint text-center py-2 small text-muted border-top">
+    <i class="fas fa-keyboard"></i> Press <kbd>?</kbd> for keyboard shortcuts
+    | <kbd>Ctrl+R</kbd> to refresh counts
+    | <kbd>f</kbd> to focus search
+  </div>
+  
+  <style>
+    .admin-hint {
+      background: #f8fafc;
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+    }
+    
+    .admin-hint kbd {
+      background: white;
+      border: 1px solid #cbd5e1;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.85em;
+    }
+    
+    /* Position dashboard header at top of admin */
+    #dashboardHeader {
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      margin-bottom: 0;
+    }
+    
+    /* Adjust admin content to account for header */
+    .dashboard-header-wrapper + * {
+      margin-top: 1rem;
+    }
+  </style>
 {% endblock %}

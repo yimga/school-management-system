@@ -1,0 +1,454 @@
+{% load static %}
+{# Enhanced user dropdown menu #}
+<div class="user-dropdown-wrapper">
+  <div class="dropdown">
+    <button class="user-dropdown-trigger" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+      <div class="user-avatar">
+        {% if request.user.profile_photo %}
+          <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}">
+        {% else %}
+          <div class="avatar-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+          </div>
+        {% endif %}
+        <span class="user-status-indicator"></span>
+      </div>
+      <div class="user-info">
+        <div class="user-name">{{ request.user.get_full_name }}</div>
+        <div class="user-role-badge">
+          {% if request.user.role == 'ADMIN' %}
+            <i class="bi bi-shield-check"></i> Admin
+          {% elif request.user.role == 'LEADERSHIP' %}
+            <i class="bi bi-star"></i> Leadership
+          {% elif request.user.role == 'TEACHER' %}
+            <i class="bi bi-person-video3"></i> Teacher
+          {% elif request.user.role == 'PARENT' %}
+            <i class="bi bi-house-heart"></i> Parent
+          {% elif request.user.role == 'STUDENT' %}
+            <i class="bi bi-backpack"></i> Student
+          {% endif %}
+        </div>
+      </div>
+      <i class="bi bi-chevron-down dropdown-arrow"></i>
+    </button>
+
+    <ul class="dropdown-menu user-dropdown-menu" aria-labelledby="userDropdownBtn">
+      <!-- User stats section -->
+      <li class="user-stats">
+        <div class="stat-item">
+          <div class="stat-value">{{ request.user.login_count|default:"0" }}</div>
+          <div class="stat-label">Logins</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-value">
+            {% if request.user.last_login %}
+              {{ request.user.last_login|timesince|truncatewords:2 }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="stat-label">Last Login</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-value">
+            {% if request.user.date_joined %}
+              {{ request.user.date_joined|timesince|truncatewords:2 }}
+            {% else %}
+              N/A
+            {% endif %}
+          </div>
+          <div class="stat-label">Member For</div>
+        </div>
+      </li>
+
+      <li><hr class="dropdown-divider"></li>
+
+      <!-- Profile section -->
+      <li class="dropdown-section-header">
+        <i class="bi bi-person"></i> Account
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+          <i class="bi bi-person-circle"></i>
+          <span>My Profile</span>
+          <kbd>P</kbd>
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'accounts:settings' %}">
+          <i class="bi bi-gear"></i>
+          <span>Settings</span>
+          <kbd>S</kbd>
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'accounts:notifications_settings' %}">
+          <i class="bi bi-bell"></i>
+          <span>Notifications</span>
+          <span class="badge bg-primary">{{ unread_notifications_count|default:"0" }}</span>
+        </a>
+      </li>
+
+      {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+      <li><hr class="dropdown-divider"></li>
+      
+      <!-- Admin tools -->
+      <li class="dropdown-section-header">
+        <i class="bi bi-tools"></i> Admin Tools
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'admin:index' %}">
+          <i class="bi bi-terminal"></i>
+          <span>Django Admin</span>
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'admin:activity_logs' %}">
+          <i class="bi bi-clock-history"></i>
+          <span>Activity Logs</span>
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'admin:system_health' %}">
+          <i class="bi bi-heart-pulse"></i>
+          <span>System Health</span>
+        </a>
+      </li>
+      {% endif %}
+
+      <li><hr class="dropdown-divider"></li>
+
+      <!-- Help & Support -->
+      <li class="dropdown-section-header">
+        <i class="bi bi-question-circle"></i> Help & Support
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'support:help_center' %}">
+          <i class="bi bi-life-preserver"></i>
+          <span>Help Center</span>
+          <kbd>?</kbd>
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'support:kb' %}">
+          <i class="bi bi-book"></i>
+          <span>Knowledge Base</span>
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'support:contact' %}">
+          <i class="bi bi-envelope"></i>
+          <span>Contact Support</span>
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'support:feedback' %}">
+          <i class="bi bi-chat-left-text"></i>
+          <span>Send Feedback</span>
+        </a>
+      </li>
+
+      <li><hr class="dropdown-divider"></li>
+
+      <!-- Logout -->
+      <li>
+        <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Logout</span>
+          <kbd>L</kbd>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<style>
+.user-dropdown-wrapper {
+  position: relative;
+}
+
+.user-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-dropdown-trigger:hover {
+  border-color: #0d6efd;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+}
+
+.user-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.user-status-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: #198754;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+@keyframes pulse-status {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  text-align: left;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.user-role-badge {
+  font-size: 0.75rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.user-role-badge i {
+  font-size: 0.85rem;
+}
+
+.dropdown-arrow {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  transition: transform 0.2s ease;
+}
+
+.dropdown.show .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.user-dropdown-menu {
+  min-width: 320px;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  margin-top: 0.5rem !important;
+}
+
+.user-stats {
+  display: flex;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+  color: #fff;
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 0 0.5rem;
+}
+
+.dropdown-section-header {
+  padding: 0.5rem 1rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.user-dropdown-menu .dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.user-dropdown-menu .dropdown-item i {
+  width: 20px;
+  text-align: center;
+  font-size: 1rem;
+  color: #64748b;
+}
+
+.user-dropdown-menu .dropdown-item span {
+  flex: 1;
+}
+
+.user-dropdown-menu .dropdown-item kbd {
+  background: #f1f5f9;
+  border: 1px solid #e9ecef;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-family: monospace;
+}
+
+.user-dropdown-menu .dropdown-item.text-danger:hover {
+  background: #fef2f2;
+}
+
+.user-dropdown-menu .dropdown-item.text-danger i {
+  color: #dc3545;
+}
+
+.user-dropdown-menu .badge {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.dropdown-divider {
+  margin: 0.5rem 0;
+  border-top: 1px solid #f1f5f9;
+}
+
+@media (max-width: 768px) {
+  .user-info {
+    display: none;
+  }
+  
+  .dropdown-arrow {
+    display: none;
+  }
+  
+  .user-dropdown-trigger {
+    padding: 0.5rem;
+  }
+  
+  .user-dropdown-menu {
+    right: 0;
+    left: auto !important;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Keyboard shortcuts for dropdown items
+  document.addEventListener('keydown', function(e) {
+    // Check if dropdown is open
+    const dropdown = document.querySelector('.user-dropdown-menu.show');
+    if (!dropdown) return;
+
+    // Handle keyboard shortcuts
+    if (e.altKey) {
+      switch(e.key.toLowerCase()) {
+        case 'p':
+          e.preventDefault();
+          window.location.href = "{% url 'accounts:profile' %}";
+          break;
+        case 's':
+          e.preventDefault();
+          window.location.href = "{% url 'accounts:settings' %}";
+          break;
+        case 'l':
+          e.preventDefault();
+          window.location.href = "{% url 'accounts:logout' %}";
+          break;
+      }
+    }
+    
+    if (e.key === '?') {
+      e.preventDefault();
+      window.location.href = "{% url 'support:help_center' %}";
+    }
+  });
+
+  // Update user status
+  function updateUserStatus() {
+    const indicator = document.querySelector('.user-status-indicator');
+    if (!indicator) return;
+
+    // Check if user is active (you can customize this logic)
+    const lastActivity = Date.now();
+    const idleTime = 5 * 60 * 1000; // 5 minutes
+
+    if (Date.now() - lastActivity < idleTime) {
+      indicator.style.background = '#198754'; // Online (green)
+    } else {
+      indicator.style.background = '#ffc107'; // Away (yellow)
+    }
+  }
+
+  // Update status periodically
+  setInterval(updateUserStatus, 60000); // Every minute
+  updateUserStatus();
+
+  // Track user activity
+  let lastActivityTime = Date.now();
+  ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+    document.addEventListener(event, function() {
+      lastActivityTime = Date.now();
+    }, true);
+  });
+});
+</script>

@@ -1,17 +1,17 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.shortcuts import redirect, render
 from django.urls import include, path
 
 from apps.observability import views as obs_views
+from config.admin import admin_site
 
 
 def home(request):
-    # Staff/admin users: go straight to admin; everyone else to portal login
+    # Staff/admin users: go straight to backend dashboard; everyone else to portal login
     if request.user.is_authenticated:
         if request.user.is_staff or request.user.is_superuser:
-            return redirect('/admin/')
+            return redirect('/backend/')
         return redirect('/portal/')
     return redirect('/authentication/login/')
 
@@ -26,10 +26,21 @@ def admin_siteconfig_customizer_redirect(request):
     return redirect('/siteconfig/customizer/')
 
 
+def old_backend_redirect(request):
+    """Redirect from old /authentication/backend/ to new /backend/ URL."""
+    return redirect('/backend/', permanent=True)
+
+
 urlpatterns = [
     path('', home, name='home'),
 
-    path('admin/', admin.site.urls),
+    # Admin interfaces
+    path('admin/', admin_site.urls),
+    path('backend/', include(('apps.accounts.urls_backend', 'backend'), namespace='backend')),
+    
+    # Backward compatibility redirect
+    path('authentication/backend/', old_backend_redirect),
+    path('authentication/backend-dashboard/', old_backend_redirect),
 
     # Health and metrics
     path('healthz/', obs_views.healthz, name='healthz'),
@@ -37,6 +48,9 @@ urlpatterns = [
 
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
+
+    # API Routes
+    path('api/', include(('apps.api.urls', 'api'), namespace='api')),
 
     # Apps
     path('siteconfig/', include(('apps.siteconfig.urls', 'siteconfig'), namespace='siteconfig')),

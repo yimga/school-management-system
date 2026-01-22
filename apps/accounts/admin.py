@@ -1,9 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.models import Group
 
 from unfold.admin import ModelAdmin
 
 from .models import User, AccessRole, Permission
+
+
+# Unregister Group from default admin site (we'll re-register it here)
+admin.site.unregister(Group)
 
 
 @admin.register(User)
@@ -35,3 +40,15 @@ class RoleAdmin(ModelAdmin):
 class PermissionAdmin(ModelAdmin):
     list_display = ("code", "name")
     search_fields = ("code", "name")
+
+
+@admin.register(Group)
+class GroupAdmin(ModelAdmin):
+    """Groups admin - relocated from django.contrib.auth to Accounts section."""
+    list_display = ("name",)
+    search_fields = ("name",)
+    filter_horizontal = ("permissions",)
+    
+    class Meta:
+        verbose_name = "User Group"
+        verbose_name_plural = "User Groups"

@@ -1,0 +1,211 @@
+/* Admin Sidebar Enhanced Styles */
+/* Fixes overflow issues and adds smooth scrolling to Django admin sidebar */
+
+/* Main sidebar container - make it scrollable */
+#nav-sidebar {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    max-height: calc(100vh - 120px) !important; /* Account for header and bridge */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(155, 107, 255, 0.3) rgba(15, 23, 42, 0.05);
+}
+
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
+#nav-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+#nav-sidebar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.05);
+    border-radius: 4px;
+}
+
+#nav-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(155, 107, 255, 0.3);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+#nav-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(155, 107, 255, 0.5);
+}
+
+/* Ensure sidebar content doesn't overflow horizontally */
+#nav-sidebar .module {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+#nav-sidebar .module h2 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Smooth scrolling behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Add some padding at bottom of sidebar for better scroll experience */
+#nav-sidebar::after {
+    content: '';
+    display: block;
+    height: 20px;
+}
+
+/* Sticky positioning for module headers when scrolling */
+#nav-sidebar .module h2 {
+    position: sticky;
+    top: -1px;
+    background: inherit;
+    z-index: 10;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+/* Improve accordion transition smoothness */
+#nav-sidebar .module .collapse-toggle {
+    transition: transform 0.3s ease;
+}
+
+#nav-sidebar .module .collapse-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+/* Add subtle hover effect to scrollable area */
+#nav-sidebar:hover {
+    scrollbar-color: rgba(155, 107, 255, 0.5) rgba(15, 23, 42, 0.08);
+}
+
+/* Prevent content shift when scrollbar appears */
+#content-main {
+    margin-left: 280px; /* Adjust based on sidebar width */
+}
+
+/* Improve mobile responsiveness */
+@media (max-width: 768px) {
+    #nav-sidebar {
+        max-height: calc(100vh - 160px) !important; /* More space for mobile nav */
+    }
+    
+    #content-main {
+        margin-left: 0;
+    }
+}
+
+/* Badge styles for item counts */
+.admin-sidebar-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    margin-left: auto;
+    background: rgba(45, 212, 191, 0.15);
+    color: #0d9488;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.2;
+    min-width: 28px;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: help;
+}
+
+/* Hover effect for badges */
+.admin-sidebar-badge:hover {
+    background: rgba(45, 212, 191, 0.25);
+    transform: scale(1.05);
+}
+
+/* Empty badge style */
+.admin-sidebar-badge--empty {
+    background: rgba(155, 107, 255, 0.1);
+    color: #9b6bff;
+    opacity: 0.6;
+}
+
+.admin-sidebar-badge--empty:hover {
+    background: rgba(155, 107, 255, 0.15);
+    opacity: 0.8;
+}
+
+/* High count badge (1K+) - use accent color */
+.admin-sidebar-badge--high {
+    background: rgba(255, 106, 136, 0.15);
+    color: #dc2626;
+    font-weight: 800;
+}
+
+.admin-sidebar-badge--high:hover {
+    background: rgba(255, 106, 136, 0.25);
+}
+
+/* Parent link flex layout to position badge on right */
+#nav-sidebar ul li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Loading state for dynamic counts */
+.admin-sidebar-badge.loading {
+    background: rgba(155, 107, 255, 0.15);
+    color: #9b6bff;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Highlight active section */
+#nav-sidebar .module.current {
+    background: rgba(255, 106, 136, 0.05);
+    border-left: 3px solid #ff6a88;
+}
+
+#nav-sidebar .module.current h2 {
+    color: #ff6a88;
+    font-weight: 600;
+}
+
+/* Improve search box visibility */
+#nav-filter {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 20;
+    padding: 12px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    margin-bottom: 8px;
+}
+
+/* Better focus states for accessibility */
+#nav-sidebar a:focus,
+#nav-sidebar button:focus {
+    outline: 2px solid #9b6bff;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Smooth expand/collapse animations */
+.module-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.module-content.collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+}
+
+.module-content.expanded {
+    max-height: 2000px !important; /* Large enough for most menus */
+    opacity: 1;
+}
