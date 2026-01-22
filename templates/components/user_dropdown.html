@@ -125,26 +125,26 @@
         <i class="bi bi-question-circle"></i> Help & Support
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'support:help_center' %}">
+        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
           <i class="bi bi-life-preserver"></i>
           <span>Help Center</span>
           <kbd>?</kbd>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'support:kb' %}">
+        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
           <i class="bi bi-book"></i>
           <span>Knowledge Base</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'support:contact' %}">
+        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
           <i class="bi bi-envelope"></i>
           <span>Contact Support</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'support:feedback' %}">
+        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
           <i class="bi bi-chat-left-text"></i>
           <span>Send Feedback</span>
         </a>
@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (e.key === '?') {
       e.preventDefault();
-      window.location.href = "{% url 'support:help_center' %}";
+      window.location.href = "{% url 'backend:dashboard' %}";
     }
   });
 
