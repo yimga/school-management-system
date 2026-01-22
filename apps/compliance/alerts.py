@@ -7,7 +7,8 @@ Compliance alert utilities for real-time notifications and scheduled report deli
 
 import json
 import logging
-from urllib import request
+import time
+from urllib import request, error as urllib_error
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -57,11 +58,47 @@ def _build_alert_message(audit_log):
     }
 
 
-def _post_json(url, payload):
+def _post_json(url, payload, max_retries=3):
+    """
+    POST JSON payload to URL with exponential backoff retry logic.
+    
+    Args:
+        url: Target webhook URL
+        payload: Dict to be JSON-encoded
+        max_retries: Maximum number of retry attempts (default: 3)
+    
+    Returns:
+        Response body bytes on success
+    
+    Raises:
+        Exception if all retries exhausted
+    """
     data = json.dumps(payload).encode("utf-8")
     req = request.Request(url, data=data, headers={"Content-Type": "application/json"})
-    with request.urlopen(req, timeout=5) as resp:  # nosec - trusted outbound webhook
-        return resp.read()
+    
+    for attempt in range(max_retries):
+        try:
+            with request.urlopen(req, timeout=5) as resp:  # nosec - trusted outbound webhook
+                return resp.read()
+        except (urllib_error.HTTPError, urllib_error.URLError, TimeoutError) as exc:
+            is_last_attempt = attempt == max_retries - 1
+            
+            if is_last_attempt:
+                logger.error(
+                    f"Webhook POST failed after {max_retries} attempts to {url}: {exc}"
+                )
+                raise
+            
+            # Exponential backoff: 2^attempt seconds (1s, 2s, 4s)
+            backoff_seconds = 2 ** attempt
+            logger.warning(
+                f"Webhook POST attempt {attempt + 1}/{max_retries} failed to {url}: {exc}. "
+                f"Retrying in {backoff_seconds}s..."
+            )
+            time.sleep(backoff_seconds)
+    
+    # Should never reach here due to raise in last attempt
+    raise Exception(f"Webhook POST failed after {max_retries} retries")
 
 
 def _send_email(subject: str, message: str):
