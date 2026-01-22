@@ -302,6 +302,10 @@ DATA_RETENTION = {
     "report_days": int(os.getenv("RETENTION_REPORT_DAYS", "365")),
 }
 
+# --- Performance & Scaling ---
+COMPLIANCE_DASHBOARD_CACHE_SECONDS = int(os.getenv("COMPLIANCE_DASHBOARD_CACHE_SECONDS", "60"))
+COMPLIANCE_EXPORT_MAX_ROWS = int(os.getenv("COMPLIANCE_EXPORT_MAX_ROWS", "5000"))
+
 
 # ============================================================================
 # Phase 1.2.4: Internationalization & Multi-Region Support

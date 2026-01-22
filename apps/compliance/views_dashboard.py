@@ -20,6 +20,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.db.models import Count, Q, Avg
 from django.utils import timezone
+from django.core.cache import cache
+from django.conf import settings
 
 from apps.compliance.models_audit import AuditLog, UserActivitySession, AccessLog
 from apps.accounts.models import User
@@ -38,16 +40,22 @@ class ComplianceDashboardView(View):
     """
 
     def get(self, request):
-        context = {
-            'metrics': self._get_metrics(),
-            'activity_chart': self._get_activity_chart(),
-            'user_activity_heatmap': self._get_user_activity_heatmap(),
-            'model_changes': self._get_model_changes(),
-            'permission_overview': self._get_permission_overview(),
-            'recent_audits': self._get_recent_audits(),
-            'security_summary': self._get_security_summary(),
-            'integrity_status': self._get_integrity_status(),
-        }
+        cache_ttl = getattr(settings, "COMPLIANCE_DASHBOARD_CACHE_SECONDS", 60)
+        cache_key = "compliance:dashboard:v1"
+        context = cache.get(cache_key)
+
+        if not context:
+            context = {
+                'metrics': self._get_metrics(),
+                'activity_chart': self._get_activity_chart(),
+                'user_activity_heatmap': self._get_user_activity_heatmap(),
+                'model_changes': self._get_model_changes(),
+                'permission_overview': self._get_permission_overview(),
+                'recent_audits': self._get_recent_audits(),
+                'security_summary': self._get_security_summary(),
+                'integrity_status': self._get_integrity_status(),
+            }
+            cache.set(cache_key, context, cache_ttl)
 
         return render(request, 'compliance/dashboard.html', context)
 

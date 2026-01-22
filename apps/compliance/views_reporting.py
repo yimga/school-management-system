@@ -23,6 +23,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.db.models import Q, Count, Max
 from django.utils import timezone
+from django.conf import settings
+from django.db.models.functions import ExtractHour
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
@@ -279,46 +281,50 @@ class AnomalyDetectionView(View):
         
         users_failed = access_logs.filter(
             status__gte=400
-        ).values('user_id').annotate(
+        ).values('user__username').annotate(
             failures=Count('id')
         ).filter(failures__gte=10)
 
         for entry in users_failed:
-            user = User.objects.get(id=entry['user_id']) if entry['user_id'] else None
+            username = entry['user__username'] or 'Unknown'
             anomalies.append({
                 'type': 'HIGH_FAILURE_RATE',
-                'user': user.username if user else 'Unknown',
+                'user': username,
                 'value': entry['failures'],
                 'description': f"User had {entry['failures']} failed access attempts",
                 'severity': 'HIGH',
             })
 
         # Find unusual access times (outside business hours: 6am-10pm)
-        unusual_hours = access_logs.extra(
-            select={
-                'hour': 'EXTRACT(HOUR FROM timestamp)'
-            }
-        ).exclude(
-            hour__in=range(6, 22)
-        ).values('user_id').annotate(
-            count=Count('id')
-        ).filter(count__gte=5)
+        unusual_hours = (
+            access_logs
+            .annotate(hour=ExtractHour('timestamp'))
+            .exclude(hour__in=range(6, 22))
+            .values('user__username')
+            .annotate(count=Count('id'))
+            .filter(count__gte=5)
+        )
 
         for entry in unusual_hours:
-            user = User.objects.get(id=entry['user_id']) if entry['user_id'] else None
+            username = entry['user__username'] or 'Unknown'
             anomalies.append({
                 'type': 'UNUSUAL_ACCESS_TIME',
-                'user': user.username if user else 'Unknown',
+                'user': username,
                 'value': entry['count'],
                 'description': f"User accessed system {entry['count']} times outside business hours",
                 'severity': 'MEDIUM',
             })
 
         # Find suspicious sessions
-        suspicious_sessions = UserActivitySession.objects.filter(
-            login_timestamp__gte=start_date,
-            is_suspicious=True
-        )[:10]
+        suspicious_sessions = (
+            UserActivitySession.objects.filter(
+                login_timestamp__gte=start_date,
+                is_suspicious=True
+            )
+            .select_related('user')
+            .only('page_views', 'api_calls', 'notes', 'user__username')
+            [:10]
+        )
 
         for session in suspicious_sessions:
             anomalies.append({
@@ -362,13 +368,14 @@ class ExportComplianceReportView(View):
 
     def _export_json(self, report_type, start_date):
         """Export report as JSON."""
+        max_rows = getattr(settings, "COMPLIANCE_EXPORT_MAX_ROWS", 5000)
         if report_type == 'audit_trail':
             logs = AuditLog.objects.filter(
                 timestamp__gte=start_date
             ).values(
                 'timestamp', 'user__username', 'action', 'model_name',
                 'object_id', 'sensitivity'
-            )
+            ).order_by('-timestamp')[:max_rows]
             data = list(logs)
         elif report_type == 'access_log':
             logs = AccessLog.objects.filter(
@@ -376,7 +383,7 @@ class ExportComplianceReportView(View):
             ).values(
                 'timestamp', 'user__username', 'resource',
                 'request_method', 'status', 'response_time_ms'
-            )
+            ).order_by('-timestamp')[:max_rows]
             data = list(logs)
         else:
             return JsonResponse({'error': 'Invalid report type'}, status=400)
@@ -392,6 +399,7 @@ class ExportComplianceReportView(View):
         """Export report as CSV."""
         output = StringIO()
         writer = csv.writer(output)
+        max_rows = getattr(settings, "COMPLIANCE_EXPORT_MAX_ROWS", 5000)
 
         if report_type == 'audit_trail':
             writer.writerow([
@@ -402,7 +410,7 @@ class ExportComplianceReportView(View):
             ).values_list(
                 'timestamp', 'user__username', 'action', 'model_name',
                 'object_id', 'sensitivity'
-            )
+            ).order_by('-timestamp')[:max_rows]
             writer.writerows(logs)
         elif report_type == 'access_log':
             writer.writerow([
@@ -413,7 +421,7 @@ class ExportComplianceReportView(View):
             ).values_list(
                 'timestamp', 'user__username', 'resource',
                 'request_method', 'status', 'response_time_ms'
-            )
+            ).order_by('-timestamp')[:max_rows]
             writer.writerows(logs)
         else:
             return JsonResponse({'error': 'Invalid report type'}, status=400)
