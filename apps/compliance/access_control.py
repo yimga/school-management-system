@@ -1,265 +1,164 @@
 """
-Phase 8 Task 1: Access Control Module
-Implements fine-grained RBAC and resource-level security
+Access control utilities for IP and country-based restrictions.
+Checks incoming requests against allow/deny lists.
 """
 
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.exceptions import PermissionDenied
-from django.contrib.auth.models import Permission, Group
-from functools import wraps
-from .models import IPAccessRule, CountryAccessRule
+from typing import Tuple
+from django.core.cache import cache
+from django.db.models import Q
+from django.utils import timezone
+from apps.compliance.models_audit import IPAccessRule, CountryAccessRule
 
 
-class AccessControlManager:
-    """Manage fine-grained access control"""
-    
-    @staticmethod
-    def check_ip_access(ip_address):
-        """Check if IP address is allowed"""
-        try:
-            rule = IPAccessRule.objects.get(ip_address=ip_address)
-            
-            # Check if rule has expired
-            if rule.expires_at and rule.expires_at < timezone.now():
-                return True  # Expired rule is ignored
-            
-            return rule.action != 'DENY'
-        except IPAccessRule.DoesNotExist:
-            return True  # No rule means allow
-    
-    @staticmethod
-    def check_country_access(country_code):
-        """Check if country is allowed"""
-        try:
-            rule = CountryAccessRule.objects.get(country_code=country_code)
-            return rule.action != 'DENY'
-        except CountryAccessRule.DoesNotExist:
-            return True  # No rule means allow
-    
-    @staticmethod
-    def check_user_permission(user, permission_codename):
-        """Check if user has specific permission"""
-        return user.has_perm(f'auth.{permission_codename}')
-    
-    @staticmethod
-    def check_resource_access(user, resource, action):
-        """Check if user can access resource"""
-        from django.apps import apps
-        
-        # Parse resource (format: app.model.id)
-        try:
-            app, model, obj_id = resource.split('.')
-            model_class = apps.get_model(app, model)
-            obj = model_class.objects.get(id=obj_id)
-            
-            # Check role-based access
-            if hasattr(obj, 'check_access'):
-                return obj.check_access(user, action)
-            
-            return True
-        except:
-            return False
+def check_ip_access(ip_address: str) -> Tuple[bool, str]:
+    """
+    Check if IP is allowed based on configured rules.
+    Returns: (is_allowed: bool, reason: str)
+
+    Logic:
+    1. Check DENY rules first - if any match, deny immediately
+    2. If ALLOW rules exist, IP must match at least one
+    3. If no rules exist or only DENY rules, allow by default
+    """
+    if not ip_address:
+        return True, "No IP address provided"
+
+    # Cache key for this IP (cache for 5 minutes)
+    cache_key = f"ip_access:{ip_address}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    now = timezone.now()
+
+    # Get active rules (exclude expired ones)
+    deny_rules = IPAccessRule.objects.filter(
+        rule_type=IPAccessRule.RuleType.DENY,
+        is_active=True
+    ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
+
+    allow_rules = IPAccessRule.objects.filter(
+        rule_type=IPAccessRule.RuleType.ALLOW,
+        is_active=True
+    ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
+
+    # Check DENY rules first
+    for rule in deny_rules:
+        if rule.matches(ip_address):
+            result = (False, f"IP blocked by deny rule: {rule.description or rule.ip_address}")
+            cache.set(cache_key, result, 300)  # Cache for 5 min
+            return result
+
+    # If ALLOW rules exist, must match at least one
+    if allow_rules.exists():
+        for rule in allow_rules:
+            if rule.matches(ip_address):
+                result = (True, f"IP allowed by rule: {rule.description or rule.ip_address}")
+                cache.set(cache_key, result, 300)
+                return result
+        # No ALLOW rule matched
+        result = (False, "IP not in allow list")
+        cache.set(cache_key, result, 300)
+        return result
+
+    # No rules or only DENY rules - allow by default
+    result = (True, "No restrictions configured")
+    cache.set(cache_key, result, 300)
+    return result
 
 
-class AccessControlDecorator:
-    """Decorators for access control"""
-    
-    @staticmethod
-    def require_permission(permission):
-        """Require specific permission"""
-        def decorator(view_func):
-            @wraps(view_func)
-            def wrapper(request, *args, **kwargs):
-                if not request.user.has_perm(permission):
-                    raise PermissionDenied(f"User lacks permission: {permission}")
-                return view_func(request, *args, **kwargs)
-            return wrapper
-        return decorator
-    
-    @staticmethod
-    def require_role(role_name):
-        """Require specific role"""
-        def decorator(view_func):
-            @wraps(view_func)
-            def wrapper(request, *args, **kwargs):
-                try:
-                    user_group = request.user.groups.get(name=role_name)
-                except:
-                    raise PermissionDenied(f"User is not in group: {role_name}")
-                return view_func(request, *args, **kwargs)
-            return wrapper
-        return decorator
-    
-    @staticmethod
-    def check_ip_access_decorator(view_func):
-        """Check IP access before view"""
-        @wraps(view_func)
-        def wrapper(request, *args, **kwargs):
-            from django.http import HttpResponseForbidden
-            
-            # Get client IP
-            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-            if x_forwarded_for:
-                ip = x_forwarded_for.split(',')[0]
-            else:
-                ip = request.META.get('REMOTE_ADDR')
-            
-            if not AccessControlManager.check_ip_access(ip):
-                return HttpResponseForbidden("Access denied from your IP address")
-            
-            return view_func(request, *args, **kwargs)
-        return wrapper
+def check_country_access(country_code: str) -> Tuple[bool, str]:
+    """
+    Check if country is allowed based on configured rules.
+    Returns: (is_allowed: bool, reason: str)
+
+    Logic: same as IP - DENY first, then ALLOW if rules exist.
+    """
+    if not country_code:
+        return True, "No country code provided"
+
+    # Normalize to uppercase
+    country_code = country_code.upper()
+
+    # Cache key
+    cache_key = f"country_access:{country_code}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    # Get active rules
+    deny_rules = CountryAccessRule.objects.filter(
+        rule_type=CountryAccessRule.RuleType.DENY,
+        is_active=True,
+        country_code=country_code
+    )
+
+    allow_rules = CountryAccessRule.objects.filter(
+        rule_type=CountryAccessRule.RuleType.ALLOW,
+        is_active=True
+    )
+
+    # Check DENY
+    if deny_rules.exists():
+        result = (False, f"Country {country_code} is blocked")
+        cache.set(cache_key, result, 300)
+        return result
+
+    # Check ALLOW
+    if allow_rules.exists():
+        if allow_rules.filter(country_code=country_code).exists():
+            result = (True, f"Country {country_code} is allowed")
+            cache.set(cache_key, result, 300)
+            return result
+        else:
+            result = (False, f"Country {country_code} not in allow list")
+            cache.set(cache_key, result, 300)
+            return result
+
+    # No rules - allow
+    result = (True, "No country restrictions configured")
+    cache.set(cache_key, result, 300)
+    return result
 
 
-class RoleBasedAccessControl:
-    """RBAC system with predefined roles"""
-    
-    ROLES = {
-        'ADMIN': {
-            'permissions': [
-                'auth.add_user',
-                'auth.change_user',
-                'auth.delete_user',
-                'auth.view_user',
-                'compliance.view_accesslog',
-                'compliance.view_auditlog',
-                'evals.add_eval',
-                'evals.change_eval',
-                'evals.delete_eval',
-                'finance.add_invoice',
-                'finance.change_invoice',
-            ],
-            'description': 'System administrator with full access',
-        },
-        'TEACHER': {
-            'permissions': [
-                'evals.view_eval',
-                'evals.add_eval',
-                'evals.change_eval',
-                'people.view_studentprofile',
-                'analytics.view_analytics',
-            ],
-            'description': 'Teacher - can manage grades and view student data',
-        },
-        'PARENT': {
-            'permissions': [
-                'portal.view_portal',
-                'analytics.view_own_analytics',
-            ],
-            'description': 'Parent - can view own child\'s data',
-        },
-        'STUDENT': {
-            'permissions': [
-                'portal.view_portal',
-                'evals.view_own_results',
-            ],
-            'description': 'Student - limited portal access',
-        },
-        'FINANCE': {
-            'permissions': [
-                'finance.view_invoice',
-                'finance.add_invoice',
-                'finance.change_invoice',
-                'finance.view_payment',
-                'reports.view_financial_reports',
-            ],
-            'description': 'Finance officer - financial data access',
-        },
-        'AUDITOR': {
-            'permissions': [
-                'compliance.view_accesslog',
-                'compliance.view_auditlog',
-                'compliance.view_compliancereport',
-                'analytics.view_analytics',
-            ],
-            'description': 'Auditor - compliance and audit access',
-        },
-    }
-    
-    @classmethod
-    def create_roles(cls):
-        """Create predefined roles in system"""
-        for role_name, role_data in cls.ROLES.items():
-            group, created = Group.objects.get_or_create(name=role_name)
-            
-            if created:
-                # Add permissions to group
-                for perm in role_data['permissions']:
-                    try:
-                        app, codename = perm.split('.')
-                        permission = Permission.objects.get(
-                            content_type__app_label=app,
-                            codename=codename
-                        )
-                        group.permissions.add(permission)
-                    except:
-                        pass
-    
-    @classmethod
-    def assign_role(cls, user, role_name):
-        """Assign role to user"""
-        if role_name not in cls.ROLES:
-            raise ValueError(f"Invalid role: {role_name}")
-        
-        group = Group.objects.get(name=role_name)
-        user.groups.add(group)
-    
-    @classmethod
-    def remove_role(cls, user, role_name):
-        """Remove role from user"""
-        group = Group.objects.get(name=role_name)
-        user.groups.remove(group)
+def get_country_from_ip(ip_address: str) -> str | None:
+    """
+    Resolve country code from IP using GeoIP2 (if available).
+    Returns ISO 3166-1 alpha-2 code or None.
+    """
+    try:
+        from django.contrib.gis.geoip2 import GeoIP2
+        g = GeoIP2()
+        country = g.country(ip_address)
+        return country.get("country_code")
+    except Exception:
+        # GeoIP2 not configured or IP not found
+        return None
 
 
-class ResourceLevelSecurity:
-    """Implement resource-level access control"""
-    
-    @staticmethod
-    def can_view_student(user, student):
-        """Check if user can view student data"""
-        if user.is_superuser:
-            return True
-        
-        # Teacher can view own students
-        if hasattr(user, 'teacherprofile'):
-            return student in user.teacherprofile.classroom_set.values_list(
-                'students', flat=True
-            )
-        
-        # Parent can view own children
-        if hasattr(user, 'studentguardian'):
-            return student.id in user.studentguardian.student.values_list('id', flat=True)
-        
-        # Student can view self
-        if hasattr(user, 'studentprofile'):
-            return student.id == user.studentprofile.student.id
-        
-        return False
-    
-    @staticmethod
-    def can_modify_grade(user, grade):
-        """Check if user can modify grade"""
-        if user.is_superuser:
-            return True
-        
-        # Only assignment teacher can modify
-        if hasattr(user, 'teacherprofile'):
-            return grade.assignment.subject.teacher == user
-        
-        return False
-    
-    @staticmethod
-    def can_view_finance(user, invoice):
-        """Check if user can view financial data"""
-        if user.is_superuser:
-            return True
-        
-        # Finance staff can view all
-        if user.groups.filter(name='FINANCE').exists():
-            return True
-        
-        # Parent can view own invoices
-        if hasattr(user, 'studentguardian'):
-            return invoice.student in user.studentguardian.student.all()
-        
-        return False
+def check_request_access(request) -> Tuple[bool, str]:
+    """
+    Comprehensive access check for a Django request.
+    Checks both IP and country rules.
+    Returns: (is_allowed: bool, reason: str)
+    """
+    # Get IP from request
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        ip_address = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip_address = request.META.get("REMOTE_ADDR")
+
+    # Check IP access
+    ip_allowed, ip_reason = check_ip_access(ip_address)
+    if not ip_allowed:
+        return False, ip_reason
+
+    # Check country access (if GeoIP2 available)
+    country_code = get_country_from_ip(ip_address)
+    if country_code:
+        country_allowed, country_reason = check_country_access(country_code)
+        if not country_allowed:
+            return False, country_reason
+
+    return True, "Access granted"

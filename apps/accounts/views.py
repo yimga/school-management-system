@@ -8,6 +8,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib import admin as django_admin
+from django_ratelimit.decorators import ratelimit
 from apps.finance.models import Invoice, ReferralReward, PaymentReminder
 from apps.finance.services import finance_dashboard_data
 from apps.portal.models import PendingGuardianInvite
@@ -245,6 +246,7 @@ def backend_dashboard(request):
     return render(request, "accounts/backend_dashboard.html", context)
 
 
+@ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.method == "POST":
         user = authenticate(

@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
 from apps.siteconfig.models import SiteSettings
-from apps.academics.models import Term
+from apps.academics.models import Term, AcademicYear
 
 
 class LinkChildForm(forms.Form):
@@ -53,8 +53,8 @@ class LinkChildForm(forms.Form):
     )
     student_joined_term = forms.ChoiceField(
         required=False,
-        choices=Term.Name.choices,
-        label=_("Joined term"),
+        choices=[],
+        label=("Joined term"),
     )
     student_joined_date = forms.DateField(
         required=False,
@@ -114,6 +114,13 @@ class LinkChildForm(forms.Form):
         self.guardian_user = kwargs.pop("guardian_user", None)
         school_code = kwargs.pop("school_code", None) or SiteSettings.get_solo().school_code
         super().__init__(*args, **kwargs)
+        # Populate dynamic term choices from active academic year
+        active_year = AcademicYear.objects.filter(is_active=True).first()
+        if active_year:
+            terms = Term.objects.filter(academic_year=active_year).order_by("start_date")
+            self.fields["student_joined_term"].choices = [(t.name, t.label) for t in terms]
+        else:
+            self.fields["student_joined_term"].choices = []
         if school_code:
             self.fields["admission_number"].help_text = _(
                 f"Format: YY + {school_code} + #### + SPEC + CLASS (no dashes)."

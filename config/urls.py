@@ -4,6 +4,8 @@ from django.contrib import admin
 from django.shortcuts import redirect, render
 from django.urls import include, path
 
+from apps.observability import views as obs_views
+
 
 def home(request):
     # Staff/admin users: go straight to admin; everyone else to portal login
@@ -29,6 +31,10 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
+    # Health and metrics
+    path('healthz/', obs_views.healthz, name='healthz'),
+    path('metrics/', obs_views.metrics, name='metrics'),
+
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
 
@@ -42,6 +48,7 @@ urlpatterns = [
     path('analytics/', include(('apps.analytics.urls', 'analytics'), namespace='analytics')),
     path('finance/', include(('apps.finance.urls', 'finance'), namespace='finance')),
     path('payroll/', include(('apps.payroll.urls', 'payroll'), namespace='payroll')),
+    path('compliance/', include(('apps.compliance.urls', 'compliance'), namespace='compliance')),
 ]
 
 if settings.DEBUG:

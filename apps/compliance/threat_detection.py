@@ -1,198 +1,107 @@
 """
-Phase 8 Task 1: Threat Detection
-Automated threat detection and incident response
+Threat detection utilities for brute-force login attempts and after-hours access anomalies.
 """
 
 from datetime import timedelta
+from typing import List, Dict
+
+from django.conf import settings
+from django.db.models import Count, Q
+from django.db.models.functions import ExtractHour
 from django.utils import timezone
-from django.db.models import Count
-from .models import AccessLog, AuditLog, ThreatDetectionConfig, IncidentTicket
-import logging
 
-logger = logging.getLogger(__name__)
+from apps.compliance.models_audit import AccessLog, ThreatDetectionConfig
+from apps.compliance.alerts import send_threat_alert
 
 
-class ThreatDetector:
-    """Detect and respond to security threats"""
-    
-    @staticmethod
-    def check_brute_force():
-        """Detect brute force attacks"""
-        config = ThreatDetectionConfig.objects.filter(
-            threat_type='BRUTE_FORCE',
-            enabled=True
-        ).first()
+def detect_threats(window_minutes: int | None = None) -> List[Dict]:
+    # Get configuration from DB first, fall back to settings
+    try:
+        db_config = ThreatDetectionConfig.get_active()
+        window = window_minutes or db_config.window_minutes
+        failed_per_user_threshold = db_config.failed_per_user
+        failed_per_ip_threshold = db_config.failed_per_ip
+        after_hours_start = db_config.after_hours_start
+        after_hours_end = db_config.after_hours_end
+        after_hours_threshold = db_config.after_hours_threshold
         
-        if not config:
-            return
-        
-        # Check for multiple failed logins from same IP
-        time_window = timezone.now() - timedelta(seconds=config.time_window)
-        
-        failed_logins = AccessLog.objects.filter(
-            access_type='FAILED_LOGIN',
-            timestamp__gte=time_window,
-            status='FAILURE'
-        ).values('ip_address').annotate(count=Count('id'))
-        
-        for record in failed_logins:
-            if record['count'] >= config.threshold:
-                ip = record['ip_address']
-                logger.warning(f"Brute force detected from {ip}")
-                
-                # Create incident
-                ThreatDetector.create_incident(
-                    'BRUTE_FORCE',
-                    f"Brute force attack: {record['count']} failed logins from {ip}",
-                    'CRITICAL',
-                    config
-                )
-    
-    @staticmethod
-    def check_data_exfiltration():
-        """Detect suspicious data export"""
-        config = ThreatDetectionConfig.objects.filter(
-            threat_type='DATA_EXFIL',
-            enabled=True
-        ).first()
-        
-        if not config:
-            return
-        
-        time_window = timezone.now() - timedelta(seconds=config.time_window)
-        
-        # Check for unusual export activity
-        exports = AccessLog.objects.filter(
-            access_type='EXPORT',
-            timestamp__gte=time_window
-        ).values('user').annotate(count=Count('id'))
-        
-        for record in exports:
-            if record['count'] >= config.threshold:
-                logger.warning(f"Suspicious export activity by user {record['user']}")
-                ThreatDetector.create_incident(
-                    'DATA_EXFIL',
-                    f"Suspicious export: {record['count']} exports",
-                    'HIGH',
-                    config
-                )
-    
-    @staticmethod
-    def check_privilege_escalation():
-        """Detect privilege escalation attempts"""
-        config = ThreatDetectionConfig.objects.filter(
-            threat_type='PRIVILEGE_ESCALATION',
-            enabled=True
-        ).first()
-        
-        if not config:
-            return
-        
-        time_window = timezone.now() - timedelta(seconds=config.time_window)
-        
-        # Check for permission changes by unprivileged users
-        priv_escalations = AuditLog.objects.filter(
-            action='UPDATE',
-            model_name='user',
-            timestamp__gte=time_window
-        ).exclude(user__is_staff=True)
-        
-        if priv_escalations.exists():
-            for log in priv_escalations:
-                logger.warning(f"Privilege escalation attempt by {log.user}")
-                ThreatDetector.create_incident(
-                    'PRIVILEGE_ESCALATION',
-                    f"Attempted privilege escalation by {log.user}",
-                    'CRITICAL',
-                    config
-                )
-    
-    @staticmethod
-    def check_anomalous_access():
-        """Detect anomalous access patterns"""
-        config = ThreatDetectionConfig.objects.filter(
-            threat_type='ANOMALOUS_ACCESS',
-            enabled=True
-        ).first()
-        
-        if not config:
-            return
-        
-        time_window = timezone.now() - timedelta(seconds=config.time_window)
-        
-        # Check for access outside normal business hours
-        for hour in range(23, 6):  # 11 PM to 6 AM
-            accesses = AccessLog.objects.filter(
-                timestamp__hour=hour,
-                timestamp__gte=time_window
-            ).values('user').annotate(count=Count('id'))
-            
-            for record in accesses:
-                if record['count'] >= config.threshold:
-                    logger.warning(f"Anomalous access pattern for user {record['user']}")
-    
-    @staticmethod
-    def check_rate_limit_violation():
-        """Detect rate limit violations"""
-        config = ThreatDetectionConfig.objects.filter(
-            threat_type='RATE_LIMIT_VIOLATION',
-            enabled=True
-        ).first()
-        
-        if not config:
-            return
-        
-        time_window = timezone.now() - timedelta(seconds=config.time_window)
-        
-        # Check for excessive requests from single IP
-        ips = AccessLog.objects.filter(
-            timestamp__gte=time_window
-        ).values('ip_address').annotate(count=Count('id'))
-        
-        for record in ips:
-            if record['count'] >= config.threshold:
-                logger.warning(f"Rate limit violation from {record['ip_address']}")
-                ThreatDetector.create_incident(
-                    'RATE_LIMIT_VIOLATION',
-                    f"Rate limit exceeded: {record['count']} requests",
-                    'MEDIUM',
-                    config
-                )
-    
-    @staticmethod
-    def create_incident(threat_type, description, severity, config):
-        """Create incident ticket"""
-        incident_id = f"INC-{timezone.now().strftime('%Y%m%d%H%M%S')}-{threat_type[:3]}"
-        
-        IncidentTicket.objects.create(
-            incident_id=incident_id,
-            title=threat_type,
-            description=description,
-            severity=severity,
-            notes=f"Detected by: {threat_type} detector"
-        )
-        
-        # Send alert if configured
-        if config.alert_email:
-            ThreatDetector.send_alert(config.alert_email, incident_id, description)
-    
-    @staticmethod
-    def send_alert(email, incident_id, description):
-        """Send security alert"""
-        from django.core.mail import send_mail
-        
-        subject = f"Security Alert: {incident_id}"
-        message = f"""
-        Security Incident Detected
-        
-        Incident ID: {incident_id}
-        Description: {description}
-        Timestamp: {timezone.now()}
-        
-        Please investigate immediately.
-        """
-        
-        try:
-            send_mail(subject, message, 'security@school.local', [email])
-        except Exception as e:
-            logger.error(f"Failed to send alert: {str(e)}")
+        # Check if muted
+        if db_config.is_muted():
+            return []
+    except Exception:
+        # Fall back to settings if DB unavailable
+        cfg = getattr(settings, "THREAT_DETECTION", {})
+        window = window_minutes or cfg.get("window_minutes", 60)
+        failed_per_user_threshold = cfg.get("failed_per_user", 10)
+        failed_per_ip_threshold = cfg.get("failed_per_ip", 20)
+        after_hours_start = cfg.get("after_hours_start", 22)
+        after_hours_end = cfg.get("after_hours_end", 6)
+        after_hours_threshold = cfg.get("after_hours_threshold", 5)
+
+    since = timezone.now() - timedelta(minutes=window)
+
+    qs = AccessLog.objects.filter(timestamp__gte=since)
+
+    # Normalize failures (numeric status >=400 or textual status representing failure)
+    failed_filter = Q(status__gte=400) | Q(status__in=["FORBIDDEN", "NOT_FOUND", "ERROR"])
+
+    findings: List[Dict] = []
+
+    # Brute-force per user
+    user_failures = (
+        qs.filter(failed_filter)
+        .values("user__username")
+        .annotate(count=Count("id"))
+        .filter(count__gte=failed_per_user_threshold)
+    )
+    for row in user_failures:
+        findings.append({
+            "type": "BRUTE_FORCE_USER",
+            "user": row["user__username"] or "Unknown",
+            "count": row["count"],
+            "window": f"{window}m",
+            "severity": "HIGH",
+            "description": f"{row['count']} failed accesses for user in {window} minutes",
+        })
+
+    # Brute-force per IP
+    ip_failures = (
+        qs.filter(failed_filter)
+        .values("ip_address")
+        .annotate(count=Count("id"))
+        .filter(count__gte=failed_per_ip_threshold)
+    )
+    for row in ip_failures:
+        findings.append({
+            "type": "BRUTE_FORCE_IP",
+            "ip_address": row["ip_address"] or "Unknown",
+            "count": row["count"],
+            "window": f"{window}m",
+            "severity": "HIGH",
+            "description": f"{row['count']} failed accesses from IP in {window} minutes",
+        })
+
+    # After-hours access
+    after_hours = (
+        qs.annotate(hour=ExtractHour("timestamp"))
+        .exclude(hour__in=range(after_hours_end, after_hours_start))
+        .values("user__username")
+        .annotate(count=Count("id"))
+        .filter(count__gte=after_hours_threshold)
+    )
+    for row in after_hours:
+        findings.append({
+            "type": "AFTER_HOURS_ACCESS",
+            "user": row["user__username"] or "Unknown",
+            "count": row["count"],
+            "window": f"{window}m",
+            "severity": "MEDIUM",
+            "description": f"{row['count']} accesses outside business hours",
+        })
+
+    return findings
+
+
+def alert_findings(findings: List[Dict]) -> None:
+    for finding in findings:
+        send_threat_alert(finding)

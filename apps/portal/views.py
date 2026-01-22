@@ -95,20 +95,44 @@ def _portal_features_status() -> list[dict]:
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_dashboard(request: HttpRequest):
+    """
+    Parent dashboard with optimized query loading.
+    
+    Optimization:
+    - Use select_related for related objects (student, classroom, specialty, academic_year)
+    - Use prefetch_related for students to make cache more efficient
+    - Cache widget data for 5 minutes per student set
+    - Single aggregation query for reminders count
+    """
+    from django.db.models import Prefetch
+    
     links = StudentGuardian.objects.filter(
         guardian_user=request.user,
         can_view_results=True
-    ).select_related("student", "student__classroom", "student__specialty", "student__academic_year")
+    ).select_related(
+        "student",
+        "student__classroom",
+        "student__specialty",
+        "student__academic_year"
+    ).prefetch_related(
+        "student__evaluations",
+    )
 
     portal_features = _portal_features_status()
     students = [link.student for link in links]
+    
+    # Widget data is now cached internally for 5 minutes
     widget_data = parent_dashboard_widget_data(students)
+    
     preference = getattr(request.user, "preferences", None)
     display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
+    
+    # Single aggregation query for reminders
     reminders_count = PaymentReminder.objects.filter(
         invoice__student__in=students,
         is_active=True,
     ).count()
+    
     hero = {
         "tagline": "Student Management Dashboard",
         "title": "Welcome back",

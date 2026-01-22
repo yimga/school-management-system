@@ -39,18 +39,26 @@ INSTALLED_APPS = [
     "apps.analytics",
     "apps.finance",
     "apps.payroll",
+    "apps.compliance.apps.ComplianceConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",  # Add for i18n
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
+    # Phase 4: Audit & Monitoring middleware
+    "apps.compliance.middleware.IPCountryAccessMiddleware",  # IP/Country access control (first!)
+    "apps.compliance.middleware.AuditLoggingMiddleware",  # Log all HTTP requests
+    "apps.compliance.middleware.AccessControlMiddleware",  # Enforce access control
+    # Phase 5: Observability middleware
+    "apps.observability.middleware.ObservabilityMiddleware",  # Prometheus request metrics
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -67,9 +75,12 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.static",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
                 "apps.siteconfig.context_processors.site_settings",
                 "apps.siteconfig.breadcrumb_context.breadcrumbs_context",
                 "apps.siteconfig.breadcrumb_context.page_metadata_context",
+                "apps.siteconfig.context_processors.region_settings",
+                "apps.siteconfig.context_processors.language_context",
             ]
         },
     }
@@ -100,6 +111,11 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+# PERFORMANCE: Enable persistent database connections (600 seconds = 10 minutes)
+# Reduces overhead of creating new connection for each request
+for db_config in DATABASES.values():
+    db_config['CONN_MAX_AGE'] = 600
 
 
 AUTH_USER_MODEL = "accounts.User"
@@ -148,23 +164,218 @@ UNFOLD = {
     # but keeping defaults is safest during the migration.
 }
 
-# --- Logging ---
+# --- Logging (configured below in "Logging Configuration" section) ---
+
+# --- Webhook Security Configuration ---
+WEBHOOK_CONFIG = {
+    "rate_limit": int(os.getenv("WEBHOOK_RATE_LIMIT", "100")),  # requests per minute
+    "signature_algorithm": os.getenv("WEBHOOK_SIGNATURE_ALGORITHM", "sha256"),
+    "signature_header": os.getenv("WEBHOOK_SIGNATURE_HEADER", "X-Signature"),
+    "ip_whitelist": os.getenv("WEBHOOK_IP_WHITELIST", "").split(",") if os.getenv("WEBHOOK_IP_WHITELIST") else [],
+}
+
+# --- Payment Provider Configuration ---
+# Each provider should have config in PaymentIntegration model:
+# {
+#     "webhook_secret": "api_key_from_provider",
+#     "webhook_ips": ["1.2.3.4", "5.6.7.8"],
+#     "rate_limit": 100,
+#     "signature_header": "X-Signature"
+# }
+
+# --- Email Configuration ---
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@gileadschool.com")
+
+# --- Caching Configuration ---
+CACHES = {
+    "default": {
+        "BACKEND": os.getenv("CACHE_BACKEND", "django.core.cache.backends.locmem.LocMemCache"),
+        "LOCATION": os.getenv("CACHE_LOCATION", "unique-snowflake"),
+        "TIMEOUT": 300,  # 5 minutes
+    }
+}
+
+# Redis caching (if REDIS_URL is set)
+if os.getenv("REDIS_URL"):
+    CACHES["default"] = {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "IGNORE_EXCEPTIONS": True,
+        },
+    }
+
+# --- Logging Configuration ---
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "fmt": "%(levelname)s %(asctime)s %(name)s %(module)s %(process)d %(thread)d %(message)s",
+        },
+    },
     "handlers": {
-        "console": {"class": "logging.StreamHandler"},
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
+            "level": LOG_LEVEL,
+        },
+        "file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "django.log",
+            "maxBytes": 1024 * 1024 * 10,  # 10MB
+            "backupCount": 10,
+            "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
+            "level": LOG_LEVEL,
+        },
     },
     "root": {
-        "handlers": ["console"],
-        "level": "INFO",
+        "handlers": ["console", "file"],
+        "level": LOG_LEVEL,
     },
     "loggers": {
         "django.request": {
-            "handlers": ["console"],
+            "handlers": ["console", "file"],
             "level": "ERROR",
+            "propagate": False,
+        },
+        "django.db": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "WARNING",
             "propagate": False,
         },
     },
 }
+
+# --- Compliance Alerts & Reporting ---
+COMPLIANCE_ALERTS = {
+    # Enable/disable alert dispatching globally
+    "enabled": os.getenv("COMPLIANCE_ALERTS_ENABLED", "1") == "1",
+    # Sensitivity threshold for real-time alerts (LOW, MEDIUM, HIGH, CRITICAL)
+    "severity_threshold": os.getenv("COMPLIANCE_ALERTS_THRESHOLD", "HIGH"),
+    # Actions that should always alert regardless of sensitivity
+    "escalate_on_actions": os.getenv(
+        "COMPLIANCE_ALERT_ACTIONS",
+        "ACCESS_DENIED,DELETE,PERM_GRANT,PERM_REVOKE,APPROVE,REJECT"
+    ).split(","),
+    # Channels
+    "email_recipients": [e for e in os.getenv("COMPLIANCE_ALERT_EMAILS", "").split(",") if e],
+    "slack_webhook_url": os.getenv("COMPLIANCE_ALERT_SLACK_WEBHOOK", ""),
+    "generic_webhook_url": os.getenv("COMPLIANCE_ALERT_WEBHOOK", ""),
+    # Runbook / on-call guidance
+    "runbook_url": os.getenv(
+        "COMPLIANCE_RUNBOOK_URL",
+        "https://runbooks.gileadschool.com/security/incident-response"
+    ),
+    # Scheduled compliance report recipients
+    "report_recipients": [e for e in os.getenv("COMPLIANCE_REPORT_RECIPIENTS", "").split(",") if e],
+    "report_email_enabled": os.getenv("COMPLIANCE_REPORT_EMAIL_ENABLED", "1") == "1",
+}
+
+# --- Sentry (error and performance monitoring) ---
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.05"))
+SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.0"))
+
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+        profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
+        send_default_pii=False,
+        environment=os.getenv("SENTRY_ENVIRONMENT", "development"),
+    )
+
+# --- Data Lifecycle & Privacy ---
+DATA_RETENTION = {
+    "audit_log_days": int(os.getenv("RETENTION_AUDIT_DAYS", "365")),
+    "access_log_days": int(os.getenv("RETENTION_ACCESS_DAYS", "180")),
+    "session_days": int(os.getenv("RETENTION_SESSION_DAYS", "90")),
+    "report_days": int(os.getenv("RETENTION_REPORT_DAYS", "365")),
+}
+
+# --- Performance & Scaling ---
+COMPLIANCE_DASHBOARD_CACHE_SECONDS = int(os.getenv("COMPLIANCE_DASHBOARD_CACHE_SECONDS", "60"))
+COMPLIANCE_EXPORT_MAX_ROWS = int(os.getenv("COMPLIANCE_EXPORT_MAX_ROWS", "5000"))
+
+# --- Threat Detection & Incident Response ---
+THREAT_DETECTION = {
+    "window_minutes": int(os.getenv("THREAT_WINDOW_MINUTES", "60")),
+    "failed_per_user": int(os.getenv("THREAT_FAILED_PER_USER", "10")),
+    "failed_per_ip": int(os.getenv("THREAT_FAILED_PER_IP", "20")),
+    "after_hours_start": int(os.getenv("THREAT_AFTER_HOURS_START", "22")),
+    "after_hours_end": int(os.getenv("THREAT_AFTER_HOURS_END", "6")),
+    "after_hours_threshold": int(os.getenv("THREAT_AFTER_HOURS_THRESHOLD", "5")),
+    "mute_minutes": int(os.getenv("THREAT_MUTE_MINUTES", "0")),
+}
+
+INCIDENT_RESPONSE = {
+    "oncall_emails": [e for e in os.getenv("ONCALL_EMAILS", "").split(",") if e],
+    "ticket_webhook": os.getenv("INCIDENT_TICKET_WEBHOOK", ""),
+    "playbook_url": os.getenv(
+        "INCIDENT_PLAYBOOK_URL",
+        "https://runbooks.gileadschool.com/security/incident-response"
+    ),
+}
+
+# --- IP/Country Access Control ---
+ENABLE_IP_COUNTRY_ACCESS_CONTROL = os.getenv("ENABLE_IP_COUNTRY_ACCESS_CONTROL", "1") == "1"
+BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS = os.getenv("BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS", "1") == "1"
+
+# --- Rate Limiting ---
+RATELIMIT_ENABLE = os.getenv("RATELIMIT_ENABLE", "1") == "1"
+RATELIMIT_USE_CACHE = 'default'  # Use Django cache backend
+RATELIMIT_VIEW = 'apps.compliance.views_ratelimit.ratelimit_error'  # Custom error handler
+
+
+# ============================================================================
+# Phase 1.2.4: Internationalization & Multi-Region Support
+# ============================================================================
+
+# --- Django i18n Settings ---
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+
+LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', 'en')
+LANGUAGES = [
+    ('en', 'English'),
+    ('fr', 'Français (French)'),
+    ('pid', 'Pidgin English'),
+    ('sw', 'Kiswahili'),
+    ('ha', 'Hausa'),
+    ('yo', 'Yorùbá'),
+]
+
+TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+
+# --- Multi-Region Configuration ---
+REGION_CODE = os.getenv('REGION_CODE', 'CMR')  # Default to Cameroon
+DEFAULT_GRADING_SCALE = os.getenv('DEFAULT_GRADING_SCALE', '0-20')
+DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', 'XAF')
+ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true'
+
+# Global grading scales (imported from apps.evals.grading module at runtime)
+# Reference: GRADING_SCALES, CURRENCY_SYMBOLS defined in apps/evals/grading.py
+
 

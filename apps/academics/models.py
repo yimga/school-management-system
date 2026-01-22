@@ -1,8 +1,12 @@
 from django.db import models
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 
 
 class AcademicYear(models.Model):
+    # Phase 4: Enable audit logging for this model
+    audit_enabled = True
+
     name = models.CharField(max_length=50)  # e.g. "2025/2026"
     start_date = models.DateField()
     end_date = models.DateField()
@@ -16,13 +20,22 @@ class AcademicYear(models.Model):
 
 
 class Term(models.Model):
+    # Backwards-compatible symbolic constants (no longer enforced as choices)
     class Name(models.TextChoices):
         FIRST = "FIRST", "First"
         SECOND = "SECOND", "Second"
         THIRD = "THIRD", "Third"
 
+    # Phase 4: Enable audit logging for this model
+    audit_enabled = True
+
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="terms")
-    name = models.CharField(max_length=10, choices=Name.choices)
+    # Code identifier (free text, e.g., "FIRST", "SEM1", "Q1"). No choices to enable flexibility.
+    name = models.CharField(max_length=20)
+    # Optional custom label for flexible naming (e.g., "Semester 1").
+    custom_label = models.CharField(max_length=30, blank=True)
+    # Position within the academic year (1..4) to support 2–4 terms configuration.
+    position = models.PositiveSmallIntegerField(null=True, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=False)
@@ -30,9 +43,39 @@ class Term(models.Model):
     class Meta:
         unique_together = ("academic_year", "name")
         ordering = ["start_date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["academic_year", "position"],
+                name="unique_term_position_per_year",
+                condition=Q(position__isnull=False),
+            ),
+            models.UniqueConstraint(
+                fields=["academic_year", "custom_label"],
+                name="unique_term_custom_label_per_year",
+                condition=~Q(custom_label=""),
+            ),
+            models.CheckConstraint(
+                check=(Q(position__isnull=True) | (Q(position__gte=1) & Q(position__lte=4))),
+                name="term_position_range_1_4_or_null",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.position is not None and not (1 <= int(self.position) <= 4):
+            raise ValidationError({"position": "Position must be between 1 and 4."})
 
     def __str__(self):
-        return f"{self.academic_year} - {self.get_name_display()}"
+        return f"{self.academic_year} - {self.label}"
+
+    @property
+    def label(self) -> str:
+        """Return display label, preferring custom_label if set."""
+        return self.custom_label or self.get_name_display()
+
+    # Backwards compatibility for existing code/templates calling get_name_display()
+    def get_name_display(self) -> str:  # type: ignore[override]
+        return self.custom_label or (self.name or "")
 
 
 class Department(models.Model):
@@ -109,9 +152,9 @@ class SubjectAssignment(models.Model):
         ordering = ["classroom__name", "specialty__name", "subject__name"]
 
     def __str__(self):
-        return f"{self.academic_year} | {self.term.get_name_display()} | {self.classroom} | {self.specialty} | {self.subject} (coef {self.coefficient})"
+        return f"{self.academic_year} | {self.term.label} | {self.classroom} | {self.specialty} | {self.subject} (coef {self.coefficient})"
 
     def clean(self):
         if self.term and self.classroom:
-            if self.term.name == Term.Name.THIRD and not self.classroom.allows_third_term:
+            if (self.term.position == 3) and not self.classroom.allows_third_term:
                 raise ValidationError("Third term is not allowed for this classroom.")

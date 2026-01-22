@@ -1,226 +1,295 @@
 """
-Compliance Middleware: Comprehensive audit and access control
-Logs all requests, tracks user activity, detects threats
+Phase 4: Access Control & Audit Logging Middleware
+
+Tracks all HTTP requests, logs failed access attempts, and enriches
+audit context with request metadata (IP address, user agent, etc.).
+Phase 6: IP/Country-based access control enforcement.
 """
 
-from django.utils.deprecation import MiddlewareNotUsed
-from django.contrib.auth.models import AnonymousUser
-from .models import AccessLog, AuditLog, ThreatDetectionConfig, IncidentTicket
-import geoip2.database
 import logging
-from datetime import datetime, timedelta
-from django.core.cache import cache
-from django.db.models import Count
+from time import time
+from django.utils.deprecation import MiddlewareMixin
+from django.utils import timezone
+from django.contrib.auth.models import AnonymousUser
+from django.http import HttpResponseForbidden
+from django.conf import settings
+from apps.compliance.models_audit import AccessLog, AuditLog
+from apps.compliance.access_control import check_request_access
 
 logger = logging.getLogger(__name__)
 
 
-class ComplianceAuditMiddleware:
+class AuditLoggingMiddleware(MiddlewareMixin):
     """
-    Middleware to log all access and detect threats
-    Implements:
-    - Request logging
-    - User activity tracking
-    - Threat detection
-    - Rate limiting
-    - Geographic tracking
+    Middleware to log all HTTP requests to AccessLog for audit trail.
+    Captures: user, IP address, method, path, status, response time.
     """
-    
-    EXCLUDED_PATHS = ['/static/', '/media/', '/health/']
-    SENSITIVE_METHODS = ['POST', 'DELETE', 'PUT']
-    SENSITIVE_ENDPOINTS = ['/admin/', '/api/grades/', '/api/finance/', '/authentication/']
-    
-    def __init__(self, get_response):
-        self.get_response = get_response
-        self.geoip_reader = None
+
+    # Paths to skip from access logging (noisy, non-user actions)
+    SKIP_PATHS = {
+        '/static/',
+        '/media/',
+        '/assets/',
+        '/favicon.ico',
+        '/.well-known/',
+        '/health/',
+        '/status/',
+    }
+
+    def process_request(self, request):
+        """Store start time for response time calculation."""
+        request._start_time = time()
+        return None
+
+    def process_response(self, request, response):
+        """Log the HTTP request/response to AccessLog."""
         try:
-            self.geoip_reader = geoip2.database.Reader('/path/to/GeoLite2-City.mmdb')
-        except:
-            logger.warning("GeoIP database not available")
-    
-    def __call__(self, request):
-        # Skip excluded paths
-        if any(request.path.startswith(path) for path in self.EXCLUDED_PATHS):
-            return self.get_response(request)
-        
-        # Pre-request processing
-        self.log_access(request)
-        self.check_threats(request)
-        
-        # Get response
-        response = self.get_response(request)
-        
-        # Post-request processing
-        self.log_sensitive_changes(request, response)
-        
-        return response
-    
-    def log_access(self, request):
-        """Log all access attempts"""
-        try:
-            ip_address = self.get_client_ip(request)
-            access_type = self.determine_access_type(request)
+            # Skip logging for static/media/health paths
+            if any(request.path.startswith(skip) for skip in self.SKIP_PATHS):
+                return response
+
+            # Calculate response time
+            start_time = getattr(request, '_start_time', None)
+            response_time_ms = None
+            if start_time:
+                response_time_ms = int((time() - start_time) * 1000)
+
+            # Determine access type
+            access_type = self._get_access_type(request)
+
+            # Extract error message if status >= 400
+            error_message = None
+            if response.status_code >= 400:
+                try:
+                    error_message = self._extract_error(response)
+                except Exception:
+                    pass
+
+            # Get user
+            user = None
+            if hasattr(request, 'user') and request.user.is_authenticated:
+                user = request.user
             
-            country = self.get_country_from_ip(ip_address)
-            
-            # Check if sensitive endpoint
-            is_sensitive = any(
-                request.path.startswith(ep) for ep in self.SENSITIVE_ENDPOINTS
-            )
-            
-            if is_sensitive or request.method in self.SENSITIVE_METHODS:
-                AccessLog.objects.create(
-                    user=request.user if request.user.is_authenticated else None,
-                    access_type=access_type,
-                    resource=request.path,
-                    ip_address=ip_address,
-                    user_agent=request.META.get('HTTP_USER_AGENT', '')[:255],
-                    country=country,
-                    details={
-                        'method': request.method,
-                        'referer': request.META.get('HTTP_REFERER', ''),
-                        'query_params': dict(request.GET.items()),
-                    }
-                )
-        except Exception as e:
-            logger.error(f"Error logging access: {str(e)}")
-    
-    def check_threats(self, request):
-        """Detect and respond to threats"""
-        ip_address = self.get_client_ip(request)
-        
-        # Brute force detection
-        self.check_brute_force(ip_address, request)
-        
-        # Rate limiting
-        self.check_rate_limit(ip_address, request)
-        
-        # Anomalous access
-        self.check_anomalous_access(request)
-    
-    def check_brute_force(self, ip_address, request):
-        """Detect brute force login attempts"""
-        if 'login' not in request.path.lower():
-            return
-        
-        cache_key = f"failed_login_{ip_address}"
-        failed_count = cache.get(cache_key, 0)
-        
-        # If failed login, increment counter
-        if request.method == 'POST':
-            failed_count += 1
-            cache.set(cache_key, failed_count, 3600)  # 1 hour
-            
-            # Threshold: 5 failed attempts
-            if failed_count >= 5:
-                self.create_incident_ticket(
-                    'BRUTE_FORCE',
-                    f"Brute force attack detected from {ip_address}",
-                    'CRITICAL',
-                    ip_address=ip_address
-                )
-    
-    def check_rate_limit(self, ip_address, request):
-        """Check for rate limit violations"""
-        cache_key = f"rate_limit_{ip_address}"
-        request_count = cache.get(cache_key, 0)
-        
-        # 100 requests per minute per IP
-        if request_count > 100:
-            logger.warning(f"Rate limit exceeded for {ip_address}")
-        
-        cache.set(cache_key, request_count + 1, 60)
-    
-    def check_anomalous_access(self, request):
-        """Detect anomalous access patterns"""
-        user = request.user
-        
-        if not user.is_authenticated:
-            return
-        
-        # Check if accessing data outside normal hours
-        current_hour = datetime.now().hour
-        if current_hour < 6 or current_hour > 22:  # Outside 6 AM - 10 PM
-            recent_access = AccessLog.objects.filter(
-                user=user,
-                timestamp__gte=datetime.now() - timedelta(hours=1)
-            ).count()
-            
-            if recent_access > 10:  # More than 10 accesses in last hour
-                logger.warning(f"Anomalous access pattern for {user}")
-    
-    def log_sensitive_changes(self, request, response):
-        """Log sensitive data modifications"""
-        if request.method not in self.SENSITIVE_METHODS:
-            return
-        
-        ip_address = self.get_client_ip(request)
-        
-        # Log sensitive operations
-        if any(request.path.startswith(ep) for ep in self.SENSITIVE_ENDPOINTS):
+            # Get IP address
+            ip_address = self._get_ip_address(request)
+
+            # Log the access
             AccessLog.objects.create(
-                user=request.user if request.user.is_authenticated else None,
-                access_type='SENSITIVE_OPERATION',
+                user=user,
+                access_type=access_type,
                 resource=request.path,
+                request_method=request.method,
+                status=response.status_code,
+                response_time_ms=response_time_ms,
                 ip_address=ip_address,
-                status='SUCCESS' if response.status_code < 400 else 'FAILURE',
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+                error_message=error_message,
             )
-    
-    def determine_access_type(self, request):
-        """Determine the type of access"""
-        path = request.path.lower()
+        except Exception as e:
+            logger.warning(f"Failed to log access: {e}", exc_info=True)
+
+        return response
+
+    def process_exception(self, request, exception):
+        """Log exceptions/failed requests."""
+        try:
+            user = None
+            if hasattr(request, 'user') and request.user.is_authenticated:
+                user = request.user
+
+            ip_address = self._get_ip_address(request)
+
+            AccessLog.objects.create(
+                user=user,
+                access_type=self._get_access_type(request),
+                resource=request.path,
+                request_method=request.method,
+                status=500,
+                ip_address=ip_address,
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+                error_message=str(exception)[:500],
+            )
+        except Exception as e:
+            logger.warning(f"Failed to log exception: {e}", exc_info=True)
+
+        return None  # Re-raise the exception
+
+    @staticmethod
+    def _get_access_type(request):
+        """Determine access type (WEB, API, DOWNLOAD, etc.)."""
+        path = request.path
         
-        if 'login' in path:
-            return 'LOGIN'
-        elif 'logout' in path:
-            return 'LOGOUT'
-        elif 'grade' in path or 'eval' in path:
-            return 'GRADE_VIEW'
-        elif 'finance' in path or 'invoice' in path or 'payment' in path:
-            return 'FINANCE_VIEW'
-        elif '/admin/' in path:
-            return 'ADMIN_ACCESS'
-        elif 'export' in path:
-            return 'EXPORT'
-        elif 'import' in path:
-            return 'IMPORT'
-        elif 'report' in path:
-            return 'REPORT_DOWNLOAD'
-        elif '/api/' in path:
-            return 'API_CALL'
+        if path.startswith('/api/'):
+            return AccessLog.AccessType.API
+        elif 'download' in path or 'export' in path:
+            return AccessLog.AccessType.DOWNLOAD
+        elif path.startswith('/admin/'):
+            return AccessLog.AccessType.ADMIN
         else:
-            return 'DATA_ACCESS'
-    
-    def get_client_ip(self, request):
-        """Get client IP address from request"""
+            return AccessLog.AccessType.WEB
+
+    @staticmethod
+    def _get_ip_address(request):
+        """Extract real IP address from request (handles proxies)."""
+        # Check for IP through proxy headers
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
+            ip = x_forwarded_for.split(',')[0].strip()
         else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
-    
-    def get_country_from_ip(self, ip_address):
-        """Get country code from IP address"""
-        if not self.geoip_reader:
-            return ''
+            ip = request.META.get('REMOTE_ADDR', '')
+        return ip[:45]
+
+    @staticmethod
+    def _extract_error(response):
+        """Extract error message from response."""
+        try:
+            if hasattr(response, 'content'):
+                content = response.content.decode('utf-8', errors='ignore')
+                # Try to find error message in common patterns
+                if 'error' in content.lower():
+                    # Very basic extraction - just take first 500 chars
+                    return content[:500]
+        except Exception:
+            pass
+        return None
+
+
+class AccessControlMiddleware(MiddlewareMixin):
+    """
+    Middleware to enforce access control and log permission denials.
+    Integrates with role-based access decorators.
+    """
+
+    def process_request(self, request):
+        """
+        Attach access control context to request.
+        This enriches decorators with audit information.
+        """
+        user = getattr(request, 'user', None)
         
-        try:
-            response = self.geoip_reader.city(ip_address)
-            return response.country.iso_code
-        except:
-            return ''
-    
-    def create_incident_ticket(self, threat_type, description, severity, **kwargs):
-        """Create incident ticket for threats"""
-        try:
-            incident_id = f"INC-{datetime.now().strftime('%Y%m%d%H%M%S')}"
-            IncidentTicket.objects.create(
-                incident_id=incident_id,
-                title=threat_type,
-                description=description,
-                severity=severity,
-                notes=f"IP: {kwargs.get('ip_address', 'Unknown')}"
+        # Attach user info for decorators to use
+        request.user_ip = self._get_ip_address(request)
+        request.user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+        request.access_timestamp = timezone.now()
+
+        return None
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        """
+        Called just before view is executed.
+        Can check for access control violations here.
+        """
+        # Store view info for audit purposes
+        request.view_name = f"{view_func.__module__}.{view_func.__name__}"
+        return None
+
+    @staticmethod
+    def _get_ip_address(request):
+        """Extract real IP address from request."""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', '')
+        return ip[:45]
+
+
+class IPCountryAccessMiddleware(MiddlewareMixin):
+    """
+    Enforce IP and country-based access control rules.
+    Blocks requests from denied IPs/countries before they reach views.
+    """
+
+    # Paths to bypass access control (e.g., health checks, static files)
+    BYPASS_PATHS = {
+        '/static/',
+        '/media/',
+        '/assets/',
+        '/favicon.ico',
+        '/.well-known/',
+        '/health/',
+        '/status/',
+        '/admin/jsi18n/',  # Django admin i18n
+    }
+
+    def process_request(self, request):
+        """Check IP/country access before view execution."""
+        # Skip bypass paths
+        if any(request.path.startswith(skip) for skip in self.BYPASS_PATHS):
+            return None
+
+        # Check if access control is enabled
+        if not getattr(settings, 'ENABLE_IP_COUNTRY_ACCESS_CONTROL', True):
+            return None
+
+        # Bypass for superusers (if configured)
+        if getattr(settings, 'BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS', True):
+            if hasattr(request, 'user') and request.user.is_authenticated and request.user.is_superuser:
+                return None
+
+        # Check access
+        is_allowed, reason = check_request_access(request)
+        
+        if not is_allowed:
+            # Log the blocked attempt
+            user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+            ip_address = self._get_ip_address(request)
+            
+            AccessLog.objects.create(
+                user=user,
+                access_type=AccessLog.AccessType.WEB,
+                resource=request.path,
+                request_method=request.method,
+                status=403,
+                ip_address=ip_address,
+                error_message=f"Access denied: {reason}",
             )
-        except Exception as e:
-            logger.error(f"Error creating incident ticket: {str(e)}")
+            
+            # Log as audit event
+            log_access_denial(
+                user=user,
+                action='HTTP_REQUEST',
+                resource=request.path,
+                reason=f"IP/Country access denied: {reason}",
+                ip_address=ip_address,
+                severity='HIGH'
+            )
+            
+            # Return 403 Forbidden
+            return HttpResponseForbidden(
+                f"<h1>Access Denied</h1><p>{reason}</p><p>If you believe this is an error, contact support.</p>"
+            )
+        
+        return None
+
+    @staticmethod
+    def _get_ip_address(request):
+        """Extract real IP address from request."""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', '')
+        return ip[:45]
+
+
+def log_access_denial(user, action, resource, reason, ip_address='', severity='HIGH'):
+    """
+    Utility function to log failed access attempts.
+    Called by access control decorators when permission is denied.
+    """
+    try:
+        AuditLog.objects.create(
+            action=AuditLog.Action.ACCESS_DENIED,
+            model_name='ACCESS_CONTROL',
+            object_id=resource,
+            object_repr=f"Denied: {action}",
+            app_label='compliance',
+            old_values={'requested_action': action},
+            new_values={},
+            reason=reason,
+            sensitivity=severity,
+            ip_address=ip_address,
+        )
+    except Exception as e:
+        logger.warning(f"Failed to log access denial: {e}")

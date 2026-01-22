@@ -632,3 +632,262 @@ def get_report_card_style_for_student(student: StudentProfile, report_type: str)
         return style
 
     return ReportCardStyle.objects.active().first()
+
+
+# ============================================================================
+# Phase 1.2.4: Internationalization & Multi-Region Support
+# ============================================================================
+
+class RegionConfig(models.Model):
+    """
+    Store region-specific settings for schools worldwide.
+    Enables deployment in any country with appropriate grading scales, currencies, timezones.
+    """
+    CALENDAR_CHOICES = [
+        ('gregorian', 'Gregorian'),
+        ('islamic', 'Islamic'),
+        ('buddhist', 'Buddhist'),
+        ('hebrew', 'Hebrew'),
+    ]
+    GRADING_SCALE_CHOICES = [
+        ('0-20', 'Cameroon (0-20)'),
+        ('0-100', 'US/UK (0-100)'),
+        ('0-10', 'European (0-10)'),
+        ('a-f', 'Letter Grade (A-F)'),
+        ('gpa', 'GPA (0-4.0)'),
+    ]
+    
+    code = models.CharField(
+        max_length=10, 
+        unique=True, 
+        primary_key=True,
+        help_text="ISO country code (CMR, USA, GBR, KEN, NGA, etc.)"
+    )
+    name = models.CharField(max_length=100, help_text="Country/Region name (Cameroon, United States, etc.)")
+    
+    # Localization settings
+    default_language = models.CharField(
+        max_length=10, 
+        default='en',
+        help_text="Default language code (en, fr, pid, sw, ha)"
+    )
+    timezone = models.CharField(
+        max_length=50, 
+        default='UTC',
+        help_text="Timezone name (Africa/Douala, America/New_York, Europe/London, etc.)"
+    )
+    decimal_separator = models.CharField(max_length=1, default='.', help_text="Decimal separator (. or ,)")
+    thousands_separator = models.CharField(max_length=1, default=',', help_text="Thousands separator (, or .)")
+    date_format = models.CharField(
+        max_length=20, 
+        default='DD/MM/YYYY',
+        help_text="Date display format (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD)"
+    )
+    
+    # Education system configuration
+    calendar_system = models.CharField(
+        max_length=20, 
+        choices=CALENDAR_CHOICES, 
+        default='gregorian'
+    )
+    grading_scale = models.CharField(
+        max_length=20, 
+        choices=GRADING_SCALE_CHOICES, 
+        default='0-20'
+    )
+    default_currency = models.CharField(
+        max_length=3, 
+        default='XAF',
+        help_text="ISO currency code (XAF, USD, EUR, GBP, KES, NGN, etc.)"
+    )
+    
+    # Academic structure
+    academic_year_start_month = models.IntegerField(
+        default=9,
+        help_text="Month when academic year starts (1-12, usually 9=September)"
+    )
+    term_count_per_year = models.IntegerField(
+        default=3,
+        choices=[(2, '2 terms'), (3, '3 terms'), (4, '4 terms')]
+    )
+    
+    # Legal/compliance
+    school_registration_number_format = models.CharField(
+        max_length=100, 
+        blank=True,
+        help_text="Regex pattern for school registration numbers"
+    )
+    student_id_format = models.CharField(
+        max_length=100, 
+        blank=True,
+        help_text="Format for student IDs (e.g., 'nnnn' for 4 digits)"
+    )
+    certificate_template_name = models.CharField(
+        max_length=100, 
+        default='standard',
+        help_text="Certificate template to use (standard, fancy, minimal, etc.)"
+    )
+    
+    # Portal features
+    enable_online_admissions = models.BooleanField(
+        default=True,
+        help_text="Allow online applications in this region"
+    )
+    enable_parent_portal = models.BooleanField(
+        default=True,
+        help_text="Enable parent/guardian access to student information"
+    )
+    enable_student_portal = models.BooleanField(
+        default=True,
+        help_text="Enable student self-service portal"
+    )
+    
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = "Region Configurations"
+        ordering = ['name']
+    
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+    
+    @classmethod
+    def get_default(cls):
+        """Get default region (Cameroon), creating if necessary."""
+        region, _ = cls.objects.get_or_create(
+            code='CMR',
+            defaults={
+                'name': 'Cameroon',
+                'default_language': 'en',
+                'timezone': 'Africa/Douala',
+                'date_format': 'DD/MM/YYYY',
+                'grading_scale': '0-20',
+                'default_currency': 'XAF',
+                'academic_year_start_month': 9,
+                'term_count_per_year': 3,
+            }
+        )
+        return region
+
+
+class GradingScaleConfig(models.Model):
+    """
+    Define grading scales per region.
+    Allows conversion between different evaluation systems.
+    """
+    region = models.ForeignKey(
+        RegionConfig, 
+        on_delete=models.CASCADE, 
+        related_name='grading_scales',
+        help_text="Region this scale applies to"
+    )
+    scale_type = models.CharField(
+        max_length=20,
+        help_text="Scale identifier (0-20, 0-100, 0-10, a-f, gpa)"
+    )
+    
+    # Scale range
+    min_score = models.DecimalField(max_digits=5, decimal_places=2)
+    max_score = models.DecimalField(max_digits=5, decimal_places=2)
+    
+    # Display format
+    display_format = models.CharField(
+        max_length=50,
+        help_text="Format string for display (e.g., '{score:.0f}/20', '{score:.1f}%')"
+    )
+    
+    # Grade breakpoints (0-20 scale)
+    grade_a_min = models.DecimalField(max_digits=5, decimal_places=2)
+    grade_b_min = models.DecimalField(max_digits=5, decimal_places=2)
+    grade_c_min = models.DecimalField(max_digits=5, decimal_places=2)
+    grade_d_min = models.DecimalField(max_digits=5, decimal_places=2)
+    grade_f_min = models.DecimalField(max_digits=5, decimal_places=2)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('region', 'scale_type')
+        ordering = ['region', 'scale_type']
+    
+    def __str__(self):
+        return f"{self.region.name} - {self.scale_type}"
+    
+    def get_letter_grade(self, score):
+        """Convert numerical score to letter grade (A-F)."""
+        score = Decimal(str(score))
+        if score >= self.grade_a_min:
+            return 'A'
+        elif score >= self.grade_b_min:
+            return 'B'
+        elif score >= self.grade_c_min:
+            return 'C'
+        elif score >= self.grade_d_min:
+            return 'D'
+        else:
+            return 'F'
+
+
+class HolidayCalendar(models.Model):
+    """
+    Store holidays and important dates per region and academic year.
+    Controls when school is closed and affects attendance tracking.
+    """
+    from apps.academics.models import AcademicYear
+    
+    HOLIDAY_TYPE_CHOICES = [
+        ('school_holiday', 'School Holiday'),
+        ('public_holiday', 'Public Holiday'),
+        ('exam_period', 'Exam Period'),
+        ('religious', 'Religious Holiday'),
+        ('special_event', 'Special Event'),
+    ]
+    
+    region = models.ForeignKey(
+        RegionConfig, 
+        on_delete=models.CASCADE, 
+        related_name='holidays',
+        help_text="Region this holiday applies to"
+    )
+    academic_year = models.ForeignKey(
+        'academics.AcademicYear',
+        on_delete=models.CASCADE, 
+        related_name='holidays_by_region',
+        help_text="Academic year for this holiday"
+    )
+    
+    name = models.CharField(
+        max_length=200,
+        help_text="Holiday name (e.g., 'Christmas Break', 'Eid al-Fitr')"
+    )
+    date_start = models.DateField(help_text="Holiday start date")
+    date_end = models.DateField(help_text="Holiday end date (inclusive)")
+    
+    holiday_type = models.CharField(
+        max_length=50, 
+        choices=HOLIDAY_TYPE_CHOICES,
+        help_text="Type of holiday"
+    )
+    
+    is_working_day = models.BooleanField(
+        default=False,
+        help_text="Some regions work during certain holidays (e.g., religious holidays)"
+    )
+    
+    description = models.TextField(blank=True, help_text="Holiday description")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('region', 'academic_year', 'name')
+        ordering = ['date_start']
+    
+    def __str__(self):
+        return f"{self.region.code} - {self.name} ({self.date_start.year})"
+    
+    def overlaps_date(self, date):
+        """Check if a specific date falls within this holiday."""
+        return self.date_start <= date <= self.date_end
+

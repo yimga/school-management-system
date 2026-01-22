@@ -1,4 +1,6 @@
-from .models import SiteSettings
+from .models import SiteSettings, RegionConfig
+from .translations import TranslationManager, SUPPORTED_LANGUAGES
+from django.utils import translation
 
 SESSION_KEY = "site_preview_settings"
 
@@ -80,3 +82,95 @@ def site_settings(request):
         "BREADCRUMBS": breadcrumbs,
     }
 
+
+def region_settings(request):
+    """
+    Provides region-specific settings and utilities to all templates.
+    Phase 1.2.4: Internationalization & Multi-Region Support
+    """
+    from django.conf import settings
+    from .models import RegionConfig
+    from apps.evals.grading import CURRENCY_SYMBOLS
+    
+    try:
+        # Try to get region from user preferences, session, or use default
+        region_code = getattr(request.user, 'profile', {}).get('region', None) if request.user.is_authenticated else None
+        region_code = region_code or request.session.get('region_code', settings.REGION_CODE)
+        
+        region = RegionConfig.objects.get(code=region_code)
+    except RegionConfig.DoesNotExist:
+        # Fallback to default region (Cameroon)
+        region = RegionConfig.get_default()
+    
+    currency_symbol = CURRENCY_SYMBOLS.get(region.default_currency, region.default_currency)
+    
+    return {
+        'region': region,
+        'region_code': region.code,
+        'region_name': region.name,
+        'currency_symbol': currency_symbol,
+        'date_format': region.date_format,
+        'timezone': region.timezone,
+        'default_language': region.default_language,
+        'grading_scale': region.grading_scale,
+        'decimal_separator': region.decimal_separator,
+        'thousands_separator': region.thousands_separator,
+    }
+
+
+def language_context(request):
+    """
+    Provide language-related context for templates.
+    Supports region-based auto-selection and manual override.
+    """
+    # Determine current language
+    current_language = translation.get_language()
+    
+    # Check for manual language preference
+    if 'language' in request.GET:
+        requested_language = request.GET.get('language')
+        if requested_language in SUPPORTED_LANGUAGES:
+            current_language = requested_language
+            translation.activate(requested_language)
+    elif 'django_language' in request.COOKIES:
+        # Load from cookie
+        cookie_language = request.COOKIES.get('django_language')
+        if cookie_language in SUPPORTED_LANGUAGES:
+            current_language = cookie_language
+    else:
+        # Try region-based auto-detection
+        try:
+            region = RegionConfig.get_default()
+            if request.user and request.user.is_authenticated:
+                # Check user region preference
+                region_code = getattr(request.user, 'preferred_region', region.code)
+                region = RegionConfig.objects.get(code=region_code)
+            
+            # Map region to language
+            region_language_map = {
+                'CMR': 'fr',  # Cameroon -> French
+                'FRA': 'fr',  # France -> French
+                'USA': 'en',  # USA -> English
+                'GBR': 'en',  # UK -> English
+                'KEN': 'sw',  # Kenya -> Swahili
+                'NGA': 'yo',  # Nigeria -> Yoruba
+                'DEU': 'en',  # Germany -> English (fallback)
+            }
+            
+            default_language = region_language_map.get(region.code, 'en')
+            if default_language in SUPPORTED_LANGUAGES:
+                current_language = default_language
+        except:
+            pass
+    
+    # Get available languages
+    available_languages = [(code, name) for code, name in SUPPORTED_LANGUAGES.items()]
+    current_language_name = SUPPORTED_LANGUAGES.get(current_language, 'English')
+    
+    return {
+        'current_language': current_language,
+        'current_language_name': current_language_name,
+        'available_languages': available_languages,
+        'supported_languages': SUPPORTED_LANGUAGES,
+        'translate': lambda text: TranslationManager.get_text(text, current_language),
+    }

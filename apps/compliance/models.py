@@ -1,287 +1,255 @@
 """
-Phase 8 Task 1: Compliance Framework
-Comprehensive audit, access control, and compliance models
-
-Implements:
-- Access control and RBAC
-- Audit logging
-- Compliance reporting
-- Threat detection
-- Data integrity
+Compliance & Legal Framework models for regional requirements and document management.
 """
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
-from django.core.validators import URLValidator, validate_ipv4_address
-import json
-from datetime import timedelta
+from apps.siteconfig.models import RegionConfig
+from django.conf import settings
 
 
-class AccessLog(models.Model):
-    """Track all user access to sensitive data"""
-    
-    ACCESS_TYPES = [
-        ('LOGIN', 'Login'),
-        ('LOGOUT', 'Logout'),
-        ('PROFILE_VIEW', 'Profile View'),
-        ('GRADE_VIEW', 'Grade View'),
-        ('FINANCE_VIEW', 'Finance View'),
-        ('ADMIN_ACCESS', 'Admin Access'),
-        ('EXPORT', 'Data Export'),
-        ('IMPORT', 'Data Import'),
-        ('REPORT_DOWNLOAD', 'Report Download'),
-        ('API_CALL', 'API Call'),
-        ('FAILED_LOGIN', 'Failed Login'),
-        ('PASSWORD_CHANGE', 'Password Change'),
-        ('PERMISSION_DENIED', 'Permission Denied'),
-        ('DATA_ACCESS', 'Data Access'),
+class ComplianceRule(models.Model):
+    """Base compliance rule template that can be applied to regions."""
+    RULE_TYPES = [
+        ('data_retention', 'Data Retention'),
+        ('certificate_format', 'Certificate Format'),
+        ('student_id_format', 'Student ID Format'),
+        ('document_validation', 'Document Validation'),
+        ('privacy_policy', 'Privacy Policy'),
+        ('terms_of_service', 'Terms of Service'),
+        ('data_agreement', 'Data Processing Agreement'),
     ]
-    
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    access_type = models.CharField(max_length=20, choices=ACCESS_TYPES)
-    resource = models.CharField(max_length=255, help_text="Resource accessed (e.g., /api/grades/)")
-    ip_address = models.GenericIPAddressField()
-    user_agent = models.TextField(blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
-    status = models.CharField(
-        max_length=20,
-        choices=[('SUCCESS', 'Success'), ('FAILURE', 'Failure'), ('PARTIAL', 'Partial')],
-        default='SUCCESS'
-    )
-    details = models.JSONField(default=dict, blank=True)
-    country = models.CharField(max_length=2, blank=True, help_text="ISO country code")
-    
-    class Meta:
-        verbose_name = 'Access Log'
-        verbose_name_plural = 'Access Logs'
-        indexes = [
-            models.Index(fields=['user', '-timestamp']),
-            models.Index(fields=['access_type', '-timestamp']),
-            models.Index(fields=['ip_address']),
-        ]
-        ordering = ['-timestamp']
-    
-    def __str__(self):
-        return f"{self.user} - {self.access_type} - {self.timestamp}"
 
-
-class AuditLog(models.Model):
-    """Track all data modifications for compliance"""
-    
-    ACTIONS = [
-        ('CREATE', 'Create'),
-        ('UPDATE', 'Update'),
-        ('DELETE', 'Delete'),
-        ('RESTORE', 'Restore'),
-        ('EXPORT', 'Export'),
-        ('IMPORT', 'Import'),
-        ('BULK_UPDATE', 'Bulk Update'),
-    ]
-    
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    action = models.CharField(max_length=20, choices=ACTIONS)
-    app_label = models.CharField(max_length=50)
-    model_name = models.CharField(max_length=50)
-    object_id = models.IntegerField()
-    object_repr = models.TextField(max_length=500)
-    changes = models.JSONField(default=dict, blank=True, help_text="Before/after comparison")
-    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
-    ip_address = models.GenericIPAddressField()
-    reason = models.TextField(blank=True, help_text="Reason for change")
-    approved_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='approved_audits'
-    )
-    
-    class Meta:
-        verbose_name = 'Audit Log'
-        verbose_name_plural = 'Audit Logs'
-        indexes = [
-            models.Index(fields=['user', '-timestamp']),
-            models.Index(fields=['model_name', 'object_id']),
-            models.Index(fields=['action', '-timestamp']),
-        ]
-        ordering = ['-timestamp']
-    
-    def __str__(self):
-        return f"{self.action} {self.model_name} by {self.user} at {self.timestamp}"
-
-
-class ComplianceReport(models.Model):
-    """Generate compliance reports for regulatory requirements"""
-    
-    REPORT_TYPES = [
-        ('GDPR', 'GDPR Compliance'),
-        ('FERPA', 'FERPA Compliance'),
-        ('COPPA', 'COPPA Compliance'),
-        ('DATA_RETENTION', 'Data Retention'),
-        ('ACCESS_CONTROL', 'Access Control'),
-        ('INCIDENT', 'Incident Report'),
-        ('AUDIT_TRAIL', 'Audit Trail'),
-        ('DATA_INTEGRITY', 'Data Integrity'),
-    ]
-    
-    report_type = models.CharField(max_length=20, choices=REPORT_TYPES)
-    generated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    generated_at = models.DateTimeField(auto_now_add=True)
-    period_start = models.DateField()
-    period_end = models.DateField()
-    summary = models.TextField()
-    findings = models.JSONField(default=dict)
-    recommendations = models.JSONField(default=list)
-    file_path = models.FileField(upload_to='compliance_reports/', blank=True)
-    
-    class Meta:
-        verbose_name = 'Compliance Report'
-        verbose_name_plural = 'Compliance Reports'
-        ordering = ['-generated_at']
-    
-    def __str__(self):
-        return f"{self.report_type} - {self.generated_at.date()}"
-
-
-class ThreatDetectionConfig(models.Model):
-    """Configure threat detection rules"""
-    
-    THREAT_TYPES = [
-        ('BRUTE_FORCE', 'Brute Force Attack'),
-        ('DATA_EXFIL', 'Data Exfiltration'),
-        ('PRIVILEGE_ESCALATION', 'Privilege Escalation'),
-        ('ANOMALOUS_ACCESS', 'Anomalous Access Pattern'),
-        ('RATE_LIMIT_VIOLATION', 'Rate Limit Violation'),
-        ('SUSPICIOUS_EXPORT', 'Suspicious Export'),
-    ]
-    
-    threat_type = models.CharField(max_length=25, choices=THREAT_TYPES, unique=True)
-    enabled = models.BooleanField(default=True)
-    threshold = models.IntegerField(help_text="Detection threshold")
-    time_window = models.IntegerField(help_text="Time window in seconds")
-    action = models.CharField(
-        max_length=20,
-        choices=[('LOG', 'Log'), ('ALERT', 'Alert'), ('BLOCK', 'Block'), ('NOTIFY', 'Notify')],
-        default='ALERT'
-    )
-    alert_email = models.EmailField(blank=True)
-    active = models.BooleanField(default=True)
-    
-    class Meta:
-        verbose_name = 'Threat Detection Config'
-        verbose_name_plural = 'Threat Detection Configs'
-    
-    def __str__(self):
-        return f"{self.threat_type} (Threshold: {self.threshold})"
-
-
-class IPAccessRule(models.Model):
-    """IP-based access control"""
-    
-    ip_address = models.GenericIPAddressField(unique=True)
-    action = models.CharField(
-        max_length=10,
-        choices=[('ALLOW', 'Allow'), ('DENY', 'Deny'), ('RESTRICT', 'Restrict')],
-        default='ALLOW'
-    )
-    reason = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    
-    class Meta:
-        verbose_name = 'IP Access Rule'
-        verbose_name_plural = 'IP Access Rules'
-    
-    def __str__(self):
-        return f"{self.ip_address} - {self.action}"
-
-
-class CountryAccessRule(models.Model):
-    """Country-based access control"""
-    
-    country_code = models.CharField(
-        max_length=2,
-        unique=True,
-        help_text="ISO 3166-1 alpha-2 country code"
-    )
-    country_name = models.CharField(max_length=100)
-    action = models.CharField(
-        max_length=10,
-        choices=[('ALLOW', 'Allow'), ('DENY', 'Deny'), ('RESTRICT', 'Restrict')],
-        default='ALLOW'
-    )
-    reason = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    
-    class Meta:
-        verbose_name = 'Country Access Rule'
-        verbose_name_plural = 'Country Access Rules'
-    
-    def __str__(self):
-        return f"{self.country_name} - {self.action}"
-
-
-class AlertDigest(models.Model):
-    """Aggregated alerts for digest emails"""
-    
-    DIGEST_TYPES = [
-        ('DAILY', 'Daily'),
-        ('WEEKLY', 'Weekly'),
-        ('MONTHLY', 'Monthly'),
-    ]
-    
-    recipient = models.EmailField()
-    digest_type = models.CharField(max_length=10, choices=DIGEST_TYPES)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    alerts = models.JSONField(default=list)
-    summary = models.TextField()
-    sent_at = models.DateTimeField(null=True, blank=True)
-    
-    class Meta:
-        verbose_name = 'Alert Digest'
-        verbose_name_plural = 'Alert Digests'
-        ordering = ['-start_date']
-    
-    def __str__(self):
-        return f"{self.digest_type} - {self.recipient} - {self.start_date.date()}"
-
-
-class IncidentTicket(models.Model):
-    """Track security incidents"""
-    
-    SEVERITY = [
-        ('CRITICAL', 'Critical'),
-        ('HIGH', 'High'),
-        ('MEDIUM', 'Medium'),
-        ('LOW', 'Low'),
-    ]
-    
-    STATUS = [
-        ('OPEN', 'Open'),
-        ('INVESTIGATING', 'Investigating'),
-        ('RESOLVED', 'Resolved'),
-        ('CLOSED', 'Closed'),
-    ]
-    
-    incident_id = models.CharField(max_length=50, unique=True, db_index=True)
-    title = models.CharField(max_length=255)
+    name = models.CharField(max_length=200, unique=True)
+    rule_type = models.CharField(max_length=50, choices=RULE_TYPES)
     description = models.TextField()
-    severity = models.CharField(max_length=10, choices=SEVERITY)
-    status = models.CharField(max_length=15, choices=STATUS, default='OPEN')
-    reported_at = models.DateTimeField(auto_now_add=True)
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    resolved_at = models.DateTimeField(null=True, blank=True)
-    notes = models.TextField(blank=True)
-    attachments = models.JSONField(default=list)
+    applies_globally = models.BooleanField(default=False)
+    is_mandatory = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='created_rules')
     
     class Meta:
-        verbose_name = 'Incident Ticket'
-        verbose_name_plural = 'Incident Tickets'
-        ordering = ['-reported_at']
+        ordering = ['rule_type', 'name']
+        verbose_name = 'Compliance Rule'
+        verbose_name_plural = 'Compliance Rules'
     
     def __str__(self):
-        return f"{self.incident_id} - {self.title}"
+        return f"{self.get_rule_type_display()}: {self.name}"
+
+
+class RegionalComplianceRequirement(models.Model):
+    """Maps compliance rules to specific regions with customization."""
+    COMPLIANCE_STATUS = [
+        ('pending', 'Pending'),
+        ('implemented', 'Implemented'),
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+    ]
+
+    region = models.ForeignKey(RegionConfig, on_delete=models.CASCADE, related_name='compliance_requirements')
+    rule = models.ForeignKey(ComplianceRule, on_delete=models.CASCADE, related_name='regional_requirements')
+    description_override = models.TextField(blank=True)
+    custom_parameters = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=COMPLIANCE_STATUS, default='pending')
+    implementation_date = models.DateField(null=True, blank=True)
+    enforcement_date = models.DateField(null=True, blank=True)
+    deadline = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='created_requirements')
+    
+    class Meta:
+        unique_together = ('region', 'rule')
+        ordering = ['region', 'rule__rule_type']
+    
+    def __str__(self):
+        return f"{self.region.code}: {self.rule.name}"
+    
+    def is_overdue(self):
+        if self.deadline and timezone.now().date() > self.deadline:
+            return True
+        return False
+
+
+class ComplianceCheck(models.Model):
+    """Records compliance verification checks performed."""
+    CHECK_STATUS = [
+        ('pass', 'Pass'),
+        ('fail', 'Fail'),
+        ('warning', 'Warning'),
+        ('pending', 'Pending'),
+    ]
+
+    region = models.ForeignKey(RegionConfig, on_delete=models.CASCADE, related_name='compliance_checks')
+    requirement = models.ForeignKey(RegionalComplianceRequirement, on_delete=models.CASCADE, related_name='checks')
+    check_type = models.CharField(max_length=50, choices=[
+        ('data_validation', 'Data Validation'),
+        ('document_audit', 'Document Audit'),
+        ('format_validation', 'Format Validation'),
+        ('policy_review', 'Policy Review'),
+        ('scheduled_review', 'Scheduled Review'),
+    ], default='scheduled_review')
+    status = models.CharField(max_length=20, choices=CHECK_STATUS)
+    findings = models.TextField()
+    issues_found = models.IntegerField(default=0)
+    issues_resolved = models.IntegerField(default=0)
+    check_date = models.DateTimeField(auto_now_add=True)
+    next_check_date = models.DateField(null=True, blank=True)
+    checked_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='compliance_checks')
+    remediation_required = models.BooleanField(default=False)
+    remediation_deadline = models.DateField(null=True, blank=True)
+    remediation_notes = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['-check_date']
+        verbose_name = 'Compliance Check'
+        verbose_name_plural = 'Compliance Checks'
+    
+    def __str__(self):
+        return f"{self.region.code} - {self.get_check_type_display()} ({self.get_status_display()})"
+
+
+class LegalDocument(models.Model):
+    """Manages legal documents in multiple languages."""
+    DOCUMENT_TYPES = [
+        ('privacy_policy', 'Privacy Policy'),
+        ('terms_of_service', 'Terms of Service'),
+        ('data_agreement', 'Data Processing Agreement'),
+        ('parental_consent', 'Parental Consent Form'),
+        ('user_agreement', 'User Agreement'),
+    ]
+
+    LANGUAGES = [
+        ('en', 'English'),
+        ('fr', 'French'),
+        ('sw', 'Swahili'),
+        ('yo', 'Yoruba'),
+        ('pid', 'Pidgin'),
+        ('ha', 'Hausa'),
+    ]
+
+    region = models.ForeignKey(RegionConfig, on_delete=models.CASCADE, related_name='legal_documents')
+    document_type = models.CharField(max_length=50, choices=DOCUMENT_TYPES)
+    language = models.CharField(max_length=10, choices=LANGUAGES, default='en')
+    title = models.CharField(max_length=300)
+    content = models.TextField()
+    version = models.IntegerField(default=1)
+    effective_date = models.DateField()
+    expiry_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='created_legal_documents')
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        unique_together = ('region', 'document_type', 'language', 'version')
+        ordering = ['region', 'document_type', 'language', '-version']
+    
+    def __str__(self):
+        return f"{self.region.code} - {self.get_document_type_display()} ({self.language.upper()}) v{self.version}"
+    
+    def is_expired(self):
+        if self.expiry_date and timezone.now().date() > self.expiry_date:
+            return True
+        return False
+
+
+class ComplianceAuditLog(models.Model):
+    """Audit trail for compliance-related actions."""
+    ACTION_TYPES = [
+        ('check_performed', 'Compliance Check Performed'),
+        ('requirement_created', 'Requirement Created'),
+        ('requirement_updated', 'Requirement Updated'),
+        ('document_created', 'Document Created'),
+        ('document_updated', 'Document Updated'),
+        ('document_accessed', 'Document Accessed'),
+        ('policy_enforced', 'Policy Enforced'),
+        ('remediation_assigned', 'Remediation Assigned'),
+        ('remediation_completed', 'Remediation Completed'),
+        ('escalation', 'Issue Escalated'),
+    ]
+
+    region = models.ForeignKey(RegionConfig, on_delete=models.CASCADE, related_name='audit_logs')
+    action_type = models.CharField(max_length=50, choices=ACTION_TYPES)
+    requirement = models.ForeignKey(RegionalComplianceRequirement, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
+    document = models.ForeignKey(LegalDocument, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
+    description = models.TextField()
+    details = models.JSONField(default=dict, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='compliance_audit_logs')
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    severity = models.CharField(max_length=20, choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High'), ('critical', 'Critical')], default='medium')
+    
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Compliance Audit Log'
+        verbose_name_plural = 'Compliance Audit Logs'
+        indexes = [
+            models.Index(fields=['region', '-timestamp']),
+            models.Index(fields=['action_type', '-timestamp']),
+            models.Index(fields=['severity', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.region.code} - {self.get_action_type_display()} ({self.timestamp.date()})"
+
+
+class StudentIDFormat(models.Model):
+    """Student ID format requirements per region."""
+    region = models.OneToOneField(RegionConfig, on_delete=models.CASCADE, related_name='compliance_student_id_format')
+    format_pattern = models.CharField(max_length=100)
+    prefix = models.CharField(max_length=5)
+    min_length = models.IntegerField(default=10, validators=[MinValueValidator(5)])
+    max_length = models.IntegerField(default=20, validators=[MaxValueValidator(50)])
+    allow_letters = models.BooleanField(default=True)
+    allow_numbers = models.BooleanField(default=True)
+    allow_special_chars = models.BooleanField(default=False)
+    example_id = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Student ID Format'
+        verbose_name_plural = 'Student ID Formats'
+    
+    def __str__(self):
+        return f"{self.region.name} - {self.format_pattern}"
+
+
+class CertificateTemplate(models.Model):
+    """Regional certificate templates with compliance requirements."""
+    region = models.ForeignKey(RegionConfig, on_delete=models.CASCADE, related_name='certificate_templates')
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    paper_size = models.CharField(max_length=50, choices=[('A4', 'A4'), ('letter', 'Letter'), ('A3', 'A3')], default='A4')
+    orientation = models.CharField(max_length=20, choices=[('portrait', 'Portrait'), ('landscape', 'Landscape')], default='landscape')
+    requires_school_seal = models.BooleanField(default=True)
+    requires_principal_signature = models.BooleanField(default=True)
+    requires_official_stamp = models.BooleanField(default=True)
+    requires_issue_date = models.BooleanField(default=True)
+    requires_validity_date = models.BooleanField(default=False)
+    template_html = models.TextField()
+    css_styling = models.TextField(blank=True)
+    version = models.IntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('region', 'name', 'version')
+        ordering = ['region', 'name', '-version']
+        verbose_name = 'Certificate Template'
+        verbose_name_plural = 'Certificate Templates'
+    
+    def __str__(self):
+        return f"{self.region.name} - {self.name} (v{self.version})"
+
+
+# ============================================
+# Phase 4: Audit & Monitoring Models
+# ============================================
+# Import audit models from models_audit.py for organization
+from .models_audit import AuditLog, UserActivitySession, AccessLog, ComplianceReport

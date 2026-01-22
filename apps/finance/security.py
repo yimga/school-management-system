@@ -1,378 +1,315 @@
 """
-Phase 8 Task 6: Advanced Finance - Payment Security
-PCI compliance, encrypted payment processing, fraud detection
+Security validators and utilities for payment webhook processing.
+
+Includes:
+- WebhookSecurityValidator: IP whitelist, rate limiting, signature verification
+- PaymentValidator: Amount and invoice validation
 """
 
 import hashlib
 import hmac
-from datetime import datetime, timedelta
+import logging
 from decimal import Decimal
-from django.db import models
+from functools import wraps
+from typing import Optional
+
+from django.conf import settings
+from django.core.cache import cache
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
+
+logger = logging.getLogger(__name__)
 
 
-class PaymentEncryption:
-    """Secure payment encryption utilities"""
+class WebhookSecurityValidator:
+    """
+    Validates incoming payment webhooks for security.
     
-    # PCI-DSS compliant encryption
-    ENCRYPTION_KEY = 'django-insecure-payment-key'  # Should use environment variable
-    HASH_ALGORITHM = 'sha256'
-    
-    @classmethod
-    def encrypt_card_number(cls, card_number):
-        """Encrypt credit card number (PCI-DSS compliant)"""
-        # In production, use industry-standard libraries like cryptography
-        # This is simplified for demonstration
-        masked = f"****-****-****-{card_number[-4:]}"
-        return masked
-    
-    @classmethod
-    def hash_payment_token(cls, token):
-        """Hash payment token for secure storage"""
-        return hashlib.sha256(token.encode()).hexdigest()
-    
-    @classmethod
-    def verify_payment_signature(cls, payload, signature, secret):
-        """Verify payment processor webhook signature"""
-        expected_signature = hmac.new(
-            secret.encode(),
-            payload.encode(),
-            hashlib.sha256
-        ).hexdigest()
-        
-        return hmac.compare_digest(signature, expected_signature)
+    Checks:
+    - IP whitelist (provider's known IPs)
+    - Rate limiting (max requests per minute per IP)
+    - HMAC-SHA256 signature verification (timing-safe)
+    - Idempotency (prevents duplicate payment processing)
+    """
 
+    def __init__(self, provider_config: dict):
+        """
+        Args:
+            provider_config: Dict with keys:
+                - 'webhook_ips': list of allowed IPs
+                - 'webhook_secret': API key for HMAC signing
+                - 'rate_limit': requests per minute (default: 100)
+        """
+        self.webhook_ips = provider_config.get("webhook_ips", [])
+        self.webhook_secret = provider_config.get("webhook_secret", "")
+        self.rate_limit = provider_config.get("rate_limit", 100)
 
-class FraudDetector:
-    """Detect suspicious payment patterns"""
-    
-    # Fraud risk thresholds
-    HIGH_AMOUNT_THRESHOLD = 100000  # NGN
-    VELOCITY_THRESHOLD = 5  # transactions in 5 minutes
-    GEOGRAPHIC_THRESHOLD = 5  # countries in 24 hours
-    
     @staticmethod
-    def check_amount_risk(amount):
-        """Check if amount is suspiciously high"""
-        return amount > FraudDetector.HIGH_AMOUNT_THRESHOLD
-    
-    @staticmethod
-    def check_velocity_risk(user_id, minutes=5):
-        """Check for rapid transaction pattern"""
-        from apps.finance.models import Payment
-        from django.utils import timezone
-        
-        time_threshold = timezone.now() - timedelta(minutes=minutes)
-        
-        recent_transactions = Payment.objects.filter(
-            user_id=user_id,
-            created_at__gte=time_threshold,
-            status='completed'
-        ).count()
-        
-        return recent_transactions >= FraudDetector.VELOCITY_THRESHOLD
-    
-    @staticmethod
-    def check_geographic_risk(user_id, hours=24):
-        """Check for suspicious geographic patterns"""
-        from apps.finance.models import Payment
-        from django.utils import timezone
-        
-        time_threshold = timezone.now() - timedelta(hours=hours)
-        
-        recent_transactions = Payment.objects.filter(
-            user_id=user_id,
-            created_at__gte=time_threshold,
-        ).values('ip_country').distinct()
-        
-        country_count = recent_transactions.count()
-        
-        return country_count >= FraudDetector.GEOGRAPHIC_THRESHOLD
-    
-    @staticmethod
-    def calculate_fraud_score(payment_data):
-        """Calculate fraud risk score (0-100)"""
-        score = 0
-        
-        # Amount-based scoring (0-30)
-        if payment_data.get('amount', 0) > FraudDetector.HIGH_AMOUNT_THRESHOLD:
-            score += 30
-        elif payment_data.get('amount', 0) > 50000:
-            score += 15
-        
-        # Velocity-based scoring (0-30)
-        if payment_data.get('high_velocity', False):
-            score += 30
-        elif payment_data.get('moderate_velocity', False):
-            score += 15
-        
-        # Geographic-based scoring (0-20)
-        if payment_data.get('geographic_anomaly', False):
-            score += 20
-        
-        # Card-based scoring (0-20)
-        if payment_data.get('new_card', False):
-            score += 10
-        if payment_data.get('card_mismatch', False):
-            score += 10
-        
-        return min(score, 100)
+    def get_client_ip(request: HttpRequest) -> str:
+        """Extract client IP from request, handling proxies."""
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0].strip()
+        else:
+            ip = request.META.get("REMOTE_ADDR", "")
+        return ip
 
+    def validate_ip_whitelist(self, client_ip: str) -> bool:
+        """Check if client IP is in whitelist.
+        
+        Args:
+            client_ip: IP address from request
+            
+        Returns:
+            True if IP is whitelisted or whitelist is empty (disabled)
+        """
+        if not self.webhook_ips:
+            return True  # Whitelist disabled
+        
+        is_allowed = client_ip in self.webhook_ips
+        if not is_allowed:
+            logger.warning(f"Webhook IP not whitelisted: {client_ip}")
+        return is_allowed
 
-class PaymentProcessor:
-    """Handle payment processing with multiple providers"""
-    
-    PROVIDERS = {
-        'stripe': 'Stripe Payment Gateway',
-        'paypal': 'PayPal Payment Gateway',
-        'flutterwave': 'Flutterwave (Africa)',
-        'paysstack': 'Paystack (Africa)',
-    }
-    
-    @staticmethod
-    def process_payment(payment_data, provider='stripe'):
-        """Process payment through provider"""
+    def validate_rate_limit(self, client_ip: str) -> bool:
+        """
+        Check rate limit for client IP.
+        Uses cache to track request count per minute.
         
-        processor = PaymentProcessor.get_processor(provider)
+        Args:
+            client_ip: IP address from request
+            
+        Returns:
+            True if request is within limit
+        """
+        cache_key = f"webhook_rate_limit:{client_ip}"
+        current_count = cache.get(cache_key, 0)
         
-        if not processor:
-            raise ValueError(f'Invalid provider: {provider}')
+        if current_count >= self.rate_limit:
+            logger.warning(f"Webhook rate limit exceeded for {client_ip}: {current_count}/{self.rate_limit}")
+            return False
         
-        # In production, integrate with actual payment APIs
-        # For now, return simulation
+        # Increment and set 60-second expiry
+        cache.set(cache_key, current_count + 1, 60)
+        return True
+
+    def validate_signature(
+        self,
+        request_body: bytes,
+        signature_header: str,
+        signature_algorithm: str = "sha256"
+    ) -> bool:
+        """
+        Verify HMAC signature using timing-safe comparison.
         
-        return {
-            'transaction_id': f'TXN_{datetime.now().timestamp()}',
-            'status': 'completed',
-            'provider': provider,
-            'timestamp': timezone.now().isoformat(),
-            'amount': payment_data['amount'],
-            'currency': payment_data.get('currency', 'NGN'),
-        }
-    
-    @staticmethod
-    def get_processor(provider):
-        """Get processor instance for provider"""
-        return PaymentProcessor.PROVIDERS.get(provider)
+        Args:
+            request_body: Raw request body bytes
+            signature_header: Signature from request header
+            signature_algorithm: Hash algorithm (default: sha256)
+            
+        Returns:
+            True if signature is valid
+        """
+        if not self.webhook_secret:
+            logger.warning("Webhook secret not configured, skipping signature check")
+            return False
+        
+        if not signature_header:
+            logger.warning("No signature provided in webhook request")
+            return False
+        
+        # Compute expected signature
+        try:
+            expected_signature = hmac.new(
+                self.webhook_secret.encode(),
+                request_body,
+                getattr(hashlib, signature_algorithm)
+            ).hexdigest()
+        except (ValueError, AttributeError):
+            logger.error(f"Invalid signature algorithm: {signature_algorithm}")
+            return False
+        
+        # Timing-safe comparison (prevents timing attacks)
+        is_valid = hmac.compare_digest(signature_header, expected_signature)
+        
+        if not is_valid:
+            logger.warning(
+                f"Webhook signature mismatch. Expected: {expected_signature[:8]}..., "
+                f"Got: {signature_header[:8]}..."
+            )
+        
+        return is_valid
+
+    def validate_idempotency(self, provider: str, reference_id: str) -> bool:
+        """
+        Check if webhook has already been processed.
+        Uses WebhookLog to prevent duplicate payments.
+        
+        Args:
+            provider: Payment provider slug (mtm_momo, orange_money, etc.)
+            reference_id: External payment reference
+            
+        Returns:
+            True if this is a new webhook (not processed before)
+        """
+        from .models import WebhookLog
+        
+        # Check if this reference was already processed successfully
+        duplicate = WebhookLog.objects.filter(
+            provider=provider,
+            reference_id=reference_id,
+            status__in=["PROCESSED", "DUPLICATE"]
+        ).exists()
+        
+        if duplicate:
+            logger.info(f"Duplicate webhook detected: {provider} {reference_id}")
+            return False
+        
+        return True
 
 
 class PaymentValidator:
-    """Validate payment data"""
-    
+    """Validates payment data before recording in database."""
+
     @staticmethod
-    def validate_card_number(card_number):
-        """Validate credit card number using Luhn algorithm"""
-        card_number = card_number.replace(' ', '').replace('-', '')
+    def validate_amount(amount: Decimal) -> tuple[bool, Optional[str]]:
+        """
+        Validate payment amount.
         
-        if not card_number.isdigit():
-            return False
-        
-        if len(card_number) < 13 or len(card_number) > 19:
-            return False
-        
-        # Luhn algorithm
-        digits = [int(d) for d in card_number]
-        checksum = 0
-        
-        for i, digit in enumerate(reversed(digits)):
-            if i % 2 == 1:
-                digit *= 2
-                if digit > 9:
-                    digit -= 9
-            checksum += digit
-        
-        return checksum % 10 == 0
-    
-    @staticmethod
-    def validate_expiry_date(month, year):
-        """Validate card expiry date"""
+        Returns:
+            (is_valid, error_message)
+        """
         try:
-            month = int(month)
-            year = int(year)
-            
-            if month < 1 or month > 12:
-                return False
-            
-            expiry = datetime(year, month, 1)
-            return expiry > datetime.now()
-        except (ValueError, TypeError):
-            return False
-    
-    @staticmethod
-    def validate_cvv(cvv):
-        """Validate CVV"""
-        if not cvv or not cvv.isdigit():
-            return False
+            amount_decimal = Decimal(str(amount))
+        except Exception:
+            return False, "Amount must be a valid decimal number"
         
-        return len(cvv) in [3, 4]
-    
+        if amount_decimal <= 0:
+            return False, f"Amount must be positive, got {amount_decimal}"
+        
+        # Practical limit: 1 billion XAF (~1.6M USD)
+        if amount_decimal > Decimal("1000000000"):
+            return False, f"Amount exceeds maximum limit: {amount_decimal}"
+        
+        return True, None
+
     @staticmethod
-    def validate_amount(amount, min_amount=100, max_amount=1000000):
-        """Validate payment amount"""
+    def validate_against_invoice(
+        amount: Decimal,
+        invoice_total: Decimal,
+        invoice_paid: Decimal
+    ) -> tuple[bool, Optional[str]]:
+        """
+        Validate payment doesn't exceed invoice balance.
+        
+        Args:
+            amount: Payment amount
+            invoice_total: Invoice total
+            invoice_paid: Amount already paid
+            
+        Returns:
+            (is_valid, error_message)
+        """
+        remaining_balance = invoice_total - invoice_paid
+        
+        if amount > remaining_balance:
+            return (
+                False,
+                f"Payment {amount} exceeds remaining balance {remaining_balance}"
+            )
+        
+        return True, None
+
+    @staticmethod
+    def validate_reference(reference: str, max_length: int = 128) -> tuple[bool, Optional[str]]:
+        """
+        Validate payment reference string.
+        
+        Returns:
+            (is_valid, error_message)
+        """
+        if not reference or len(reference) == 0:
+            return False, "Reference is required"
+        
+        if len(reference) > max_length:
+            return False, f"Reference exceeds {max_length} characters"
+        
+        return True, None
+
+
+def webhook_security_required(view_func):
+    """
+    Decorator for webhook views that enforces security checks.
+    
+    Checks: HTTP method, IP whitelist, rate limit, signature.
+    
+    Usage:
+        @webhook_security_required
+        def payment_provider_webhook(request, provider_slug):
+            ...
+    """
+    @require_http_methods(["POST"])
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        from .models import PaymentIntegration, WebhookLog
+        
+        provider_slug = kwargs.get("provider_slug")
+        if not provider_slug:
+            provider_slug = args[1] if len(args) > 1 else None
+        
+        if not provider_slug:
+            logger.error("No provider_slug in webhook request")
+            return HttpResponseForbidden("Invalid request")
+        
+        # Get provider config
         try:
-            amount = Decimal(str(amount))
-            
-            if amount <= 0:
-                return False
-            
-            return min_amount <= amount <= max_amount
-        except:
-            return False
-
-
-class RefundManager:
-    """Handle payment refunds"""
-    
-    REFUND_WINDOW = 90  # days
-    
-    @staticmethod
-    def create_refund(transaction_id, amount, reason):
-        """Create refund for transaction"""
+            integration = PaymentIntegration.objects.get(code=provider_slug, is_active=True)
+        except PaymentIntegration.DoesNotExist:
+            logger.warning(f"Unknown payment provider: {provider_slug}")
+            return HttpResponseForbidden("Unknown provider")
         
-        # Verify transaction is refundable
-        if not RefundManager.is_refundable(transaction_id):
-            raise ValueError('Transaction not refundable')
+        # Create validator
+        validator = WebhookSecurityValidator(integration.config)
+        client_ip = validator.get_client_ip(request)
         
-        refund = {
-            'refund_id': f'RFD_{datetime.now().timestamp()}',
-            'transaction_id': transaction_id,
-            'amount': amount,
-            'reason': reason,
-            'status': 'pending',
-            'created_at': timezone.now().isoformat(),
-        }
+        # Step 1: IP whitelist check
+        if not validator.validate_ip_whitelist(client_ip):
+            return HttpResponseForbidden("IP not whitelisted")
         
-        return refund
-    
-    @staticmethod
-    def is_refundable(transaction_id, days=None):
-        """Check if transaction can be refunded"""
-        if days is None:
-            days = RefundManager.REFUND_WINDOW
+        # Step 2: Rate limiting check
+        if not validator.validate_rate_limit(client_ip):
+            return HttpResponse("Rate limit exceeded", status=429)
         
-        # In production, check actual transaction
-        # For now, return True if within refund window
-        return True
-    
-    @staticmethod
-    def process_refund(refund_id, provider):
-        """Process refund through provider"""
-        
-        return {
-            'refund_id': refund_id,
-            'status': 'completed',
-            'provider': provider,
-            'timestamp': timezone.now().isoformat(),
-        }
-
-
-class WebhookManager:
-    """Manage payment webhook handling"""
-    
-    # Webhook retry configuration
-    MAX_RETRIES = 5
-    RETRY_DELAY = 300  # 5 minutes
-    
-    @staticmethod
-    def process_webhook(event_data, provider):
-        """Process payment webhook from provider"""
-        
-        event_type = event_data.get('type')
-        
-        if event_type == 'payment.success':
-            return WebhookManager.handle_payment_success(event_data)
-        elif event_type == 'payment.failed':
-            return WebhookManager.handle_payment_failed(event_data)
-        elif event_type == 'refund.completed':
-            return WebhookManager.handle_refund_completed(event_data)
-        
-        return {'status': 'unknown_event'}
-    
-    @staticmethod
-    def handle_payment_success(event_data):
-        """Handle successful payment webhook"""
-        return {
-            'action': 'update_payment_status',
-            'status': 'completed',
-            'transaction_id': event_data.get('transaction_id'),
-        }
-    
-    @staticmethod
-    def handle_payment_failed(event_data):
-        """Handle failed payment webhook"""
-        return {
-            'action': 'update_payment_status',
-            'status': 'failed',
-            'transaction_id': event_data.get('transaction_id'),
-            'error': event_data.get('error'),
-        }
-    
-    @staticmethod
-    def handle_refund_completed(event_data):
-        """Handle refund completion webhook"""
-        return {
-            'action': 'update_refund_status',
-            'status': 'completed',
-            'refund_id': event_data.get('refund_id'),
-        }
-    
-    @staticmethod
-    def schedule_webhook_retry(webhook_id, retry_count=0):
-        """Schedule webhook retry on failure"""
-        
-        if retry_count >= WebhookManager.MAX_RETRIES:
-            return {'status': 'max_retries_exceeded'}
-        
-        next_retry_time = timezone.now() + timedelta(
-            seconds=WebhookManager.RETRY_DELAY * (retry_count + 1)
+        # Step 3: Signature verification
+        signature_header = integration.config.get("signature_header", "X-Signature")
+        signature = (
+            request.headers.get(signature_header)
+            or request.META.get(f"HTTP_{signature_header.upper().replace('-', '_')}")
         )
         
-        return {
-            'webhook_id': webhook_id,
-            'retry_count': retry_count + 1,
-            'next_retry': next_retry_time.isoformat(),
-        }
-
-
-class PaymentReconciliation:
-    """Reconcile payments with provider records"""
+        if not validator.validate_signature(request.body, signature or ""):
+            logger.warning(f"Invalid webhook signature from {provider_slug} ({client_ip})")
+            return HttpResponseForbidden("Invalid signature")
+        
+        # Log webhook receipt
+        try:
+            import json
+            data = json.loads(request.body.decode() or "{}")
+            reference_id = data.get("reference") or data.get("payment_reference") or "unknown"
+            
+            WebhookLog.objects.create(
+                provider=provider_slug,
+                reference_id=reference_id,
+                client_ip=client_ip,
+                signature_valid=True,
+                status="RECEIVED",
+                request_body=request.body.decode(),
+            )
+        except Exception as e:
+            logger.error(f"Failed to log webhook: {e}")
+        
+        # Call the actual view
+        return view_func(request, *args, **kwargs)
     
-    @staticmethod
-    def reconcile_transaction(transaction_id, provider_data):
-        """Reconcile single transaction"""
-        
-        discrepancies = []
-        
-        # Check amount match
-        if transaction_id.get('amount') != provider_data.get('amount'):
-            discrepancies.append('Amount mismatch')
-        
-        # Check status match
-        if transaction_id.get('status') != provider_data.get('status'):
-            discrepancies.append('Status mismatch')
-        
-        # Check date match (within 1 minute tolerance)
-        local_date = datetime.fromisoformat(transaction_id.get('created_at'))
-        provider_date = datetime.fromisoformat(provider_data.get('created_at'))
-        
-        if abs((local_date - provider_date).total_seconds()) > 60:
-            discrepancies.append('Timestamp mismatch')
-        
-        return {
-            'transaction_id': transaction_id.get('id'),
-            'reconciled': len(discrepancies) == 0,
-            'discrepancies': discrepancies,
-        }
-    
-    @staticmethod
-    def generate_reconciliation_report(date, provider):
-        """Generate daily reconciliation report"""
-        
-        return {
-            'report_date': date.isoformat(),
-            'provider': provider,
-            'transactions_processed': 0,
-            'transactions_reconciled': 0,
-            'discrepancies_found': 0,
-            'generated_at': timezone.now().isoformat(),
-        }
+    return _wrapped

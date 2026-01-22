@@ -253,7 +253,7 @@ def master_sheet(request: HttpRequest):
                 e.subject_assignment.specialty.name,
                 e.subject_assignment.subject.name,
                 e.teacher.user.get_full_name() or e.teacher.user.username,
-                e.term.get_name_display(),
+                e.term.label,
                 e.seq1_score or "",
                 e.seq2_score or "",
                 e.exam_score or "",

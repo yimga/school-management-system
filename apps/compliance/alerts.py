@@ -1,0 +1,320 @@
+"""
+Compliance alert utilities for real-time notifications and scheduled report delivery.
+- Dispatch alerts for critical audit events via email/Slack/webhooks
+- Provide escalation thresholds and runbook references
+- Send scheduled compliance report emails
+"""
+
+import json
+import logging
+import time
+from urllib import request, error as urllib_error
+
+from django.conf import settings
+from django.core.mail import send_mail
+from django.utils import timezone
+
+logger = logging.getLogger(__name__)
+
+SEVERITY_ORDER = {
+    "LOW": 1,
+    "MEDIUM": 2,
+    "HIGH": 3,
+    "CRITICAL": 4,
+}
+
+
+def _should_alert(audit_log):
+    cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
+    if not cfg.get("enabled", True):
+        return False
+
+    threshold = cfg.get("severity_threshold", "HIGH").upper()
+    min_level = SEVERITY_ORDER.get(threshold, 3)
+    severity_level = SEVERITY_ORDER.get((audit_log.sensitivity or "MEDIUM").upper(), 2)
+
+    escalate_actions = {a.strip().upper() for a in cfg.get("escalate_on_actions", []) if a}
+    action = (audit_log.action or "").upper()
+
+    return severity_level >= min_level or action in escalate_actions
+
+
+def _build_alert_message(audit_log):
+    runbook_url = settings.COMPLIANCE_ALERTS.get("runbook_url") if hasattr(settings, "COMPLIANCE_ALERTS") else None
+    user_label = audit_log.user.get_username() if audit_log.user else "System"
+    return {
+        "subject": f"[Compliance Alert] {audit_log.get_action_display()} {audit_log.model_name}",
+        "text": (
+            f"Action: {audit_log.get_action_display()}\n"
+            f"Model: {audit_log.model_name}\n"
+            f"Object: {audit_log.object_repr or audit_log.object_id}\n"
+            f"Sensitivity: {audit_log.sensitivity}\n"
+            f"User: {user_label}\n"
+            f"IP: {audit_log.ip_address or 'N/A'}\n"
+            f"When: {audit_log.timestamp.strftime('%Y-%m-%d %H:%M:%S %Z')}\n"
+            f"Reason: {audit_log.reason or 'N/A'}\n"
+            f"Runbook: {runbook_url or 'N/A'}\n"
+        ),
+    }
+
+
+def _post_json(url, payload, max_retries=3):
+    """
+    POST JSON payload to URL with exponential backoff retry logic.
+    
+    Args:
+        url: Target webhook URL
+        payload: Dict to be JSON-encoded
+        max_retries: Maximum number of retry attempts (default: 3)
+    
+    Returns:
+        Response body bytes on success
+    
+    Raises:
+        Exception if all retries exhausted
+    """
+    data = json.dumps(payload).encode("utf-8")
+    req = request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    
+    for attempt in range(max_retries):
+        try:
+            with request.urlopen(req, timeout=5) as resp:  # nosec - trusted outbound webhook
+                return resp.read()
+        except (urllib_error.HTTPError, urllib_error.URLError, TimeoutError) as exc:
+            is_last_attempt = attempt == max_retries - 1
+            
+            if is_last_attempt:
+                logger.error(
+                    f"Webhook POST failed after {max_retries} attempts to {url}: {exc}"
+                )
+                raise
+            
+            # Exponential backoff: 2^attempt seconds (1s, 2s, 4s)
+            backoff_seconds = 2 ** attempt
+            logger.warning(
+                f"Webhook POST attempt {attempt + 1}/{max_retries} failed to {url}: {exc}. "
+                f"Retrying in {backoff_seconds}s..."
+            )
+            time.sleep(backoff_seconds)
+    
+    # Should never reach here due to raise in last attempt
+    raise Exception(f"Webhook POST failed after {max_retries} retries")
+
+
+def _send_email(subject: str, message: str):
+    cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
+    recipients = cfg.get("email_recipients", [])
+    if not recipients:
+        return
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            recipients,
+            fail_silently=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to send compliance alert email: %s", exc)
+
+
+def _send_slack(message: str):
+    cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
+    webhook = cfg.get("slack_webhook_url")
+    if not webhook:
+        return
+    payload = {"text": message}
+    try:
+        _post_json(webhook, payload)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to send Slack alert: %s", exc)
+
+
+def _send_webhook(payload: dict):
+    cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
+    webhook = cfg.get("generic_webhook_url")
+    if not webhook:
+        return
+    try:
+        _post_json(webhook, payload)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to send webhook alert: %s", exc)
+
+
+def _create_incident_ticket(payload: dict):
+    """Create an incident ticket via webhook (e.g., Jira, PagerDuty, ServiceNow)."""
+    incident_cfg = getattr(settings, "INCIDENT_RESPONSE", {})
+    webhook = incident_cfg.get("ticket_webhook")
+    if not webhook:
+        return
+    
+    # Enrich payload with incident metadata
+    ticket_payload = {
+        "title": payload.get("title", "Security Incident"),
+        "description": payload.get("description", ""),
+        "severity": payload.get("severity", "MEDIUM"),
+        "type": payload.get("type", "security.incident"),
+        "occurred_at": payload.get("occurred_at"),
+        "user": payload.get("user"),
+        "ip_address": payload.get("ip_address"),
+        "playbook_url": incident_cfg.get("playbook_url"),
+        "oncall_emails": incident_cfg.get("oncall_emails", []),
+        "metadata": payload.get("metadata", {}),
+    }
+    
+    try:
+        _post_json(webhook, ticket_payload)
+        logger.info("Incident ticket created for: %s", payload.get("title"))
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to create incident ticket: %s", exc)
+
+
+def notify_audit_event(audit_log):
+    """Dispatch alerts for qualifying audit events. Use digest mode for LOW/MEDIUM severity."""
+    if not _should_alert(audit_log):
+        return
+    
+    severity = (audit_log.sensitivity or "MEDIUM").upper()
+    
+    # Use digest mode for LOW/MEDIUM severity
+    if severity in ("LOW", "MEDIUM"):
+        from apps.compliance.models_audit import AlertDigest
+        
+        AlertDigest.objects.create(
+            alert_type=AlertDigest.AlertType.AUDIT,
+            severity=severity,
+            subject=f"{audit_log.get_action_display()} {audit_log.model_name}",
+            message=_build_alert_message(audit_log)["text"],
+            source="alerts.notify_audit_event",
+            related_model=audit_log.model_name,
+            related_id=audit_log.id,
+        )
+        logger.info(f"Added {severity} audit alert to digest: {audit_log}")
+        return  # Don't send immediately
+    
+    # For HIGH/CRITICAL, send immediately
+    message = _build_alert_message(audit_log)
+
+    # Email
+    _send_email(message["subject"], message["text"])
+
+    # Slack (simple text)
+    _send_slack(message["text"])
+
+    # Generic webhook (structured JSON)
+    structured = {
+        "type": "compliance.alert",
+        "occurred_at": audit_log.timestamp.isoformat(),
+        "action": audit_log.action,
+        "model": audit_log.model_name,
+        "object_id": audit_log.object_id,
+        "sensitivity": audit_log.sensitivity,
+        "user": audit_log.user.get_username() if audit_log.user else "System",
+        "ip_address": audit_log.ip_address,
+        "reason": audit_log.reason,
+        "runbook": settings.COMPLIANCE_ALERTS.get("runbook_url") if hasattr(settings, "COMPLIANCE_ALERTS") else None,
+    }
+    _send_webhook(structured)
+    
+    # Create incident ticket for HIGH/CRITICAL events
+    if audit_log.sensitivity in ["HIGH", "CRITICAL"]:
+        _create_incident_ticket({
+            "title": f"[{audit_log.sensitivity}] {audit_log.get_action_display()} on {audit_log.model_name}",
+            "description": message["text"],
+            "severity": audit_log.sensitivity,
+            "type": "compliance.audit",
+            "occurred_at": audit_log.timestamp.isoformat(),
+            "user": audit_log.user.get_username() if audit_log.user else "System",
+            "ip_address": audit_log.ip_address,
+            "metadata": {
+                "action": audit_log.action,
+                "model": audit_log.model_name,
+                "object_id": audit_log.object_id,
+            },
+        })
+
+
+def send_threat_alert(finding: dict):
+    """Send threat detection alerts via configured channels."""
+    cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
+    incident_cfg = getattr(settings, "INCIDENT_RESPONSE", {})
+    if not cfg.get("enabled", True):
+        return
+
+    subject = f"[Threat Alert] {finding.get('type', 'Unknown')}"
+    message = (
+        f"Type: {finding.get('type')}\n"
+        f"Severity: {finding.get('severity')}\n"
+        f"User: {finding.get('user', 'N/A')}\n"
+        f"IP: {finding.get('ip_address', 'N/A')}\n"
+        f"Count: {finding.get('count', 'N/A')}\n"
+        f"Window: {finding.get('window', 'N/A')}\n"
+        f"Details: {finding.get('description', '')}\n"
+        f"Playbook: {incident_cfg.get('playbook_url', 'N/A')}\n"
+    )
+
+    _send_email(subject, message)
+    _send_slack(message)
+    structured = {
+        "type": "threat.alert",
+        "severity": finding.get("severity"),
+        "user": finding.get("user"),
+        "ip_address": finding.get("ip_address"),
+        "count": finding.get("count"),
+        "window": finding.get("window"),
+        "description": finding.get("description"),
+        "runbook": cfg.get("runbook_url"),
+    }
+    _send_webhook(structured)
+    
+    # Create incident ticket for all threat alerts
+    _create_incident_ticket({
+        "title": subject,
+        "description": message,
+        "severity": finding.get("severity", "HIGH"),
+        "type": "threat.detection",
+        "occurred_at": timezone.now().isoformat(),
+        "user": finding.get("user"),
+        "ip_address": finding.get("ip_address"),
+        "metadata": {
+            "threat_type": finding.get("type"),
+            "count": finding.get("count"),
+            "window": finding.get("window"),
+        },
+    })
+
+
+def send_compliance_report_email(reports):
+    """Send scheduled compliance report summaries via email."""
+    cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
+    if not cfg.get("report_email_enabled", True):
+        return
+
+    recipients = cfg.get("report_recipients", [])
+    if not recipients:
+        return
+
+    lines = ["Compliance Reports", "===================", ""]
+    for report in reports:
+        lines.append(
+            f"- {report.get_report_type_display()} ({report.start_date} to {report.end_date})"
+        )
+        lines.append(f"  Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M')}")
+        lines.append(f"  Summary: {report.summary}")
+        lines.append("")
+
+    lines.append(f"Sent at: {timezone.now().strftime('%Y-%m-%d %H:%M:%S %Z')}")
+    runbook = cfg.get("runbook_url")
+    if runbook:
+        lines.append(f"Runbook: {runbook}")
+
+    try:
+        send_mail(
+            subject="[Compliance] Scheduled Reports",
+            message="\n".join(lines),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=recipients,
+            fail_silently=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to send compliance report email: %s", exc)

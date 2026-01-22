@@ -32,7 +32,7 @@ class GradingDeadline(models.Model):
     def __str__(self) -> str:
         scope = self.classroom.name if self.classroom else "Whole school"
         date_label = timezone.localtime(self.deadline_at).strftime("%Y-%m-%d %H:%M")
-        return f"{self.academic_year} {self.term.get_name_display()} - {scope}: {date_label}"
+        return f"{self.academic_year} {self.term.label} - {scope}: {date_label}"
 
 # ========== GRADE IMPORT JOB TRACKING ==========
 

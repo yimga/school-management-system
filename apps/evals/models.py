@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.people.models import TeacherProfile, StudentProfile
@@ -159,7 +160,7 @@ class AssessmentWeights(models.Model):
 
     def __str__(self) -> str:
         scope = f"{self.classroom}" if self.classroom_id else "School default"
-        term_label = self.term.get_name_display() if self.term_id else "All terms"
+        term_label = self.term.label if self.term_id else "All terms"
         return f"Weights ({scope}) {self.academic_year} • {term_label}"
 
 
@@ -187,7 +188,11 @@ class TeacherAssignment(models.Model):
 class Evaluation(models.Model):
     """
     One row per student per subject_assignment per term.
+    Phase 4: Critical model for audit logging (grade changes).
     """
+    # Phase 4: Enable audit logging for this critical model
+    audit_enabled = True
+
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="evaluations")
     term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="evaluations")
     subject_assignment = models.ForeignKey(SubjectAssignment, on_delete=models.PROTECT, related_name="evaluations")
@@ -199,11 +204,47 @@ class Evaluation(models.Model):
     test2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     # Expanded components (Cameroon English sub-system + technical schools)
-    seq1_score = models.DecimalField("Seq 1", max_digits=5, decimal_places=2, null=True, blank=True)
-    seq2_score = models.DecimalField("Seq 2", max_digits=5, decimal_places=2, null=True, blank=True)
-    exam_score = models.DecimalField("Exam", max_digits=5, decimal_places=2, null=True, blank=True)
-    mock_score = models.DecimalField("Mock", max_digits=5, decimal_places=2, null=True, blank=True)
-    practical_score = models.DecimalField("Practical", max_digits=5, decimal_places=2, null=True, blank=True)
+    # Validators: 0-20 scale for Cameroon. Override if using different scale.
+    seq1_score = models.DecimalField(
+        "Seq 1",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
+    seq2_score = models.DecimalField(
+        "Seq 2",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
+    exam_score = models.DecimalField(
+        "Exam",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
+    mock_score = models.DecimalField(
+        "Mock",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
+    practical_score = models.DecimalField(
+        "Practical",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+    )
     remarks = models.CharField(max_length=255, blank=True)
     
     # NEW: Grade conversion & practical assessment
@@ -223,6 +264,29 @@ class Evaluation(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Audit logging fields for data integrity
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='evaluations_created',
+        help_text="User who created this evaluation"
+    )
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='evaluations_updated',
+        help_text="User who last updated this evaluation"
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp - preserves evaluation history"
+    )
 
 
     @property
@@ -291,6 +355,27 @@ class Evaluation(models.Model):
         unique_together = ("academic_year", "term", "subject_assignment", "student")
 
     def clean(self):
+        # Validate score ranges (0-20 for Cameroon)
+        score_fields = {
+            'seq1_score': self.seq1_score,
+            'seq2_score': self.seq2_score,
+            'exam_score': self.exam_score,
+            'mock_score': self.mock_score,
+            'practical_score': self.practical_score,
+        }
+        
+        for field_name, score in score_fields.items():
+            if score is not None:
+                if score < 0:
+                    raise ValidationError({field_name: f"{field_name} cannot be negative"})
+                if score > 20:
+                    raise ValidationError({field_name: f"{field_name} cannot exceed 20"})
+        
+        # At least one score must be entered
+        scores = [s for s in score_fields.values() if s is not None]
+        if not scores and not self.test1 and not self.test2:
+            raise ValidationError("At least one score must be entered")
+        
         # enforce year/term match
         if self.term and self.academic_year and self.term.academic_year_id != self.academic_year_id:
             raise ValidationError("Term academic year must match Evaluation academic year.")
@@ -306,6 +391,11 @@ class Evaluation(models.Model):
                 raise ValidationError("Student year must match SubjectAssignment year.")
             if self.student.classroom_id != sa.classroom_id or self.student.specialty_id != sa.specialty_id:
                 raise ValidationError("Student class/specialty must match SubjectAssignment class/specialty.")
+
+    def save(self, *args, **kwargs):
+        """Call full_clean() before saving to validate scores."""
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.student} | {self.subject_assignment.subject} | {self.term}"
@@ -330,8 +420,12 @@ class EvaluationEvidence(models.Model):
 # ========== GRADE AUDIT TRAIL ==========
 
 class GradeAudit(models.Model):
-    """Immutable audit trail for all grade changes."""
-    
+    """Immutable audit trail for all grade changes.
+    Phase 4: Enable audit logging to track audit record creation.
+    """
+    # Phase 4: Enable audit logging for this model
+    audit_enabled = True
+
     CHANGE_TYPE_CHOICES = [
         ('create', 'Grade Created'),
         ('update', 'Grade Updated'),
@@ -426,3 +520,76 @@ class OfflineMarkEntry(models.Model):
     
     def __str__(self):
         return f"Offline: {self.student.student_code} - {self.subject_assignment.subject.name}"
+
+
+class MockExamSetting(models.Model):
+    """Configuration for mock exam score blending (Phase 1.2.3).
+    
+    Allows schools to blend mock exam scores with final exam scores for advanced forms
+    (FORM 5, FORM 7, UPPER 6, etc.). One setting per classroom/term combination.
+    
+    Default: 70% final exam + 30% mock exam score (disabled by default).
+    """
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="mock_exam_settings")
+    classroom = models.ForeignKey("academics.Classroom", on_delete=models.CASCADE, related_name="mock_exam_settings")
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="mock_exam_settings")
+    
+    # Weight configuration (must sum to 100% if is_active=True)
+    final_weight = models.PositiveSmallIntegerField(
+        default=70,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Weight for final exam score (0-100%)"
+    )
+    mock_weight = models.PositiveSmallIntegerField(
+        default=30,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Weight for mock exam score (0-100%)"
+    )
+    is_active = models.BooleanField(
+        default=False,
+        help_text="Enable score blending for this classroom/term"
+    )
+    
+    # Audit timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ("academic_year", "classroom", "term")
+        indexes = [
+            models.Index(fields=["academic_year", "classroom", "term"]),
+            models.Index(fields=["is_active"]),
+        ]
+    
+    def __str__(self):
+        return f"Mock Settings: {self.classroom.name} ({self.term.name})"
+    
+    def clean(self):
+        """Validate that weights sum to 100% when active."""
+        if self.is_active:
+            total = self.final_weight + self.mock_weight
+            if total != 100:
+                raise ValidationError(
+                    f"When active, weights must sum to 100%. Got: {total}% "
+                    f"({self.final_weight}% final + {self.mock_weight}% mock)"
+                )
+    
+    def save(self, *args, **kwargs):
+        """Validate before saving."""
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_for(cls, academic_year, classroom, term):
+        """Get or create with defaults (disabled by default)."""
+        setting, _ = cls.objects.get_or_create(
+            academic_year=academic_year,
+            classroom=classroom,
+            term=term,
+            defaults={
+                "is_active": False,
+                "final_weight": 70,
+                "mock_weight": 30,
+            }
+        )
+        return setting

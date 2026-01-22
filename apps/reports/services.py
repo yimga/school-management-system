@@ -75,7 +75,7 @@ def get_promotion_thresholds(student: StudentProfile, academic_year) -> Optional
 def terms_for_student(academic_year, classroom) -> list[Term]:
     terms = list(Term.objects.filter(academic_year=academic_year).order_by("start_date", "name"))
     if not classroom.allows_third_term:
-        terms = [t for t in terms if t.name != Term.Name.THIRD]
+        terms = [t for t in terms if getattr(t, "position", None) != 3]
     return terms
 
 
@@ -222,7 +222,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         class_rankings = classroom_term_rankings(student.classroom, term)
         class_position = _rank_position(class_rankings, student.id)
         term_rows.append({
-            "term": term.get_name_display(),
+            "term": term.label,
             "avg": term_avg,
             "pos": class_position,
             "class_size": len(class_rankings),

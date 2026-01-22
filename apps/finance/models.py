@@ -4,9 +4,17 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.people.models import StudentProfile, StudentGuardian
+from apps.accounts.validators import (
+    validate_document_file,
+    validate_file_size_5mb,
+    validate_receipt_file,
+    validate_file_size_2mb
+)
 
 
 class ComplianceProfile(models.Model):
@@ -18,8 +26,16 @@ class ComplianceProfile(models.Model):
     country_code = models.CharField(max_length=2)
     currency_code = models.CharField(max_length=3, default="XAF")
     currency_symbol = models.CharField(max_length=8, default="XAF")
-    timezone = models.CharField(max_length=64, default="Africa/Douala")
+    timezone = models.CharField(max_length=64, default=settings.TIME_ZONE)
     chart_template = models.CharField(max_length=20, choices=ChartTemplate.choices, default=ChartTemplate.GENERIC)
+    # Phase 3: Global Flexibility – configure allowed payment methods per region/profile
+    available_payment_methods = models.JSONField(
+        default=list,
+        help_text=(
+            "List of allowed payment method codes (e.g., MTN_MOMO, ORANGE_MOMO, BANK, CASH). "
+            "Defaults applied at migration time."
+        ),
+    )
 
     min_wage = models.DecimalField(max_digits=12, decimal_places=2, default=60000)
     default_hours_per_week = models.DecimalField(max_digits=6, decimal_places=2, default=40)
@@ -201,6 +217,9 @@ class PaymentMethod(models.TextChoices):
 
 
 class Invoice(models.Model):
+    # Phase 4: Enable audit logging for this critical model (financial records)
+    audit_enabled = True
+
     class InvoiceType(models.TextChoices):
         AR = "AR", "Accounts Receivable"
         AP = "AP", "Accounts Payable"
@@ -227,9 +246,15 @@ class Invoice(models.Model):
         upload_to="finance/invoices/",
         blank=True,
         null=True,
-        help_text="Optional PDF or image attachment for this invoice.",
+        validators=[validate_document_file, validate_file_size_5mb],
+        help_text="Optional PDF or image attachment for this invoice (max 5MB).",
     )
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    total_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.01"))],  # Must be positive
+    )
     balance_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     preferred_payment_method = models.CharField(
         max_length=20,
@@ -239,9 +264,84 @@ class Invoice(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Audit logging fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoices_created',
+        help_text="User who created this invoice"
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoices_updated',
+        help_text="User who last updated this invoice"
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp - set instead of deleting"
+    )
 
     class Meta:
         ordering = ["-issued_date", "-id"]
+
+    def clean(self):
+        """Validate invoice data before saving."""
+        if self.total_amount < Decimal("0.01"):
+            raise ValidationError({"total_amount": "Invoice total must be at least 0.01"})
+        # Validate preferred payment method against profile configuration when provided
+        if self.preferred_payment_method:
+            # If profile defines available methods, ensure preferred method is allowed
+            if self.profile and isinstance(self.profile.available_payment_methods, list) and self.profile.available_payment_methods:
+                if self.preferred_payment_method not in self.profile.available_payment_methods:
+                    raise ValidationError({
+                        "preferred_payment_method": (
+                            f"Method '{self.preferred_payment_method}' is not allowed for profile {self.profile.name}. "
+                            f"Allowed: {', '.join(self.profile.available_payment_methods)}"
+                        )
+                    })
+
+    def save(self, *args, **kwargs):
+        """Call full_clean() before saving to validate."""
+        self.full_clean()
+        super().save(*args, **kwargs)
+    
+    @property
+    def computed_balance(self) -> Decimal:
+        """
+        Compute remaining balance from total_amount - sum(payments).
+        
+        This replaces the denormalized balance_amount field with a reliable 
+        computed property that always reflects the true state.
+        
+        Note: The balance_amount field is deprecated and should be migrated to 
+        use this property. For now, both exist for backwards compatibility.
+        """
+        total_paid = sum(
+            p.amount for p in self.payments.all()
+        ) or Decimal("0.00")
+        return max(self.total_amount - total_paid, Decimal("0.00"))
+    
+    def reconcile_balance(self) -> bool:
+        """
+        Sync the denormalized balance_amount field with computed value.
+        Returns True if balance was out of sync and updated.
+        
+        This method should be called after payment changes to maintain 
+        backwards compatibility with code that relies on balance_amount field.
+        """
+        correct_balance = self.computed_balance
+        if self.balance_amount != correct_balance:
+            self.balance_amount = correct_balance
+            self.save(update_fields=['balance_amount', 'updated_at'])
+            return True
+        return False
 
     def __str__(self) -> str:
         return f"{self.invoice_type} {self.reference or self.id}"
@@ -263,8 +363,15 @@ class InvoiceLine(models.Model):
 
 
 class Payment(models.Model):
+    # Phase 4: Enable audit logging for this critical model (financial records)
+    audit_enabled = True
+
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],  # Must be positive
+    )
     method = models.CharField(max_length=20, choices=PaymentMethod.choices)
     reference = models.CharField(max_length=80, blank=True)
     paid_at = models.DateTimeField(default=timezone.now)
@@ -274,12 +381,62 @@ class Payment(models.Model):
         upload_to="finance/receipts/",
         blank=True,
         null=True,
-        help_text="Optional uploaded receipt or slip.",
+        validators=[validate_receipt_file, validate_file_size_2mb],
+        help_text="Optional uploaded receipt or slip (PDF/image, max 2MB).",
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Audit logging fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payments_created',
+        help_text="User who recorded this payment"
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp - set instead of deleting"
+    )
 
     class Meta:
         ordering = ["-paid_at"]
+
+    def clean(self):
+        """Validate payment data before saving."""
+        if self.amount < Decimal("0.01"):
+            raise ValidationError({"amount": "Payment amount must be at least 0.01"})
+        
+        # If invoice is set, check payment doesn't exceed balance
+        if self.invoice:
+            # Get total already paid (excluding this payment if editing)
+            paid_amount = sum(
+                p.amount for p in self.invoice.payments.exclude(pk=self.pk)
+            ) or Decimal("0")
+            remaining_balance = self.invoice.total_amount - paid_amount
+            
+            if self.amount > remaining_balance:
+                raise ValidationError({
+                    "amount": f"Payment {self.amount} exceeds remaining balance {remaining_balance}"
+                })
+        # Validate payment method against invoice profile's allowed methods
+        if self.invoice and self.method:
+            profile = self.invoice.profile
+            if profile and isinstance(profile.available_payment_methods, list) and profile.available_payment_methods:
+                if self.method not in profile.available_payment_methods:
+                    raise ValidationError({
+                        "method": (
+                            f"Method '{self.method}' is not allowed for profile {profile.name}. "
+                            f"Allowed: {', '.join(profile.available_payment_methods)}"
+                        )
+                    })
+
+    def save(self, *args, **kwargs):
+        """Call full_clean() before saving to validate."""
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.invoice} {self.amount}"
@@ -507,3 +664,56 @@ class GrantAllocation(models.Model):
 
     def __str__(self) -> str:
         return f"{self.grant} {self.amount}"
+
+
+class WebhookLog(models.Model):
+    """Audit trail for payment webhook processing.
+    
+    Tracks all incoming webhooks for debugging, compliance, and duplicate detection.
+    """
+    
+    class Status(models.TextChoices):
+        RECEIVED = "RECEIVED", "Received"
+        VALIDATED = "VALIDATED", "Validated"
+        PROCESSING = "PROCESSING", "Processing"
+        PROCESSED = "PROCESSED", "Successfully Processed"
+        FAILED = "FAILED", "Failed"
+        DUPLICATE = "DUPLICATE", "Duplicate (Already Processed)"
+        INVALID = "INVALID", "Invalid Data"
+
+    provider = models.CharField(max_length=50)
+    reference_id = models.CharField(max_length=255)
+    client_ip = models.GenericIPAddressField()
+    signature_valid = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.RECEIVED)
+    request_body = models.TextField(blank=True)
+    response_status = models.PositiveSmallIntegerField(null=True, blank=True)
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_logs"
+    )
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_logs"
+    )
+    error_message = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["provider", "reference_id", "-created_at"]),
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["client_ip", "-created_at"]),
+            models.Index(fields=["-created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.provider} {self.reference_id} {self.status}"

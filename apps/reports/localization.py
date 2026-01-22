@@ -1,330 +1,307 @@
 """
-Phase 8 Task 5: Reports Localization
-Regional report generation, country-specific customization
+Certificate and report localization services.
+Handles multi-language certificate generation and score conversion.
 """
 
-import json
-from datetime import datetime, timedelta
-from django.db.models import Q, Avg, Count
-from django.utils import timezone
+from django.utils import translation
+from apps.siteconfig.translations import TranslationManager, SUPPORTED_LANGUAGES
+from apps.siteconfig.models import RegionConfig, GradingScaleConfig
+from apps.evals.grading import convert_score, get_grade_letter, format_score
+from decimal import Decimal
+from typing import Optional, Dict, Any
 
 
-class RegionalReportGenerator:
-    """Generate region-specific reports"""
+class CertificateLocalizer:
+    """Handles certificate generation in multiple languages with regional score conversion."""
     
-    REGION_METRICS = {
-        'west_africa': {
-            'focus': 'Student Performance & Teacher Workload',
-            'key_indicators': ['average_score', 'pass_rate', 'attendance_rate', 'teacher_hours'],
-            'reporting_frequency': 'monthly',
+    # Common certificate strings in multiple languages
+    CERTIFICATE_STRINGS = {
+        'en': {
+            'certificate_of_achievement': 'Certificate of Achievement',
+            'to_certify': 'This is to certify that',
+            'has_completed': 'has successfully completed',
+            'academic_year': 'Academic Year',
+            'grade': 'Grade',
+            'average': 'Average',
+            'rank': 'Rank',
+            'class': 'Class',
+            'school': 'School',
+            'date': 'Date',
+            'principal': 'Principal',
+            'signature': 'Signature',
+            'remarks': 'Remarks',
+            'promotion': 'PROMOTED',
+            'demotion': 'NOT PROMOTED',
+            'excellent': 'Excellent',
+            'good': 'Good',
+            'average_perf': 'Average',
+            'satisfactory': 'Satisfactory',
+            'needs_improvement': 'Needs Improvement',
         },
-        'east_africa': {
-            'focus': 'Academic Excellence & Community Engagement',
-            'key_indicators': ['pass_rate', 'college_prep_rate', 'parent_satisfaction'],
-            'reporting_frequency': 'quarterly',
+        'fr': {
+            'certificate_of_achievement': 'Certificat de Réussite',
+            'to_certify': 'Ceci certifie que',
+            'has_completed': 'a complété avec succès',
+            'academic_year': 'Année Académique',
+            'grade': 'Niveau',
+            'average': 'Moyenne',
+            'rank': 'Classement',
+            'class': 'Classe',
+            'school': 'École',
+            'date': 'Date',
+            'principal': 'Directeur',
+            'signature': 'Signature',
+            'remarks': 'Remarques',
+            'promotion': 'PROMU',
+            'demotion': 'NON PROMU',
+            'excellent': 'Excellent',
+            'good': 'Bon',
+            'average_perf': 'Moyen',
+            'satisfactory': 'Satisfaisant',
+            'needs_improvement': 'À Améliorer',
         },
-        'central_africa': {
-            'focus': 'Resource Utilization & Equity',
-            'key_indicators': ['cost_per_student', 'infrastructure_quality', 'equity_score'],
-            'reporting_frequency': 'monthly',
+        'sw': {
+            'certificate_of_achievement': 'Cheti cha Mafanikio',
+            'to_certify': 'Hii ni kuthibitisha kuwa',
+            'has_completed': 'amekamilisha kwa utajiri',
+            'academic_year': 'Mwaka wa Akademiki',
+            'grade': 'Daraja',
+            'average': 'Wastani',
+            'rank': 'Nafasi',
+            'class': 'Darasa',
+            'school': 'Shule',
+            'date': 'Tarehe',
+            'principal': 'Mkuu wa Shule',
+            'signature': 'Sahihi',
+            'remarks': 'Maoni',
+            'promotion': 'ILILIPROMOSHWA',
+            'demotion': 'HAIKUWA NA MAFANIKIO',
+            'excellent': 'Nzuri Sana',
+            'good': 'Nzuri',
+            'average_perf': 'Wastani',
+            'satisfactory': 'Inakubalika',
+            'needs_improvement': 'Inahitaji Maboresho',
         },
-    }
-    
-    @classmethod
-    def generate_regional_report(cls, region, school_id, start_date, end_date, language='en'):
-        """Generate comprehensive regional report"""
-        
-        report = {
-            'region': region,
-            'school_id': school_id,
-            'period': {
-                'start': start_date.isoformat(),
-                'end': end_date.isoformat(),
-            },
-            'generated_at': timezone.now().isoformat(),
-            'language': language,
-            'metrics': cls.REGION_METRICS.get(region, {}),
-        }
-        
-        return report
-    
-    @classmethod
-    def generate_country_profile_report(cls, country_code, language='en'):
-        """Generate country-specific profile report"""
-        
-        from apps.siteconfig.translations import Regionalizer
-        
-        region = Regionalizer.get_region_for_country(country_code)
-        settings = Regionalizer.get_region_settings(region)
-        
-        report = {
-            'country_code': country_code,
-            'region': region,
-            'settings': settings,
-            'languages': settings.get('languages', ['en']),
-            'currency': settings.get('currency'),
-            'generated_at': timezone.now().isoformat(),
-            'language': language,
-        }
-        
-        return report
-    
-    @classmethod
-    def get_region_performance_summary(cls, region, school_id):
-        """Get performance summary for region"""
-        
-        from apps.academics.models import Evaluation, StudentProfile
-        
-        # Query student evaluations in region
-        students = StudentProfile.objects.filter(
-            classroom__school_id=school_id
-        )
-        
-        evaluations = Evaluation.objects.filter(
-            student__in=students
-        ).aggregate(
-            avg_score=Avg('score'),
-            total_evaluations=Count('id'),
-        )
-        
-        summary = {
-            'region': region,
-            'student_count': students.count(),
-            'average_score': evaluations.get('avg_score', 0),
-            'total_evaluations': evaluations.get('total_evaluations', 0),
-        }
-        
-        return summary
-
-
-class LocalizedReportFormatter:
-    """Format reports with localization"""
-    
-    @staticmethod
-    def format_report_header(school_name, report_type, language='en', region=None):
-        """Format report header with localization"""
-        
-        from apps.siteconfig.translations import TextTranslator
-        
-        headers = {
-            'en': f"{school_name} - {report_type} Report",
-            'fr': f"Rapport {report_type} - {school_name}",
-            'sw': f"Ripoti ya {report_type} - {school_name}",
-        }
-        
-        header = headers.get(language, headers['en'])
-        
-        if region:
-            header += f" ({region})"
-        
-        return header
-    
-    @staticmethod
-    def format_summary_section(data, language='en'):
-        """Format summary section with proper localization"""
-        
-        from apps.siteconfig.translations import LocalizationService
-        
-        formatted = {
-            'section_title': 'Summary' if language == 'en' else 'Résumé',
-            'items': [],
-        }
-        
-        for key, value in data.items():
-            if isinstance(value, float):
-                formatted_value = LocalizationService.format_number(value)
-            elif isinstance(value, datetime):
-                formatted_value = LocalizationService.format_date(value, language)
-            else:
-                formatted_value = str(value)
-            
-            formatted['items'].append({
-                'label': key,
-                'value': formatted_value,
-            })
-        
-        return formatted
-    
-    @staticmethod
-    def add_report_footer(region, language='en'):
-        """Add region-appropriate footer"""
-        
-        footers = {
-            'en': "Generated by School Management System",
-            'fr': "Généré par le système de gestion scolaire",
-            'sw': "Iliyotengenezwa na Mfumo wa Usimamizi wa Shule",
-        }
-        
-        footer = footers.get(language, footers['en'])
-        
-        return {
-            'footer_text': footer,
-            'region': region,
-            'timestamp': timezone.now().isoformat(),
-        }
-
-
-class CurrencyLocalization:
-    """Handle currency localization by region"""
-    
-    REGIONAL_CURRENCIES = {
-        'west_africa': {
-            'primary': 'NGN',
-            'alternatives': ['GHS', 'XOF'],
+        'yo': {
+            'certificate_of_achievement': 'Ẹka-Ìṣẹ Àìkú',
+            'to_certify': 'Eyi ni lati ṣe àfihàn pé',
+            'has_completed': 'ti parí nitorinú dídára',
+            'academic_year': 'Ọdun Ẹkọ́',
+            'grade': 'Ìkìkì',
+            'average': 'Àárín',
+            'rank': 'Ipò',
+            'class': 'Ibadandun',
+            'school': 'Ile-Ẹkọ́',
+            'date': 'Ọjọ́',
+            'principal': 'Olórí Ilé-Ẹkọ́',
+            'signature': 'Àmì-Ọwọ́',
+            'remarks': 'Àwòpọ̀',
+            'promotion': 'SÁRÉ LỌ',
+            'demotion': 'KÒSÁRÉ LỌ',
+            'excellent': 'Ó Dára Púpọ̀',
+            'good': 'Ó Dára',
+            'average_perf': 'Àárín',
+            'satisfactory': 'Ó Tẹ̀ kù',
+            'needs_improvement': 'Nílò Ìwádìí',
         },
-        'east_africa': {
-            'primary': 'KES',
-            'alternatives': ['TZS', 'UGX'],
+        'pid': {
+            'certificate_of_achievement': 'Sertifikat of Achievement',
+            'to_certify': 'Dis na confirm say',
+            'has_completed': 'don finish well well',
+            'academic_year': 'Academic Year',
+            'grade': 'Grade',
+            'average': 'Average',
+            'rank': 'Rank',
+            'class': 'Class',
+            'school': 'School',
+            'date': 'Date',
+            'principal': 'Principal',
+            'signature': 'Sign Hand',
+            'remarks': 'Comment',
+            'promotion': 'PROMOTED',
+            'demotion': 'NOT PROMOTED',
+            'excellent': 'Excellent Well',
+            'good': 'Good',
+            'average_perf': 'Average',
+            'satisfactory': 'Fine Fine',
+            'needs_improvement': 'Need Better Better',
         },
-        'central_africa': {
-            'primary': 'XAF',
-            'alternatives': ['CDF'],
-        },
-        'southern_africa': {
-            'primary': 'ZAR',
-            'alternatives': ['BWP', 'ZWL'],
+        'ha': {
+            'certificate_of_achievement': 'Takardar Nasara',
+            'to_certify': 'Wannan shine gaida cewa',
+            'has_completed': 'ya gama sosai',
+            'academic_year': 'Shekara ta Ilimi',
+            'grade': 'Matakin Jiya',
+            'average': 'Matsakaici',
+            'rank': 'Matsayi',
+            'class': 'Ajiya',
+            'school': 'Makaranta',
+            'date': 'Kwanan Yau',
+            'principal': 'Babbar Malami',
+            'signature': 'Hannu',
+            'remarks': 'Shawarwari',
+            'promotion': 'KARFAFA',
+            'demotion': 'BA KARFAFA BA',
+            'excellent': 'Kyau Sosai',
+            'good': 'Kyau',
+            'average_perf': 'Matsakaici',
+            'satisfactory': 'Iya Karfi',
+            'needs_improvement': 'Bukatar Inganta',
         },
     }
     
-    EXCHANGE_RATES = {
-        'NGN': 1545.50,
-        'GHS': 12.50,
-        'XOF': 614.50,
-        'KES': 139.25,
-        'TZS': 2580.00,
-        'UGX': 3850.00,
-        'XAF': 614.50,
-        'CDF': 2850.00,
-        'ZAR': 18.50,
-        'BWP': 13.75,
-        'ZWL': 125.00,
-    }
+    def __init__(self, language: str = 'en', region: Optional[RegionConfig] = None):
+        """Initialize localizer with language and region."""
+        self.language = language if language in SUPPORTED_LANGUAGES else 'en'
+        self.region = region
+        self.strings = self.CERTIFICATE_STRINGS.get(self.language, self.CERTIFICATE_STRINGS['en'])
     
-    @classmethod
-    def get_regional_currency(cls, region):
-        """Get primary currency for region"""
-        return cls.REGIONAL_CURRENCIES.get(region, {}).get('primary', 'USD')
+    def translate(self, key: str) -> str:
+        """Translate certificate string by key."""
+        return self.strings.get(key, key)
     
-    @classmethod
-    def convert_currency(cls, amount, from_currency, to_currency):
-        """Convert between currencies"""
+    def convert_score_for_region(self, score: float, from_scale: str = '0-100', 
+                                 to_scale: Optional[str] = None) -> float:
+        """Convert score to regional grading scale."""
+        if not self.region or not to_scale:
+            return float(score)
         
-        if from_currency == to_currency:
-            return amount
-        
-        from_rate = cls.EXCHANGE_RATES.get(from_currency, 1)
-        to_rate = cls.EXCHANGE_RATES.get(to_currency, 1)
-        
-        usd_amount = amount / from_rate
-        converted = usd_amount * to_rate
-        
-        return round(converted, 2)
+        try:
+            converted = convert_score(
+                score=float(score),
+                from_scale=from_scale,
+                to_scale=to_scale
+            )
+            return converted
+        except:
+            return float(score)
     
-    @classmethod
-    def format_currency_by_region(cls, amount, region):
-        """Format currency for region"""
+    def format_score_for_display(self, score: float) -> str:
+        """Format score for display in regional format."""
+        if not self.region:
+            return f"{score:.2f}"
         
-        currency = cls.get_regional_currency(region)
-        
-        from apps.siteconfig.translations import LocalizationService
-        
-        return LocalizationService.format_currency(amount, currency)
-
-
-class DateTimeLocalization:
-    """Handle date/time localization"""
+        try:
+            return format_score(
+                score=float(score),
+                region=self.region
+            )
+        except:
+            return f"{score:.2f}"
     
-    TIMEZONE_MAPPING = {
-        'west_africa': 'Africa/Lagos',
-        'east_africa': 'Africa/Nairobi',
-        'central_africa': 'Africa/Kinshasa',
-        'southern_africa': 'Africa/Johannesburg',
-    }
-    
-    @classmethod
-    def localize_datetime(cls, dt, region):
-        """Convert datetime to region timezone"""
-        
-        from django.utils.timezone import make_aware
-        import pytz
-        
-        if not dt.tzinfo:
-            dt = make_aware(dt)
-        
-        region_tz = cls.TIMEZONE_MAPPING.get(region, 'UTC')
-        tz = pytz.timezone(region_tz)
-        
-        return dt.astimezone(tz)
-    
-    @classmethod
-    def get_region_timezone(cls, region):
-        """Get timezone for region"""
-        return cls.TIMEZONE_MAPPING.get(region, 'UTC')
-
-
-class ReportCompilationService:
-    """Service to compile localized reports"""
-    
-    @staticmethod
-    def compile_monthly_regional_report(region, school_id, month, language='en'):
-        """Compile monthly report for region"""
-        
-        from datetime import datetime
-        
-        # Calculate date range for month
-        year = datetime.now().year
-        start = datetime(year, month, 1)
-        if month == 12:
-            end = datetime(year + 1, 1, 1) - timedelta(days=1)
+    def get_grade_letter(self, score: float) -> str:
+        """Get letter grade for score using standard A-F scale."""
+        score_val = float(score)
+        if score_val >= 80:
+            return 'A'
+        elif score_val >= 70:
+            return 'B'
+        elif score_val >= 60:
+            return 'C'
+        elif score_val >= 50:
+            return 'D'
         else:
-            end = datetime(year, month + 1, 1) - timedelta(days=1)
-        
-        report = {
-            'report_type': 'monthly_regional',
-            'region': region,
-            'school_id': school_id,
-            'period': {
-                'month': month,
-                'year': year,
-                'start': start.isoformat(),
-                'end': end.isoformat(),
-            },
-            'language': language,
-            'sections': {
-                'header': RegionalReportGenerator.generate_regional_report(
-                    region, school_id, start, end, language
-                ),
-                'summary': RegionalReportGenerator.get_region_performance_summary(region, school_id),
-            },
-            'generated_at': timezone.now().isoformat(),
-        }
-        
-        return report
+            return 'F'
     
-    @staticmethod
-    def compile_quarterly_report(region, school_id, quarter, language='en'):
-        """Compile quarterly report with regional focus"""
-        
-        from datetime import datetime
-        
-        year = datetime.now().year
-        month = (quarter - 1) * 3 + 1
-        start = datetime(year, month, 1)
-        end = datetime(year, month + 2, 1) if month + 2 <= 12 else datetime(year + 1, (month + 2) % 12 or 12, 1)
-        end = end - timedelta(days=1)
-        
-        report = {
-            'report_type': 'quarterly_regional',
-            'region': region,
-            'school_id': school_id,
-            'quarter': quarter,
-            'year': year,
-            'language': language,
-            'period': {
-                'start': start.isoformat(),
-                'end': end.isoformat(),
-            },
-            'generated_at': timezone.now().isoformat(),
+    def get_performance_comment(self, score: float) -> str:
+        """Get performance comment in regional language."""
+        if score >= 80:
+            return self.translate('excellent')
+        elif score >= 70:
+            return self.translate('good')
+        elif score >= 60:
+            return self.translate('average_perf')
+        elif score >= 50:
+            return self.translate('satisfactory')
+        else:
+            return self.translate('needs_improvement')
+    
+    def get_certificate_context(self, student_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Build context dict for certificate template."""
+        return {
+            'language': self.language,
+            'region': self.region,
+            'strings': self.strings,
+            'student': student_data.get('student'),
+            'academic_year': student_data.get('academic_year'),
+            'average': student_data.get('average'),
+            'rank': student_data.get('rank'),
+            'grade_letter': self.get_grade_letter(float(student_data.get('average', 0))),
+            'performance_comment': self.get_performance_comment(float(student_data.get('average', 0))),
+            'promotion_status': student_data.get('promotion_status', 'PROMOTED'),
+            'date_issued': student_data.get('date_issued'),
         }
+
+
+class TranscriptLocalizer:
+    """Handles transcript generation with regional score conversion."""
+    
+    def __init__(self, language: str = 'en', region: Optional[RegionConfig] = None):
+        """Initialize transcript localizer."""
+        self.language = language if language in SUPPORTED_LANGUAGES else 'en'
+        self.region = region
+        self.localizer = CertificateLocalizer(language, region)
+    
+    def convert_scores_for_transcript(self, scores: Dict[str, float], 
+                                      from_scale: str = '0-100',
+                                      to_scale: Optional[str] = None) -> Dict[str, Any]:
+        """Convert all scores in transcript to regional format."""
+        converted = {}
         
-        return report
+        for subject, score in scores.items():
+            converted[subject] = {
+                'original': score,
+                'converted': self.localizer.convert_score_for_region(
+                    score, from_scale, to_scale
+                ),
+                'grade_letter': self.localizer.get_grade_letter(float(score)),
+                'comment': self.localizer.get_performance_comment(float(score)),
+            }
+        
+        return converted
+    
+    def format_transcript(self, student_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Format transcript with regional settings."""
+        return {
+            'language': self.language,
+            'region': self.region.name if self.region else 'Default',
+            'student_name': student_data.get('student_name'),
+            'student_id': student_data.get('student_id'),
+            'academic_year': student_data.get('academic_year'),
+            'scores': self.convert_scores_for_transcript(
+                student_data.get('scores', {}),
+                from_scale=student_data.get('from_scale', '0-100'),
+                to_scale=student_data.get('to_scale')
+            ),
+            'average': student_data.get('average'),
+            'class': student_data.get('class'),
+            'date_issued': student_data.get('date_issued'),
+        }
+
+
+def get_certificate_localizer(language: Optional[str] = None, 
+                               region_code: Optional[str] = None) -> CertificateLocalizer:
+    """Factory function to get certificate localizer."""
+    region = None
+    
+    if region_code:
+        try:
+            region = RegionConfig.objects.get(code=region_code)
+        except RegionConfig.DoesNotExist:
+            pass
+    
+    return CertificateLocalizer(language or translation.get_language(), region)
+
+
+def get_transcript_localizer(language: Optional[str] = None, 
+                              region_code: Optional[str] = None) -> TranscriptLocalizer:
+    """Factory function to get transcript localizer."""
+    region = None
+    
+    if region_code:
+        try:
+            region = RegionConfig.objects.get(code=region_code)
+        except RegionConfig.DoesNotExist:
+            pass
+    
+    return TranscriptLocalizer(language or translation.get_language(), region)

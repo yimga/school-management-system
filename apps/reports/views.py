@@ -60,7 +60,7 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     if not student:
         return HttpResponseForbidden("Not authorized.")
 
-    if term.name == Term.Name.THIRD and not student.classroom.allows_third_term:
+    if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
         return HttpResponseForbidden("Third term report is not available for this classroom.")
 
     if not is_term_published(year.id, term.id, student.classroom_id):
@@ -119,7 +119,7 @@ def parent_download_term_report_csv(request: HttpRequest, student_id: int):
     if not student:
         return HttpResponseForbidden("Not authorized.")
 
-    if term.name == Term.Name.THIRD and not student.classroom.allows_third_term:
+    if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
         return HttpResponseForbidden("Third term report is not available for this classroom.")
 
     if not is_term_published(year.id, term.id, student.classroom_id):
@@ -250,7 +250,7 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
     if report_type == ReportCard.Type.TERM:
         if not term:
             return HttpResponseForbidden("No active term configured yet.")
-        if term.name == Term.Name.THIRD and not student.classroom.allows_third_term:
+        if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
             return HttpResponseForbidden("Third term report is not available for this classroom.")
         if not is_term_published(year.id, term.id, student.classroom_id):
             return HttpResponseForbidden("Results not published yet.")
@@ -313,7 +313,7 @@ def report_share(request: HttpRequest, token: str):
         if not term_id:
             return HttpResponseForbidden("Invalid link.")
         term = get_object_or_404(Term, id=term_id, academic_year=year)
-        if term.name == Term.Name.THIRD and not student.classroom.allows_third_term:
+        if getattr(term, "position", None) == 3 and not student.classroom.allows_third_term:
             return HttpResponseForbidden("Third term report is not available for this classroom.")
         if not is_term_published(year.id, term.id, student.classroom_id):
             return HttpResponseForbidden("Results not published yet.")

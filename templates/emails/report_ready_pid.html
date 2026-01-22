@@ -1,0 +1,54 @@
+{% comment %}Pidgin email template for report card ready notification{% endcomment %}
+{% load i18n %}
+
+<!DOCTYPE html>
+<html lang="pid">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #2c3e50; color: white; padding: 20px; border-radius: 5px; }
+        .content { padding: 20px; background-color: #ecf0f1; margin: 20px 0; border-radius: 5px; }
+        .button { display: inline-block; background-color: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        .footer { text-align: center; font-size: 12px; color: #7f8c8d; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ school_name }}</h1>
+            <p>Report Card Ready O</p>
+        </div>
+        
+        <div class="content">
+            <p>Na im uncle/aunty {{ parent_name }},</p>
+            
+            <p>Report for <strong>{{ student_name }}</strong> for {{ academic_year }} {{ term_name }} don ready for show.</p>
+            
+            <h3>Report Info:</h3>
+            <ul>
+                <li><strong>Pikin:</strong> {{ student_name }}</li>
+                <li><strong>Class:</strong> {{ class_name }}</li>
+                <li><strong>School Year:</strong> {{ academic_year }}</li>
+                <li><strong>Term:</strong> {{ term_name }}</li>
+                <li><strong>Average:</strong> {{ average_score }}</li>
+                <li><strong>Ranking:</strong> {{ class_rank }}</li>
+            </ul>
+            
+            <p>You fit see am and download am by click the button wey dey down here:</p>
+            
+            <p style="text-align: center;">
+                <a href="{{ report_url }}" class="button">See Report</a>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Dis na automatic message. No reply required for the message jare.</p>
+            <p>Call the school office if you get question question.</p>
+            <p>&copy; {{ current_year }} {{ school_name }}. All rights lock up.</p>
+        </div>
+    </div>
+</body>
+</html>

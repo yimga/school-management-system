@@ -110,7 +110,7 @@ def _build_filter_labels(
     if term_id:
         term = Term.objects.filter(id=term_id).first()
         if term:
-            labels["Term"] = term.get_name_display()
+            labels["Term"] = term.label
     labels["Missing"] = "Yes" if missing_only else "All"
     return labels
 
@@ -176,7 +176,7 @@ def teacher_dashboard(request: HttpRequest):
     hero = {
         "tagline": "Teacher Dashboard",
         "title": "Your classes at a glance",
-        "subtitle": f"{year.name} · {term.get_name_display()}",
+        "subtitle": f"{year.name} · {term.label}",
         "icon": "bi-easel",
         "stats": hero_stats,
         "actions": [
@@ -233,7 +233,7 @@ def teacher_marks_entry(request: HttpRequest):
             return HttpResponseForbidden("You are not assigned to this subject/class.")
 
         sa = get_object_or_404(SubjectAssignment, id=selected_sa_id)
-        if active_term.name == Term.Name.THIRD and not sa.classroom.allows_third_term:
+        if getattr(active_term, "position", None) == 3 and not sa.classroom.allows_third_term:
             return HttpResponseForbidden("Third term is not enabled for this classroom.")
 
         # Publish lock check
@@ -369,6 +369,17 @@ def teacher_marks_list(request: HttpRequest):
     if term_id:
         qs = qs.filter(term_id=term_id)
 
+    # PERFORMANCE FIX: Apply missing_only filter at database level to avoid loading all records into memory
+    if missing_only:
+        # Filter for records where any required score field is NULL
+        from django.db.models import Q
+        qs = qs.filter(
+            Q(seq1_score__isnull=True) | Q(test1__isnull=True) |
+            Q(seq2_score__isnull=True) | Q(test2__isnull=True) |
+            Q(exam_score__isnull=True) | Q(mock_score__isnull=True) |
+            Q(practical_score__isnull=True)
+        )
+
     evals = qs.select_related(
         "student",
         "term",
@@ -377,20 +388,26 @@ def teacher_marks_list(request: HttpRequest):
         "subject_assignment__specialty",
     ).order_by("-updated_at")
 
-    if missing_only:
-        evals = [
-            e for e in evals
-            if any(getattr(e, field) is None for field in _required_fields_for_evaluation(e))
-        ]
-
-    evals_list = list(evals)
+    # PERFORMANCE FIX: Add pagination to prevent memory exhaustion with 15,000+ records
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(evals, 50)  # 50 records per page
+    
+    try:
+        evals_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        evals_page = paginator.page(1)
+    except EmptyPage:
+        evals_page = paginator.page(paginator.num_pages)
+    
+    evals_list = list(evals_page)
 
     if export_pdf:
         rows = [_serialize_evaluation(e) for e in evals_list]
         filters = _build_filter_labels(classroom_id, subject_id, term_id, missing_only, classroom_map, subject_map)
         pdf_context = {
             "report_title": f"{user_name} Marks Export",
-            "report_period": f"{term.get_name_display()} · {year.name}",
+            "report_period": f"{term.label} · {year.name}",
             "report_total": f"{len(rows)} records",
             "rows": rows,
             "filters": filters,
@@ -426,7 +443,7 @@ def teacher_marks_list(request: HttpRequest):
                 f"{e.student.last_name} {e.student.first_name} ({e.student.student_code})",
                 e.subject_assignment.classroom.name if e.subject_assignment else "",
                 e.subject_assignment.subject.name if e.subject_assignment else "",
-                e.term.get_name_display(),
+                e.term.label,
                 e.seq1_score or e.test1,
                 e.seq2_score or e.test2,
                 e.exam_score,
@@ -445,6 +462,8 @@ def teacher_marks_list(request: HttpRequest):
         "year": year,
         "term": term,
         "evals": evals_list,
+        "paginator": paginator,
+        "page_obj": evals_page,
         "classrooms": list(classrooms),
         "subjects": list(subjects),
         "term_choices": list(Term.objects.all()),
@@ -464,6 +483,9 @@ def class_ranking_view(request: HttpRequest):
     """Class ranking (best to worst) for a given year/term/classroom.
 
     This is a staff-only view intended for Admin/Leadership.
+
+    Optimization: Uses cached rankings with 15-minute TTL and batch-loaded
+    evaluations to avoid N+1 queries.
     """
     year, active_term = get_active_year_and_term()
     if not year or not active_term:
@@ -485,13 +507,24 @@ def class_ranking_view(request: HttpRequest):
     if classroom_id:
         selected_classroom = get_object_or_404(Classroom, id=classroom_id)
 
-        from .services import get_class_ranking, get_class_stats
+        from .services import get_class_stats
+        from .ranking import get_class_ranking
 
-        ranking = get_class_ranking(selected_classroom, year_obj, term_obj)
+        # Get optimized ranking with tie handling and caching
+        ranking = get_class_ranking(selected_classroom, term_obj)
         stats = get_class_stats(selected_classroom, year_obj, term_obj)
+
+        # Build rows from ranking entries (rank already included)
         rows = [
-            {"rank": idx + 1, "student": agg.student, "average": agg.average}
-            for idx, agg in enumerate(ranking)
+            {
+                "rank": entry.rank,
+                "student": entry.student,
+                "average": entry.average,
+                "is_tied": entry.is_tied,
+                "tied_count": entry.tied_count,
+                "percentile": entry.percentile,
+            }
+            for entry in ranking
         ]
 
     return render(request, "evals/class_ranking.html", {
@@ -510,7 +543,12 @@ def class_ranking_view(request: HttpRequest):
 
 @staff_member_required
 def school_ranking_view(request: HttpRequest):
-    """School-wide ranking for a given year/term."""
+    """School-wide ranking for a given year/term.
+
+    Optimization: Uses cached rankings with 15-minute TTL and batch-loaded
+    evaluations to avoid N+1 queries. Proper tie handling ensures deterministic
+    ranking even when students have identical averages.
+    """
     year, active_term = get_active_year_and_term()
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
@@ -521,12 +559,22 @@ def school_ranking_view(request: HttpRequest):
     year_obj = get_object_or_404(AcademicYear, id=year_id)
     term_obj = get_object_or_404(Term, id=term_id)
 
-    from .services import get_school_ranking
+    from .ranking import get_school_ranking
 
-    ranking = get_school_ranking(year_obj, term_obj)
+    # Get optimized ranking with tie handling and caching
+    ranking = get_school_ranking(term_obj)
+
+    # Build rows from ranking entries (rank already included with tie handling)
     rows = [
-        {"rank": idx + 1, "student": agg.student, "average": agg.average}
-        for idx, agg in enumerate(ranking)
+        {
+            "rank": entry.rank,
+            "student": entry.student,
+            "average": entry.average,
+            "is_tied": entry.is_tied,
+            "tied_count": entry.tied_count,
+            "percentile": entry.percentile,
+        }
+        for entry in ranking
     ]
 
     return render(request, "evals/school_ranking.html", {
@@ -719,7 +767,7 @@ def evaluation_admin(request: HttpRequest):
         rows = [_serialize_evaluation(e) for e in evals_list]
         pdf_context = {
             "report_title": f"Evaluation Manager · {year_obj.name}",
-            "report_period": term_obj.get_name_display(),
+            "report_period": term_obj.label,
             "report_total": f"{len(rows)} rows",
             "rows": rows,
             "filters": filters,
@@ -727,14 +775,14 @@ def evaluation_admin(request: HttpRequest):
             "summary": f"{len(rows)} evaluations",
         }
         pdf_bytes = render_pdf_bytes(request, "reports/evaluation_grid.html", pdf_context)
-        filename = f"grading-sheet-{year_obj.name}-{term_obj.get_name_display()}.pdf".replace(" ", "_")
+        filename = f"grading-sheet-{year_obj.name}-{term_obj.label}.pdf".replace(" ", "_")
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
 
     if request.GET.get("export") == "csv":
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = f'attachment; filename="grading-sheet-{year_obj.name}-{term_obj.get_name_display()}.csv"'
+        response["Content-Disposition"] = f'attachment; filename="grading-sheet-{year_obj.name}-{term_obj.label}.csv"'
         writer = csv.writer(response)
         writer.writerow([
             "Student Code",

@@ -134,6 +134,7 @@ class Command(BaseCommand):
                 "start_date": date(2024, 9, 2),
                 "end_date": date(2024, 12, 15),
                 "is_active": True,
+                "position": 1,
             },
         )
         term2, _ = Term.objects.get_or_create(
@@ -143,6 +144,7 @@ class Command(BaseCommand):
                 "start_date": date(2025, 1, 6),
                 "end_date": date(2025, 3, 21),
                 "is_active": False,
+                "position": 2,
             },
         )
         term3, _ = Term.objects.get_or_create(
@@ -152,6 +154,7 @@ class Command(BaseCommand):
                 "start_date": date(2025, 4, 7),
                 "end_date": date(2025, 7, 11),
                 "is_active": False,
+                "position": 3,
             },
         )
 

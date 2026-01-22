@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import json
+import logging
 from calendar import monthrange
 from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 from django.http import (
@@ -20,15 +21,9 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from django.template.loader import render_to_string
-
-try:
-    from django.http import HttpResponseTooManyRequests
-except ImportError:
-    class HttpResponseTooManyRequests(HttpResponse):
-        status_code = 429
 
 from apps.academics.models import AcademicYear
 from apps.payroll.models import Payslip
@@ -44,6 +39,7 @@ from .models import (
     Payment,
     PaymentMethod,
     ReportRequest,
+    WebhookLog,
 )
 from .services import (
     PROVIDER_SLUG_TO_METHOD,
@@ -54,16 +50,13 @@ from .services import (
     record_provider_payment,
     verify_payment_signature,
 )
-from .webhook_security import (
-    check_webhook_ip_whitelist,
-    check_webhook_rate_limit,
-    compute_idempotency_key,
-    check_webhook_idempotency,
-    log_webhook_request,
-    IPWhitelistViolation,
-    RateLimitExceeded,
-    IdempotencyViolation,
+from .security import (
+    PaymentValidator,
+    WebhookSecurityValidator,
+    webhook_security_required,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _active_profile() -> ComplianceProfile | None:
@@ -103,8 +96,14 @@ def dashboard(request: HttpRequest):
     })
 
 
-@staff_member_required
 def invoice_list(request: HttpRequest):
+    """
+    Invoice list view with role-based filtering.
+    Staff see all invoices; parents see only their children's invoices.
+    """
+    from apps.accounts.models import User
+    from apps.people.models import StudentGuardian
+    
     profile = _active_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -112,6 +111,18 @@ def invoice_list(request: HttpRequest):
     status = request.GET.get("status")
     year_id = request.GET.get("year")
     qs = Invoice.objects.filter(profile=profile).select_related("student", "academic_year")
+    
+    # Filter invoices based on user role
+    if request.user.role == User.Role.PARENT:
+        # Parents can only see invoices for their children
+        parent_students = StudentGuardian.objects.filter(
+            guardian__user=request.user
+        ).values_list('student_id', flat=True)
+        qs = qs.filter(student_id__in=parent_students)
+    elif not (request.user.is_staff or request.user.is_superuser or request.user.role == User.Role.ADMIN):
+        return HttpResponseForbidden("You don't have permission to view invoices.")
+    
+    # Continue with existing filtering logic
 
     if status:
         qs = qs.filter(status=status)
@@ -214,8 +225,21 @@ def trial_balance(request: HttpRequest):
     })
 
 
-@staff_member_required
 def invoice_detail(request: HttpRequest, invoice_id: int):
+    """
+    Invoice detail view with object-level permission check.
+    Staff can view all invoices; parents can only view their children's invoices.
+    """
+    from apps.accounts.decorators import parent_can_access_invoice
+    from apps.accounts.models import User
+    
+    # Check permission based on user role
+    if request.user.role == User.Role.PARENT:
+        if not parent_can_access_invoice(request, invoice_id):
+            return HttpResponseForbidden("You don't have permission to view this invoice.")
+    elif not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden("You don't have permission to view invoices.")
+    
     profile = _active_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -273,149 +297,239 @@ def invoice_receipt(request: HttpRequest, invoice_id: int, payment_id: int | Non
         "Content-Disposition"
     ] = f'attachment; filename="receipt-{payment.id}.pdf"'
     return response
-
-
-@csrf_exempt
+@require_http_methods(["POST"])
 def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     """
-    Webhook endpoint for payment provider callbacks.
+    Secure webhook endpoint for payment provider callbacks.
     
-    SECURITY: This endpoint is CSRF-exempt to allow external payment providers
-    to send notifications. We protect it with:
-    1. IP whitelist verification (must be in integration config)
-    2. Rate limiting per provider
-    3. Signature verification from integration
-    4. Idempotency checks to prevent duplicate processing
-    5. Full request logging for audit trail
+    Security checks (in order):
+    1. HTTP method validation (POST only)
+    2. Provider validation
+    3. IP whitelist check
+    4. Rate limiting
+    5. HMAC signature verification
+    6. Idempotency check
+    7. Payment data validation
+    8. Transaction integrity
+    
+    Audit: All attempts logged to WebhookLog for compliance.
+    
+    Args:
+        request: HTTP request with payment data
+        provider_slug: Payment provider code (e.g., 'mtn_momo', 'orange_money')
+        
+    Returns:
+        JsonResponse with status and payment_id on success
+        HttpResponseForbidden/HttpResponseBadRequest on validation failure
     """
-    if request.method != "POST":
-        return HttpResponseNotAllowed(["POST"])
-
+    
     integration = get_payment_integration_by_slug(provider_slug)
     if not integration:
-        log_webhook_request(request, provider_slug, None, None, "rejected", "Unknown provider")
+        logger.warning(f"Webhook request for unknown provider: {provider_slug}")
         return HttpResponseForbidden("Unknown provider.")
 
-    # SECURITY CHECK 1: Verify IP is whitelisted
     try:
-        check_webhook_ip_whitelist(request, integration, provider_slug)
-    except IPWhitelistViolation as e:
-        return HttpResponseForbidden(str(e))
-
-    # SECURITY CHECK 2: Check rate limiting
-    try:
-        check_webhook_rate_limit(integration, provider_slug)
-    except RateLimitExceeded as e:
-        return HttpResponseTooManyRequests(str(e))
-
-    try:
-        data = json.loads(request.body.decode() or "{}")
-    except json.JSONDecodeError:
-        log_webhook_request(request, provider_slug, None, None, "rejected", "Invalid JSON")
+        request_body = request.body
+        data = json.loads(request_body.decode() or "{}")
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        logger.error(f"Invalid webhook payload from {provider_slug}: {e}")
+        WebhookLog.objects.create(
+            provider=provider_slug,
+            reference_id="unknown",
+            client_ip=WebhookSecurityValidator.get_client_ip(request),
+            status=WebhookLog.Status.INVALID,
+            error_message=f"Invalid JSON: {str(e)}",
+        )
         return HttpResponseBadRequest("Invalid JSON payload.")
 
-    invoice_id = data.get("invoice_id") or data.get("invoice")
-    amount = data.get("amount")
-    reference = data.get("reference") or data.get("payment_reference")
-    external_ref = data.get("external_reference") or reference
+    # Initialize security validator
+    validator = WebhookSecurityValidator(integration.config or {})
+    client_ip = validator.get_client_ip(request)
+    reference_id = data.get("reference") or data.get("payment_reference") or "unknown"
 
-    log_webhook_request(
-        request,
-        provider_slug,
-        invoice_id,
-        amount,
-        "received",
-    )
+    # Step 1: IP whitelist check
+    if not validator.validate_ip_whitelist(client_ip):
+        WebhookLog.objects.create(
+            provider=provider_slug,
+            reference_id=reference_id,
+            client_ip=client_ip,
+            status=WebhookLog.Status.INVALID,
+            error_message=f"IP not whitelisted: {client_ip}",
+        )
+        logger.warning(f"Rejected webhook from unauthorized IP {client_ip} for {provider_slug}")
+        return HttpResponseForbidden("IP not whitelisted.")
 
-    # SECURITY CHECK 3: Verify signature
-    signature_header = integration.config.get("signature_header", "X-Signature")
+    # Step 2: Rate limiting check
+    if not validator.validate_rate_limit(client_ip):
+        logger.warning(f"Rate limit exceeded for IP {client_ip}")
+        return HttpResponseForbidden("Rate limit exceeded.")
+
+    # Step 3: Signature verification
+    signature_header = integration.config.get("signature_header", "X-Signature") if integration.config else "X-Signature"
     signature = (
         request.headers.get(signature_header)
         or request.META.get(f"HTTP_{signature_header.upper().replace('-', '_')}")
     )
 
-    if not verify_payment_signature(integration, data, signature):
-        log_webhook_request(
-            request,
-            provider_slug,
-            invoice_id,
-            amount,
-            "rejected",
-            "Invalid signature",
+    signature_valid = validator.validate_signature(request_body, signature or "")
+    if not signature_valid:
+        WebhookLog.objects.create(
+            provider=provider_slug,
+            reference_id=reference_id,
+            client_ip=client_ip,
+            signature_valid=False,
+            status=WebhookLog.Status.INVALID,
+            error_message="Invalid HMAC signature",
+            request_body=request_body.decode()[:500],  # Store first 500 chars
         )
+        logger.warning(f"Invalid signature from {provider_slug} ({client_ip})")
         return HttpResponseForbidden("Invalid signature.")
 
-    if not invoice_id or amount is None:
-        log_webhook_request(
-            request,
-            provider_slug,
-            invoice_id,
-            amount,
-            "rejected",
-            "Missing invoice_id or amount",
+    # Step 4: Idempotency check (prevent duplicate payments)
+    if not validator.validate_idempotency(provider_slug, reference_id):
+        webhook_log = WebhookLog.objects.create(
+            provider=provider_slug,
+            reference_id=reference_id,
+            client_ip=client_ip,
+            signature_valid=True,
+            status=WebhookLog.Status.DUPLICATE,
+            request_body=request_body.decode()[:500],
         )
-        return HttpResponseBadRequest("Missing invoice_id or amount.")
+        logger.info(f"Duplicate webhook from {provider_slug}: {reference_id}")
+        return JsonResponse({"status": "ignored", "reason": "duplicate"})
 
-    # SECURITY CHECK 4: Check idempotency to prevent duplicate payments
-    idempotency_key = compute_idempotency_key(
-        invoice_id,
-        amount,
-        provider_slug,
-        external_ref,
-    )
-    
-    if check_webhook_idempotency(idempotency_key):
-        log_webhook_request(
-            request,
-            provider_slug,
-            invoice_id,
-            amount,
-            "duplicate",
-            "Idempotency key already processed",
-        )
-        # Return success to acknowledge duplicate (provider doesn't retry)
-        return JsonResponse({"status": "duplicate", "message": "Already processed"})
-
-    invoice = Invoice.objects.filter(id=invoice_id).first()
-    if not invoice:
-        log_webhook_request(
-            request,
-            provider_slug,
-            invoice_id,
-            amount,
-            "rejected",
-            "Invoice not found",
-        )
-        return HttpResponseBadRequest("Invoice not found.")
-
+    # Step 5: Extract and validate payment data
+    invoice_id = data.get("invoice_id") or data.get("invoice")
+    amount = data.get("amount")
     method = data.get("method") or PROVIDER_SLUG_TO_METHOD.get(provider_slug)
-    payment = record_provider_payment(
-        invoice=invoice,
-        amount=amount,
-        method=method or PaymentMethod.MTN_MOMO,
-        reference=reference,
-        external_reference=external_ref,
-    )
 
-    if not payment:
-        log_webhook_request(
-            request,
-            provider_slug,
-            invoice_id,
-            amount,
-            "ignored",
-            "Payment not recorded",
+    # Validate amount
+    is_valid, error_msg = PaymentValidator.validate_amount(amount)
+    if not is_valid:
+        WebhookLog.objects.create(
+            provider=provider_slug,
+            reference_id=reference_id,
+            client_ip=client_ip,
+            signature_valid=True,
+            status=WebhookLog.Status.INVALID,
+            error_message=f"Invalid amount: {error_msg}",
+            request_body=request_body.decode()[:500],
         )
-        return JsonResponse({"status": "ignored"})
+        logger.warning(f"Invalid payment amount from {provider_slug}: {amount}")
+        return HttpResponseBadRequest(error_msg)
 
-    log_webhook_request(
-        request,
-        provider_slug,
-        invoice_id,
-        amount,
-        "completed",
+    if not invoice_id:
+        WebhookLog.objects.create(
+            provider=provider_slug,
+            reference_id=reference_id,
+            client_ip=client_ip,
+            signature_valid=True,
+            status=WebhookLog.Status.INVALID,
+            error_message="Missing invoice_id in payload",
+            request_body=request_body.decode()[:500],
+        )
+        return HttpResponseBadRequest("Missing invoice_id.")
+
+    # Step 6: Fetch invoice
+    try:
+        invoice = Invoice.objects.get(id=invoice_id)
+    except Invoice.DoesNotExist:
+        WebhookLog.objects.create(
+            provider=provider_slug,
+            reference_id=reference_id,
+            client_ip=client_ip,
+            signature_valid=True,
+            status=WebhookLog.Status.INVALID,
+            error_message=f"Invoice {invoice_id} not found",
+        )
+        logger.warning(f"Invoice {invoice_id} not found from webhook {provider_slug}")
+        return HttpResponseBadRequest(f"Invoice {invoice_id} not found.")
+
+    # Step 7: Validate amount against invoice balance
+    invoice_paid = sum(invoice.payments.values_list("amount", flat=True)) or Decimal("0")
+    is_valid, error_msg = PaymentValidator.validate_against_invoice(
+        Decimal(str(amount)),
+        invoice.total_amount,
+        invoice_paid,
     )
-    return JsonResponse({"status": "ok", "payment_id": payment.id})
+    if not is_valid:
+        WebhookLog.objects.create(
+            provider=provider_slug,
+            reference_id=reference_id,
+            client_ip=client_ip,
+            signature_valid=True,
+            status=WebhookLog.Status.INVALID,
+            invoice=invoice,
+            error_message=f"Amount validation failed: {error_msg}",
+        )
+        logger.warning(f"Payment amount validation failed for invoice {invoice_id}: {error_msg}")
+        return HttpResponseBadRequest(error_msg)
+
+    # Step 8: Record payment within transaction (atomic)
+    try:
+        with transaction.atomic():
+            # Create WebhookLog first (in PROCESSING state)
+            webhook_log = WebhookLog.objects.create(
+                provider=provider_slug,
+                reference_id=reference_id,
+                client_ip=client_ip,
+                signature_valid=True,
+                status=WebhookLog.Status.PROCESSING,
+                invoice=invoice,
+                request_body=request_body.decode()[:500],
+            )
+
+            # Record the payment
+            payment = record_provider_payment(
+                invoice=invoice,
+                amount=amount,
+                method=method or PaymentMethod.MTN_MOMO,
+                reference=data.get("reference", ""),
+                external_reference=reference_id,
+            )
+
+            if not payment:
+                webhook_log.status = WebhookLog.Status.FAILED
+                webhook_log.error_message = "Failed to create payment record"
+                webhook_log.save(update_fields=["status", "error_message"])
+                logger.error(f"Failed to record payment for webhook {reference_id}")
+                return JsonResponse({"status": "error", "reason": "payment_creation_failed"})
+
+            # Mark webhook as successfully processed
+            webhook_log.payment = payment
+            webhook_log.status = WebhookLog.Status.PROCESSED
+            webhook_log.response_status = 200
+            webhook_log.save(update_fields=["payment", "status", "response_status"])
+
+            logger.info(
+                f"Successfully processed webhook from {provider_slug}: "
+                f"Invoice {invoice_id}, Payment {payment.id}, Amount {amount} {provider_slug.upper()}"
+            )
+
+            return JsonResponse({
+                "status": "ok",
+                "payment_id": payment.id,
+                "reference": reference_id,
+            })
+
+    except Exception as e:
+        # Handle any transaction errors
+        logger.exception(f"Transaction error processing webhook {reference_id}: {e}")
+        try:
+            webhook_log = WebhookLog.objects.get(reference_id=reference_id, provider=provider_slug)
+            webhook_log.status = WebhookLog.Status.FAILED
+            webhook_log.error_message = f"Transaction error: {str(e)[:200]}"
+            webhook_log.save(update_fields=["status", "error_message"])
+        except WebhookLog.DoesNotExist:
+            WebhookLog.objects.create(
+                provider=provider_slug,
+                reference_id=reference_id,
+                client_ip=client_ip,
+                signature_valid=True,
+                status=WebhookLog.Status.FAILED,
+                error_message=f"Transaction error: {str(e)[:200]}",
+            )
+        return JsonResponse({"status": "error", "reason": "processing_failed"}, status=500)
 
 
 @staff_member_required

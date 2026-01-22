@@ -11,6 +11,9 @@ from apps.academics.models import AcademicYear, Classroom, Specialty, Department
 
 
 class TeacherProfile(models.Model):
+    # Phase 4: Enable audit logging for this model (teacher record changes)
+    audit_enabled = True
+
     class DashboardView(models.TextChoices):
         OVERVIEW = "OVERVIEW", "Overview"
         FINANCE = "FINANCE", "Finances"
@@ -161,6 +164,9 @@ class TeacherAttendance(models.Model):
 
 
 class StudentProfile(models.Model):
+    # Phase 4: Enable audit logging for this model (student record changes, grades tied to this)
+    audit_enabled = True
+
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
     student_code = models.CharField(max_length=50, unique=True, blank=True)
@@ -182,7 +188,8 @@ class StudentProfile(models.Model):
     date_of_birth = models.DateField(null=True, blank=True)
     place_of_birth = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=20, blank=True, choices=Status.choices)
-    joined_term = models.CharField(max_length=20, blank=True, choices=Term.Name.choices)
+    # Free-text code to store the joined term (now dynamic). Use portal form for choices.
+    joined_term = models.CharField(max_length=20, blank=True)
     joined_date = models.DateField(null=True, blank=True)
     section = models.CharField(max_length=80, blank=True)
     parent_phone = models.CharField(max_length=50, blank=True)
@@ -193,6 +200,29 @@ class StudentProfile(models.Model):
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="students")
 
     is_active = models.BooleanField(default=True)
+    
+    # Audit logging fields for data integrity
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp - preserves grade history when student leaves"
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students_created',
+        help_text="User who created this student record"
+    )
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students_updated',
+        help_text="User who last updated this student record"
+    )
 
     class Meta:
         ordering = ["last_name", "first_name"]
