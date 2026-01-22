@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -o errexit
 
+# NUCLEAR OPTION: Remove entire virtual environment to force fresh install
+echo "Removing old virtual environment..."
+rm -rf .venv 2>/dev/null || true
+
 # Aggressively clear all Python cache to ensure fresh deployment
 echo "Clearing Python cache..."
 find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
