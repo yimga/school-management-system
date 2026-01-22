@@ -226,6 +226,9 @@
 {% endblock %}
 
 {% block content %}
+  {# Role-based dashboard header #}
+  {% include 'components/dashboard_header.html' %}
+  
   {% include 'components/admin_nav_bridge.html' %}
   
   {% admin_health as health %}
@@ -773,4 +776,7 @@
       }
     }
   </style>
+  
+  {# Role-based dashboard footer #}
+  {% include 'components/dashboard_footer.html' %}
 {% endblock %}

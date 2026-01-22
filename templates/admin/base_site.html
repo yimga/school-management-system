@@ -163,7 +163,14 @@
 <!-- Include Keyboard Shortcuts for Power Users -->
 {% block footer %}
   {{ block.super }}
+  
+  {# Role-based dashboard header (positioned at top via CSS) #}
+  {% include 'components/dashboard_header.html' with admin_mode=True %}
+  
   {% include 'components/keyboard_shortcuts.html' %}
+  
+  {# Role-based dashboard footer #}
+  {% include 'components/dashboard_footer.html' %}
   
   <!-- Quick Access Hint -->
   <div class="admin-hint text-center py-2 small text-muted border-top">
@@ -186,6 +193,19 @@
       padding: 2px 6px;
       border-radius: 3px;
       font-size: 0.85em;
+    }
+    
+    /* Position dashboard header at top of admin */
+    #dashboardHeader {
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+      margin-bottom: 0;
+    }
+    
+    /* Adjust admin content to account for header */
+    .dashboard-header-wrapper + * {
+      margin-top: 1rem;
     }
   </style>
 {% endblock %}

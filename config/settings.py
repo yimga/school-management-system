@@ -81,6 +81,7 @@ TEMPLATES = [
                 "apps.siteconfig.breadcrumb_context.page_metadata_context",
                 "apps.siteconfig.context_processors.region_settings",
                 "apps.siteconfig.context_processors.language_context",
+                "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
             ]
         },
     }
@@ -396,4 +397,6 @@ ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true
 # Global grading scales (imported from apps.evals.grading module at runtime)
 # Reference: GRADING_SCALES, CURRENCY_SYMBOLS defined in apps/evals/grading.py
 
+# --- Application Version ---
+APP_VERSION = '3.2.1'  # System version for dashboard footer
 

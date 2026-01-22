@@ -1,0 +1,526 @@
+{% load static %}
+{# Role-based dashboard footer with support, quick links, and legal info #}
+<footer class="dashboard-footer mt-5" id="dashboardFooter">
+  <div class="container-fluid">
+    <!-- Primary Footer Section -->
+    <div class="row g-4 pb-4 border-bottom">
+      <!-- Support & Help Section (Role-based KB/FAQ) -->
+      <div class="col-lg-3 col-md-6">
+        <h5 class="footer-heading">
+          <i class="bi bi-life-preserver"></i> Support & Help
+        </h5>
+        <ul class="footer-links">
+          <li>
+            <a href="{% url 'portal:kb_home' %}" class="footer-link">
+              <i class="bi bi-book"></i> Knowledge Base
+            </a>
+          </li>
+          
+          {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+            <!-- Admin/Leadership KB links -->
+            <li>
+              <a href="{% url 'portal:kb_category' 'admin' %}" class="footer-link">
+                <i class="bi bi-shield-check"></i> Admin Documentation
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal:kb_category' 'technical' %}" class="footer-link">
+                <i class="bi bi-code-slash"></i> Technical Guides
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal:kb_category' 'security' %}" class="footer-link">
+                <i class="bi bi-lock"></i> Security & Compliance
+              </a>
+            </li>
+          
+          {% elif request.user.role == 'TEACHER' %}
+            <!-- Teacher KB links -->
+            <li>
+              <a href="{% url 'portal:kb_category' 'getting-started' %}" class="footer-link">
+                <i class="bi bi-rocket"></i> Getting Started
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal:kb_category' 'academics' %}" class="footer-link">
+                <i class="bi bi-journal-text"></i> Grade Entry & Classes
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal:kb_category' 'attendance' %}" class="footer-link">
+                <i class="bi bi-calendar-check"></i> Attendance Management
+              </a>
+            </li>
+          
+          {% elif request.user.role == 'PARENT' %}
+            <!-- Parent KB links -->
+            <li>
+              <a href="{% url 'portal:kb_category' 'getting-started' %}" class="footer-link">
+                <i class="bi bi-rocket"></i> Getting Started
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal:kb_category' 'parent' %}" class="footer-link">
+                <i class="bi bi-people"></i> Parent Portal Guide
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal:kb_category' 'finance' %}" class="footer-link">
+                <i class="bi bi-cash-stack"></i> Payments & Billing
+              </a>
+            </li>
+          
+          {% elif request.user.role == 'STUDENT' %}
+            <!-- Student KB links -->
+            <li>
+              <a href="{% url 'portal:kb_category' 'getting-started' %}" class="footer-link">
+                <i class="bi bi-rocket"></i> Getting Started
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal:kb_category' 'student' %}" class="footer-link">
+                <i class="bi bi-mortarboard"></i> Student Portal Guide
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'portal:kb_category' 'academics' %}" class="footer-link">
+                <i class="bi bi-book"></i> Academics & Assignments
+              </a>
+            </li>
+          {% endif %}
+
+          <li>
+            <a href="{% url 'portal:faq_list' %}" class="footer-link">
+              <i class="bi bi-question-circle"></i> FAQs
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Quick Links Section (Role-based features) -->
+      <div class="col-lg-3 col-md-6">
+        <h5 class="footer-heading">
+          <i class="bi bi-lightning"></i> Quick Links
+        </h5>
+        <ul class="footer-links">
+          {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+            <!-- Admin Quick Links -->
+            <li>
+              <a href="{% url 'admin:index' %}" class="footer-link">
+                <i class="bi bi-speedometer2"></i> Django Admin
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'accounts:backend_dashboard' %}" class="footer-link">
+                <i class="bi bi-grid"></i> Backend Dashboard
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'admin:django_admin_logs_logentry_changelist' %}" class="footer-link">
+                <i class="bi bi-clock-history"></i> Activity Logs
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'accounts:rbac' %}" class="footer-link">
+                <i class="bi bi-shield-lock"></i> RBAC Management
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'admin:compliance_auditlog_changelist' %}" class="footer-link">
+                <i class="bi bi-file-earmark-check"></i> Compliance Audit
+              </a>
+            </li>
+          
+          {% elif request.user.role == 'TEACHER' %}
+            <!-- Teacher Quick Links -->
+            <li>
+              <a href="{% url 'teacher:dashboard' %}" class="footer-link">
+                <i class="bi bi-house"></i> My Dashboard
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'academics:class_list' %}" class="footer-link">
+                <i class="bi bi-people"></i> My Classes
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'evals:grade_entry' %}" class="footer-link">
+                <i class="bi bi-journal-text"></i> Grade Entry
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'attendance:teacher_attendance' %}" class="footer-link">
+                <i class="bi bi-calendar-check"></i> Attendance
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'communication:inbox' %}" class="footer-link">
+                <i class="bi bi-envelope"></i> Messages
+              </a>
+            </li>
+          
+          {% elif request.user.role == 'PARENT' %}
+            <!-- Parent Quick Links -->
+            <li>
+              <a href="{% url 'parent:dashboard' %}" class="footer-link">
+                <i class="bi bi-house"></i> My Dashboard
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'parent:children' %}" class="footer-link">
+                <i class="bi bi-people"></i> My Children
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'finance:parent_invoices' %}" class="footer-link">
+                <i class="bi bi-receipt"></i> Invoices & Payments
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'reports:parent_reports' %}" class="footer-link">
+                <i class="bi bi-file-text"></i> Report Cards
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'communication:inbox' %}" class="footer-link">
+                <i class="bi bi-envelope"></i> Messages
+              </a>
+            </li>
+          
+          {% elif request.user.role == 'STUDENT' %}
+            <!-- Student Quick Links -->
+            <li>
+              <a href="{% url 'student:dashboard' %}" class="footer-link">
+                <i class="bi bi-house"></i> My Dashboard
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'student:grades' %}" class="footer-link">
+                <i class="bi bi-trophy"></i> My Grades
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'student:attendance' %}" class="footer-link">
+                <i class="bi bi-calendar-check"></i> My Attendance
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'academics:timetable' %}" class="footer-link">
+                <i class="bi bi-calendar3"></i> Timetable
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'communication:inbox' %}" class="footer-link">
+                <i class="bi bi-envelope"></i> Messages
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Contact & System Status -->
+      <div class="col-lg-3 col-md-6">
+        <h5 class="footer-heading">
+          <i class="bi bi-envelope"></i> Contact Us
+        </h5>
+        <ul class="footer-links">
+          <li>
+            <a href="mailto:{{ SITE.company_email }}" class="footer-link">
+              <i class="bi bi-envelope-at"></i> {{ SITE.company_email|default:"support@school.com" }}
+            </a>
+          </li>
+          <li>
+            <a href="tel:{{ SITE.company_phone }}" class="footer-link">
+              <i class="bi bi-telephone"></i> {{ SITE.company_phone|default:"+1 (555) 123-4567" }}
+            </a>
+          </li>
+          {% if SITE.company_address %}
+          <li class="footer-link text-muted">
+            <i class="bi bi-geo-alt"></i> {{ SITE.company_address|truncatewords:10 }}
+          </li>
+          {% endif %}
+          <li class="mt-3">
+            <div class="system-status">
+              <span class="status-indicator status-operational"></span>
+              <span class="status-text">All Systems Operational</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Legal & Utility Links -->
+      <div class="col-lg-3 col-md-6">
+        <h5 class="footer-heading">
+          <i class="bi bi-shield"></i> Legal & Info
+        </h5>
+        <ul class="footer-links">
+          <li>
+            <a href="{% url 'portal:privacy_policy' %}" class="footer-link">
+              <i class="bi bi-file-lock"></i> Privacy Policy
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'portal:terms_of_service' %}" class="footer-link">
+              <i class="bi bi-file-text"></i> Terms of Service
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'portal:about' %}" class="footer-link">
+              <i class="bi bi-info-circle"></i> About Us
+            </a>
+          </li>
+          {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+          <li>
+            <a href="{% url 'admin:compliance_compliancereport_changelist' %}" class="footer-link">
+              <i class="bi bi-file-earmark-check"></i> Compliance Reports
+            </a>
+          </li>
+          {% endif %}
+          <li class="mt-3">
+            <div class="version-info">
+              <i class="bi bi-code-square"></i>
+              <span>Version {{ system_version|default:"3.2.1" }}</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Secondary Footer Section (Copyright & Credits) -->
+    <div class="row pt-4">
+      <div class="col-md-8">
+        <div class="footer-copyright">
+          <p class="mb-1">
+            © {% now "Y" %} {{ SITE.company_name|default:"Gilead Tech High School" }}. All rights reserved.
+          </p>
+          {% if SITE.ministry_registration_code %}
+          <p class="mb-0 text-muted small">
+            Ministry Registration: {{ SITE.ministry_registration_code }}
+          </p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <div class="footer-credits">
+          <p class="mb-0">
+            <span class="text-muted">Powered by</span>
+            <strong>School Management System</strong>
+          </p>
+          <p class="mb-0 small text-muted">
+            Built with <i class="bi bi-heart-fill text-danger"></i> for Education
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+.dashboard-footer {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-top: 3px solid rgba(13, 110, 253, 0.1);
+  padding: 3rem 0 1.5rem;
+  margin-top: auto;
+  color: #475569;
+}
+
+.footer-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footer-heading i {
+  color: #0d6efd;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-link {
+  color: #64748b;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  padding: 0.25rem 0;
+}
+
+.footer-link:hover {
+  color: #0d6efd;
+  padding-left: 0.5rem;
+}
+
+.footer-link i {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-operational {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+
+.status-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.version-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(13, 110, 253, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(13, 110, 253, 0.2);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.footer-copyright {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.footer-copyright p {
+  line-height: 1.5;
+}
+
+.footer-credits {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.footer-credits strong {
+  color: #0d6efd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-footer {
+    padding: 2rem 0 1rem;
+  }
+
+  .footer-heading {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .footer-link {
+    font-size: 0.85rem;
+  }
+
+  .col-md-4.text-md-end {
+    text-align: left !important;
+    margin-top: 1rem;
+  }
+}
+
+/* Dark mode support (if enabled) */
+@media (prefers-color-scheme: dark) {
+  {% if SITE and SITE.use_dark_mode %}
+  .dashboard-footer {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #cbd5e1;
+  }
+
+  .footer-heading {
+    color: #f1f5f9;
+  }
+
+  .footer-link {
+    color: #94a3b8;
+  }
+
+  .footer-link:hover {
+    color: #60a5fa;
+  }
+
+  .footer-copyright {
+    color: #94a3b8;
+  }
+
+  .footer-credits {
+    color: #94a3b8;
+  }
+  {% endif %}
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Simulate system status check (replace with real API call)
+  function checkSystemStatus() {
+    const statusIndicator = document.querySelector('.status-indicator');
+    const statusText = document.querySelector('.status-text');
+    
+    // Example: Check if API is responding
+    fetch('/api/health/', { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) {
+          statusIndicator.className = 'status-indicator status-operational';
+          statusText.textContent = 'All Systems Operational';
+          statusIndicator.style.background = '#22c55e';
+        } else {
+          statusIndicator.className = 'status-indicator status-degraded';
+          statusText.textContent = 'System Degraded';
+          statusIndicator.style.background = '#f59e0b';
+        }
+      })
+      .catch(() => {
+        statusIndicator.className = 'status-indicator status-down';
+        statusText.textContent = 'System Down';
+        statusIndicator.style.background = '#ef4444';
+      });
+  }
+
+  // Check status every 5 minutes
+  checkSystemStatus();
+  setInterval(checkSystemStatus, 300000);
+});
+</script>
