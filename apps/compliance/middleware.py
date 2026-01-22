@@ -82,7 +82,6 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 status=response.status_code,
                 response_time_ms=response_time_ms,
                 ip_address=ip_address,
-                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
                 error_message=error_message,
             )
         except Exception as e:
@@ -106,7 +105,6 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 request_method=request.method,
                 status=500,
                 ip_address=ip_address,
-                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
                 error_message=str(exception)[:500],
             )
         except Exception as e:
