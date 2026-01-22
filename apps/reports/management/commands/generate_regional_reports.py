@@ -184,7 +184,7 @@ class Command(BaseCommand):
             'student_id': student.admission_number,
             'class': student.current_classroom.name if student.current_classroom else 'N/A',
             'academic_year': str(academic_year),
-            'term': term.get_name_display() if term else 'N/A',
+            'term': term.label if term else 'N/A',
             'language': language,
             'region': region.name if region else 'Default',
             'average_score': round(average_score, 2),

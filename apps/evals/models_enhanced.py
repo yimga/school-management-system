@@ -82,7 +82,7 @@ class GradeImportJob(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.filename} ({self.status}) - {self.academic_year} {self.term.get_name_display()}"
+        return f"{self.filename} ({self.status}) - {self.academic_year} {self.term.label}"
     
     @property
     def duration_seconds(self) -> int | None:

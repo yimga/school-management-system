@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.core.exceptions import ValidationError
 
 
@@ -36,6 +37,22 @@ class Term(models.Model):
     class Meta:
         unique_together = ("academic_year", "name")
         ordering = ["start_date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["academic_year", "position"],
+                name="unique_term_position_per_year",
+                condition=Q(position__isnull=False),
+            ),
+            models.CheckConstraint(
+                check=(Q(position__isnull=True) | (Q(position__gte=1) & Q(position__lte=4))),
+                name="term_position_range_1_4_or_null",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.position is not None and not (1 <= int(self.position) <= 4):
+            raise ValidationError({"position": "Position must be between 1 and 4."})
 
     def __str__(self):
         return f"{self.academic_year} - {self.label}"

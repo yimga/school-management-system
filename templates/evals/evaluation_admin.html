@@ -173,7 +173,7 @@
   <div class="card-body">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
       <div class="text-muted small">
-        Showing {{ evals|length }} evaluations • {{ selected_year.name }} • {{ selected_term.name }}
+        Showing {{ evals|length }} evaluations • {{ selected_year.name }} • {{ selected_term.label }}
       </div>
       <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary btn-sm" href="?{{ export_csv_query }}">Export CSV</a>

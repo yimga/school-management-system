@@ -628,7 +628,7 @@ def teacher_dashboard_widget_data(assignments, progress, year, term, teacher=Non
         upcoming.append({
             "subject": sa.subject.name,
             "classroom": sa.classroom.name,
-            "term": sa.term.get_name_display(),
+            "term": sa.term.label,
         })
 
     links = [
