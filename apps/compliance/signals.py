@@ -3,6 +3,7 @@ Signal handlers for audit logging: comprehensive tracking of model changes and u
 Phase 4: Automatically log CREATE, UPDATE, DELETE for audit trail.
 """
 
+from decimal import Decimal
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
@@ -35,6 +36,8 @@ def _serialize_instance(instance):
         value = getattr(instance, field.name)
         if hasattr(value, 'isoformat'):  # datetime
             value = value.isoformat()
+        elif isinstance(value, Decimal):
+            value = float(value)
         elif hasattr(value, '__dict__') and not isinstance(value, (str, int, float, bool, type(None))):
             value = str(value)
         data[field.name] = value

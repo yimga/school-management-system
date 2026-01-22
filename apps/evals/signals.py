@@ -1,11 +1,12 @@
 """Signals for automatic audit trail and grade conversion."""
 
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from decimal import Decimal
 from apps.evals.models import Evaluation, GradeAudit, OfflineMarkEntry
 from apps.evals.validators import GradeValidator, GradeConverter
+from apps.evals.ranking import RankingCache
 import logging
 
 logger = logging.getLogger(__name__)
@@ -96,9 +97,31 @@ def create_audit_trail_and_convert_grades(sender, instance, created, **kwargs):
         )
         
         logger.info(f"Audit trail created for evaluation {instance.id}")
-    
+   
     except Exception as e:
         logger.error(f"Failed to create audit trail: {e}", exc_info=True)
+
+
+def _invalidate_ranking_cache(term, classroom):
+    """Invalidate both class and school rankings for the provided context."""
+    if not term:
+        return
+    RankingCache.invalidate(term, classroom)
+
+
+@receiver(post_save, sender=Evaluation)
+@receiver(post_delete, sender=Evaluation)
+def invalidate_rankings_on_evaluation_change(sender, instance, **kwargs):
+    """Ensure cached rankings reflect the latest grades."""
+    classroom = getattr(instance.subject_assignment, "classroom", None)
+    _invalidate_ranking_cache(instance.term, classroom)
+
+
+@receiver(post_save, sender=OfflineMarkEntry)
+def invalidate_rankings_for_offline_entry(sender, instance, created, **kwargs):
+    """Invalidate rankings when offline marks sync."""
+    classroom = getattr(instance.subject_assignment, "classroom", None)
+    _invalidate_ranking_cache(instance.term, classroom)
 
 
 @receiver(post_save, sender=OfflineMarkEntry)

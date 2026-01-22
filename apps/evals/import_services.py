@@ -7,13 +7,15 @@ Enhanced Grade Import Services for:
 - Async processing support
 """
 
+from __future__ import annotations
+
 import io
 import csv
 import hashlib
 import json
 import logging
 from dataclasses import dataclass, asdict
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
 from decimal import Decimal
 from datetime import datetime
 
@@ -21,6 +23,10 @@ from django.db import transaction
 from django.apps import apps as django_apps
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
+
+if TYPE_CHECKING:
+    from apps.people.models import StudentProfile, TeacherProfile
+    from apps.academics.models import SubjectAssignment
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +58,9 @@ class ImportRowResult:
     error_message: str = ""
     previous_values: dict = None
     new_values: dict = None
+    student_obj: Optional["StudentProfile"] = None
+    subject_assignment_obj: Optional["SubjectAssignment"] = None
+    teacher_obj: Optional["TeacherProfile"] = None
 
 
 class GradeImportValidator:
@@ -313,6 +322,9 @@ class GradeImportProcessor:
                 success=True,
                 previous_values=previous_values_json,
                 new_values=new_values_json,
+                student_obj=student,
+                subject_assignment_obj=subject_assignment,
+                teacher_obj=teacher,
             )
         
         except Exception as e:
@@ -379,6 +391,7 @@ class GradeImportService:
         file_hash = self.compute_file_hash(file_obj)
         filename = file_obj.name
         file_size = file_obj.size
+        file_obj.seek(0)
         
         # Check for duplicate uploads
         duplicate = self.GradeImportJob.objects.filter(file_hash=file_hash).first()
@@ -393,6 +406,7 @@ class GradeImportService:
             filename=filename,
             file_size_bytes=file_size,
             file_hash=file_hash,
+            uploaded_file=file_obj,
             status=self.GradeImportJob.Status.VALIDATING,
         )
         
@@ -453,7 +467,9 @@ class GradeImportService:
                     self.GradeImportRowLog.objects.create(
                         import_job=job,
                         row_number=result.row_number,
-                        student=result.row_data,  # TODO: fix this
+                        student=result.student_obj,
+                        subject_assignment=result.subject_assignment_obj,
+                        teacher=result.teacher_obj,
                         action=result.action,
                         success=result.success,
                         error_message=result.error_message,
