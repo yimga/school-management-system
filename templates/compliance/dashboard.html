@@ -236,6 +236,96 @@
         </div>
     </div>
 
+    <!-- Threat Detection & Blocked Access -->
+    <div class="section-two-col">
+        <div class="section">
+            <h2>🔍 Threat Detection (24h)</h2>
+            <div class="threat-metrics">
+                {% if threat_metrics.is_muted %}
+                    <div class="alert-banner warning">
+                        <span class="alert-icon">🔇</span>
+                        <div class="alert-text">
+                            <strong>Detection Muted</strong>
+                            <p>Until: {{ threat_metrics.mute_until|date:"Y-m-d H:i" }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+                <div class="security-item {% if threat_metrics.total_findings > 0 %}warning{% endif %}">
+                    <span class="label">Total Findings</span>
+                    <span class="value">{{ threat_metrics.total_findings }}</span>
+                </div>
+                <div class="security-item">
+                    <span class="label">Brute Force (User)</span>
+                    <span class="value">{{ threat_metrics.brute_force_user }}</span>
+                </div>
+                <div class="security-item">
+                    <span class="label">Brute Force (IP)</span>
+                    <span class="value">{{ threat_metrics.brute_force_ip }}</span>
+                </div>
+                <div class="security-item">
+                    <span class="label">After Hours Access</span>
+                    <span class="value">{{ threat_metrics.after_hours }}</span>
+                </div>
+                <div class="threat-actions">
+                    <p class="last-checked">Last checked: {{ threat_metrics.last_checked|date:"Y-m-d H:i" }}</p>
+                    <div class="button-group">
+                        {% if threat_metrics.is_muted %}
+                            <button class="btn btn-sm" onclick="muteThreats('clear')">🔔 Unmute</button>
+                        {% else %}
+                            <button class="btn btn-sm" onclick="muteThreats('1h')">Mute 1h</button>
+                            <button class="btn btn-sm" onclick="muteThreats('4h')">Mute 4h</button>
+                            <button class="btn btn-sm" onclick="muteThreats('24h')">Mute 24h</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blocked Access -->
+        <div class="section">
+            <h2>🚫 Blocked Access (24h)</h2>
+            <div class="blocked-metrics">
+                <div class="security-item">
+                    <span class="label">Total Blocked</span>
+                    <span class="value">{{ blocked_access.total_blocked }}</span>
+                </div>
+                <div class="security-item">
+                    <span class="label">Unique IPs</span>
+                    <span class="value">{{ blocked_access.unique_ips }}</span>
+                </div>
+                {% if blocked_access.top_ips %}
+                    <div class="blocked-list">
+                        <h4>Top Blocked IPs:</h4>
+                        <ul>
+                            {% for item in blocked_access.top_ips|slice:":5" %}
+                                <li>
+                                    <strong>{{ item.ip }}</strong> 
+                                    <span class="badge">{{ item.count }}x</span>
+                                    <br><small>Last: {{ item.last_seen|date:"Y-m-d H:i" }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% else %}
+                    <p class="success">✓ No blocked access attempts</p>
+                {% endif %}
+                {% if blocked_access.top_countries %}
+                    <div class="blocked-list">
+                        <h4>Top Blocked Countries:</h4>
+                        <ul>
+                            {% for item in blocked_access.top_countries|slice:":5" %}
+                                <li>
+                                    <strong>{{ item.code|upper }}</strong> 
+                                    <span class="badge">{{ item.count }}x</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Links -->
     <div class="section quick-links">
         <h2>Quick Links</h2>
@@ -518,5 +608,111 @@
         color: #2c3e50;
         font-weight: 600;
     }
+
+    .threat-metrics, .blocked-metrics {
+        padding: 10px 0;
+    }
+
+    .threat-actions {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #ecf0f1;
+    }
+
+    .threat-actions .last-checked {
+        font-size: 12px;
+        color: #7f8c8d;
+        margin-bottom: 10px;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.2s;
+    }
+
+    .btn:hover {
+        background: #2980b9;
+    }
+
+    .btn-sm {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+
+    .blocked-list {
+        margin-top: 12px;
+    }
+
+    .blocked-list h4 {
+        font-size: 13px;
+        margin-bottom: 8px;
+        color: #2c3e50;
+    }
+
+    .blocked-list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .blocked-list li {
+        padding: 6px 0;
+        border-bottom: 1px solid #ecf0f1;
+        font-size: 13px;
+    }
+
+    .blocked-list li:last-child {
+        border-bottom: none;
+    }
+
+    .badge {
+        background: #e74c3c;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 11px;
+        margin-left: 6px;
+    }
 </style>
+
+<script>
+// Mute threat detection
+async function muteThreats(duration) {
+    const formData = new FormData();
+    formData.append('duration', duration);
+    
+    try {
+        const response = await fetch("{% url 'compliance:api_mute_threats' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            window.location.reload();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        alert('Failed to update threat mute status: ' + error.message);
+    }
+}
+</script>
 {% endblock %}

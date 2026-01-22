@@ -54,6 +54,8 @@ class ComplianceDashboardView(View):
                 'recent_audits': self._get_recent_audits(),
                 'security_summary': self._get_security_summary(),
                 'integrity_status': self._get_integrity_status(),
+                'threat_metrics': self._get_threat_metrics(),
+                'blocked_access': self._get_blocked_access(),
             }
             cache.set(cache_key, context, cache_ttl)
         
@@ -301,3 +303,83 @@ class ComplianceDashboardView(View):
         score -= min(suspicious * 5, 30)  # Max deduct 30
         score -= min(denials * 1, 20)  # Max deduct 20
         return max(0, score)
+
+    def _get_threat_metrics(self):
+        """Get threat detection metrics for last 24 hours."""
+        from apps.compliance.threat_detection import detect_threats
+        from apps.compliance.models_audit import ThreatDetectionConfig
+
+        # Run detection for last 24 hours
+        findings = detect_threats(window_minutes=1440)  # 24 hours
+
+        # Get mute status
+        try:
+            config = ThreatDetectionConfig.get_active()
+            is_muted = config.is_muted()
+            mute_until = config.mute_until
+        except Exception:
+            is_muted = False
+            mute_until = None
+
+        # Group findings by type
+        by_type = defaultdict(int)
+        for finding in findings:
+            by_type[finding['type']] += 1
+
+        return {
+            'total_findings': len(findings),
+            'brute_force_user': by_type.get('brute_force_user', 0),
+            'brute_force_ip': by_type.get('brute_force_ip', 0),
+            'after_hours': by_type.get('after_hours', 0),
+            'is_muted': is_muted,
+            'mute_until': mute_until,
+            'last_checked': timezone.now(),
+        }
+
+    def _get_blocked_access(self):
+        """Get recent blocked IPs and countries (403 responses)."""
+        now = timezone.now()
+        last_24h = now - timedelta(days=1)
+
+        # Get recent 403 responses
+        blocked = AccessLog.objects.filter(
+            timestamp__gte=last_24h,
+            status=403
+        ).select_related('user').order_by('-timestamp')
+
+        # Aggregate by IP
+        by_ip = {}
+        by_country = {}
+
+        for log in blocked[:100]:  # Limit to recent 100
+            ip = log.ip_address
+            if ip not in by_ip:
+                by_ip[ip] = {
+                    'count': 0,
+                    'first_seen': log.timestamp,
+                    'last_seen': log.timestamp,
+                    'user_agent': log.user_agent or 'Unknown',
+                }
+            by_ip[ip]['count'] += 1
+            by_ip[ip]['last_seen'] = max(by_ip[ip]['last_seen'], log.timestamp)
+
+            # Country (if available)
+            country = getattr(log, 'country_code', None)
+            if country:
+                if country not in by_country:
+                    by_country[country] = {
+                        'count': 0,
+                        'first_seen': log.timestamp,
+                    }
+                by_country[country]['count'] += 1
+
+        # Sort by count, take top 10
+        top_ips = sorted(by_ip.items(), key=lambda x: x[1]['count'], reverse=True)[:10]
+        top_countries = sorted(by_country.items(), key=lambda x: x[1]['count'], reverse=True)[:10]
+
+        return {
+            'total_blocked': blocked.count(),
+            'unique_ips': len(by_ip),
+            'top_ips': [{'ip': ip, **data} for ip, data in top_ips],
+            'top_countries': [{'code': code, **data} for code, data in top_countries],
+        }

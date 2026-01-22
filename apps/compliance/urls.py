@@ -11,6 +11,7 @@ from apps.compliance.views import (
     RegionalComparisonAPI,
     CriticalItemsAPI,
 )
+from apps.compliance.views_api import mute_threats
 
 app_name = 'compliance'
 
@@ -27,6 +28,7 @@ urlpatterns = [
     path('api/timeline-data/', TimelineDataAPI.as_view(), name='api_timeline_data'),
     path('api/regional-comparison/', RegionalComparisonAPI.as_view(), name='api_regional_comparison'),
     path('api/critical-items/', CriticalItemsAPI.as_view(), name='api_critical_items'),
+    path('api/mute-threats/', mute_threats, name='api_mute_threats'),
     
     # Phase 4: Compliance reporting
     path('reports/', include('apps.compliance.urls_reporting')),
