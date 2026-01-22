@@ -48,9 +48,16 @@
 
     <!-- Activity Chart -->
     <div class="chart-section">
-        <h2>Audit Activity Trend (30 Days)</h2>
-        <div id="activityChart" class="chart-container">
-            <p>Activity data visualization would go here</p>
+        <div class="chart-header">
+            <h2>Audit Activity Trend (30 Days)</h2>
+            <div class="chart-actions">
+                <a class="chip" href="{% url 'compliance_reporting:audit_trail' %}?days=7">7d</a>
+                <a class="chip" href="{% url 'compliance_reporting:audit_trail' %}?days=30">30d</a>
+                <a class="chip" href="{% url 'compliance_reporting:audit_trail' %}?days=90">90d</a>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="activityChartCanvas"></canvas>
         </div>
         <script type="application/json" id="activityData">
             {
@@ -62,23 +69,22 @@
 
     <!-- User Activity Heatmap -->
     <div class="chart-section">
-        <h2>Login Activity Heatmap ({{ user_activity_heatmap.period }})</h2>
-        <div class="heatmap-container">
-            <div class="heatmap-hours">
-                {% for hour in user_activity_heatmap.hours %}
-                    <div class="heatmap-hour">
-                        <span class="hour-label">{{ hour }}h</span>
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="heatmap-data">
-                {% for count in user_activity_heatmap.data %}
-                    <div class="heatmap-bar" style="height: {{ count }}px; opacity: {% widthratio count 100 1 %};">
-                        <span class="bar-count">{{ count }}</span>
-                    </div>
-                {% endfor %}
+        <div class="chart-header">
+            <h2>Login Activity Heatmap ({{ user_activity_heatmap.period }})</h2>
+            <div class="chart-actions">
+                <a class="chip" href="{% url 'compliance_reporting:data_access' %}?days=7">7d</a>
+                <a class="chip" href="{% url 'compliance_reporting:data_access' %}?days=30">30d</a>
             </div>
         </div>
+        <div class="chart-container">
+            <canvas id="heatmapChartCanvas"></canvas>
+        </div>
+        <script type="application/json" id="heatmapData">
+            {
+                "hours": {{ user_activity_heatmap.hours|safe }},
+                "data": {{ user_activity_heatmap.data|safe }}
+            }
+        </script>
     </div>
 
     <!-- Model Changes Summary -->
@@ -176,7 +182,7 @@
                 </div>
                 <div class="security-score">
                     <span class="label">Security Score</span>
-                    <div class="score-bar" style="width: {{ security_summary.security_score }}%;">
+                    <div class="score-bar" style="--score-width: {{ security_summary.security_score|floatformat:0 }}%;">
                         <span>{{ security_summary.security_score|floatformat:0 }}/100</span>
                     </div>
                 </div>
@@ -219,8 +225,74 @@
             <a href="{% url 'compliance_reporting:anomalies' %}" class="link-btn">⚠️ Anomalies</a>
             <a href="{% url 'admin:compliance_compliancereport_changelist' %}" class="link-btn">📑 Reports</a>
         </div>
+        <div class="export-links">
+            <span class="export-label">Export shortcuts:</span>
+            <a href="{% url 'compliance_reporting:export' %}?type=audit_trail&format=csv&days=30" class="chip">Audit CSV</a>
+            <a href="{% url 'compliance_reporting:export' %}?type=access_log&format=csv&days=30" class="chip">Access CSV</a>
+            <a href="{% url 'compliance_reporting:export' %}?type=audit_trail&format=pdf&days=30" class="chip">Audit PDF</a>
+        </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    (() => {
+        const activityPayload = JSON.parse(document.getElementById('activityData').textContent);
+        const activityCtx = document.getElementById('activityChartCanvas');
+        if (activityCtx && activityPayload) {
+            new Chart(activityCtx, {
+                type: 'line',
+                data: {
+                    labels: activityPayload.labels,
+                    datasets: [{
+                        label: 'Audit Events',
+                        data: activityPayload.data,
+                        fill: false,
+                        borderColor: '#1f78d1',
+                        backgroundColor: 'rgba(31, 120, 209, 0.15)',
+                        tension: 0.25,
+                        pointRadius: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        const heatmapCtx = document.getElementById('heatmapChartCanvas');
+        if (heatmapCtx) {
+            const heatmapPayload = JSON.parse(document.getElementById('heatmapData').textContent);
+            const hours = heatmapPayload.hours || [];
+            const counts = heatmapPayload.data || [];
+            new Chart(heatmapCtx, {
+                type: 'bar',
+                data: {
+                    labels: hours.map(h => `${h}:00`),
+                    datasets: [{
+                        label: 'Logins',
+                        data: counts,
+                        backgroundColor: counts.map(c => `rgba(46, 204, 113, ${Math.min(1, (c || 0) / 10 + 0.1)})`),
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    })();
+</script>
 
 <style>
     .compliance-dashboard {
@@ -345,6 +417,84 @@
 
     .link-btn:hover {
         background: #2980b9;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 320px;
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .chart-section {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 20px 0;
+    }
+
+    .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .chart-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .chip {
+        padding: 6px 10px;
+        background: #eef2f7;
+        border-radius: 999px;
+        color: #2c3e50;
+        font-size: 12px;
+        text-decoration: none;
+        border: 1px solid #d0d7e2;
+        transition: background 0.2s;
+    }
+
+    .chip:hover {
+        background: #dbe4f3;
+    }
+
+    .export-links {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .export-label {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .score-bar {
+        background: linear-gradient(90deg, #2ecc71 0%, #f1c40f 70%, #e74c3c 100%);
+        height: 12px;
+        border-radius: 999px;
+        position: relative;
+        width: var(--score-width, 0%);
+        max-width: 100%;
+        transition: width 0.3s ease;
+    }
+
+    .score-bar span {
+        position: absolute;
+        right: 8px;
+        top: -18px;
+        font-size: 11px;
+        color: #2c3e50;
+        font-weight: 600;
     }
 </style>
 {% endblock %}
