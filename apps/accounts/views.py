@@ -91,6 +91,22 @@ def rbac_dashboard(request):
                 messages.success(request, f"Permissions updated for {user.username}.")
                 return redirect("accounts:rbac")
 
+    today = timezone.localdate()
+    week_start = today - timedelta(days=6)
+    window = TeacherAttendance.objects.filter(date__range=(week_start, today))
+    present_map = {
+        entry["date"]: entry["count"]
+        for entry in window.filter(status=TeacherAttendance.Status.PRESENT)
+        .values("date")
+        .annotate(count=Count("id"))
+    }
+    attendance_trend = [
+        {"date": week_start + timedelta(days=offset), "present": present_map.get(week_start + timedelta(days=offset), 0)}
+        for offset in range(7)
+    ]
+    attendance_trend_total = sum(item["present"] for item in attendance_trend)
+    attendance_trend_progress = min(attendance_trend_total, 100)
+
     context = {
         "roles": AccessRole.objects.prefetch_related("permissions").order_by("code"),
         "permissions": Permission.objects.order_by("code"),

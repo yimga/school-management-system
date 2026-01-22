@@ -203,7 +203,7 @@
               <td>{{ e.subject_assignment.classroom.name }}</td>
               <td>{{ e.subject_assignment.subject.name }}</td>
               <td class="text-center">
-                <a class="btn btn-sm btn-outline-secondary" href="{% url 'evaluation_evidence_upload' %}?evaluation={{ e.id }}">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'evals:evaluation_evidence_upload' %}?evaluation={{ e.id }}">
                   {{ e.evidence.count }} file{{ e.evidence.count|pluralize }}
                 </a>
               </td>
