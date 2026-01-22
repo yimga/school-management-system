@@ -26,8 +26,16 @@ class ComplianceProfile(models.Model):
     country_code = models.CharField(max_length=2)
     currency_code = models.CharField(max_length=3, default="XAF")
     currency_symbol = models.CharField(max_length=8, default="XAF")
-    timezone = models.CharField(max_length=64, default="Africa/Douala")
+    timezone = models.CharField(max_length=64, default=settings.TIME_ZONE)
     chart_template = models.CharField(max_length=20, choices=ChartTemplate.choices, default=ChartTemplate.GENERIC)
+    # Phase 3: Global Flexibility – configure allowed payment methods per region/profile
+    available_payment_methods = models.JSONField(
+        default=list,
+        help_text=(
+            "List of allowed payment method codes (e.g., MTN_MOMO, ORANGE_MOMO, BANK, CASH). "
+            "Defaults applied at migration time."
+        ),
+    )
 
     min_wage = models.DecimalField(max_digits=12, decimal_places=2, default=60000)
     default_hours_per_week = models.DecimalField(max_digits=6, decimal_places=2, default=40)
@@ -284,6 +292,17 @@ class Invoice(models.Model):
         """Validate invoice data before saving."""
         if self.total_amount < Decimal("0.01"):
             raise ValidationError({"total_amount": "Invoice total must be at least 0.01"})
+        # Validate preferred payment method against profile configuration when provided
+        if self.preferred_payment_method:
+            # If profile defines available methods, ensure preferred method is allowed
+            if self.profile and isinstance(self.profile.available_payment_methods, list) and self.profile.available_payment_methods:
+                if self.preferred_payment_method not in self.profile.available_payment_methods:
+                    raise ValidationError({
+                        "preferred_payment_method": (
+                            f"Method '{self.preferred_payment_method}' is not allowed for profile {self.profile.name}. "
+                            f"Allowed: {', '.join(self.profile.available_payment_methods)}"
+                        )
+                    })
 
     def save(self, *args, **kwargs):
         """Call full_clean() before saving to validate."""
@@ -396,6 +415,17 @@ class Payment(models.Model):
                 raise ValidationError({
                     "amount": f"Payment {self.amount} exceeds remaining balance {remaining_balance}"
                 })
+        # Validate payment method against invoice profile's allowed methods
+        if self.invoice and self.method:
+            profile = self.invoice.profile
+            if profile and isinstance(profile.available_payment_methods, list) and profile.available_payment_methods:
+                if self.method not in profile.available_payment_methods:
+                    raise ValidationError({
+                        "method": (
+                            f"Method '{self.method}' is not allowed for profile {profile.name}. "
+                            f"Allowed: {', '.join(profile.available_payment_methods)}"
+                        )
+                    })
 
     def save(self, *args, **kwargs):
         """Call full_clean() before saving to validate."""
