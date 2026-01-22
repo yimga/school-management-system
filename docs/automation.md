@@ -26,6 +26,19 @@ python manage.py run_phase7_checks --require-automation
 - Set Render cron to execute `python manage.py run_phase7_checks` nightly.
 - Hook accessibility audits (axe/pa11y) into CI, writing results to `docs/qa-reports/`.
 
+## Cleanup & Maintenance
+- **Cleanup expired IP rules**: `python manage.py cleanup_expired_rules [--dry-run]`
+	- Deactivates IPAccessRule records with `expires_at` <= now
+	- Run weekly/daily depending on how often you create temporary rules
+	- Example cron: `0 2 * * * python manage.py cleanup_expired_rules` (daily at 2 AM)
+- **Archive old audit logs**: `python manage.py archive_old_audits [--dry-run] [--days=DAYS]`
+	- Deletes AuditLog, AccessLog, UserActivitySession records older than retention policy
+	- Default retention: AuditLog=90 days, AccessLog=30 days, UserActivitySession=60 days
+	- Override with env vars: `AUDIT_LOG_RETENTION_DAYS`, `ACCESS_LOG_RETENTION_DAYS`, `ACTIVITY_SESSION_RETENTION_DAYS`
+	- Example cron: `0 3 * * 0 python manage.py archive_old_audits` (weekly on Sunday at 3 AM)
+	- Use `--days=X` to override all retention periods at once
+- Always test with `--dry-run` first to preview what will be deleted/deactivated
+
 ## Threat detection and incident response
 - Env vars (defaults):
 	- `THREAT_WINDOW_MINUTES=60` (lookback window in minutes)
