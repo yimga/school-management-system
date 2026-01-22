@@ -10,5 +10,6 @@ urlpatterns = [
     path("redirect/", redirect_view, name="redirect"),
     path("rbac/", rbac_dashboard, name="rbac"),
     path("backend/", backend_dashboard, name="backend_dashboard"),
+    path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("claim-invite/", claim_invite, name="claim_invite"),
 ]

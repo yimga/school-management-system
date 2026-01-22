@@ -24,6 +24,12 @@ from django.views.decorators.csrf import csrf_exempt
 
 from django.template.loader import render_to_string
 
+try:
+    from django.http import HttpResponseTooManyRequests
+except ImportError:
+    class HttpResponseTooManyRequests(HttpResponse):
+        status_code = 429
+
 from apps.academics.models import AcademicYear
 from apps.payroll.models import Payslip
 from apps.siteconfig.models import SiteSettings
@@ -47,6 +53,16 @@ from .services import (
     get_payment_integration_by_slug,
     record_provider_payment,
     verify_payment_signature,
+)
+from .webhook_security import (
+    check_webhook_ip_whitelist,
+    check_webhook_rate_limit,
+    compute_idempotency_key,
+    check_webhook_idempotency,
+    log_webhook_request,
+    IPWhitelistViolation,
+    RateLimitExceeded,
+    IdempotencyViolation,
 )
 
 
@@ -261,18 +277,57 @@ def invoice_receipt(request: HttpRequest, invoice_id: int, payment_id: int | Non
 
 @csrf_exempt
 def payment_provider_webhook(request: HttpRequest, provider_slug: str):
+    """
+    Webhook endpoint for payment provider callbacks.
+    
+    SECURITY: This endpoint is CSRF-exempt to allow external payment providers
+    to send notifications. We protect it with:
+    1. IP whitelist verification (must be in integration config)
+    2. Rate limiting per provider
+    3. Signature verification from integration
+    4. Idempotency checks to prevent duplicate processing
+    5. Full request logging for audit trail
+    """
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
 
     integration = get_payment_integration_by_slug(provider_slug)
     if not integration:
+        log_webhook_request(request, provider_slug, None, None, "rejected", "Unknown provider")
         return HttpResponseForbidden("Unknown provider.")
+
+    # SECURITY CHECK 1: Verify IP is whitelisted
+    try:
+        check_webhook_ip_whitelist(request, integration, provider_slug)
+    except IPWhitelistViolation as e:
+        return HttpResponseForbidden(str(e))
+
+    # SECURITY CHECK 2: Check rate limiting
+    try:
+        check_webhook_rate_limit(integration, provider_slug)
+    except RateLimitExceeded as e:
+        return HttpResponseTooManyRequests(str(e))
 
     try:
         data = json.loads(request.body.decode() or "{}")
     except json.JSONDecodeError:
+        log_webhook_request(request, provider_slug, None, None, "rejected", "Invalid JSON")
         return HttpResponseBadRequest("Invalid JSON payload.")
 
+    invoice_id = data.get("invoice_id") or data.get("invoice")
+    amount = data.get("amount")
+    reference = data.get("reference") or data.get("payment_reference")
+    external_ref = data.get("external_reference") or reference
+
+    log_webhook_request(
+        request,
+        provider_slug,
+        invoice_id,
+        amount,
+        "received",
+    )
+
+    # SECURITY CHECK 3: Verify signature
     signature_header = integration.config.get("signature_header", "X-Signature")
     signature = (
         request.headers.get(signature_header)
@@ -280,21 +335,60 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     )
 
     if not verify_payment_signature(integration, data, signature):
+        log_webhook_request(
+            request,
+            provider_slug,
+            invoice_id,
+            amount,
+            "rejected",
+            "Invalid signature",
+        )
         return HttpResponseForbidden("Invalid signature.")
 
-    invoice_id = data.get("invoice_id") or data.get("invoice")
-    amount = data.get("amount")
-    reference = data.get("reference") or data.get("payment_reference")
-    external_ref = data.get("external_reference") or reference
-    method = data.get("method") or PROVIDER_SLUG_TO_METHOD.get(provider_slug)
-
     if not invoice_id or amount is None:
+        log_webhook_request(
+            request,
+            provider_slug,
+            invoice_id,
+            amount,
+            "rejected",
+            "Missing invoice_id or amount",
+        )
         return HttpResponseBadRequest("Missing invoice_id or amount.")
+
+    # SECURITY CHECK 4: Check idempotency to prevent duplicate payments
+    idempotency_key = compute_idempotency_key(
+        invoice_id,
+        amount,
+        provider_slug,
+        external_ref,
+    )
+    
+    if check_webhook_idempotency(idempotency_key):
+        log_webhook_request(
+            request,
+            provider_slug,
+            invoice_id,
+            amount,
+            "duplicate",
+            "Idempotency key already processed",
+        )
+        # Return success to acknowledge duplicate (provider doesn't retry)
+        return JsonResponse({"status": "duplicate", "message": "Already processed"})
 
     invoice = Invoice.objects.filter(id=invoice_id).first()
     if not invoice:
+        log_webhook_request(
+            request,
+            provider_slug,
+            invoice_id,
+            amount,
+            "rejected",
+            "Invoice not found",
+        )
         return HttpResponseBadRequest("Invoice not found.")
 
+    method = data.get("method") or PROVIDER_SLUG_TO_METHOD.get(provider_slug)
     payment = record_provider_payment(
         invoice=invoice,
         amount=amount,
@@ -304,8 +398,23 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     )
 
     if not payment:
+        log_webhook_request(
+            request,
+            provider_slug,
+            invoice_id,
+            amount,
+            "ignored",
+            "Payment not recorded",
+        )
         return JsonResponse({"status": "ignored"})
 
+    log_webhook_request(
+        request,
+        provider_slug,
+        invoice_id,
+        amount,
+        "completed",
+    )
     return JsonResponse({"status": "ok", "payment_id": payment.id})
 
 
