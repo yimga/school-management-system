@@ -1,0 +1,67 @@
+<!-- Language Switcher Widget -->
+<div class="language-switcher">
+    <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-globe"></i>
+            <span>{{ current_language_name }}</span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+            {% for code, name in available_languages %}
+                <li>
+                    <a class="dropdown-item {% if code == current_language %}active{% endif %}" 
+                       href="?language={{ code }}"
+                       onclick="setLanguage('{{ code }}'); return false;">
+                        {{ name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<style>
+.language-switcher {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.language-switcher .dropdown-toggle::after {
+    margin-left: 0.5rem;
+}
+
+.language-switcher .dropdown-item.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.language-switcher .dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+
+.language-switcher .dropdown-item.active:hover {
+    background-color: #0d6efd;
+}
+</style>
+
+<script>
+function setLanguage(languageCode) {
+    // Save to localStorage
+    localStorage.setItem('preferred_language', languageCode);
+    
+    // Set cookie for server-side
+    document.cookie = `django_language=${languageCode}; path=/; max-age=31536000`;
+    
+    // Reload page with language parameter
+    const url = new URL(window.location);
+    url.searchParams.set('language', languageCode);
+    window.location.href = url.toString();
+}
+
+// Restore preferred language on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const preferredLanguage = localStorage.getItem('preferred_language');
+    if (preferredLanguage && preferredLanguage !== '{{ current_language }}') {
+        setLanguage(preferredLanguage);
+    }
+});
+</script>

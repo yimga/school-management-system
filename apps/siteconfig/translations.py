@@ -1,0 +1,197 @@
+"""
+Translation system for multi-language support.
+Provides translation storage, loading, and management without GNU gettext dependency.
+"""
+
+import json
+import os
+from typing import Dict, List, Optional
+from pathlib import Path
+from django.conf import settings
+
+# Supported languages
+SUPPORTED_LANGUAGES = {
+    'en': 'English',
+    'fr': 'Français',
+    'pid': 'Pidgin English',
+    'sw': 'Kiswahili',
+    'ha': 'Hausa',
+    'yo': 'Yoruba',
+}
+
+# Translation storage
+TRANSLATIONS_DIR = Path(settings.BASE_DIR) / 'locale' / 'translations'
+
+
+class TranslationManager:
+    """
+    Manages translations without requiring GNU gettext.
+    Uses JSON files for storage and runtime translation.
+    """
+    
+    _cache: Dict[str, Dict[str, str]] = {}
+    
+    @classmethod
+    def get_translation_dir(cls) -> Path:
+        """Get translation directory, create if needed."""
+        TRANSLATIONS_DIR.mkdir(parents=True, exist_ok=True)
+        return TRANSLATIONS_DIR
+    
+    @classmethod
+    def load_language(cls, language_code: str) -> Dict[str, str]:
+        """Load translations for a language."""
+        if language_code in cls._cache:
+            return cls._cache[language_code]
+        
+        file_path = cls.get_translation_dir() / f'{language_code}.json'
+        
+        if file_path.exists():
+            with open(file_path, 'r', encoding='utf-8') as f:
+                translations = json.load(f)
+        else:
+            translations = {}
+        
+        cls._cache[language_code] = translations
+        return translations
+    
+    @classmethod
+    def get_text(cls, text: str, language_code: str = 'en') -> str:
+        """Get translated text or return original if not translated."""
+        if language_code == 'en':
+            return text
+        
+        translations = cls.load_language(language_code)
+        return translations.get(text, text)
+    
+    @classmethod
+    def set_translation(cls, text: str, language_code: str, translation: str) -> None:
+        """Set a translation for a text string."""
+        translations = cls.load_language(language_code)
+        translations[text] = translation
+        cls._cache[language_code] = translations
+        
+        # Save to file
+        file_path = cls.get_translation_dir() / f'{language_code}.json'
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(translations, f, ensure_ascii=False, indent=2)
+    
+    @classmethod
+    def bulk_import(cls, language_code: str, translations: Dict[str, str]) -> None:
+        """Import multiple translations at once."""
+        file_path = cls.get_translation_dir() / f'{language_code}.json'
+        
+        # Load existing
+        if file_path.exists():
+            with open(file_path, 'r', encoding='utf-8') as f:
+                existing = json.load(f)
+        else:
+            existing = {}
+        
+        # Merge
+        existing.update(translations)
+        
+        # Save
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(existing, f, ensure_ascii=False, indent=2)
+        
+        cls._cache[language_code] = existing
+
+
+# Common UI strings to translate
+COMMON_STRINGS = {
+    # Admin interface
+    'Region Configurations': 'Configurations régionales',
+    'Grading Scale Configs': 'Configurations d\'échelle de notation',
+    'Holiday Calendars': 'Calendriers de vacances',
+    'Add Region': 'Ajouter une région',
+    'Clone Region': 'Cloner une région',
+    'Validate Configuration': 'Valider la configuration',
+    'Export to CSV': 'Exporter en CSV',
+    'Mark as working day': 'Marquer comme jour ouvrable',
+    'Mark as holiday': 'Marquer comme vacances',
+    
+    # Regional settings
+    'Code': 'Code',
+    'Name': 'Nom',
+    'Timezone': 'Fuseau horaire',
+    'Currency': 'Devise',
+    'Language': 'Langue',
+    'Date Format': 'Format de date',
+    'Grading Scale': 'Échelle de notation',
+    
+    # Academic settings
+    'Academic Year': 'Année académique',
+    'Term': 'Trimestre',
+    'Grade': 'Note',
+    'Score': 'Score',
+    'Passing Score': 'Score de réussite',
+    
+    # Portal features
+    'Student Portal': 'Portail des étudiants',
+    'Parent Portal': 'Portail parental',
+    'Teacher Portal': 'Portail des enseignants',
+    'Admin Portal': 'Portail administrateur',
+    'Online Admissions': 'Admissions en ligne',
+    
+    # Dashboard
+    'Dashboard': 'Tableau de bord',
+    'Status': 'Statut',
+    'Settings': 'Paramètres',
+    'Configuration': 'Configuration',
+    'Complete': 'Complet',
+    'Incomplete': 'Incomplet',
+    'Valid': 'Valide',
+    'Invalid': 'Invalide',
+    
+    # Actions
+    'Add': 'Ajouter',
+    'Edit': 'Modifier',
+    'Delete': 'Supprimer',
+    'Save': 'Enregistrer',
+    'Cancel': 'Annuler',
+    'Submit': 'Soumettre',
+    'Search': 'Rechercher',
+    'Filter': 'Filtrer',
+    'Sort': 'Trier',
+    
+    # Messages
+    'Success': 'Succès',
+    'Error': 'Erreur',
+    'Warning': 'Avertissement',
+    'Info': 'Information',
+    'Saved successfully': 'Enregistré avec succès',
+    'Changes saved': 'Modifications enregistrées',
+    'Error saving': 'Erreur lors de l\'enregistrement',
+    
+    # Holidays
+    'Holiday': 'Vacances',
+    'Public Holiday': 'Jour férié',
+    'School Holiday': 'Vacances scolaires',
+    'Religious Holiday': 'Jour religieux',
+    'Exam Period': 'Période d\'examen',
+    'Special Date': 'Date spéciale',
+    'Date Start': 'Date de début',
+    'Date End': 'Date de fin',
+    'Duration': 'Durée',
+    'Type': 'Type',
+}
+
+
+def init_translations():
+    """Initialize default translations for all languages."""
+    from decimal import Decimal
+    
+    # English (base language - no translation needed)
+    english = {text: text for text in COMMON_STRINGS.keys()}
+    TranslationManager.bulk_import('en', english)
+    
+    # French
+    french = COMMON_STRINGS.copy()
+    TranslationManager.bulk_import('fr', french)
+    
+    # For other languages, we'll use French as fallback for now
+    # In production, these would be translated by native speakers
+    TranslationManager.bulk_import('pid', english)  # Placeholder
+    TranslationManager.bulk_import('sw', english)   # Placeholder
+    TranslationManager.bulk_import('ha', english)   # Placeholder
+    TranslationManager.bulk_import('yo', english)   # Placeholder

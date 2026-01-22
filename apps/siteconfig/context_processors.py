@@ -1,4 +1,6 @@
-from .models import SiteSettings
+from .models import SiteSettings, RegionConfig
+from .translations import TranslationManager, SUPPORTED_LANGUAGES
+from django.utils import translation
 
 SESSION_KEY = "site_preview_settings"
 
@@ -116,3 +118,59 @@ def region_settings(request):
     }
 
 
+def language_context(request):
+    """
+    Provide language-related context for templates.
+    Supports region-based auto-selection and manual override.
+    """
+    # Determine current language
+    current_language = translation.get_language()
+    
+    # Check for manual language preference
+    if 'language' in request.GET:
+        requested_language = request.GET.get('language')
+        if requested_language in SUPPORTED_LANGUAGES:
+            current_language = requested_language
+            translation.activate(requested_language)
+    elif 'django_language' in request.COOKIES:
+        # Load from cookie
+        cookie_language = request.COOKIES.get('django_language')
+        if cookie_language in SUPPORTED_LANGUAGES:
+            current_language = cookie_language
+    else:
+        # Try region-based auto-detection
+        try:
+            region = RegionConfig.get_default()
+            if request.user and request.user.is_authenticated:
+                # Check user region preference
+                region_code = getattr(request.user, 'preferred_region', region.code)
+                region = RegionConfig.objects.get(code=region_code)
+            
+            # Map region to language
+            region_language_map = {
+                'CMR': 'fr',  # Cameroon -> French
+                'FRA': 'fr',  # France -> French
+                'USA': 'en',  # USA -> English
+                'GBR': 'en',  # UK -> English
+                'KEN': 'sw',  # Kenya -> Swahili
+                'NGA': 'yo',  # Nigeria -> Yoruba
+                'DEU': 'en',  # Germany -> English (fallback)
+            }
+            
+            default_language = region_language_map.get(region.code, 'en')
+            if default_language in SUPPORTED_LANGUAGES:
+                current_language = default_language
+        except:
+            pass
+    
+    # Get available languages
+    available_languages = [(code, name) for code, name in SUPPORTED_LANGUAGES.items()]
+    current_language_name = SUPPORTED_LANGUAGES.get(current_language, 'English')
+    
+    return {
+        'current_language': current_language,
+        'current_language_name': current_language_name,
+        'available_languages': available_languages,
+        'supported_languages': SUPPORTED_LANGUAGES,
+        'translate': lambda text: TranslationManager.get_text(text, current_language),
+    }

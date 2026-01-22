@@ -65,6 +65,7 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "apps.siteconfig.context_processors.site_settings",
                 "apps.siteconfig.context_processors.region_settings",
+                "apps.siteconfig.context_processors.language_context",
             ]
         },
     }
