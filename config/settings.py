@@ -380,7 +380,6 @@ LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', 'en')
 LANGUAGES = [
     ('en', 'English'),
     ('fr', 'Français (French)'),
-    ('pid', 'Pidgin English'),
     ('sw', 'Kiswahili'),
     ('ha', 'Hausa'),
     ('yo', 'Yorùbá'),
