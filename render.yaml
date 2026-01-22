@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: "./build.sh"
-    startCommand: "/opt/render/.local/bin/gunicorn config.wsgi:application"
+    startCommand: "gunicorn config.wsgi:application"
     envVars:
       - key: DEBUG
         value: "0"
