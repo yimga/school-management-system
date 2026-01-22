@@ -44,6 +44,7 @@ urlpatterns = [
     path('evals/', include(('apps.evals.urls', 'evals'), namespace='evals')),
     path('portal/', include(('apps.portal.urls', 'portal'), namespace='portal')),
     path('portal', lambda request: redirect('portal:parent_dashboard')),
+    path('kb/', include(('apps.portal.urls_kb', 'kb'), namespace='kb')),
     path('reports/', include(('apps.reports.urls', 'reports'), namespace='reports')),
     path('analytics/', include(('apps.analytics.urls', 'analytics'), namespace='analytics')),
     path('finance/', include(('apps.finance.urls', 'finance'), namespace='finance')),
