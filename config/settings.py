@@ -294,6 +294,14 @@ if SENTRY_DSN:
         environment=os.getenv("SENTRY_ENVIRONMENT", "development"),
     )
 
+# --- Data Lifecycle & Privacy ---
+DATA_RETENTION = {
+    "audit_log_days": int(os.getenv("RETENTION_AUDIT_DAYS", "365")),
+    "access_log_days": int(os.getenv("RETENTION_ACCESS_DAYS", "180")),
+    "session_days": int(os.getenv("RETENTION_SESSION_DAYS", "90")),
+    "report_days": int(os.getenv("RETENTION_REPORT_DAYS", "365")),
+}
+
 
 # ============================================================================
 # Phase 1.2.4: Internationalization & Multi-Region Support
