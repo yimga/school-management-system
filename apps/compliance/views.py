@@ -5,6 +5,7 @@ from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
+from django_ratelimit.decorators import ratelimit
 from apps.compliance.analytics import ComplianceAnalytics
 
 
@@ -27,6 +28,7 @@ class ComplianceDashboardView(View):
 
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(ratelimit(key='user', rate='30/m', method='GET', block=True), name='dispatch')
 class ComplianceOverviewAPI(View):
     """API endpoint for compliance overview data."""
     
@@ -38,6 +40,7 @@ class ComplianceOverviewAPI(View):
 
 
 @method_decorator(login_required, name='dispatch')
+@method_decorator(ratelimit(key='user', rate='30/m', method='GET', block=True), name='dispatch')
 class RegionalMetricsAPI(View):
     """API endpoint for regional compliance metrics."""
     

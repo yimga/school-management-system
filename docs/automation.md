@@ -72,3 +72,23 @@ python manage.py run_phase7_checks --require-automation
 	- Total alert count by type and severity
 	- Full list of alerts with timestamps and details
 	- Requires `send_email_alert` function in alerts.py (uses COMPLIANCE_ALERTS settings)
+
+## Rate limiting
+- Protects endpoints from abuse and brute-force attacks
+- Uses `django-ratelimit` library with Django cache backend
+- **Settings** (config/settings.py):
+	- `RATELIMIT_ENABLE=1` (set to 0 to disable globally)
+	- `RATELIMIT_USE_CACHE=default` (Django cache backend)
+	- `RATELIMIT_VIEW=apps.compliance.views_ratelimit.ratelimit_error` (custom 429 handler)
+- **Protected endpoints**:
+	- Login: `5/m` (5 attempts per minute per IP) - prevents brute-force
+	- Compliance API endpoints: `30/m` (30 requests per minute per user)
+	- Mute threats API: `10/m` (10 requests per minute per admin user)
+- **Response when rate limit exceeded**:
+	- Web requests: Custom 429.html template with 60s wait message
+	- API requests: JSON response with `{"error": "Rate limit exceeded", "retry_after": "60s"}`
+- **Testing**: Repeatedly refresh login page or API endpoint to trigger rate limit
+- **Production tips**:
+	- Use Redis cache backend for better performance: `pip install django-redis`
+	- Set `CACHES['default'] = {'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1'}`
+	- Monitor rate limit hits via AccessLog model (status=429)

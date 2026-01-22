@@ -331,6 +331,11 @@ INCIDENT_RESPONSE = {
 ENABLE_IP_COUNTRY_ACCESS_CONTROL = os.getenv("ENABLE_IP_COUNTRY_ACCESS_CONTROL", "1") == "1"
 BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS = os.getenv("BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS", "1") == "1"
 
+# --- Rate Limiting ---
+RATELIMIT_ENABLE = os.getenv("RATELIMIT_ENABLE", "1") == "1"
+RATELIMIT_USE_CACHE = 'default'  # Use Django cache backend
+RATELIMIT_VIEW = 'apps.compliance.views_ratelimit.ratelimit_error'  # Custom error handler
+
 
 # ============================================================================
 # Phase 1.2.4: Internationalization & Multi-Region Support

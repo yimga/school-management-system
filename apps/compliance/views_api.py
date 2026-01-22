@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django_ratelimit.decorators import ratelimit
 from datetime import timedelta
 
 from apps.compliance.models_audit import ThreatDetectionConfig
@@ -20,6 +21,7 @@ def is_admin_or_staff(user):
 @login_required
 @user_passes_test(is_admin_or_staff)
 @csrf_exempt  # For AJAX requests; alternatively handle CSRF token in template
+@ratelimit(key='user', rate='10/m', method='POST', block=True)
 def mute_threats(request):
     """
     Mute threat detection for a specified duration.
