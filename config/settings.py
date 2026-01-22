@@ -245,6 +245,31 @@ LOGGING = {
     },
 }
 
+# --- Compliance Alerts & Reporting ---
+COMPLIANCE_ALERTS = {
+    # Enable/disable alert dispatching globally
+    "enabled": os.getenv("COMPLIANCE_ALERTS_ENABLED", "1") == "1",
+    # Sensitivity threshold for real-time alerts (LOW, MEDIUM, HIGH, CRITICAL)
+    "severity_threshold": os.getenv("COMPLIANCE_ALERTS_THRESHOLD", "HIGH"),
+    # Actions that should always alert regardless of sensitivity
+    "escalate_on_actions": os.getenv(
+        "COMPLIANCE_ALERT_ACTIONS",
+        "ACCESS_DENIED,DELETE,PERM_GRANT,PERM_REVOKE,APPROVE,REJECT"
+    ).split(","),
+    # Channels
+    "email_recipients": [e for e in os.getenv("COMPLIANCE_ALERT_EMAILS", "").split(",") if e],
+    "slack_webhook_url": os.getenv("COMPLIANCE_ALERT_SLACK_WEBHOOK", ""),
+    "generic_webhook_url": os.getenv("COMPLIANCE_ALERT_WEBHOOK", ""),
+    # Runbook / on-call guidance
+    "runbook_url": os.getenv(
+        "COMPLIANCE_RUNBOOK_URL",
+        "https://runbooks.gileadschool.com/security/incident-response"
+    ),
+    # Scheduled compliance report recipients
+    "report_recipients": [e for e in os.getenv("COMPLIANCE_REPORT_RECIPIENTS", "").split(",") if e],
+    "report_email_enabled": os.getenv("COMPLIANCE_REPORT_EMAIL_ENABLED", "1") == "1",
+}
+
 
 # ============================================================================
 # Phase 1.2.4: Internationalization & Multi-Region Support

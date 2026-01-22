@@ -14,6 +14,83 @@
   </div>
 </div>
 
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="card shadow-sm p-3">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+          <h3 class="h5 mb-1">Operational pulse</h3>
+          <p class="text-muted small mb-0">Live KPI snapshot for principal & admin teams.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="badge bg-success">Real-time</span>
+          <span class="badge bg-outline-primary">2026 insights</span>
+        </div>
+      </div>
+      <div class="row g-3 mt-3">
+        <div class="col-sm-6 col-lg-3">
+          <div class="border p-3 rounded-3 h-100 bg-white">
+            <div class="text-uppercase small text-muted mb-1">Top students</div>
+            <div class="h4">{{ top_n }}</div>
+            <div class="small text-muted">per filter results</div>
+            <div class="progress mt-2" style="height:4px;">
+              <div class="progress-bar" role="progressbar" style="width:{{ weak_subjects|length|default:30 }}%;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="border p-3 rounded-3 h-100 bg-white">
+            <div class="text-uppercase small text-muted mb-1">Weak subjects</div>
+            <div class="h4">{{ weak_subjects|length }}</div>
+            <div class="small text-muted">monitor action</div>
+            <div class="progress mt-2" style="height:4px;">
+              <div class="progress-bar bg-warning" style="width:{{ weak_subjects|length|default:10 }}%;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="border p-3 rounded-3 h-100 bg-white">
+            <div class="text-uppercase small text-muted mb-1">Teacher compliance</div>
+            <div class="h4">{{ teacher_stats|length }}</div>
+            <div class="small text-muted">on deadlines</div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+          <div class="border p-3 rounded-3 h-100 bg-white text-center">
+            <div class="h1 fw-bold">{{ improvement_rows|length }}</div>
+            <div class="small text-muted">students improved</div>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_dashboard' %}">Parent portal</a>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:rbac' %}">RBAC tools</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">Finance console</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm p-3">
+      <h5 class="mb-2">AI insight</h5>
+      <p class="small text-muted mb-3">Popular subject: {{ specialty_rates.0.subject|default:"N/A" }} — trending across {{ specialty_rates|length }} specializations.</p>
+      <ul class="list-group list-group-flush mb-3">
+        <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
+          <span>Teacher compliance</span>
+          <span class="badge bg-success">{{ teacher_rows|length }}</span>
+        </li>
+        <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
+          <span>Weak thresholds</span>
+          <span class="badge bg-warning">{{ weak_subjects|length }}</span>
+        </li>
+      </ul>
+      <div class="d-grid gap-2">
+        <a class="btn btn-sm btn-outline-dark" href="{% url 'analytics:master_sheet' %}">Master sheet</a>
+        <a class="btn btn-sm btn-outline-dark" href="{% url 'reports:publish_term_results' %}">Publish term results</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <form method="get" class="card mb-3">
   <div class="card-body">
     <div class="row g-2 align-items-end">
@@ -110,6 +187,79 @@
     </div>
   </div>
 </form>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Top class performers</h5>
+          <span class="badge bg-primary">{{ top_class_students|length }}</span>
+        </div>
+        <ul class="list-group list-group-flush">
+          {% for student in top_class_students|slice:":4" %}
+            <li class="list-group-item d-flex justify-content-between py-2">
+              <span>#{{ student.rank }} {{ student.student }}</span>
+              <strong>{{ student.average|floatformat:2 }}</strong>
+            </li>
+          {% empty %}
+            <li class="list-group-item text-muted">No data yet.</li>
+          {% endfor %}
+        </ul>
+        <div class="mt-3">
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'analytics:master_sheet' %}?classroom={{ selected_classroom.id|default:'' }}">Open master sheet</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Weak subjects</h5>
+          <span class="badge bg-warning">{{ weak_subjects|length }}</span>
+        </div>
+        <p class="small text-muted mb-2">Subjects that need attention this term.</p>
+        <ul class="list-group list-group-flush">
+          {% for subject in weak_subjects|slice:":3" %}
+            <li class="list-group-item d-flex justify-content-between py-2">
+              <span>{{ subject.subject }}</span>
+              <strong>{{ subject.average|floatformat:1 }}</strong>
+            </li>
+          {% endfor %}
+        </ul>
+        <div class="mt-3 d-flex gap-2 flex-wrap">
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'analytics:deadlines' %}">Adjust deadlines</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_attendance' %}">Alert teachers</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Teacher compliance</h5>
+          <span class="badge bg-success">{{ teacher_stats|length }}</span>
+        </div>
+        <div class="d-flex flex-column gap-1 small mb-3">
+          {% for stat in teacher_stats|slice:":4" %}
+            <div class="d-flex justify-content-between">
+              <span>{{ stat.label }}</span>
+              <strong>{{ stat.value }}</strong>
+            </div>
+          {% empty %}
+            <div class="text-muted">No compliance data.</div>
+          {% endfor %}
+        </div>
+        <div class="d-grid gap-2">
+          <a class="btn btn-sm btn-outline-dark" href="{% url 'finance:notifications' %}">Send reminders</a>
+          <a class="btn btn-sm btn-outline-dark" href="{% url 'accounts:rbac' %}">Review RBAC</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% if selected_classroom %}
   <div class="card mb-3">

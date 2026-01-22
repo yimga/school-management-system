@@ -7,6 +7,8 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
+from apps.compliance.models_audit import AuditLog
+
 
 def get_model_changes(sender, instance, created=False, **kwargs):
     """
@@ -117,3 +119,23 @@ def log_model_delete(sender, instance, **kwargs):
         old_values=_serialize_instance(instance),
         sensitivity=sensitivity,
     )
+
+
+@receiver(post_save, sender=AuditLog)
+def alert_on_critical_audit(sender, instance: AuditLog, created, **kwargs):
+    """Trigger real-time alerts for critical/high-sensitivity audit events."""
+    if not created:
+        return
+
+    # Avoid alert loops if alerts are disabled
+    from django.conf import settings
+    if not getattr(settings, "COMPLIANCE_ALERTS", {}).get("enabled", True):
+        return
+
+    try:
+        from apps.compliance.alerts import notify_audit_event
+
+        notify_audit_event(instance)
+    except Exception:
+        # Swallow to keep request flow unaffected
+        pass

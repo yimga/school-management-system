@@ -24,6 +24,7 @@ from apps.compliance.models_audit import (
     AuditLog, ComplianceReport, AccessLog, UserActivitySession
 )
 from apps.accounts.models import User
+from apps.compliance.alerts import send_compliance_report_email
 
 
 class Command(BaseCommand):
@@ -55,14 +56,25 @@ class Command(BaseCommand):
         self.stdout.write("Phase 4: Generating Compliance Reports")
         self.stdout.write("=" * 60)
 
+        created_reports = []
+
         if options['all'] or options['daily']:
-            self._generate_daily_audit()
+            report = self._generate_daily_audit()
+            if report:
+                created_reports.append(report)
 
         if options['all'] or options['weekly']:
-            self._generate_weekly_access()
+            report = self._generate_weekly_access()
+            if report:
+                created_reports.append(report)
 
         if options['all'] or options['monthly']:
-            self._generate_monthly_integrity()
+            report = self._generate_monthly_integrity()
+            if report:
+                created_reports.append(report)
+
+        if created_reports:
+            send_compliance_report_email(created_reports)
 
         self.stdout.write(self.style.SUCCESS("Report generation complete!"))
 
@@ -109,8 +121,10 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(f"✓ Daily audit report created: {stats['total_actions']} actions")
             )
+            return report
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"✗ Failed to create daily audit report: {e}"))
+            return None
 
     def _generate_weekly_access(self):
         """Generate weekly data access analysis."""
@@ -159,8 +173,10 @@ class Command(BaseCommand):
             self.stdout.write(
                 self.style.SUCCESS(f"✓ Weekly access report created: {total_access} accesses")
             )
+            return report
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"✗ Failed to create weekly access report: {e}"))
+            return None
 
     def _generate_monthly_integrity(self):
         """Generate monthly data integrity check."""
@@ -233,5 +249,7 @@ class Command(BaseCommand):
             )
             for fix in fixes:
                 self.stdout.write(self.style.SUCCESS(f"  → {fix}"))
+            return report
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"✗ Failed to create monthly integrity report: {e}"))
+            return None
