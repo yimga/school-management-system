@@ -156,8 +156,7 @@ UNFOLD = {
     "SITE_TITLE": "Gilead School Admin",
     "SITE_HEADER": "Gilead School Management",
     "SITE_SUBHEADER": "Gilead Tech High School",
-    "SITE_URL": "/",
-    "HOME_URL": "/",
+    "SITE_URL": "home",
 
     # Icon/branding (32px height works best)
     "SITE_ICON": lambda request: static("images/logo.png"),
