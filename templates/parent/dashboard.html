@@ -4,21 +4,269 @@
 {% block extrastyle %}
 <style>
   :root {
-    --primary-bg: #0b1220;
-    --secondary-bg: #0d1b2a;
-    --accent-blue: #3b82f6;
-    --accent-cyan: #06b6d4;
-    --accent-green: #22c55e;
-    --card-bg: rgba(255, 255, 255, 0.95);
+    --primary: #0d6efd;
+    --success: #198754;
+    --warning: #ffc107;
+    --info: #0dcaf0;
+    --danger: #dc3545;
   }
-  .portal-hero {
-    border-radius: 28px;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(3, 105, 161, 0.8));
-    padding: 2.5rem;
-    color: #fff;
-    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.45);
+
+  /* Parent Dashboard Enhanced Styles */
+  .parent-welcome-section {
+    background: linear-gradient(135deg, var(--primary) 0%, rgba(13, 110, 253, 0.7) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    box-shadow: 0 12px 30px rgba(13, 110, 253, 0.15);
+  }
+
+  .welcome-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .welcome-content h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+  }
+
+  .welcome-content p {
+    font-size: 1rem;
+    opacity: 0.95;
+    margin: 0;
+  }
+
+  .welcome-date {
+    text-align: right;
+    opacity: 0.85;
+    font-size: 0.9rem;
+  }
+
+  .quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .stat-item {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 1rem;
+    border-left: 3px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.5rem;
+  }
+
+  /* Children Cards */
+  .children-section {
     margin-bottom: 2rem;
   }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .section-header-meta {
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+
+  .children-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .child-card-enhanced {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .child-card-enhanced:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .child-header-enhanced {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .child-avatar-large {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--primary), var(--success));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .child-info h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .child-info p {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin: 0;
+  }
+
+  .child-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin: 1rem 0;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .metric {
+    text-align: center;
+  }
+
+  .metric-value {
+    display: block;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .metric-label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .child-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .child-actions .btn {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  /* Features Grid */
+  .features-section {
+    margin-top: 2rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  .feature-card-enhanced {
+    background: white;
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .feature-card-enhanced:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .feature-card-enhanced.enabled {
+    border-color: var(--success);
+    background: rgba(25, 135, 84, 0.05);
+  }
+
+  .feature-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .feature-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-status {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  /* Activity Section */
+  .activity-section {
+    margin-top: 2rem;
+  }
+
+  .activity-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .activity-item-enhanced {
+    padding: 1rem;
+    border-left: 3px solid var(--primary);
+    margin-bottom: 0.75rem;
+    background: rgba(13, 110, 253, 0.03);
+    border-radius: 6px;
+  }
+
+  .activity-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .activity-detail {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+
+  /* Sidebar Enhancements */
   .hero-label {
     text-transform: uppercase;
     letter-spacing: 0.3em;
@@ -26,24 +274,25 @@
     opacity: 0.8;
   }
   .hero-title {
-    font-size: 2.6rem;
+    font-size: 1.5rem;
     margin: 0.25rem 0 0.5rem;
   }
   .hero-subtitle {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     opacity: 0.9;
     max-width: 600px;
   }
   .hero-actions {
-    margin-top: 1.2rem;
+    margin-top: 1rem;
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
   }
   .btn-hero {
-    border-radius: 999px;
-    padding: 0.65rem 1.4rem;
-    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 0.85rem;
     transition: transform 0.2s ease;
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.35);
@@ -52,52 +301,54 @@
     transform: translateY(-1px);
   }
   .hero-stats {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 1rem;
   }
   .hero-stat-card {
     background: rgba(255, 255, 255, 0.07);
-    border-radius: 16px;
-    padding: 1rem;
+    border-radius: 12px;
+    padding: 0.75rem;
     border: 1px solid rgba(255, 255, 255, 0.15);
   }
   .hero-stat-label {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     opacity: 0.7;
     text-transform: uppercase;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.1em;
   }
   .hero-stat-value {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     font-weight: 700;
+    margin-top: 0.3rem;
   }
   .hero-stat-progress {
-    margin-top: 0.6rem;
-    height: 6px;
+    margin-top: 0.4rem;
+    height: 4px;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 999px;
     overflow: hidden;
   }
   .hero-stat-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
   }
   .hero-status {
-    margin-top: 1.6rem;
+    margin-top: 1rem;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   .hero-pill {
     background: rgba(255, 255, 255, 0.12);
-    padding: 0.6rem 1rem;
-    border-radius: 12px;
-    min-width: 160px;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    min-width: 130px;
+    font-size: 0.8rem;
   }
   .hero-pill-meta {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     opacity: 0.6;
@@ -282,268 +533,319 @@
 {% endblock %}
 
 {% block content %}
-  {% admin_health as health %}
-  <div class="portal-hero">
-    <div class="hero-label">{{ hero.tagline }}</div>
-    <h1 class="hero-title">{{ hero.title }}</h1>
-    <p class="hero-subtitle">{{ hero.subtitle }}</p>
-    <div class="hero-actions">
-      {% for action in hero.actions %}
-        <a class="btn-hero" href="{{ action.url }}">{{ action.label }}</a>
-      {% endfor %}
-    </div>
-    {% if hero.insight %}
-      <div class="hero-insight">{{ hero.insight }}</div>
-    {% endif %}
-    <div class="hero-stats">
-      {% for stat in hero.stats %}
-        <div class="hero-stat-card">
-          <div class="hero-stat-label">{{ stat.label }}</div>
-          <div class="hero-stat-value">{{ stat.value }}</div>
-          {% if stat.meta %}<div class="hero-stat-meta">{{ stat.meta }}</div>{% endif %}
-          {% if stat.progress %}
-            <div class="hero-stat-progress">
-              <div class="hero-stat-progress-fill" style="width: {{ stat.progress }}%;"></div>
-            </div>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
-    <div class="hero-status">
-      {% for pill in hero.status_pills %}
-        <div class="hero-pill">
-          <div class="hero-pill-meta">{{ pill.meta }}</div>
-          <strong>{{ pill.value }}</strong>
-          <div class="hero-pill-aux">{{ pill.label }}</div>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <div class="row gx-3 mb-4">
-    <div class="col-lg-3">
-      <div class="card quick-panel">
-        <div class="card-body">
-          <div class="panel-title">Quick Actions</div>
-          <div class="d-flex flex-column gap-2 mb-3">
-            <a class="btn-wider btn btn-sm btn-primary" href="{% url 'portal:link_child' %}">Link a Child</a>
-            <a class="btn-wider btn btn-sm btn-outline-primary" href="{% url 'portal:claim_invite' %}">Claim an Invite</a>
-            <a class="btn-wider btn btn-sm btn-outline-secondary" href="{% url 'portal:portal_stats' %}">View Portal Stats</a>
-          </div>
-          <div class="panel-label">Contacts</div>
-          {% if SITE.company_phone %}<div class="small">{{ SITE.company_phone }}</div>{% endif %}
-          {% if SITE.company_email %}<div class="small">{{ SITE.company_email }}</div>{% endif %}
-          <div class="panel-label mt-3">Social</div>
-          {% for link in SITE.active_social_links %}
-            <a class="social-chip" href="{{ link.url }}" target="_blank">
-              <i class="{{ link.icon }}"></i> {{ link.platform }}
-            </a>
-          {% empty %}
-            <div class="text-muted small">No social channels enabled.</div>
-          {% endfor %}
-        </div>
+  <!-- Welcome Section -->
+  <div class="parent-welcome-section">
+    <div class="welcome-header">
+      <div class="welcome-content">
+        <p class="hero-label" style="margin-bottom: 0.5rem;">Welcome back,</p>
+        <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
+        <p>Monitor your children's progress and manage school matters effortlessly.</p>
+      </div>
+      <div class="welcome-date">
+        <div style="font-weight: 600;">Today</div>
+        <div style="font-size: 0.85rem;">{{ now|date:"M d, Y" }}</div>
       </div>
     </div>
-    <div class="col-lg-9">
-      <div class="row gx-3">
-        <div class="col-md-6">
-          <div class="card widget-card">
-            <div class="card-body">
-              <div class="widget-title">Attendance Pulse</div>
-              <div class="widget-value">{{ widget_data.attendance.overall|default:0 }}%</div>
-              <div class="progress my-3" style="height:6px;">
-                <div class="progress-bar" style="width: {{ widget_data.attendance.overall|default:0 }}%;"></div>
-              </div>
-              <div class="d-flex justify-content-between small fw-semibold">
-                <span>Missing {{ widget_data.attendance.missing }}</span>
-                <span>Late {{ widget_data.attendance.late }}</span>
-              </div>
-              <div class="mini-bars mt-3">
-                <span style="height: {{ widget_data.attendance.today|default:10 }}%;"></span>
-                <span style="height: {{ widget_data.attendance.overall|default:25 }}%;"></span>
-                <span style="height: {{ widget_data.attendance.missing|default:15 }}%;"></span>
-              </div>
-              <div class="text-muted small mt-2">{{ widget_data.attendance.label }}</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card widget-card">
-            <div class="card-body">
-              <div class="widget-title">Finance Status</div>
-              <div class="widget-value">{{ widget_data.finance.balance|default:"0.00" }}</div>
-              <div class="text-muted small">Outstanding balance</div>
-              <div class="d-flex justify-content-between mt-3">
-                <div>
-                  <div class="text-muted small">Paid</div>
-                  <strong>{{ widget_data.finance.paid|default:"0.00" }}</strong>
-                </div>
-                <div>
-                  <div class="text-muted small">Due</div>
-                  <strong>{{ widget_data.finance.total_due|default:"0.00" }}</strong>
-                </div>
-              </div>
-              <div class="widget-actions mt-3">
-                <a class="btn btn-sm btn-outline-light w-100" href="{% url 'portal:parent_finance' %}">Manage payments</a>
-              </div>
-            </div>
-          </div>
-        </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+      <div class="stat-item">
+        <span class="stat-value">{{ links|length }}</span>
+        <span class="stat-label">Children</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ widget_data.tasks.pending_evaluations|default:0 }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ widget_data.finance.balance|default:"0.00" }}</span>
+        <span class="stat-label">Outstanding</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ widget_data.attendance.overall|default:0 }}%</span>
+        <span class="stat-label">Attendance</span>
       </div>
     </div>
   </div>
 
-  <div class="row gx-3 mb-4">
-    <div class="col-lg-7">
-      <div class="card grid-card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h5 class="mb-0">Performance & insights</h5>
-              <div class="text-muted small">{{ widget_data.performance.label }}</div>
-            </div>
-            <span class="badge bg-secondary">{{ widget_data.performance.trend }}</span>
-          </div>
-          <div class="performance-graph mb-4">
-            {% for subject in widget_data.analytics.highlights %}
-              <div class="bar-bar" style="height: {{ subject.average }}%;"></div>
-            {% empty %}
-              <div class="bar-bar" style="height: 35%;"></div>
-              <div class="bar-bar" style="height: 55%;"></div>
-              <div class="bar-bar" style="height: 45%;"></div>
-            {% endfor %}
-          </div>
-          <div class="row g-3">
-            <div class="col-6">
-              <div class="perf-card">
-                <div class="perf-label">Average score</div>
-                <div class="perf-value">{{ widget_data.performance.average|default:"0" }}</div>
-                <div class="perf-meta">Pass mark {{ widget_data.performance.pass_mark|default:"N/A" }}</div>
+  <!-- Children Section -->
+  <div class="children-section">
+    <div class="section-header">
+      <div>
+        <h2>My Children</h2>
+        <p class="section-header-meta">Manage {{ links|length }} enrolled student(s)</p>
+      </div>
+      <a href="{% url 'portal:link_child' %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Link Child
+      </a>
+    </div>
+
+    {% if links %}
+      <div class="children-grid">
+        {% for link in links %}
+          <div class="child-card-enhanced">
+            <div class="child-header-enhanced">
+              {% if link.student.profile_photo %}
+                <img src="{{ link.student.profile_photo.url }}" alt="" class="child-avatar-large" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+              {% else %}
+                <div class="child-avatar-large">
+                  {{ link.student.first_name|slice:":1" }}
+                </div>
+              {% endif %}
+              <div class="child-info">
+                <h3>{{ link.student.first_name }} {{ link.student.last_name }}</h3>
+                <p>{{ link.student.classroom.name }} • {{ link.student.specialty.name }}</p>
               </div>
             </div>
-            <div class="col-6">
-              <div class="perf-card">
-                <div class="perf-label">Top student</div>
-                <div class="perf-value">
-                  {% if widget_data.performance.top_student %}
-                    {{ widget_data.performance.top_student.student }}
+
+            <!-- Performance Metrics -->
+            <div class="child-metrics">
+              <div class="metric">
+                <span class="metric-value">{{ widget_data.performance.average|default:"0" }}</span>
+                <span class="metric-label">Avg Score</span>
+              </div>
+              <div class="metric">
+                <span class="metric-value">{{ widget_data.attendance.overall|default:0 }}%</span>
+                <span class="metric-label">Attendance</span>
+              </div>
+              <div class="metric">
+                <span class="metric-value">{{ link.student.parent_completeness|default:0 }}%</span>
+                <span class="metric-label">Profile</span>
+              </div>
+              <div class="metric">
+                <span class="metric-value">
+                  {% if widget_data.tasks.pending_evaluations > 0 %}
+                    {{ widget_data.tasks.pending_evaluations }}
                   {% else %}
-                    Pending
+                    0
                   {% endif %}
-                </div>
-                <div class="perf-meta">{{ widget_data.performance.trend }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-5">
-      <div class="card grid-card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h5 class="mb-0">Activity & tasks</h5>
-              <div class="text-muted small">Reminders + deadlines</div>
-            </div>
-          </div>
-          <ul class="list-unstyled mb-3">
-            {% for event in widget_data.events %}
-              <li class="activity-item">
-                <div class="activity-date">{{ event.when|date:"M d" }}</div>
-                <div>
-                  <strong>{{ event.title }}</strong>
-                  <div class="small text-muted">{{ event.detail }}</div>
-                </div>
-              </li>
-            {% empty %}
-              <li class="text-muted small">No upcoming deadlines.</li>
-            {% endfor %}
-          </ul>
-          <div class="task-pill">
-            <span>Pending evaluations: {{ widget_data.tasks.pending_evaluations }}</span>
-            <span>Pending payments: {{ widget_data.tasks.pending_payments }}</span>
-          </div>
-          <div class="task-actions mt-3">
-            <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'portal:portal_stats' %}">Explore analytics</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card grid-card mb-4">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <h5 class="mb-0">My Children</h5>
-          <p class="text-muted small mb-0">Tap through to view results, attendance, and finance.</p>
-        </div>
-        <span class="text-muted small">{{ links|length }} students</span>
-      </div>
-      {% if links %}
-        <div class="row g-3">
-          {% for link in links %}
-            <div class="col-md-6">
-              <div class="child-card">
-                <div class="child-header">
-                  {% if link.student.profile_photo %}
-                    <img src="{{ link.student.profile_photo.url }}" alt="" class="child-avatar">
-                  {% else %}
-                    <div class="child-avatar-placeholder">
-                      {{ link.student.last_name|slice:":1" }}{{ link.student.first_name|slice:":1" }}
-                    </div>
-                  {% endif %}
-                  <div>
-                    <div class="fw-semibold">{{ link.student }}</div>
-                    <div class="small text-muted">{{ link.student.classroom.name }} • {{ link.student.specialty.name }}</div>
-                  </div>
-                </div>
-                <div class="child-progress">
-                  <div class="child-progress-value">{{ link.student.parent_completeness }}% complete</div>
-                  <div class="progress" style="height:5px;">
-                    <div class="progress-bar" style="width: {{ link.student.parent_completeness }}%;"></div>
-                  </div>
-                </div>
-                <div class="child-actions">
-                  <a class="btn btn-sm btn-primary w-100" href="{% url 'portal:parent_child_results' link.student.id %}">View Results</a>
-                  <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'portal:parent_finance' %}">Pay Fees</a>
-                </div>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="alert alert-info mb-0">
-          No children linked yet. Contact the school to gain access.
-        </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="card grid-card mb-4">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <h5 class="mb-0">Portal Features</h5>
-          <div class="small text-muted">Managed via Site Settings</div>
-        </div>
-      </div>
-      <div class="row g-3">
-        {% for feature in portal_features %}
-          <div class="col-md-4">
-            <div class="feature-card {% if feature.enabled %}enabled{% endif %}">
-              {% if feature.icon %}<i class="bi {{ feature.icon }}"></i>{% endif %}
-              <div class="feature-info">
-                <strong>{{ feature.label }}</strong>
-                <p class="small mb-1 text-muted">{{ feature.description }}</p>
-                <span class="badge {% if feature.enabled %}bg-success{% else %}bg-secondary{% endif %}">
-                  {% if feature.enabled %}Enabled{% else %}Disabled{% endif %}
                 </span>
+                <span class="metric-label">Pending</span>
               </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="child-actions">
+              <a href="{% url 'portal:parent_child_results' link.student.id %}" class="btn btn-sm btn-primary">
+                <i class="bi bi-graph-up me-1"></i>Results
+              </a>
+              <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-wallet2 me-1"></i>Fees
+              </a>
             </div>
           </div>
         {% endfor %}
+      </div>
+    {% else %}
+      <div class="alert alert-info border-0" role="alert">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
+          <div>
+            <strong>No children linked yet.</strong>
+            <p class="mb-0 small mt-1">Get started by linking your child to access their academic records.</p>
+            <a href="{% url 'portal:link_child' %}" class="btn btn-sm btn-primary mt-2">Link a Child</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Performance & Finance Overview -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="bi bi-graph-up me-2"></i>Academic Performance
+          </h5>
+          <div style="background: linear-gradient(90deg, rgba(13,110,253,0.1), rgba(25,135,84,0.1)); border-radius: 8px; padding: 1.5rem; text-align: center;">
+            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">
+              {{ widget_data.performance.average|default:"0" }}%
+            </div>
+            <div class="text-muted small mt-2">Class Average</div>
+            <div class="progress mt-3" style="height: 6px;">
+              <div class="progress-bar" style="width: {{ widget_data.performance.average|default:0 }}%; background: linear-gradient(90deg, var(--primary), var(--success));"></div>
+            </div>
+            <p class="text-muted small mt-3 mb-0">
+              {% if widget_data.performance.trend == "UP" %}
+                <i class="bi bi-arrow-up text-success"></i> Improving trend
+              {% elif widget_data.performance.trend == "DOWN" %}
+                <i class="bi bi-arrow-down text-danger"></i> Declining trend
+              {% else %}
+                <i class="bi bi-dash text-warning"></i> Stable performance
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="bi bi-wallet2 me-2"></i>Finance Status
+          </h5>
+          <div style="background: linear-gradient(90deg, rgba(220,53,69,0.1), rgba(255,193,7,0.1)); border-radius: 8px; padding: 1.5rem;">
+            <div class="row text-center g-3">
+              <div class="col-6">
+                <div class="text-muted small mb-2">Total Paid</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--success);">
+                  {{ widget_data.finance.paid|default:"0.00" }}
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="text-muted small mb-2">Outstanding</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger);">
+                  {{ widget_data.finance.total_due|default:"0.00" }}
+                </div>
+              </div>
+            </div>
+            <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary w-100 mt-3">
+              View & Pay Invoices
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance & Activities -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-5">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="bi bi-calendar-check me-2"></i>Attendance Summary
+          </h5>
+          <div class="d-flex align-items-center justify-content-center" style="height: 150px; background: rgba(34,197,94,0.08); border-radius: 8px;">
+            <div class="text-center">
+              <div style="font-size: 2.5rem; font-weight: 700; color: var(--success);">
+                {{ widget_data.attendance.overall|default:0 }}%
+              </div>
+              <div class="text-muted small">Current Attendance Rate</div>
+            </div>
+          </div>
+          <div class="row g-2 mt-3 text-center">
+            <div class="col-6">
+              <div class="text-muted small">Present</div>
+              <div style="font-weight: 600;">{{ widget_data.attendance.present|default:0 }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted small">Absent</div>
+              <div style="font-weight: 600; color: var(--danger);">{{ widget_data.attendance.missing|default:0 }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="bi bi-bell me-2"></i>Recent Activity
+          </h5>
+          <ul class="activity-list">
+            {% for event in widget_data.events %}
+              <li class="activity-item-enhanced">
+                <div class="activity-title">{{ event.title }}</div>
+                <div class="activity-detail">
+                  <i class="bi bi-calendar me-1"></i>{{ event.when|date:"M d, Y" }}
+                  {% if event.detail %}<span class="ms-2">{{ event.detail }}</span>{% endif %}
+                </div>
+              </li>
+            {% empty %}
+              <li class="text-muted" style="padding: 1rem; text-align: center;">
+                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                <p class="mt-2 mb-0">No recent activities</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portal Features -->
+  <div class="features-section">
+    <div class="section-header">
+      <div>
+        <h2>Portal Features</h2>
+        <p class="section-header-meta">Available tools and services</p>
+      </div>
+    </div>
+
+    <div class="features-grid">
+      {% for feature in portal_features %}
+        <div class="feature-card-enhanced {% if feature.enabled %}enabled{% else %}disabled{% endif %}">
+          <span class="feature-icon">
+            {% if feature.icon %}
+              <i class="bi {{ feature.icon }}"></i>
+            {% else %}
+              <i class="bi bi-box"></i>
+            {% endif %}
+          </span>
+          <div class="feature-name">{{ feature.label }}</div>
+          <span class="feature-status badge {% if feature.enabled %}bg-success{% else %}bg-secondary{% endif %}">
+            {% if feature.enabled %}Active{% else %}Disabled{% endif %}
+          </span>
+        </div>
+      {% empty %}
+        <div class="alert alert-info" style="grid-column: 1 / -1;">
+          No features available at this time.
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row g-3 mt-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="bi bi-lightning me-2"></i>Quick Actions
+          </h5>
+          <div class="d-flex flex-column gap-2">
+            <a href="{% url 'portal:link_child' %}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-person-plus me-2"></i>Link Another Child
+            </a>
+            <a href="{% url 'portal:claim_invite' %}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-ticket me-2"></i>Claim an Invite
+            </a>
+            <a href="{% url 'portal:portal_stats' %}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-bar-chart me-2"></i>View Portal Stats
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="bi bi-telephone me-2"></i>Contact Information
+          </h5>
+          <div style="background: rgba(13,110,253,0.05); border-left: 3px solid var(--primary); padding: 1rem; border-radius: 6px;">
+            {% if SITE.company_name %}
+              <div style="font-weight: 600; margin-bottom: 0.5rem;">{{ SITE.company_name }}</div>
+            {% endif %}
+            {% if SITE.company_phone %}
+              <div class="small mb-2">
+                <i class="bi bi-telephone me-2"></i>
+                <a href="tel:{{ SITE.company_phone }}">{{ SITE.company_phone }}</a>
+              </div>
+            {% endif %}
+            {% if SITE.company_email %}
+              <div class="small">
+                <i class="bi bi-envelope me-2"></i>
+                <a href="mailto:{{ SITE.company_email }}">{{ SITE.company_email }}</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
       </div>
     </div>
   </div>
