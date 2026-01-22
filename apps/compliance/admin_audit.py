@@ -288,7 +288,7 @@ class IPAccessRuleAdmin(ModelAdmin):
         return "✓ Valid"
     expired_status.short_description = "Status"
 
-    actions = ["activate_rules", "deactivate_rules"]
+    actions = ["activate_rules", "deactivate_rules", "export_to_csv"]
 
     def activate_rules(self, request, queryset):
         """Bulk activate selected rules."""
@@ -301,6 +301,27 @@ class IPAccessRuleAdmin(ModelAdmin):
         count = queryset.update(is_active=False)
         self.message_user(request, f"Deactivated {count} rule(s)")
     deactivate_rules.short_description = "Deactivate selected rules"
+
+    def export_to_csv(self, request, queryset):
+        """Export selected IP access rules to CSV."""
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="ip_rules_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['rule_type', 'ip_address', 'description', 'expires_at', 'is_active'])
+        
+        for rule in queryset:
+            writer.writerow([
+                rule.rule_type,
+                rule.ip_address,
+                rule.description or '',
+                rule.expires_at.isoformat() if rule.expires_at else '',
+                rule.is_active,
+            ])
+        
+        self.message_user(request, f"Exported {queryset.count()} rule(s) to CSV")
+        return response
+    export_to_csv.short_description = "Export selected rules to CSV"
 
 
 @admin.register(CountryAccessRule)
@@ -329,7 +350,7 @@ class CountryAccessRuleAdmin(ModelAdmin):
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
-    actions = ["activate_rules", "deactivate_rules"]
+    actions = ["activate_rules", "deactivate_rules", "export_to_csv"]
 
     def activate_rules(self, request, queryset):
         """Bulk activate selected rules."""
@@ -342,4 +363,25 @@ class CountryAccessRuleAdmin(ModelAdmin):
         count = queryset.update(is_active=False)
         self.message_user(request, f"Deactivated {count} rule(s)")
     deactivate_rules.short_description = "Deactivate selected rules"
+
+    def export_to_csv(self, request, queryset):
+        """Export selected country access rules to CSV."""
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="country_rules_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['rule_type', 'country_code', 'country_name', 'description', 'is_active'])
+        
+        for rule in queryset:
+            writer.writerow([
+                rule.rule_type,
+                rule.country_code,
+                rule.country_name or '',
+                rule.description or '',
+                rule.is_active,
+            ])
+        
+        self.message_user(request, f"Exported {queryset.count()} rule(s) to CSV")
+        return response
+    export_to_csv.short_description = "Export selected rules to CSV"
 
