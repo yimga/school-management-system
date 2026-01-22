@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -o errexit
 
-echo "Removing old virtual environment..."
-rm -rf .venv 2>/dev/null || true
+# Create a persistent virtual environment in the project
+echo "Setting up virtual environment..."
+python3 -m venv .venv
+source .venv/bin/activate
 
 # Aggressively clear all Python cache to ensure fresh deployment
 echo "Clearing Python cache..."
@@ -14,22 +16,13 @@ find . -type f -name "*.pyo" -delete 2>/dev/null || true
 echo "Clearing pip cache..."
 python3 -m pip cache purge 2>/dev/null || true
 
-# Force reinstall without cache (Render PEP 668 externally-managed env)
+# Install dependencies into venv (no PIP_BREAK_SYSTEM_PACKAGES needed)
 echo "Installing dependencies..."
-export PIP_BREAK_SYSTEM_PACKAGES=1
 python3 -m pip install --upgrade pip --no-cache-dir
-python3 -m pip install -r requirements.txt --no-cache-dir --force-reinstall
+python3 -m pip install -r requirements.txt --no-cache-dir
 
 # Never run makemigrations in CI/production.
 python3 manage.py migrate --noinput
 python3 manage.py collectstatic --noinput
 
-# Create activation shim so Render runner can source .venv/bin/activate
-echo "Creating activation shim for runtime..."
-mkdir -p .venv/bin
-cat > .venv/bin/activate << 'EOF'
-#!/usr/bin/env bash
-# Ensure pip-installed console scripts (gunicorn, django-admin) are discoverable
-export PATH="/opt/render/.local/bin:$PATH"
-EOF
-chmod +x .venv/bin/activate
+echo "Build complete - venv is ready at .venv/"
