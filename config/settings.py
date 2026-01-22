@@ -50,6 +50,8 @@ MIDDLEWARE = [
     # Phase 4: Audit & Monitoring middleware
     "apps.compliance.middleware.AuditLoggingMiddleware",  # Log all HTTP requests
     "apps.compliance.middleware.AccessControlMiddleware",  # Enforce access control
+    # Phase 5: Observability middleware
+    "apps.observability.middleware.ObservabilityMiddleware",  # Prometheus request metrics
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -211,11 +213,15 @@ LOGGING = {
             "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
             "style": "{",
         },
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "fmt": "%(levelname)s %(asctime)s %(name)s %(module)s %(process)d %(thread)d %(message)s",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
             "level": LOG_LEVEL,
         },
         "file": {
@@ -223,7 +229,7 @@ LOGGING = {
             "filename": BASE_DIR / "logs" / "django.log",
             "maxBytes": 1024 * 1024 * 10,  # 10MB
             "backupCount": 10,
-            "formatter": "verbose",
+            "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
             "level": LOG_LEVEL,
         },
     },
@@ -269,6 +275,24 @@ COMPLIANCE_ALERTS = {
     "report_recipients": [e for e in os.getenv("COMPLIANCE_REPORT_RECIPIENTS", "").split(",") if e],
     "report_email_enabled": os.getenv("COMPLIANCE_REPORT_EMAIL_ENABLED", "1") == "1",
 }
+
+# --- Sentry (error and performance monitoring) ---
+SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.05"))
+SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.0"))
+
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+        profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
+        send_default_pii=False,
+        environment=os.getenv("SENTRY_ENVIRONMENT", "development"),
+    )
 
 
 # ============================================================================
