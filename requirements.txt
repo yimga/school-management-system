@@ -10,4 +10,5 @@ django-unfold==0.76.0
 requests>=2.31.0
 django-otp>=1.7.0
 qrcode[pil]>=8.0
+axe-selenium-python>=2.1.6
 
