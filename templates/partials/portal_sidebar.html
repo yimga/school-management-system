@@ -1,136 +1,285 @@
 {% load static %}
 
-<div class="d-flex align-items-center gap-2 mb-3">
-  <div class="flex-grow-1">
-    <div class="fw-semibold">Portal</div>
-    <div class="small text-muted">
-      {% if request.user.is_authenticated %}
-        {{ request.user.get_full_name|default:request.user.username }}
+<style>
+  .sidebar-header {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .sidebar-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd, #198754);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .sidebar-info h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .sidebar-info p {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin: 0.25rem 0 0;
+  }
+
+  .sidebar-section-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6c757d;
+    font-weight: 600;
+    margin: 1.2rem 0 0.6rem 0;
+  }
+
+  .nav-link.nav-pill {
+    border-radius: 10px;
+    font-size: 0.9rem;
+    padding: 0.6rem 0.75rem !important;
+    color: #495057;
+    transition: all 0.2s ease;
+  }
+
+  .nav-link.nav-pill:hover {
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+  }
+
+  .nav-link.nav-pill.active {
+    background: rgba(13, 110, 253, 0.15);
+    color: #0d6efd;
+    font-weight: 500;
+  }
+
+  .sidebar-stat {
+    background: rgba(13, 110, 253, 0.05);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid #0d6efd;
+  }
+
+  .sidebar-stat-label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    text-transform: uppercase;
+  }
+
+  .sidebar-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0d6efd;
+  }
+
+  .sidebar-alert {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+  }
+
+  .sidebar-alert strong {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+</style>
+
+<!-- User Header -->
+<div class="sidebar-header">
+  <div class="sidebar-header-content">
+    <div class="sidebar-avatar">
+      {% if request.user.first_name %}
+        {{ request.user.first_name|slice:":1" }}
       {% else %}
-        Guest
+        {{ request.user.username|slice:":1" }}
       {% endif %}
+    </div>
+    <div class="sidebar-info">
+      <h6>{{ request.user.get_full_name|default:request.user.username }}</h6>
+      <p>{{ request.user.role|default:"Portal User" }}</p>
     </div>
   </div>
 </div>
 
-<div class="small text-uppercase text-muted mb-2" style="letter-spacing:.08em;">Navigation</div>
-
-<div class="nav flex-column gap-1">
+<div class="nav flex-column gap-0">
   {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:teacher_dashboard' %}">
+    <!-- Teacher Navigation -->
+    <div class="sidebar-section-title">Learning Management</div>
+    <a class="nav-link nav-pill" href="{% url 'evals:teacher_dashboard' %}">
       <i class="bi bi-speedometer2 me-2"></i>Dashboard
     </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:teacher_marks_entry' %}">
+    <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_entry' %}">
       <i class="bi bi-pencil-square me-2"></i>Enter Marks
     </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:teacher_marks_list' %}">
+    <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_list' %}">
       <i class="bi bi-table me-2"></i>Marks History
     </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:employee_payslips' %}">
-      <i class="bi bi-wallet2 me-2"></i>Payslips
-    </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:employee_leave' %}">
-      <i class="bi bi-calendar-check me-2"></i>Leave Requests
-    </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:teacher_attendance' %}">
+    <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}">
       <i class="bi bi-clipboard-check me-2"></i>Attendance
     </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:employee_payslips' %}">
+
+    <div class="sidebar-section-title">Human Resources</div>
+    <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}">
+      <i class="bi bi-wallet2 me-2"></i>Payslips
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'payroll:employee_leave' %}">
+      <i class="bi bi-calendar-check me-2"></i>Leave Requests
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}">
       <i class="bi bi-receipt me-2"></i>Pay History
     </a>
 
   {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:parent_dashboard' %}">
-      <i class="bi bi-speedometer2 me-2"></i>Dashboard
+    <!-- Parent Navigation -->
+    <div class="sidebar-section-title">Home</div>
+    <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}">
+      <i class="bi bi-house-door me-2"></i>Dashboard
     </a>
-    <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:parent_dashboard' %}#children">
+
+    <div class="sidebar-section-title">Children & Learning</div>
+    <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}">
       <i class="bi bi-people me-2"></i>My Children
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}">
+      <i class="bi bi-cash-coin me-2"></i>Finance & Fees
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}">
+      <i class="bi bi-person-plus me-2"></i>Link Child
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}">
+      <i class="bi bi-ticket me-2"></i>Claim Invite
+    </a>
+
+    <div class="sidebar-section-title">Performance Tracking</div>
+    <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}">
+      <i class="bi bi-graph-up me-2"></i>Academic Stats
     </a>
 
   {% elif request.user.is_authenticated %}
     {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
-      <a class="nav-link nav-pill px-3 py-2" href="/admin/">
-        <i class="bi bi-shield-lock me-2"></i>Admin
+      <!-- Admin Navigation -->
+      <div class="sidebar-section-title">Admin Panel</div>
+      <a class="nav-link nav-pill" href="/admin/">
+        <i class="bi bi-shield-lock me-2"></i>Admin Interface
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'accounts:backend_dashboard' %}">
+      <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}">
         <i class="bi bi-gear-fill me-2"></i>Backend Console
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:evaluation_admin' %}">
+
+      <div class="sidebar-section-title">Academic Management</div>
+      <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}">
         <i class="bi bi-clipboard-data me-2"></i>Evaluation Admin
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'analytics:dashboard' %}">
-        <i class="bi bi-graph-up-arrow me-2"></i>Analytics
-      </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'finance:dashboard' %}">
-        <i class="bi bi-currency-exchange me-2"></i>Finance
-      </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'payroll:dashboard' %}">
-        <i class="bi bi-cash-stack me-2"></i>Payroll
-      </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'accounts:rbac' %}">
-        <i class="bi bi-diagram-3 me-2"></i>Access Control
-      </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:class_ranking' %}">
+      <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}">
         <i class="bi bi-trophy me-2"></i>Class Ranking
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'evals:school_ranking' %}">
+      <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}">
         <i class="bi bi-bar-chart-line me-2"></i>School Ranking
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'reports:publish_term_results' %}">
+      <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}">
         <i class="bi bi-megaphone me-2"></i>Publish Results
       </a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'siteconfig:customizer' %}">
-        <i class="bi bi-palette-fill me-2"></i>Customizer</a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'siteconfig:report_library' %}">
-        <i class="bi bi-journal-text me-2"></i>Report Library</a>
-      <a class="nav-link nav-pill px-3 py-2" href="{% url 'accounts:backend_dashboard_alt' %}">
-        <i class="bi bi-layout-wtf me-2"></i>Backend Tools</a>
+
+      <div class="sidebar-section-title">Financial Management</div>
+      <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}">
+        <i class="bi bi-currency-exchange me-2"></i>Finance Dashboard
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}">
+        <i class="bi bi-cash-stack me-2"></i>Payroll
+      </a>
+
+      <div class="sidebar-section-title">Analytics & Reports</div>
+      <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}">
+        <i class="bi bi-graph-up-arrow me-2"></i>Analytics
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'siteconfig:report_library' %}">
+        <i class="bi bi-journal-text me-2"></i>Report Library
+      </a>
+
+      <div class="sidebar-section-title">System Settings</div>
+      <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}">
+        <i class="bi bi-diagram-3 me-2"></i>Access Control
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'siteconfig:customizer' %}">
+        <i class="bi bi-palette-fill me-2"></i>Customizer
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard_alt' %}">
+        <i class="bi bi-layout-wtf me-2"></i>Backend Tools
+      </a>
     {% endif %}
   {% endif %}
 </div>
 
+<!-- Portal Features -->
 {% with portal_cfg=SITE.portal_features %}
   {% if portal_cfg.messaging or portal_cfg.forums or portal_cfg.video or portal_cfg.documents %}
-    <div class="small text-uppercase text-muted mb-2 mt-3" style="letter-spacing:.08em;">Portal Tools</div>
-    <div class="nav flex-column gap-1 mb-3">
+    <div class="sidebar-section-title">Portal Tools</div>
+    <div class="nav flex-column gap-0">
       {% if portal_cfg.messaging %}
-        <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:portal_feature' 'messaging' %}">
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'messaging' %}">
           <i class="bi bi-chat-left-text me-2"></i>Messaging
         </a>
       {% endif %}
       {% if portal_cfg.forums %}
-        <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:portal_feature' 'forums' %}">
-          <i class="bi bi-people me-2"></i>Community Forums
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'forums' %}">
+          <i class="bi bi-people me-2"></i>Community
         </a>
       {% endif %}
       {% if portal_cfg.video %}
-        <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:portal_feature' 'video' %}">
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'video' %}">
           <i class="bi bi-camera-video me-2"></i>Video Hub
         </a>
       {% endif %}
       {% if portal_cfg.documents %}
-        <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:portal_feature' 'documents' %}">
-          <i class="bi bi-file-earmark-text me-2"></i>Document Library
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'documents' %}">
+          <i class="bi bi-file-earmark-text me-2"></i>Documents
         </a>
       {% endif %}
     </div>
   {% endif %}
 {% endwith %}
 
-<div class="mt-3">
-  <a class="nav-link nav-pill px-3 py-2" href="{% url 'portal:portal_stats' %}">
-    <i class="bi bi-speedometer2 me-2"></i>School Stats
+<!-- Additional Links -->
+<div class="sidebar-section-title mt-4">Settings</div>
+<div class="nav flex-column gap-0">
+  <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}">
+    <i class="bi bi-sliders me-2"></i>Preferences
   </a>
-  <a class="nav-link nav-pill px-3 py-2" href="{% url 'siteconfig:user_preferences' %}">
-    <i class="bi bi-sliders me-2"></i>Site Settings
+  <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}">
+    <i class="bi bi-info-circle me-2"></i>About Portal
   </a>
 </div>
 
 <hr class="my-3">
 
+<!-- Quick Actions -->
 <div class="d-grid gap-2">
   {% if request.user.is_authenticated and request.user.is_staff %}
-    <a class="btn btn-sm btn-outline-primary" href="/admin/">Open Admin</a>
+    <a class="btn btn-sm btn-primary" href="/admin/">
+      <i class="bi bi-shield-lock me-2"></i>Admin Panel
+    </a>
   {% endif %}
-  <a class="btn btn-sm btn-outline-secondary" href="/">Home</a>
+  <a class="btn btn-sm btn-outline-secondary" href="/">
+    <i class="bi bi-house me-2"></i>Home
+  </a>
+  <a class="btn btn-sm btn-outline-danger" href="{% url 'accounts:logout' %}">
+    <i class="bi bi-box-arrow-right me-2"></i>Logout
+  </a>
 </div>
