@@ -1,0 +1,374 @@
+/* Print Styles for School Management System Dashboards */
+
+@media print {
+  /* Hide UI elements */
+  header,
+  .dashboard-header,
+  .dashboard-footer,
+  footer,
+  nav,
+  .sidebar,
+  .breadcrumb-nav,
+  .notification-center,
+  .global-search,
+  .user-dropdown,
+  .btn,
+  button,
+  .pagination,
+  .modal,
+  .toast,
+  .dropdown,
+  .alert:not(.alert-info),
+  .badge:not(.badge-print) {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 1.5cm 2cm;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff !important;
+  }
+
+  /* Typography */
+  h1 {
+    font-size: 24pt;
+    margin-bottom: 20pt;
+    page-break-after: avoid;
+  }
+
+  h2 {
+    font-size: 18pt;
+    margin-top: 20pt;
+    margin-bottom: 15pt;
+    page-break-after: avoid;
+  }
+
+  h3 {
+    font-size: 14pt;
+    margin-top: 15pt;
+    margin-bottom: 10pt;
+    page-break-after: avoid;
+  }
+
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Links */
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+    color: #666;
+  }
+
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  /* Tables */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    page-break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group;
+    background: #f8f9fa !important;
+  }
+
+  tbody {
+    display: table-row-group;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  th,
+  td {
+    border: 1px solid #dee2e6 !important;
+    padding: 8pt !important;
+    text-align: left;
+  }
+
+  th {
+    background: #f8f9fa !important;
+    font-weight: bold;
+  }
+
+  /* Cards */
+  .card {
+    border: 1px solid #dee2e6 !important;
+    page-break-inside: avoid;
+    margin-bottom: 20pt;
+  }
+
+  .card-header {
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    padding: 10pt !important;
+    font-weight: bold;
+  }
+
+  .card-body {
+    padding: 15pt !important;
+  }
+
+  /* Metrics */
+  .metric-card,
+  .stat-card {
+    border: 1px solid #dee2e6 !important;
+    padding: 10pt !important;
+    margin-bottom: 10pt;
+    page-break-inside: avoid;
+  }
+
+  /* Charts */
+  .chart-container {
+    page-break-inside: avoid;
+  }
+
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Lists */
+  ul,
+  ol {
+    page-break-inside: avoid;
+  }
+
+  /* Forms (for filled data) */
+  .form-group {
+    margin-bottom: 10pt;
+  }
+
+  .form-control,
+  input,
+  select,
+  textarea {
+    border: none !important;
+    border-bottom: 1px solid #000 !important;
+    background: transparent !important;
+    padding: 2pt 0 !important;
+  }
+
+  /* Grades/Report Cards */
+  .grade-table {
+    width: 100%;
+    margin-bottom: 20pt;
+  }
+
+  .grade-summary {
+    background: #f8f9fa !important;
+    padding: 15pt !important;
+    margin: 20pt 0;
+    border: 2px solid #000 !important;
+  }
+
+  /* Attendance */
+  .attendance-grid {
+    display: table !important;
+    width: 100%;
+  }
+
+  .attendance-cell {
+    border: 1px solid #dee2e6 !important;
+    padding: 5pt !important;
+  }
+
+  /* Invoices */
+  .invoice-header {
+    margin-bottom: 30pt;
+    page-break-after: avoid;
+  }
+
+  .invoice-total {
+    font-size: 16pt;
+    font-weight: bold;
+    margin-top: 20pt;
+    padding-top: 10pt;
+    border-top: 2px solid #000 !important;
+  }
+
+  /* Signatures */
+  .signature-section {
+    margin-top: 40pt;
+    page-break-inside: avoid;
+  }
+
+  .signature-line {
+    border-bottom: 1px solid #000;
+    width: 200pt;
+    margin: 20pt 0 5pt 0;
+  }
+
+  /* School branding */
+  .school-logo {
+    max-width: 150pt !important;
+    height: auto !important;
+  }
+
+  .school-header {
+    text-align: center;
+    margin-bottom: 30pt;
+    page-break-after: avoid;
+  }
+
+  /* Page numbers */
+  .page-number {
+    display: block;
+  }
+
+  /* Utility classes for print control */
+  .page-break {
+    page-break-after: always;
+  }
+
+  .no-page-break {
+    page-break-inside: avoid;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Watermarks (for drafts) */
+  body.draft::after {
+    content: "DRAFT";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 120pt;
+    color: rgba(0, 0, 0, 0.1);
+    z-index: -1;
+  }
+
+  /* Report card specific */
+  .report-card {
+    page-break-after: always;
+  }
+
+  .report-card:last-child {
+    page-break-after: auto;
+  }
+
+  .term-grades {
+    margin: 20pt 0;
+  }
+
+  .grade-breakdown {
+    width: 100%;
+    margin-bottom: 15pt;
+  }
+
+  /* Timetable */
+  .timetable {
+    width: 100%;
+    font-size: 10pt;
+  }
+
+  .timetable th {
+    background: #e9ecef !important;
+  }
+
+  .timetable-period {
+    min-width: 80pt;
+  }
+
+  /* Student profile */
+  .student-photo {
+    width: 100pt !important;
+    height: 120pt !important;
+    object-fit: cover;
+    border: 1px solid #000;
+  }
+
+  .student-info {
+    display: table;
+    width: 100%;
+    margin-bottom: 20pt;
+  }
+
+  .student-info-row {
+    display: table-row;
+  }
+
+  .student-info-label {
+    display: table-cell;
+    font-weight: bold;
+    width: 30%;
+    padding: 5pt;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .student-info-value {
+    display: table-cell;
+    padding: 5pt;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  /* Financial reports */
+  .financial-summary {
+    background: #f8f9fa !important;
+    padding: 15pt;
+    margin: 20pt 0;
+    border: 1px solid #000 !important;
+  }
+
+  .amount {
+    font-weight: bold;
+  }
+
+  .amount-due {
+    color: #000 !important;
+    font-size: 14pt;
+  }
+
+  /* Footer info for printed pages */
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9pt;
+    color: #666;
+    padding: 10pt 0;
+    border-top: 1px solid #dee2e6;
+  }
+
+  /* QR codes and barcodes */
+  .qr-code,
+  .barcode {
+    max-width: 80pt !important;
+    height: auto !important;
+  }
+}

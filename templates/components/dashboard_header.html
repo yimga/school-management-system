@@ -36,48 +36,14 @@
           </div>
         </div>
 
-        <!-- Center: User Info & Role Badge -->
-        <div class="col-lg-5 col-md-4 text-center">
-          <div class="user-info-section">
-            <div class="d-flex align-items-center justify-content-center gap-2">
-              {% if request.user.profile_photo %}
-                <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" class="user-avatar">
-              {% else %}
-                <div class="user-avatar-placeholder">
-                  <i class="bi bi-person-circle"></i>
-                </div>
-              {% endif %}
-              <div class="user-details">
-                <span class="user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-                <span class="role-badge role-badge-{{ request.user.role|lower }}">
-                  {% if request.user.role == 'ADMIN' %}
-                    <i class="bi bi-shield-check"></i> Administrator
-                  {% elif request.user.role == 'TEACHER' %}
-                    <i class="bi bi-person-badge"></i> Teacher
-                  {% elif request.user.role == 'PARENT' %}
-                    <i class="bi bi-people"></i> Parent
-                  {% elif request.user.role == 'STUDENT' %}
-                    <i class="bi bi-mortarboard"></i> Student
-                  {% elif request.user.role == 'LEADERSHIP' %}
-                    <i class="bi bi-award"></i> Leadership
-                  {% elif request.user.role == 'BURSAR' %}
-                    <i class="bi bi-cash-stack"></i> Bursar
-                  {% elif request.user.role == 'HOD' %}
-                    <i class="bi bi-building"></i> Head of Dept
-                  {% elif request.user.role == 'PRINCIPAL' %}
-                    <i class="bi bi-star"></i> Principal
-                  {% else %}
-                    {{ request.user.get_role_display }}
-                  {% endif %}
-                </span>
-              </div>
-            </div>
-          </div>
+        <!-- Center: Global Search -->
+        <div class="col-lg-5 col-md-4">
+          {% include 'components/global_search.html' %}
         </div>
 
-        <!-- Right: Key Metrics (Role-based) -->
+        <!-- Right: Notifications, Theme Toggle & User Dropdown -->
         <div class="col-lg-4 col-md-4">
-          <div class="header-metrics">
+          <div class="header-actions d-flex align-items-center justify-content-end gap-2">
             {% block header_metrics %}
               {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
                 <!-- Admin/Leadership metrics -->
@@ -148,42 +114,15 @@
                   <strong class="metric-value">{{ student_pending|default:"0" }}</strong>
                 </div>
               {% endif %}
-            {% endblock %}
+            {% include 'components/notification_center.html' %}
+            {% include 'components/theme_toggle.html' %}
+            {% include 'components/user_dropdown.html' %}
           </div>
         </div>
       </div>
 
-      <!-- Quick Filters/Actions Bar (optional) -->
-      {% block header_filters %}
-      {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
-      <div class="row mt-3">
-        <div class="col-12">
-          <div class="header-filters">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-              <span class="filter-label"><i class="bi bi-funnel"></i> Quick Filters:</span>
-              <button class="btn btn-sm btn-outline-secondary filter-btn" data-filter="today">
-                <i class="bi bi-calendar-day"></i> Today
-              </button>
-              <button class="btn btn-sm btn-outline-secondary filter-btn" data-filter="week">
-                <i class="bi bi-calendar-week"></i> This Week
-              </button>
-              <button class="btn btn-sm btn-outline-secondary filter-btn" data-filter="month">
-                <i class="bi bi-calendar-month"></i> This Month
-              </button>
-              <button class="btn btn-sm btn-outline-secondary filter-btn" data-filter="term">
-                <i class="bi bi-calendar3"></i> Current Term
-              </button>
-              <div class="ms-auto">
-                <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
-                  <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-      {% endblock %}
+      <!-- Breadcrumb Navigation -->
+      {% include 'components/breadcrumb.html' %}
     </div>
   </div>
 </div>
