@@ -3,6 +3,7 @@ from apps.academics.models import AcademicYear, Term, Classroom
 from apps.people.models import StudentProfile
 from apps.accounts.models import User
 from django.core.exceptions import ValidationError
+from django.utils import translation
 
 
 class TermPublishStatus(models.Model):
@@ -38,12 +39,50 @@ class ReportCard(models.Model):
     type = models.CharField(max_length=10, choices=Type.choices)
     pdf_file = models.FileField(upload_to="reportcards/", null=True, blank=True)
     generated_at = models.DateTimeField(auto_now=True)
+    
+    # Localization fields
+    language = models.CharField(max_length=10, default='en', help_text='Language for certificate generation')
+    region_code = models.CharField(max_length=10, null=True, blank=True, help_text='Region code for score conversion')
 
     class Meta:
         ordering = ["-generated_at"]
 
     def __str__(self):
         return f"{self.student} - {self.type} - {self.academic_year}"
+    
+    def get_language(self):
+        """Get language for this report card."""
+        if self.language:
+            return self.language
+        # Fall back to region language mapping
+        if self.region_code:
+            region_to_lang = {
+                'CMR': 'fr', 'FRA': 'fr',  # Cameroon, France -> French
+                'USA': 'en', 'GBR': 'en', 'DEU': 'en',  # USA, UK, Germany -> English
+                'KEN': 'sw',  # Kenya -> Swahili
+                'NGA': 'yo',  # Nigeria -> Yoruba
+            }
+            return region_to_lang.get(self.region_code, 'en')
+        return 'en'
+    
+    def get_region(self):
+        """Get region for this report card."""
+        from apps.siteconfig.models import RegionConfig
+        
+        if self.region_code:
+            try:
+                return RegionConfig.objects.get(code=self.region_code)
+            except RegionConfig.DoesNotExist:
+                pass
+        
+        # Try to get from student's school
+        if self.student and self.student.current_classroom:
+            try:
+                # This would need school region mapping
+                pass
+            except:
+                pass
+        return None
 
 
 class PromotionRule(models.Model):
