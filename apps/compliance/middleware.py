@@ -58,7 +58,7 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             access_type = self._get_access_type(request)
 
             # Extract error message if status >= 400
-            error_message = None
+            error_message = ""
             if response.status_code >= 400:
                 try:
                     error_message = self._extract_error(response)
