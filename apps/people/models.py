@@ -11,6 +11,9 @@ from apps.academics.models import AcademicYear, Classroom, Specialty, Department
 
 
 class TeacherProfile(models.Model):
+    # Phase 4: Enable audit logging for this model (teacher record changes)
+    audit_enabled = True
+
     class DashboardView(models.TextChoices):
         OVERVIEW = "OVERVIEW", "Overview"
         FINANCE = "FINANCE", "Finances"
@@ -161,6 +164,9 @@ class TeacherAttendance(models.Model):
 
 
 class StudentProfile(models.Model):
+    # Phase 4: Enable audit logging for this model (student record changes, grades tied to this)
+    audit_enabled = True
+
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
     student_code = models.CharField(max_length=50, unique=True, blank=True)

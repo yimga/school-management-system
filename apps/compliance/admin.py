@@ -2,6 +2,9 @@
 from django.contrib import admin
 from .models import ComplianceRule, RegionalComplianceRequirement, ComplianceCheck, LegalDocument, ComplianceAuditLog, StudentIDFormat, CertificateTemplate
 
+# Phase 4: Import and register audit models
+from .admin_audit import AuditLogAdmin, UserActivitySessionAdmin, AccessLogAdmin, ComplianceReportAdmin
+
 @admin.register(ComplianceRule)
 class ComplianceRuleAdmin(admin.ModelAdmin):
     list_display = ('name', 'rule_type', 'is_mandatory', 'applies_globally')

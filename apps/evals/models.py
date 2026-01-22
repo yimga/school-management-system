@@ -188,7 +188,11 @@ class TeacherAssignment(models.Model):
 class Evaluation(models.Model):
     """
     One row per student per subject_assignment per term.
+    Phase 4: Critical model for audit logging (grade changes).
     """
+    # Phase 4: Enable audit logging for this critical model
+    audit_enabled = True
+
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="evaluations")
     term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="evaluations")
     subject_assignment = models.ForeignKey(SubjectAssignment, on_delete=models.PROTECT, related_name="evaluations")
@@ -416,8 +420,12 @@ class EvaluationEvidence(models.Model):
 # ========== GRADE AUDIT TRAIL ==========
 
 class GradeAudit(models.Model):
-    """Immutable audit trail for all grade changes."""
-    
+    """Immutable audit trail for all grade changes.
+    Phase 4: Enable audit logging to track audit record creation.
+    """
+    # Phase 4: Enable audit logging for this model
+    audit_enabled = True
+
     CHANGE_TYPE_CHOICES = [
         ('create', 'Grade Created'),
         ('update', 'Grade Updated'),

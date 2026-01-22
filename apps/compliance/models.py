@@ -246,3 +246,10 @@ class CertificateTemplate(models.Model):
     
     def __str__(self):
         return f"{self.region.name} - {self.name} (v{self.version})"
+
+
+# ============================================
+# Phase 4: Audit & Monitoring Models
+# ============================================
+# Import audit models from models_audit.py for organization
+from .models_audit import AuditLog, UserActivitySession, AccessLog, ComplianceReport

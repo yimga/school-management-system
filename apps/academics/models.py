@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 
 
 class AcademicYear(models.Model):
+    # Phase 4: Enable audit logging for this model
+    audit_enabled = True
+
     name = models.CharField(max_length=50)  # e.g. "2025/2026"
     start_date = models.DateField()
     end_date = models.DateField()
@@ -22,6 +25,9 @@ class Term(models.Model):
         FIRST = "FIRST", "First"
         SECOND = "SECOND", "Second"
         THIRD = "THIRD", "Third"
+
+    # Phase 4: Enable audit logging for this model
+    audit_enabled = True
 
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="terms")
     # Code identifier (free text, e.g., "FIRST", "SEM1", "Q1"). No choices to enable flexibility.

@@ -217,6 +217,9 @@ class PaymentMethod(models.TextChoices):
 
 
 class Invoice(models.Model):
+    # Phase 4: Enable audit logging for this critical model (financial records)
+    audit_enabled = True
+
     class InvoiceType(models.TextChoices):
         AR = "AR", "Accounts Receivable"
         AP = "AP", "Accounts Payable"
@@ -360,6 +363,9 @@ class InvoiceLine(models.Model):
 
 
 class Payment(models.Model):
+    # Phase 4: Enable audit logging for this critical model (financial records)
+    audit_enabled = True
+
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
     amount = models.DecimalField(
         max_digits=12,

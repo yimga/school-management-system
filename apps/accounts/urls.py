@@ -11,4 +11,5 @@ urlpatterns = [
     path("rbac/", rbac_dashboard, name="rbac"),
     path("backend/", backend_dashboard, name="backend_dashboard"),
     path("claim-invite/", claim_invite, name="claim_invite"),
+    path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alias"),
 ]

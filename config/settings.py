@@ -47,6 +47,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
+    # Phase 4: Audit & Monitoring middleware
+    "apps.compliance.middleware.AuditLoggingMiddleware",  # Log all HTTP requests
+    "apps.compliance.middleware.AccessControlMiddleware",  # Enforce access control
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
