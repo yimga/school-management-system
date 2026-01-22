@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.analytics",
     "apps.finance",
     "apps.payroll",
+    "apps.compliance.apps.ComplianceConfig",
 ]
 
 MIDDLEWARE = [
