@@ -1,4 +1,5 @@
 from django.contrib import admin
+from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 from django.utils.html import format_html
@@ -26,7 +27,6 @@ from apps.academics.models import AcademicYear
 # ==========================
 # SITE CUSTOMIZER (CORE)
 # ==========================
-@admin.register(SiteSettings)
 class SiteSettingsAdmin(ModelAdmin):
     """
     Main Site Customizer UI.
@@ -128,7 +128,6 @@ class SiteSettingsAdmin(ModelAdmin):
     logo_preview.short_description = "Logo Preview"
 
 
-@admin.register(ThemePack)
 class ThemePackAdmin(ModelAdmin):
     list_display = ("name", "is_active", "is_default", "layout", "palette_preview")
     list_filter = ("is_active", "layout")
@@ -143,14 +142,12 @@ class ThemePackAdmin(ModelAdmin):
     palette_preview.short_description = "Gradient"
 
 
-@admin.register(UserPreference)
 class UserPreferenceAdmin(ModelAdmin):
     list_display = ("user", "dashboard_view", "timezone", "refresh_rate_minutes")
     search_fields = ("user__username", "user__email")
     readonly_fields = ("created_at", "updated_at")
 
 
-@admin.register(ReportTemplate)
 class ReportTemplateAdmin(ModelAdmin):
     list_display = ("name", "slug", "preferred_format", "is_active", "updated_at")
     list_filter = ("preferred_format", "is_active")
@@ -158,7 +155,6 @@ class ReportTemplateAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-@admin.register(ReportCardStyle)
 class ReportCardStyleAdmin(ModelAdmin):
     list_display = ("name", "slug", "is_active", "term_template", "annual_template")
     list_filter = ("is_active",)
@@ -166,7 +162,6 @@ class ReportCardStyleAdmin(ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
-@admin.register(ReportCardStyleAssignment)
 class ReportCardStyleAssignmentAdmin(ModelAdmin):
     list_display = ("classroom", "style")
     search_fields = ("classroom__name", "style__name")
@@ -175,7 +170,6 @@ class ReportCardStyleAssignmentAdmin(ModelAdmin):
 # ==========================
 # INTEGRATIONS / PLUGINS
 # ==========================
-@admin.register(Integration)
 class IntegrationAdmin(ModelAdmin):
     """
     Plugin / API Integrations manager.
@@ -290,7 +284,6 @@ class HolidayCalendarInline(admin.TabularInline):
     overlap_status.short_description = "Overlap Check"
 
 
-@admin.register(RegionConfig)
 class RegionConfigAdmin(ModelAdmin):
     """
     Admin interface for regional configurations.
@@ -558,7 +551,6 @@ class RegionConfigAdmin(ModelAdmin):
     export_config.short_description = "📥 Export to CSV"
 
 
-@admin.register(GradingScaleConfig)
 class GradingScaleConfigAdmin(ModelAdmin):
     """
     Standalone admin for grading scale configurations.
@@ -711,7 +703,6 @@ class GradingScaleConfigAdmin(ModelAdmin):
     calculation_example.short_description = "Example Conversions"
 
 
-@admin.register(HolidayCalendar)
 class HolidayCalendarAdmin(ModelAdmin):
     """
     Admin interface for holiday calendars.
@@ -860,3 +851,16 @@ class HolidayCalendarAdmin(ModelAdmin):
         return response
     
     export_holidays.short_description = "📥 Export to CSV"
+
+
+# Register all models with custom admin site
+admin_site.register(SiteSettings, SiteSettingsAdmin)
+admin_site.register(ThemePack, ThemePackAdmin)
+admin_site.register(UserPreference, UserPreferenceAdmin)
+admin_site.register(ReportTemplate, ReportTemplateAdmin)
+admin_site.register(ReportCardStyle, ReportCardStyleAdmin)
+admin_site.register(ReportCardStyleAssignment, ReportCardStyleAssignmentAdmin)
+admin_site.register(Integration, IntegrationAdmin)
+admin_site.register(RegionConfig, RegionConfigAdmin)
+admin_site.register(GradingScaleConfig, GradingScaleConfigAdmin)
+admin_site.register(HolidayCalendar, HolidayCalendarAdmin)

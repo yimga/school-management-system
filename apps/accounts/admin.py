@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import Group
+from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 
@@ -11,7 +12,6 @@ from .models import User, AccessRole, Permission
 admin.site.unregister(Group)
 
 
-@admin.register(User)
 class UserAdmin(DjangoUserAdmin, ModelAdmin):
     """Unfold-styled user admin with an additional Role field."""
 
@@ -29,20 +29,17 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
     ordering = ("username",)
 
 
-@admin.register(AccessRole)
 class RoleAdmin(ModelAdmin):
     list_display = ("code", "name")
     search_fields = ("code", "name")
     filter_horizontal = ("permissions",)
 
 
-@admin.register(Permission)
 class PermissionAdmin(ModelAdmin):
     list_display = ("code", "name")
     search_fields = ("code", "name")
 
 
-@admin.register(Group)
 class GroupAdmin(ModelAdmin):
     """Groups admin - relocated from django.contrib.auth to Accounts section."""
     list_display = ("name",)
@@ -52,3 +49,10 @@ class GroupAdmin(ModelAdmin):
     class Meta:
         verbose_name = "User Group"
         verbose_name_plural = "User Groups"
+
+
+# Register all models with custom admin site
+admin_site.register(User, UserAdmin)
+admin_site.register(AccessRole, RoleAdmin)
+admin_site.register(Permission, PermissionAdmin)
+admin_site.register(Group, GroupAdmin)

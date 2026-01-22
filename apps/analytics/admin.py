@@ -1,11 +1,11 @@
 from django.contrib import admin
+from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 
 from .models import GradingDeadline
 
 
-@admin.register(GradingDeadline)
 class GradingDeadlineAdmin(ModelAdmin):
     list_display = (
         "academic_year",
@@ -20,3 +20,7 @@ class GradingDeadlineAdmin(ModelAdmin):
         "classroom",
     )
     ordering = ("-deadline_at",)
+
+
+# Register all models with custom admin site
+admin_site.register(GradingDeadline, GradingDeadlineAdmin)
