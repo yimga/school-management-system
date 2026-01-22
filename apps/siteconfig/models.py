@@ -213,6 +213,68 @@ class SiteSettings(models.Model):
         default=Decimal("0.00"),
         help_text="Default credit amount awarded per successful referral.",
     )
+    
+    # ===== NEW: GRADING CONFIGURATION =====
+    default_grading_scale = models.CharField(
+        max_length=50,
+        choices=[
+            ('numeric_0_20', 'Numeric 0–20 (Cameroon Francophone)'),
+            ('letter_a_e', 'Letters A–E (Cameroon Anglophone)'),
+            ('gpa_4_0', 'GPA 4.0 Scale'),
+            ('percentage', 'Percentage 0–100'),
+        ],
+        default='numeric_0_20'
+    )
+    default_region = models.CharField(
+        max_length=50,
+        choices=[
+            ('cameroon_anglophone', 'Cameroon Anglophone'),
+            ('cameroon_francophone', 'Cameroon Francophone'),
+            ('global', 'Global/Other'),
+        ],
+        default='cameroon_anglophone'
+    )
+    
+    # ===== NEW: NOTIFICATIONS =====
+    sms_provider = models.CharField(
+        max_length=30,
+        choices=[
+            ('twilio', 'Twilio'),
+            ('africastalking', 'AfricasTalking'),
+            ('console', 'Console (Dev Only)'),
+        ],
+        default='console'
+    )
+    sms_api_key = models.CharField(max_length=255, blank=True)
+    sms_sender_id = models.CharField(max_length=50, default='GILEAD')
+    email_from_address = models.EmailField(default='noreply@school.example.com')
+    
+    # ===== NEW: DEADLINE REMINDERS =====
+    teacher_deadline_reminder_days = models.JSONField(
+        default=list,
+        help_text="Days before deadline: [7, 3, 1, 0.5]"
+    )
+    teacher_reminder_time_of_day = models.TimeField(default='08:00')
+    
+    # ===== NEW: PERFORMANCE =====
+    cache_rankings_interval_minutes = models.PositiveIntegerField(default=10)
+    enable_concurrent_mark_uploads = models.BooleanField(default=True)
+    
+    # ===== NEW: PRACTICAL ASSESSMENT =====
+    enable_practical_assessment = models.BooleanField(default=True)
+    auto_tag_photos_from_exif = models.BooleanField(default=True)
+    
+    # ===== NEW: OFFLINE MODE =====
+    enable_offline_mode = models.BooleanField(default=True)
+    offline_sync_conflict_resolution = models.CharField(
+        max_length=20,
+        choices=[
+            ('show_both', 'Show Both Versions'),
+            ('reject', 'Reject Offline Entry'),
+            ('auto_merge', 'Auto-Merge Latest'),
+        ],
+        default='show_both'
+    )
 
     # Compliance profile (finance/payroll)
     compliance_profile = models.ForeignKey(

@@ -155,7 +155,8 @@ def teacher_dashboard(request: HttpRequest):
         for f in required:
             qs = qs.exclude(**{f"{f}__isnull": True})
         filled = qs.count()
-        progress[a.id] = {"filled": filled, "total": total}
+        width_pct = round((filled / total) * 100, 0) if total else 0
+        progress[a.id] = {"filled": filled, "total": total, "width": width_pct}
 
     widget_data = teacher_dashboard_widget_data(assignments, progress, year, term, teacher=teacher)
     attendance = widget_data.get("attendance") or {}

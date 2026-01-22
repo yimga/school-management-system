@@ -3,4 +3,6 @@ from django.apps import AppConfig
 class EvalsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.evals"
-
+    
+    def ready(self):
+        import apps.evals.signals  # Register signal handlers

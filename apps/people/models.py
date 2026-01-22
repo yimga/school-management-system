@@ -345,3 +345,61 @@ class StudentGuardian(models.Model):
 
     def __str__(self):
         return f"{self.guardian_user.username} -> {self.student}"
+
+# ========== NOTIFICATION PREFERENCES ==========
+
+class NotificationPreference(models.Model):
+    """Guardian notification settings per student."""
+    
+    CONTACT_METHOD_CHOICES = [
+        ('email', 'Email'),
+        ('sms', 'SMS'),
+        ('both', 'Email & SMS'),
+        ('none', 'Opt Out'),
+    ]
+    
+    DIGEST_CHOICES = [
+        ('immediate', 'Immediately'),
+        ('daily', 'Daily Digest at 6 PM'),
+        ('weekly', 'Weekly Digest (Fri 6 PM)'),
+    ]
+    
+    guardian = models.OneToOneField(
+        StudentGuardian,
+        on_delete=models.CASCADE,
+        related_name='notification_preference'
+    )
+    
+    # Grade publication
+    grade_publication_method = models.CharField(
+        max_length=20,
+        choices=CONTACT_METHOD_CHOICES,
+        default='both'
+    )
+    grade_publication_frequency = models.CharField(
+        max_length=20,
+        choices=DIGEST_CHOICES,
+        default='immediate'
+    )
+    
+    # Deadline reminders
+    deadline_reminder_method = models.CharField(
+        max_length=20,
+        choices=CONTACT_METHOD_CHOICES,
+        default='email'
+    )
+    deadline_reminder_enabled = models.BooleanField(default=True)
+    
+    # Teacher reminders (if guardian is also teacher)
+    teacher_reminder_times = models.JSONField(default=list, blank=True)
+    teacher_reminder_method = models.CharField(
+        max_length=20,
+        choices=CONTACT_METHOD_CHOICES,
+        default='email'
+    )
+    
+    class Meta:
+        verbose_name_plural = 'Notification Preferences'
+    
+    def __str__(self):
+        return f"Prefs for {self.guardian.guardian_user.get_full_name()}"
