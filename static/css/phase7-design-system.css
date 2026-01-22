@@ -1,0 +1,424 @@
+/* Phase 7 Task 7: CSS Variables, Mobile-First, Dark Mode, RTL Support */
+
+/* ============================================
+   1. CSS VARIABLES (Design System)
+   ============================================ */
+
+:root {
+    /* Colors - Primary */
+    --primary: #007bff;
+    --primary-dark: #0d6efd;
+    --primary-light: #e7f1ff;
+    
+    /* Colors - Secondary */
+    --secondary: #6c757d;
+    --secondary-dark: #5a6268;
+    --secondary-light: #e2e3e5;
+    
+    /* Colors - Status */
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+    
+    /* Colors - Text & Background */
+    --text-color: #212529;
+    --text-muted: #6c757d;
+    --bg-color: #ffffff;
+    --bg-light: #f8f9fa;
+    --border-color: #dee2e6;
+    
+    /* Spacing Scale */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 3rem;
+    --spacing-2xl: 4.5rem;
+    
+    /* Typography */
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-size-base: 1rem;
+    --font-size-sm: 0.875rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --line-height-base: 1.5;
+    --line-height-tight: 1.25;
+    
+    /* Shadows */
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    
+    /* Transitions */
+    --transition-duration: 0.3s;
+    --transition-timing: ease-in-out;
+    
+    /* Z-Index Scale */
+    --z-dropdown: 1000;
+    --z-fixed: 1020;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+    
+    /* Border Radius */
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.375rem;
+    --border-radius-lg: 0.5rem;
+    --border-radius-xl: 1rem;
+}
+
+/* ============================================
+   2. DARK MODE
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-color: #f8f9fa;
+        --text-muted: #adb5bd;
+        --bg-color: #1a1a1a;
+        --bg-light: #2d2d2d;
+        --border-color: #495057;
+    }
+}
+
+/* Dark mode override attribute */
+[data-theme="dark"] {
+    --text-color: #f8f9fa;
+    --text-muted: #adb5bd;
+    --bg-color: #1a1a1a;
+    --bg-light: #2d2d2d;
+    --border-color: #495057;
+}
+
+[data-theme="light"] {
+    --text-color: #212529;
+    --text-muted: #6c757d;
+    --bg-color: #ffffff;
+    --bg-light: #f8f9fa;
+    --border-color: #dee2e6;
+}
+
+/* ============================================
+   3. ACCESSIBILITY MODES
+   ============================================ */
+
+/* High Contrast Mode */
+@media (prefers-contrast: more) {
+    :root {
+        --primary: #0a3cc1;
+        --text-color: #000000;
+        --bg-color: #ffffff;
+        --border-color: #000000;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============================================
+   4. BASE STYLES
+   ============================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-family: var(--font-family);
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    line-height: var(--line-height-base);
+    transition: background-color var(--transition-duration) var(--transition-timing),
+                color var(--transition-duration) var(--transition-timing);
+}
+
+/* ============================================
+   5. RESPONSIVE UTILITIES (Mobile-First)
+   ============================================ */
+
+/* Default: Mobile (< 576px) */
+.container {
+    width: 100%;
+    padding-right: var(--spacing-md);
+    padding-left: var(--spacing-md);
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .container {
+        max-width: 540px;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+    
+    .d-md-block {
+        display: block !important;
+    }
+    
+    .d-md-none {
+        display: none !important;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+    
+    .d-lg-block {
+        display: block !important;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+/* XXL devices (1400px and up) */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
+}
+
+/* ============================================
+   6. FLEXIBLE GRID (Mobile-First)
+   ============================================ */
+
+.grid {
+    display: grid;
+    gap: var(--spacing-md);
+    grid-template-columns: 1fr;  /* Mobile: 1 column */
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) {
+    .grid--2col {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop: 3-4 columns */
+@media (min-width: 992px) {
+    .grid--3col {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid--4col {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ============================================
+   7. TYPOGRAPHY (Mobile-First)
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-md);
+    line-height: var(--line-height-tight);
+    font-weight: 600;
+}
+
+h1 { font-size: var(--font-size-xl); }
+h2 { font-size: var(--font-size-lg); }
+h3 { font-size: var(--font-size-base); }
+
+@media (min-width: 768px) {
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    h3 { font-size: 1.5rem; }
+}
+
+/* ============================================
+   8. RTL (Right-to-Left) SUPPORT
+   ============================================ */
+
+[dir="rtl"] .sidebar {
+    margin-left: 0;
+    margin-right: var(--spacing-lg);
+}
+
+[dir="rtl"] .breadcrumb-item + .breadcrumb-item::before {
+    padding-left: var(--spacing-sm);
+    padding-right: 0;
+}
+
+[dir="rtl"] .btn-icon {
+    margin-left: var(--spacing-sm);
+    margin-right: 0;
+}
+
+/* Modern approach: use CSS logical properties */
+.sidebar {
+    margin-inline-end: var(--spacing-lg);
+    padding-inline-start: var(--spacing-md);
+}
+
+.float-start {
+    float-inline: start;
+}
+
+.float-end {
+    float-inline: end;
+}
+
+/* ============================================
+   9. COMPONENTS
+   ============================================ */
+
+/* Cards */
+.card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-duration) var(--transition-timing);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    padding: var(--spacing-md);
+    background-color: var(--bg-light);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-body {
+    padding: var(--spacing-md);
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    line-height: var(--line-height-base);
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-md);
+    transition: all var(--transition-duration) var(--transition-timing);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Mobile-optimized buttons */
+@media (max-width: 576px) {
+    .btn {
+        display: block;
+        width: 100%;
+        padding: var(--spacing-md);
+        font-size: var(--font-size-lg);
+        min-height: 44px;  /* Touch target minimum */
+    }
+}
+
+/* ============================================
+   10. ACCESSIBILITY
+   ============================================ */
+
+/* Focus visible (keyboard navigation) */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Skip link (visible on focus) */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    z-index: var(--z-fixed);
+}
+
+.skip-link:focus {
+    position: fixed;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    padding: var(--spacing-md);
+    background-color: var(--primary);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* ============================================
+   11. UTILITIES
+   ============================================ */
+
+.text-muted { color: var(--text-muted); }
+.bg-light { background-color: var(--bg-light); }
+.border { border: 1px solid var(--border-color); }
+
+.rounded-lg { border-radius: var(--border-radius-lg); }
+.shadow-md { box-shadow: var(--shadow-md); }
+
+/* Spacing utilities */
+.m-0 { margin: 0; }
+.p-md { padding: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mt-lg { margin-top: var(--spacing-lg); }
+
+/* Display utilities */
+.d-none { display: none; }
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+
+/* ============================================
+   12. PRINT STYLES
+   ============================================ */
+
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+    
+    a {
+        text-decoration: underline;
+    }
+}
