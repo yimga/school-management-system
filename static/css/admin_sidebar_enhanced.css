@@ -94,17 +94,27 @@ html {
     }
 }
 
-/* Badge styles for item counts (to be added later) */
+/* Badge styles for item counts */
 .admin-sidebar-badge {
     display: inline-block;
-    padding: 2px 8px;
-    margin-left: 8px;
+    padding: 3px 9px;
+    margin-left: auto;
     background: rgba(45, 212, 191, 0.15);
     color: #0d9488;
     border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.7rem;
+    font-weight: 700;
     line-height: 1.2;
+    min-width: 28px;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: help;
+}
+
+/* Hover effect for badges */
+.admin-sidebar-badge:hover {
+    background: rgba(45, 212, 191, 0.25);
+    transform: scale(1.05);
 }
 
 /* Empty badge style */
@@ -112,6 +122,30 @@ html {
     background: rgba(155, 107, 255, 0.1);
     color: #9b6bff;
     opacity: 0.6;
+}
+
+.admin-sidebar-badge--empty:hover {
+    background: rgba(155, 107, 255, 0.15);
+    opacity: 0.8;
+}
+
+/* High count badge (1K+) - use accent color */
+.admin-sidebar-badge--high {
+    background: rgba(255, 106, 136, 0.15);
+    color: #dc2626;
+    font-weight: 800;
+}
+
+.admin-sidebar-badge--high:hover {
+    background: rgba(255, 106, 136, 0.25);
+}
+
+/* Parent link flex layout to position badge on right */
+#nav-sidebar ul li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 }
 
 /* Loading state for dynamic counts */

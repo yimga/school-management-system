@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% load i18n static %}
+{% load i18n static admin_extras %}
 
 {% block extrastyle %}
   {{ block.super }}
@@ -9,6 +9,15 @@
 
 {% block extrahead %}
   {{ block.super }}
+  {% get_all_model_counts as model_counts %}
+  <script>
+    // Model counts from Django (injected at render time)
+    const MODEL_COUNTS = {
+      {% for key, count in model_counts.items %}
+        "{{ key }}": {{ count }}{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    };
+  </script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const sidebar = document.getElementById("nav-sidebar");
@@ -20,6 +29,47 @@
       searchBox.placeholder = "Jump to model…";
       searchBox.className = "nav-search";
       sidebar.prepend(searchBox);
+
+      // Add count badges to model links
+      const addCountBadges = () => {
+        const modelLinks = sidebar.querySelectorAll("ul li a");
+        modelLinks.forEach((link) => {
+          const href = link.getAttribute("href");
+          if (!href || !href.includes("/admin/")) return;
+          
+          // Extract app_label and model_name from URL
+          // Format: /admin/app_label/model_name/
+          const match = href.match(/\/admin\/([^\/]+)\/([^\/]+)\//);
+          if (!match) return;
+          
+          const [, appLabel, modelName] = match;
+          const countKey = `${appLabel}.${modelName}`;
+          const count = MODEL_COUNTS[countKey];
+          
+          if (count !== undefined) {
+            // Remove existing badge if any
+            const existingBadge = link.querySelector(".admin-sidebar-badge");
+            if (existingBadge) existingBadge.remove();
+            
+            // Create and append badge
+            const badge = document.createElement("span");
+            badge.className = count > 0 ? "admin-sidebar-badge" : "admin-sidebar-badge admin-sidebar-badge--empty";
+            badge.textContent = formatCount(count);
+            badge.title = `${count} record${count !== 1 ? 's' : ''}`;
+            link.appendChild(badge);
+          }
+        });
+      };
+
+      // Format count for display
+      const formatCount = (count) => {
+        if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+        if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+        return count.toString();
+      };
+
+      // Add badges after DOM is ready
+      addCountBadges();
 
       // Accordion for each app group
       const modules = sidebar.querySelectorAll(".module");
