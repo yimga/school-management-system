@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Resolve Offline Conflict{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="mb-4">
+                <i class="fas fa-exclamation-triangle text-warning"></i> Resolve Offline Conflict
+            </h1>
+            
+            <div class="alert alert-warning">
+                <strong>Conflict Detected:</strong> There are conflicting mark entries for 
+                <strong>{{ student_name }}</strong> in <strong>{{ subject_name }}</strong>.
+                Please choose which version to keep.
+            </div>
+            
+            <div class="row">
+                <!-- Offline Entry (Left) -->
+                <div class="col-md-6">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-mobile-alt"></i> Offline Entry
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Seq 1:</th>
+                                    <td>{{ offline_entry.seq1_score }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Seq 2:</th>
+                                    <td>{{ offline_entry.seq2_score }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Exam:</th>
+                                    <td>{{ offline_entry.exam_score }}</td>
+                                </tr>
+                                {% if offline_entry.mock_score %}
+                                <tr>
+                                    <th>Mock:</th>
+                                    <td>{{ offline_entry.mock_score }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if offline_entry.practical_score %}
+                                <tr>
+                                    <th>Practical:</th>
+                                    <td>{{ offline_entry.practical_score }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Remarks:</th>
+                                    <td>
+                                        <em>{{ offline_entry.remarks|default:"(no remarks)" }}</em>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Entered:</th>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ offline_entry.created_offline_at }}
+                                        </small>
+                                    </td>
+                                </tr>
+                            </table>
+                            <button type="button" class="btn btn-danger btn-block" onclick="document.getElementById('choice').value='offline'; document.getElementById('conflictForm').submit();">
+                                <i class="fas fa-check-circle"></i> Keep This Version
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Online Entry (Right) -->
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cloud"></i> Online Entry
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if online_entry %}
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Seq 1:</th>
+                                    <td>{{ online_entry.seq1_score }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Seq 2:</th>
+                                    <td>{{ online_entry.seq2_score }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Exam:</th>
+                                    <td>{{ online_entry.exam_score }}</td>
+                                </tr>
+                                {% if online_entry.mock_score %}
+                                <tr>
+                                    <th>Mock:</th>
+                                    <td>{{ online_entry.mock_score }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if online_entry.practical_score %}
+                                <tr>
+                                    <th>Practical:</th>
+                                    <td>{{ online_entry.practical_score }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Remarks:</th>
+                                    <td>
+                                        <em>{{ online_entry.remarks|default:"(no remarks)" }}</em>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Updated:</th>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ online_entry.updated_at }}
+                                        </small>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <strong>No online entry exists.</strong> You can choose to import the offline entry.
+                            </div>
+                            {% endif %}
+                            <button type="button" class="btn btn-success btn-block" onclick="document.getElementById('choice').value='online'; document.getElementById('conflictForm').submit();">
+                                <i class="fas fa-check-circle"></i> Keep Online Version
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hidden Form -->
+            <form id="conflictForm" method="post" style="display: none;">
+                {% csrf_token %}
+                <input type="hidden" id="choice" name="choice" value="">
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
