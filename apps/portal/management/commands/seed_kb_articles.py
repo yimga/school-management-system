@@ -4,7 +4,7 @@ Populates database with comprehensive how-to guides and tutorials
 """
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
-from apps.portal.models_kb import KBCategory, KBArticle, Tag
+from apps.portal.models_kb import KBCategory, KBArticle
 from django.contrib.auth.models import User
 
 
@@ -1058,15 +1058,11 @@ First of month: Full system backup</pre>
                     'author': admin_user,
                     'status': 'APPROVED',
                     'is_featured': article_data['is_featured'],
+                    'tags': ', '.join(article_data['tags']),  # Convert list to comma-separated string
                 }
             )
 
             if created:
-                # Add tags
-                for tag_name in article_data['tags']:
-                    tag, _ = Tag.objects.get_or_create(name=tag_name)
-                    article.tags.add(tag)
-
                 created_count += 1
                 self.stdout.write(f"  ✓ Article: {article_data['title']}")
             else:
