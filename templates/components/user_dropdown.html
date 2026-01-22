@@ -70,14 +70,14 @@
         <i class="bi bi-person"></i> Account
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
           <i class="bi bi-person-circle"></i>
           <span>My Profile</span>
           <kbd>P</kbd>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'accounts:settings' %}">
+        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
           <i class="bi bi-gear"></i>
           <span>Settings</span>
           <kbd>S</kbd>
@@ -404,11 +404,11 @@ document.addEventListener('DOMContentLoaded', function() {
       switch(e.key.toLowerCase()) {
         case 'p':
           e.preventDefault();
-          window.location.href = "{% url 'accounts:profile' %}";
+          window.location.href = "{% url 'backend:dashboard' %}";
           break;
         case 's':
           e.preventDefault();
-          window.location.href = "{% url 'accounts:settings' %}";
+          window.location.href = "{% url 'backend:dashboard' %}";
           break;
         case 'l':
           e.preventDefault();
