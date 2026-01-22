@@ -4,6 +4,7 @@ from django.contrib import admin, messages
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
+from config.admin import admin_site
 from apps.portal.models import PendingGuardianInvite
 from apps.finance.models import ReferralReward
 from apps.siteconfig.models import SiteSettings
@@ -91,7 +92,7 @@ class StudentProfileAdminForm(forms.ModelForm):
         return obj
 
 
-@admin.register(TeacherProfile)
+@admin_site.register(TeacherProfile)
 class TeacherProfileAdmin(ModelAdmin):
     list_display = (
         "user",
@@ -110,7 +111,7 @@ class TeacherProfileAdmin(ModelAdmin):
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 
-@admin.register(StudentProfile)
+@admin_site.register(StudentProfile)
 class StudentProfileAdmin(ModelAdmin):
     form = StudentProfileAdminForm
     inlines = (StudentGuardianInline,)
@@ -236,7 +237,7 @@ class StudentProfileAdmin(ModelAdmin):
     issue_referral_rewards.short_description = _("Issue referral rewards")
 
 
-@admin.register(StudentGuardian)
+@admin_site.register(StudentGuardian)
 class StudentGuardianAdmin(ModelAdmin):
     list_display = (
         "guardian_user",
@@ -266,7 +267,7 @@ class StudentGuardianAdmin(ModelAdmin):
     search_fields = ("guardian_user__username", "guardian_user__email", "student__student_code", "student__last_name")
 
 
-@admin.register(TeacherPayRecord)
+@admin_site.register(TeacherPayRecord)
 class TeacherPayRecordAdmin(ModelAdmin):
     list_display = ("teacher", "record_type", "amount", "effective_date", "created_by", "created_at")
     list_filter = ("record_type", "effective_date")
@@ -275,7 +276,7 @@ class TeacherPayRecordAdmin(ModelAdmin):
     autocomplete_fields = ("teacher", "created_by")
 
 
-@admin.register(TeacherLeaveRequest)
+@admin_site.register(TeacherLeaveRequest)
 class TeacherLeaveRequestAdmin(ModelAdmin):
     list_display = ("teacher", "start_date", "end_date", "status", "approver", "decided_at")
     list_filter = ("status", "start_date", "end_date")
@@ -284,7 +285,7 @@ class TeacherLeaveRequestAdmin(ModelAdmin):
     autocomplete_fields = ("teacher", "approver")
 
 
-@admin.register(TeacherAttendance)
+@admin_site.register(TeacherAttendance)
 class TeacherAttendanceAdmin(ModelAdmin):
     list_display = ("teacher", "date", "status", "check_in", "check_out")
     list_filter = ("status", "date")
