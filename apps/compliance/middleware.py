@@ -3,6 +3,7 @@ Phase 4: Access Control & Audit Logging Middleware
 
 Tracks all HTTP requests, logs failed access attempts, and enriches
 audit context with request metadata (IP address, user agent, etc.).
+Phase 6: IP/Country-based access control enforcement.
 """
 
 import logging
@@ -10,7 +11,10 @@ from time import time
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpResponseForbidden
+from django.conf import settings
 from apps.compliance.models_audit import AccessLog, AuditLog
+from apps.compliance.access_control import check_request_access
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +181,85 @@ class AccessControlMiddleware(MiddlewareMixin):
         """
         # Store view info for audit purposes
         request.view_name = f"{view_func.__module__}.{view_func.__name__}"
+        return None
+
+    @staticmethod
+    def _get_ip_address(request):
+        """Extract real IP address from request."""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0].strip()
+        else:
+            ip = request.META.get('REMOTE_ADDR', '')
+        return ip[:45]
+
+
+class IPCountryAccessMiddleware(MiddlewareMixin):
+    """
+    Enforce IP and country-based access control rules.
+    Blocks requests from denied IPs/countries before they reach views.
+    """
+
+    # Paths to bypass access control (e.g., health checks, static files)
+    BYPASS_PATHS = {
+        '/static/',
+        '/media/',
+        '/assets/',
+        '/favicon.ico',
+        '/.well-known/',
+        '/health/',
+        '/status/',
+        '/admin/jsi18n/',  # Django admin i18n
+    }
+
+    def process_request(self, request):
+        """Check IP/country access before view execution."""
+        # Skip bypass paths
+        if any(request.path.startswith(skip) for skip in self.BYPASS_PATHS):
+            return None
+
+        # Check if access control is enabled
+        if not getattr(settings, 'ENABLE_IP_COUNTRY_ACCESS_CONTROL', True):
+            return None
+
+        # Bypass for superusers (if configured)
+        if getattr(settings, 'BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS', True):
+            if hasattr(request, 'user') and request.user.is_authenticated and request.user.is_superuser:
+                return None
+
+        # Check access
+        is_allowed, reason = check_request_access(request)
+        
+        if not is_allowed:
+            # Log the blocked attempt
+            user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+            ip_address = self._get_ip_address(request)
+            
+            AccessLog.objects.create(
+                user=user,
+                access_type=AccessLog.AccessType.WEB,
+                resource=request.path,
+                request_method=request.method,
+                status=403,
+                ip_address=ip_address,
+                error_message=f"Access denied: {reason}",
+            )
+            
+            # Log as audit event
+            log_access_denial(
+                user=user,
+                action='HTTP_REQUEST',
+                resource=request.path,
+                reason=f"IP/Country access denied: {reason}",
+                ip_address=ip_address,
+                severity='HIGH'
+            )
+            
+            # Return 403 Forbidden
+            return HttpResponseForbidden(
+                f"<h1>Access Denied</h1><p>{reason}</p><p>If you believe this is an error, contact support.</p>"
+            )
+        
         return None
 
     @staticmethod

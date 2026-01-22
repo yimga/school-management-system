@@ -5,6 +5,8 @@ Checks incoming requests against allow/deny lists.
 
 from typing import Tuple
 from django.core.cache import cache
+from django.db.models import Q
+from django.utils import timezone
 from apps.compliance.models_audit import IPAccessRule, CountryAccessRule
 
 
@@ -27,16 +29,18 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
     if cached is not None:
         return cached
 
-    # Get active rules
+    now = timezone.now()
+
+    # Get active rules (exclude expired ones)
     deny_rules = IPAccessRule.objects.filter(
         rule_type=IPAccessRule.RuleType.DENY,
         is_active=True
-    ).exclude(expires_at__lt=cache.get("now"))
+    ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
 
     allow_rules = IPAccessRule.objects.filter(
         rule_type=IPAccessRule.RuleType.ALLOW,
         is_active=True
-    ).exclude(expires_at__lt=cache.get("now"))
+    ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
 
     # Check DENY rules first
     for rule in deny_rules:

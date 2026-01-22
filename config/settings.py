@@ -48,6 +48,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
     # Phase 4: Audit & Monitoring middleware
+    "apps.compliance.middleware.IPCountryAccessMiddleware",  # IP/Country access control (first!)
     "apps.compliance.middleware.AuditLoggingMiddleware",  # Log all HTTP requests
     "apps.compliance.middleware.AccessControlMiddleware",  # Enforce access control
     # Phase 5: Observability middleware
@@ -325,6 +326,10 @@ INCIDENT_RESPONSE = {
         "https://runbooks.gileadschool.com/security/incident-response"
     ),
 }
+
+# --- IP/Country Access Control ---
+ENABLE_IP_COUNTRY_ACCESS_CONTROL = os.getenv("ENABLE_IP_COUNTRY_ACCESS_CONTROL", "1") == "1"
+BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS = os.getenv("BYPASS_ACCESS_CONTROL_FOR_SUPERUSERS", "1") == "1"
 
 
 # ============================================================================
