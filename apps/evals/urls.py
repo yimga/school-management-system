@@ -17,6 +17,7 @@ from .views import (
     grade_import_apply_api,
     audit_trail_view,
     resolve_offline_conflict_view,
+    import_job_monitor_view,
 )
 
 urlpatterns = [
@@ -38,4 +39,8 @@ urlpatterns = [
     path("api/grade-import/preview/", grade_import_preview_api, name="grade_import_preview_api"),
     path("api/grade-import/apply/", grade_import_apply_api, name="grade_import_apply_api"),
     path("audit-trail/<int:evaluation_id>/", audit_trail_view, name="audit_trail"),
-    path("offline-conflict/<int:offline_entry_id>/resolve/", resolve_offline_conflict_view, name="resolve_offline_conflict"),]
+    path("offline-conflict/<int:offline_entry_id>/resolve/", resolve_offline_conflict_view, name="resolve_offline_conflict"),
+    
+    # PHASE 4: Import Monitoring & Caching
+    path("import-jobs/monitor/", import_job_monitor_view, name="import_job_monitor"),
+]

@@ -887,6 +887,7 @@ def grade_import_template_view(request: HttpRequest):
 # ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========
 
 @staff_member_required
+@role_required('admin', 'head_of_academics')
 def compliance_dashboard_view(request):
     """
     Dashboard showing teacher grading compliance status.
@@ -934,6 +935,7 @@ def compliance_dashboard_view(request):
 
 
 @staff_member_required
+@role_required('admin', 'head_of_academics')
 def extend_deadline_view(request, subject_assignment_id):
     """Extend grading deadline for a subject assignment."""
     from apps.analytics.models import GradingDeadline
@@ -981,6 +983,7 @@ def extend_deadline_view(request, subject_assignment_id):
 
 
 @staff_member_required
+@role_required('admin', 'head_of_academics')
 def grade_import_preview_api(request):
     """API endpoint for grade import preview with validation."""
     from apps.evals.importers import preview_import_with_validation
@@ -1030,6 +1033,7 @@ def grade_import_preview_api(request):
 
 
 @staff_member_required
+@role_required('admin', 'head_of_academics')
 def grade_import_apply_api(request):
     """API endpoint for applying (persisting) grade import."""
     from apps.evals.importers import apply_import
@@ -1085,6 +1089,7 @@ def grade_import_apply_api(request):
 
 
 @staff_member_required
+@role_required('admin', 'head_of_academics', 'teacher')
 def audit_trail_view(request, evaluation_id):
     """View audit trail for an evaluation."""
     from apps.analytics.services import get_audit_trail
@@ -1108,6 +1113,7 @@ def audit_trail_view(request, evaluation_id):
 
 
 @staff_member_required
+@role_required('admin', 'head_of_academics')
 def resolve_offline_conflict_view(request, offline_entry_id):
     """Manual conflict resolution for offline mark entries."""
     from apps.evals.models import OfflineMarkEntry
@@ -1162,3 +1168,59 @@ def resolve_offline_conflict_view(request, offline_entry_id):
     }
     
     return render(request, 'evals/resolve_offline_conflict.html', context)
+
+@staff_member_required
+@role_required('admin', 'head_of_academics')
+def import_job_monitor_view(request):
+    """Monitor and manage import jobs."""
+    from apps.analytics.models import GradeImportJob
+    
+    # Get filter parameters
+    status_filter = request.GET.get('status', '')
+    from_date = request.GET.get('from_date', '')
+    to_date = request.GET.get('to_date', '')
+    
+    # Build query
+    query = GradeImportJob.objects.all().order_by('-created_at')
+    
+    if status_filter:
+        query = query.filter(status=status_filter)
+    
+    if from_date:
+        from datetime import datetime
+        try:
+            from_datetime = datetime.fromisoformat(from_date)
+            query = query.filter(created_at__gte=from_datetime)
+        except ValueError:
+            pass
+    
+    if to_date:
+        from datetime import datetime
+        try:
+            to_datetime = datetime.fromisoformat(to_date)
+            query = query.filter(created_at__lte=to_datetime)
+        except ValueError:
+            pass
+    
+    # Get jobs (limit to last 50 for performance)
+    jobs = query[:50]
+    
+    # Calculate summary stats
+    all_jobs = GradeImportJob.objects.all()
+    total_jobs = all_jobs.count()
+    processing_jobs = all_jobs.filter(status='processing').count()
+    completed_jobs = all_jobs.filter(status='completed').count()
+    failed_jobs = all_jobs.filter(status='failed').count()
+    
+    context = {
+        'jobs': jobs,
+        'total_jobs': total_jobs,
+        'processing_jobs': processing_jobs,
+        'completed_jobs': completed_jobs,
+        'failed_jobs': failed_jobs,
+        'status': status_filter,
+        'from_date': from_date,
+        'to_date': to_date,
+    }
+    
+    return render(request, 'evals/import_job_monitor.html', context)
