@@ -8,14 +8,18 @@ URL patterns for compliance reports:
 - Integrity checks
 - Anomaly detection
 - Export functionality
+- Dashboard & metrics
 """
 
 from django.urls import path
-from . import views_reporting
+from . import views_reporting, views_dashboard
 
 app_name = 'compliance_reporting'
 
 urlpatterns = [
+    # Dashboard
+    path('dashboard/', views_dashboard.ComplianceDashboardView.as_view(), name='dashboard'),
+    
     # Report views
     path('audit-trail/', views_reporting.AuditTrailReportView.as_view(), name='audit_trail'),
     path('data-access/', views_reporting.DataAccessReportView.as_view(), name='data_access'),
