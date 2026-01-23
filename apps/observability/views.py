@@ -6,6 +6,8 @@ from django.http import HttpResponse, JsonResponse
 from django.db import connection
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 
@@ -216,3 +218,52 @@ def api_dashboard_charts(request):
             "status": "error",
             "error": str(exc)
         }, status=500)
+
+
+# ============================================
+# ADMIN DASHBOARD - Backend/System Management
+# ============================================
+
+@login_required
+def admin_dashboard(request):
+    """Backend admin dashboard for system management.
+    
+    Provides access to:
+    - System statistics and health checks
+    - User management and admin operations
+    - Academic and financial management
+    - Data export and reporting tools
+    - Audit logs and activity tracking
+    - Quick system actions and utilities
+    """
+    from django.contrib.auth.models import User, Group
+    
+    # Get system statistics
+    total_users = User.objects.count()
+    admin_count = User.objects.filter(is_staff=True).count()
+    
+    # Try to get student/teacher counts from custom user model if available
+    try:
+        from apps.accounts.models import User as CustomUser
+        student_count = CustomUser.objects.filter(role='STUDENT').count()
+        teacher_count = CustomUser.objects.filter(role='TEACHER').count()
+    except (ImportError, AttributeError):
+        student_count = 0
+        teacher_count = 0
+    
+    # Get active sessions (approximate)
+    from django.contrib.sessions.models import Session
+    import datetime
+    active_sessions = Session.objects.filter(expire_date__gte=datetime.datetime.now()).count()
+    sessions_24h = Session.objects.filter(expire_date__gte=datetime.datetime.now() - datetime.timedelta(hours=24)).count()
+    
+    context = {
+        'total_users': total_users,
+        'admin_count': admin_count,
+        'student_count': student_count,
+        'teacher_count': teacher_count,
+        'active_sessions': active_sessions,
+        'sessions_24h': sessions_24h,
+    }
+    
+    return render(request, 'admin/admin_dashboard.html', context)

@@ -46,6 +46,9 @@ urlpatterns = [
     path('healthz/', obs_views.healthz, name='healthz'),
     path('metrics/', obs_views.metrics, name='metrics'),
     
+    # Admin Dashboard (Backend-focused)
+    path('admin/dashboard/', obs_views.admin_dashboard, name='admin_dashboard'),
+    
     # API endpoints for admin dashboard
     path('api/health/', obs_views.api_health, name='api_health'),
     path('api/notifications/', obs_views.api_notifications, name='api_notifications'),
