@@ -167,16 +167,7 @@
         {% url 'compliance:dashboard' as compliance_url %}
         
         {% if request.user.role == 'ADMIN' or request.user.is_staff %}
-          {% set role_home=backend_url %}
-        {% elif request.user.role == 'TEACHER' %}
-          {% set role_home=teacher_url %}
-        {% elif request.user.role == 'PARENT' %}
-          {% set role_home=parent_url %}
-        {% else %}
-          {% set role_home='/' %}
-        {% endif %}
-
-        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ role_home|default:'/' }}" title="Back to your home dashboard">
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ backend_url }}" title="Back to your home dashboard">
           {% if SITE_LOGO_URL %}
             <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
           {% else %}
@@ -184,6 +175,34 @@
           {% endif %}
           <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>
+        {% elif request.user.role == 'TEACHER' %}
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ teacher_url }}" title="Back to your home dashboard">
+          {% if SITE_LOGO_URL %}
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
+          {% else %}
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo">
+          {% endif %}
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+        </a>
+        {% elif request.user.role == 'PARENT' %}
+          <a class="navbar-brand d-flex align-items-center gap-2" href="{{ parent_url }}" title="Back to your home dashboard">
+          {% if SITE_LOGO_URL %}
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
+          {% else %}
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo">
+          {% endif %}
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+        </a>
+        {% else %}
+          <a class="navbar-brand d-flex align-items-center gap-2" href="/" title="Back to home">
+          {% if SITE_LOGO_URL %}
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
+          {% else %}
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo">
+          {% endif %}
+          <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
+        </a>
+        {% endif %}
 
         <div class="ms-auto d-flex align-items-center gap-3 text-white">
           {% if request.user.is_authenticated %}
