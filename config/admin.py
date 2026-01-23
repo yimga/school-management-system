@@ -2,10 +2,14 @@
 Custom Admin Site Configuration
 Provides enhanced admin interface with logical app grouping and custom ordering
 """
+import datetime
+
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from django.urls import path
+from django.contrib.sessions.models import Session
 from django.shortcuts import redirect
+from django.template.response import TemplateResponse
+from django.urls import path
 
 
 class GileadAdminSite(AdminSite):
@@ -14,12 +18,50 @@ class GileadAdminSite(AdminSite):
     site_header = "Gilead Tech High - Admin"
     site_title = "Gilead Admin"
     index_title = "Administration Dashboard"
+
+    def index(self, request, extra_context=None):
+        """Render the custom admin dashboard at /admin/."""
+        from django.contrib.auth.models import User
+
+        total_users = User.objects.count()
+        admin_count = User.objects.filter(is_staff=True).count()
+
+        try:
+            from apps.accounts.models import User as CustomUser
+
+            student_count = CustomUser.objects.filter(role='STUDENT').count()
+            teacher_count = CustomUser.objects.filter(role='TEACHER').count()
+        except (ImportError, AttributeError):
+            student_count = 0
+            teacher_count = 0
+
+        now = datetime.datetime.now()
+        active_sessions = Session.objects.filter(expire_date__gte=now).count()
+        sessions_24h = Session.objects.filter(
+            expire_date__gte=now - datetime.timedelta(hours=24)
+        ).count()
+
+        context = {
+            **self.each_context(request),
+            'title': self.index_title,
+            'total_users': total_users,
+            'admin_count': admin_count,
+            'student_count': student_count,
+            'teacher_count': teacher_count,
+            'active_sessions': active_sessions,
+            'sessions_24h': sessions_24h,
+        }
+        if extra_context:
+            context.update(extra_context)
+
+        return TemplateResponse(request, 'admin/admin_dashboard.html', context)
     
     def get_urls(self):
         """Add custom URLs including 'home' for Unfold navigation."""
         from django.contrib.admin.views.main import ChangeList
         urls = super().get_urls()
         custom_urls = [
+            path('dashboard/', self.admin_view(self.index), name='dashboard'),
             path('home/', lambda request: redirect('/'), name='home'),
             path('search/', self.admin_view(self.search_view), name='search'),
             # Placeholder URLs for missing admin routes (prevent template errors)

@@ -20,9 +20,6 @@
   <!-- Bootstrap 5 CSS (if not already loaded by Unfold) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   
-  <!-- PHASE 3 FEATURES - Command Palette, Charts, Tabs, Activity Feed -->
-  <link rel="stylesheet" href="{% static 'css/command-palette.css' %}">
-  
   <!-- Chart.js for visualizations -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   
@@ -187,20 +184,8 @@
 {% block footer %}
   {{ block.super }}
   
-  {# Role-based dashboard header (positioned at top via CSS) #}
-  {% include 'components/dashboard_header.html' with admin_mode=True %}
-  
-  {% include 'components/keyboard_shortcuts.html' %}
-  
-  {# Role-based dashboard footer #}
-  {% include 'components/dashboard_footer.html' %}
-  
   <!-- Bootstrap 5 JS Bundle (required for modals, dropdowns, etc.) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- PHASE 3 FEATURE SCRIPTS -->
-  <!-- Command Palette (Cmd+K) -->
-  <script src="{% static 'js/command-palette.js' %}"></script>
   
   <!-- Dashboard Charts (Chart.js) -->
   <script src="{% static 'js/dashboard-charts.js' %}"></script>
