@@ -15,3 +15,15 @@ def split(value, delimiter="/"):
         return []
 
     return [segment for segment in parts if segment]
+
+
+@register.filter
+def replace(value, old, new=""):
+    """Simple replace filter for breadcrumb labels."""
+    if value is None:
+        return ""
+
+    try:
+        return str(value).replace(old, new)
+    except Exception:
+        return value
