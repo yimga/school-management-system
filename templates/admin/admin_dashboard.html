@@ -1,622 +1,132 @@
 {% extends "admin/base.html" %}
-{% load i18n static %}
+{% load static %}
 
-{% block title %}Admin Dashboard - System Overview{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="admin-dashboard-container">
-  
-  <!-- ADMIN DASHBOARD HEADER - System focused, not decorative -->
-  <div class="admin-section-header">
-    <h1><i class="fas fa-cogs"></i> System Dashboard</h1>
-    <div class="admin-header-actions">
-      <button class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
-        <i class="fas fa-sync"></i> Refresh
-      </button>
-      <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-secondary">
-        <i class="fas fa-arrow-left"></i> Back to Admin
-      </a>
+<div style="background: #f8fafc; padding: 24px 16px; overflow-y: auto;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+
+    <!-- HEADER SECTION -->
+    <div style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #0f172a; letter-spacing: -0.5px;">Admin Dashboard</h1>
+      <p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">System monitoring and backend administration</p>
     </div>
+
+    <!-- KEY METRICS ROW -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 32px;">
+
+      <!-- Total Users Card -->
+      <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <span style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Total Users</span>
+          <span style="font-size: 20px;">👥</span>
+        </div>
+        <div style="font-size: 36px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">{{ total_users|default:"0" }}</div>
+        <div style="font-size: 13px; color: #475569; line-height: 1.8; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+          <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Admins:</span> <span style="color: #4c51bf; font-weight: 600;">{{ admin_count|default:"0" }}</span></span>
+          <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Students:</span> <span style="color: #3182ce; font-weight: 600;">{{ student_count|default:"0" }}</span></span>
+          <span style="display: flex; justify-content: space-between;"><span>Teachers:</span> <span style="color: #38a169; font-weight: 600;">{{ teacher_count|default:"0" }}</span></span>
+        </div>
+      </div>
+
+      <!-- Active Sessions Card -->
+      <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <span style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Active Sessions</span>
+          <span style="font-size: 20px;">🔌</span>
+        </div>
+        <div style="font-size: 36px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">{{ active_sessions|default:"0" }}</div>
+        <div style="font-size: 13px; color: #475569; line-height: 1.8; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+          <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Last 24h:</span> <span style="color: #ed8936; font-weight: 600;">{{ sessions_24h|default:"0" }}</span></span>
+          <span style="display: flex; justify-content: space-between; align-items: center;"><span>Status:</span> <span style="display: inline-block; width: 8px; height: 8px; background: #38a169; border-radius: 50%; margin-left: 8px;"></span> <span style="color: #38a169; font-weight: 600; margin-left: 4px;">Active</span></span>
+        </div>
+      </div>
+
+      <!-- Database Status Card -->
+      <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <span style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Database</span>
+          <span style="font-size: 20px;">🗄️</span>
+        </div>
+        <div style="font-size: 36px; font-weight: 700; color: #0f172a; margin-bottom: 12px;"><span style="color: #38a169;">✓</span></div>
+        <div style="font-size: 13px; color: #475569; line-height: 1.8; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+          <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Connection:</span> <span style="color: #38a169; font-weight: 600;">Ready</span></span>
+          <span style="display: flex; justify-content: space-between;"><span>Health:</span> <span style="color: #38a169; font-weight: 600;">Optimal</span></span>
+        </div>
+      </div>
+
+      <!-- System Status Card -->
+      <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <span style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">System Health</span>
+          <span style="font-size: 20px;">⚙️</span>
+        </div>
+        <div style="font-size: 36px; font-weight: 700; color: #0f172a; margin-bottom: 12px;"><span style="color: #38a169;">100%</span></div>
+        <div style="font-size: 13px; color: #475569; line-height: 1.8; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+          <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Status:</span> <span style="color: #38a169; font-weight: 600;">Operational</span></span>
+          <span style="display: flex; justify-content: space-between;"><span>Uptime:</span> <span style="color: #0f172a; font-weight: 600;">24/7</span></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ADMIN CONTROLS SECTION -->
+    <div style="margin-bottom: 32px;">
+      <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Admin Controls</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+        <a href="/admin/auth/user/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; text-decoration: none; color: #0f172a; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#94a3b8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';" onmouseout="this.style.borderColor='#cbd5e0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)';">
+          👥 Manage Users
+        </a>
+        <a href="/admin/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; text-decoration: none; color: #0f172a; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#94a3b8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';" onmouseout="this.style.borderColor='#cbd5e0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)';">
+          📋 All Models
+        </a>
+        <a href="/api/health/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; text-decoration: none; color: #0f172a; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#94a3b8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';" onmouseout="this.style.borderColor='#cbd5e0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)';">
+          ⚕️ API Health
+        </a>
+        <a href="/admin/siteconfig/customizer/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; text-decoration: none; color: #0f172a; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#94a3b8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';" onmouseout="this.style.borderColor='#cbd5e0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)';">
+          ⚙️ Site Config
+        </a>
+      </div>
+    </div>
+
+    <!-- SYSTEM INFORMATION TABLE -->
+    <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+      <h2 style="margin: 0 0 20px 0; font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">System Information</h2>
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <tbody>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 16px 0; color: #475569; font-weight: 600; width: 35%;">Django Version</td>
+            <td style="padding: 16px 0; color: #0f172a;">5.2.10</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 16px 0; color: #475569; font-weight: 600;">Python Version</td>
+            <td style="padding: 16px 0; color: #0f172a;">3.14</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 16px 0; color: #475569; font-weight: 600;">Database Engine</td>
+            <td style="padding: 16px 0; color: #0f172a;">SQLite3</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 16px 0; color: #475569; font-weight: 600;">Admin Theme</td>
+            <td style="padding: 16px 0; color: #0f172a;">Unfold v0.76.0</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 16px 0; color: #475569; font-weight: 600;">Server Time</td>
+            <td style="padding: 16px 0; color: #0f172a; font-family: 'Monaco', 'Menlo', monospace;" id="timestamp">Loading...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FOOTER SPACING -->
+    <div style="margin-bottom: 24px;"></div>
+
   </div>
-
-  <!-- SYSTEM STATISTICS - Critical metrics -->
-  <div class="admin-stats-grid">
-    <div class="stat-card">
-      <div class="stat-header">
-        <span class="stat-label">Total Users</span>
-        <i class="fas fa-users stat-icon"></i>
-      </div>
-      <div class="stat-value">{{ total_users|default:"0" }}</div>
-      <div class="stat-breakdown">
-        <small>Admins: {{ admin_count|default:"0" }} | Teachers: {{ teacher_count|default:"0" }} | Students: {{ student_count|default:"0" }}</small>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-header">
-        <span class="stat-label">Database Status</span>
-        <i class="fas fa-database stat-icon"></i>
-      </div>
-      <div class="stat-value status-ok">✓ Connected</div>
-      <div class="stat-breakdown">
-        <small>Last Backup: {{ last_backup|default:"N/A" }}</small>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-header">
-        <span class="stat-label">System Health</span>
-        <i class="fas fa-heartbeat stat-icon"></i>
-      </div>
-      <div class="stat-value status-ok">✓ Healthy</div>
-      <div class="stat-breakdown">
-        <small>API: OK | Storage: OK | Cache: OK</small>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-header">
-        <span class="stat-label">Active Sessions</span>
-        <i class="fas fa-globe stat-icon"></i>
-      </div>
-      <div class="stat-value">{{ active_sessions|default:"0" }}</div>
-      <div class="stat-breakdown">
-        <small>Last 24h: {{ sessions_24h|default:"0" }}</small>
-      </div>
-    </div>
-  </div>
-
-  <!-- ADMIN OPERATIONS - System management tools -->
-  <div class="admin-section">
-    <div class="section-header">
-      <h2><i class="fas fa-tools"></i> Admin Operations</h2>
-    </div>
-    
-    <div class="admin-actions-grid">
-      <div class="action-card">
-        <div class="action-header">
-          <h3><i class="fas fa-users-cog"></i> User Management</h3>
-        </div>
-        <div class="action-body">
-          <p>Manage system users, roles, and permissions</p>
-          <div class="action-buttons">
-            <a href="{% url 'admin:auth_user_changelist' %}" class="btn btn-xs btn-primary">Manage Users</a>
-            <a href="{% url 'admin:auth_group_changelist' %}" class="btn btn-xs btn-secondary">Manage Roles</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="action-card">
-        <div class="action-header">
-          <h3><i class="fas fa-graduation-cap"></i> Academic Management</h3>
-        </div>
-        <div class="action-body">
-          <p>Manage courses, grades, schedules, and students</p>
-          <div class="action-buttons">
-            <button class="btn btn-xs btn-primary" onclick="alert('Navigate to student management')">Students</button>
-            <button class="btn btn-xs btn-primary" onclick="alert('Navigate to courses')">Courses</button>
-            <button class="btn btn-xs btn-primary" onclick="alert('Navigate to grades')">Grades</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="action-card">
-        <div class="action-header">
-          <h3><i class="fas fa-money-bill"></i> Financial Management</h3>
-        </div>
-        <div class="action-body">
-          <p>Manage fees, invoices, payments, and reports</p>
-          <div class="action-buttons">
-            <button class="btn btn-xs btn-primary" onclick="alert('Navigate to financial reports')">Reports</button>
-            <button class="btn btn-xs btn-primary" onclick="alert('Generate invoices')">Generate Invoices</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="action-card">
-        <div class="action-header">
-          <h3><i class="fas fa-file-alt"></i> System Configuration</h3>
-        </div>
-        <div class="action-body">
-          <p>Configure system settings and preferences</p>
-          <div class="action-buttons">
-            <button class="btn btn-xs btn-primary" onclick="alert('System settings')">Settings</button>
-            <button class="btn btn-xs btn-primary" onclick="alert('Email config')">Email Config</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="action-card">
-        <div class="action-header">
-          <h3><i class="fas fa-file-export"></i> Data Export</h3>
-        </div>
-        <div class="action-body">
-          <p>Export data to CSV, Excel, or PDF formats</p>
-          <div class="action-buttons">
-            <button class="btn btn-xs btn-success" onclick="alert('Export students to CSV')">Export Students</button>
-            <button class="btn btn-xs btn-success" onclick="alert('Export financial data')">Export Financial</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="action-card">
-        <div class="action-header">
-          <h3><i class="fas fa-history"></i> Audit & Logs</h3>
-        </div>
-        <div class="action-body">
-          <p>View system activity logs and user actions</p>
-          <div class="action-buttons">
-            <button class="btn btn-xs btn-info" onclick="alert('View activity logs')">Activity Logs</button>
-            <button class="btn btn-xs btn-info" onclick="alert('View error logs')">Error Logs</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- DATA MANAGEMENT - Quick access to key data -->
-  <div class="admin-section">
-    <div class="section-header">
-      <h2><i class="fas fa-table"></i> Data Management</h2>
-    </div>
-
-    <div class="data-management-grid">
-      <div class="data-card">
-        <h3>Recent User Activity</h3>
-        <div class="data-table-mini">
-          <table>
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Action</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Admin User</td>
-                <td>Updated student record</td>
-                <td>2 hours ago</td>
-              </tr>
-              <tr>
-                <td>Teacher User</td>
-                <td>Posted grades</td>
-                <td>4 hours ago</td>
-              </tr>
-              <tr>
-                <td>Admin User</td>
-                <td>Generated invoice</td>
-                <td>1 day ago</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <a href="{% url 'admin:index' %}" class="btn btn-xs btn-link">View All Activity →</a>
-      </div>
-
-      <div class="data-card">
-        <h3>System Health Checks</h3>
-        <div class="health-checks">
-          <div class="health-check-item">
-            <span class="health-status ok">✓</span>
-            <span>Database Connection</span>
-            <small>Responsive</small>
-          </div>
-          <div class="health-check-item">
-            <span class="health-status ok">✓</span>
-            <span>File Storage</span>
-            <small>Available</small>
-          </div>
-          <div class="health-check-item">
-            <span class="health-status ok">✓</span>
-            <span>Cache System</span>
-            <small>Operational</small>
-          </div>
-          <div class="health-check-item">
-            <span class="health-status ok">✓</span>
-            <span>Email Service</span>
-            <small>Enabled</small>
-          </div>
-          <div class="health-check-item">
-            <span class="health-status warning">!</span>
-            <span>API Rate Limits</span>
-            <small>97% used</small>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- QUICK ACTIONS - Admin tools -->
-  <div class="admin-section">
-    <div class="section-header">
-      <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-    </div>
-
-    <div class="quick-actions-container">
-      <button class="quick-action-btn" onclick="alert('Clear cache')">
-        <i class="fas fa-trash"></i>
-        <span>Clear Cache</span>
-      </button>
-      <button class="quick-action-btn" onclick="alert('Generate backup')">
-        <i class="fas fa-save"></i>
-        <span>Backup Database</span>
-      </button>
-      <button class="quick-action-btn" onclick="alert('Send notifications')">
-        <i class="fas fa-bell"></i>
-        <span>Send Notifications</span>
-      </button>
-      <button class="quick-action-btn" onclick="alert('Sync data')">
-        <i class="fas fa-sync-alt"></i>
-        <span>Sync External Data</span>
-      </button>
-      <button class="quick-action-btn" onclick="alert('Generate reports')">
-        <i class="fas fa-chart-bar"></i>
-        <span>Generate Reports</span>
-      </button>
-      <button class="quick-action-btn" onclick="alert('System logs')">
-        <i class="fas fa-file-alt"></i>
-        <span>View System Logs</span>
-      </button>
-    </div>
-  </div>
-
 </div>
 
-<style>
-/* ADMIN DASHBOARD - Utilitarian backend design */
-.admin-dashboard-container {
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
+<script>
+  document.getElementById('timestamp').textContent = new Date().toLocaleString();
+</script>
 
-/* HEADER */
-.admin-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 15px;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.admin-section-header h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.admin-header-actions {
-  display: flex;
-  gap: 8px;
-}
-
-/* STATS GRID */
-.admin-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.stat-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 15px;
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.stat-card:hover {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.stat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.stat-label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #6b7280;
-  letter-spacing: 0.5px;
-}
-
-.stat-icon {
-  color: #9ca3af;
-  font-size: 18px;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 8px;
-}
-
-.stat-value.status-ok {
-  color: #059669;
-  font-size: 18px;
-}
-
-.stat-breakdown {
-  font-size: 12px;
-  color: #6b7280;
-  line-height: 1.5;
-}
-
-/* SECTIONS */
-.admin-section {
-  margin-bottom: 30px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.section-header {
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 15px 20px;
-}
-
-.section-header h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-/* ACTION CARDS */
-.admin-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 15px;
-  padding: 20px;
-}
-
-.action-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: white;
-  overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-.action-card:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.action-header {
-  background: #f3f4f6;
-  padding: 12px 15px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.action-header h3 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.action-body {
-  padding: 15px;
-}
-
-.action-body p {
-  margin: 0 0 12px;
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.5;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.btn-xs {
-  padding: 4px 10px;
-  font-size: 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: none;
-  text-decoration: none;
-  display: inline-block;
-  font-weight: 500;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background: #d1d5db;
-}
-
-/* DATA MANAGEMENT */
-.data-management-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 20px;
-  padding: 20px;
-}
-
-.data-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 15px;
-  background: #fafbfc;
-}
-
-.data-card h3 {
-  margin: 0 0 15px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.data-table-mini {
-  margin-bottom: 12px;
-}
-
-.data-table-mini table {
-  width: 100%;
-  font-size: 12px;
-  border-collapse: collapse;
-}
-
-.data-table-mini th {
-  background: white;
-  padding: 8px;
-  text-align: left;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.data-table-mini td {
-  padding: 8px;
-  border-bottom: 1px solid #f3f4f6;
-  color: #6b7280;
-}
-
-.data-table-mini tr:hover {
-  background: #f9fafb;
-}
-
-/* HEALTH CHECKS */
-.health-checks {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.health-check-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  background: white;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-.health-status {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 12px;
-}
-
-.health-status.ok {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.health-status.warning {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.health-status.error {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.health-check-item small {
-  color: #9ca3af;
-}
-
-/* QUICK ACTIONS */
-.quick-actions-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
-  padding: 20px;
-}
-
-.quick-action-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 15px;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  color: #374151;
-  transition: all 0.2s ease;
-}
-
-.quick-action-btn:hover {
-  background: #e5e7eb;
-  border-color: #d1d5db;
-}
-
-.quick-action-btn i {
-  font-size: 18px;
-  color: #6b7280;
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .admin-section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .admin-stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-actions-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .data-management-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions-container {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-}
-</style>
-
-<!-- Phase 3 Features still available -->
-<script src="{% static 'js/command-palette.js' %}"></script>
 {% endblock %}
