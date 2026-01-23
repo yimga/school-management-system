@@ -18,12 +18,14 @@ def split(value, delimiter="/"):
 
 
 @register.filter
-def replace(value, old, new=""):
-    """Simple replace filter for breadcrumb labels."""
+def breadcrumb_label(value):
+    """Convert slug/path parts into human-readable text (spaces + title case)."""
     if value is None:
         return ""
 
     try:
-        return str(value).replace(old, new)
+        label = str(value)
+        label = label.replace("_", " ").replace("-", " ")
+        return label.title()
     except Exception:
         return value
