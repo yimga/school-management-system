@@ -6,6 +6,7 @@ import datetime
 
 from django.contrib import admin
 from django.contrib.admin import AdminSite
+from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -21,17 +22,20 @@ class GileadAdminSite(AdminSite):
 
     def index(self, request, extra_context=None):
         """Render the custom admin dashboard at /admin/."""
-        from django.contrib.auth.models import User
-
+        User = get_user_model()
         total_users = User.objects.count()
         admin_count = User.objects.filter(is_staff=True).count()
 
-        try:
-            from apps.accounts.models import User as CustomUser
+        role_field = None
+        for field in User._meta.get_fields():
+            if getattr(field, "name", "") == "role":
+                role_field = field
+                break
 
-            student_count = CustomUser.objects.filter(role='STUDENT').count()
-            teacher_count = CustomUser.objects.filter(role='TEACHER').count()
-        except (ImportError, AttributeError):
+        if role_field:
+            student_count = User.objects.filter(role="STUDENT").count()
+            teacher_count = User.objects.filter(role="TEACHER").count()
+        else:
             student_count = 0
             teacher_count = 0
 
