@@ -5,24 +5,96 @@
  {% admin_health as health %}
  {% admin_kpis as kpis %}
 
-  <div class="admin-page">
-      <div class="d-flex align-items-center justify-content-between mb-3 p-3 border rounded bg-light">
-        <div class="d-flex align-items-center gap-3">
-          <div class="p-2 bg-white border rounded">
-            {% if SITE.logo %}
-              <img src="{{ SITE.logo.url }}" alt="Logo" style="height:48px;width:48px;object-fit:contain;">
-            {% else %}
-              <span class="fw-semibold text-muted">Logo</span>
-            {% endif %}
-          </div>
-          <div>
-            <div class="fw-semibold">{{ SITE.site_name|default:"Gilead School System" }}</div>
-            <div class="text-muted small">{{ SITE.company_phone|default:"N/A" }} • {{ SITE.company_email|default:"support@school.com" }}</div>
-          </div>
+ <style>
+  .admin-layout {display:grid;grid-template-columns:250px 1fr;gap:20px;padding:0;}
+  .admin-sidebar {background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:#e2e8f0;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-height:calc(100vh - 60px);}
+  .sidebar-header {display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;border:1px solid rgba(255,255,255,0.08);}
+  .sidebar-header img {width:48px;height:48px;object-fit:contain;border-radius:8px;background:#fff;padding:4px;}
+  .sidebar-brand h6 {margin:0;font-size:15px;font-weight:600;color:#f1f5f9;}
+  .sidebar-brand small {font-size:11px;color:#94a3b8;}
+  .sidebar-section {margin-top:16px;}
+  .sidebar-section-title {font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#64748b;margin-bottom:8px;font-weight:600;}
+  .sidebar-link {display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#e2e8f0;text-decoration:none;transition:all 0.2s;font-size:14px;}
+  .sidebar-link:hover {background:rgba(255,255,255,0.1);color:#fff;transform:translateX(3px);}
+  .sidebar-link.active {background:rgba(99,102,241,0.2);color:#a5b4fc;border-left:3px solid #6366f1;}
+  .sidebar-footer {margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);}
+  .status-grid {display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .status-badge {background:rgba(255,255,255,0.08);padding:6px 10px;border-radius:6px;font-size:11px;text-align:center;border:1px solid rgba(255,255,255,0.05);}
+  .admin-content {background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
+  @media (max-width:992px) {.admin-layout {grid-template-columns:1fr;}.admin-sidebar {min-height:auto;}}
+ </style>
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        {% if SITE.logo %}
+          <img src="{{ SITE.logo.url }}" alt="Logo">
+        {% else %}
+          <div style="width:48px;height:48px;background:#3b82f6;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;">GS</div>
+        {% endif %}
+        <div class="sidebar-brand">
+          <h6>{{ SITE.site_name|default:"Gilead School" }}</h6>
+          <small>{{ SITE.company_email|default:"admin@school.com" }}</small>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Navigation</div>
+        <a href="{% url 'admin:index' %}" class="sidebar-link active">
+          <span>📊</span> Analytics Dashboard
+        </a>
+        <a href="{% url 'accounts:backend_dashboard' %}" class="sidebar-link">
+          <span>⚙️</span> Backend Config
+        </a>
+        <a href="{% url 'siteconfig:customizer' %}" class="sidebar-link">
+          <span>🎨</span> Site Settings
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Portals</div>
+        <a href="{% url 'portal:parent_dashboard' %}" class="sidebar-link">
+          <span>👪</span> Parent Portal
+        </a>
+        <a href="{% url 'portal:teacher_dashboard_alias' %}" class="sidebar-link">
+          <span>👩‍🏫</span> Teacher Portal
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Modules</div>
+        <a href="{% url 'reports:publish_term_results' %}" class="sidebar-link">
+          <span>📑</span> Reports & Publishing
+        </a>
+        <a href="{% url 'finance:dashboard' %}" class="sidebar-link">
+          <span>💰</span> Finance & Billing
+        </a>
+        <a href="{% url 'compliance:dashboard' %}" class="sidebar-link">
+          <span>🛡️</span> Compliance
+        </a>
+        <a href="{% url 'analytics:dashboard' %}" class="sidebar-link">
+          <span>📈</span> Analytics
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-section-title">Portal Status</div>
+        <div class="status-grid">
+          <div class="status-badge">Parent: {{ health.portal_parent_enabled|yesno:"✓,✗" }}</div>
+          <div class="status-badge">Teacher: {{ health.portal_teacher_enabled|yesno:"✓,✗" }}</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="admin-content">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
+        <div>
+          <h5 class="mb-1">{{ SITE.site_name|default:"Gilead School System" }}</h5>
+          <div class="text-muted small">{{ SITE.company_phone|default:"N/A" }} • {{ SITE.company_email|default:"support@school.com" }}</div>
         </div>
         <div class="text-muted small text-end">
-          <div>Admin Configuration</div>
-          <div>Back-office controls for portals, reports, and finance</div>
+          <div class="fw-semibold">Admin Configuration</div>
+          <div>Back-office controls</div>
         </div>
       </div>
 
@@ -33,8 +105,8 @@
           <div class="text-muted">School-wide performance insights based on submitted scores.</div>
         </div>
         <div class="admin-header-actions">
-          <button class="btn btn-pill btn-outline-secondary">Master Sheet</button>
-          <button class="btn btn-pill btn-outline-secondary">Grading Deadlines</button>
+          <a href="{% url 'analytics:master_sheet' %}" class="btn btn-pill btn-outline-secondary">Master Sheet</a>
+          <a href="{% url 'analytics:deadlines' %}" class="btn btn-pill btn-outline-secondary">Grading Deadlines</a>
         </div>
       </header>
 
@@ -174,8 +246,8 @@
             </div>
           </div>
           <div class="visual-actions">
-            <button class="btn btn-gradient">View Results</button>
-            <button class="btn btn-outline-secondary">Pay Fees</button>
+            <a href="{% url 'reports:publish_term_results' %}" class="btn btn-gradient">View Results</a>
+            <a href="{% url 'finance:dashboard' %}" class="btn btn-outline-secondary">Finance Dashboard</a>
           </div>
         </div>
         <div class="visual-stack">
@@ -291,5 +363,6 @@
           </div>
         </section>
       {% endif %}
+    </main>
   </div>
 {% endblock %}
