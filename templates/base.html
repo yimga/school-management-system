@@ -25,7 +25,7 @@
 
       body {
         font-family: var(--school-font), system-ui, sans-serif;
-        background: {% if SITE and SITE.background_image %}linear-gradient(135deg, rgba(255,255,255,.9), rgba(255,255,255,.6)), url('{{ SITE.background_image.url }}') center/cover{% else %}linear-gradient(135deg, rgba(13,110,253,.08), rgba(25,135,84,.05)){% endif %};
+        background: {% if SITE_BACKGROUND_URL %}linear-gradient(135deg, rgba(255,255,255,.9), rgba(255,255,255,.6)), url('{{ SITE_BACKGROUND_URL }}') center/cover{% else %}linear-gradient(135deg, rgba(13,110,253,.08), rgba(25,135,84,.05)){% endif %};
         color: {% if SITE and SITE.use_dark_mode %}#f5f5f5{% else %}#111{% endif %};
       }
 
@@ -69,8 +69,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container d-flex align-items-center">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
-          {% if SITE and SITE.logo %}
-            <img src="{{ SITE.logo.url }}" alt="Logo">
+          {% if SITE_LOGO_URL %}
+            <img src="{{ SITE_LOGO_URL }}" alt="Logo">
           {% endif %}
           <span>{% if SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>

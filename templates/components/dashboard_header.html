@@ -7,8 +7,8 @@
         <!-- Left: Branding & Title -->
         <div class="col-lg-3 col-md-4">
           <div class="d-flex align-items-center gap-3">
-            {% if SITE and SITE.logo %}
-              <img src="{{ SITE.logo.url }}" alt="Logo" class="header-logo">
+            {% if SITE_LOGO_URL %}
+              <img src="{{ SITE_LOGO_URL }}" alt="Logo" class="header-logo">
             {% endif %}
             <div class="header-brand-info">
               <h1 class="header-title mb-0">

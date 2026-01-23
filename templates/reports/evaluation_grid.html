@@ -6,8 +6,8 @@
 </head>
 <body>
   <div class="letterhead">
-    {% if SITE and SITE.logo %}
-      <img src="{{ SITE.logo.url }}" alt="logo" />
+    {% if SITE_LOGO_URL %}
+      <img src="{{ SITE_LOGO_URL }}" alt="logo" />
     {% endif %}
     <div>
       <p class="title">{{ SITE.site_name|default:"Gilead School System" }}</p>
