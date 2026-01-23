@@ -4,26 +4,53 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<div style="background: #f8fafc; padding: 24px 16px; overflow-y: auto;">
+<style>
+:root {
+  --admin-dashboard-bg: #f8fafc;
+  --admin-surface: #ffffff;
+  --admin-border: #e2e8f0;
+  --admin-border-strong: #cbd5e0;
+  --admin-text: #0f172a;
+  --admin-muted: #64748b;
+  --admin-subtle: #475569;
+  --admin-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  --admin-shadow-hover: 0 4px 12px rgba(0,0,0,0.08);
+  --admin-border-hover: #94a3b8;
+}
+
+:root[data-theme="dark"] {
+  --admin-dashboard-bg: #0b1220;
+  --admin-surface: #111827;
+  --admin-border: #1f2937;
+  --admin-border-strong: #334155;
+  --admin-text: #e2e8f0;
+  --admin-muted: #94a3b8;
+  --admin-subtle: #cbd5e1;
+  --admin-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  --admin-shadow-hover: 0 6px 16px rgba(0,0,0,0.5);
+  --admin-border-hover: #64748b;
+}
+</style>
+<div style="background: var(--admin-dashboard-bg); padding: 24px 16px; overflow-y: auto;">
   <div style="max-width: 1200px; margin: 0 auto;">
 
     <!-- HEADER SECTION -->
-    <div style="margin-bottom: 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 24px;">
-      <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #0f172a; letter-spacing: -0.5px;">Admin Dashboard</h1>
-      <p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">System monitoring and backend administration</p>
+    <div style="margin-bottom: 32px; border-bottom: 1px solid var(--admin-border); padding-bottom: 24px;">
+      <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: var(--admin-text); letter-spacing: -0.5px;">Admin Dashboard</h1>
+      <p style="margin: 8px 0 0 0; font-size: 14px; color: var(--admin-muted);">System monitoring and backend administration</p>
     </div>
 
     <!-- KEY METRICS ROW -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 32px;">
 
       <!-- Total Users Card -->
-      <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+      <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-          <span style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Total Users</span>
+          <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Total Users</span>
           <span style="font-size: 20px;">👥</span>
         </div>
-        <div style="font-size: 36px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">{{ total_users|default:"0" }}</div>
-        <div style="font-size: 13px; color: #475569; line-height: 1.8; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+        <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;">{{ total_users|default:"0" }}</div>
+        <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
           <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Admins:</span> <span style="color: #4c51bf; font-weight: 600;">{{ admin_count|default:"0" }}</span></span>
           <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Students:</span> <span style="color: #3182ce; font-weight: 600;">{{ student_count|default:"0" }}</span></span>
           <span style="display: flex; justify-content: space-between;"><span>Teachers:</span> <span style="color: #38a169; font-weight: 600;">{{ teacher_count|default:"0" }}</span></span>
@@ -31,41 +58,41 @@
       </div>
 
       <!-- Active Sessions Card -->
-      <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+      <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-          <span style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Active Sessions</span>
+          <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Active Sessions</span>
           <span style="font-size: 20px;">🔌</span>
         </div>
-        <div style="font-size: 36px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">{{ active_sessions|default:"0" }}</div>
-        <div style="font-size: 13px; color: #475569; line-height: 1.8; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+        <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;">{{ active_sessions|default:"0" }}</div>
+        <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
           <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Last 24h:</span> <span style="color: #ed8936; font-weight: 600;">{{ sessions_24h|default:"0" }}</span></span>
           <span style="display: flex; justify-content: space-between; align-items: center;"><span>Status:</span> <span style="display: inline-block; width: 8px; height: 8px; background: #38a169; border-radius: 50%; margin-left: 8px;"></span> <span style="color: #38a169; font-weight: 600; margin-left: 4px;">Active</span></span>
         </div>
       </div>
 
       <!-- Database Status Card -->
-      <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+      <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-          <span style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Database</span>
+          <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Database</span>
           <span style="font-size: 20px;">🗄️</span>
         </div>
-        <div style="font-size: 36px; font-weight: 700; color: #0f172a; margin-bottom: 12px;"><span style="color: #38a169;">✓</span></div>
-        <div style="font-size: 13px; color: #475569; line-height: 1.8; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+        <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;"><span style="color: #38a169;">✓</span></div>
+        <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
           <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Connection:</span> <span style="color: #38a169; font-weight: 600;">Ready</span></span>
           <span style="display: flex; justify-content: space-between;"><span>Health:</span> <span style="color: #38a169; font-weight: 600;">Optimal</span></span>
         </div>
       </div>
 
       <!-- System Status Card -->
-      <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease;">
+      <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-          <span style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">System Health</span>
+          <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">System Health</span>
           <span style="font-size: 20px;">⚙️</span>
         </div>
-        <div style="font-size: 36px; font-weight: 700; color: #0f172a; margin-bottom: 12px;"><span style="color: #38a169;">100%</span></div>
-        <div style="font-size: 13px; color: #475569; line-height: 1.8; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+        <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;"><span style="color: #38a169;">100%</span></div>
+        <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
           <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Status:</span> <span style="color: #38a169; font-weight: 600;">Operational</span></span>
-          <span style="display: flex; justify-content: space-between;"><span>Uptime:</span> <span style="color: #0f172a; font-weight: 600;">24/7</span></span>
+          <span style="display: flex; justify-content: space-between;"><span>Uptime:</span> <span style="color: var(--admin-text); font-weight: 600;">24/7</span></span>
         </div>
       </div>
 
@@ -73,47 +100,47 @@
 
     <!-- ADMIN CONTROLS SECTION -->
     <div style="margin-bottom: 32px;">
-      <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Admin Controls</h2>
+      <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px;">Admin Controls</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
-        <a href="/admin/auth/user/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; text-decoration: none; color: #0f172a; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#94a3b8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';" onmouseout="this.style.borderColor='#cbd5e0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)';">
+        <a href="/admin/auth/user/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
           👥 Manage Users
         </a>
-        <a href="/admin/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; text-decoration: none; color: #0f172a; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#94a3b8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';" onmouseout="this.style.borderColor='#cbd5e0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)';">
+        <a href="/admin/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
           📋 All Models
         </a>
-        <a href="/api/health/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; text-decoration: none; color: #0f172a; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#94a3b8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';" onmouseout="this.style.borderColor='#cbd5e0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)';">
+        <a href="/api/health/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
           ⚕️ API Health
         </a>
-        <a href="/admin/siteconfig/customizer/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: white; border: 1px solid #cbd5e0; border-radius: 6px; text-decoration: none; color: #0f172a; font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.04);" onmouseover="this.style.borderColor='#94a3b8'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';" onmouseout="this.style.borderColor='#cbd5e0'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.04)';">
+        <a href="/admin/siteconfig/customizer/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
           ⚙️ Site Config
         </a>
       </div>
     </div>
 
     <!-- SYSTEM INFORMATION TABLE -->
-    <div style="background: white; border: 1px solid #cbd5e0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
-      <h2 style="margin: 0 0 20px 0; font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">System Information</h2>
+    <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow);">
+      <h2 style="margin: 0 0 20px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px;">System Information</h2>
       <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
         <tbody>
-          <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 16px 0; color: #475569; font-weight: 600; width: 35%;">Django Version</td>
-            <td style="padding: 16px 0; color: #0f172a;">5.2.10</td>
+          <tr style="border-bottom: 1px solid var(--admin-border);">
+            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600; width: 35%;">Django Version</td>
+            <td style="padding: 16px 0; color: var(--admin-text);">5.2.10</td>
           </tr>
-          <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 16px 0; color: #475569; font-weight: 600;">Python Version</td>
-            <td style="padding: 16px 0; color: #0f172a;">3.14</td>
+          <tr style="border-bottom: 1px solid var(--admin-border);">
+            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600;">Python Version</td>
+            <td style="padding: 16px 0; color: var(--admin-text);">3.14</td>
           </tr>
-          <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 16px 0; color: #475569; font-weight: 600;">Database Engine</td>
-            <td style="padding: 16px 0; color: #0f172a;">SQLite3</td>
+          <tr style="border-bottom: 1px solid var(--admin-border);">
+            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600;">Database Engine</td>
+            <td style="padding: 16px 0; color: var(--admin-text);">SQLite3</td>
           </tr>
-          <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 16px 0; color: #475569; font-weight: 600;">Admin Theme</td>
-            <td style="padding: 16px 0; color: #0f172a;">Unfold v0.76.0</td>
+          <tr style="border-bottom: 1px solid var(--admin-border);">
+            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600;">Admin Theme</td>
+            <td style="padding: 16px 0; color: var(--admin-text);">Unfold v0.76.0</td>
           </tr>
-          <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 16px 0; color: #475569; font-weight: 600;">Server Time</td>
-            <td style="padding: 16px 0; color: #0f172a; font-family: 'Monaco', 'Menlo', monospace;" id="timestamp">Loading...</td>
+          <tr style="border-bottom: 1px solid var(--admin-border);">
+            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600;">Server Time</td>
+            <td style="padding: 16px 0; color: var(--admin-text); font-family: 'Monaco', 'Menlo', monospace;" id="timestamp">Loading...</td>
           </tr>
         </tbody>
       </table>
