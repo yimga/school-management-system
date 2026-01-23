@@ -134,12 +134,12 @@
           {% elif request.user.role == 'TEACHER' %}
             <!-- Teacher Quick Links -->
             <li>
-              <a href="{% url 'teacher:dashboard' %}" class="footer-link">
+              <a href="{% url 'portal:teacher_dashboard_alias' %}" class="footer-link">
                 <i class="bi bi-house"></i> My Dashboard
               </a>
             </li>
             <li>
-              <a href="{% url 'academics:class_list' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="My Classes">
                 <i class="bi bi-people"></i> My Classes
               </a>
             </li>
@@ -149,12 +149,12 @@
               </a>
             </li>
             <li>
-              <a href="{% url 'attendance:teacher_attendance' %}" class="footer-link">
+              <a href="{% url 'portal:teacher_attendance' %}" class="footer-link">
                 <i class="bi bi-calendar-check"></i> Attendance
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:parent_dashboard' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="Messages">
                 <i class="bi bi-envelope"></i> Messages
               </a>
             </li>
@@ -162,12 +162,12 @@
           {% elif request.user.role == 'PARENT' %}
             <!-- Parent Quick Links -->
             <li>
-              <a href="{% url 'parent:dashboard' %}" class="footer-link">
+              <a href="{% url 'portal:parent_dashboard' %}" class="footer-link">
                 <i class="bi bi-house"></i> My Dashboard
               </a>
             </li>
             <li>
-              <a href="{% url 'parent:children' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="My Children">
                 <i class="bi bi-people"></i> My Children
               </a>
             </li>
@@ -177,12 +177,12 @@
               </a>
             </li>
             <li>
-              <a href="{% url 'reports:parent_reports' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="Report Cards">
                 <i class="bi bi-file-text"></i> Report Cards
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:parent_dashboard' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="Messages">
                 <i class="bi bi-envelope"></i> Messages
               </a>
             </li>
@@ -190,27 +190,27 @@
           {% elif request.user.role == 'STUDENT' %}
             <!-- Student Quick Links -->
             <li>
-              <a href="{% url 'student:dashboard' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="My Dashboard">
                 <i class="bi bi-house"></i> My Dashboard
               </a>
             </li>
             <li>
-              <a href="{% url 'student:grades' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="My Grades">
                 <i class="bi bi-trophy"></i> My Grades
               </a>
             </li>
             <li>
-              <a href="{% url 'student:attendance' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="My Attendance">
                 <i class="bi bi-calendar-check"></i> My Attendance
               </a>
             </li>
             <li>
-              <a href="{% url 'academics:timetable' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="Timetable">
                 <i class="bi bi-calendar3"></i> Timetable
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:parent_dashboard' %}" class="footer-link">
+              <a href="javascript:void(0);" class="footer-link" title="Messages">
                 <i class="bi bi-envelope"></i> Messages
               </a>
             </li>

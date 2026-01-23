@@ -70,21 +70,21 @@
         <i class="bi bi-person"></i> Account
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
+        <a class="dropdown-item" href="{% url 'accounts:backend_dashboard' %}">
           <i class="bi bi-person-circle"></i>
           <span>My Profile</span>
           <kbd>P</kbd>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
+        <a class="dropdown-item" href="{% url 'accounts:backend_dashboard' %}">
           <i class="bi bi-gear"></i>
           <span>Settings</span>
           <kbd>S</kbd>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
+        <a class="dropdown-item" href="{% url 'accounts:backend_dashboard' %}">
           <i class="bi bi-bell"></i>
           <span>Notifications</span>
           <span class="badge bg-primary">{{ unread_notifications_count|default:"0" }}</span>
@@ -128,26 +128,26 @@
         <i class="bi bi-question-circle"></i> Help & Support
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
+        <a class="dropdown-item" href="{% url 'kb:kb_home' %}">
           <i class="bi bi-life-preserver"></i>
           <span>Help Center</span>
           <kbd>?</kbd>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
+        <a class="dropdown-item" href="{% url 'kb:kb_home' %}">
           <i class="bi bi-book"></i>
           <span>Knowledge Base</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
+        <a class="dropdown-item" href="javascript:void(0);" title="Contact Support">
           <i class="bi bi-envelope"></i>
           <span>Contact Support</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'backend:dashboard' %}">
+        <a class="dropdown-item" href="javascript:void(0);" title="Send Feedback">
           <i class="bi bi-chat-left-text"></i>
           <span>Send Feedback</span>
         </a>
@@ -407,11 +407,11 @@ document.addEventListener('DOMContentLoaded', function() {
       switch(e.key.toLowerCase()) {
         case 'p':
           e.preventDefault();
-          window.location.href = "{% url 'backend:dashboard' %}";
+          window.location.href = "{% url 'accounts:backend_dashboard' %}";
           break;
         case 's':
           e.preventDefault();
-          window.location.href = "{% url 'backend:dashboard' %}";
+          window.location.href = "{% url 'accounts:backend_dashboard' %}";
           break;
         case 'l':
           e.preventDefault();
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (e.key === '?') {
       e.preventDefault();
-      window.location.href = "{% url 'backend:dashboard' %}";
+      window.location.href = "{% url 'kb:kb_home' %}";
     }
   });
 
