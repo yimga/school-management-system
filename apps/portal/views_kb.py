@@ -312,7 +312,7 @@ def kb_article_submit(request):
             )
             
             messages.success(request, 'Thank you! Your article has been submitted for review.')
-            return redirect('portal:kb_home')
+            return redirect('kb:kb_home')
         else:
             messages.error(request, 'Please fill in all required fields.')
     
@@ -326,7 +326,7 @@ def kb_search(request):
     query = request.GET.get('q', '')
     
     if not query:
-        return redirect('portal:kb_home')
+        return redirect('kb:kb_home')
     
     # Search articles
     articles = KBArticle.objects.filter(
