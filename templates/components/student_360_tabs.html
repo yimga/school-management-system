@@ -1,0 +1,475 @@
+<!-- Student 360 Tabs Component
+Tabbed interface for student profiles: Academic, Finance, Engagement, Documents -->
+
+<div class="student-360-container" id="student360Container" style="display: none;">
+  <div class="student-360-header">
+    <div class="student-360-info">
+      <img id="studentAvatar" class="student-avatar" src="" alt="Student">
+      <div class="student-details">
+        <h2 id="studentName">Student Name</h2>
+        <p id="studentClass">Class • ID: <span id="studentId"></span></p>
+      </div>
+    </div>
+    <button id="closeStudent360" class="close-student-360" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div class="student-360-tabs">
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="academicTab" data-bs-toggle="tab" data-bs-target="#academicContent" role="tab">
+          <i class="fas fa-book"></i> Academic
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="financeTab" data-bs-toggle="tab" data-bs-target="#financeContent" role="tab">
+          <i class="fas fa-money-bill-wave"></i> Finance
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="engagementTab" data-bs-toggle="tab" data-bs-target="#engagementContent" role="tab">
+          <i class="fas fa-chart-line"></i> Engagement
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="documentsTab" data-bs-toggle="tab" data-bs-target="#documentsContent" role="tab">
+          <i class="fas fa-file-alt"></i> Documents
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- Academic Tab -->
+      <div class="tab-pane fade show active" id="academicContent" role="tabpanel">
+        <div class="student-360-content">
+          <div class="student-360-section">
+            <h3>Current Performance</h3>
+            <div id="academicPerformance" class="academic-grid">
+              <!-- Performance data will be loaded here -->
+            </div>
+          </div>
+          
+          <div class="student-360-section">
+            <h3>Attendance</h3>
+            <div id="attendanceInfo" class="attendance-info">
+              <!-- Attendance data will be loaded here -->
+            </div>
+          </div>
+
+          <div class="student-360-section">
+            <h3>Course Enrollment</h3>
+            <div id="courseEnrollment" class="course-list">
+              <!-- Courses will be listed here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Finance Tab -->
+      <div class="tab-pane fade" id="financeContent" role="tabpanel">
+        <div class="student-360-content">
+          <div class="student-360-section">
+            <h3>Fee Status</h3>
+            <div id="feeStatus" class="fee-status">
+              <!-- Fee information will be loaded here -->
+            </div>
+          </div>
+
+          <div class="student-360-section">
+            <h3>Payment History</h3>
+            <div id="paymentHistory" class="payment-history">
+              <!-- Payment records will be loaded here -->
+            </div>
+          </div>
+
+          <div class="student-360-section">
+            <h3>Outstanding Balance</h3>
+            <div id="outstandingBalance" class="balance-info">
+              <!-- Balance info will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Engagement Tab -->
+      <div class="tab-pane fade" id="engagementContent" role="tabpanel">
+        <div class="student-360-content">
+          <div class="student-360-section">
+            <h3>Participation</h3>
+            <div id="participationStats" class="participation-stats">
+              <!-- Participation data will be loaded here -->
+            </div>
+          </div>
+
+          <div class="student-360-section">
+            <h3>Activities & Clubs</h3>
+            <div id="activitiesClubs" class="activities-clubs">
+              <!-- Activities will be listed here -->
+            </div>
+          </div>
+
+          <div class="student-360-section">
+            <h3>Recent Actions</h3>
+            <div id="recentActions" class="recent-actions">
+              <!-- Recent actions will be listed here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents Tab -->
+      <div class="tab-pane fade" id="documentsContent" role="tabpanel">
+        <div class="student-360-content">
+          <div class="student-360-section">
+            <h3>Important Documents</h3>
+            <div id="documentsList" class="documents-list">
+              <!-- Documents will be listed here -->
+            </div>
+          </div>
+
+          <div class="student-360-section">
+            <h3>Report Cards</h3>
+            <div id="reportCards" class="report-cards">
+              <!-- Report cards will be listed here -->
+            </div>
+          </div>
+
+          <div class="student-360-section">
+            <h3>Certificates</h3>
+            <div id="certificates" class="certificates">
+              <!-- Certificates will be listed here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Student 360 Styles */
+
+.student-360-container {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  margin-bottom: var(--spacing-xl);
+}
+
+.student-360-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  gap: var(--spacing-lg);
+}
+
+.student-360-info {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  flex: 1;
+}
+
+.student-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid white;
+  object-fit: cover;
+}
+
+.student-details h2 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.student-details p {
+  margin: var(--spacing-xs) 0 0 0;
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+
+.close-student-360 {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.close-student-360:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Tabs */
+
+.student-360-tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-360-tabs .nav-tabs {
+  border-bottom: 2px solid var(--color-border);
+  background: var(--color-bg-light);
+  margin: 0;
+  padding: 0 var(--spacing-lg);
+}
+
+.student-360-tabs .nav-link {
+  color: var(--color-text-muted);
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-weight: var(--font-weight-semibold);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.student-360-tabs .nav-link:hover {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.student-360-tabs .nav-link.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background: transparent;
+}
+
+/* Content */
+
+.student-360-content {
+  padding: var(--spacing-xl);
+  min-height: 400px;
+}
+
+.student-360-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.student-360-section h3 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+/* Academic Grid */
+
+.academic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.subject-card {
+  background: var(--color-bg-light);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--color-primary);
+}
+
+.subject-name {
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+}
+
+.subject-grade {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+/* Info Cards */
+
+.info-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--color-bg-light);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.info-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.info-value {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
+}
+
+/* Lists */
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item-title {
+  font-weight: var(--font-weight-semibold);
+}
+
+.list-item-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .student-360-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .student-360-info {
+    width: 100%;
+  }
+
+  .academic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-360-tabs .nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+}
+</style>
+
+<script>
+// Student 360 Tab Functionality
+class Student360 {
+  constructor() {
+    this.studentId = null;
+    this.init();
+  }
+
+  init() {
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    const closeBtn = document.getElementById('closeStudent360');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => this.close());
+    }
+  }
+
+  show(studentId) {
+    this.studentId = studentId;
+    const container = document.getElementById('student360Container');
+    if (container) {
+      container.style.display = 'block';
+      this.loadStudentData(studentId);
+    }
+  }
+
+  close() {
+    const container = document.getElementById('student360Container');
+    if (container) {
+      container.style.display = 'none';
+    }
+  }
+
+  async loadStudentData(studentId) {
+    try {
+      const response = await fetch(`/api/students/${studentId}/`);
+      if (response.ok) {
+        const data = await response.json();
+        this.renderStudentData(data);
+      }
+    } catch (error) {
+      console.error('Error loading student data:', error);
+    }
+  }
+
+  renderStudentData(data) {
+    // Update header
+    document.getElementById('studentName').textContent = data.name || 'Student';
+    document.getElementById('studentClass').textContent = data.class_name || 'Class';
+    document.getElementById('studentId').textContent = data.id || '';
+    
+    if (data.avatar) {
+      document.getElementById('studentAvatar').src = data.avatar;
+    }
+
+    // Render tabs data
+    this.renderAcademic(data.academic);
+    this.renderFinance(data.finance);
+    this.renderEngagement(data.engagement);
+    this.renderDocuments(data.documents);
+  }
+
+  renderAcademic(data) {
+    const perfDiv = document.getElementById('academicPerformance');
+    if (!perfDiv || !data) return;
+    
+    perfDiv.innerHTML = data.subjects ? data.subjects.map(subject => `
+      <div class="subject-card">
+        <div class="subject-name">${subject.name}</div>
+        <div class="subject-grade">${subject.grade || 'N/A'}</div>
+      </div>
+    `).join('') : '<p>No academic data</p>';
+  }
+
+  renderFinance(data) {
+    const feeDiv = document.getElementById('feeStatus');
+    if (!feeDiv || !data) return;
+    
+    feeDiv.innerHTML = `
+      <div class="info-card">
+        <span class="info-label">Total Fees</span>
+        <span class="info-value">${data.total_fees || 'N/A'}</span>
+      </div>
+      <div class="info-card">
+        <span class="info-label">Paid</span>
+        <span class="info-value" style="color: #2dd4bf;">${data.paid || 'N/A'}</span>
+      </div>
+      <div class="info-card">
+        <span class="info-label">Outstanding</span>
+        <span class="info-value" style="color: #ff6a88;">${data.outstanding || 'N/A'}</span>
+      </div>
+    `;
+  }
+
+  renderEngagement(data) {
+    // Placeholder for engagement data
+    console.log('Engagement data:', data);
+  }
+
+  renderDocuments(data) {
+    // Placeholder for documents data
+    console.log('Documents data:', data);
+  }
+}
+
+// Initialize when ready
+document.addEventListener('DOMContentLoaded', () => {
+  window.student360 = new Student360();
+  console.log('✅ Student 360 Tabs initialized');
+});
+</script>

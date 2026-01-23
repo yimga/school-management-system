@@ -113,3 +113,106 @@ def api_notifications(request):
             "status": "error",
             "error": str(exc)
         }, status=500)
+
+
+@csrf_exempt
+@require_GET
+def api_activities(request):
+    """API endpoint to fetch recent activities/audit logs.
+    
+    Returns a list of recent system activities, admin actions, and student changes.
+    Supports filtering by type and pagination.
+    """
+    try:
+        page = int(request.GET.get('page', 1))
+        filter_type = request.GET.get('filter', '')
+        
+        # Default activities - can be extended to pull from database
+        activities = [
+            {
+                "id": 1,
+                "type": "admin",
+                "title": "Settings Updated",
+                "description": "System settings configuration was modified",
+                "timestamp": (__import__('datetime').datetime.now() - __import__('datetime').timedelta(hours=2)).isoformat(),
+                "user": "Administrator"
+            },
+            {
+                "id": 2,
+                "type": "student",
+                "title": "Student Enrolled",
+                "description": "New student added to Mathematics class",
+                "timestamp": (__import__('datetime').datetime.now() - __import__('datetime').timedelta(hours=4)).isoformat(),
+                "user": "Admin User"
+            },
+            {
+                "id": 3,
+                "type": "system",
+                "title": "Database Backup",
+                "description": "Automatic system database backup completed",
+                "timestamp": (__import__('datetime').datetime.now() - __import__('datetime').timedelta(hours=6)).isoformat(),
+                "user": None
+            },
+            {
+                "id": 4,
+                "type": "enrollment",
+                "title": "Course Registration",
+                "description": "Student registered for new course",
+                "timestamp": (__import__('datetime').datetime.now() - __import__('datetime').timedelta(hours=8)).isoformat(),
+                "user": "Student Self-Service"
+            }
+        ]
+        
+        # Apply filter if specified
+        if filter_type:
+            activities = [a for a in activities if a['type'] == filter_type]
+        
+        # Pagination
+        per_page = 10
+        start = (page - 1) * per_page
+        end = start + per_page
+        paginated = activities[start:end]
+        
+        return JsonResponse({
+            "status": "success",
+            "activities": paginated,
+            "count": len(paginated),
+            "total": len(activities),
+            "page": page
+        })
+    except Exception as exc:
+        return JsonResponse({
+            "status": "error",
+            "error": str(exc)
+        }, status=500)
+
+
+@csrf_exempt
+@require_GET
+def api_dashboard_charts(request):
+    """API endpoint for dashboard chart data.
+    
+    Returns data for enrollment trends, fee collection, performance analytics, etc.
+    """
+    try:
+        return JsonResponse({
+            "status": "success",
+            "enrollment": {
+                "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                "data": [12, 19, 8, 15, 22, 18]
+            },
+            "feeCollection": {
+                "paid": 75,
+                "pending": 15,
+                "overdue": 10
+            },
+            "performance": {
+                "labels": ["Math", "English", "Science", "History", "Arts"],
+                "data": [78, 82, 75, 88, 90]
+            }
+        })
+    except Exception as exc:
+        return JsonResponse({
+            "status": "error",
+            "error": str(exc)
+        }, status=500)

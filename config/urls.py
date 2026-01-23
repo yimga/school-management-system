@@ -50,6 +50,10 @@ urlpatterns = [
     path('api/health/', obs_views.api_health, name='api_health'),
     path('api/notifications/', obs_views.api_notifications, name='api_notifications'),
     path('api/notifications/mark-all-read/', obs_views.api_notifications_mark_all_read, name='api_notifications_mark_all_read'),
+    
+    # Phase 3 API endpoints
+    path('api/activities/', obs_views.api_activities, name='api_activities'),
+    path('api/dashboard/charts/', obs_views.api_dashboard_charts, name='api_dashboard_charts'),
 
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
