@@ -1,6 +1,285 @@
 {% extends "admin/base_site.html" %}
-{% load i18n static admin_urls %}
+{% load i18n static %}
+
+{% block extrastyle %}
+<style>
+  body {margin:0;padding:0;background:#1a1a1a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+  #content-main, #content {padding:0!important;margin:0;background:#1a1a1a;}
+  .module {border:none;}
+  
+  /* Theme Toggle */
+  .theme-toggle {position:fixed;top:80px;right:20px;z-index:1000;background:#2d2d2d;border:1px solid #404040;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:0.2s;}
+  .theme-toggle:hover {background:#353535;border-color:#4ade80;}
+  .theme-toggle-label {color:#9ca3af;font-size:12px;font-weight:600;}
+  
+  .dashboard-container {max-width:100%;padding:24px;background:#1a1a1a;min-height:100vh;}
+  
+  /* Header */
+  .dashboard-header {background:#2d2d2d;padding:24px;border-radius:12px;margin-bottom:24px;border:1px solid #404040;}
+  .dashboard-header h1 {margin:0 0 8px;font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.02em;}
+  .dashboard-subtitle {color:#9ca3af;font-size:14px;margin-bottom:16px;line-height:1.6;}
+  .header-actions {display:flex;gap:12px;flex-wrap:wrap;}
+  .btn-orange {background:#ff9f43;color:#1a1a1a;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(255,159,67,0.3);text-decoration:none;display:inline-block;}
+  .btn-orange:hover {background:#ffb366;transform:translateY(-2px);box-shadow:0 6px 16px rgba(255,159,67,0.4);}
+  .btn-green {background:#4ade80;color:#1a1a1a;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(74,222,128,0.3);text-decoration:none;display:inline-block;}
+  .btn-green:hover {background:#5ded8f;transform:translateY(-2px);box-shadow:0 6px 16px rgba(74,222,128,0.4);}
+  .btn-outline {background:transparent;color:#9ca3af;border:2px solid #404040;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-block;}
+  .btn-outline:hover {border-color:#4ade80;color:#4ade80;background:#252525;}
+  
+  /* Stats Grid */
+  .stats-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-bottom:24px;}
+  .stat-card {background:#2d2d2d;border:1px solid #404040;border-radius:12px;padding:20px;transition:all 0.3s;}
+  .stat-card:hover {border-color:#4ade80;box-shadow:0 8px 24px rgba(74,222,128,0.15);transform:translateY(-3px);}
+  .stat-card h3 {margin:0 0 16px;font-size:16px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;}
+  .stat-item {background:#1a1a1a;border:2px dashed #404040;border-radius:10px;padding:18px;margin-bottom:12px;transition:0.3s;cursor:pointer;}
+  .stat-item:hover {border-style:solid;border-color:#4ade80;}
+  .stat-item.active {background:#1f2937;border:2px solid #4ade80;box-shadow:0 0 0 4px rgba(74,222,128,0.1);}
+  .stat-time {color:#4ade80;font-size:13px;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
+  .stat-title {color:#e5e7eb;font-size:15px;font-weight:600;margin-bottom:4px;}
+  .stat-meta {color:#6b7280;font-size:12px;}
+  
+  /* App Grid */
+  .app-section {background:#2d2d2d;padding:28px;border-radius:12px;margin-bottom:24px;border:1px solid #404040;}
+  .app-section-header {display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .app-section h2 {margin:0;font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.01em;}
+  .app-count {background:#1a1a1a;color:#9ca3af;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;border:1px solid #404040;}
+  .app-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+  .app-card {background:#1a1a1a;border:1px solid #404040;padding:20px;border-radius:12px;transition:all 0.3s;cursor:pointer;}
+  .app-card:hover {border-color:#ff9f43;background:#252525;transform:translateY(-4px);box-shadow:0 8px 24px rgba(255,159,67,0.2);}
+  .app-icon {font-size:32px;margin-bottom:12px;display:block;}
+  .app-title {margin:0 0 8px;font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.01em;}
+  .app-meta {margin:0 0 16px;font-size:12px;color:#6b7280;}
+  .app-actions {display:flex;gap:8px;}
+  .app-btn {background:transparent;color:#9ca3af;border:1px solid #404040;border-radius:6px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:0.2s;text-decoration:none;display:inline-block;}
+  .app-btn:hover {border-color:#4ade80;color:#4ade80;background:#1f2937;}
+  
+  /* Light Mode */
+  body.light-mode {background:#f8fafc;}
+  body.light-mode #content-main,body.light-mode #content {background:#f8fafc;}
+  body.light-mode .dashboard-container {background:#f8fafc;}
+  body.light-mode .dashboard-header,body.light-mode .stat-card,body.light-mode .app-section {background:#fff;border-color:#e5e7eb;}
+  body.light-mode .dashboard-header h1,body.light-mode .stat-card h3,body.light-mode .app-section h2 {color:#1e293b;}
+  body.light-mode .stat-item {background:#f8fafc;border-color:#e5e7eb;}
+  body.light-mode .stat-item.active {background:#f0fdf4;border-color:#4ade80;}
+  body.light-mode .stat-title {color:#1e293b;}
+  body.light-mode .app-card {background:#f8fafc;border-color:#e5e7eb;}
+  body.light-mode .app-card:hover {background:#fff;border-color:#ff9f43;}
+  body.light-mode .app-title {color:#1e293b;}
+  body.light-mode .app-count {background:#f1f5f9;color:#64748b;border-color:#e5e7eb;}
+  body.light-mode .theme-toggle {background:#fff;border-color:#e5e7eb;}
+  
+  @media (max-width:768px) {.stats-grid {grid-template-columns:1fr;}.app-grid {grid-template-columns:1fr;}}
+</style>
+{% endblock %}
 
 {% block content %}
-  {{ block.super }}
+<!-- Theme Toggle -->
+<div class="theme-toggle" onclick="toggleTheme()">
+  <span id="theme-icon">Ìºô</span>
+  <span class="theme-toggle-label" id="theme-label">Dark</span>
+</div>
+
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <h1>Administration Dashboard</h1>
+    <p class="dashboard-subtitle">Manage your school operations, monitor system health, and access all administrative functions from this central hub.</p>
+    <div class="header-actions">
+      <a href="/analytics/master-sheet/" class="btn-orange">Ì≥ä Master Sheet</a>
+      <a href="/analytics/deadlines/" class="btn-green">‚è∞ Deadlines</a>
+      <a href="/reports/publish/" class="btn-outline">Ì≥Ñ Publish Reports</a>
+    </div>
+  </header>
+
+  <!-- Stats Overview -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Ì≥à System Status</h3>
+      <div class="stat-item active">
+        <div class="stat-time">Live Status</div>
+        <div class="stat-title">All Systems Operational</div>
+        <div class="stat-meta">Last checked: Just now</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-time">Quick Stats</div>
+        <div class="stat-title">4 Active Students ‚Ä¢ 4 Subjects</div>
+        <div class="stat-meta">Current academic year</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <h3>Ì≥ä Academic Overview</h3>
+      <div class="stat-item">
+        <div class="stat-time">Students</div>
+        <div class="stat-title">4 Enrolled Students</div>
+        <div class="stat-meta">Manage student profiles & records</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-time">Curriculum</div>
+        <div class="stat-title">4 Active Subjects</div>
+        <div class="stat-meta">View subject catalog</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <h3>Ì≤∞ Financial Status</h3>
+      <div class="stat-item">
+        <div class="stat-time">Billing</div>
+        <div class="stat-title">0 Overdue Invoices</div>
+        <div class="stat-meta">Financial health: Good</div>
+      </div>
+      <div class="stat-item active">
+        <div class="stat-time">Portals</div>
+        <div class="stat-title">Parent & Teacher Active</div>
+        <div class="stat-meta">Both portals enabled</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Applications -->
+  <section class="app-section">
+    <div class="app-section-header">
+      <h2>Applications & Sections</h2>
+      <span class="app-count">12 Apps</span>
+    </div>
+    <div class="app-grid">
+      <div class="app-card" onclick="window.location='/admin/accounts/'">
+        <span class="app-icon">Ì±§</span>
+        <h3 class="app-title">Accounts & Authentication</h3>
+        <p class="app-meta">3 sections</p>
+        <div class="app-actions">
+          <a href="/admin/accounts/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/students/'">
+        <span class="app-icon">Ì±•</span>
+        <h3 class="app-title">People Management</h3>
+        <p class="app-meta">6 sections</p>
+        <div class="app-actions">
+          <a href="/admin/students/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/academics/'">
+        <span class="app-icon">Ìæì</span>
+        <h3 class="app-title">Academic Structure</h3>
+        <p class="app-meta">7 sections</p>
+        <div class="app-actions">
+          <a href="/admin/academics/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/evaluations/'">
+        <span class="app-icon">Ì≥ä</span>
+        <h3 class="app-title">Evaluations & Grading</h3>
+        <p class="app-meta">6 sections</p>
+        <div class="app-actions">
+          <a href="/admin/evaluations/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/reports/'">
+        <span class="app-icon">Ì≥Ñ</span>
+        <h3 class="app-title">Reports & Transcripts</h3>
+        <p class="app-meta">3 sections</p>
+        <div class="app-actions">
+          <a href="/admin/reports/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/finance/'">
+        <span class="app-icon">Ì≤∞</span>
+        <h3 class="app-title">Finance & Billing</h3>
+        <p class="app-meta">20 sections</p>
+        <div class="app-actions">
+          <a href="/admin/finance/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/payroll/'">
+        <span class="app-icon">Ì≤µ</span>
+        <h3 class="app-title">Payroll & Leave</h3>
+        <p class="app-meta">7 sections</p>
+        <div class="app-actions">
+          <a href="/admin/payroll/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/analytics/'">
+        <span class="app-icon">Ì≥à</span>
+        <h3 class="app-title">Analytics & Insights</h3>
+        <p class="app-meta">1 sections</p>
+        <div class="app-actions">
+          <a href="/admin/analytics/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/compliance/'">
+        <span class="app-icon">Ì¥í</span>
+        <h3 class="app-title">Compliance & Audit</h3>
+        <p class="app-meta">7 sections</p>
+        <div class="app-actions">
+          <a href="/admin/compliance/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/siteconfig/'">
+        <span class="app-icon">‚öôÔ∏è</span>
+        <h3 class="app-title">System Configuration</h3>
+        <p class="app-meta">10 sections</p>
+        <div class="app-actions">
+          <a href="/admin/siteconfig/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/portal/'">
+        <span class="app-icon">Ì≥¢</span>
+        <h3 class="app-title">Portal & Communication</h3>
+        <p class="app-meta">2 sections</p>
+        <div class="app-actions">
+          <a href="/admin/portal/" class="app-btn">Open</a>
+        </div>
+      </div>
+
+      <div class="app-card" onclick="window.location='/admin/auth/'">
+        <span class="app-icon">Ì¥ê</span>
+        <h3 class="app-title">Authentication & Authorization</h3>
+        <p class="app-meta">1 sections</p>
+        <div class="app-actions">
+          <a href="/admin/auth/" class="app-btn">Open</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+function toggleTheme() {
+  const body = document.body;
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  
+  if (body.classList.contains('light-mode')) {
+    body.classList.remove('light-mode');
+    icon.textContent = 'Ìºô';
+    label.textContent = 'Dark';
+    localStorage.setItem('theme', 'dark');
+  } else {
+    body.classList.add('light-mode');
+    icon.textContent = '‚òÄÔ∏è';
+    label.textContent = 'Light';
+    localStorage.setItem('theme', 'light');
+  }
+}
+
+// Load theme
+document.addEventListener('DOMContentLoaded', function() {
+  if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('theme-icon').textContent = '‚òÄÔ∏è';
+    document.getElementById('theme-label').textContent = 'Light';
+  }
+});
+</script>
 {% endblock %}
