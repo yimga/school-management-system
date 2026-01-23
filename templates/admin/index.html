@@ -5,143 +5,106 @@
  {% admin_health as health %}
  {% admin_kpis as kpis %}
 
- <style>
-  /* Layout shell */
-  .admin-shell {display:grid;grid-template-columns:240px 1fr 320px;gap:16px;min-height:calc(100vh - 40px);}
-  .admin-shell .side-nav {background:#0f172a;color:#e2e8f0;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;position:sticky;top:12px;align-self:start;}
-  .side-nav .brand {display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.05);} 
-  .side-nav .brand img {width:34px;height:34px;object-fit:contain;border-radius:8px;background:#fff;}
-  .side-nav .nav-title {font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#94a3b8;margin-top:8px;}
-  .side-nav a {color:#e2e8f0;text-decoration:none;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;transition:background 0.2s;}
-  .side-nav a:hover {background:rgba(255,255,255,0.08);} 
-  .side-nav .badge-line {display:flex;gap:6px;flex-wrap:wrap;font-size:12px;}
-  .status-badge {background:rgba(255,255,255,0.08);padding:6px 10px;border-radius:999px;font-size:12px;}
-  .compliance {margin-top:auto;display:flex;flex-direction:column;gap:6px;font-size:12px;}
-  .admin-main {background:#f8fafc;border-radius:14px;padding:16px 18px;box-shadow:0 8px 24px rgba(15,23,42,0.06);} 
-  .topbar {display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;}
-  .topbar .org {display:flex;align-items:center;gap:10px;}
-  .topbar .org .org-meta {font-size:12px;color:#475569;}
-  .command-palette {flex:1;display:flex;gap:8px;align-items:center;}
-  .command-palette input {width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:14px;}
-  .alert-strip {display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-  .alert-chip {background:#fef3c7;color:#92400e;padding:8px 12px;border-radius:10px;font-size:13px;border:1px solid #fde68a;}
-  .hero {background:linear-gradient(120deg,#0f172a 0%,#1f2937 40%,#0f172a 100%);color:#f8fafc;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 6px 20px rgba(15,23,42,0.25);} 
-  .hero-row {display:grid;grid-template-columns:1.1fr auto;gap:14px;align-items:center;}
-  .hero-kpis {display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px;}
-  .kpi-card {background:rgba(255,255,255,0.08);padding:12px;border-radius:12px;}
-  .kpi-label {font-size:12px;opacity:0.8;}
-  .kpi-value {font-size:20px;font-weight:700;}
-  .filter-card {background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:14px;}
-  .filter-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
-  .stats-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px;}
-  .visual-bridge {display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-bottom:14px;}
-  .card-grid.admin-insights {display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:14px;}
-  .admin-app-list {margin-bottom:0;}
-  /* Right AI drawer */
-  .ai-drawer {background:#0b1220;color:#e2e8f0;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;position:sticky;top:12px;align-self:start;}
-  .ai-drawer h5 {margin:0;font-size:16px;}
-  .ai-chip {background:rgba(255,255,255,0.08);padding:8px 10px;border-radius:10px;font-size:12px;}
- </style>
+  <div class="admin-page">
+      <div class="d-flex align-items-center justify-content-between mb-3 p-3 border rounded bg-light">
+        <div class="d-flex align-items-center gap-3">
+          <div class="p-2 bg-white border rounded">
+            {% if SITE.logo %}
+              <img src="{{ SITE.logo.url }}" alt="Logo" style="height:48px;width:48px;object-fit:contain;">
+            {% else %}
+              <span class="fw-semibold text-muted">Logo</span>
+            {% endif %}
+          </div>
+          <div>
+            <div class="fw-semibold">{{ SITE.site_name|default:"Gilead School System" }}</div>
+            <div class="text-muted small">{{ SITE.company_phone|default:"N/A" }} • {{ SITE.company_email|default:"support@school.com" }}</div>
+          </div>
+        </div>
+        <div class="text-muted small text-end">
+          <div>Admin Configuration</div>
+          <div>Back-office controls for portals, reports, and finance</div>
+        </div>
+      </div>
 
-  <div class="admin-shell">
-    <aside class="side-nav">
-      <div class="brand">
-        {% if SITE.logo %}
-          <img src="{{ SITE.logo.url }}" alt="Logo">
-        {% else %}
-          <img src="/static/images/logo.png" alt="Logo">
-        {% endif %}
+      <header class="admin-header">
         <div>
-          <div class="fw-semibold">{{ SITE.site_name|default:"Gilead School System" }}</div>
-          <div class="org-meta">{{ SITE.company_email|default:"support@school.com" }}</div>
+          <div class="breadcrumbs text-muted">Home / Portal / Analytics</div>
+          <h1>Analytics Dashboard</h1>
+          <div class="text-muted">School-wide performance insights based on submitted scores.</div>
         </div>
-      </div>
-      <div class="nav-title">Navigation</div>
-      <a href="{% url 'admin:index' %}">🏠 Admin Dashboard</a>
-      <a href="{% url 'siteconfig:customizer' %}">⚙️ Site Settings</a>
-      <a href="{% url 'accounts:backend_dashboard' %}">📊 Backend Config</a>
-      <a href="{% url 'portal:parent_dashboard' %}">👪 Parent Portal</a>
-      <a href="/portal/teacher/">👩‍🏫 Teacher Portal</a>
-      <a href="/reports/">📑 Reports & Transcripts</a>
-      <a href="/finance/">💰 Finance & Billing</a>
-      <a href="/compliance/">🛡️ Compliance</a>
-
-      <div class="nav-title">Status</div>
-      <div class="badge-line">
-        <span class="status-badge">Health: {{ health.status|default:"Good" }}</span>
-        <span class="status-badge">Parent: {{ health.portal_parent_enabled|yesno:"On,Off" }}</span>
-        <span class="status-badge">Teacher: {{ health.portal_teacher_enabled|yesno:"On,Off" }}</span>
-      </div>
-
-      <div class="compliance">
-        <div class="status-badge">GDPR Compliant</div>
-        <div class="status-badge">SOC2 Monitored</div>
-        {% if log_url %}<a class="status-badge" href="{{ log_url }}">Audit Trail</a>{% endif %}
-      </div>
-    </aside>
-
-    <main class="admin-main">
-      <div class="topbar">
-        <div class="org">
-          <div class="fw-semibold">{{ SITE.site_name|default:"Gilead School System" }}</div>
-          <div class="org-meta">{{ SITE.company_phone|default:"N/A" }} • {{ SITE.company_email|default:"support@school.com" }}</div>
+        <div class="admin-header-actions">
+          <button class="btn btn-pill btn-outline-secondary">Master Sheet</button>
+          <button class="btn btn-pill btn-outline-secondary">Grading Deadlines</button>
         </div>
-        <div class="command-palette">
-          <input type="text" placeholder="Command palette (Ctrl/Cmd + K): search people, actions, settings">
-          <button class="btn btn-outline-secondary btn-sm">Run</button>
-        </div>
-        <div class="d-flex gap-2">
-          <button class="btn btn-outline-secondary btn-sm">Theme</button>
-          <button class="btn btn-primary btn-sm">Create</button>
+      </header>
+
+      <div class="card shadow-sm mb-4">
+        <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
+          <div>
+            <h5 class="mb-1">Contact &amp; social</h5>
+            <p class="text-muted small mb-1">
+              Share the channels parents, staff, and community use to reach you. These links are toggled from Site Settings.
+            </p>
+            {% if SITE.company_phone %}<div class="small text-dark">Phone: {{ SITE.company_phone }}</div>{% endif %}
+            {% if SITE.company_email %}<div class="small text-dark">Email: {{ SITE.company_email }}</div>{% endif %}
+            <div class="mt-2 d-flex flex-wrap gap-2">
+              <span class="badge text-bg-light">Parents: {{ SITE.enable_parent_portal|yesno:"Enabled,Disabled" }}</span>
+              <span class="badge text-bg-light">Teachers: {{ SITE.enable_teacher_portal|yesno:"Enabled,Disabled" }}</span>
+              <span class="badge text-bg-light">Reports: {{ SITE.report_downloads_enabled|yesno:"On,Off" }}</span>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            {% for link in SITE.active_social_links %}
+              <a class="btn btn-outline-secondary btn-sm" href="{{ link.url }}" target="_blank">
+                <i class="{{ link.icon }}"></i> {{ link.platform }}
+              </a>
+            {% empty %}
+              <span class="small text-muted">No social links configured.</span>
+            {% endfor %}
+          </div>
         </div>
       </div>
 
-      <div class="alert-strip">
-        <div class="alert-chip">Predictive: Grade 10 Math conflict detected — suggest Room 4B</div>
-        <div class="alert-chip">Finance: Potential shortfall in Q3 fees — review invoices</div>
-        <div class="alert-chip">Attendance: 6 students trending at risk — view list</div>
-      </div>
-
-      <section class="hero">
-        <div class="hero-row">
+      <div class="admin-hero hero-panel">
+        <div class="hero-wrapper">
+          <div class="hero-top">
           <div>
             <div class="text-uppercase small opacity-75 mb-1">{% trans "Admin hub" %}</div>
-            <h2>{{ SITE.site_name|default:"Gilead School System Management" }}</h2>
+            <h2>Gilead School System Management</h2>
             <p class="hero-subtitle">
-              {% trans "Configure school apps, monitor health, and keep reports, finance, and portals aligned from one modern dashboard." %}
+              {% trans "Configure school apps, monitor health, and keep reports, finance, and portals aligned from one warm, modern dashboard." %}
             </p>
-            <div class="d-flex flex-wrap gap-2 mt-2">
-              <a class="btn btn-gradient-pill" href="{% url 'portal:parent_dashboard' %}">{% trans "Open parent portal" %}</a>
-              {% if request.user|has_feature_permission:"settings.manage" %}
-                <a class="btn btn-outline-white" href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend config" %}</a>
-              {% endif %}
-              <a class="btn btn-outline-white" href="{% url 'siteconfig:customizer' %}">{% trans "Customize theme" %}</a>
-            </div>
           </div>
-          <div class="hero-kpis">
-            <div class="kpi-card">
-              <div class="kpi-label">{% trans "Students" %}</div>
-              <div class="kpi-value">{{ kpis.students }}</div>
-              <div class="hero-meta">{% trans "Active profiles" %}</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">{% trans "Subjects" %}</div>
-              <div class="kpi-value">{{ kpis.subjects }}</div>
-              <div class="hero-meta">{% trans "Catalog size" %}</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">{% trans "Report cards" %}</div>
-              <div class="kpi-value">{{ kpis.report_cards }}</div>
-              <div class="hero-meta">{% trans "Generated" %}</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">{% trans "Modules" %}</div>
-              <div class="kpi-value">{{ app_list|length }}</div>
-              <div class="hero-meta">{% trans "Registered apps" %}</div>
-            </div>
+          <div class="hero-actions">
+            <a class="btn btn-gradient-pill" href="{% url 'portal:parent_dashboard' %}">{% trans "Open parent portal" %}</a>
+            {% if request.user|has_feature_permission:"settings.manage" %}
+              <a class="btn btn-outline-white" href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend config" %}</a>
+            {% endif %}
           </div>
         </div>
-      </section>
+        <div class="hero-metrics">
+          <article>
+            <div class="hero-label">{% trans "Students" %}</div>
+            <div class="hero-value">{{ kpis.students }}</div>
+            <div class="hero-meta">{% trans "Active profiles" %}</div>
+          </article>
+          <article>
+            <div class="hero-label">{% trans "Subjects" %}</div>
+            <div class="hero-value">{{ kpis.subjects }}</div>
+            <div class="hero-meta">{% trans "Catalog size" %}</div>
+          </article>
+          <article>
+            <div class="hero-label">{% trans "Report cards" %}</div>
+            <div class="hero-value">{{ kpis.report_cards }}</div>
+            <div class="hero-meta">{% trans "Generated" %}</div>
+          </article>
+          <article>
+            <div class="hero-label">{% trans "Modules" %}</div>
+            <div class="hero-value">{{ app_list|length }}</div>
+            <div class="hero-meta">{% trans "Registered apps" %}</div>
+          </article>
+        </div>
+      </div>
 
       <div class="filter-card">
         <div class="filter-grid">
@@ -155,7 +118,7 @@
           <div class="form-control"><label>Weak subject threshold</label><input type="number" value="10.00"></div>
           <div class="form-control"><label>Improvement delta</label><input type="number" value="1.00"></div>
         </div>
-        <div class="filter-actions d-flex justify-content-between align-items-center mt-3">
+        <div class="filter-actions">
           <div class="form-check">
             <input type="checkbox" class="form-check-input" id="promoCheck">
             <label for="promoCheck" class="form-check-label small">Use promotion rule</label>
@@ -165,11 +128,11 @@
       </div>
 
       <div class="stats-grid">
-        <div class="stat-card card-neutral">
+        <div class="stat-card">
           <h5>Top students (class, term)</h5>
           <p class="text-muted small">Select a classroom to see class rankings.</p>
         </div>
-        <div class="stat-card card-neutral">
+        <div class="stat-card">
           <h5>Top students (school, term)</h5>
           <table class="table table-borderless mb-0">
             <tbody>
@@ -180,11 +143,11 @@
             </tbody>
           </table>
         </div>
-        <div class="stat-card card-neutral">
+        <div class="stat-card">
           <h5>Top students (class, annual)</h5>
           <p class="text-muted small">Select a classroom to see class rankings.</p>
         </div>
-        <div class="stat-card card-neutral">
+        <div class="stat-card">
           <h5>Top students (school, annual)</h5>
           <p class="text-muted small">Select a classroom to see class rankings.</p>
         </div>
@@ -328,17 +291,5 @@
           </div>
         </section>
       {% endif %}
-    </main>
-
-    <aside class="ai-drawer">
-      <div class="d-flex align-items-center justify-content-between">
-        <h5>AI Co-Pilot</h5>
-        <span class="ai-chip">Beta</span>
-      </div>
-      <div class="ai-chip">Summary: Draft parent note about attendance dip.</div>
-      <div class="ai-chip">Suggestion: Move Grade 10 Math to Room 4B to resolve conflict.</div>
-      <div class="ai-chip">Ask: “Show unpaid fees for Grade 9”</div>
-      <button class="btn btn-outline-secondary btn-sm">Open in drawer</button>
-    </aside>
   </div>
 {% endblock %}
