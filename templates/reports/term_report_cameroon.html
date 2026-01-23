@@ -4,7 +4,37 @@
   <meta charset="utf-8" />
   {% include "reports/_report_styles.html" %}
   <style>
-    body { background:#f8f9fb; }
+    body { 
+      background: #f8f9fb;
+      {% if SITE.logo %}
+        background-image: url('{{ SITE.logo.url }}');
+        background-attachment: fixed;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 20%;
+        background-opacity: 0.03;
+      {% endif %}
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      {% if SITE.logo %}
+        background-image: url('{{ SITE.logo.url }}');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 25%;
+        background-attachment: fixed;
+        opacity: 0.05;
+        z-index: -1;
+        pointer-events: none;
+      {% endif %}
+    }
+    
     .cameroon-letterhead {
       background: #fff;
       border-radius: 18px;
@@ -12,6 +42,8 @@
       border: 1px solid #dde1e8;
       box-shadow: 0 8px 30px rgba(0,0,0,.08);
       margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
     }
     .cameroon-letterhead .title {
       color: var(--report-accent);
@@ -64,15 +96,28 @@
       <div>
         <p class="subtitle mb-1 text-uppercase">MINISTRY OF SECONDARY EDUCATION</p>
         <p class="title mb-0">GILEAD TECHNICAL HIGH SCHOOL</p>
-        <p class="sub text-muted">{{ metadata.region }} | {{ metadata.country }}</p>
+        <p class="sub text-muted">{{ SITE.region|default:"Small Soppo Buea" }} | {{ SITE.country|default:"Republic of Cameroon" }}</p>
         {% if report_style and report_style.header_tagline %}
           <p class="sub text-uppercase small">{{ report_style.header_tagline }}</p>
         {% endif %}
+        <!-- School Contact Info -->
+        <div style="margin-top: 8px; font-size: 9pt; color: #555;">
+          {% if SITE.company_email %}
+            <p style="margin: 2px 0;"><strong>Email:</strong> {{ SITE.company_email }}</p>
+          {% endif %}
+          {% if SITE.company_phone %}
+            <p style="margin: 2px 0;"><strong>Phone:</strong> {{ SITE.company_phone }}</p>
+          {% endif %}
+          {% if SITE.company_address %}
+            <p style="margin: 2px 0;"><strong>Address:</strong> {{ SITE.company_address }}</p>
+          {% endif %}
+        </div>
       </div>
-      {% if SITE_LOGO_URL %}
-        <div style="text-align:center;">
-          <img src="{{ SITE_LOGO_URL }}" alt="logo" style="height:80px;"/>
-          <div class="small text-muted">{{ metadata.ministry }}</div>
+      <!-- Logo -->
+      {% if SITE.logo %}
+        <div style="text-align:center; position: relative;">
+          <img src="{{ SITE.logo.url }}" alt="School Logo" style="height:80px; width: auto; opacity: 1;"/>
+          <div class="small text-muted" style="margin-top: 4px;">{{ SITE.ministry|default:"Ministry of Secondary Education" }}</div>
         </div>
       {% endif %}
     </div>
@@ -82,7 +127,7 @@
       <div><strong>Academic Year</strong><br>{{ year.name }}</div>
       <div><strong>Term</strong><br>{{ term.get_name_display }}</div>
       <div><strong>Pass mark</strong><br>{{ weights.pass_mark|default_if_none:10 }}</div>
-      <div><strong>School code</strong><br>{{ metadata.school_code }}</div>
+      <div><strong>School code</strong><br>{{ SITE.school_code|default:"GIL" }}</div>
     </div>
   </div>
 
