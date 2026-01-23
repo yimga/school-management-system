@@ -255,23 +255,23 @@
         </h5>
         <ul class="footer-links">
           <li>
-            <a href="{% url 'portal:privacy_policy' %}" class="footer-link">
+            <a href="javascript:void(0);" class="footer-link" title="Privacy Policy">
               <i class="bi bi-file-lock"></i> Privacy Policy
             </a>
           </li>
           <li>
-            <a href="{% url 'portal:terms_of_service' %}" class="footer-link">
+            <a href="javascript:void(0);" class="footer-link" title="Terms of Service">
               <i class="bi bi-file-text"></i> Terms of Service
             </a>
           </li>
           <li>
-            <a href="{% url 'portal:about' %}" class="footer-link">
+            <a href="javascript:void(0);" class="footer-link" title="About Us">
               <i class="bi bi-info-circle"></i> About Us
             </a>
           </li>
           {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
           <li>
-            <a href="{% url 'admin:compliance_compliancereport_changelist' %}" class="footer-link">
+            <a href="/compliance/dashboard/" class="footer-link">
               <i class="bi bi-file-earmark-check"></i> Compliance Reports
             </a>
           </li>
