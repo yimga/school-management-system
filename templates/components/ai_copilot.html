@@ -1,0 +1,522 @@
+{% load static %}
+{# AI Copilot Assistant - RBAC Compatible #}
+<div class="ai-copilot-wrapper">
+  <!-- Floating AI Button -->
+  <button 
+    class="btn ai-copilot-trigger" 
+    id="aiCopilotTrigger" 
+    type="button"
+    aria-label="Open AI Copilot Assistant"
+    title="AI Copilot Assistant">
+    <i class="bi bi-stars"></i>
+    <span class="pulse-ring"></span>
+  </button>
+
+  <!-- AI Copilot Chat Panel -->
+  <div class="ai-copilot-panel" id="aiCopilotPanel">
+    <div class="ai-copilot-header">
+      <div class="d-flex align-items-center gap-2">
+        <div class="ai-avatar">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div>
+          <h5 class="mb-0 fw-bold">AI Copilot</h5>
+          <small class="text-muted">
+            {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+              Admin Assistant
+            {% elif request.user.role == 'TEACHER' %}
+              Teacher Assistant
+            {% elif request.user.role == 'PARENT' %}
+              Parent Assistant
+            {% else %}
+              Your AI Assistant
+            {% endif %}
+          </small>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-link text-white" id="aiCopilotClose">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="ai-copilot-body" id="aiCopilotBody">
+      <!-- Welcome Message -->
+      <div class="ai-message">
+        <div class="ai-message-avatar">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="ai-message-content">
+          <p class="mb-2">👋 Hello {{ request.user.first_name|default:request.user.username }}!</p>
+          <p class="mb-0">I'm your AI assistant. I can help you with:</p>
+          <ul class="mt-2 mb-0 small">
+            {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+              <li>System analytics and reports</li>
+              <li>User management queries</li>
+              <li>Financial summaries</li>
+              <li>Compliance and audit tasks</li>
+            {% elif request.user.role == 'TEACHER' %}
+              <li>Grade entry and calculations</li>
+              <li>Class roster information</li>
+              <li>Attendance tracking</li>
+              <li>Student performance insights</li>
+            {% elif request.user.role == 'PARENT' %}
+              <li>Student progress updates</li>
+              <li>Fee payment status</li>
+              <li>Communication with teachers</li>
+              <li>Event schedules</li>
+            {% else %}
+              <li>General system navigation</li>
+              <li>Common tasks and shortcuts</li>
+              <li>Documentation and help</li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="ai-quick-actions" id="aiQuickActions">
+      <div class="small text-muted mb-2 px-3">Quick Actions:</div>
+      <div class="d-flex flex-wrap gap-2 px-3 pb-2">
+        {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+          <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show me today's attendance summary">
+            <i class="bi bi-calendar-check"></i> Today's Attendance
+          </button>
+          <button class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="What are the overdue invoices?">
+            <i class="bi bi-cash-stack"></i> Overdue Invoices
+          </button>
+          <button class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Show recent user activities">
+            <i class="bi bi-activity"></i> Recent Activities
+          </button>
+        {% elif request.user.role == 'TEACHER' %}
+          <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my today's classes">
+            <i class="bi bi-calendar3"></i> Today's Classes
+          </button>
+          <button class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Students pending grades">
+            <i class="bi bi-journal-text"></i> Pending Grades
+          </button>
+          <button class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Attendance summary this week">
+            <i class="bi bi-clipboard-check"></i> Attendance
+          </button>
+        {% elif request.user.role == 'PARENT' %}
+          <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my child's recent grades">
+            <i class="bi bi-graph-up"></i> Recent Grades
+          </button>
+          <button class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Check fee payment status">
+            <i class="bi bi-wallet2"></i> Fee Status
+          </button>
+          <button class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Upcoming parent-teacher meetings">
+            <i class="bi bi-calendar-event"></i> Meetings
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ai-copilot-footer">
+      <div class="ai-input-wrapper">
+        <textarea 
+          class="form-control ai-input" 
+          id="aiCopilotInput" 
+          rows="2" 
+          placeholder="Ask me anything..."
+          maxlength="500"></textarea>
+        <button class="btn btn-primary ai-send-btn" id="aiCopilotSend" disabled>
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+      <div class="small text-muted text-center mt-2">
+        <i class="bi bi-shield-check"></i> Secure • RBAC Protected • Context-Aware
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ai-copilot-wrapper {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+  }
+
+  .ai-copilot-trigger {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .ai-copilot-trigger:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
+  }
+
+  .ai-copilot-trigger .pulse-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    opacity: 0.6;
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.3);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+
+  .ai-copilot-panel {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 420px;
+    max-width: calc(100vw - 48px);
+    height: 600px;
+    max-height: calc(100vh - 140px);
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .ai-copilot-panel.active {
+    display: flex;
+  }
+
+  .ai-copilot-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ai-avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .ai-copilot-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background: #f8f9fa;
+  }
+
+  .ai-message {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .ai-message-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .ai-message-content {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 16px;
+    flex: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .user-message {
+    flex-direction: row-reverse;
+  }
+
+  .user-message .ai-message-avatar {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  }
+
+  .user-message .ai-message-content {
+    background: #e3f2fd;
+  }
+
+  .ai-quick-actions {
+    border-top: 1px solid #e9ecef;
+    padding: 12px 0;
+  }
+
+  .ai-quick-btn {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .ai-copilot-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem;
+    background: white;
+  }
+
+  .ai-input-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .ai-input {
+    flex: 1;
+    border-radius: 12px;
+    resize: none;
+    border: 2px solid #e9ecef;
+    transition: border-color 0.2s ease;
+  }
+
+  .ai-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.15);
+  }
+
+  .ai-send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    transition: all 0.2s ease;
+  }
+
+  .ai-send-btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+
+  .ai-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Loading animation */
+  .ai-loading {
+    display: flex;
+    gap: 4px;
+    padding: 8px 0;
+  }
+
+  .ai-loading span {
+    width: 8px;
+    height: 8px;
+    background: #6366f1;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+
+  .ai-loading span:nth-child(1) {
+    animation-delay: -0.32s;
+  }
+
+  .ai-loading span:nth-child(2) {
+    animation-delay: -0.16s;
+  }
+
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 576px) {
+    .ai-copilot-panel {
+      right: 12px;
+      bottom: 90px;
+      width: calc(100vw - 24px);
+    }
+
+    .ai-copilot-trigger {
+      width: 56px;
+      height: 56px;
+      font-size: 22px;
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const trigger = document.getElementById('aiCopilotTrigger');
+  const panel = document.getElementById('aiCopilotPanel');
+  const closeBtn = document.getElementById('aiCopilotClose');
+  const input = document.getElementById('aiCopilotInput');
+  const sendBtn = document.getElementById('aiCopilotSend');
+  const body = document.getElementById('aiCopilotBody');
+  const quickBtns = document.querySelectorAll('.ai-quick-btn');
+
+  // Toggle panel
+  trigger.addEventListener('click', function() {
+    panel.classList.toggle('active');
+    if (panel.classList.contains('active')) {
+      input.focus();
+    }
+  });
+
+  closeBtn.addEventListener('click', function() {
+    panel.classList.remove('active');
+  });
+
+  // Enable send button when input has text
+  input.addEventListener('input', function() {
+    sendBtn.disabled = !this.value.trim();
+  });
+
+  // Handle send message
+  function sendMessage(message) {
+    if (!message.trim()) return;
+
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'ai-message user-message';
+    userMsg.innerHTML = `
+      <div class="ai-message-avatar">
+        <i class="bi bi-person"></i>
+      </div>
+      <div class="ai-message-content">
+        <p class="mb-0">${escapeHtml(message)}</p>
+      </div>
+    `;
+    body.appendChild(userMsg);
+
+    // Show loading
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'ai-message';
+    loadingMsg.innerHTML = `
+      <div class="ai-message-avatar">
+        <i class="bi bi-robot"></i>
+      </div>
+      <div class="ai-message-content">
+        <div class="ai-loading">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    `;
+    body.appendChild(loadingMsg);
+    body.scrollTop = body.scrollHeight;
+
+    // Simulate AI response (replace with actual API call)
+    setTimeout(function() {
+      loadingMsg.remove();
+      const aiMsg = document.createElement('div');
+      aiMsg.className = 'ai-message';
+      aiMsg.innerHTML = `
+        <div class="ai-message-avatar">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="ai-message-content">
+          <p class="mb-0">I understand you're asking about: <strong>${escapeHtml(message)}</strong></p>
+          <p class="mb-0 mt-2 small text-muted">
+            <i class="bi bi-info-circle"></i> This is a demo response. Connect to your AI backend for real interactions.
+          </p>
+        </div>
+      `;
+      body.appendChild(aiMsg);
+      body.scrollTop = body.scrollHeight;
+    }, 1500);
+
+    input.value = '';
+    sendBtn.disabled = true;
+  }
+
+  sendBtn.addEventListener('click', function() {
+    sendMessage(input.value);
+  });
+
+  input.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(this.value);
+    }
+  });
+
+  // Quick action buttons
+  quickBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const prompt = this.getAttribute('data-prompt');
+      sendMessage(prompt);
+    });
+  });
+
+  // Helper function
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Close panel when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!panel.contains(e.target) && !trigger.contains(e.target)) {
+      panel.classList.remove('active');
+    }
+  });
+});
+</script>
