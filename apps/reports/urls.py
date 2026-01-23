@@ -10,6 +10,8 @@ from .views import (
     report_share,
 )
 
+app_name = 'reports'
+
 urlpatterns = [
     path("parent/report/<int:student_id>/", parent_download_term_report, name="parent_download_term_report"),
     path("parent/report/<int:student_id>/csv/", parent_download_term_report_csv, name="parent_download_term_report_csv"),
