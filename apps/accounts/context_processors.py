@@ -89,12 +89,12 @@ def dashboard_context(request):
         
         elif role == 'PARENT':
             # Parent metrics
-            from apps.people.models import StudentGuardian, StudentProfile
+            from apps.people.models import StudentProfile
             from apps.finance.models import Invoice
             
             # Get children
             children = StudentProfile.objects.filter(
-                studentguardian__guardian__user=user
+                guardian_links__guardian_user=user
             ).distinct()
             
             context['parent_children_count'] = children.count()
