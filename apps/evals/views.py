@@ -56,6 +56,15 @@ def _required_fields(academic_year, classroom, term):
     return fields or ["seq1_score", "seq2_score", "exam_score"]
 
 
+def _get_teacher_or_forbid(request: HttpRequest):
+    teacher = TeacherProfile.objects.filter(user=request.user).first()
+    if not teacher:
+        return None, HttpResponseForbidden(
+            "Teacher profile missing. Contact an administrator to finish setup."
+        )
+    return teacher, None
+
+
 def _required_fields_for_evaluation(evaluation: Evaluation) -> list[str]:
     weights = AssessmentWeights.get_for(
         academic_year=evaluation.academic_year,
@@ -118,7 +127,9 @@ def _build_filter_labels(
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_dashboard(request: HttpRequest):
-    teacher = get_object_or_404(TeacherProfile, user=request.user)
+    teacher, error = _get_teacher_or_forbid(request)
+    if error:
+        return error
     year, term = get_active_year_and_term()
     if not year or not term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
@@ -205,7 +216,9 @@ def teacher_dashboard(request: HttpRequest):
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_marks_entry(request: HttpRequest):
-    teacher = get_object_or_404(TeacherProfile, user=request.user)
+    teacher, error = _get_teacher_or_forbid(request)
+    if error:
+        return error
     year, active_term = get_active_year_and_term()
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
@@ -331,7 +344,9 @@ def teacher_marks_entry(request: HttpRequest):
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_marks_list(request: HttpRequest):
-    teacher = get_object_or_404(TeacherProfile, user=request.user)
+    teacher, error = _get_teacher_or_forbid(request)
+    if error:
+        return error
     user_name = request.user.get_full_name() or request.user.username
     year, term = get_active_year_and_term()
     if not year or not term:
