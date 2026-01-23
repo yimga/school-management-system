@@ -8,11 +8,18 @@ from config.admin import admin_site
 
 
 def home(request):
-    # Staff/admin users: go straight to backend dashboard; everyone else to portal login
+    # Redirect based on role/authentication status
     if request.user.is_authenticated:
+        # Only admin/superuser go to backend admin
         if request.user.is_staff or request.user.is_superuser:
-            return redirect('/backend/')
-        return redirect('/portal/')
+            return redirect('/admin/')
+        # Teachers and staff go to teacher portal
+        if getattr(request.user, "role", None) == "TEACHER":
+            return redirect('/portal/teacher/')
+        # Parents go to parent portal
+        if getattr(request.user, "role", None) == "PARENT":
+            return redirect('/portal/parent/')
+    # Everyone else goes to login
     return redirect('/authentication/login/')
 
 
@@ -27,18 +34,18 @@ def admin_siteconfig_customizer_redirect(request):
 
 
 def old_backend_redirect(request):
-    """Redirect from old /authentication/backend/ to new /backend/ URL."""
-    return redirect('/backend/', permanent=True)
+    """Redirect from old /authentication/backend/ to new /admin/ URL."""
+    return redirect('/admin/', permanent=True)
 
 
 urlpatterns = [
     path('', home, name='home'),
 
-    # Admin interfaces
+    # Admin interfaces - /admin/ only for superuser/staff
     path('admin/', admin_site.urls),
-    path('backend/', include(('apps.accounts.urls_backend', 'backend'), namespace='backend')),
     
-    # Backward compatibility redirect
+    # Backward compatibility redirects
+    path('backend/', lambda request: redirect('/authentication/login/', permanent=True)),
     path('authentication/backend/', old_backend_redirect),
     path('authentication/backend-dashboard/', old_backend_redirect),
 
