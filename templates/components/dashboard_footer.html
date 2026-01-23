@@ -19,17 +19,17 @@
           {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
             <!-- Admin/Leadership KB links -->
             <li>
-              <a href="{% url 'portal:kb_category' 'admin' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'admin' %}" class="footer-link">
                 <i class="bi bi-shield-check"></i> Admin Documentation
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:kb_category' 'technical' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'technical' %}" class="footer-link">
                 <i class="bi bi-code-slash"></i> Technical Guides
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:kb_category' 'security' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'security' %}" class="footer-link">
                 <i class="bi bi-lock"></i> Security & Compliance
               </a>
             </li>
@@ -37,17 +37,17 @@
           {% elif request.user.role == 'TEACHER' %}
             <!-- Teacher KB links -->
             <li>
-              <a href="{% url 'portal:kb_category' 'getting-started' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'getting-started' %}" class="footer-link">
                 <i class="bi bi-rocket"></i> Getting Started
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:kb_category' 'academics' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'academics' %}" class="footer-link">
                 <i class="bi bi-journal-text"></i> Grade Entry & Classes
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:kb_category' 'attendance' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'attendance' %}" class="footer-link">
                 <i class="bi bi-calendar-check"></i> Attendance Management
               </a>
             </li>
@@ -55,17 +55,17 @@
           {% elif request.user.role == 'PARENT' %}
             <!-- Parent KB links -->
             <li>
-              <a href="{% url 'portal:kb_category' 'getting-started' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'getting-started' %}" class="footer-link">
                 <i class="bi bi-rocket"></i> Getting Started
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:kb_category' 'parent' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'parent' %}" class="footer-link">
                 <i class="bi bi-people"></i> Parent Portal Guide
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:kb_category' 'finance' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'finance' %}" class="footer-link">
                 <i class="bi bi-cash-stack"></i> Payments & Billing
               </a>
             </li>
@@ -73,17 +73,17 @@
           {% elif request.user.role == 'STUDENT' %}
             <!-- Student KB links -->
             <li>
-              <a href="{% url 'portal:kb_category' 'getting-started' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'getting-started' %}" class="footer-link">
                 <i class="bi bi-rocket"></i> Getting Started
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:kb_category' 'student' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'student' %}" class="footer-link">
                 <i class="bi bi-mortarboard"></i> Student Portal Guide
               </a>
             </li>
             <li>
-              <a href="{% url 'portal:kb_category' 'academics' %}" class="footer-link">
+              <a href="{% url 'kb:kb_category' 'academics' %}" class="footer-link">
                 <i class="bi bi-book"></i> Academics & Assignments
               </a>
             </li>
