@@ -1,5 +1,7 @@
 from .models import SiteSettings, RegionConfig
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
+from django.core.files.storage import default_storage
+from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
 
@@ -53,6 +55,23 @@ def _build_breadcrumbs(request_path: str) -> list[dict[str, str]]:
     return breadcrumbs
 
 
+def _resolve_media_url(file_field, fallback: str | None = None) -> str:
+    if not file_field:
+        return static(fallback) if fallback else ""
+
+    name = getattr(file_field, "name", "")
+    if not name:
+        return static(fallback) if fallback else ""
+
+    try:
+        if default_storage.exists(name):
+            return file_field.url
+    except Exception:
+        pass
+
+    return static(fallback) if fallback else ""
+
+
 def site_settings(request):
     """
     Provides SITE to all templates.
@@ -74,6 +93,8 @@ def site_settings(request):
         setattr(site, "is_preview", False)
 
     breadcrumbs = _build_breadcrumbs(request.path)
+    logo_url = _resolve_media_url(site.logo, "images/logo.png")
+    background_url = _resolve_media_url(site.background_image)
 
     try:
         portal_home_url = reverse("portal:home")
@@ -86,6 +107,8 @@ def site_settings(request):
         "SITE_THEME": site.active_theme,
         "REPORT_DOWNLOADS_ENABLED": site.report_downloads_enabled,
         "BREADCRUMBS": breadcrumbs,
+        "SITE_LOGO_URL": logo_url,
+        "SITE_BACKGROUND_URL": background_url,
         "portal_home_url": portal_home_url,
     }
 

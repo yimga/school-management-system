@@ -69,9 +69,9 @@
           <p class="sub text-uppercase small">{{ report_style.header_tagline }}</p>
         {% endif %}
       </div>
-      {% if SITE.logo %}
+      {% if SITE_LOGO_URL %}
         <div style="text-align:center;">
-          <img src="{{ SITE.logo.url }}" alt="logo" style="height:80px;"/>
+          <img src="{{ SITE_LOGO_URL }}" alt="logo" style="height:80px;"/>
           <div class="small text-muted">{{ metadata.ministry }}</div>
         </div>
       {% endif %}

@@ -15,3 +15,17 @@ def split(value, delimiter="/"):
         return []
 
     return [segment for segment in parts if segment]
+
+
+@register.filter
+def breadcrumb_label(value):
+    """Convert slug/path parts into human-readable text (spaces + title case)."""
+    if value is None:
+        return ""
+
+    try:
+        label = str(value)
+        label = label.replace("_", " ").replace("-", " ")
+        return label.title()
+    except Exception:
+        return value
