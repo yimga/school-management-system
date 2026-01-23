@@ -31,7 +31,7 @@
         {% for part in path_parts %}
           {% if part %}
             <li class="breadcrumb-item{% if forloop.last %} active{% endif %}" {% if forloop.last %}aria-current="page"{% endif %}>
-              <span>{{ part|title|replace:"_":" "|replace:"-":" " }}</span>
+              <span>{{ part|breadcrumb_label }}</span>
             </li>
           {% endif %}
         {% endfor %}
