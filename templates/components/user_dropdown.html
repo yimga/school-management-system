@@ -104,18 +104,21 @@
           <span>Django Admin</span>
         </a>
       </li>
-      <li>
-        <a class="dropdown-item" href="{% url 'admin:activity_logs' %}">
-          <i class="bi bi-clock-history"></i>
-          <span>Activity Logs</span>
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="{% url 'admin:system_health' %}">
-          <i class="bi bi-heart-pulse"></i>
-          <span>System Health</span>
-        </a>
-      </li>
+      {% comment %} Activity logs and system health links are custom admin URLs {% endcomment %}
+      {% if request.user.is_staff %}
+        <li>
+          <a class="dropdown-item" href="/compliance/access-logs/">
+            <i class="bi bi-clock-history"></i>
+            <span>Activity Logs</span>
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="/health/">
+            <i class="bi bi-heart-pulse"></i>
+            <span>System Health</span>
+          </a>
+        </li>
+      {% endif %}
       {% endif %}
 
       <li><hr class="dropdown-divider"></li>
