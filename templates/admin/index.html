@@ -6,23 +6,22 @@
  {% admin_kpis as kpis %}
 
  <style>
-  .admin-layout {display:grid;grid-template-columns:270px 1fr;gap:20px;padding:0;}
-  .admin-sidebar {background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:#e2e8f0;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-height:calc(100vh - 60px);overflow-y:auto;max-height:calc(100vh - 60px);}
-  .sidebar-header {display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;border:1px solid rgba(255,255,255,0.08);margin-bottom:8px;}
-  .sidebar-header img {width:48px;height:48px;object-fit:contain;border-radius:8px;background:#fff;padding:4px;}
-  .sidebar-brand h6 {margin:0;font-size:15px;font-weight:600;color:#f1f5f9;}
-  .sidebar-brand small {font-size:11px;color:#94a3b8;}
-  .sidebar-section {margin-top:8px;}
-  .sidebar-section:first-of-type {margin-top:0;}
-  .sidebar-section-title {font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#64748b;margin-bottom:6px;font-weight:600;padding:0 4px;}
-  .sidebar-link {display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;color:#e2e8f0;text-decoration:none;transition:all 0.2s;font-size:13px;}
-  .sidebar-link:hover {background:rgba(255,255,255,0.1);color:#fff;transform:translateX(3px);}
-  .sidebar-link.active {background:rgba(99,102,241,0.2);color:#a5b4fc;border-left:3px solid #6366f1;}
-  .sidebar-footer {margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);}
-  .status-grid {display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-  .status-badge {background:rgba(255,255,255,0.08);padding:5px 8px;border-radius:6px;font-size:10px;text-align:center;border:1px solid rgba(255,255,255,0.05);}
-  .admin-content {background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
-  @media (max-width:992px) {.admin-layout {grid-template-columns:1fr;}.admin-sidebar {min-height:auto;max-height:none;}}
+  .admin-layout {display:grid;grid-template-columns:260px 1fr;gap:12px;padding:12px;}
+  .admin-sidebar {background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:#e2e8f0;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;box-shadow:0 2px 10px rgba(0,0,0,0.1);position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;}
+  .sidebar-header {display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:4px;}
+  .sidebar-header img {width:36px;height:36px;object-fit:contain;border-radius:6px;background:#fff;padding:2px;}
+  .sidebar-brand h6 {margin:0;font-size:12px;font-weight:600;color:#f1f5f9;}
+  .sidebar-brand small {font-size:9px;color:#94a3b8;}
+  .sidebar-section {margin-top:4px;}
+  .sidebar-section-title {font-size:8px;text-transform:uppercase;letter-spacing:0.08em;color:#64748b;margin-bottom:3px;font-weight:600;padding:0 4px;}
+  .sidebar-link {display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;color:#e2e8f0;text-decoration:none;transition:all 0.15s;font-size:11px;}
+  .sidebar-link:hover {background:rgba(255,255,255,0.08);}
+  .sidebar-link.active {background:rgba(99,102,241,0.2);color:#a5b4fc;border-left:2px solid #6366f1;padding-left:6px;}
+  .sidebar-footer {margin-top:auto;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05);}
+  .status-badge {background:rgba(255,255,255,0.06);padding:3px 6px;border-radius:4px;font-size:8px;border:none;}
+  .admin-content {background:#fff;border-radius:10px;padding:12px;box-shadow:0 1px 8px rgba(0,0,0,0.03);overflow-y:auto;max-height:calc(100vh - 24px);}
+  #footer {display:none !important;}
+  @media (max-width:992px) {.admin-layout {grid-template-columns:1fr;}.admin-sidebar {position:relative;max-height:none;top:auto;}.admin-content {max-height:none;}}
  </style>
 
   <div class="admin-layout">
@@ -124,26 +123,18 @@
     </aside>
 
     <main class="admin-content">
-      <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
-        <div>
-          <h5 class="mb-1">{{ SITE.site_name|default:"Gilead School System" }}</h5>
-          <div class="text-muted small">{{ SITE.company_phone|default:"N/A" }} • {{ SITE.company_email|default:"support@school.com" }}</div>
-        </div>
-        <div class="text-muted small text-end">
-          <div class="fw-semibold">Admin Configuration</div>
-          <div>Back-office controls</div>
-        </div>
+      <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #e5e7eb;">
+        <h6 style="margin:0;font-size:13px;font-weight:600;">{{ SITE.site_name|default:"Gilead School System" }}</h6>
+        <div style="color:#6b7280;font-size:10px;">{{ SITE.company_phone|default:"N/A" }} • {{ SITE.company_email|default:"support@school.com" }}</div>
       </div>
 
-      <header class="admin-header">
-        <div>
-          <div class="breadcrumbs text-muted">Home / Portal / Analytics</div>
-          <h1>Analytics Dashboard</h1>
-          <div class="text-muted">School-wide performance insights based on submitted scores.</div>
-        </div>
-        <div class="admin-header-actions">
-          <a href="{% url 'analytics:master_sheet' %}" class="btn btn-pill btn-outline-secondary">Master Sheet</a>
-          <a href="{% url 'analytics:deadlines' %}" class="btn btn-pill btn-outline-secondary">Grading Deadlines</a>
+      <header style="padding:0 0 8px 0;margin-bottom:8px;border-bottom:1px solid #e5e7eb;">
+        <div style="color:#6b7280;font-size:10px;margin-bottom:1px;">Home / Portal / Analytics</div>
+        <h2 style="font-size:17px;margin:0;margin-bottom:2px;font-weight:600;">Analytics Dashboard</h2>
+        <div style="color:#6b7280;font-size:10px;margin-bottom:6px;">School-wide performance insights based on submitted scores.</div>
+        <div style="display:flex;gap:6px;">
+          <a href="{% url 'analytics:master_sheet' %}" class="btn btn-sm btn-outline-secondary" style="padding:4px 10px;font-size:11px;">Master Sheet</a>
+          <a href="{% url 'analytics:deadlines' %}" class="btn btn-sm btn-outline-secondary" style="padding:4px 10px;font-size:11px;">Grading Deadlines</a>
         </div>
       </header>
 
