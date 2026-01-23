@@ -78,9 +78,9 @@
         <div class="chart-header">
             <h2>Audit Activity Trend (30 Days)</h2>
             <div class="chart-actions">
-                <a class="chip" href="{% url 'compliance_reporting:audit_trail' %}?days=7">7d</a>
-                <a class="chip" href="{% url 'compliance_reporting:audit_trail' %}?days=30">30d</a>
-                <a class="chip" href="{% url 'compliance_reporting:audit_trail' %}?days=90">90d</a>
+                <a class="chip" href="{% url 'compliance:compliance_reporting:audit_trail' %}?days=7">7d</a>
+                <a class="chip" href="{% url 'compliance:compliance_reporting:audit_trail' %}?days=30">30d</a>
+                <a class="chip" href="{% url 'compliance:compliance_reporting:audit_trail' %}?days=90">90d</a>
             </div>
         </div>
         <div class="chart-container">
@@ -99,8 +99,8 @@
         <div class="chart-header">
             <h2>Login Activity Heatmap ({{ user_activity_heatmap.period }})</h2>
             <div class="chart-actions">
-                <a class="chip" href="{% url 'compliance_reporting:data_access' %}?days=7">7d</a>
-                <a class="chip" href="{% url 'compliance_reporting:data_access' %}?days=30">30d</a>
+                <a class="chip" href="{% url 'compliance:compliance_reporting:data_access' %}?days=7">7d</a>
+                <a class="chip" href="{% url 'compliance:compliance_reporting:data_access' %}?days=30">30d</a>
             </div>
         </div>
         <div class="chart-container">
@@ -335,18 +335,18 @@
     <div class="section quick-links">
         <h2>Quick Links</h2>
         <div class="link-grid">
-            <a href="{% url 'compliance_reporting:audit_trail' %}" class="link-btn">📋 Audit Trail</a>
-            <a href="{% url 'compliance_reporting:data_access' %}" class="link-btn">📊 Data Access</a>
-            <a href="{% url 'compliance_reporting:permissions' %}" class="link-btn">🔐 Permissions</a>
-            <a href="{% url 'compliance_reporting:integrity_check' %}" class="link-btn">✓ Integrity Check</a>
-            <a href="{% url 'compliance_reporting:anomalies' %}" class="link-btn">⚠️ Anomalies</a>
+            <a href="{% url 'compliance:compliance_reporting:audit_trail' %}" class="link-btn">📋 Audit Trail</a>
+            <a href="{% url 'compliance:compliance_reporting:data_access' %}" class="link-btn">📊 Data Access</a>
+            <a href="{% url 'compliance:compliance_reporting:permissions' %}" class="link-btn">🔐 Permissions</a>
+            <a href="{% url 'compliance:compliance_reporting:integrity_check' %}" class="link-btn">✓ Integrity Check</a>
+            <a href="{% url 'compliance:compliance_reporting:anomalies' %}" class="link-btn">⚠️ Anomalies</a>
             <a href="{% url 'admin:compliance_compliancereport_changelist' %}" class="link-btn">📑 Reports</a>
         </div>
         <div class="export-links">
             <span class="export-label">Export shortcuts:</span>
-            <a href="{% url 'compliance_reporting:export' %}?type=audit_trail&format=csv&days=30" class="chip">Audit CSV</a>
-            <a href="{% url 'compliance_reporting:export' %}?type=access_log&format=csv&days=30" class="chip">Access CSV</a>
-            <a href="{% url 'compliance_reporting:export' %}?type=audit_trail&format=pdf&days=30" class="chip">Audit PDF</a>
+            <a href="{% url 'compliance:compliance_reporting:export' %}?type=audit_trail&format=csv&days=30" class="chip">Audit CSV</a>
+            <a href="{% url 'compliance:compliance_reporting:export' %}?type=access_log&format=csv&days=30" class="chip">Access CSV</a>
+            <a href="{% url 'compliance:compliance_reporting:export' %}?type=audit_trail&format=pdf&days=30" class="chip">Audit PDF</a>
         </div>
     </div>
 </div>
