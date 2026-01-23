@@ -145,7 +145,7 @@
     </div>
     
     <div class="admin-nav-bridge__actions">
-        <a href="{% url 'portal:home' %}" class="admin-nav-bridge__home-btn">
+        <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">
             Portal Home
         </a>
         

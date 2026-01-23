@@ -1,7 +1,6 @@
 from django.urls import path
 
 from .views import (
-    portal_home,
     parent_dashboard,
     parent_child_results,
     portal_feature_page,
@@ -22,7 +21,6 @@ from .views import (
 app_name = "portal"
 
 urlpatterns = [
-    path("", portal_home, name="home"),
     path("parent/", parent_dashboard, name="parent_dashboard"),
     path("parent/results/<int:student_id>/", parent_child_results, name="parent_child_results"),
     path("parent/link-child/", link_child, name="link_child"),

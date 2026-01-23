@@ -1,0 +1,17 @@
+from django import template
+
+register = template.Library()
+
+
+@register.filter
+def split(value, delimiter="/"):
+    """Split strings inside templates while skipping empty segments."""
+    if value is None:
+        return []
+
+    try:
+        parts = str(value).split(delimiter)
+    except Exception:
+        return []
+
+    return [segment for segment in parts if segment]
