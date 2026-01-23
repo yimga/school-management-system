@@ -6,22 +6,23 @@
  {% admin_kpis as kpis %}
 
  <style>
-  .admin-layout {display:grid;grid-template-columns:250px 1fr;gap:20px;padding:0;}
-  .admin-sidebar {background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:#e2e8f0;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-height:calc(100vh - 60px);}
-  .sidebar-header {display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;border:1px solid rgba(255,255,255,0.08);}
+  .admin-layout {display:grid;grid-template-columns:270px 1fr;gap:20px;padding:0;}
+  .admin-sidebar {background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);color:#e2e8f0;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-height:calc(100vh - 60px);overflow-y:auto;max-height:calc(100vh - 60px);}
+  .sidebar-header {display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.06);border-radius:10px;border:1px solid rgba(255,255,255,0.08);margin-bottom:8px;}
   .sidebar-header img {width:48px;height:48px;object-fit:contain;border-radius:8px;background:#fff;padding:4px;}
   .sidebar-brand h6 {margin:0;font-size:15px;font-weight:600;color:#f1f5f9;}
   .sidebar-brand small {font-size:11px;color:#94a3b8;}
-  .sidebar-section {margin-top:16px;}
-  .sidebar-section-title {font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#64748b;margin-bottom:8px;font-weight:600;}
-  .sidebar-link {display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:#e2e8f0;text-decoration:none;transition:all 0.2s;font-size:14px;}
+  .sidebar-section {margin-top:8px;}
+  .sidebar-section:first-of-type {margin-top:0;}
+  .sidebar-section-title {font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#64748b;margin-bottom:6px;font-weight:600;padding:0 4px;}
+  .sidebar-link {display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;color:#e2e8f0;text-decoration:none;transition:all 0.2s;font-size:13px;}
   .sidebar-link:hover {background:rgba(255,255,255,0.1);color:#fff;transform:translateX(3px);}
   .sidebar-link.active {background:rgba(99,102,241,0.2);color:#a5b4fc;border-left:3px solid #6366f1;}
-  .sidebar-footer {margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);}
-  .status-grid {display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-  .status-badge {background:rgba(255,255,255,0.08);padding:6px 10px;border-radius:6px;font-size:11px;text-align:center;border:1px solid rgba(255,255,255,0.05);}
+  .sidebar-footer {margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);}
+  .status-grid {display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .status-badge {background:rgba(255,255,255,0.08);padding:5px 8px;border-radius:6px;font-size:10px;text-align:center;border:1px solid rgba(255,255,255,0.05);}
   .admin-content {background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
-  @media (max-width:992px) {.admin-layout {grid-template-columns:1fr;}.admin-sidebar {min-height:auto;}}
+  @media (max-width:992px) {.admin-layout {grid-template-columns:1fr;}.admin-sidebar {min-height:auto;max-height:none;}}
  </style>
 
   <div class="admin-layout">
@@ -52,6 +53,48 @@
       </div>
 
       <div class="sidebar-section">
+        <div class="sidebar-section-title">Core Modules</div>
+        <a href="/admin/accounts/" class="sidebar-link">
+          <span>👥</span> Accounts & Users
+        </a>
+        <a href="/admin/students/" class="sidebar-link">
+          <span>🎓</span> Students
+        </a>
+        <a href="/admin/academics/" class="sidebar-link">
+          <span>📚</span> Academics
+        </a>
+        <a href="/admin/attendance/" class="sidebar-link">
+          <span>📋</span> Attendance
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Financial</div>
+        <a href="{% url 'finance:dashboard' %}" class="sidebar-link">
+          <span>💰</span> Finance & Billing
+        </a>
+        <a href="{% url 'payroll:dashboard' %}" class="sidebar-link">
+          <span>💵</span> Payroll
+        </a>
+        <a href="/admin/invoicing/" class="sidebar-link">
+          <span>🧾</span> Invoicing
+        </a>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Reports & Data</div>
+        <a href="{% url 'reports:publish_term_results' %}" class="sidebar-link">
+          <span>📑</span> Reports & Publishing
+        </a>
+        <a href="{% url 'analytics:dashboard' %}" class="sidebar-link">
+          <span>📈</span> Analytics
+        </a>
+        <a href="/admin/evals/" class="sidebar-link">
+          <span>📝</span> Evaluations
+        </a>
+      </div>
+
+      <div class="sidebar-section">
         <div class="sidebar-section-title">Portals</div>
         <a href="{% url 'portal:parent_dashboard' %}" class="sidebar-link">
           <span>👪</span> Parent Portal
@@ -62,18 +105,12 @@
       </div>
 
       <div class="sidebar-section">
-        <div class="sidebar-section-title">Modules</div>
-        <a href="{% url 'reports:publish_term_results' %}" class="sidebar-link">
-          <span>📑</span> Reports & Publishing
-        </a>
-        <a href="{% url 'finance:dashboard' %}" class="sidebar-link">
-          <span>💰</span> Finance & Billing
-        </a>
+        <div class="sidebar-section-title">System</div>
         <a href="{% url 'compliance:dashboard' %}" class="sidebar-link">
           <span>🛡️</span> Compliance
         </a>
-        <a href="{% url 'analytics:dashboard' %}" class="sidebar-link">
-          <span>📈</span> Analytics
+        <a href="/admin/siteconfig/" class="sidebar-link">
+          <span>⚙️</span> Configuration
         </a>
       </div>
 
