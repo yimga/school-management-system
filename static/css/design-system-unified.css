@@ -1,0 +1,405 @@
+/* ============================================
+   UNIFIED DESIGN SYSTEM - GILEAD ADMIN & PORTAL
+   Single source of truth for all styling
+   Import this FIRST in all templates before any other CSS
+   ============================================ */
+
+:root {
+  /* ============================================
+     PRIMARY COLOR PALETTE - 2026 Gilead Colors
+     ============================================ */
+  
+  /* Primary: Warm Pink */
+  --color-primary: #ff6a88;
+  --color-primary-light: #ffb3c1;
+  --color-primary-dark: #ff3b5f;
+  
+  /* Secondary: Purple */
+  --color-secondary: #9b6bff;
+  --color-secondary-light: #c4a5ff;
+  --color-secondary-dark: #7040d8;
+  
+  /* Accent: Teal/Mint */
+  --color-accent: #2dd4bf;
+  --color-accent-light: #76ead6;
+  --color-accent-dark: #1ba896;
+  
+  /* Text & Background */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #22314e;
+  --color-text-muted: #6b7280;
+  
+  --color-bg-primary: #ffffff;
+  --color-bg-light: #f8fafc;
+  --color-bg-lighter: #f0f4f8;
+  --color-bg-dark: #1a1f3a;
+  
+  /* Borders */
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-light: rgba(15, 23, 42, 0.04);
+  
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-success-light: rgba(16, 185, 129, 0.1);
+  
+  --color-warning: #f59e0b;
+  --color-warning-light: rgba(245, 158, 11, 0.1);
+  
+  --color-danger: #ef4444;
+  --color-danger-light: rgba(239, 68, 68, 0.1);
+  
+  --color-info: #3b82f6;
+  --color-info-light: rgba(59, 130, 246, 0.1);
+  
+  /* ============================================
+     SPACING SCALE - 4px base unit
+     ============================================ */
+  --spacing-xs: 0.25rem;      /* 4px */
+  --spacing-sm: 0.5rem;       /* 8px */
+  --spacing-md: 1rem;         /* 16px */
+  --spacing-lg: 1.5rem;       /* 24px */
+  --spacing-xl: 2rem;         /* 32px */
+  --spacing-2xl: 3rem;        /* 48px */
+  --spacing-3xl: 4rem;        /* 64px */
+  
+  /* ============================================
+     BORDER RADIUS SCALE
+     ============================================ */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 999px;
+  
+  /* ============================================
+     SHADOWS - Consistent elevation system
+     ============================================ */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.15);
+  --shadow-xl: 0 18px 48px rgba(15, 23, 42, 0.2);
+  --shadow-2xl: 0 25px 60px rgba(15, 23, 42, 0.25);
+  
+  /* Inset shadows for card borders */
+  --shadow-inset-light: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  --shadow-inset-border: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  
+  /* ============================================
+     TYPOGRAPHY - Font family + sizing scale
+     ============================================ */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-md: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.5rem;     /* 24px */
+  --font-size-2xl: 2rem;      /* 32px */
+  --font-size-3xl: 2.5rem;    /* 40px */
+  
+  /* Font weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-loose: 1.75;
+  
+  /* Letter spacing */
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.1em;
+  --letter-spacing-wider: 0.2em;
+  
+  /* ============================================
+     TRANSITIONS & ANIMATIONS
+     ============================================ */
+  --transition-duration: 0.3s;
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  --transition-colors: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  --transition-transform: transform 0.3s ease;
+  --transition-all: all 0.3s ease;
+  
+  /* ============================================
+     Z-INDEX SCALE - Hierarchical stacking
+     ============================================ */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-navigation: 1100;
+  
+  /* ============================================
+     RESPONSIVE BREAKPOINTS
+     ============================================ */
+  --breakpoint-sm: 480px;     /* Mobile */
+  --breakpoint-md: 768px;     /* Tablet */
+  --breakpoint-lg: 1024px;    /* Tablet landscape */
+  --breakpoint-xl: 1440px;    /* Desktop */
+  --breakpoint-2xl: 1920px;   /* Large desktop */
+}
+
+/* ============================================
+   DARK MODE - Respects user preference
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text-primary: #f0f4f8;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #94a3b8;
+    
+    --color-bg-primary: #1a1f3a;
+    --color-bg-light: #252d48;
+    --color-bg-lighter: #3f4765;
+    
+    --color-border: rgba(240, 244, 248, 0.1);
+    --color-border-light: rgba(240, 244, 248, 0.05);
+    
+    /* Status colors adapt for dark mode */
+    --color-success-light: rgba(16, 185, 129, 0.2);
+    --color-warning-light: rgba(245, 158, 11, 0.2);
+    --color-danger-light: rgba(239, 68, 68, 0.2);
+    --color-info-light: rgba(59, 130, 246, 0.2);
+  }
+}
+
+/* ============================================
+   BASE STYLES - Apply design system globally
+   ============================================ */
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  line-height: var(--line-height-tight);
+  font-weight: var(--font-weight-bold);
+}
+
+h1 {
+  font-size: var(--font-size-2xl);
+}
+
+h2 {
+  font-size: var(--font-size-xl);
+}
+
+h3 {
+  font-size: var(--font-size-lg);
+}
+
+h4, h5, h6 {
+  font-size: var(--font-size-md);
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: var(--transition-colors);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+}
+
+/* Focus states */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* Scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ============================================
+   UTILITY CLASSES - For rapid development
+   ============================================ */
+
+/* Visibility */
+.hidden {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+/* Text utilities */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.uppercase {
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* Opacity */
+.opacity-75 {
+  opacity: 0.75;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+/* Display */
+.flex {
+  display: flex;
+}
+
+.grid {
+  display: grid;
+}
+
+.block {
+  display: block;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+.gap-lg {
+  gap: var(--spacing-lg);
+}
+
+/* Margin & Padding */
+.m-0 {
+  margin: 0;
+}
+
+.mb-1 {
+  margin-bottom: var(--spacing-xs);
+}
+
+.mb-2 {
+  margin-bottom: var(--spacing-sm);
+}
+
+.mb-3 {
+  margin-bottom: var(--spacing-md);
+}
+
+.mb-4 {
+  margin-bottom: var(--spacing-lg);
+}
+
+.mt-2 {
+  margin-top: var(--spacing-sm);
+}
+
+.mt-3 {
+  margin-top: var(--spacing-md);
+}
+
+.p-2 {
+  padding: var(--spacing-sm);
+}
+
+.p-3 {
+  padding: var(--spacing-md);
+}
+
+.p-4 {
+  padding: var(--spacing-lg);
+}
+
+.px-2 {
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+}
+
+.py-2 {
+  padding-top: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+}
+
+/* Width utilities */
+.w-100 {
+  width: 100%;
+}
+
+.max-w-full {
+  max-width: 100%;
+}
+
+/* Borders */
+.border-top {
+  border-top: 1px solid var(--color-border);
+}
+
+.border-bottom {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.rounded-2xl {
+  border-radius: var(--radius-2xl);
+}

@@ -3,8 +3,19 @@
 
 {% block extrastyle %}
   {{ block.super }}
+  <!-- UNIFIED DESIGN SYSTEM - Load first, defines all CSS variables -->
+  <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
+  
+  <!-- COMPONENT LIBRARY - Reusable components using design system variables -->
+  <link rel="stylesheet" href="{% static 'css/admin-components.css' %}">
+  
+  <!-- ADMIN-SPECIFIC CUSTOMIZATIONS -->
   <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
+  
+  <!-- DASHBOARD LAYOUT - Dashboard-specific styles and responsive design -->
+  <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
 {% endblock %}
 
 {% block extrahead %}
