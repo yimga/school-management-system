@@ -45,6 +45,11 @@ urlpatterns = [
     # Health and metrics
     path('healthz/', obs_views.healthz, name='healthz'),
     path('metrics/', obs_views.metrics, name='metrics'),
+    
+    # API endpoints for admin dashboard
+    path('api/health/', obs_views.api_health, name='api_health'),
+    path('api/notifications/', obs_views.api_notifications, name='api_notifications'),
+    path('api/notifications/mark-all-read/', obs_views.api_notifications_mark_all_read, name='api_notifications_mark_all_read'),
 
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),

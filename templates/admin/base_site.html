@@ -16,6 +16,9 @@
   
   <!-- DASHBOARD LAYOUT - Dashboard-specific styles and responsive design -->
   <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
+  
+  <!-- Bootstrap 5 CSS (if not already loaded by Unfold) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 {% endblock %}
 
 {% block extrahead %}
@@ -189,6 +192,9 @@
     | <kbd>Ctrl+R</kbd> to refresh counts
     | <kbd>f</kbd> to focus search
   </div>
+  
+  <!-- Bootstrap 5 JS Bundle (required for modals, dropdowns, etc.) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
   <style>
     .admin-hint {
