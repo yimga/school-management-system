@@ -1,6 +1,30 @@
+<div class="portal-sidebar-wrapper">
+<div class="portal-sidebar-content">
+</div>
+<div class="portal-sidebar-footer">
+</div>
+</div>
 {% load static %}
 
 <style>
+  .portal-sidebar-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .portal-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .portal-sidebar-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
   .sidebar-header {
     padding: 0.75rem 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
