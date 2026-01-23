@@ -156,7 +156,27 @@
           <i class="bi bi-list"></i>
         </button>
 
-        <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+        {% url 'accounts:backend_dashboard' as backend_url %}
+        {% url 'portal:teacher_dashboard' as teacher_url %}
+        {% url 'portal:parent_dashboard' as parent_url %}
+        {% url 'evals:teacher_dashboard' as teacher_evals_url %}
+        {% url 'portal:teacher_dashboard_alias' as teacher_alias_url %}
+        {% url 'finance:dashboard' as finance_url %}
+        {% url 'payroll:dashboard' as payroll_url %}
+        {% url 'analytics:dashboard' as analytics_url %}
+        {% url 'compliance:dashboard' as compliance_url %}
+        
+        {% if request.user.role == 'ADMIN' or request.user.is_staff %}
+          {% set role_home=backend_url %}
+        {% elif request.user.role == 'TEACHER' %}
+          {% set role_home=teacher_url %}
+        {% elif request.user.role == 'PARENT' %}
+          {% set role_home=parent_url %}
+        {% else %}
+          {% set role_home='/' %}
+        {% endif %}
+
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ role_home|default:'/' }}" title="Back to your home dashboard">
           {% if SITE_LOGO_URL %}
             <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
           {% else %}
@@ -177,10 +197,10 @@
     </nav>
 
     <div class="container-fluid px-3 py-3">
-      <div class="row g-3">
+      <div class="row g-3" style="min-height: calc(100vh - 140px); display: flex;">
         <!-- Sidebar (desktop) -->
-        <div class="col-lg-3 col-xl-2 d-none d-lg-block">
-          <div class="sidebar p-3">
+        <div class="col-lg-3 col-xl-2 d-none d-lg-block d-flex flex-column">
+          <div class="sidebar p-3 d-flex flex-column h-100">
             {% include "partials/portal_sidebar.html" %}
           </div>
         </div>

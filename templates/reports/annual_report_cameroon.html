@@ -4,22 +4,99 @@
   <meta charset="utf-8" />
   {% include "reports/_report_styles.html" %}
   <style>
-    body { background:#f7f8fb; }
-    .cameroon-head { margin-bottom:18px; }
-    .cameroon-head h1 { font-size:20pt; color: var(--report-accent); margin-bottom:0; }
-    .cameroon-table { width:100%; border-collapse:collapse; background:#fff; border-radius:14px; overflow:hidden; box-shadow: 0 8px 20px rgba(0,0,0,.08); }
-    .cameroon-table th, .cameroon-table td { padding:8px 6px; border-bottom:1px solid #e6e6e9; }
-    .cameroon-table th { background:#f0f3fb; text-transform:uppercase; font-size:9pt; }
-    .summary-panel { margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; }
-    .summary-card { flex:1; min-width:200px; background:#fff; border-radius:12px; padding:12px; border:1px solid #e0e2e9; box-shadow: inset 0 0 0 1px rgba(0,0,0,.03); }
+    body { 
+      background: #f7f8fb;
+      {% if SITE.logo %}
+        background-image: url('{{ SITE.logo.url }}');
+        background-attachment: fixed;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 20%;
+        background-opacity: 0.03;
+      {% endif %}
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      {% if SITE.logo %}
+        background-image: url('{{ SITE.logo.url }}');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 25%;
+        background-attachment: fixed;
+        opacity: 0.05;
+        z-index: -1;
+        pointer-events: none;
+      {% endif %}
+    }
+    
+    .cameroon-head { 
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+    .cameroon-head h1 { 
+      font-size: 20pt; 
+      color: var(--report-accent); 
+      margin-bottom: 0; 
+    }
+    .cameroon-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      background: #fff; 
+      border-radius: 14px; 
+      overflow: hidden; 
+      box-shadow: 0 8px 20px rgba(0,0,0,.08);
+      position: relative;
+      z-index: 1;
+    }
+    .cameroon-table th, .cameroon-table td { 
+      padding: 8px 6px; 
+      border-bottom: 1px solid #e6e6e9; 
+    }
+    .cameroon-table th { 
+      background: #f0f3fb; 
+      text-transform: uppercase; 
+      font-size: 9pt; 
+    }
+    .summary-panel { 
+      margin-top: 12px; 
+      display: flex; 
+      gap: 12px; 
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+    .summary-card { 
+      flex: 1; 
+      min-width: 200px; 
+      background: #fff; 
+      border-radius: 12px; 
+      padding: 12px; 
+      border: 1px solid #e0e2e9; 
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.03); 
+    }
   </style>
 </head>
 <body>
   <div class="cameroon-head">
     <h1>{{ SITE.site_name|default:"Gilead School System" }}</h1>
-    <p class="small text-muted">{{ SITE.region }} · {{ metadata.ministry }}</p>
+    <p class="small text-muted">{{ SITE.region|default:"Small Soppo Buea" }} · {{ SITE.ministry|default:"Ministry of Secondary Education" }}</p>
     {% if report_style and report_style.header_tagline %}
       <p class="small text-uppercase text-muted">{{ report_style.header_tagline }}</p>
+    {% endif %}
+    <!-- School Contact -->
+    {% if SITE.company_email or SITE.company_phone %}
+      <div style="margin-top: 6px; font-size: 8pt; color: #666;">
+        {% if SITE.company_email %}<span>{{ SITE.company_email }}</span>{% endif %}
+        {% if SITE.company_email and SITE.company_phone %} | {% endif %}
+        {% if SITE.company_phone %}<span>{{ SITE.company_phone }}</span>{% endif %}
+      </div>
     {% endif %}
   </div>
 
