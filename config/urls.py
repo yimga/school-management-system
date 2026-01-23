@@ -33,21 +33,14 @@ def admin_siteconfig_customizer_redirect(request):
     return redirect('/siteconfig/customizer/')
 
 
-def old_backend_redirect(request):
-    """Redirect from old /authentication/backend/ to new /admin/ URL."""
-    return redirect('/admin/', permanent=True)
-
-
 urlpatterns = [
     path('', home, name='home'),
 
     # Admin interfaces - /admin/ only for superuser/staff
     path('admin/', admin_site.urls),
     
-    # Backward compatibility redirects
-    path('backend/', lambda request: redirect('/authentication/login/', permanent=True)),
-    path('authentication/backend/', old_backend_redirect),
-    path('authentication/backend-dashboard/', old_backend_redirect),
+    # Frontend admin dashboard - separate from /admin/
+    path('backend/', lambda request: redirect('/authentication/backend/', permanent=False)),
 
     # Health and metrics
     path('healthz/', obs_views.healthz, name='healthz'),
