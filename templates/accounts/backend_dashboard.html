@@ -462,6 +462,10 @@
           <span class="small text-muted">Denied</span>
           <span class="badge bg-light text-dark" id="copilotDeniedBadge">0</span>
         </div>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <span class="small text-muted">Config</span>
+          <span class="badge bg-light text-dark" id="copilotConfigBadge">Disabled</span>
+        </div>
       </div>
     </div>
 
@@ -599,6 +603,26 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadCopilotMetrics);
+
+    async function loadCopilotConfig() {
+      const badge = document.getElementById('copilotConfigBadge');
+      if (!badge) return;
+      try {
+        const res = await fetch('/api/ai-copilot/config/');
+        const data = await res.json();
+        if (!data || !data.success) {
+          badge.textContent = 'Unavailable';
+          return;
+        }
+        const enabled = !!data.enabled;
+        const model = data.model ? String(data.model) : '—';
+        badge.textContent = enabled ? `Enabled (${model})` : 'Disabled';
+      } catch (e) {
+        badge.textContent = 'Error';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCopilotConfig);
 
     async function loadCopilotAudit() {
       const auditList = document.getElementById('copilotAuditList');
