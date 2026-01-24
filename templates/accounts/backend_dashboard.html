@@ -425,28 +425,6 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Operations Dashboard Header -->
-  <div style="background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); padding: 1rem 1.5rem; margin: -18px -18px 0 -18px; border-radius: 20px 20px 0 0; color: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <h5 style="margin: 0; font-weight: 700; font-size: 1.25rem;">Operations Dashboard</h5>
-      <small style="opacity: 0.9;">{{ "now"|date:"l, F j, Y - g:i A" }}</small>
-    </div>
-    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-      <div class="badge bg-white text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem; font-weight: 600;">
-        <i class="bi bi-mortarboard me-1"></i>
-        STUDENTS <span style="margin-left: 0.3rem; background: #667eea; color: white; padding: 0.1rem 0.4rem; border-radius: 3px;">{{ student_count|default:0 }}</span>
-      </div>
-      <div class="badge bg-white text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem; font-weight: 600;">
-        <i class="bi bi-person-workspace me-1"></i>
-        TEACHERS <span style="margin-left: 0.3rem; background: #198754; color: white; padding: 0.1rem 0.4rem; border-radius: 3px;">{{ teacher_count|default:0 }}</span>
-      </div>
-      <div class="badge bg-white text-dark" style="padding: 0.5rem 0.75rem; font-size: 0.8rem; font-weight: 600;">
-        <i class="bi bi-hourglass-split me-1"></i>
-        PENDING <span style="margin-left: 0.3rem; background: #ffc107; color: #333; padding: 0.1rem 0.4rem; border-radius: 3px;">${{ pending_amount|default:0 }}</span>
-      </div>
-    </div>
-  </div>
-
   {% include 'components/admin_nav_bridge.html' %}
   
   {% admin_health as health %}
