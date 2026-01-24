@@ -441,6 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const sendBtn = document.getElementById('aiCopilotSend');
   const body = document.getElementById('aiCopilotBody');
   const quickBtns = document.querySelectorAll('.ai-quick-btn');
+  const shortcutHint = document.querySelector('.ai-shortcut-hint');
 
   // Get API key from Django settings (passed via context or data attribute)
   const GEMINI_API_KEY = '{{ GEMINI_API_KEY|default:"" }}';
@@ -724,5 +725,24 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+
+  // Hint badge: fade out after first view
+  (function handleShortcutHint() {
+    if (!shortcutHint) return;
+    const HINT_KEY = 'ai-shortcut-hint-seen';
+    const seen = localStorage.getItem(HINT_KEY) === '1';
+    if (seen) {
+      shortcutHint.style.display = 'none';
+      return;
+    }
+    setTimeout(() => {
+      shortcutHint.style.opacity = '0';
+      shortcutHint.style.transition = 'opacity 0.4s ease';
+      setTimeout(() => {
+        shortcutHint.style.display = 'none';
+        localStorage.setItem(HINT_KEY, '1');
+      }, 450);
+    }, 6000);
+  })();
 });
 </script>
