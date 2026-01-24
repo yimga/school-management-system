@@ -40,10 +40,7 @@
   }
 
   .quick-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1.2rem;
-    margin-top: 1.5rem;
+    display: none; /* replaced by status badge bar */
   }
 
   .stat-card {
@@ -254,6 +251,52 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   }
 
+  /* Fee status compact card */
+  .fee-status-card {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 12px;
+  }
+
+  .fee-status-card .small-tile {
+    background: #f8f9fb;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 10px;
+    padding: 8px 6px;
+    min-height: 72px;
+  }
+
+  .fee-status-card .amount {
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1.15;
+  }
+
+  .fee-status-card .label {
+    font-size: 0.72rem;
+    color: #6c757d;
+    letter-spacing: 0.02em;
+  }
+
+  .fee-status-card .btn {
+    height: 38px;
+    padding: 0 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .btn-gradient {
+    background: linear-gradient(90deg, #ff6a88 0%, #9b6bff 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 6px 16px rgba(155, 107, 255, 0.25);
+  }
+
+  .btn-gradient:hover {
+    opacity: 0.95;
+    color: #fff;
+  }
+
   .activity-list {
     list-style: none;
     padding: 0;
@@ -426,10 +469,63 @@
       grid-template-columns: 1fr;
     }
 
-    .quick-stats-grid {
-      grid-template-columns: repeat(2, 1fr);
+    .status-badge-bar {
+      flex-wrap: wrap;
+      gap: 8px 14px;
     }
 
+
+  /* Status Badge Bar - compact horizontal summary */
+  .status-badge-bar {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 10px 12px;
+    border-top: 4px solid transparent;
+    background: #fff;
+    position: relative;
+  }
+
+  .status-badge-bar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6a88 0%, #9b6bff 100%);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: 0.01em;
+  }
+
+  .status-badge i {
+    color: #0f172a;
+  }
+
+  .status-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
+  .count-blue { background: #738ef1; color: #fff; }
+  .count-green { background: #34d399; color: #0f172a; }
+  .count-yellow { background: #facc15; color: #0f172a; }
+  .count-red { background: #f87171; color: #fff; }
     .sidebar-sticky {
       position: static;
       margin-top: 2rem;
@@ -447,22 +543,26 @@
       <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
       <p>Stay updated on your children's progress, attendance, and school activities.</p>
       
-      <div class="quick-stats-grid">
-        <div class="stat-card">
-          <span class="stat-value">{{ links|length }}</span>
-          <span class="stat-label">Children</span>
+      <div class="status-badge-bar">
+        <div class="status-badge">
+          <i class="bi bi-people me-1"></i>
+          <span>STUDENTS</span>
+          <span class="status-count count-blue">{{ links|length|default:0 }}</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-value">{{ widget_data.attendance.overall|default:0 }}%</span>
-          <span class="stat-label">Attendance</span>
+        <div class="status-badge">
+          <i class="bi bi-graph-up-arrow me-1"></i>
+          <span>ATTENDANCE</span>
+          <span class="status-count count-green">{{ widget_data.attendance.overall|default:0 }}%</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-value">{{ widget_data.tasks.pending_evaluations|default:0 }}</span>
-          <span class="stat-label">Pending</span>
+        <div class="status-badge">
+          <i class="bi bi-hourglass-split me-1"></i>
+          <span>PENDING</span>
+          <span class="status-count count-yellow">${{ widget_data.finance.balance|default:"0" }}</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-value">{{ widget_data.finance.balance|default:"0.00" }}</span>
-          <span class="stat-label">Outstanding</span>
+        <div class="status-badge">
+          <i class="bi bi-bell me-1"></i>
+          <span>NOTIFICATIONS</span>
+          <span class="status-count count-red">{{ widget_data.notifications.unread|default:0 }}</span>
         </div>
       </div>
     </div>
@@ -625,47 +725,45 @@
           </div>
         </div>
 
-        <!-- Fee Payment Section -->
-        <div class="metrics-section mt-4">
-          <div class="section-title">
-            <i class="bi bi-credit-card"></i>
-            <span>Fee Payment Status</span>
-          </div>
-          <div class="card">
-            <div class="card-body">
-              <div class="row g-3">
-                <div class="col-md-4">
-                  <div class="text-center p-3 bg-light rounded">
-                    <h3 class="mb-1 text-primary">${{ widget_data.finance.total_fees|default:"0.00" }}</h3>
-                    <div class="small text-muted">Total Fees</div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="text-center p-3 bg-light rounded">
-                    <h3 class="mb-1 text-success">${{ widget_data.finance.paid|default:"0.00" }}</h3>
-                    <div class="small text-muted">Paid</div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="text-center p-3 bg-light rounded">
-                    <h3 class="mb-1 text-danger">${{ widget_data.finance.balance|default:"0.00" }}</h3>
-                    <div class="small text-muted">Outstanding</div>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-3 d-flex gap-2">
-                <a href="#" class="btn btn-primary flex-fill">Make Payment</a>
-                <a href="#" class="btn btn-outline-secondary flex-fill">Payment History</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <!-- Right Column - Sidebar -->
       <div class="col-lg-4">
         <div class="sidebar-sticky">
+
+          <!-- Fee Payment Status (compact) -->
+          <div class="card mb-3 fee-status-card">
+            <div class="card-body py-3">
+              <div class="d-flex align-items-center mb-2">
+                <i class="bi bi-credit-card me-2 text-primary"></i>
+                <span class="fw-semibold">Fee Payment Status</span>
+              </div>
+              <div class="row g-2 align-items-center">
+                <div class="col-4">
+                  <div class="text-center small-tile">
+                    <div class="amount text-primary">${{ widget_data.finance.total_fees|default:"0.00" }}</div>
+                    <div class="label">Total</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="text-center small-tile">
+                    <div class="amount text-success">${{ widget_data.finance.paid|default:"0.00" }}</div>
+                    <div class="label">Paid</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="text-center small-tile">
+                    <div class="amount text-danger">${{ widget_data.finance.balance|default:"0.00" }}</div>
+                    <div class="label">Due</div>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <a href="#" class="btn btn-gradient flex-fill">Make Payment</a>
+                <a href="#" class="btn btn-outline-secondary flex-fill">History</a>
+              </div>
+            </div>
+          </div>
           
           <!-- Quick Actions -->
           <div class="quick-tools-box">
@@ -747,22 +845,7 @@
             </div>
           </div>
 
-          <!-- School Contact -->
-          <div class="contact-box">
-            <div class="contact-title">School Contact</div>
-            <div class="contact-item">
-              <i class="bi bi-telephone"></i>
-              <a href="tel:+1234567890">(123) 456-7890</a>
-            </div>
-            <div class="contact-item">
-              <i class="bi bi-envelope"></i>
-              <a href="mailto:info@school.com">info@school.com</a>
-            </div>
-            <div class="contact-item">
-              <i class="bi bi-geo-alt"></i>
-              <span>123 School St, City</span>
-            </div>
-          </div>
+          
 
         </div>
       </div>

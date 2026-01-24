@@ -116,11 +116,11 @@ class TeacherProfileAdmin(ModelAdmin):
         # Build HTML with optional photo
         if photo_url:
             return format_html(
-                '<div style="display: flex; align-items: center; gap: 10px;">'
-                '<img src="{}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e1e8ed;" />'
-                '<div>'
-                '<div style="font-weight: 600; margin-bottom: 2px;">{}</div>'
-                '<div style="font-size: 11px; color: #6c757d;">{}</div>'
+                '<div class="admin-display-user admin-display-user-large">'
+                '<img src="{}" class="admin-user-avatar admin-user-avatar-large" />'
+                '<div class="admin-user-info">'
+                '<div class="admin-user-name">{}</div>'
+                '<div class="admin-user-meta">{}</div>'
                 '</div>'
                 '</div>',
                 photo_url,
@@ -130,11 +130,11 @@ class TeacherProfileAdmin(ModelAdmin):
         else:
             initials = f"{user.first_name[0]}{user.last_name[0]}".upper() if user.first_name and user.last_name else user.username[:2].upper()
             return format_html(
-                '<div style="display: flex; align-items: center; gap: 10px;">'
-                '<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">{}</div>'
-                '<div>'
-                '<div style="font-weight: 600; margin-bottom: 2px;">{}</div>'
-                '<div style="font-size: 11px; color: #6c757d;">{}</div>'
+                '<div class="admin-display-user admin-display-user-large">'
+                '<div class="admin-user-avatar-fallback admin-user-avatar-fallback-large">{}</div>'
+                '<div class="admin-user-info">'
+                '<div class="admin-user-name">{}</div>'
+                '<div class="admin-user-meta">{}</div>'
                 '</div>'
                 '</div>',
                 initials,
@@ -205,11 +205,11 @@ class StudentProfileAdmin(ModelAdmin):
         # Build HTML with optional photo
         if photo_url:
             return format_html(
-                '<div style="display: flex; align-items: center; gap: 10px;">'
-                '<img src="{}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e1e8ed;" />'
-                '<div>'
-                '<div style="font-weight: 600; margin-bottom: 2px;">{}</div>'
-                '<div style="font-size: 11px; color: #6c757d;">{}</div>'
+                '<div class="admin-display-user admin-display-user-large">'
+                '<img src="{}" class="admin-user-avatar admin-user-avatar-large admin-student-avatar" />'
+                '<div class="admin-user-info">'
+                '<div class="admin-user-name">{}</div>'
+                '<div class="admin-user-meta">{}</div>'
                 '</div>'
                 '</div>',
                 photo_url,
@@ -218,11 +218,11 @@ class StudentProfileAdmin(ModelAdmin):
             )
         else:
             return format_html(
-                '<div style="display: flex; align-items: center; gap: 10px;">'
-                '<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">{}</div>'
-                '<div>'
-                '<div style="font-weight: 600; margin-bottom: 2px;">{}</div>'
-                '<div style="font-size: 11px; color: #6c757d;">{}</div>'
+                '<div class="admin-display-user admin-display-user-large">'
+                '<div class="admin-user-avatar-fallback admin-user-avatar-fallback-large admin-student-avatar-fallback">{}</div>'
+                '<div class="admin-user-info">'
+                '<div class="admin-user-name">{}</div>'
+                '<div class="admin-user-meta">{}</div>'
                 '</div>'
                 '</div>',
                 obj.first_name[0].upper() if obj.first_name else "S",
@@ -338,21 +338,21 @@ class StudentGuardianAdmin(ModelAdmin):
         if hasattr(guardian, 'profile') and guardian.profile.profile_photo:
             photo_url = guardian.profile.profile_photo.url
         
-        # Build HTML with optional photo
+        # Build HTML with CSS classes matching sidebar theme
         if photo_url:
             return format_html(
-                '<div style="display: flex; align-items: center; gap: 8px;">'
-                '<img src="{}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #e1e8ed;" />'
-                '<span>{}</span>'
+                '<div class="admin-display-user">'
+                '<img src="{}" class="admin-user-avatar" />'
+                '<span class="admin-user-name">{}</span>'
                 '</div>',
                 photo_url,
                 guardian.get_full_name() or guardian.username
             )
         else:
             return format_html(
-                '<div style="display: flex; align-items: center; gap: 8px;">'
-                '<div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">{}</div>'
-                '<span>{}</span>'
+                '<div class="admin-display-user">'
+                '<div class="admin-user-avatar-fallback">{}</div>'
+                '<span class="admin-user-name">{}</span>'
                 '</div>',
                 guardian.first_name[0].upper() if guardian.first_name else guardian.username[0].upper(),
                 guardian.get_full_name() or guardian.username
@@ -372,9 +372,9 @@ class StudentGuardianAdmin(ModelAdmin):
         # Build HTML with optional photo
         if photo_url:
             return format_html(
-                '<div style="display: flex; align-items: center; gap: 8px;">'
-                '<img src="{}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #e1e8ed;" />'
-                '<span>{} ({})</span>'
+                '<div class="admin-display-user">'
+                '<img src="{}" class="admin-student-avatar" />'
+                '<span class="admin-user-name">{} <span class="admin-user-code">({})</span></span>'
                 '</div>',
                 photo_url,
                 student.get_full_name(),
@@ -382,9 +382,9 @@ class StudentGuardianAdmin(ModelAdmin):
             )
         else:
             return format_html(
-                '<div style="display: flex; align-items: center; gap: 8px;">'
-                '<div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">{}</div>'
-                '<span>{} ({})</span>'
+                '<div class="admin-display-user">'
+                '<div class="admin-user-avatar-fallback admin-student-avatar-fallback">{}</div>'
+                '<span class="admin-user-name">{} <span class="admin-user-code">({})</span></span>'
                 '</div>',
                 student.first_name[0].upper() if student.first_name else "S",
                 student.get_full_name(),

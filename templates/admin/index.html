@@ -257,16 +257,19 @@
 <script>
 function toggleTheme() {
   const body = document.body;
+  const root = document.documentElement;
   const icon = document.getElementById('theme-icon');
   const label = document.getElementById('theme-label');
   
   if (body.classList.contains('light-mode')) {
     body.classList.remove('light-mode');
+    root.dataset.theme = 'dark';
     icon.textContent = '🌙';
     label.textContent = 'Dark';
     localStorage.setItem('theme', 'dark');
   } else {
     body.classList.add('light-mode');
+    root.dataset.theme = 'light';
     icon.textContent = '☀️';
     label.textContent = 'Light';
     localStorage.setItem('theme', 'light');
@@ -275,10 +278,14 @@ function toggleTheme() {
 
 // Load theme
 document.addEventListener('DOMContentLoaded', function() {
+  const root = document.documentElement;
   if (localStorage.getItem('theme') === 'light') {
     document.body.classList.add('light-mode');
+    root.dataset.theme = 'light';
     document.getElementById('theme-icon').textContent = '☀️';
     document.getElementById('theme-label').textContent = 'Light';
+  } else {
+    root.dataset.theme = 'dark';
   }
 });
 </script>

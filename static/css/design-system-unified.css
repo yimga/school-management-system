@@ -150,6 +150,39 @@
 }
 
 /* ============================================
+   EXPLICIT THEME OVERRIDES (data-theme)
+   ============================================ */
+:root[data-theme="light"] {
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #22314e;
+  --color-text-muted: #6b7280;
+  --color-bg-primary: #ffffff;
+  --color-bg-light: #f8fafc;
+  --color-bg-lighter: #f0f4f8;
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-light: rgba(15, 23, 42, 0.04);
+  --color-success-light: rgba(16, 185, 129, 0.1);
+  --color-warning-light: rgba(245, 158, 11, 0.1);
+  --color-danger-light: rgba(239, 68, 68, 0.1);
+  --color-info-light: rgba(59, 130, 246, 0.1);
+}
+
+:root[data-theme="dark"] {
+  --color-text-primary: #f0f4f8;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-bg-primary: #1a1f3a;
+  --color-bg-light: #252d48;
+  --color-bg-lighter: #3f4765;
+  --color-border: rgba(240, 244, 248, 0.1);
+  --color-border-light: rgba(240, 244, 248, 0.05);
+  --color-success-light: rgba(16, 185, 129, 0.2);
+  --color-warning-light: rgba(245, 158, 11, 0.2);
+  --color-danger-light: rgba(239, 68, 68, 0.2);
+  --color-info-light: rgba(59, 130, 246, 0.2);
+}
+
+/* ============================================
    DARK MODE - Respects user preference
    ============================================ */
 @media (prefers-color-scheme: dark) {

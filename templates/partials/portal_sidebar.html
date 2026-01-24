@@ -217,12 +217,27 @@
 </div>
 
 <div class="nav flex-column gap-0">
+  {% if request.user.is_authenticated %}
+    <div class="sidebar-section-title">Home</div>
+    <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}">
+      <i class="bi bi-speedometer2 me-2"></i>Dashboard
+    </a>
+
+    <div class="sidebar-section-title">Account</div>
+    <a class="nav-link nav-pill" href="/admin/accounts/user/{{ request.user.id }}/change/">
+      <i class="bi bi-person me-2"></i>My Profile
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'siteconfig:customizer' %}">
+      <i class="bi bi-gear me-2"></i>Settings
+    </a>
+    <a class="nav-link nav-pill" href="#">
+      <i class="bi bi-bell me-2"></i>Notifications
+      <span class="badge bg-primary ms-auto">0</span>
+    </a>
+  {% endif %}
   {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
     <!-- Teacher Navigation -->
     <div class="sidebar-section-title">Learning Management</div>
-    <a class="nav-link nav-pill" href="{% url 'evals:teacher_dashboard' %}">
-      <i class="bi bi-speedometer2 me-2"></i>Dashboard
-    </a>
     <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_entry' %}">
       <i class="bi bi-pencil-square me-2"></i>Enter Marks
     </a>
@@ -246,11 +261,6 @@
 
   {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
     <!-- Parent Navigation -->
-    <div class="sidebar-section-title">Home</div>
-    <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}">
-      <i class="bi bi-house-door me-2"></i>Dashboard
-    </a>
-
     <div class="sidebar-section-title">Children & Learning</div>
     <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}">
       <i class="bi bi-people me-2"></i>My Children
@@ -459,19 +469,6 @@
 </div>
 
 <hr class="my-3">
-
-<!-- Account Section -->
-<div class="sidebar-section-title">Account</div>
-<a class="nav-link nav-pill" href="/admin/accounts/user/{{ request.user.id }}/change/">
-  <i class="bi bi-person me-2"></i>My Profile
-</a>
-<a class="nav-link nav-pill" href="{% url 'siteconfig:customizer' %}">
-  <i class="bi bi-gear me-2"></i>Settings
-</a>
-<a class="nav-link nav-pill" href="#">
-  <i class="bi bi-bell me-2"></i>Notifications
-  <span class="badge bg-primary ms-auto">0</span>
-</a>
 
 <!-- Quick Actions -->
 <div class="d-grid gap-2 mt-3">

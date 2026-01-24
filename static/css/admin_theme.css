@@ -667,5 +667,146 @@ input[type="file"][accept*="image"]:hover,
 }
 
 
+/* ============================================
+   ADMIN DISPLAY USER CARDS (Child Menus)
+   Professional styling matching sidebar theme
+   ============================================ */
 
+/* Base container for user display */
+.admin-display-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  transition: all 0.2s ease;
+}
 
+.admin-display-user-large {
+  gap: 12px;
+}
+
+/* Avatar images */
+.admin-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+.admin-user-avatar-large {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--color-border);
+}
+
+.admin-student-avatar {
+  border-color: #4facfe;
+}
+
+/* Avatar fallback for no photo */
+.admin-user-avatar-fallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.admin-user-avatar-fallback-large {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-student-avatar-fallback {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+/* Text content */
+.admin-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-user-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.admin-user-code {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-size: 0.9em;
+}
+
+.admin-user-meta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
+/* Hover effects */
+.admin-display-user:hover .admin-user-avatar,
+.admin-display-user:hover .admin-user-avatar-fallback {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.admin-display-user:hover .admin-user-name {
+  color: var(--color-primary);
+}
+
+/* Account dropdown (bottom-left sidebar) */
+#user-tools,
+#user-tools .dropdown-menu,
+.sidebar .dropdown-menu {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  min-width: 240px;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) 0;
+}
+
+#user-tools .dropdown-menu a,
+.sidebar .dropdown-menu a,
+#user-tools .dropdown-menu button,
+.sidebar .dropdown-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-sm);
+}
+
+#user-tools .dropdown-menu a:hover,
+.sidebar .dropdown-menu a:hover,
+#user-tools .dropdown-menu button:hover,
+.sidebar .dropdown-menu button:hover {
+  background: var(--color-bg-light);
+  color: var(--color-primary);
+}
+
+#user-tools .dropdown-divider,
+.sidebar .dropdown-divider {
+  margin: 6px 0;
+  border-top: 1px solid var(--color-border);
+}
