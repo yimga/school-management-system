@@ -71,8 +71,9 @@ class CanViewChild(permissions.BasePermission):
             # Check if this child belongs to this parent
             from apps.people.models import StudentGuardian
             return StudentGuardian.objects.filter(
-                guardian__user=request.user,
-                student=obj
+                guardian_user=request.user,
+                student=obj,
+                can_view_results=True,
             ).exists()
         
         return True

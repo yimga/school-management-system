@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 
 from apps.api.permissions import IsTeacherOrAdmin, IsTeacher, IsAdminUser
 from apps.api.serializers import AttendanceSerializer
+from apps.accounts.permissions import can_view_student_data, can_edit_student_grades
 
 
 class AttendanceViewSet(viewsets.ModelViewSet):
@@ -34,11 +35,29 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         from apps.academics.models import Attendance
         
         user = self.request.user
+        role = (getattr(user, "role", "") or "").upper()
+        admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "CENSOR"}
         
-        if user.is_staff or user.role in ['ADMIN', 'TEACHER', 'HOD', 'LEADERSHIP']:
+        if user.is_staff or role in admin_roles:
             return Attendance.objects.all().select_related(
                 'student__user', 'classroom'
             )
+
+        if role == "TEACHER":
+            from apps.evals.models import TeacherAssignment
+            teacher = getattr(user, "teacher_profile", None)
+            if not teacher:
+                return Attendance.objects.none()
+            classroom_ids = TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+            ).values_list(
+                'subject_assignment__classroom_id',
+                flat=True
+            ).distinct()
+            return Attendance.objects.filter(
+                classroom_id__in=classroom_ids
+            ).select_related('student__user', 'classroom')
         
         from apps.people.models import StudentProfile
         
@@ -46,6 +65,16 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         if student_profile:
             return Attendance.objects.filter(
                 student=student_profile
+            ).select_related('student__user', 'classroom')
+
+        if role == "PARENT":
+            from apps.people.models import StudentGuardian
+            child_ids = StudentGuardian.objects.filter(
+                guardian_user=user,
+                can_view_results=True,
+            ).values_list('student_id', flat=True)
+            return Attendance.objects.filter(
+                student_id__in=child_ids
             ).select_related('student__user', 'classroom')
         
         return Attendance.objects.none()
@@ -102,7 +131,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             ]
         }
         """
-        if not (request.user.role == 'TEACHER' or request.user.is_staff):
+        user_role = (getattr(request.user, "role", "") or "").upper()
+        if not (user_role == 'TEACHER' or request.user.is_staff):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
@@ -128,6 +158,38 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        if user_role == "TEACHER":
+            from apps.evals.models import TeacherAssignment
+            teacher = getattr(request.user, "teacher_profile", None)
+            if not teacher:
+                return Response(
+                    {'error': 'Teacher profile required'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            classroom_allowed = TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+                subject_assignment__classroom_id=classroom.id,
+            ).exists()
+            if not classroom_allowed:
+                return Response(
+                    {'error': 'You are not assigned to this classroom'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+        student_ids = [record.get('student') for record in records if record.get('student')]
+        if student_ids:
+            from apps.people.models import StudentProfile
+            valid_ids = set(StudentProfile.objects.filter(
+                id__in=student_ids,
+                classroom_id=classroom.id,
+            ).values_list('id', flat=True))
+            if len(valid_ids) != len(set(student_ids)):
+                return Response(
+                    {'error': 'One or more students are not in this classroom'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
         recorded_count = 0
         for record in records:
             attendance, created = Attendance.objects.update_or_create(
@@ -170,6 +232,12 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response(
                 {'error': 'student_id parameter required'},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not can_view_student_data(request.user, int(student_id)):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
             )
         
         from apps.academics.models import Attendance
@@ -214,6 +282,31 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 {'error': 'classroom_id parameter required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        user_role = (getattr(request.user, "role", "") or "").upper()
+        if not (request.user.is_staff or user_role in {'ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN', 'CENSOR', 'TEACHER'}):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if user_role == "TEACHER" and not request.user.is_staff:
+            from apps.evals.models import TeacherAssignment
+            teacher = getattr(request.user, "teacher_profile", None)
+            if not teacher:
+                return Response(
+                    {'error': 'Teacher profile required'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            allowed = TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+                subject_assignment__classroom_id=classroom_id,
+            ).exists()
+            if not allowed:
+                return Response(
+                    {'error': 'You are not assigned to this classroom'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
         
         from apps.academics.models import Attendance
         
@@ -263,9 +356,30 @@ class GradeViewSet(viewsets.ModelViewSet):
         from apps.evals.models import Grade
         
         user = self.request.user
+        role = (getattr(user, "role", "") or "").upper()
+        admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "CENSOR"}
         
-        if user.is_staff or user.role in ['ADMIN', 'TEACHER', 'HOD', 'LEADERSHIP']:
+        if user.is_staff or role in admin_roles:
             return Grade.objects.all().select_related('student__user', 'subject')
+
+        if role == "TEACHER":
+            from apps.evals.models import TeacherAssignment
+            teacher = getattr(user, "teacher_profile", None)
+            if not teacher:
+                return Grade.objects.none()
+            assignments = list(TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+            ).values_list(
+                'subject_assignment__classroom_id',
+                'subject_assignment__subject_id',
+            ).distinct())
+            if not assignments:
+                return Grade.objects.none()
+            scope = Q()
+            for classroom_id, subject_id in assignments:
+                scope |= Q(student__classroom_id=classroom_id, subject_id=subject_id)
+            return Grade.objects.filter(scope).select_related('student__user', 'subject')
         
         from apps.people.models import StudentProfile
         
@@ -273,6 +387,16 @@ class GradeViewSet(viewsets.ModelViewSet):
         if student_profile:
             return Grade.objects.filter(
                 student=student_profile
+            ).select_related('student__user', 'subject')
+
+        if role == "PARENT":
+            from apps.people.models import StudentGuardian
+            child_ids = StudentGuardian.objects.filter(
+                guardian_user=user,
+                can_view_results=True,
+            ).values_list('student_id', flat=True)
+            return Grade.objects.filter(
+                student_id__in=child_ids
             ).select_related('student__user', 'subject')
         
         return Grade.objects.none()
@@ -292,7 +416,8 @@ class GradeViewSet(viewsets.ModelViewSet):
             "date_recorded": "2025-01-22"
         }
         """
-        if not (request.user.role == 'TEACHER' or request.user.is_staff):
+        user_role = (getattr(request.user, "role", "") or "").upper()
+        if not (user_role == 'TEACHER' or request.user.is_staff):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
@@ -302,7 +427,21 @@ class GradeViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
+        if user_role == "TEACHER" and not request.user.is_staff:
+            student_obj = serializer.validated_data.get("student")
+            subject_obj = serializer.validated_data.get("subject")
+            if not student_obj or not subject_obj:
+                return Response(
+                    {'error': 'Student and subject are required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if not can_edit_student_grades(request.user, student_obj.id, subject_obj.id):
+                return Response(
+                    {'error': 'You are not assigned to this student/subject'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
         grade = serializer.save(recorded_by=request.user)
         
         from apps.finance.models import Notification
@@ -328,6 +467,12 @@ class GradeViewSet(viewsets.ModelViewSet):
             return Response(
                 {'error': 'student_id parameter required'},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not can_view_student_data(request.user, int(student_id)):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
             )
         
         from apps.evals.models import Grade
@@ -358,6 +503,31 @@ class GradeViewSet(viewsets.ModelViewSet):
                 {'error': 'classroom_id parameter required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+        user_role = (getattr(request.user, "role", "") or "").upper()
+        if not (request.user.is_staff or user_role in {'ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN', 'CENSOR', 'TEACHER'}):
+            return Response(
+                {'error': 'Permission denied'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if user_role == "TEACHER" and not request.user.is_staff:
+            from apps.evals.models import TeacherAssignment
+            teacher = getattr(request.user, "teacher_profile", None)
+            if not teacher:
+                return Response(
+                    {'error': 'Teacher profile required'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            allowed = TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+                subject_assignment__classroom_id=classroom_id,
+            ).exists()
+            if not allowed:
+                return Response(
+                    {'error': 'You are not assigned to this classroom'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
         
         from apps.evals.models import Grade
         from apps.academics.models import Classroom
@@ -404,11 +574,36 @@ class AssessmentResultsAPI(APIView):
     def get(self, request):
         """Get assessment results summary"""
         from apps.evals.models import Grade
+        from apps.evals.models import TeacherAssignment
+
+        user = request.user
+        role = (getattr(user, "role", "") or "").upper()
+        admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "CENSOR"}
         
         subject_id = request.query_params.get('subject_id')
         term = request.query_params.get('term')
-        
-        queryset = Grade.objects.all()
+
+        if user.is_staff or role in admin_roles:
+            queryset = Grade.objects.all()
+        elif role == "TEACHER":
+            teacher = getattr(user, "teacher_profile", None)
+            if not teacher:
+                return Response({'error': 'Teacher profile required'}, status=status.HTTP_403_FORBIDDEN)
+            assignments = list(TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+            ).values_list(
+                'subject_assignment__classroom_id',
+                'subject_assignment__subject_id',
+            ).distinct())
+            if not assignments:
+                return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+            scope = Q()
+            for classroom_id, subject_id_scope in assignments:
+                scope |= Q(student__classroom_id=classroom_id, subject_id=subject_id_scope)
+            queryset = Grade.objects.filter(scope)
+        else:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         
         if subject_id:
             queryset = queryset.filter(subject_id=subject_id)

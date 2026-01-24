@@ -202,7 +202,8 @@ class GlobalSearchAPI(View):
             elif role == 'PARENT':
                 from apps.people.models import StudentGuardian
                 student_ids = StudentGuardian.objects.filter(
-                    guardian_user=user
+                    guardian_user=user,
+                    can_view_results=True,
                 ).values_list("student_id", flat=True)
                 items = StudentProfile.objects.filter(
                     q_object,
@@ -279,7 +280,8 @@ class GlobalSearchAPI(View):
             elif role == 'PARENT':
                 from apps.people.models import StudentGuardian
                 student_ids = StudentGuardian.objects.filter(
-                    guardian_user=user
+                    guardian_user=user,
+                    can_view_finance=True,
                 ).values_list("student_id", flat=True)
                 items = Invoice.objects.filter(
                     q_object,

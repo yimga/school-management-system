@@ -124,11 +124,35 @@ def parent_dashboard(request: HttpRequest):
         "student__evaluations",
     )
 
+    finance_links = StudentGuardian.objects.filter(
+        guardian_user=request.user,
+        can_view_finance=True,
+    ).select_related(
+        "student",
+        "student__classroom",
+        "student__specialty",
+        "student__academic_year",
+    )
+
     portal_features = _portal_features_status()
     students = [link.student for link in links]
+    finance_students = [link.student for link in finance_links]
+    can_view_results = bool(students)
+    can_view_finance = bool(finance_students)
     
     # Widget data is now cached internally for 5 minutes
     widget_data = parent_dashboard_widget_data(students)
+    if can_view_finance:
+        finance_widget = parent_dashboard_widget_data(finance_students).get("finance", {})
+        widget_data["finance"] = finance_widget or widget_data.get("finance", {})
+    else:
+        widget_data["finance"] = {
+            "total_due": Decimal("0.00"),
+            "paid": Decimal("0.00"),
+            "balance": Decimal("0.00"),
+            "overdue": 0,
+            "label": "Finance access not granted",
+        }
 
     # Per-student maps for live cards
     perf_map = {row.get("student_id"): row for row in widget_data.get("performance", {}).get("per_student", [])}
@@ -162,10 +186,13 @@ def parent_dashboard(request: HttpRequest):
     portal_upcoming_assessments = filter_portal_items(site.portal_upcoming_assessments, role)
     
     # Single aggregation query for reminders
-    reminders_count = PaymentReminder.objects.filter(
-        invoice__student__in=students,
-        is_active=True,
-    ).count()
+    if can_view_finance:
+        reminders_count = PaymentReminder.objects.filter(
+            invoice__student__in=finance_students,
+            is_active=True,
+        ).count()
+    else:
+        reminders_count = 0
     
     hero = {
         "tagline": "Student Management Dashboard",
@@ -175,24 +202,28 @@ def parent_dashboard(request: HttpRequest):
         "stats": [
             {"label": "Linked Students", "value": links.count(), "meta": "Active profiles"},
             {"label": "Attendance", "value": f"{widget_data['attendance']['overall']}%", "progress": widget_data['attendance']['overall'], "meta": "Completion"},
-            {"label": "Balance", "value": widget_data["finance"]["balance"], "meta": "Outstanding fees"},
         ],
         "actions": [
-            {"label": "View Results", "url": "#children"},
             {"label": "Link a Child", "url": "#link-child"},
-            {"label": "Pay Fees", "url": reverse("portal:parent_finance")},
         ],
         "status_pills": [
             {"label": "Active students", "value": links.count(), "meta": "Linked children"},
-            {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"},
             {"label": "Tasks", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Eval gaps"},
         ],
     }
-    hero["stats"].append({"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
-    hero["actions"].insert(1, {"label": "View Attendance", "url": reverse("portal:portal_stats")})
+    if can_view_results:
+        hero["actions"].insert(0, {"label": "View Results", "url": "#children"})
+        hero["actions"].insert(1, {"label": "View Attendance", "url": reverse("portal:portal_stats")})
+    if can_view_finance:
+        hero["stats"].append({"label": "Balance", "value": widget_data["finance"]["balance"], "meta": "Outstanding fees"})
+        hero["stats"].append({"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
+        hero["status_pills"].insert(1, {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
+        hero["actions"].append({"label": "Pay Fees", "url": reverse("portal:parent_finance")})
 
     return render(request, "parent/dashboard.html", {
         "links": links,
+        "can_view_results": can_view_results,
+        "can_view_finance": can_view_finance,
         "portal_features": portal_features,
         "widget_data": widget_data,
         "child_cards": child_cards,
@@ -424,7 +455,8 @@ def portal_stats(request: HttpRequest):
         )
 
     students = [link.student for link in StudentGuardian.objects.filter(
-        guardian_user=request.user
+        guardian_user=request.user,
+        can_view_results=True,
     ).select_related("student")]
     widget_data = parent_dashboard_widget_data(students)
 

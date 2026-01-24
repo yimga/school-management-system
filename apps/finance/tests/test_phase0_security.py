@@ -482,8 +482,9 @@ class InvoicePermissionTest(TestCase):
             user=None,  # No user yet
         )
         StudentGuardian.objects.create(
-            guardian=self.parent,
+            guardian_user=self.parent,
             student=self.student,
+            can_view_finance=True,
         )
         
         # Invoice

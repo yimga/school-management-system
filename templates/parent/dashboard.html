@@ -741,7 +741,7 @@
           </div>
           <span class="summary-icon"><i class="bi bi-people"></i></span>
         </div>
-        {% if not widgets or "attendance" in widgets %}
+        {% if (not widgets or "attendance" in widgets) and can_view_results %}
         <div class="summary-tile tile-green">
           <div class="summary-meta">
             <span class="summary-label">Attendance</span>
@@ -750,7 +750,7 @@
           <span class="summary-icon"><i class="bi bi-graph-up-arrow"></i></span>
         </div>
         {% endif %}
-        {% if not widgets or "finance" in widgets %}
+        {% if (not widgets or "finance" in widgets) and can_view_finance %}
         <div class="summary-tile tile-yellow">
           <div class="summary-meta">
             <span class="summary-label">Balance</span>
@@ -769,7 +769,7 @@
       </div>
     </div>
 
-    {% if not widgets or "attendance" in widgets or "performance" in widgets or "finance" in widgets %}
+    {% if (not widgets or "attendance" in widgets or "performance" in widgets or "finance" in widgets) and (can_view_results or can_view_finance) %}
     <div class="family-overview">
       <div class="section-title">
         <i class="bi bi-house-heart"></i>
@@ -782,31 +782,31 @@
               <div class="fw-bold text-primary" style="font-size:1.3rem;">{{ links|length|default:0 }}</div>
               <div class="small text-muted">Children</div>
             </div>
-            {% if not widgets or "attendance" in widgets %}
+            {% if (not widgets or "attendance" in widgets) and can_view_results %}
             <div class="col-6 col-md-3">
               <div class="fw-bold text-success" style="font-size:1.3rem;">{{ widget_data.attendance.overall|default:0 }}%</div>
               <div class="small text-muted">Attendance</div>
             </div>
             {% endif %}
-            {% if not widgets or "performance" in widgets %}
+            {% if (not widgets or "performance" in widgets) and can_view_results %}
             <div class="col-6 col-md-3">
               <div class="fw-bold text-info" style="font-size:1.3rem;">{{ widget_data.performance.average|default:"--" }}</div>
               <div class="small text-muted">Avg. Grade</div>
             </div>
             {% endif %}
-            {% if not widgets or "finance" in widgets %}
+            {% if (not widgets or "finance" in widgets) and can_view_finance %}
             <div class="col-6 col-md-3">
               <div class="fw-bold text-danger" style="font-size:1.3rem;">${{ widget_data.finance.balance|default:"0.00" }}</div>
               <div class="small text-muted">Outstanding Fees</div>
             </div>
             {% endif %}
           </div>
-          {% if not widgets or "finance" in widgets or "performance" in widgets %}
+          {% if (not widgets or "finance" in widgets or "performance" in widgets) and (can_view_finance or can_view_results) %}
           <div class="d-flex flex-wrap gap-2 justify-content-center mt-3">
-            {% if not widgets or "finance" in widgets %}
+            {% if (not widgets or "finance" in widgets) and can_view_finance %}
             <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Finance Details</a>
             {% endif %}
-            {% if not widgets or "performance" in widgets %}
+            {% if (not widgets or "performance" in widgets) and can_view_results %}
             <a href="#" class="btn btn-sm btn-outline-success disabled" title="Performance view unavailable">Performance</a>
             {% endif %}
           </div>
@@ -843,7 +843,7 @@
                     </div>
                     <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto">Live data</span>
                   </div>
-                  {% if not widgets or "attendance" in widgets or "performance" in widgets %}
+                  {% if (not widgets or "attendance" in widgets or "performance" in widgets) and can_view_results %}
                   <div class="child-metrics-grid text-center">
                     {% if not widgets or "attendance" in widgets %}
                     <div>
@@ -864,7 +864,7 @@
                   </div>
                   {% endif %}
 
-                  {% if not widgets or "finance" in widgets %}
+                  {% if (not widgets or "finance" in widgets) and can_view_finance %}
                   <div class="row g-2 mt-3 text-center">
                     <div class="col-4">
                       <div class="small text-muted">Total</div>
@@ -908,7 +908,7 @@
         </div>
 
         <!-- Academic Performance Section -->
-        {% if not widgets or "performance" in widgets %}
+        {% if (not widgets or "performance" in widgets) and can_view_results %}
         <div class="metrics-section mt-4">
           <div class="section-title">
             <i class="bi bi-graph-up"></i>
@@ -967,7 +967,7 @@
         {% endif %}
 
         <!-- Attendance Tracking Section -->
-        {% if not widgets or "attendance" in widgets %}
+        {% if (not widgets or "attendance" in widgets) and can_view_results %}
         <div class="metrics-section mt-4">
           <div class="section-title">
             <i class="bi bi-calendar-check"></i>

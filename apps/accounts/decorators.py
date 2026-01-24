@@ -93,7 +93,8 @@ def parent_can_access_student(request, student_id: int) -> bool:
         from apps.people.models import StudentGuardian
         return StudentGuardian.objects.filter(
             guardian_user=user,
-            student_id=student_id
+            student_id=student_id,
+            can_view_results=True,
         ).exists()
     
     return False
@@ -124,7 +125,8 @@ def parent_can_access_invoice(request, invoice_id: int) -> bool:
                 return False  # Non-student invoices not accessible to parents
             return StudentGuardian.objects.filter(
                 guardian_user=user,
-                student=invoice.student
+                student=invoice.student,
+                can_view_finance=True,
             ).exists()
         except Invoice.DoesNotExist:
             return False

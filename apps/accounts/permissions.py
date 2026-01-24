@@ -144,6 +144,7 @@ def can_view_student_data(user, student_id: int) -> bool:
         return StudentGuardian.objects.filter(
             guardian_user=user,
             student=student,
+            can_view_results=True,
         ).exists()
     
     # Student can only view themselves
@@ -257,6 +258,7 @@ def can_view_invoice(user, invoice_id: int) -> bool:
         return StudentGuardian.objects.filter(
             guardian_user=user,
             student=invoice.student,
+            can_view_finance=True,
         ).exists()
     
     # Student can view their own invoice

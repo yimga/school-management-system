@@ -167,18 +167,25 @@ class ParentDashboardAPI(View):
             # Get parent's children
             children = StudentGuardian.objects.filter(
                 guardian_user=request.user,
-                student__is_active=True
+                student__is_active=True,
+                can_view_results=True,
             ).values_list('student_id', flat=True)
             
             children_count = len(children)
+
+            finance_children = StudentGuardian.objects.filter(
+                guardian_user=request.user,
+                student__is_active=True,
+                can_view_finance=True,
+            ).values_list('student_id', flat=True)
             
             # Get pending fees for children
             total_invoices = Invoice.objects.filter(
-                student_id__in=children
+                student_id__in=finance_children
             ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
             
             total_paid = Payment.objects.filter(
-                invoice__student_id__in=children
+                invoice__student_id__in=finance_children
             ).aggregate(Sum('amount'))['amount__sum'] or 0
             
             pending_fees = total_invoices - total_paid

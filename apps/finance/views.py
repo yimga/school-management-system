@@ -118,7 +118,8 @@ def invoice_list(request: HttpRequest):
     if request.user.role == User.Role.PARENT:
         # Parents can only see invoices for their children
         parent_students = StudentGuardian.objects.filter(
-            guardian_user=request.user
+            guardian_user=request.user,
+            can_view_finance=True,
         ).values_list('student_id', flat=True)
         qs = qs.filter(student_id__in=parent_students)
     elif not (request.user.is_staff or request.user.is_superuser or request.user.role == User.Role.ADMIN):

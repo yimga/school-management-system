@@ -46,7 +46,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         
         from apps.people.models import StudentGuardian
         guardian_children = StudentGuardian.objects.filter(
-            guardian_user=user
+            guardian_user=user,
+            can_view_finance=True,
         ).values_list('student_id', flat=True)
         
         return Invoice.objects.filter(
@@ -185,7 +186,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
         
         from apps.people.models import StudentGuardian
         guardian_children = StudentGuardian.objects.filter(
-            guardian_user=user
+            guardian_user=user,
+            can_view_finance=True,
         ).values_list('student_id', flat=True)
         
         return Payment.objects.filter(

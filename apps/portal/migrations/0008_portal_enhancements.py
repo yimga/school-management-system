@@ -1,4 +1,5 @@
 # Generated migration to add portal enhancement models
+from django.conf import settings
 from django.db import migrations, models
 
 
@@ -6,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('portal', '0007_alter_kbarticleattachment_file'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
@@ -57,7 +59,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PortalPreferences',
             fields=[
-                ('parent_id', models.OneToOneField(on_delete=models.CASCADE, related_name='portal_prefs', to='auth.user')),
+                ('parent_id', models.OneToOneField(on_delete=models.CASCADE, related_name='portal_prefs', to=settings.AUTH_USER_MODEL)),
                 ('notification_email', models.BooleanField(default=True)),
                 ('notification_sms', models.BooleanField(default=False)),
                 ('language', models.CharField(default='en', max_length=10)),

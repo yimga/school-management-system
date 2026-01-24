@@ -3,6 +3,7 @@ Phase 8 Task 7: Portal Enhancements
 Parent portal linking, guardian management, child-parent relationships
 """
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -122,7 +123,11 @@ class PortalNotification(models.Model):
 class PortalPreferences(models.Model):
     """Parent preferences for portal experience"""
     
-    parent_id = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='portal_prefs')
+    parent_id = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='portal_prefs',
+    )
     notification_email = models.BooleanField(default=True)
     notification_sms = models.BooleanField(default=False)
     language = models.CharField(max_length=10, default='en')
