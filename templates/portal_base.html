@@ -229,6 +229,10 @@
 
         <div class="d-flex align-items-center gap-3 text-white ms-auto">
           {% if request.user.is_authenticated %}
+            <!-- Weather Widget - Scrolling Header -->
+            <div class="flex-grow-1" style="max-width: 400px;">
+              {% include 'components/header_weather_widget.html' %}
+            </div>
             <span class="small opacity-75 d-none d-sm-inline">{{ request.user.username }}</span>
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>

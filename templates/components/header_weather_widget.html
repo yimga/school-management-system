@@ -11,6 +11,22 @@
     font-size: 13px;
     color: rgba(255, 255, 255, 0.95);
     white-space: nowrap;
+    animation: scrollWeather 25s linear infinite;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  @keyframes scrollWeather {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .header-weather-widget:hover {
+    animation-play-state: paused;
   }
 
   .header-weather-widget__date,
@@ -19,6 +35,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
   }
 
   .header-weather-widget__date {
