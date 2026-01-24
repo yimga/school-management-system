@@ -55,43 +55,59 @@
   margin-left: 60px;
 }
 
-/* Sidebar Collapse Toggle Button */
+/* Sidebar Collapse Toggle Button - IMPROVED */
 .sidebar-collapse-toggle {
   position: fixed;
-  left: 240px;
-  top: 20px;
-  z-index: 1001;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  left: 270px;
+  top: 15px;
+  z-index: 1002;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
   color: #fff;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  font-size: 20px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  padding: 0;
+  outline: none;
 }
 
 .sidebar-collapse-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.sidebar-collapse-toggle:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
 .sidebar-collapse-toggle.collapsed {
-  left: 20px;
-  transform: rotate(0deg);
+  left: 25px;
 }
 
 .sidebar-collapse-toggle .toggle-icon {
   transition: transform 0.3s ease;
+  display: inline-block;
 }
 
 .sidebar-collapse-toggle.collapsed .toggle-icon {
-  transform: rotate(180deg);
+  transform: scaleX(-1);
+}
+
+/* Adjust sidebar collapse transition */
+#nav-sidebar,
+.sidebar {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar::-webkit-scrollbar {

@@ -281,14 +281,15 @@
           return;
         }
         
-        // Create toggle button
+        // Create toggle button with better icon
         const toggleBtn = document.createElement("button");
         toggleBtn.type = "button";
         toggleBtn.id = "sidebarCollapseToggle";
         toggleBtn.className = "sidebar-collapse-toggle";
         toggleBtn.setAttribute("aria-label", "Toggle Sidebar");
-        toggleBtn.title = "Collapse Sidebar";
-        toggleBtn.innerHTML = '<span class="toggle-icon">&#9776;</span>';
+        toggleBtn.title = "Collapse Sidebar (Click to toggle)";
+        // Using left/right chevron for better UX
+        toggleBtn.innerHTML = '<span class="toggle-icon">&#10094;</span>';
         
         document.body.appendChild(toggleBtn);
         
@@ -299,13 +300,15 @@
             if (mainContent) mainContent.classList.add("sidebar-collapsed");
             toggleBtn.classList.add("collapsed");
             toggleBtn.setAttribute("aria-expanded", "false");
-            toggleBtn.title = "Expand Sidebar";
+            toggleBtn.title = "Expand Sidebar (Click to expand)";
+            console.log('Sidebar collapsed');
           } else {
             sidebar.classList.remove("sidebar-collapsed");
             if (mainContent) mainContent.classList.remove("sidebar-collapsed");
             toggleBtn.classList.remove("collapsed");
             toggleBtn.setAttribute("aria-expanded", "true");
-            toggleBtn.title = "Collapse Sidebar";
+            toggleBtn.title = "Collapse Sidebar (Click to collapse)";
+            console.log('Sidebar expanded');
           }
           localStorage.setItem(COLLAPSE_KEY, collapsed ? "true" : "false");
         };
