@@ -295,6 +295,72 @@
   
   {% admin_health as health %}
 
+  <!-- Welcome Header -->
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h2>
+    <p class="text-muted">Manage your school operations from this unified dashboard</p>
+  </div>
+
+  <!-- Quick Actions Section - Moved to Top -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3">
+        <i class="bi bi-lightning-charge text-primary me-2"></i>
+        Quick Actions
+      </h5>
+      <div class="row g-3">
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100 py-3">
+            <i class="bi bi-person-plus d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Add User</span>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100 py-3">
+            <i class="bi bi-mortarboard d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Add Student</span>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100 py-3">
+            <i class="bi bi-person-workspace d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Add Teacher</span>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100 py-3">
+            <i class="bi bi-receipt d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Create Invoice</span>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary w-100 py-3">
+            <i class="bi bi-grid-3x3-gap d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Admin Panel</span>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'siteconfig:customizer' %}" class="btn btn-outline-dark w-100 py-3">
+            <i class="bi bi-palette d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Site Settings</span>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-outline-primary w-100 py-3">
+            <i class="bi bi-eye d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Preview Portal</span>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'finance:dashboard' %}" class="btn btn-outline-success w-100 py-3">
+            <i class="bi bi-cash-stack d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Finance Console</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card filter-card shadow-sm mb-4">
     <div class="card-body">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-3">
@@ -602,12 +668,9 @@
     </div>
   {% endif %}
 
-  <!-- Quick Actions & Recent Activity Row -->
+  <!-- Recent Activity -->
   <div class="row g-4 mt-4">
-    <div class="col-lg-6">
-      {% include 'components/quick_actions.html' %}
-    </div>
-    <div class="col-lg-6">
+    <div class="col-12">
       {% include 'components/recent_activity.html' %}
     </div>
   </div>
@@ -615,90 +678,6 @@
   <!-- Keyboard Shortcuts -->
   {% include 'components/keyboard_shortcuts.html' %}
 
-  <!-- Mobile Quick Actions FAB -->
-  <div class="mobile-fab d-lg-none">
-    <button class="btn btn-primary btn-fab" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileQuickActions">
-      <i class="fas fa-bars"></i>
-    </button>
-  </div>
-
-  <!-- Mobile Quick Actions Offcanvas -->
-  <div class="offcanvas offcanvas-bottom" tabindex="-1" id="mobileQuickActions">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title">Quick Actions</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-      <div class="row g-2">
-        <div class="col-6"><a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100"><i class="fas fa-user-plus"></i> Add User</a></div>
-        <div class="col-6"><a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100"><i class="fas fa-user-graduate"></i> Add Student</a></div>
-        <div class="col-6"><a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100"><i class="fas fa-chalkboard-teacher"></i> Add Teacher</a></div>
-        <div class="col-6"><a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100"><i class="fas fa-file-invoice"></i> Create Invoice</a></div>
-        <div class="col-12"><a href="{% url 'admin:index' %}" class="btn btn-dark w-100"><i class="fas fa-th"></i> View All Admin</a></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Mobile Responsive Styles -->
-  <style>
-    .mobile-fab {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 1000;
-    }
-    
-    .btn-fab {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      font-size: 24px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .btn-fab:hover {
-      transform: scale(1.1);
-      transition: transform 0.2s ease;
-    }
-    
-    @media (max-width: 992px) {
-      .admin-hero {
-        padding: 1.5rem !important;
-      }
-      
-      .hero-kpi-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-      }
-      
-      .quick-actions-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-      }
-    }
-    
-    @media (max-width: 576px) {
-      .admin-hero h1 {
-        font-size: 1.5rem !important;
-      }
-      
-      .hero-kpi-card {
-        min-height: 90px !important;
-      }
-      
-      .quick-action-item {
-        flex-direction: column;
-        text-align: center;
-        padding: 12px !important;
-      }
-      
-      .quick-action-icon {
-        margin: 0 auto 8px !important;
-      }
-    }
-  </style>
-  
   <!-- Weather Marquee Widget -->
   <div class="mt-5 pt-4 border-top">
     {% include 'components/weather_marquee.html' %}
