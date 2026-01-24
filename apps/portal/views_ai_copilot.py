@@ -10,11 +10,56 @@ from django.middleware.csrf import get_token
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
 from apps.compliance.models import AuditLog
+from django.core.cache import cache
+import time
 import os
 import urllib.request
 import urllib.error
 
 logger = logging.getLogger(__name__)
+
+# --- AI Copilot Rate Limiting & Telemetry ---
+RATE_LIMIT_PER_MIN = int(os.environ.get('AI_COPILOT_RATE_LIMIT', '30'))
+RATE_LIMIT_WINDOW = int(os.environ.get('AI_COPILOT_RATE_WINDOW', '60'))  # seconds
+
+
+def _check_rate_limit(user):
+    """Simple per-user sliding window rate limiter using Django cache."""
+    key = f"ai_rl:{getattr(user, 'id', 'anon')}"
+    now = time.time()
+    events = cache.get(key, [])
+    # Keep only events within window
+    events = [t for t in events if now - t < RATE_LIMIT_WINDOW]
+    if len(events) >= RATE_LIMIT_PER_MIN:
+        # Save pruned events and deny
+        cache.set(key, events, RATE_LIMIT_WINDOW)
+        # Calculate approximate seconds until next allowed (based on oldest event)
+        retry_after = max(0, int(RATE_LIMIT_WINDOW - (now - events[0]))) if events else RATE_LIMIT_WINDOW
+        return False, retry_after
+    # Allow and record this event
+    events.append(now)
+    cache.set(key, events, RATE_LIMIT_WINDOW)
+    return True, 0
+
+
+def _increment_usage_metrics(user, allowed: bool):
+    """Increment simple counters in cache for lightweight telemetry."""
+    try:
+        cache.incr('ai_copilot_usage_total')
+    except ValueError:
+        cache.set('ai_copilot_usage_total', 1, None)
+
+    role = getattr(user, 'role', 'USER')
+    try:
+        cache.incr(f'ai_copilot_usage_role:{role}')
+    except ValueError:
+        cache.set(f'ai_copilot_usage_role:{role}', 1, None)
+
+    if not allowed:
+        try:
+            cache.incr('ai_copilot_usage_denied_total')
+        except ValueError:
+            cache.set('ai_copilot_usage_denied_total', 1, None)
 
 
 def get_ai_permissions(user):
@@ -106,6 +151,29 @@ def ai_copilot_query(request):
     try:
         data = json.loads(request.body)
         user_query = data.get('query', '').strip()
+
+        # Rate limit per user before processing
+        allowed_rl, retry_after = _check_rate_limit(request.user)
+        if not allowed_rl:
+            AuditLog.objects.create(
+                user=request.user,
+                action='AI_QUERY_RATE_LIMITED',
+                object_type='AIQuery',
+                object_id='',
+                details={
+                    'query': user_query[:100],
+                    'retry_after': retry_after,
+                    'limit': RATE_LIMIT_PER_MIN,
+                },
+                ip_address=get_client_ip(request),
+                severity='WARNING',
+            )
+            _increment_usage_metrics(request.user, allowed=False)
+            return JsonResponse({
+                'success': False,
+                'error': 'Rate limit exceeded. Please wait a moment and try again.',
+                'retry_after': retry_after,
+            }, status=429)
         
         if not user_query:
             return JsonResponse({
@@ -131,6 +199,7 @@ def ai_copilot_query(request):
                 severity='WARNING',
             )
             
+            _increment_usage_metrics(request.user, allowed=False)
             return JsonResponse({
                 'success': False,
                 'error': denial_reason
@@ -200,6 +269,7 @@ def ai_copilot_query(request):
                 f"For AI-powered answers, ensure GEMINI_API_KEY is configured."
             )
 
+        _increment_usage_metrics(request.user, allowed=True)
         return JsonResponse({
             'success': True,
             'allowed': True,
