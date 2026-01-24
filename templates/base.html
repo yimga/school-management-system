@@ -78,7 +78,8 @@
         <div class="ms-auto text-white d-flex align-items-center gap-2">
           {% if request.user.is_authenticated %}
             <span class="small">Logged in as {{ request.user.username }}</span>
-            <a class="btn btn-sm btn-outline-light" href="/authentication/logout/">Logout</a>
+          {% else %}
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
           {% endif %}
         </div>
       </div>
