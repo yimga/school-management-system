@@ -75,6 +75,9 @@ def metrics(request):
         total = cache.get('ai_copilot_usage_total') or 0
         denied = cache.get('ai_copilot_usage_denied_total') or 0
         roles = cache.get('ai_copilot_usage_roles') or []
+        errors = cache.get('ai_copilot_usage_errors_total') or 0
+        last_success_ts = cache.get('ai_copilot_last_success_ts') or 0
+        last_error_ts = cache.get('ai_copilot_last_error_ts') or 0
 
         lines.append('# HELP ai_copilot_usage_total Total AI Copilot queries processed')
         lines.append('# TYPE ai_copilot_usage_total counter')
@@ -83,6 +86,18 @@ def metrics(request):
         lines.append('# HELP ai_copilot_usage_denied_total Total AI Copilot queries denied (RBAC/Rate limit)')
         lines.append('# TYPE ai_copilot_usage_denied_total counter')
         lines.append(f'ai_copilot_usage_denied_total {int(denied)}')
+
+        lines.append('# HELP ai_copilot_usage_errors_total Total AI Copilot errors')
+        lines.append('# TYPE ai_copilot_usage_errors_total counter')
+        lines.append(f'ai_copilot_usage_errors_total {int(errors)}')
+
+        lines.append('# HELP ai_copilot_last_success_timestamp_seconds Last successful AI Copilot response time')
+        lines.append('# TYPE ai_copilot_last_success_timestamp_seconds gauge')
+        lines.append(f'ai_copilot_last_success_timestamp_seconds {float(last_success_ts)}')
+
+        lines.append('# HELP ai_copilot_last_error_timestamp_seconds Last AI Copilot error time')
+        lines.append('# TYPE ai_copilot_last_error_timestamp_seconds gauge')
+        lines.append(f'ai_copilot_last_error_timestamp_seconds {float(last_error_ts)}')
 
         lines.append('# HELP ai_copilot_usage_role AI Copilot queries by role')
         lines.append('# TYPE ai_copilot_usage_role counter')
@@ -123,6 +138,9 @@ def copilot_metrics_json(request):
             'success': True,
             'total': int(total),
             'denied': int(denied),
+            'errors': int(errors),
+            'last_success_ts': last_success_ts or None,
+            'last_error_ts': last_error_ts or None,
             'roles': role_counts,
         })
     except Exception as exc:  # noqa: BLE001

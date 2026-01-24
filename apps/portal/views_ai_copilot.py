@@ -279,6 +279,7 @@ def ai_copilot_query(request):
             )
 
         _increment_usage_metrics(request.user, allowed=True)
+        cache.set('ai_copilot_last_success_ts', time.time(), None)
         return JsonResponse({
             'success': True,
             'allowed': True,
@@ -294,6 +295,11 @@ def ai_copilot_query(request):
         }, status=400)
     except Exception as e:
         logger.error(f'AI Copilot error: {str(e)}', exc_info=True)
+        try:
+            cache.incr('ai_copilot_usage_errors_total')
+        except ValueError:
+            cache.set('ai_copilot_usage_errors_total', 1, None)
+        cache.set('ai_copilot_last_error_ts', time.time(), None)
         return JsonResponse({
             'success': False,
             'error': 'An error occurred processing your request.'
