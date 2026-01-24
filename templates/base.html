@@ -75,7 +75,12 @@
           <span>{% if SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>
 
-        <div class="ms-auto text-white d-flex align-items-center gap-2">
+        <!-- Weather + Date + Quote Widget -->
+        <div class="flex-grow-1 d-flex justify-content-center">
+          {% include 'components/header_weather_widget.html' %}
+        </div>
+
+        <div class="text-white d-flex align-items-center gap-2">
           {% if request.user.is_authenticated %}
             <span class="small">Logged in as {{ request.user.username }}</span>
           {% else %}

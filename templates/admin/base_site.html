@@ -188,6 +188,12 @@
 
 {% block branding %}
   {% include 'components/admin_nav_bridge.html' %}
+  
+  <!-- Weather + Date + Quote Widget for Admin -->
+  <div style="margin: 12px 0;">
+    {% include 'components/header_weather_widget.html' %}
+  </div>
+  
   <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
       {{ site_header|default:_('Gilead Admin') }}

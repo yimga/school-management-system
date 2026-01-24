@@ -401,11 +401,8 @@
 
   {% include "widgets/teacher_dashboard_widgets.html" %}
 
-  <!-- Weather Widget as Footer -->
-  <div class="mt-5 pt-4 border-top">
-    {# Weather Marquee - Scrolling version for compact display #}
-    {% include 'components/weather_marquee.html' %}
-  </div>
+  {# Role-based RBAC dashboard footer with support, quick links, and legal info #}
+  {% include 'components/dashboard_footer.html' %}
 
   {# Logo Watermark #}
   {% include 'components/logo_watermark.html' %}

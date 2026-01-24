@@ -731,3 +731,11 @@
   });
 </script>
 {% endblock %}
+
+{% block extrahtml %}
+  {# Role-based RBAC dashboard footer with support, quick links, and legal info #}
+  {% include 'components/dashboard_footer.html' %}
+
+  {# Logo Watermark #}
+  {% include 'components/logo_watermark.html' %}
+{% endblock %}
