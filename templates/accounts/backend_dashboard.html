@@ -276,9 +276,6 @@
     </div>
   </div>
 
-  {# Weather & Daily Message Widget #}
-  {% include 'components/weather_widget.html' %}
-
   <div class="card filter-card shadow-sm mb-4">
     <div class="card-body">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-3">
@@ -335,82 +332,10 @@
         <div class="col-12">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="promoRule" {% if site.use_promotion_rule_for_pass %}checked{% endif %}>
-            <label class="form-check-label small" for="promoRule">Use promotion rule</label>
+            <label class="form-check-label small" for="promoRole">Use promotion rule</label>
     </div>
   </div>
 </div>
-
-  <div class="row g-3 mb-4">
-    <div class="col-lg-4 col-md-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <h5 class="mb-0">Finance trend</h5>
-            <span class="badge bg-light text-dark small">Last 7 days</span>
-          </div>
-          <div class="mt-2 mb-3">
-            <div class="d-flex justify-content-between small text-muted mb-1">
-              <span>Paid this term</span>
-              <strong>{{ finance_summary.paid|default:"0"|floatformat:0 }}</strong>
-            </div>
-            <div class="progress" style="height:6px;">
-              <div class="progress-bar bg-success" style="width:{{ finance_summary.coverage|default:60 }}%;"></div>
-            </div>
-          </div>
-          <div class="text-muted small mb-2">Receivables: {{ finance_summary.receivables|default:"0"|floatformat:0 }}</div>
-          <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:dashboard' %}">Open finance console</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:reports' %}">Run report</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4 col-md-6">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <h5 class="mb-0">Attendance pulse</h5>
-            <span class="small text-muted">{{ attendance_trend_total }} present</span>
-          </div>
-          <div class="attendance-dial mb-3">
-            <div class="dial-fill" style="width: {{ attendance_trend_progress }}%;"></div>
-          </div>
-          <div class="d-flex flex-wrap gap-2 small">
-            {% for label, count in attendance_counts.items %}
-              <div>
-                <strong>{{ count }}</strong>
-                <div class="text-muted">{{ label }}</div>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="mt-2">
-            <a class="btn btn-sm btn-outline-success" href="{% url 'portal:teacher_attendance' %}">View attendance</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4 col-md-12">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <h5 class="mb-0">Portal insights</h5>
-            <span class="badge bg-success small">Live</span>
-          </div>
-          <p class="small text-muted mb-2">Notifications high to parents, teacher compliance, portal toggles.</p>
-          <div class="d-grid gap-2">
-            <a class="btn btn-sm btn-outline-dark" href="{% url 'accounts:rbac' %}">RBAC overview</a>
-            <a class="btn btn-sm btn-outline-dark" href="{% url 'portal:parent_dashboard' %}#children">Parent portal</a>
-            <a class="btn btn-sm btn-outline-dark" href="{% url 'analytics:dashboard' %}">Analytics</a>
-          </div>
-          <div class="mt-3 text-muted small">
-            Last update: {{ stats.published_terms }} sections refreshed
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-    </div>
-  </div>
 
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
@@ -621,31 +546,6 @@
             <p class="small text-muted mt-3">Additional permissions power finance, reports, settings, and data exports.</p>
           {% endif %}
         </div>
-      </div>
-    </div>
-  </div>
-
-
-  <div class="card shadow-sm mt-4 contact-card">
-    <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
-      <div>
-        <h5 class="mb-1">Contact & social</h5>
-        <p class="text-muted small mb-1">Display the people & channels parents can use to reach you.</p>
-        {% if site.company_phone %}
-          <div class="small text-dark">Phone: {{ site.company_phone }}</div>
-        {% endif %}
-        {% if site.company_email %}
-          <div class="small text-dark">Email: {{ site.company_email }}</div>
-        {% endif %}
-      </div>
-      <div class="d-flex flex-wrap align-items-center gap-2">
-        {% for link in social_links %}
-          <a class="social-link" href="{{ link.url }}" target="_blank">
-            <i class="{{ link.icon }}"></i> {{ link.platform }}
-          </a>
-        {% empty %}
-          <span class="small text-muted">No social links configured.</span>
-        {% endfor %}
       </div>
     </div>
   </div>
