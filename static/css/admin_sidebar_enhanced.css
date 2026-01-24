@@ -4,7 +4,8 @@
    ============================================ */
 
 /* Sidebar Container */
-.sidebar {
+.sidebar,
+#nav-sidebar {
   width: 280px;
   background: var(--color-text-primary);
   color: var(--color-bg-light);
@@ -13,6 +14,84 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(226, 232, 240, 0.2) transparent;
+  transition: width 0.3s ease, margin-left 0.3s ease;
+}
+
+/* Collapsed Sidebar */
+.sidebar-collapsed,
+#nav-sidebar.sidebar-collapsed {
+  width: 60px;
+  overflow-x: hidden;
+}
+
+/* Hide text when collapsed */
+.sidebar-collapsed a span,
+.sidebar-collapsed button span,
+.sidebar-collapsed .sidebar-heading,
+.sidebar-collapsed h2,
+.sidebar-collapsed caption,
+.sidebar-collapsed .admin-sidebar-badge,
+#nav-sidebar.sidebar-collapsed a span,
+#nav-sidebar.sidebar-collapsed button span,
+#nav-sidebar.sidebar-collapsed .module h2,
+#nav-sidebar.sidebar-collapsed .module caption {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Center icons when collapsed */
+.sidebar-collapsed a,
+.sidebar-collapsed button,
+#nav-sidebar.sidebar-collapsed a,
+#nav-sidebar.sidebar-collapsed button {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Expand main content when sidebar is collapsed */
+#content.sidebar-collapsed {
+  margin-left: 60px;
+}
+
+/* Sidebar Collapse Toggle Button */
+.sidebar-collapse-toggle {
+  position: fixed;
+  left: 240px;
+  top: 20px;
+  z-index: 1001;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-collapse-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.sidebar-collapse-toggle.collapsed {
+  left: 20px;
+  transform: rotate(0deg);
+}
+
+.sidebar-collapse-toggle .toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.sidebar-collapse-toggle.collapsed .toggle-icon {
+  transform: rotate(180deg);
 }
 
 .sidebar::-webkit-scrollbar {

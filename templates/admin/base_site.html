@@ -189,6 +189,11 @@
 {% block branding %}
   {% include 'components/admin_nav_bridge.html' %}
   
+  <!-- Sidebar Collapse Toggle Button -->
+  <button type="button" id="sidebarCollapseToggle" class="sidebar-collapse-toggle" aria-label="Toggle Sidebar" title="Collapse Sidebar">
+    <span class="toggle-icon">&#9776;</span>
+  </button>
+  
   <!-- Weather + Date + Quote Widget for Admin -->
   <div style="margin: 12px 0;">
     {% include 'components/header_weather_widget.html' %}
@@ -229,6 +234,46 @@
       apply(saved);
       document.querySelectorAll(".theme-toggle button").forEach(btn => {
         btn.addEventListener("click", () => apply(btn.dataset.theme));
+      });
+    })();
+  </script>
+  
+  <!-- Sidebar Collapse/Expand Script -->
+  <script>
+    (function() {
+      const COLLAPSE_KEY = "admin-sidebar-collapsed";
+      const sidebar = document.getElementById("nav-sidebar");
+      const toggleBtn = document.getElementById("sidebarCollapseToggle");
+      const mainContent = document.getElementById("content");
+      
+      if (!sidebar || !toggleBtn) return;
+      
+      // Apply collapse state
+      const applyCollapseState = (collapsed) => {
+        if (collapsed) {
+          sidebar.classList.add("sidebar-collapsed");
+          if (mainContent) mainContent.classList.add("sidebar-collapsed");
+          toggleBtn.classList.add("collapsed");
+          toggleBtn.setAttribute("aria-expanded", "false");
+          toggleBtn.title = "Expand Sidebar";
+        } else {
+          sidebar.classList.remove("sidebar-collapsed");
+          if (mainContent) mainContent.classList.remove("sidebar-collapsed");
+          toggleBtn.classList.remove("collapsed");
+          toggleBtn.setAttribute("aria-expanded", "true");
+          toggleBtn.title = "Collapse Sidebar";
+        }
+        localStorage.setItem(COLLAPSE_KEY, collapsed ? "true" : "false");
+      };
+      
+      // Load saved state
+      const savedState = localStorage.getItem(COLLAPSE_KEY) === "true";
+      applyCollapseState(savedState);
+      
+      // Toggle on button click
+      toggleBtn.addEventListener("click", () => {
+        const isCollapsed = sidebar.classList.contains("sidebar-collapsed");
+        applyCollapseState(!isCollapsed);
       });
     })();
   </script>
