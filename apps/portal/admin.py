@@ -1,7 +1,7 @@
 from django.contrib import admin
 from config.admin import admin_site
 
-from .models import PortalFeatureItem, PendingGuardianInvite
+from .models import PortalFeatureItem, PendingGuardianInvite, Announcement
 
 
 class PortalFeatureItemAdmin(admin.ModelAdmin):
@@ -29,6 +29,32 @@ class PendingGuardianInviteAdmin(admin.ModelAdmin):
     readonly_fields = ("claimed_at",)
 
 
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ("title", "banner_type", "is_active", "is_currently_active", "created_by", "created_at")
+    list_filter = ("banner_type", "is_active", "created_at")
+    search_fields = ("title", "message")
+    readonly_fields = ("created_at", "updated_at")
+    autocomplete_fields = ("created_by",)
+    fieldsets = (
+        ("Announcement Content", {
+            "fields": ("title", "message", "banner_type")
+        }),
+        ("Display Settings", {
+            "fields": ("is_active", "start_date", "end_date")
+        }),
+        ("Metadata", {
+            "fields": ("created_by", "created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+
 # Register all models with custom admin site
 admin_site.register(PortalFeatureItem, PortalFeatureItemAdmin)
 admin_site.register(PendingGuardianInvite, PendingGuardianInviteAdmin)
+admin_site.register(Announcement, AnnouncementAdmin)

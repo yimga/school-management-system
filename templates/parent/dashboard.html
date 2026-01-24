@@ -21,37 +21,43 @@
   .welcome-hero {
     background: linear-gradient(135deg, var(--primary) 0%, rgba(13, 110, 253, 0.7) 100%);
     color: white;
-    padding: 2rem 1.5rem;
-    border-radius: 12px;
-    margin-bottom: 2rem;
+    padding: 2.5rem 2rem;
+    border-radius: 14px;
+    margin-bottom: 2.5rem;
     box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
   }
 
   .welcome-hero h1 {
     font-size: 1.8rem;
     font-weight: 700;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.75rem 0;
   }
 
   .welcome-hero p {
     font-size: 1rem;
     opacity: 0.9;
-    margin: 0;
+    margin: 0 0 1rem 0;
   }
 
   .quick-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1rem;
+    gap: 1.2rem;
     margin-top: 1.5rem;
   }
 
   .stat-card {
     background: rgba(255, 255, 255, 0.15);
-    padding: 1rem;
-    border-radius: 8px;
+    padding: 1.25rem;
+    border-radius: 10px;
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
   }
 
   .stat-value {
@@ -70,16 +76,18 @@
   }
 
   .metrics-section {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
   }
 
   .section-title {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
     font-size: 1.2rem;
     font-weight: 600;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
   }
 
   .section-title i {
@@ -90,13 +98,13 @@
   .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
+    gap: 1.75rem;
   }
 
   .metric-card {
     background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: 14px;
+    padding: 1.75rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition: all 0.2s ease;
     border: 1px solid rgba(0, 0, 0, 0.05);
@@ -147,14 +155,14 @@
 
   .children-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.75rem;
   }
 
   .child-card {
     background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: 14px;
+    padding: 1.75rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     transition: all 0.2s ease;
     border: 1px solid rgba(0, 0, 0, 0.05);
@@ -282,10 +290,11 @@
 
   .quick-tools-box {
     background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: 14px;
+    padding: 1.75rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.75rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
   }
 
   .quick-tools-title {
@@ -294,10 +303,29 @@
     font-weight: 700;
     color: #6c757d;
     letter-spacing: 0.05em;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
   }
 
   .tool-item {
+    background: white;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    text-align: left;
+    transition: all 0.3s ease;
+  }
+
+  .tool-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .tool-item:hover {
+    background: rgba(13, 110, 253, 0.08);
+    transform: translateX(4px);
+  }
     margin-bottom: 0.75rem;
   }
 
@@ -740,10 +768,9 @@
       </div>
     </div>
 
-    {# Weather Marquee - Scrolling version #}
-    <div class=\"mt-5 pt-4 border-top\">
-      {% include 'components/weather_marquee.html' %}
-    </div>
+    <!-- Dashboard Footer -->
+    {% include 'components/dashboard_footer.html' %}
+
   </div>
 </div>
 {% endblock %}

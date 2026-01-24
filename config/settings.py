@@ -100,6 +100,7 @@ TEMPLATES = [
                 "apps.siteconfig.context_processors.region_settings",
                 "apps.siteconfig.context_processors.language_context",
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
+                "apps.portal.context_processors.announcements",  # Global announcements banner
             ]
         },
     }
