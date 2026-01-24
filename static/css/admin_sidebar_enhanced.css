@@ -30,15 +30,15 @@
 }
 
 :root[data-theme="dark"] {
-  --admin-sidebar-bg: #0b0f14;
-  --admin-sidebar-surface: #111827;
-  --admin-sidebar-border: #1f2937;
+  --admin-sidebar-bg: #000000;
+  --admin-sidebar-surface: #111111;
+  --admin-sidebar-border: #222222;
   --admin-sidebar-text: #e2e8f0;
   --admin-sidebar-text-muted: #94a3b8;
-  --admin-sidebar-hover-bg: #0f172a;
-  --admin-sidebar-active-bg: #0f172a;
+  --admin-sidebar-hover-bg: #181818;
+  --admin-sidebar-active-bg: #181818;
   --admin-sidebar-active-border: #38bdf8;
-  --admin-sidebar-badge-bg: #1f2937;
+  --admin-sidebar-badge-bg: #222222;
   --admin-sidebar-badge-text: #e2e8f0;
 }
 

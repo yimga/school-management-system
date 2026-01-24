@@ -196,7 +196,7 @@ class AccessLog(models.Model):
     access_type = models.CharField(max_length=20, choices=AccessType.choices)
     resource = models.CharField(max_length=500, help_text="URL path or API endpoint")
     status = models.CharField(max_length=20, choices=Status.choices)
-    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     request_method = models.CharField(max_length=10, blank=True)  # GET, POST, etc.
     response_time_ms = models.PositiveIntegerField(null=True, blank=True)

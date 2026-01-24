@@ -145,10 +145,11 @@ class MobileMoneyValidator:
     """Validate mobile money transactions"""
     
     PROVIDERS = {
-        'mtn': {'prefix': '234703|234706|234701', 'length': 11},
-        'airtel': {'prefix': '234701|234708', 'length': 11},
-        'glo': {'prefix': '234705|234704', 'length': 11},
-        '9mobile': {'prefix': '234809|234808', 'length': 11},
+        # Expect international format without leading '+' (e.g., '2347031234567')
+        'mtn': {'prefix': '234703|234706|234701', 'length': 13},
+        'airtel': {'prefix': '234701|234708', 'length': 13},
+        'glo': {'prefix': '234705|234704', 'length': 13},
+        '9mobile': {'prefix': '234809|234808', 'length': 13},
     }
     
     @staticmethod

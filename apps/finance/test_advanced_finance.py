@@ -286,10 +286,12 @@ class PaymentDataValidatorTestCase(TestCase):
         """Test card payment validation"""
         from apps.finance.payment_validators import PaymentDataValidator
         
+        from django.utils import timezone
+        now = timezone.now()
         payment_data = {
             'card_number': '4532015112830366',
-            'expiry_month': 12,
-            'expiry_year': 2025,
+            'expiry_month': now.month,
+            'expiry_year': now.year + 1,
             'cvv': '123',
             'amount': 5000,
         }

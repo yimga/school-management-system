@@ -14,11 +14,11 @@ from django.db.models import Count
 from django.test import TestCase, TransactionTestCase
 from django.test.utils import override_settings
 
-from apps.academics.models import AcademicYear, Term
+from apps.academics.models import AcademicYear, Term, Department, Classroom, Specialty, Subject, SubjectAssignment
 from apps.accounts.models import User
 from apps.evals.models import Evaluation, AssessmentWeights
-from apps.finance.models import Invoice, PaymentReminder, PaymentMethod
-from apps.people.models import StudentProfile, StudentGuardian
+from apps.finance.models import Invoice, PaymentReminder, PaymentMethod, ComplianceProfile
+from apps.people.models import StudentProfile, StudentGuardian, TeacherProfile
 from apps.siteconfig.models import SiteSettings
 from apps.portal.services import (
     parent_dashboard_widget_data,
@@ -63,16 +63,42 @@ class PerformanceOptimizationTest(TransactionTestCase):
             password="test123",
             role=User.Role.PARENT,
         )
+
+        # Create department, classroom and specialty required by StudentProfile
+        self.department = Department.objects.create(name="General", code="GEN")
+        self.classroom = Classroom.objects.create(academic_year=self.year, department=self.department, name="Form 1A", code="F1A")
+        self.specialty = Specialty.objects.create(department=self.department, name="General Studies", code="GEN-ST")
+        # Create a subject and subject assignment required by Evaluation
+        self.subject = Subject.objects.create(name="Mathematics")
+        self.subject_assignment = SubjectAssignment.objects.create(
+            academic_year=self.year,
+            term=self.term,
+            classroom=self.classroom,
+            specialty=self.specialty,
+            subject=self.subject,
+            coefficient=1,
+        )
+        # Create a minimal compliance profile required for Invoice.profile
+        self.compliance_profile = ComplianceProfile.objects.create(name="Default", country_code="US")
         
         # Create students
         self.students = []
+        # Create a teacher for evaluations
+        self.teacher_user = User.objects.create_user(
+            username="teacher@example.com",
+            email="teacher@example.com",
+            password="test123",
+            role=User.Role.TEACHER,
+        )
+        self.teacher = TeacherProfile.objects.create(user=self.teacher_user, department=self.department)
         for i in range(3):  # 3 children per parent
             student = StudentProfile.objects.create(
-                user_id=None,
                 first_name=f"Student{i}",
                 last_name="Test",
                 date_of_birth="2010-01-01",
                 academic_year=self.year,
+                classroom=self.classroom,
+                specialty=self.specialty,
             )
             self.students.append(student)
             
@@ -88,6 +114,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
         # Create invoices for students
         for student in self.students:
             Invoice.objects.create(
+                profile=self.compliance_profile,
                 student=student,
                 total_amount=Decimal("100.00"),
                 balance_amount=Decimal("50.00"),
@@ -119,9 +146,10 @@ class PerformanceOptimizationTest(TransactionTestCase):
                 student=student,
                 academic_year=self.year,
                 term=self.term,
-                subject_assignment=None,
+                subject_assignment=self.subject_assignment,
                 seq1_score=10,
                 seq2_score=12,
+                teacher=self.teacher,
                 exam_score=14,
             )
         
@@ -154,7 +182,8 @@ class PerformanceOptimizationTest(TransactionTestCase):
                 student=student,
                 academic_year=self.year,
                 term=self.term,
-                subject_assignment=None,
+                subject_assignment=self.subject_assignment,
+                teacher=self.teacher,
                 seq1_score=10,
             )
         
@@ -174,7 +203,8 @@ class PerformanceOptimizationTest(TransactionTestCase):
                 student=student,
                 academic_year=self.year,
                 term=self.term,
-                subject_assignment=None,
+                subject_assignment=self.subject_assignment,
+                teacher=self.teacher,
                 seq1_score=10,
             )
         
@@ -203,7 +233,8 @@ class PerformanceOptimizationTest(TransactionTestCase):
             student=self.students[0],
             academic_year=self.year,
             term=self.term,
-            subject_assignment=None,
+            subject_assignment=self.subject_assignment,
+            teacher=self.teacher,
             seq1_score=18,
         )
         
@@ -224,7 +255,8 @@ class PerformanceOptimizationTest(TransactionTestCase):
                     student=student,
                     academic_year=self.year,
                     term=self.term,
-                    subject_assignment=None,
+                    subject_assignment=self.subject_assignment,
+                    teacher=self.teacher,
                     seq1_score=10 + i,
                 )
         

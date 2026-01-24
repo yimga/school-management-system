@@ -142,14 +142,16 @@ class TeacherAdminEnhancements:
         color = color_map.get(qualification, 'gray')
         qual_display = {
             'bachelors': "Bachelor's",
+            # Use standard ASCII apostrophe for consistent tests and output
             'masters': "Master's",
             'phd': 'PhD',
             'diploma': 'Diploma',
         }
+        from django.utils.safestring import mark_safe
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px;">{}</span>',
             color,
-            qual_display.get(qualification, qualification)
+            mark_safe(qual_display.get(qualification, qualification))
         )
     
     @staticmethod

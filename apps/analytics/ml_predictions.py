@@ -17,6 +17,22 @@ import joblib
 import os
 
 
+def _resolve_student_profile(student):
+    """Module helper: return StudentProfile if given a StudentProfile instance, else None.
+
+    Current data model does not assume a direct mapping from User -> StudentProfile, so we only
+    treat StudentProfile instances as profiles and otherwise return None so callers can
+    fall back to defaults.
+    """
+    try:
+        from apps.people.models import StudentProfile
+    except Exception:
+        return None
+    if isinstance(student, StudentProfile):
+        return student
+    return None
+
+
 class FeeDefaultPredictor:
     """
     Predict likelihood of fee payment default
@@ -31,6 +47,22 @@ class FeeDefaultPredictor:
         self.is_trained = False
     
     @staticmethod
+    def _resolve_student_profile(student):
+        """Return a StudentProfile instance if the input is one. We do NOT assume a User->StudentProfile FK exists.
+
+        If a StudentProfile instance is passed, return it. Otherwise return None. The callers should handle None
+        by using sensible defaults so predictors work with plain User objects in tests.
+        """
+        try:
+            from apps.people.models import StudentProfile
+        except Exception:
+            return None
+        if isinstance(student, StudentProfile):
+            return student
+        # No automatic mapping from User->StudentProfile in current schema; return None
+        return None
+
+    @staticmethod
     def extract_features(student) -> np.ndarray:
         """
         Extract features for fee default prediction
@@ -43,9 +75,14 @@ class FeeDefaultPredictor:
         - Months since last payment
         """
         from apps.finance.models import Invoice, Payment
+
+        student_profile = FeeDefaultPredictor._resolve_student_profile(student)
+        if not student_profile:
+            # If we don't have a StudentProfile, return sensible defaults
+            return np.array([0.0, 0.0, 0.0, 1.0, 0.0])
         
-        invoices = Invoice.objects.filter(student=student)
-        payments = Payment.objects.filter(invoice__student=student)
+        invoices = Invoice.objects.filter(student=student_profile)
+        payments = Payment.objects.filter(invoice__student=student_profile)
         
         total_outstanding = invoices.filter(status='PENDING').aggregate(
             total=models.Sum('amount')
@@ -122,7 +159,14 @@ class FeeDefaultPredictor:
         
         features = self.extract_features(student).reshape(1, -1)
         features_scaled = self.scaler.transform(features)
-        probability = self.model.predict_proba(features_scaled)[0][1]
+        proba = self.model.predict_proba(features_scaled)
+        # Handle single-class models gracefully
+        if proba.shape[1] == 1:
+            classes = getattr(self.model, 'classes_', None)
+            if classes is not None and len(classes) == 1 and classes[0] == 1:
+                return 1.0
+            return 0.0
+        probability = proba[0][1]
         
         return float(probability)
     
@@ -167,39 +211,36 @@ class PerformanceForecaster:
         """
         from apps.analytics.services import AdvancedAnalyticsService
         from apps.evals.models import Evaluation
-        from apps.academics.models import StudentProfile
-        
-        # Get performance trends using existing service
-        trends = AdvancedAnalyticsService.get_performance_trends(student, days=270)  # ~3 terms
-        
+
+        student_profile = _resolve_student_profile(student)
+
+        # Get performance trends using existing service (only when we have a StudentProfile)
+        trends = AdvancedAnalyticsService.get_performance_trends(student_profile, days=270) if student_profile else []  # ~3 terms
+
         # Extract last 3 term averages
-        evaluations = Evaluation.objects.filter(
-            student=student
-        ).order_by('-term__start_date')[:3]
-        
-        term_averages = [eval.final_score for eval in evaluations]
+        if student_profile:
+            evaluations_qs = Evaluation.objects.filter(student=student_profile).order_by('-term__start_date')[:3]
+            term_averages = [ev.final_score for ev in evaluations_qs]
+            subject_count = evaluations_qs.values('subject').distinct().count()
+        else:
+            term_averages = []
+            subject_count = 0
+
         while len(term_averages) < 3:
             term_averages.append(0.0)
-        
+
         # Calculate trend slope
         if len(term_averages) >= 2:
             trend_slope = term_averages[0] - term_averages[-1]
         else:
             trend_slope = 0.0
-        
-        # Attendance rate (from attendance app)
-        try:
-            profile = StudentProfile.objects.get(user=student)
-            attendance_rate = profile.attendance_rate if hasattr(profile, 'attendance_rate') else 90.0
-        except StudentProfile.DoesNotExist:
-            attendance_rate = 90.0
-        
-        # Number of subjects enrolled
-        subject_count = evaluations.values('subject').distinct().count()
-        
+
+        # Attendance rate (from attendance app or default)
+        attendance_rate = getattr(student_profile, 'attendance_rate', 90.0) if student_profile else 90.0
+
         # At-risk status (use existing service)
         at_risk_students = AdvancedAnalyticsService.identify_at_risk_students(threshold=50)
-        is_at_risk = 1.0 if student in at_risk_students else 0.0
+        is_at_risk = 1.0 if (student_profile and student_profile in at_risk_students) else 0.0
         
         return np.array([
             float(term_averages[0]),
@@ -298,47 +339,67 @@ class ChurnRiskPredictor:
         - Number of disciplinary incidents
         - Fee payment status
         """
-        from apps.analytics.models import AttendanceLog
         from apps.evals.models import Evaluation
         from apps.finance.models import Invoice
-        
+
+        student_profile = _resolve_student_profile(student)
+
         # Attendance rate (last 30 days)
         thirty_days_ago = timezone.now() - timedelta(days=30)
-        attendance_logs = AttendanceLog.objects.filter(
-            student=student,
-            date__gte=thirty_days_ago
-        )
-        present_count = attendance_logs.filter(status='present').count()
-        total_logs = attendance_logs.count()
-        attendance_rate = (present_count / total_logs * 100) if total_logs > 0 else 100.0
-        
+        attendance_rate = 100.0
+        try:
+            from apps.analytics.models import AttendanceLog
+            if student_profile:
+                attendance_logs = AttendanceLog.objects.filter(
+                    student=student_profile,
+                    date__gte=thirty_days_ago
+                )
+            else:
+                # No StudentProfile -> can't query attendance by student; default
+                attendance_logs = []
+
+            if hasattr(attendance_logs, 'count'):
+                present_count = attendance_logs.filter(status='present').count()
+                total_logs = attendance_logs.count()
+                attendance_rate = (present_count / total_logs * 100) if total_logs > 0 else 100.0
+            else:
+                attendance_rate = 100.0
+        except Exception:
+            # If AttendanceLog isn't available or query fails, default to 100%
+            attendance_rate = 100.0
+
         # Performance trend
-        recent_evals = Evaluation.objects.filter(
-            student=student
-        ).order_by('-created_at')[:5]
-        
-        if recent_evals.count() >= 2:
-            avg_recent = sum([e.final_score for e in recent_evals]) / recent_evals.count()
+        if student_profile:
+            recent_evals_qs = Evaluation.objects.filter(student=student_profile).order_by('-created_at')[:5]
+            recent_evals = list(recent_evals_qs)
+        else:
+            recent_evals = []
+
+        if len(recent_evals) >= 2:
+            avg_recent = sum([e.final_score for e in recent_evals]) / len(recent_evals)
             performance_trend = avg_recent
         else:
             performance_trend = 50.0
-        
+
         # Days since last login (portal engagement)
         try:
-            last_login = student.last_login
+            last_login = getattr(student, 'last_login', None)
             days_since_login = (timezone.now() - last_login).days if last_login else 999
-        except:
+        except Exception:
             days_since_login = 999
-        
+
         # Disciplinary incidents (if compliance app has this)
         disciplinary_count = 0  # Placeholder
-        
+
         # Fee payment status
-        outstanding_invoices = Invoice.objects.filter(
-            student=student,
-            status='PENDING'
-        ).count()
-        
+        if student_profile:
+            outstanding_invoices = Invoice.objects.filter(
+                student=student_profile,
+                status='PENDING'
+            ).count()
+        else:
+            outstanding_invoices = 0
+
         return np.array([
             float(attendance_rate),
             float(performance_trend),
@@ -381,7 +442,14 @@ class ChurnRiskPredictor:
         
         features = self.extract_features(student).reshape(1, -1)
         features_scaled = self.scaler.transform(features)
-        probability = self.model.predict_proba(features_scaled)[0][1]
+        proba = self.model.predict_proba(features_scaled)
+        # Handle single-class models
+        if proba.shape[1] == 1:
+            classes = getattr(self.model, 'classes_', None)
+            if classes is not None and len(classes) == 1 and classes[0] == 1:
+                return 1.0
+            return 0.0
+        probability = proba[0][1]
         
         return float(probability)
     

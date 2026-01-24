@@ -41,7 +41,7 @@ class EvaluationAdmin(ModelAdmin):
 
 class AssessmentWeightsAdmin(ModelAdmin):
     list_display = ("academic_year", "term", "classroom", "seq1_weight", "seq2_weight", "exam_weight", "mock_weight", "practical_weight", "score_scale")
-    list_filter = ("academic_year", "term", "classroom", "grading_scale", "region")
+    list_filter = ("academic_year", "term", "classroom", "grading_scale")
     list_per_page = 50  # PERFORMANCE: Add pagination
 
 

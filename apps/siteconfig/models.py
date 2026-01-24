@@ -214,8 +214,18 @@ def get_dashboard_widget_choices(role: str | None) -> list[tuple[str, str]]:
 def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | None" = None) -> list[str]:
     allowed = default_dashboard_widgets(role)
     if preference:
-        if preference.dashboard_view == DashboardView.CUSTOM and preference.dashboard_widgets:
-            selected = [key for key in preference.dashboard_widgets if key in allowed]
+        if preference.dashboard_view == DashboardView.CUSTOM:
+            selected = []
+            dashboard_pref = None
+            try:
+                from apps.siteconfig.models_dashboard import DashboardUserPreference
+                dashboard_pref = preference.user.dashboard_preferences
+            except (DashboardUserPreference.DoesNotExist, AttributeError):
+                dashboard_pref = None
+            if dashboard_pref:
+                selected = [key for key in dashboard_pref.get_dashboard_widgets() if key in allowed]
+            if not selected:
+                selected = [key for key in preference.dashboard_widgets if key in allowed]
             return selected or allowed
         view_map = {
             DashboardView.FINANCE: ["finance", "events", "communications", "links"],

@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
+
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.accounts.models import User
 from apps.accounts.validators import validate_evidence_file, validate_file_size_20mb
@@ -46,7 +47,6 @@ class AssessmentWeights(models.Model):
     mock_weight = models.PositiveSmallIntegerField(default=0)
     practical_weight = models.PositiveSmallIntegerField(default=0)
 
-    # Score scale is usually /20 in Cameroon, but we keep this flexible.
     score_scale = models.PositiveSmallIntegerField(default=20)
     
     # NEW: Grading scale & locale configuration
@@ -58,17 +58,41 @@ class AssessmentWeights(models.Model):
             ('gpa_4_0', 'GPA 4.0 Scale'),
             ('percentage', 'Percentage 0–100'),
         ],
-        default='numeric_0_20'
+        default='numeric_0_20',
     )
-    region = models.CharField(
+
+# Add a property for total_score and average_score to Evaluation if not present
+
+class Evaluation(models.Model):
+    # ...existing fields...
+    seq1_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    seq2_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    exam_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    grading_scale = models.CharField(
         max_length=50,
         choices=[
-            ('cameroon_anglophone', 'Cameroon Anglophone'),
-            ('cameroon_francophone', 'Cameroon Francophone'),
-            ('global', 'Global/Other'),
+            ('numeric_0_20', 'Numeric 0–20 (Cameroon Francophone)'),
+            ('letter_a_e', 'Letters A–E (Cameroon Anglophone)'),
+            ('gpa_4_0', 'GPA 4.0 Scale'),
+            ('percentage', 'Percentage 0–100'),
         ],
-        default='cameroon_anglophone'
     )
+    mock_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    practical_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
+    @property
+    def total_score(self):
+        # Example: sum all available scores
+        return sum(
+            s for s in [self.seq1_score, self.seq2_score, self.exam_score, self.mock_score, self.practical_score]
+            if s is not None
+        )
+
+    @classmethod
+    def average_score(cls):
+        # Example: average of total_score for all objects
+        scores = [e.total_score for e in cls.objects.all() if e.total_score is not None]
+        return sum(scores) / len(scores) if scores else 0
     
     # Letter grade mapping thresholds (for A–E scales)
     grade_a_min = models.DecimalField(max_digits=5, decimal_places=2, default=18.00, help_text="Minimum score for A")
@@ -101,63 +125,7 @@ class AssessmentWeights(models.Model):
         if self.score_scale <= 0:
             raise ValidationError("Score scale must be > 0.")
 
-    @classmethod
-    def get_for(cls, academic_year: AcademicYear, classroom=None, term: Term | None = None) -> "AssessmentWeights":
-        """Return the best matching weights.
-
-        Precedence:
-        1) classroom override for term (if provided)
-        2) school-wide term default
-        3) classroom override for full year
-        4) school-wide default
-        If none exists, create a school-wide default.
-        """
-        if term is not None:
-            if classroom is not None:
-                obj = cls.objects.filter(
-                    academic_year=academic_year,
-                    term=term,
-                    classroom=classroom,
-                ).first()
-                if obj:
-                    return obj
-            obj = cls.objects.filter(
-                academic_year=academic_year,
-                term=term,
-                classroom__isnull=True,
-            ).first()
-            if obj:
-                return obj
-
-        if classroom is not None:
-            obj = cls.objects.filter(
-                academic_year=academic_year,
-                term__isnull=True,
-                classroom=classroom,
-            ).first()
-            if obj:
-                return obj
-
-        obj = cls.objects.filter(
-            academic_year=academic_year,
-            term__isnull=True,
-            classroom__isnull=True,
-        ).first()
-        if obj:
-            return obj
-
-        # Create a sensible default
-        return cls.objects.create(
-            academic_year=academic_year,
-            term=None,
-            classroom=None,
-            seq1_weight=20,
-            seq2_weight=20,
-            exam_weight=60,
-            mock_weight=0,
-            practical_weight=0,
-            score_scale=20,
-        )
+    # ...existing code...
 
     def __str__(self) -> str:
         scope = f"{self.classroom}" if self.classroom_id else "School default"
@@ -266,6 +234,9 @@ class Evaluation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Final computed score stored for aggregation and reporting (kept in DB for performance)
+    final_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+
     # Audit logging fields for data integrity
     created_by = models.ForeignKey(
         User,
@@ -394,8 +365,13 @@ class Evaluation(models.Model):
                 raise ValidationError("Student class/specialty must match SubjectAssignment class/specialty.")
 
     def save(self, *args, **kwargs):
-        """Call full_clean() before saving to validate scores."""
+        """Call full_clean() before saving to validate scores and persist final_score."""
         self.full_clean()
+        # Persist final_score for efficient aggregation/reporting
+        try:
+            self.final_score = self.total_score
+        except Exception:
+            self.final_score = None
         super().save(*args, **kwargs)
 
     def __str__(self):

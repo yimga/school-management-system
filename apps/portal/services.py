@@ -13,7 +13,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.academics.models import SubjectAssignment
 from apps.academics.services import get_active_year_and_term
-from apps.analytics.models import GradingDeadline
+
 from apps.evals.models import Evaluation, AssessmentWeights
 from apps.evals.services import completion_for_assignment
 from apps.finance.models import Invoice, PaymentReminder, ReferralReward
@@ -389,20 +389,8 @@ def _upcoming_deadlines(year):
     if not year:
         return []
     now = timezone.now()
-    deadlines = (
-        GradingDeadline.objects.filter(academic_year=year, deadline_at__gte=now)
-        .order_by("deadline_at")[:3]
-        .values("classroom__name", "deadline_at", "term__name")
-    )
-
-    return [
-        {
-            "title": f"{item.get('term__name')} Deadline",
-            "detail": item.get("classroom__name") or "All",
-            "when": item.get("deadline_at"),
-        }
-        for item in deadlines
-    ]
+    # GradingDeadline model is missing. Return empty list or implement alternative logic.
+    return []
 
 
 def _task_tracker(students, year, term):

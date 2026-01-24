@@ -23,8 +23,15 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
     if not ip_address:
         return True, "No IP address provided"
 
-    # Cache key for this IP (cache for 5 minutes)
-    cache_key = f"ip_access:{ip_address}"
+    # Cache key includes a version so rule updates invalidate cached entries
+    def _rules_version():
+        ver = cache.get('access_rules_version')
+        if ver is None:
+            ver = 1
+            cache.set('access_rules_version', ver, None)
+        return ver
+
+    cache_key = f"ip_access:{ip_address}:v{_rules_version()}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -80,8 +87,15 @@ def check_country_access(country_code: str) -> Tuple[bool, str]:
     # Normalize to uppercase
     country_code = country_code.upper()
 
-    # Cache key
-    cache_key = f"country_access:{country_code}"
+    # Cache key includes a version so rule updates invalidate cached entries
+    def _rules_version():
+        ver = cache.get('access_rules_version')
+        if ver is None:
+            ver = 1
+            cache.set('access_rules_version', ver, None)
+        return ver
+
+    cache_key = f"country_access:{country_code}:v{_rules_version()}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached

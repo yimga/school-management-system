@@ -102,3 +102,6 @@ class PromotionRule(models.Model):
     def __str__(self):
         scope = self.classroom.name if self.classroom else "School default"
         return f"{self.academic_year} - {scope}"
+# ReportDefinition and MaterializedReportCache are defined in `apps.reports.bi_models`.
+# Import them here for backwards compatibility so existing imports continue to work.
+from .bi_models import ReportDefinition, MaterializedReportCache

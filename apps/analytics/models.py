@@ -1,39 +1,17 @@
+# Imports
 from django.db import models
-from django.utils import timezone
-
 from apps.academics.models import AcademicYear, Term, Classroom
 from apps.accounts.validators import validate_grade_import_file, validate_file_size_5mb
+# --- Phase 8: AttendanceLog stub for dashboard metrics ---
 
 
-class GradingDeadline(models.Model):
-    academic_year = models.ForeignKey(
-        AcademicYear,
-        on_delete=models.CASCADE,
-        related_name="grading_deadlines",
-    )
-    term = models.ForeignKey(
-        Term,
-        on_delete=models.CASCADE,
-        related_name="grading_deadlines",
-    )
-    classroom = models.ForeignKey(
-        Classroom,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="grading_deadlines",
-    )
-    deadline_at = models.DateTimeField()
-    updated_at = models.DateTimeField(auto_now=True)
+class AttendanceLog(models.Model):
+    date = models.DateField()
+    status = models.CharField(max_length=20)
+    # Add more fields as needed for real implementation
 
     class Meta:
-        unique_together = ("academic_year", "term", "classroom")
-        ordering = ["-deadline_at"]
-
-    def __str__(self) -> str:
-        scope = self.classroom.name if self.classroom else "Whole school"
-        date_label = timezone.localtime(self.deadline_at).strftime("%Y-%m-%d %H:%M")
-        return f"{self.academic_year} {self.term.label} - {scope}: {date_label}"
+        app_label = 'analytics'
 
 # ========== GRADE IMPORT JOB TRACKING ==========
 

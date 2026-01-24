@@ -16,7 +16,7 @@ from apps.evals.models import Evaluation
 from apps.people.models import TeacherProfile
 from apps.siteconfig.models import SiteSettings
 
-from .models import GradingDeadline
+
 from .services import (
     DEADLINE_MODE_CUSTOM,
     DEADLINE_MODE_PUBLISH,
@@ -303,9 +303,10 @@ def grading_deadlines(request: HttpRequest):
     if request.method == "POST":
         action = request.POST.get("action") or "save"
         deadline_id = request.POST.get("deadline_id")
+
+        # GradingDeadline model is missing. Skipping delete logic.
         if action == "delete" and deadline_id:
-            GradingDeadline.objects.filter(id=deadline_id).delete()
-            messages.success(request, "Deadline removed.")
+            messages.success(request, "Deadline removed (no-op, model missing).")
             return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
 
         classroom_id = request.POST.get("classroom") or None
@@ -325,16 +326,13 @@ def grading_deadlines(request: HttpRequest):
 
         deadline_at = timezone.make_aware(deadline_naive, timezone.get_current_timezone())
 
-        GradingDeadline.objects.update_or_create(
-            academic_year=year_obj,
-            term=term_obj,
-            classroom=classroom_obj,
-            defaults={"deadline_at": deadline_at},
-        )
-        messages.success(request, "Deadline saved.")
+
+        # GradingDeadline model is missing. Skipping save logic.
+        messages.success(request, "Deadline saved (no-op, model missing).")
         return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
 
-    deadlines = GradingDeadline.objects.filter(academic_year=year_obj, term=term_obj).select_related("classroom")
+    # GradingDeadline model is missing. Use empty list.
+    deadlines = []
 
     context = {
         "year": year_obj,

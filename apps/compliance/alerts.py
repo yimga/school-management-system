@@ -169,8 +169,25 @@ def _create_incident_ticket(payload: dict):
         logger.warning("Failed to create incident ticket: %s", exc)
 
 
+from django.core.cache import cache
+
 def notify_audit_event(audit_log):
-    """Dispatch alerts for qualifying audit events. Use digest mode for LOW/MEDIUM severity."""
+    """Dispatch alerts for qualifying audit events. Use digest mode for LOW/MEDIUM severity.
+
+    This function implements a short-lived dedupe using the cache to avoid duplicate
+    alerts when the same audit event is processed multiple times in quick succession
+    (e.g., created -> signal_handler -> manual call in tests).
+    """
+    dedupe_key = f"audit_alert_sent:{audit_log.id}"
+    # If already processed recently, skip to avoid duplicates
+    try:
+        if cache.get(dedupe_key):
+            logger.debug("Skipping duplicate alert for audit_log %s", audit_log.id)
+            return
+    except Exception:
+        # If cache backend not available, proceed without dedupe
+        pass
+
     if not _should_alert(audit_log):
         return
     
@@ -190,8 +207,13 @@ def notify_audit_event(audit_log):
             related_id=audit_log.id,
         )
         logger.info(f"Added {severity} audit alert to digest: {audit_log}")
+        # Mark as processed for a short time to avoid duplicates
+        try:
+            cache.set(dedupe_key, True, 60)
+        except Exception:
+            pass
         return  # Don't send immediately
-    
+
     # For HIGH/CRITICAL, send immediately
     message = _build_alert_message(audit_log)
 
@@ -232,6 +254,11 @@ def notify_audit_event(audit_log):
                 "object_id": audit_log.object_id,
             },
         })
+        # Mark as processed for a short time to avoid duplicates
+        try:
+            cache.set(dedupe_key, True, 60)
+        except Exception:
+            pass
 
 
 def send_threat_alert(finding: dict):

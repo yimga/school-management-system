@@ -63,7 +63,7 @@ class AdminDashboardService:
     @staticmethod
     def get_student_metrics():
         """Get student metrics"""
-        from apps.academics.models import StudentProfile
+        from apps.people.models import StudentProfile
         
         total = StudentProfile.objects.count()
         active = StudentProfile.objects.filter(is_active=True).count()
@@ -102,7 +102,8 @@ class AdminDashboardService:
     @staticmethod
     def get_academic_metrics():
         """Get academic metrics"""
-        from apps.academics.models import Classroom, Evaluation
+        from apps.academics.models import Classroom
+        from apps.evals.models import Evaluation
         
         classrooms = Classroom.objects.count()
         evaluations = Evaluation.objects.filter(

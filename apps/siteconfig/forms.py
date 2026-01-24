@@ -235,6 +235,15 @@ class UserPreferenceForm(forms.ModelForm):
         preference.dashboard_widgets = self.cleaned_data.get("dashboard_widgets", [])
         if commit:
             preference.save()
+            try:
+                from apps.siteconfig.models_dashboard import DashboardUserPreference
+
+                dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=preference.user)
+                dashboard_pref.visible_widgets = preference.dashboard_widgets or []
+                dashboard_pref.save()
+            except Exception:
+                # Avoid blocking preference updates if dashboard prefs aren't migrated yet.
+                pass
         return preference
 
 

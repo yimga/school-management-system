@@ -12,6 +12,22 @@ class AcademicYear(models.Model):
     end_date = models.DateField()
     is_active = models.BooleanField(default=False)
 
+    def __init__(self, *args, **kwargs):
+        # Backwards-compatibility: accept `starts_on`/`ends_on` kwargs used by older code/tests
+        if 'starts_on' in kwargs:
+            kwargs['start_date'] = kwargs.pop('starts_on')
+        if 'ends_on' in kwargs:
+            kwargs['end_date'] = kwargs.pop('ends_on')
+        super().__init__(*args, **kwargs)
+
+    @property
+    def starts_on(self):
+        return self.start_date
+
+    @property
+    def ends_on(self):
+        return self.end_date
+
     class Meta:
         ordering = ["-start_date"]
 
@@ -39,6 +55,16 @@ class Term(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=False)
+
+    def __init__(self, *args, **kwargs):
+        # Backwards-compatibility: accept keyword 'order' used by older code/tests
+        if 'order' in kwargs:
+            kwargs['position'] = kwargs.pop('order')
+        super().__init__(*args, **kwargs)
+
+    @property
+    def order(self):
+        return self.position
 
     class Meta:
         unique_together = ("academic_year", "name")

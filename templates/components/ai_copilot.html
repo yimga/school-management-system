@@ -326,6 +326,13 @@
     padding: 12px 16px;
     flex: 1;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    color: #111827;
+    line-height: 1.45;
+  }
+
+  .ai-message-content p {
+    margin: 0;
+    color: inherit;
   }
 
   .user-message {
@@ -338,6 +345,7 @@
 
   .user-message .ai-message-content {
     background: #e3f2fd;
+    color: #0f172a;
   }
 
   .ai-quick-actions {
@@ -653,6 +661,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const responseText = result.response || 'I captured your request and validated your access. Please try again in a moment.';
+        const safeResponse = escapeHtml(responseText).replace(/\n/g, '<br>');
 
         loadingMsg.remove();
         const aiMsg = document.createElement('div');
@@ -662,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <i class="bi bi-robot"></i>
           </div>
           <div class="ai-message-content">
-            ${responseText}
+            <p class="mb-0">${safeResponse}</p>
           </div>
         `;
         body.appendChild(aiMsg);

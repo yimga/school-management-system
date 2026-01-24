@@ -20,9 +20,26 @@ class TeacherProfile(models.Model):
         ACADEMICS = "ACADEMICS", "Academics"
         ATTENDANCE = "ATTENDANCE", "Attendance"
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
     staff_id = models.CharField(max_length=50, blank=True)
     phone = models.CharField(max_length=50, blank=True)
+    profile_photo = models.ImageField(upload_to="profiles/teachers/", blank=True, null=True)
+    position_title = models.CharField(max_length=120, blank=True)
+    reports_to = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="direct_reports",
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="teachers",
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
+    is_active = models.BooleanField(default=True)
     profile_photo = models.ImageField(upload_to="profiles/teachers/", blank=True, null=True)
     position_title = models.CharField(max_length=120, blank=True)
     reports_to = models.ForeignKey(
@@ -195,8 +212,8 @@ class StudentProfile(models.Model):
     parent_phone = models.CharField(max_length=50, blank=True)
     referral_code = models.CharField(max_length=80, blank=True)
 
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="students")
-    classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="students")
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="students", null=True, blank=True)
+    classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="students", null=True, blank=True)
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="students")
 
     # Exam system fields (configurable for different countries)
@@ -315,12 +332,21 @@ class StudentProfile(models.Model):
         return f"{yy}{school_code}{seq_str}{spec_segment}{class_segment}"
 
     def save(self, *args, **kwargs):
-        # Auto-generate admission number when not provided
-        if not self.admission_number and self.academic_year and self.specialty and self.classroom:
+        # Auto-generate admission number when not provided. Use _id checks to avoid
+        # related object descriptor errors when foreign keys aren't set during tests.
+        if (not self.admission_number
+            and getattr(self, 'academic_year_id', None)
+            and getattr(self, 'specialty_id', None)
+            and getattr(self, 'classroom_id', None)):
+            from apps.academics.models import AcademicYear, Classroom, Specialty
+            # Resolve objects for generation
+            year = AcademicYear.objects.get(id=self.academic_year_id)
+            specialty = Specialty.objects.get(id=self.specialty_id)
+            classroom = Classroom.objects.get(id=self.classroom_id)
             self.admission_number = self.generate_admission_number(
-                self.academic_year,
-                self.specialty,
-                self.classroom,
+                year,
+                specialty,
+                classroom,
             )
         if not self.student_code:
             self.student_code = self.admission_number or f"TEMP-{uuid.uuid4().hex[:8].upper()}"
@@ -346,6 +372,10 @@ class StudentProfile(models.Model):
                 )
         super().clean()
 
+
+# Backwards-compatibility alias
+# Older code/tests import `Student` from apps.people.models — keep this alias to avoid ImportError
+Student = StudentProfile
 
 class StudentGuardian(models.Model):
     """

@@ -1,13 +1,13 @@
 {% load static %}
 {% load accounts_extras %}
 {# Role-based dashboard footer with support, quick links, and legal info #}
-<footer class="dashboard-footer mt-5 bg-light border-top" id="dashboardFooter">
+<footer class="dashboard-footer bg-light border-top" id="dashboardFooter">
   {% with can_portal=request.user|has_feature_permission:"portal.manage" can_reports=request.user|has_feature_permission:"reports.manage" can_attendance=request.user|has_feature_permission:"attendance.manage" can_attendance_view=request.user|has_feature_permission:"attendance.view" can_finance_view=request.user|has_feature_permission:"finance.view" can_finance_manage=request.user|has_feature_permission:"finance.manage" can_data_access=request.user|has_feature_permission:"data.access" can_settings=request.user|has_feature_permission:"settings.manage" can_comms=request.user|has_feature_permission:"communication.manage" %}
-  <div class="container-fluid py-5">
+  <div class="container-fluid py-3">
     <!-- Brand + Accreditation + Support -->
-    <div class="row g-3 align-items-center pb-4 border-bottom border-secondary footer-topbar">
-      <div class="col-lg-8">
-        <div class="footer-branding">
+    <div class="row g-2 align-items-center pb-2 border-bottom border-secondary footer-topbar justify-content-center">
+      <div class="col-lg-8 d-flex justify-content-center">
+        <div class="footer-branding w-100 justify-content-center">
           <div class="footer-logo">
             {% if SITE_LOGO_URL %}
               <img src="{{ SITE_LOGO_URL }}" alt="School Management System" class="footer-logo-img">
@@ -29,8 +29,8 @@
           </div>
         </div>
       </div>
-      <div class="col-lg-4 text-lg-end">
-        <div class="footer-support-cta">
+      <div class="col-lg-4 d-flex justify-content-center">
+        <div class="footer-support-cta align-items-center">
           <div class="footer-support-label">Need Help?</div>
           <a href="{{ SITE.footer_whatsapp_url|default:'#' }}"
              class="footer-whatsapp"
@@ -47,13 +47,13 @@
     </div>
 
     <!-- Primary Footer Section -->
-    <div class="row g-4 pt-4 pb-4 border-bottom border-secondary justify-content-center align-items-stretch flex-wrap text-center">
+    <div class="row g-2 pt-2 pb-2 border-bottom border-secondary justify-content-center align-items-stretch flex-wrap text-center">
       <!-- Support & Help Section (Role-based KB/FAQ) -->
-      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100 align-items-center">
-        <h5 class="footer-heading">
+      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100 align-items-center p-1">
+        <h5 class="footer-heading mb-2">
           <i class="bi bi-life-preserver"></i> Support & Help
         </h5>
-        <ul class="footer-links">
+        <ul class="footer-links mb-1">
           <li>
             <a href="{% url 'kb:kb_home' %}" class="footer-link">
               <i class="bi bi-book"></i> Knowledge Base
@@ -381,9 +381,9 @@
     </div>
 
     <!-- Secondary Footer Section (Copyright & Credits) -->
-    <div class="row pt-4">
-      <div class="col-md-8">
-        <div class="footer-copyright">
+    <div class="row pt-2">
+      <div class="col-md-8 d-flex align-items-center justify-content-center">
+        <div class="footer-copyright text-center">
           <p class="mb-1">
             © {% now "Y" %} {{ SITE.company_name|default:"Gilead Tech High School" }}. All rights reserved.
           </p>
@@ -394,8 +394,8 @@
           {% endif %}
         </div>
       </div>
-      <div class="col-md-4 text-md-end">
-        <div class="footer-credits">
+      <div class="col-md-4 d-flex align-items-center justify-content-center">
+        <div class="footer-credits text-center">
           <p class="mb-0">
             <span class="text-muted">Powered by</span>
             <strong>School Management System</strong>
@@ -437,136 +437,136 @@
 .dashboard-footer {
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
   border-top: 3px solid rgba(13, 110, 253, 0.1);
-  padding: 3rem 0 1.5rem;
+  padding: 1.2rem 0 0.7rem;
   margin-top: auto;
   color: #475569;
 }
 
 .footer-heading {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #1e293b;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-
+  margin-bottom: 0.25rem;
 .footer-heading i {
   color: #0d6efd;
 }
-
+  color: #64748b;
 .footer-topbar {
   align-items: center;
 }
 
-.footer-branding {
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
 }
 
 .footer-brand-name {
-  font-size: 1.1rem;
-  font-weight: 700;
+  color: #0d6efd;
+  padding-left: 0.3rem;
   color: #1e293b;
 }
 
-.footer-logo {
-  display: flex;
+  width: 28px;
+  height: 28px;
   align-items: flex-start;
   gap: 12px;
 }
-
+  padding: 2px;
 .footer-logo-img {
   width: 36px;
   height: 36px;
-  object-fit: contain;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.7);
-  padding: 4px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
 }
 
 .footer-accreditation {
-  font-size: 0.85rem;
-  color: #64748b;
-}
-
-.footer-accreditation-label {
-  font-weight: 600;
-  color: #1e293b;
-  margin-right: 6px;
-}
-
-.footer-accreditation-text {
-  color: #0d6efd;
-  font-weight: 600;
-}
-
-.footer-accreditation-sub {
-  font-size: 0.8rem;
-  color: #94a3b8;
-  margin-top: 4px;
-}
-
-.footer-support-cta {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: flex-end;
-}
-
-.footer-support-label {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.footer-whatsapp {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 6px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: #25d366;
   color: #fff;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  color: #0d6efd;
+  font-weight: 600;
+}
+  font-size: 0.75rem;
+.footer-accreditation-sub {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.4rem;
+  background: rgba(34, 197, 94, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(34, 197, 94, 0.13);
 }
 
-.footer-whatsapp:hover {
-  background: #128c7e;
+.footer-support-label {
+  width: 8px;
+  height: 8px;
+}
+
+.footer-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #25d366;
   color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(18, 140, 126, 0.25);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.4rem;
+  background: rgba(13, 110, 253, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(13, 110, 253, 0.13);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0d6efd;
 }
 
 .footer-support-hours {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: #94a3b8;
 }
 
 .footer-links {
-  list-style: none;
+  font-size: 0.82rem;
   padding: 0;
   margin: 0;
 }
 
-.footer-links li {
-  margin-bottom: 0.5rem;
-}
-
-.footer-link {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  justify-content: center;
   color: #64748b;
   text-decoration: none;
   display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  padding: 0.25rem 0;
-}
-
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
 .footer-link:hover {
   color: #0d6efd;
   padding-left: 0.5rem;

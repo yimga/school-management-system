@@ -18,53 +18,96 @@
     min-height: 100vh;
   }
 
-  .welcome-hero {
-    background: linear-gradient(135deg, var(--primary) 0%, rgba(13, 110, 253, 0.7) 100%);
-    color: white;
-    padding: 2.5rem 2rem;
-    border-radius: 14px;
-    margin-bottom: 2.5rem;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+  .dashboard-hero {
+    background: #ffffff;
+    color: #0f172a;
+    padding: 1.75rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
   }
 
-  .welcome-hero h1 {
-    font-size: 1.8rem;
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .dashboard-eyebrow {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #64748b;
     font-weight: 700;
-    margin: 0 0 0.75rem 0;
   }
 
-  .welcome-hero p {
-    font-size: 1rem;
-    opacity: 0.9;
-    margin: 0 0 1rem 0;
+  .dashboard-hero h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .dashboard-hero p {
+    font-size: 0.95rem;
+    color: #475569;
+    margin: 0;
+  }
+
+  .dashboard-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-actions .btn {
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-weight: 600;
   }
 
   /* Mobile-first responsive design */
   @media (max-width: 479px) {
-    .welcome-hero {
-      padding: 1.5rem 1.25rem;
+    .dashboard-hero {
+      padding: 1.25rem;
       margin-bottom: 1.5rem;
     }
 
-    .welcome-hero h1 {
-      font-size: 1.3rem;
-      margin-bottom: 0.5rem;
+    .dashboard-hero h1 {
+      font-size: 1.2rem;
     }
 
-    .welcome-hero p {
-      font-size: 0.9rem;
+    .dashboard-hero p {
+      font-size: 0.85rem;
       line-height: 1.4;
+    }
+
+    .dashboard-actions {
+      width: 100%;
+    }
+
+    .dashboard-actions .btn {
+      flex: 1 1 100%;
+      text-align: center;
     }
   }
 
   @media (max-width: 767px) {
-    .welcome-hero {
-      padding: 2rem 1.5rem;
-      margin-bottom: 2rem;
+    .dashboard-hero {
+      padding: 1.5rem;
+      margin-bottom: 1.75rem;
     }
 
-    .welcome-hero h1 {
-      font-size: 1.5rem;
+    .dashboard-hero h1 {
+      font-size: 1.35rem;
     }
   }
 
@@ -576,7 +619,7 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
-    margin-top: 1.25rem;
+    margin-top: 1.5rem;
     align-items: stretch;
     grid-auto-rows: 1fr;
   }
@@ -648,12 +691,9 @@
   }
 
   @media (max-width: 768px) {
-    .welcome-hero {
-      padding: 1.5rem 1rem;
-    }
-
-    .welcome-hero h1 {
-      font-size: 1.3rem;
+    .dashboard-header {
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .metrics-grid,
@@ -675,9 +715,23 @@
   <div class="container-lg py-4">
     
     <!-- Welcome Section -->
-    <div class="welcome-hero">
-      <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
-      <p>Stay updated on your children's progress, attendance, and school activities.</p>
+    <div class="dashboard-hero">
+      <div class="dashboard-header">
+        <div class="dashboard-title">
+          <span class="dashboard-eyebrow">Parent Portal</span>
+          <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
+          <p>Stay updated on your children's progress, attendance, and school activities.</p>
+        </div>
+        {% if hero.actions %}
+        <div class="dashboard-actions">
+          {% for action in hero.actions %}
+          <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            {{ action.label }}
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
       
       <div class="summary-tiles">
         <div class="summary-tile tile-blue">

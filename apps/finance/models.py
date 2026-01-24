@@ -402,6 +402,18 @@ class Payment(models.Model):
         help_text="Optional uploaded receipt or slip (PDF/image, max 2MB).",
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Status tracking (backwards compatible with external payment model expectations)
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+        ('refunded', 'Refunded'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status_reason = models.TextField(blank=True)
     
     # Audit logging fields
     created_by = models.ForeignKey(

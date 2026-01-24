@@ -55,9 +55,9 @@ class ExecutiveReportingService:
         )
         
         summary = {
-            'total_invoiced': invoices.aggregate(total=Sum('amount'))['total'] or 0,
+            'total_invoiced': invoices.aggregate(total=Sum('total_amount'))['total'] or 0,
             'total_collected': payments.aggregate(total=Sum('amount'))['total'] or 0,
-            'outstanding': invoices.filter(status='PENDING').aggregate(total=Sum('amount'))['total'] or 0,
+            'outstanding': invoices.filter(status='PENDING').aggregate(total=Sum('total_amount'))['total'] or 0,
             'invoice_count': invoices.count(),
             'payment_count': payments.count(),
             'collection_rate': 0.0,
@@ -265,8 +265,18 @@ class ReportCacheManager:
         
         MaterializedReportCache.objects.filter(report_type=report_type).delete()
         
-        # Clear memory cache (pattern-based)
         cache.delete_pattern(f'report:{report_type}:*')
+
+        # Clear memory cache (pattern-based) - LocMemCache does not support delete_pattern
+        # Instead, manually delete matching keys if using LocMemCache
+        from django.core.cache import cache
+        if hasattr(cache, 'delete_pattern'):
+            cache.delete_pattern(f'report:{report_type}:*')
+        else:
+            # Fallback for LocMemCache: brute-force delete
+            for key in list(cache._cache.keys()):
+                if key.startswith(f'report:{report_type}:'):
+                    cache.delete(key)
 
 
 class ScheduledReportRunner:

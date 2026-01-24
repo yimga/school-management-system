@@ -82,17 +82,11 @@ class DashboardUserPreference(models.Model):
         return self.visible_widgets or self._get_default_widgets()
     
     def _get_default_widgets(self):
-        """Return default widgets for user role."""
-        role = getattr(self.user, 'role', 'STUDENT')
-        
-        defaults = {
-            'STUDENT': ['stats', 'recent-grades', 'upcoming-assignments', 'announcements'],
-            'TEACHER': ['class-stats', 'student-performance', 'upcoming-classes', 'assignments'],
-            'PARENT': ['child-progress', 'alerts', 'upcoming-events', 'fees-status'],
-            'ADMIN': ['system-stats', 'user-activity', 'system-health', 'recent-changes'],
-        }
-        
-        return defaults.get(role, ['stats', 'announcements'])
+        """Return default widgets aligned to the portal widget keys."""
+        from apps.siteconfig.models import default_dashboard_widgets
+
+        role = getattr(self.user, "role", None)
+        return default_dashboard_widgets(role)
     
     def set_widget_position(self, widget_id, position):
         """Update widget position in dashboard."""

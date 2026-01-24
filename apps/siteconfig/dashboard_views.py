@@ -8,7 +8,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
 import json
-from apps.siteconfig.models_dashboard import UserPreference, DashboardWidget
+from django.db.models import Q
+
+from apps.siteconfig.models import get_dashboard_widget_choices
+from apps.siteconfig.models_dashboard import DashboardUserPreference, DashboardWidget
 
 
 @login_required
@@ -20,29 +23,47 @@ def dashboard_customize(request):
         return _update_dashboard_layout(request)
     
     # GET: Return current dashboard config
-    preferences, _ = UserPreference.objects.get_or_create(user=request.user)
+    preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
     
     # Get available widgets for user role
-    widgets = DashboardWidget.objects.filter(
-        is_active=True
-    ).exclude(
-        required_role='ADMIN'
-    ) if not request.user.is_staff else DashboardWidget.objects.filter(is_active=True)
-    
+    role = getattr(request.user, "role", None)
+    allowed_ids = {key for key, _ in get_dashboard_widget_choices(role)}
+    widgets_qs = DashboardWidget.objects.filter(is_active=True)
+    if not request.user.is_staff:
+        widgets_qs = widgets_qs.filter(
+            Q(required_role="ANY") | Q(required_role__iexact=role)
+        )
+    if allowed_ids:
+        widgets_qs = widgets_qs.filter(id__in=allowed_ids)
+
+    if widgets_qs.exists():
+        available_widgets = [
+            {
+                "id": w.id,
+                "name": w.name,
+                "description": w.description,
+                "type": w.widget_type,
+                "width": w.default_width,
+            }
+            for w in widgets_qs
+        ]
+    else:
+        available_widgets = [
+            {
+                "id": key,
+                "name": label,
+                "description": "Standard dashboard widget",
+                "type": "stats",
+                "width": 1,
+            }
+            for key, label in get_dashboard_widget_choices(role)
+        ]
+
     return JsonResponse({
         'success': True,
         'layout': preferences.dashboard_layout,
-        'visible_widgets': preferences.visible_widgets,
-        'available_widgets': [
-            {
-                'id': w.id,
-                'name': w.name,
-                'description': w.description,
-                'type': w.widget_type,
-                'width': w.default_width,
-            }
-            for w in widgets
-        ]
+        'visible_widgets': preferences.get_dashboard_widgets(),
+        'available_widgets': available_widgets,
     })
 
 
@@ -56,7 +77,7 @@ def update_widget_position(request):
         widget_id = data.get('widget_id')
         position = data.get('position')
         
-        preferences, _ = UserPreference.objects.get_or_create(user=request.user)
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.set_widget_position(widget_id, position)
         
         return JsonResponse({'success': True, 'message': 'Position updated'})
@@ -74,7 +95,7 @@ def toggle_widget_visibility(request):
         data = json.loads(request.body)
         widget_id = data.get('widget_id')
         
-        preferences, _ = UserPreference.objects.get_or_create(user=request.user)
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.toggle_widget_visibility(widget_id)
         
         return JsonResponse({
@@ -98,7 +119,7 @@ def update_theme(request):
         if theme not in ['light', 'dark', 'auto']:
             return JsonResponse({'success': False, 'error': 'Invalid theme'}, status=400)
         
-        preferences, _ = UserPreference.objects.get_or_create(user=request.user)
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.theme_preference = theme
         preferences.save()
         
@@ -116,7 +137,7 @@ def update_accessibility_preferences(request):
     try:
         data = json.loads(request.body)
         
-        preferences, _ = UserPreference.objects.get_or_create(user=request.user)
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.high_contrast = data.get('high_contrast', preferences.high_contrast)
         preferences.reduced_motion = data.get('reduced_motion', preferences.reduced_motion)
         preferences.font_size = data.get('font_size', preferences.font_size)
@@ -143,7 +164,7 @@ def _update_dashboard_layout(request):
         layout = data.get('layout', {})
         visible_widgets = data.get('visible_widgets', [])
         
-        preferences, _ = UserPreference.objects.get_or_create(user=request.user)
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.dashboard_layout = layout
         preferences.visible_widgets = visible_widgets
         preferences.save()

@@ -142,3 +142,36 @@ def alert_on_critical_audit(sender, instance: AuditLog, created, **kwargs):
     except Exception:
         # Swallow to keep request flow unaffected
         pass
+
+
+# Invalidate cached access checks whenever access rules change by bumping a version
+from django.core.cache import cache
+from django.db.models.signals import post_save, post_delete
+
+
+def _bump_rules_version():
+    """Increment a cached version key used by access control cache keys."""
+    try:
+        cache.incr('access_rules_version')
+    except Exception:
+        # If key missing or backend doesn't support incr, set initial value
+        cache.set('access_rules_version', 1, None)
+
+
+@receiver(post_save, sender=None)
+def _noop_for_receiver(*_, **__):
+    # placeholder to allow multiple receiver decorators below
+    pass
+
+
+# Attach explicit handlers for IPAccessRule and CountryAccessRule
+from apps.compliance.models_audit import IPAccessRule, CountryAccessRule
+
+
+@receiver(post_save, sender=IPAccessRule)
+@receiver(post_delete, sender=IPAccessRule)
+@receiver(post_save, sender=CountryAccessRule)
+@receiver(post_delete, sender=CountryAccessRule)
+def refresh_access_rules_cache(sender, instance, **kwargs):
+    """Called when an access rule is created/updated/deleted to invalidate cached checks."""
+    _bump_rules_version()
