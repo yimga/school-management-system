@@ -44,12 +44,6 @@
         padding: 4px;
       }
 
-      /* Left-aligned logout next to brand */
-      .portal-logout-left {
-        margin-left: 0.75rem;
-        border-color: rgba(255,255,255,0.6) !important;
-      }
-
       .card {
         border: 0;
         border-radius: 18px;
@@ -233,10 +227,6 @@
         </a>
         {% endif %}
 
-        {% if request.user.is_authenticated %}
-          <a class="btn btn-sm btn-outline-light portal-logout-left" href="{% url 'accounts:logout' %}">Logout</a>
-        {% endif %}
-
         <!-- Weather + Date + Quote Widget -->
         <div class="flex-grow-1 d-flex justify-content-center">
           {% include 'components/header_weather_widget.html' %}
@@ -245,6 +235,7 @@
         <div class="d-flex align-items-center gap-3 text-white">
           {% if request.user.is_authenticated %}
             <span class="small opacity-75 d-none d-sm-inline">{{ request.user.username }}</span>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">Logout</a>
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
           {% endif %}

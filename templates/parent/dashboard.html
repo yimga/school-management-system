@@ -356,6 +356,34 @@
     text-decoration: underline;
   }
 
+  .avatar-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .metric-item {
+    padding: 1rem;
+  }
+
+  .metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .metric-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
   @media (max-width: 768px) {
     .welcome-hero {
       padding: 1.5rem 1rem;
@@ -407,6 +435,307 @@
         <div class="stat-card">
           <span class="stat-value">{{ widget_data.finance.balance|default:"0.00" }}</span>
           <span class="stat-label">Outstanding</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row g-4">
+      <!-- Left Column - Main Content -->
+      <div class="col-lg-8">
+        
+        <!-- Children Overview Section -->
+        <div class="metrics-section">
+          <div class="section-title">
+            <i class="bi bi-people-fill"></i>
+            <span>My Children</span>
+          </div>
+          <div class="row g-3">
+            {% for link in links %}
+            <div class="col-md-6">
+              <div class="card h-100">
+                <div class="card-body">
+                  <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="avatar-circle bg-primary text-white">
+                      {{ link.student.first_name|first }}{{ link.student.last_name|first }}
+                    </div>
+                    <div class="flex-grow-1">
+                      <h5 class="mb-0">{{ link.student.get_full_name }}</h5>
+                      <small class="text-muted">{{ link.student.grade|default:"N/A" }} • {{ link.student.section|default:"N/A" }}</small>
+                    </div>
+                  </div>
+                  <div class="row g-2 text-center">
+                    <div class="col-4">
+                      <div class="small text-muted">Attendance</div>
+                      <div class="fw-bold text-success">95%</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="small text-muted">Average</div>
+                      <div class="fw-bold text-primary">85.5</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="small text-muted">Rank</div>
+                      <div class="fw-bold text-info">12/45</div>
+                    </div>
+                  </div>
+                  <a href="#" class="btn btn-sm btn-outline-primary w-100 mt-3">View Details</a>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No children linked to your account yet. Contact the school administration.
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Academic Performance Section -->
+        <div class="metrics-section mt-4">
+          <div class="section-title">
+            <i class="bi bi-graph-up"></i>
+            <span>Academic Performance</span>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <h6 class="text-muted mb-3">Recent Grades</h6>
+                  <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                      <span>Mathematics</span>
+                      <span class="badge bg-success">A (92%)</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                      <span>English</span>
+                      <span class="badge bg-success">A- (88%)</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                      <span>Science</span>
+                      <span class="badge bg-primary">B+ (85%)</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                      <span>History</span>
+                      <span class="badge bg-warning text-dark">B (82%)</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-muted mb-3">Upcoming Assessments</h6>
+                  <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between">
+                        <span class="fw-medium">Physics Test</span>
+                        <span class="badge bg-info">Tomorrow</span>
+                      </div>
+                      <small class="text-muted">Chapter 5-7</small>
+                    </div>
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between">
+                        <span class="fw-medium">Math Quiz</span>
+                        <span class="badge bg-secondary">Jan 28</span>
+                      </div>
+                      <small class="text-muted">Algebra II</small>
+                    </div>
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between">
+                        <span class="fw-medium">English Essay</span>
+                        <span class="badge bg-secondary">Feb 2</span>
+                      </div>
+                      <small class="text-muted">Due by 5 PM</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendance Tracking Section -->
+        <div class="metrics-section mt-4">
+          <div class="section-title">
+            <i class="bi bi-calendar-check"></i>
+            <span>Attendance Summary</span>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="row g-3 text-center">
+                <div class="col-md-3 col-6">
+                  <div class="metric-item">
+                    <div class="metric-value text-success">{{ widget_data.attendance.present|default:0 }}</div>
+                    <div class="metric-label">Present Days</div>
+                  </div>
+                </div>
+                <div class="col-md-3 col-6">
+                  <div class="metric-item">
+                    <div class="metric-value text-danger">{{ widget_data.attendance.absent|default:0 }}</div>
+                    <div class="metric-label">Absent Days</div>
+                  </div>
+                </div>
+                <div class="col-md-3 col-6">
+                  <div class="metric-item">
+                    <div class="metric-value text-warning">{{ widget_data.attendance.late|default:0 }}</div>
+                    <div class="metric-label">Late Arrivals</div>
+                  </div>
+                </div>
+                <div class="col-md-3 col-6">
+                  <div class="metric-item">
+                    <div class="metric-value text-primary">{{ widget_data.attendance.overall|default:0 }}%</div>
+                    <div class="metric-label">Overall Rate</div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3">
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar bg-success" role="progressbar" style="width: {{ widget_data.attendance.overall|default:0 }}%" aria-valuenow="{{ widget_data.attendance.overall|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fee Payment Section -->
+        <div class="metrics-section mt-4">
+          <div class="section-title">
+            <i class="bi bi-credit-card"></i>
+            <span>Fee Payment Status</span>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <h3 class="mb-1 text-primary">${{ widget_data.finance.total_fees|default:"0.00" }}</h3>
+                    <div class="small text-muted">Total Fees</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <h3 class="mb-1 text-success">${{ widget_data.finance.paid|default:"0.00" }}</h3>
+                    <div class="small text-muted">Paid</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center p-3 bg-light rounded">
+                    <h3 class="mb-1 text-danger">${{ widget_data.finance.balance|default:"0.00" }}</h3>
+                    <div class="small text-muted">Outstanding</div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-3 d-flex gap-2">
+                <a href="#" class="btn btn-primary flex-fill">Make Payment</a>
+                <a href="#" class="btn btn-outline-secondary flex-fill">Payment History</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column - Sidebar -->
+      <div class="col-lg-4">
+        <div class="sidebar-sticky">
+          
+          <!-- Quick Actions -->
+          <div class="quick-tools-box">
+            <div class="quick-tools-title">Quick Actions</div>
+            <div class="d-grid gap-2">
+              <a href="#" class="btn btn-outline-primary tool-item">
+                <i class="bi bi-chat-dots"></i>
+                <span>Message Teacher</span>
+              </a>
+              <a href="#" class="btn btn-outline-primary tool-item">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>View Report Card</span>
+              </a>
+              <a href="#" class="btn btn-outline-primary tool-item">
+                <i class="bi bi-calendar-event"></i>
+                <span>Request Meeting</span>
+              </a>
+              <a href="#" class="btn btn-outline-primary tool-item">
+                <i class="bi bi-download"></i>
+                <span>Download Documents</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Upcoming Events -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="card-title mb-3">
+                <i class="bi bi-calendar-event text-primary"></i>
+                Upcoming Events
+              </h6>
+              <div class="list-group list-group-flush">
+                <div class="list-group-item px-0">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-medium">Parent-Teacher Meeting</span>
+                    <span class="badge bg-warning text-dark">Jan 27</span>
+                  </div>
+                  <small class="text-muted">Virtual • 3:00 PM</small>
+                </div>
+                <div class="list-group-item px-0">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-medium">Science Fair</span>
+                    <span class="badge bg-info">Feb 5</span>
+                  </div>
+                  <small class="text-muted">School Auditorium</small>
+                </div>
+                <div class="list-group-item px-0">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-medium">Mid-Term Break</span>
+                    <span class="badge bg-secondary">Feb 10-14</span>
+                  </div>
+                  <small class="text-muted">No classes</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Announcements -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <h6 class="card-title mb-3">
+                <i class="bi bi-megaphone text-primary"></i>
+                Recent Announcements
+              </h6>
+              <div class="activity-list">
+                <div class="activity-item">
+                  <div class="activity-title">New Homework Policy</div>
+                  <div class="activity-meta">2 days ago</div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-title">Sports Day Registration Open</div>
+                  <div class="activity-meta">4 days ago</div>
+                </div>
+                <div class="activity-item">
+                  <div class="activity-title">Library Hours Extended</div>
+                  <div class="activity-meta">1 week ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- School Contact -->
+          <div class="contact-box">
+            <div class="contact-title">School Contact</div>
+            <div class="contact-item">
+              <i class="bi bi-telephone"></i>
+              <a href="tel:+1234567890">(123) 456-7890</a>
+            </div>
+            <div class="contact-item">
+              <i class="bi bi-envelope"></i>
+              <a href="mailto:info@school.com">info@school.com</a>
+            </div>
+            <div class="contact-item">
+              <i class="bi bi-geo-alt"></i>
+              <span>123 School St, City</span>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
