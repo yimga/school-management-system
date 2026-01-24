@@ -53,6 +53,57 @@ def _is_admin_user(user):
     )
 
 
+def _resolve_admin_portal_stats(section_stats, config):
+    if not isinstance(config, dict):
+        config = {}
+
+    def _to_int(value, fallback):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return fallback
+
+    sections = config.get("sections") or list(section_stats.keys())
+    max_sections = _to_int(config.get("max_sections"), 3)
+    max_items = _to_int(config.get("max_items"), 3)
+    items = config.get("items") if isinstance(config.get("items"), dict) else {}
+
+    selected = {}
+    for section in sections:
+        if max_sections and len(selected) >= max_sections:
+            break
+        stats = section_stats.get(section)
+        if not isinstance(stats, dict):
+            continue
+        preferred_items = items.get(section)
+        if isinstance(preferred_items, list) and preferred_items:
+            filtered = {label: stats[label] for label in preferred_items if label in stats}
+        else:
+            filtered = dict(stats)
+            if max_items and max_items > 0:
+                filtered = dict(list(filtered.items())[:max_items])
+        if filtered:
+            selected[section] = filtered
+
+    if selected:
+        return selected
+
+    if not section_stats:
+        return {}
+
+    fallback = {}
+    for section, stats in section_stats.items():
+        if max_sections and len(fallback) >= max_sections:
+            break
+        if not isinstance(stats, dict):
+            continue
+        filtered = dict(stats)
+        if max_items and max_items > 0:
+            filtered = dict(list(filtered.items())[:max_items])
+        fallback[section] = filtered
+    return fallback
+
+
 @login_required
 @user_passes_test(_is_admin_user)
 def rbac_dashboard(request):
@@ -185,9 +236,13 @@ def backend_dashboard(request):
     reminders = list(reminders_qs)
     reminder_alerts = bool(reminders)
     section_stats = {
-        section: dict(sorted(stats.items()))
+        section: dict(stats)
         for section, stats in admin_section_stats().items()
     }
+    admin_portal_stats = _resolve_admin_portal_stats(
+        section_stats,
+        getattr(site, "admin_portal_stats_config", {}) or {},
+    )
     can_manage_settings = request.user.has_feature_permission("settings.manage")
 
     app_context = admin_site.each_context(request)
@@ -243,6 +298,7 @@ def backend_dashboard(request):
         "reminder_alerts": reminder_alerts,
         "compliance_profile": compliance_profile,
         "section_stats": section_stats,
+        "admin_portal_stats": admin_portal_stats,
         "can_manage_settings": can_manage_settings,
         "ai_insight": ai_insight,
         "social_links": site.active_social_links,

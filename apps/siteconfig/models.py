@@ -41,6 +41,19 @@ def default_social_links():
     ]
 
 
+def default_admin_portal_stats_config():
+    return {
+        "sections": ["academics", "accounts", "finance"],
+        "max_sections": 3,
+        "max_items": 3,
+        "items": {
+            "academics": ["Students", "Classrooms", "Subjects"],
+            "accounts": ["Users", "Teachers", "Guardians"],
+            "finance": ["Invoices", "Overdue", "Draft"],
+        },
+    }
+
+
 class DashboardView(models.TextChoices):
     OVERVIEW = "OVERVIEW", "Overview"
     FINANCE = "FINANCE", "Finances"
@@ -185,6 +198,14 @@ class SiteSettings(models.Model):
         help_text="Interval in seconds before dashboards refresh automatically.",
     )
     notification_channels = models.JSONField(default=list, blank=True)
+    admin_portal_stats_config = models.JSONField(
+        default=default_admin_portal_stats_config,
+        blank=True,
+        help_text=(
+            "Admin portal stats JSON. Keys: sections, max_sections, max_items, items. "
+            "Example: {\"sections\":[\"academics\"],\"max_items\":2,\"items\":{\"academics\":[\"Students\"]}}"
+        ),
+    )
 
     # Feature toggles
     enable_parent_portal = models.BooleanField(default=True)

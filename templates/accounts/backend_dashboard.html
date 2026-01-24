@@ -505,36 +505,6 @@
       </div>
     </div>
 
-    {% if section_stats %}
-    <div class="card shadow-sm mb-3">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0">Dashboard Stats</h6>
-          <span class="badge bg-light text-dark">{{ section_stats|length }} sections</span>
-        </div>
-        <div class="row g-2">
-        {% for section, stats in section_stats.items|slice:":3" %}
-          <div class="col-12">
-            <div class="border rounded p-2">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="text-uppercase text-muted small">{{ section }}</span>
-                <span class="badge bg-light text-dark">{{ stats|length }} stats</span>
-              </div>
-              <ul class="list-unstyled mb-0 small">
-                {% for label, value in stats.items|dictsort:"key" %}
-                <li class="d-flex justify-content-between mb-1">
-                  <span>{{ label }}</span>
-                  <strong class="text-dark">{{ value }}</strong>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
-        {% endfor %}
-        </div>
-      </div>
-    </div>
-    {% endif %}
   </aside>
 
   <style>
@@ -1083,44 +1053,7 @@
     </div>
   </div>
 
-  {% if section_stats %}
-    <div class="card shadow-sm mt-4 d-lg-none">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0">Section KPIs</h5>
-          <p class="small text-muted mb-0">Use these snapshots to tune dashboards by role.</p>
-        </div>
-        <div class="row g-3">
-        {% for section, stats in section_stats.items|slice:":3" %}
-            <div class="col-md-6 col-lg-4">
-              <div class="card border border-secondary h-100">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="mb-0 text-uppercase text-muted">{{ section }}</h6>
-                    <span class="badge bg-light text-dark">{{ stats|length }} stats</span>
-                  </div>
-                  <ul class="list-unstyled mb-0 small">
-                    {% for label, value in stats.items|dictsort:"key" %}
-                      <li class="mb-1 d-flex justify-content-between">
-                        <span>{{ label }}</span>
-                        <strong class="text-dark">{{ value }}</strong>
-                      </li>
-                    {% endfor %}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  {% endif %}
-
   <!-- Keyboard Shortcuts -->
   {% include 'components/keyboard_shortcuts.html' %}
 
-  <!-- Dashboard Footer -->
-  <div class="mt-5">
-    {% include 'components/dashboard_footer.html' %}
-  </div>
 {% endblock %}

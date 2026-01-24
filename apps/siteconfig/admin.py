@@ -79,6 +79,11 @@ class SiteSettingsAdmin(ModelAdmin):
                 "default_annual_report_style",
             )
         }),
+        ("Admin Portal", {
+            "fields": (
+                "admin_portal_stats_config",
+            )
+        }),
         ("System Behavior", {
             "fields": (
                 "maintenance_mode",

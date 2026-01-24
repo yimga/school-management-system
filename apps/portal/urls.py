@@ -32,6 +32,8 @@ urlpatterns = [
     path("parent/claim-invite/", claim_invite, name="claim_invite"),
     path("parent/claim-invite/<str:token>/", claim_invite, name="claim_invite_token"),
     path("parent/finance/", parent_finance, name="parent_finance"),
+    # Backwards compatibility: older templates and tests expect 'parent_performance'
+    path("parent/performance/", parent_child_results, name="parent_performance"),
     path("features/<str:feature>/", portal_feature_page, name="portal_feature"),
     path("parent/stats/", portal_stats, name="portal_stats"),
     path("syllabus/", portal_syllabus, name="portal_syllabus"),

@@ -465,6 +465,23 @@ document.addEventListener('DOMContentLoaded', function() {
   const USER_ROLE = '{{ USER_ROLE|default:"USER" }}';
   const CSRF_TOKEN = '{{ csrf_token }}';
 
+  function forceCopilotPosition(wrapper) {
+    const isSmall = window.matchMedia && window.matchMedia('(max-width: 576px)').matches;
+    const right = isSmall ? '12px' : '16px';
+    const bottom = isSmall ? '12px' : '16px';
+    wrapper.style.position = 'fixed';
+    wrapper.style.right = right;
+    wrapper.style.left = 'auto';
+    wrapper.style.bottom = bottom;
+    wrapper.style.zIndex = '9999';
+  }
+
+  function forcePanelPosition(panel) {
+    const isSmall = window.matchMedia && window.matchMedia('(max-width: 576px)').matches;
+    panel.style.right = isSmall ? '12px' : '24px';
+    panel.style.left = 'auto';
+  }
+
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -532,6 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   wrappers.forEach((wrapper) => {
+    forceCopilotPosition(wrapper);
     const trigger = wrapper.querySelector('#aiCopilotTrigger');
     const panel = wrapper.querySelector('#aiCopilotPanel');
     const closeBtn = wrapper.querySelector('#aiCopilotClose');
@@ -540,6 +558,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const body = wrapper.querySelector('#aiCopilotBody');
     const quickBtns = wrapper.querySelectorAll('.ai-quick-btn');
     const shortcutHint = wrapper.querySelector('.ai-shortcut-hint');
+
+    if (panel) {
+      forcePanelPosition(panel);
+    }
 
     if (!trigger || !panel || !closeBtn || !input || !sendBtn || !body) {
       return;
@@ -762,6 +784,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
       trigger.addEventListener('click', onFirstClick, { once: true });
     })();
+  });
+
+  window.addEventListener('resize', function() {
+    wrappers.forEach((wrapper) => {
+      forceCopilotPosition(wrapper);
+      const panel = wrapper.querySelector('#aiCopilotPanel');
+      if (panel) {
+        forcePanelPosition(panel);
+      }
+    });
   });
 });
 </script>

@@ -13,9 +13,16 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 0.75rem 1.5rem;
     display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-nav-bridge__row {
+    display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
 }
 
 .admin-nav-bridge__brand {
@@ -99,6 +106,48 @@
     text-decoration: none;
 }
 
+.admin-nav-bridge__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.admin-nav-bridge__stat-card {
+    background: rgba(15, 23, 42, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 0.6rem 0.75rem;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.admin-nav-bridge__stat-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 0.35rem;
+}
+
+.admin-nav-bridge__stat-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    padding: 0.15rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-nav-bridge__stat-row:first-of-type {
+    border-top: none;
+}
+
+.admin-nav-bridge__stat-value {
+    font-weight: 600;
+    color: #ffffff;
+}
+
 /* Top-left logout button, aligned near brand */
 .admin-nav-bridge__logout-left {
     margin-left: 1rem;
@@ -122,11 +171,14 @@
 
 @media (max-width: 768px) {
     .admin-nav-bridge {
-        flex-direction: column;
-        gap: 0.75rem;
         padding: 0.75rem 1rem;
     }
     
+    .admin-nav-bridge__row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
     .admin-nav-bridge__actions {
         width: 100%;
         justify-content: space-between;
@@ -140,53 +192,71 @@
 </style>
 
 <div class="admin-nav-bridge">
-    <div class="admin-nav-bridge__brand">
-        <div class="admin-nav-bridge__brand-icon">
-            {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 20px; height: 20px; color: white;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            {% else %}
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 20px; height: 20px; color: white;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-            {% endif %}
-        </div>
-        <div>
-            <div style="font-size: 1rem; color: white;">Admin Portal</div>
-            <div class="admin-nav-bridge__location">
+    <div class="admin-nav-bridge__row">
+        <div class="admin-nav-bridge__brand">
+            <div class="admin-nav-bridge__brand-icon">
                 {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
-                    Django Admin - Data Management
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 20px; height: 20px; color: white;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
                 {% else %}
-                    Backend Dashboard - Operations Overview
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 20px; height: 20px; color: white;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                 {% endif %}
             </div>
+            <div>
+                <div style="font-size: 1rem; color: white;">Admin Portal</div>
+                <div class="admin-nav-bridge__location">
+                    {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
+                        Django Admin - Data Management
+                    {% else %}
+                        Backend Dashboard - Operations Overview
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="admin-nav-bridge__actions">
+            <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">
+                Portal Home
+            </a>
+            
+            {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
+                <!-- Currently in Django Admin, show switch to Backend Dashboard -->
+                <a href="{% url 'accounts:backend_dashboard' %}" class="admin-nav-bridge__switch-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span>Switch to Dashboard</span>
+                </a>
+            {% else %}
+                <!-- Currently in Backend Dashboard, show switch to Django Admin -->
+                <a href="{% url 'admin:index' %}" class="admin-nav-bridge__switch-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>Switch to Admin</span>
+                </a>
+            {% endif %}
         </div>
     </div>
-    
-    <div class="admin-nav-bridge__actions">
-        <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">
-            Portal Home
-        </a>
-        
-        {% if request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
-            <!-- Currently in Django Admin, show switch to Backend Dashboard -->
-            <a href="{% url 'accounts:backend_dashboard' %}" class="admin-nav-bridge__switch-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span>Switch to Dashboard</span>
-            </a>
-        {% else %}
-            <!-- Currently in Backend Dashboard, show switch to Django Admin -->
-            <a href="{% url 'admin:index' %}" class="admin-nav-bridge__switch-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>Switch to Admin</span>
-            </a>
-        {% endif %}
+
+    {% if admin_portal_stats %}
+    <div class="admin-nav-bridge__stats">
+        {% for section, stats in admin_portal_stats.items %}
+        <div class="admin-nav-bridge__stat-card">
+            <div class="admin-nav-bridge__stat-title">{{ section|title }}</div>
+            {% for label, value in stats.items %}
+            <div class="admin-nav-bridge__stat-row">
+                <span>{{ label }}</span>
+                <span class="admin-nav-bridge__stat-value">{{ value }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
     </div>
+    {% endif %}
 </div>

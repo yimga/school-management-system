@@ -7,7 +7,7 @@ from functools import wraps
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.db import connection
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
@@ -50,7 +50,7 @@ def observability_auth_required(view_func):
 @require_GET
 @observability_auth_required
 def healthz(request):
-    """Basic health check including DB connectivity."""
+    """Internal health check including DB connectivity (RBAC/API-key protected)."""
     try:
         # Simple DB round-trip
         with connection.cursor() as cursor:
@@ -61,6 +61,25 @@ def healthz(request):
         return JsonResponse({"status": "error", "error": str(exc)}, status=500)
 
     return JsonResponse({"status": status})
+
+
+@require_GET
+def public_health(request):
+    """Public health endpoint for load balancers and uptime checks.
+
+    This endpoint intentionally does not require observability auth so it can be
+    polled without credentials (expected by health check tests and external
+    load balancers). It performs a lightweight DB check but avoids exposing
+    any sensitive observability counters.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse({"status": "error", "error": str(exc)}, status=500)
+
+    return JsonResponse({"status": "healthy"})
 
 
 @require_GET
@@ -154,7 +173,7 @@ def copilot_metrics_json(request):
 # ADMIN DASHBOARD API ENDPOINTS
 # ============================================
 
-@require_GET
+@require_http_methods(["GET", "HEAD"])
 @observability_auth_required
 def api_health(request):
     """API endpoint for dashboard health checks.

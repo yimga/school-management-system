@@ -23,6 +23,27 @@ RATE_LIMIT_PER_MIN = int(os.environ.get('AI_COPILOT_RATE_LIMIT', '30'))
 RATE_LIMIT_WINDOW = int(os.environ.get('AI_COPILOT_RATE_WINDOW', '60'))  # seconds
 
 
+def _log_ai_audit(request, action, reason="", details=None, sensitivity=None):
+    """Best-effort audit logging for AI copilot events."""
+    try:
+        AuditLog.objects.create(
+            user=getattr(request, "user", None),
+            ip_address=get_client_ip(request),
+            user_agent=(request.META.get('HTTP_USER_AGENT', '') or '')[:500],
+            action=action,
+            model_name="AICopilot",
+            object_id=str(getattr(getattr(request, "user", None), "id", "")),
+            object_repr="AI Copilot Query",
+            app_label="portal",
+            reason=(reason or "")[:255],
+            sensitivity=sensitivity or AuditLog.Sensitivity.MEDIUM,
+            new_values=details or {},
+        )
+    except Exception:
+        # Avoid blocking AI responses if audit logging fails
+        logger.exception("AI Copilot audit logging failed")
+
+
 def _check_rate_limit(user):
     """Simple per-user sliding window rate limiter using Django cache."""
     key = f"ai_rl:{getattr(user, 'id', 'anon')}"
@@ -164,18 +185,17 @@ def ai_copilot_query(request):
         # Rate limit per user before processing
         allowed_rl, retry_after = _check_rate_limit(request.user)
         if not allowed_rl:
-            AuditLog.objects.create(
-                user=request.user,
-                action='AI_QUERY_RATE_LIMITED',
-                object_type='AIQuery',
-                object_id='',
+            _log_ai_audit(
+                request,
+                AuditLog.Action.ACCESS_DENIED,
+                reason="Rate limit exceeded",
                 details={
+                    'event': 'AI_QUERY_RATE_LIMITED',
                     'query': user_query[:100],
                     'retry_after': retry_after,
                     'limit': RATE_LIMIT_PER_MIN,
                 },
-                ip_address=get_client_ip(request),
-                severity='WARNING',
+                sensitivity=AuditLog.Sensitivity.MEDIUM,
             )
             _increment_usage_metrics(request.user, allowed=False)
             return JsonResponse({
@@ -195,17 +215,16 @@ def ai_copilot_query(request):
         
         if not is_allowed:
             # Log the denied attempt
-            AuditLog.objects.create(
-                user=request.user,
-                action='AI_QUERY_DENIED',
-                object_type='AIQuery',
-                object_id='',
+            _log_ai_audit(
+                request,
+                AuditLog.Action.ACCESS_DENIED,
+                reason=denial_reason,
                 details={
+                    'event': 'AI_QUERY_DENIED',
                     'query': user_query[:100],  # Store first 100 chars
                     'reason': denial_reason,
                 },
-                ip_address=get_client_ip(request),
-                severity='WARNING',
+                sensitivity=AuditLog.Sensitivity.MEDIUM,
             )
             
             _increment_usage_metrics(request.user, allowed=False)
@@ -215,17 +234,16 @@ def ai_copilot_query(request):
             }, status=403)
         
         # Log successful query
-        AuditLog.objects.create(
-            user=request.user,
-            action='AI_QUERY_SUBMITTED',
-            object_type='AIQuery',
-            object_id='',
+        _log_ai_audit(
+            request,
+            AuditLog.Action.VIEW,
+            reason="AI Copilot query submitted",
             details={
+                'event': 'AI_QUERY_SUBMITTED',
                 'query': user_query[:100],
                 'role': getattr(request.user, 'role', 'USER'),
             },
-            ip_address=get_client_ip(request),
-            severity='INFO',
+            sensitivity=AuditLog.Sensitivity.LOW,
         )
         
         # Build contextual prompt and call Gemini if configured
