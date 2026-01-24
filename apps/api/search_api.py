@@ -11,7 +11,9 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.db.models import Q
+from django.core.exceptions import FieldDoesNotExist
 from django.views.decorators.http import require_http_methods
+from django.urls import reverse, NoReverseMatch
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,35 +38,98 @@ class GlobalSearchAPI(View):
     SEARCH_CONFIG = {
         'student': {
             'model': 'StudentProfile',
-            'search_fields': ['user__first_name', 'user__last_name', 'student_id'],
+            'search_fields': ['first_name', 'last_name', 'student_code', 'admission_number'],
             'icon': 'bi-person',
             'color': 'primary',
         },
         'teacher': {
             'model': 'TeacherProfile',
-            'search_fields': ['user__first_name', 'user__last_name', 'staff_id', 'subject'],
+            'search_fields': ['user__first_name', 'user__last_name', 'staff_id', 'position_title'],
             'icon': 'bi-person-badge',
             'color': 'success',
         },
         'class': {
-            'model': 'ClassRoom',
+            'model': 'Classroom',
             'search_fields': ['name', 'code'],
             'icon': 'bi-people',
             'color': 'info',
         },
         'subject': {
             'model': 'Subject',
-            'search_fields': ['name', 'code'],
+            'search_fields': ['name', 'category'],
             'icon': 'bi-book',
             'color': 'warning',
         },
         'invoice': {
             'model': 'Invoice',
-            'search_fields': ['invoice_number', 'student__user__first_name', 'student__user__last_name'],
+            'search_fields': ['reference', 'student__first_name', 'student__last_name', 'student__student_code'],
             'icon': 'bi-receipt',
             'color': 'danger',
         },
     }
+
+    ELEVATED_ROLES = {
+        'ADMIN',
+        'LEADERSHIP',
+        'PRINCIPAL',
+        'VICE_PRINCIPAL',
+        'DEAN',
+        'HOD',
+        'CENSOR',
+        'BURSAR',
+        'IT_ADMIN',
+        'BOARDING_MANAGER',
+    }
+
+    FINANCE_ROLES = {
+        'ADMIN',
+        'LEADERSHIP',
+        'PRINCIPAL',
+        'BURSAR',
+    }
+
+    def _safe_reverse(self, name, args=None, kwargs=None, fallback="#"):
+        try:
+            return reverse(name, args=args, kwargs=kwargs)
+        except NoReverseMatch:
+            return fallback
+
+    def _student_url(self, user, student):
+        if user.is_staff or user.is_superuser:
+            return self._safe_reverse("admin:people_studentprofile_change", args=[student.id])
+
+        role = getattr(user, "role", None)
+        if role == "PARENT":
+            return self._safe_reverse("portal:parent_child_results", args=[student.id])
+        if role == "TEACHER":
+            base = self._safe_reverse("evals:teacher_marks_list")
+            if base == "#":
+                return base
+            return f"{base}?classroom={student.classroom_id}"
+
+        return "#"
+
+    def _teacher_url(self, user, teacher):
+        if user.is_staff or user.is_superuser:
+            return self._safe_reverse("admin:people_teacherprofile_change", args=[teacher.id])
+        return "#"
+
+    def _classroom_url(self, user, classroom):
+        if user.is_staff or user.is_superuser:
+            return self._safe_reverse("admin:academics_classroom_change", args=[classroom.id])
+        return "#"
+
+    def _subject_url(self, user, subject):
+        if user.is_staff or user.is_superuser:
+            return self._safe_reverse("admin:academics_subject_change", args=[subject.id])
+        return "#"
+
+    def _invoice_url(self, invoice):
+        return self._safe_reverse(
+            "finance:invoice_detail",
+            args=[invoice.id],
+            fallback=f"/finance/invoices/{invoice.id}/",
+        )
     
     def get(self, request):
         query = request.GET.get('q', '').strip()
@@ -92,7 +157,7 @@ class GlobalSearchAPI(View):
                 continue
             
             try:
-                items = self._search_type(config, query, limit)
+                items = self._search_type(config, query, limit, request.user)
                 results.extend(items)
             except Exception as e:
                 logger.error(f"Search error for {search_type_key}: {e}")
@@ -103,7 +168,7 @@ class GlobalSearchAPI(View):
             'results': results
         })
     
-    def _search_type(self, config, query, limit):
+    def _search_type(self, config, query, limit, user):
         """Search a specific resource type"""
         results = []
         
@@ -115,53 +180,82 @@ class GlobalSearchAPI(View):
         # Get model dynamically
         if config['model'] == 'StudentProfile':
             from apps.people.models import StudentProfile
-            items = StudentProfile.objects.filter(q_object, is_active=True)[:limit]
+            role = getattr(user, "role", None)
+            if user.is_staff or user.is_superuser or role in self.ELEVATED_ROLES:
+                items = StudentProfile.objects.filter(q_object, is_active=True)[:limit]
+            elif role == 'TEACHER':
+                from apps.evals.models import TeacherAssignment
+                teacher = getattr(user, "teacher_profile", None)
+                if not teacher:
+                    return results
+                classroom_ids = list(
+                    TeacherAssignment.objects.filter(
+                        teacher=teacher,
+                        is_active=True,
+                    ).values_list("subject_assignment__classroom_id", flat=True).distinct()
+                )
+                items = StudentProfile.objects.filter(
+                    q_object,
+                    is_active=True,
+                    classroom_id__in=classroom_ids,
+                )[:limit]
+            elif role == 'PARENT':
+                from apps.people.models import StudentGuardian
+                student_ids = StudentGuardian.objects.filter(
+                    guardian_user=user
+                ).values_list("student_id", flat=True)
+                items = StudentProfile.objects.filter(
+                    q_object,
+                    is_active=True,
+                    id__in=student_ids,
+                )[:limit]
+            elif role == 'STUDENT':
+                try:
+                    StudentProfile._meta.get_field("user")
+                    items = StudentProfile.objects.filter(q_object, user=user, is_active=True)[:limit]
+                except FieldDoesNotExist:
+                    return results
+            else:
+                return results
+
             for item in items:
                 results.append({
                     'id': item.id,
                     'type': 'student',
-                    'title': item.user.get_full_name(),
-                    'description': f"Grade {item.current_class} - ID: {item.student_id}",
-                    'url': f"/portal/student/{item.id}/",
+                    'title': f"{item.last_name} {item.first_name}",
+                    'description': f"{item.classroom.name} - Code: {item.student_code}",
+                    'url': self._student_url(user, item),
                     'icon': 'bi-person',
-                    'metadata': {
-                        'grade': str(item.current_class),
-                        'status': 'Active' if item.is_active else 'Inactive'
-                    }
                 })
         
         elif config['model'] == 'TeacherProfile':
             from apps.people.models import TeacherProfile
-            items = TeacherProfile.objects.filter(q_object, is_active=True)[:limit]
+            role = getattr(user, "role", None)
+            if not (user.is_staff or user.is_superuser or role in self.ELEVATED_ROLES):
+                return results
+
+            items = TeacherProfile.objects.filter(q_object, user__is_active=True)[:limit]
             for item in items:
                 results.append({
                     'id': item.id,
                     'type': 'teacher',
                     'title': item.user.get_full_name(),
                     'description': f"Staff ID: {item.staff_id}",
-                    'url': f"/portal/teacher/{item.id}/",
+                    'url': self._teacher_url(user, item),
                     'icon': 'bi-person-badge',
-                    'metadata': {
-                        'subject': item.subject or 'N/A',
-                        'status': 'Active' if item.is_active else 'Inactive'
-                    }
                 })
         
-        elif config['model'] == 'ClassRoom':
-            from apps.academics.models import ClassRoom
-            items = ClassRoom.objects.filter(q_object)[:limit]
+        elif config['model'] == 'Classroom':
+            from apps.academics.models import Classroom
+            items = Classroom.objects.filter(q_object)[:limit]
             for item in items:
                 results.append({
                     'id': item.id,
                     'type': 'class',
                     'title': item.name,
                     'description': f"Code: {item.code}",
-                    'url': f"/evals/class/{item.id}/",
+                    'url': self._classroom_url(user, item),
                     'icon': 'bi-people',
-                    'metadata': {
-                        'code': item.code,
-                        'level': str(item.level)
-                    }
                 })
         
         elif config['model'] == 'Subject':
@@ -173,29 +267,45 @@ class GlobalSearchAPI(View):
                     'type': 'subject',
                     'title': item.name,
                     'description': f"Code: {item.code}",
-                    'url': f"/evals/subject/{item.id}/",
+                    'url': self._subject_url(user, item),
                     'icon': 'bi-book',
-                    'metadata': {
-                        'code': item.code,
-                        'grade': 'All'
-                    }
                 })
         
         elif config['model'] == 'Invoice':
             from apps.finance.models import Invoice
-            items = Invoice.objects.filter(q_object)[:limit]
+            role = getattr(user, "role", None)
+            if user.is_staff or user.is_superuser or role in self.FINANCE_ROLES:
+                items = Invoice.objects.filter(q_object)[:limit]
+            elif role == 'PARENT':
+                from apps.people.models import StudentGuardian
+                student_ids = StudentGuardian.objects.filter(
+                    guardian_user=user
+                ).values_list("student_id", flat=True)
+                items = Invoice.objects.filter(
+                    q_object,
+                    student_id__in=student_ids,
+                )[:limit]
+            elif role == 'STUDENT':
+                try:
+                    from apps.people.models import StudentProfile
+                    StudentProfile._meta.get_field("user")
+                    student_profile = StudentProfile.objects.filter(user=user).first()
+                except FieldDoesNotExist:
+                    student_profile = None
+                if not student_profile:
+                    return results
+                items = Invoice.objects.filter(q_object, student=student_profile)[:limit]
+            else:
+                return results
+
             for item in items:
                 results.append({
                     'id': item.id,
                     'type': 'invoice',
-                    'title': f"Invoice #{item.invoice_number}",
-                    'description': f"Student: {item.student.user.get_full_name()}",
-                    'url': f"/finance/invoices/{item.id}/",
+                    'title': f"Invoice #{item.id}",
+                    'description': f"Student: {item.student.first_name} {item.student.last_name}" if item.student else "Student: N/A",
+                    'url': self._invoice_url(item),
                     'icon': 'bi-receipt',
-                    'metadata': {
-                        'amount': f"{item.amount}",
-                        'status': item.status
-                    }
                 })
         
         return results

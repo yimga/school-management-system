@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.accounts.models import User
+from apps.accounts.validators import validate_evidence_file, validate_file_size_20mb
 
 
 class AssessmentWeights(models.Model):
@@ -409,7 +410,10 @@ class EvaluationEvidence(models.Model):
 
     evaluation = models.ForeignKey(Evaluation, on_delete=models.CASCADE, related_name="evidence")
     media_type = models.CharField(max_length=20, choices=MediaType.choices, default=MediaType.PHOTO)
-    file = models.FileField(upload_to="evaluations/evidence/")
+    file = models.FileField(
+        upload_to="evaluations/evidence/",
+        validators=[validate_evidence_file, validate_file_size_20mb],
+    )
     caption = models.CharField(max_length=255, blank=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)

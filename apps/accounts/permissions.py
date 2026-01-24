@@ -19,20 +19,52 @@ logger = None  # Set after imports to avoid circular deps
 
 # --- Role Hierarchy ---
 
-ROLE_HIERARCHY = {
-    "ADMIN": ["ADMIN", "PRINCIPAL", "BURSAR", "TEACHER", "PARENT", "STUDENT"],
-    "PRINCIPAL": ["PRINCIPAL", "BURSAR", "TEACHER", "PARENT", "STUDENT"],
-    "LEADERSHIP": ["LEADERSHIP", "BURSAR", "TEACHER", "PARENT", "STUDENT"],
-    "DEAN": ["DEAN", "TEACHER", "PARENT", "STUDENT"],
-    "BURSAR": ["BURSAR", "PARENT"],  # Finance staff
-    "HOD": ["HOD", "TEACHER", "STUDENT"],  # Head of department
-    "CENSOR": ["CENSOR", "TEACHER", "STUDENT"],  # Academic oversight
-    "TEACHER": ["TEACHER", "STUDENT"],  # Classroom level
-    "BOARDING_MANAGER": ["BOARDING_MANAGER", "STUDENT"],
-    "IT_ADMIN": ["IT_ADMIN"],
-    "PARENT": ["PARENT"],
-    "STUDENT": ["STUDENT"],
+# Higher number = higher privilege.
+ROLE_RANK = {
+    "ADMIN": 100,
+    "LEADERSHIP": 95,
+    "PRINCIPAL": 90,
+    "VICE_PRINCIPAL": 85,
+    "DEAN": 80,
+    "HOD": 75,
+    "CENSOR": 75,
+    "BURSAR": 75,
+    "IT_ADMIN": 70,
+    "BOARDING_MANAGER": 60,
+    "TEACHER": 50,
+    "PARENT": 20,
+    "STUDENT": 10,
 }
+
+STUDENT_DATA_GLOBAL_ROLES = {
+    "ADMIN",
+    "LEADERSHIP",
+    "PRINCIPAL",
+    "VICE_PRINCIPAL",
+    "DEAN",
+    "CENSOR",
+}
+
+GRADE_EDIT_GLOBAL_ROLES = {
+    "ADMIN",
+    "LEADERSHIP",
+    "PRINCIPAL",
+    "VICE_PRINCIPAL",
+    "DEAN",
+    "CENSOR",
+}
+
+INVOICE_GLOBAL_ROLES = {
+    "ADMIN",
+    "LEADERSHIP",
+    "PRINCIPAL",
+    "BURSAR",
+}
+
+def _role_rank(role: str | None) -> int:
+    if not role:
+        return 0
+    return ROLE_RANK.get(role, 0)
 
 
 def has_role(user, role: str) -> bool:
@@ -46,30 +78,20 @@ def has_role(user, role: str) -> bool:
 
 def has_role_hierarchy(user, required_role: str) -> bool:
     """
-    Check if user's role is >= required role in hierarchy.
-    
-    Example:
-        has_role_hierarchy(user, "BURSAR")
-        -> True if user is ADMIN or BURSAR (or higher)
-        -> False if user is TEACHER
-    
-    Args:
-        user: User instance
-        required_role: The minimum role required
-        
-    Returns:
-        True if user has equal or higher privilege
+    Check if user's role rank is >= required role rank.
+
+    AccessRole codes only grant the exact role requested (no implicit hierarchy).
     """
     if not user.is_authenticated:
         return False
     if user.is_superuser:
         return True
-    
+
     user_role = getattr(user, "role", None)
-    if not user_role:
-        return user.roles.filter(code__in=ROLE_HIERARCHY.get(required_role, [])).exists()
-    
-    return user_role in ROLE_HIERARCHY.get(required_role, [])
+    if _role_rank(user_role) >= _role_rank(required_role):
+        return True
+
+    return user.roles.filter(code=required_role).exists()
 
 
 def can_view_student_data(user, student_id: int) -> bool:
@@ -77,7 +99,7 @@ def can_view_student_data(user, student_id: int) -> bool:
     Check if user can view a student's data.
     
     Allowed:
-    - ADMIN, PRINCIPAL, DEAN, CENSOR (all students)
+    - ADMIN, LEADERSHIP, PRINCIPAL, VICE_PRINCIPAL, DEAN, CENSOR (all students)
     - TEACHER (students in their classroom)
     - PARENT (their own children)
     - STUDENT (themselves only)
@@ -96,8 +118,8 @@ def can_view_student_data(user, student_id: int) -> bool:
     if user.is_superuser:
         return True
     
-    # Admins and principal can view all
-    if has_role_hierarchy(user, "PRINCIPAL"):
+    # Global view roles
+    if any(has_role(user, role) for role in STUDENT_DATA_GLOBAL_ROLES):
         return True
     
     # Get the student
@@ -108,19 +130,26 @@ def can_view_student_data(user, student_id: int) -> bool:
     
     # Teacher can view if student in their classroom
     if has_role(user, "TEACHER"):
-        if user.teacher_profile:  # Assumes ForeignKey from User to TeacherProfile
-            return student.classroom and student.classroom in user.teacher_profile.classrooms.all()
+        teacher = getattr(user, "teacher_profile", None)
+        if teacher and student.classroom_id:
+            from apps.evals.models import TeacherAssignment
+            return TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+                subject_assignment__classroom_id=student.classroom_id,
+            ).exists()
     
     # Parent can view if this is their child
     if has_role(user, "PARENT"):
         return StudentGuardian.objects.filter(
-            guardian=user,
+            guardian_user=user,
             student=student,
         ).exists()
     
     # Student can only view themselves
     if has_role(user, "STUDENT"):
-        return student.user_id == user.id
+        student_user_id = getattr(student, "user_id", None)
+        return student_user_id == user.id
     
     return False
 
@@ -130,7 +159,7 @@ def can_edit_student_grades(user, student_id: int, subject_id: Optional[int] = N
     Check if user can edit student's grades.
     
     Allowed:
-    - ADMIN, PRINCIPAL, DEAN, CENSOR (all subjects)
+    - ADMIN, LEADERSHIP, PRINCIPAL, VICE_PRINCIPAL, DEAN, CENSOR (all subjects)
     - TEACHER (only their assigned subjects for students in classroom)
     - HOD (their department)
     
@@ -143,15 +172,15 @@ def can_edit_student_grades(user, student_id: int, subject_id: Optional[int] = N
         True if authorized
     """
     from apps.people.models import StudentProfile
-    from apps.academics.models import SubjectAssignment
+    from apps.evals.models import TeacherAssignment
     
     if not user.is_authenticated:
         return False
     if user.is_superuser:
         return True
     
-    # Admins can edit all
-    if has_role_hierarchy(user, "PRINCIPAL"):
+    # Global edit roles
+    if any(has_role(user, role) for role in GRADE_EDIT_GLOBAL_ROLES):
         return True
     
     # Get student
@@ -162,27 +191,26 @@ def can_edit_student_grades(user, student_id: int, subject_id: Optional[int] = N
     
     # Teacher: only for their classroom + subject
     if has_role(user, "TEACHER"):
-        if not user.teacher_profile:
+        teacher = getattr(user, "teacher_profile", None)
+        if not teacher:
             return False
-        
-        # Student in teacher's classroom?
-        if student.classroom not in user.teacher_profile.classrooms.all():
-            return False
-        
-        # If subject specified, check assignment
+        assignment_filter = TeacherAssignment.objects.filter(
+            teacher=teacher,
+            is_active=True,
+            subject_assignment__classroom=student.classroom,
+        )
+
         if subject_id:
-            return SubjectAssignment.objects.filter(
-                teacher=user.teacher_profile,
-                subject_id=subject_id,
-                classroom=student.classroom,
-            ).exists()
-        return True
+            assignment_filter = assignment_filter.filter(subject_assignment__subject_id=subject_id)
+
+        return assignment_filter.exists()
     
     # HOD: their department
     if has_role(user, "HOD"):
-        if not user.hod_profile:  # Assumes ForeignKey
+        hod_profile = getattr(user, "hod_profile", None)
+        if not hod_profile:
             return False
-        return student.classroom.department == user.hod_profile.department
+        return student.classroom.department_id == hod_profile.department_id
     
     return False
 
@@ -192,7 +220,7 @@ def can_view_invoice(user, invoice_id: int) -> bool:
     Check if user can view an invoice.
     
     Allowed:
-    - ADMIN, PRINCIPAL, BURSAR (all invoices)
+    - ADMIN, LEADERSHIP, PRINCIPAL, BURSAR (all invoices)
     - PARENT (invoices for their children)
     - STUDENT (invoices for themselves)
     
@@ -212,7 +240,7 @@ def can_view_invoice(user, invoice_id: int) -> bool:
         return True
     
     # Finance staff can view all
-    if has_role_hierarchy(user, "BURSAR"):
+    if any(has_role(user, role) for role in INVOICE_GLOBAL_ROLES):
         return True
     
     # Get invoice
@@ -227,13 +255,14 @@ def can_view_invoice(user, invoice_id: int) -> bool:
     # Parent can view their child's invoice
     if has_role(user, "PARENT"):
         return StudentGuardian.objects.filter(
-            guardian=user,
+            guardian_user=user,
             student=invoice.student,
         ).exists()
     
     # Student can view their own invoice
     if has_role(user, "STUDENT"):
-        return invoice.student.user_id == user.id
+        student_user_id = getattr(invoice.student, "user_id", None)
+        return student_user_id == user.id
     
     return False
 
@@ -243,7 +272,7 @@ def can_edit_invoice(user, invoice_id: int) -> bool:
     Check if user can edit an invoice (mark as paid, cancel, etc.).
     
     Allowed:
-    - ADMIN, PRINCIPAL, BURSAR only
+    - ADMIN, LEADERSHIP, PRINCIPAL, BURSAR only
     
     Args:
         user: User instance
@@ -257,7 +286,7 @@ def can_edit_invoice(user, invoice_id: int) -> bool:
     if user.is_superuser:
         return True
     
-    return has_role_hierarchy(user, "BURSAR")
+    return any(has_role(user, role) for role in INVOICE_GLOBAL_ROLES)
 
 
 # --- Decorators ---

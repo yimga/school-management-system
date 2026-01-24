@@ -10,6 +10,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 import logging
@@ -32,7 +33,10 @@ class NotificationViewSet(viewsets.ViewSet):
     def get_queryset(self):
         """Get notifications"""
         from apps.finance.models import Notification
-        return Notification.objects.all().order_by('-created_at')
+        user = self.request.user
+        return Notification.objects.filter(
+            Q(recipient=user) | Q(created_by=user)
+        ).order_by('-created_at')
     
     def list(self, request):
         """List notifications with filtering"""
@@ -52,6 +56,11 @@ class NotificationViewSet(viewsets.ViewSet):
         
         data = []
         for notif in queryset[:50]:
+            notif_type = "message"
+            if notif.severity == "ALERT":
+                notif_type = "alert"
+            elif notif.severity == "WARNING":
+                notif_type = "task"
             data.append({
                 'id': notif.id,
                 'title': notif.title,
@@ -59,12 +68,15 @@ class NotificationViewSet(viewsets.ViewSet):
                 'severity': notif.severity,
                 'is_read': notif.is_read,
                 'created_at': notif.created_at.isoformat(),
-                'link': notif.link
+                'link': notif.link,
+                'type': notif_type,
+                'category': notif.severity.title()
             })
         
         return Response({
             'count': len(data),
             'results': data,
+            'notifications': data,
             'unread': len([n for n in data if not n['is_read']])
         })
     
@@ -73,15 +85,28 @@ class NotificationViewSet(viewsets.ViewSet):
         """Get count of unread notifications"""
         from apps.finance.models import Notification
         
-        count = Notification.objects.filter(is_read=False).count()
+        count = self.get_queryset().filter(is_read=False).count()
         return Response({'unread_count': count})
     
+    @action(detail=True, methods=['post'])
+    def read(self, request, pk=None):
+        """Mark a notification as read"""
+        notification = self.get_queryset().filter(pk=pk).first()
+        if not notification:
+            return Response({'error': 'Notification not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not notification.is_read:
+            notification.is_read = True
+            notification.save(update_fields=["is_read"])
+
+        return Response({'status': 'success', 'notification_id': notification.id})
+
     @action(detail=False, methods=['post'])
     def mark_all_read(self, request):
         """Mark all notifications as read"""
         from apps.finance.models import Notification
         
-        count = Notification.objects.filter(is_read=False).update(is_read=True)
+        count = self.get_queryset().filter(is_read=False).update(is_read=True)
         
         return Response({
             'status': 'success',

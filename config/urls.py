@@ -10,17 +10,9 @@ from config.admin import admin_site
 def home(request):
     # Redirect based on role/authentication status
     if request.user.is_authenticated:
-        # Only admin/superuser go to backend admin
-        if request.user.is_staff or request.user.is_superuser:
-            return redirect('/admin/')
-        # Teachers and staff go to teacher portal
-        if getattr(request.user, "role", None) == "TEACHER":
-            return redirect('/portal/teacher/')
-        # Parents go to parent portal
-        if getattr(request.user, "role", None) == "PARENT":
-            return redirect('/portal/parent/')
+        return redirect("accounts:redirect")
     # Everyone else goes to login
-    return redirect('/authentication/login/')
+    return redirect("accounts:login")
 
 
 def admin_siteconfig_customizer_redirect(request):

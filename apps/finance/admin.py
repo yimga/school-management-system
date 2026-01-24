@@ -182,10 +182,10 @@ class GrantAdmin(ModelAdmin):
 
 
 class NotificationAdmin(ModelAdmin):
-    list_display = ("title", "severity", "is_read", "created_at", "created_by")
+    list_display = ("title", "severity", "is_read", "created_at", "recipient", "created_by")
     list_filter = ("severity", "is_read")
     list_per_page = 50  # PERFORMANCE: Add pagination
-    search_fields = ("title", "message", "created_by__username")
+    search_fields = ("title", "message", "created_by__username", "recipient__username")
 
 
 class ReportRequestAdmin(ModelAdmin):

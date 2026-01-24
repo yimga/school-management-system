@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
@@ -96,6 +97,7 @@ def dashboard(request: HttpRequest):
     })
 
 
+@login_required
 def invoice_list(request: HttpRequest):
     """
     Invoice list view with role-based filtering.
@@ -116,7 +118,7 @@ def invoice_list(request: HttpRequest):
     if request.user.role == User.Role.PARENT:
         # Parents can only see invoices for their children
         parent_students = StudentGuardian.objects.filter(
-            guardian__user=request.user
+            guardian_user=request.user
         ).values_list('student_id', flat=True)
         qs = qs.filter(student_id__in=parent_students)
     elif not (request.user.is_staff or request.user.is_superuser or request.user.role == User.Role.ADMIN):
@@ -225,20 +227,16 @@ def trial_balance(request: HttpRequest):
     })
 
 
+@login_required
 def invoice_detail(request: HttpRequest, invoice_id: int):
     """
     Invoice detail view with object-level permission check.
     Staff can view all invoices; parents can only view their children's invoices.
     """
-    from apps.accounts.decorators import parent_can_access_invoice
-    from apps.accounts.models import User
-    
-    # Check permission based on user role
-    if request.user.role == User.Role.PARENT:
-        if not parent_can_access_invoice(request, invoice_id):
-            return HttpResponseForbidden("You don't have permission to view this invoice.")
-    elif not (request.user.is_staff or request.user.is_superuser):
-        return HttpResponseForbidden("You don't have permission to view invoices.")
+    from apps.accounts.permissions import can_view_invoice
+
+    if not can_view_invoice(request.user, invoice_id):
+        return HttpResponseForbidden("You don't have permission to view this invoice.")
     
     profile = _active_profile()
     if not profile:
@@ -598,6 +596,7 @@ def submit_report_request(request: HttpRequest):
             title="Report request received",
             message=f"{request.user.get_full_name()} requested {report.get_report_type_display()}",
             severity=Notification.Severity.INFO,
+            recipient=request.user,
             created_by=request.user,
         )
         messages.success(request, "Report request logged. We will notify you once ready.")
@@ -619,7 +618,9 @@ def notifications(request: HttpRequest):
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    alerts = Notification.objects.order_by("-created_at")[:25]
+    alerts = Notification.objects.filter(
+        models.Q(recipient=request.user) | models.Q(created_by=request.user)
+    ).order_by("-created_at")[:25]
     return render(request, "finance/notifications.html", {
         "alerts": alerts,
     })

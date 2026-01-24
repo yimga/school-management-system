@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Term, Classroom
+from apps.accounts.validators import validate_grade_import_file, validate_file_size_5mb
 
 
 class GradingDeadline(models.Model):
@@ -65,7 +66,12 @@ class GradeImportJob(models.Model):
         null=True,
         related_name='grade_imports_uploaded'
     )
-    uploaded_file = models.FileField(upload_to='grade_imports/%Y/%m/%d/', null=True, blank=True)
+    uploaded_file = models.FileField(
+        upload_to='grade_imports/%Y/%m/%d/',
+        null=True,
+        blank=True,
+        validators=[validate_grade_import_file, validate_file_size_5mb],
+    )
     file_hash = models.CharField(max_length=64, unique=True, null=True, blank=True)
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')

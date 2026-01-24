@@ -43,7 +43,7 @@ class User(AbstractUser):
         PARENT = "PARENT", "Parent"
         STUDENT = "STUDENT", "Student"
 
-    role = models.CharField(max_length=20, choices=Role.choices, default=Role.ADMIN)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.PARENT)
     roles = models.ManyToManyField(AccessRole, blank=True, related_name="users")
     feature_permissions = models.ManyToManyField(Permission, blank=True, related_name="users")
     profile_photo = models.ImageField(upload_to="profiles/", blank=True, null=True)

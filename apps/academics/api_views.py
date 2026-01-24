@@ -309,7 +309,8 @@ class GradeViewSet(viewsets.ModelViewSet):
         Notification.objects.create(
             title="Grade Published",
             message=f"Your grade for {grade.subject.name} has been published: {grade.score}",
-            created_by=request.user
+            recipient=request.user,
+            created_by=request.user,
         )
         
         headers = self.get_success_headers(serializer.data)

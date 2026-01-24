@@ -205,6 +205,9 @@ WEBHOOK_CONFIG = {
     "ip_whitelist": os.getenv("WEBHOOK_IP_WHITELIST", "").split(",") if os.getenv("WEBHOOK_IP_WHITELIST") else [],
 }
 
+# --- Observability ---
+OBSERVABILITY_API_KEY = os.getenv("OBSERVABILITY_API_KEY", "")
+
 # --- Payment Provider Configuration ---
 # Each provider should have config in PaymentIntegration model:
 # {

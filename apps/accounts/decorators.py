@@ -92,7 +92,7 @@ def parent_can_access_student(request, student_id: int) -> bool:
     if user.role == User.Role.PARENT:
         from apps.people.models import StudentGuardian
         return StudentGuardian.objects.filter(
-            guardian__user=user,
+            guardian_user=user,
             student_id=student_id
         ).exists()
     
@@ -123,7 +123,7 @@ def parent_can_access_invoice(request, invoice_id: int) -> bool:
             if not invoice.student:
                 return False  # Non-student invoices not accessible to parents
             return StudentGuardian.objects.filter(
-                guardian__user=user,
+                guardian_user=user,
                 student=invoice.student
             ).exists()
         except Invoice.DoesNotExist:

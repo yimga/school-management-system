@@ -10,6 +10,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveIndex(
+            model_name='scheduleentry',
+            name='academics_s_room_id_73cb9b_idx',
+        ),
+        migrations.RemoveIndex(
+            model_name='scheduleentry',
+            name='academics_s_teacher_8df5c8_idx',
+        ),
+        migrations.RemoveIndex(
+            model_name='scheduleentry',
+            name='academics_s_schedul_9cffc7_idx',
+        ),
         migrations.RemoveField(
             model_name='scheduleentry',
             name='room',

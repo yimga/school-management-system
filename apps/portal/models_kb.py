@@ -7,6 +7,9 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from .sanitizers import sanitize_html
+from apps.accounts.validators import validate_kb_attachment_file, validate_file_size_10mb
+
 User = get_user_model()
 
 
@@ -81,6 +84,11 @@ class FAQ(models.Model):
 
     def __str__(self):
         return self.question
+
+    def save(self, *args, **kwargs):
+        if self.answer:
+            self.answer_html = sanitize_html(self.answer)
+        super().save(*args, **kwargs)
 
     @property
     def helpful_percentage(self):
@@ -193,6 +201,8 @@ class KBArticle(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+        if self.content:
+            self.content_html = sanitize_html(self.content)
         super().save(*args, **kwargs)
 
     @property
@@ -214,7 +224,11 @@ class KBArticleAttachment(models.Model):
     
     article = models.ForeignKey(KBArticle, on_delete=models.CASCADE, related_name='attachments', verbose_name=_("Article"))
     title = models.CharField(_("Title"), max_length=200)
-    file = models.FileField(_("File"), upload_to='kb/attachments/%Y/%m/')
+    file = models.FileField(
+        _("File"),
+        upload_to='kb/attachments/%Y/%m/',
+        validators=[validate_kb_attachment_file, validate_file_size_10mb],
+    )
     file_type = models.CharField(_("File Type"), max_length=50, blank=True, help_text="e.g., image/png, application/pdf")
     file_size = models.PositiveIntegerField(_("File Size (bytes)"), default=0)
     caption = models.TextField(_("Caption"), blank=True)

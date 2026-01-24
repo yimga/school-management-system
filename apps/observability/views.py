@@ -2,16 +2,49 @@
 Observability endpoints: /healthz and /metrics.
 """
 
-from django.http import HttpResponse, JsonResponse
+from functools import wraps
+
+from django.conf import settings
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.db import connection
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 
+def _is_observability_authorized(request) -> bool:
+    """Allow staff users or holders of the observability API key."""
+    api_key = getattr(settings, "OBSERVABILITY_API_KEY", "")
+    if api_key:
+        header_key = request.headers.get("X-OBSERVABILITY-KEY") or request.META.get("HTTP_X_OBSERVABILITY_KEY")
+        if header_key == api_key:
+            return True
+
+    user = getattr(request, "user", None)
+    if user and user.is_authenticated:
+        return user.is_staff or user.is_superuser or getattr(user, "role", None) == "ADMIN"
+    return False
+
+
+def observability_auth_required(view_func):
+    """Require staff session auth; allow API key for safe GET/HEAD requests."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if request.method in ("GET", "HEAD"):
+            if _is_observability_authorized(request):
+                return view_func(request, *args, **kwargs)
+        else:
+            user = getattr(request, "user", None)
+            if user and user.is_authenticated and (user.is_staff or user.is_superuser or getattr(user, "role", None) == "ADMIN"):
+                return view_func(request, *args, **kwargs)
+
+        return HttpResponseForbidden("Forbidden")
+    return _wrapped
+
+
 @require_GET
+@observability_auth_required
 def healthz(request):
     """Basic health check including DB connectivity."""
     try:
@@ -26,8 +59,8 @@ def healthz(request):
     return JsonResponse({"status": status})
 
 
-@csrf_exempt
 @require_GET
+@observability_auth_required
 def metrics(request):
     """Prometheus metrics endpoint."""
     output = generate_latest()
@@ -38,8 +71,8 @@ def metrics(request):
 # ADMIN DASHBOARD API ENDPOINTS
 # ============================================
 
-@csrf_exempt
 @require_GET
+@observability_auth_required
 def api_health(request):
     """API endpoint for dashboard health checks.
     
@@ -65,8 +98,8 @@ def api_health(request):
         }, status=500)
 
 
-@csrf_exempt
 @require_POST
+@observability_auth_required
 def api_notifications_mark_all_read(request):
     """API endpoint to mark all notifications as read.
     
@@ -88,8 +121,8 @@ def api_notifications_mark_all_read(request):
         }, status=500)
 
 
-@csrf_exempt
 @require_GET
+@observability_auth_required
 def api_notifications(request):
     """API endpoint to fetch recent notifications.
     
@@ -117,8 +150,8 @@ def api_notifications(request):
         }, status=500)
 
 
-@csrf_exempt
 @require_GET
+@observability_auth_required
 def api_activities(request):
     """API endpoint to fetch recent activities/audit logs.
     
@@ -189,8 +222,8 @@ def api_activities(request):
         }, status=500)
 
 
-@csrf_exempt
 @require_GET
+@observability_auth_required
 def api_dashboard_charts(request):
     """API endpoint for dashboard chart data.
     
@@ -225,6 +258,7 @@ def api_dashboard_charts(request):
 # ============================================
 
 @login_required
+@user_passes_test(lambda u: u.is_staff or u.is_superuser or getattr(u, "role", None) == "ADMIN")
 def admin_dashboard(request):
     """Backend admin dashboard for system management.
     

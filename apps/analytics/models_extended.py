@@ -7,6 +7,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+from apps.accounts.validators import validate_grade_import_file, validate_file_size_5mb
+
 
 class GradeImportJob(models.Model):
     """Track grade import operations"""
@@ -21,7 +23,12 @@ class GradeImportJob(models.Model):
     
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     file_name = models.CharField(max_length=255)
-    file_path = models.FileField(upload_to='grade_imports/', null=True, blank=True)
+    file_path = models.FileField(
+        upload_to='grade_imports/',
+        null=True,
+        blank=True,
+        validators=[validate_grade_import_file, validate_file_size_5mb],
+    )
     status = models.CharField(max_length=15, choices=STATUSES, default='PENDING')
     total_records = models.IntegerField(default=0)
     imported_records = models.IntegerField(default=0)

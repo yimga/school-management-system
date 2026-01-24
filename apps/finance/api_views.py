@@ -46,7 +46,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         
         from apps.people.models import StudentGuardian
         guardian_children = StudentGuardian.objects.filter(
-            guardian__user=user
+            guardian_user=user
         ).values_list('student_id', flat=True)
         
         return Invoice.objects.filter(
@@ -115,8 +115,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         invoice.save()
         
         Notification.objects.create(
-            title=f"Invoice Marked Paid",
-            message=f"Invoice {invoice.invoice_number} has been marked as paid",
+            title="Invoice Marked Paid",
+            message=f"Invoice {invoice.id} has been marked as paid",
+            recipient=request.user,
             created_by=request.user
         )
         
@@ -184,7 +185,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         
         from apps.people.models import StudentGuardian
         guardian_children = StudentGuardian.objects.filter(
-            guardian__user=user
+            guardian_user=user
         ).values_list('student_id', flat=True)
         
         return Payment.objects.filter(
@@ -224,9 +225,14 @@ class PaymentViewSet(viewsets.ModelViewSet):
             invoice.status = 'partially_paid'
             invoice.save()
         
+        student_label = (
+            f"{invoice.student.first_name} {invoice.student.last_name}"
+            if invoice.student else "N/A"
+        )
         Notification.objects.create(
             title="Payment Recorded",
-            message=f"Payment of {payment.amount} recorded for {invoice.student.user.get_full_name()}",
+            message=f"Payment of {payment.amount} recorded for {student_label}",
+            recipient=request.user,
             created_by=request.user
         )
         

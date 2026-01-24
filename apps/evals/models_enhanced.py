@@ -18,6 +18,12 @@ import json
 
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
 from apps.people.models import TeacherProfile, StudentProfile
+from apps.accounts.validators import (
+    validate_grade_import_file,
+    validate_file_size_5mb,
+    validate_evidence_file,
+    validate_file_size_20mb,
+)
 from apps.accounts.models import User
 
 
@@ -40,7 +46,10 @@ class GradeImportJob(models.Model):
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="grade_import_jobs")
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="grade_import_jobs")
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="grade_imports_uploaded")
-    uploaded_file = models.FileField(upload_to="grade_imports/%Y/%m/%d/")
+    uploaded_file = models.FileField(
+        upload_to="grade_imports/%Y/%m/%d/",
+        validators=[validate_grade_import_file, validate_file_size_5mb],
+    )
     file_hash = models.CharField(max_length=64, unique=True)  # SHA256 for duplicate detection
     
     # Status & timing
@@ -282,7 +291,10 @@ class EvaluationEvidence(models.Model):
     description = models.TextField(blank=True)
     
     # File storage
-    file = models.FileField(upload_to="evaluations/evidence/%Y/%m/%d/")
+    file = models.FileField(
+        upload_to="evaluations/evidence/%Y/%m/%d/",
+        validators=[validate_evidence_file, validate_file_size_20mb],
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     
