@@ -759,6 +759,7 @@
                       <div class="fw-bold text-primary">{{ card.average|default:"--" }}</div>
                     </div>
                     <div class="col-4">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto">Live data</span>
                       <div class="small text-muted">Rank</div>
                       <div class="fw-bold text-info">{% if card.rank %}{{ card.rank }}{% else %}--{% endif %}</div>
                     </div>
@@ -794,6 +795,12 @@
             </div>
             {% endfor %}
           </div>
+          {% if not child_cards %}
+          <div class="alert alert-info mt-3">
+            <i class="bi bi-info-circle me-2"></i>
+            No linked students yet. Link a child to see live attendance, grades, and fee status.
+          </div>
+          {% endif %}
         </div>
 
         <!-- Fee Payment Status (moved near child cards) -->
