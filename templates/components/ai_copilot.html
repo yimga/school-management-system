@@ -172,6 +172,8 @@
     box-shadow: 0 8px 16px rgba(0,0,0,0.18);
     white-space: nowrap;
     pointer-events: none;
+    display: none;
+    opacity: 0;
   }
 
   .ai-copilot-trigger:hover {
@@ -470,21 +472,20 @@ document.addEventListener('DOMContentLoaded', function() {
   // Always show trigger; if access is limited, show info when opened
 
   // Toggle panel
-  trigger.addEventListener('click', function() {
+  trigger.addEventListener('click', function(event) {
     // Alt-click restores shortcut hint for testing/QA
     if (event.altKey && shortcutHint) {
       localStorage.removeItem('ai-shortcut-hint-seen');
       shortcutHint.style.display = 'inline-block';
       shortcutHint.style.opacity = '1';
-      // Let the auto-hide run again
+      shortcutHint.style.transition = 'opacity 0.3s ease';
       setTimeout(() => {
         shortcutHint.style.opacity = '0';
-        shortcutHint.style.transition = 'opacity 0.4s ease';
         setTimeout(() => {
           shortcutHint.style.display = 'none';
           localStorage.setItem('ai-shortcut-hint-seen', '1');
-        }, 450);
-      }, 6000);
+        }, 350);
+      }, 3000);
     }
 
     panel.classList.toggle('active');
@@ -747,18 +748,31 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!shortcutHint) return;
     const HINT_KEY = 'ai-shortcut-hint-seen';
     const seen = localStorage.getItem(HINT_KEY) === '1';
-    if (seen) {
-      shortcutHint.style.display = 'none';
-      return;
-    }
-    setTimeout(() => {
-      shortcutHint.style.opacity = '0';
-      shortcutHint.style.transition = 'opacity 0.4s ease';
+    if (seen) return;
+
+    const showOnce = () => {
+      // Guard if already seen after first show
+      if (localStorage.getItem(HINT_KEY) === '1') return;
+      shortcutHint.style.display = 'inline-block';
+      shortcutHint.style.opacity = '1';
+      shortcutHint.style.transition = 'opacity 0.3s ease';
       setTimeout(() => {
-        shortcutHint.style.display = 'none';
-        localStorage.setItem(HINT_KEY, '1');
-      }, 450);
-    }, 6000);
+        shortcutHint.style.opacity = '0';
+        setTimeout(() => {
+          shortcutHint.style.display = 'none';
+          localStorage.setItem(HINT_KEY, '1');
+        }, 350);
+      }, 3000); // shorter timer
+    };
+
+    // Show on first hover or focus of trigger
+    const onFirstReveal = () => {
+      showOnce();
+      trigger.removeEventListener('mouseenter', onFirstReveal);
+      trigger.removeEventListener('focus', onFirstReveal);
+    };
+    trigger.addEventListener('mouseenter', onFirstReveal);
+    trigger.addEventListener('focus', onFirstReveal);
   })();
 });
 </script>
