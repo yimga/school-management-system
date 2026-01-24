@@ -199,6 +199,23 @@ class StudentProfile(models.Model):
     classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="students")
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="students")
 
+    # Exam system fields (configurable for different countries)
+    exam_candidate_number = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="National exam candidate number (e.g., GCE, WAEC, etc.)"
+    )
+    exam_center_code = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Exam center code"
+    )
+    exam_system = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Exam system (e.g., GCE, WAEC, IB, etc.)"
+    )
+
     is_active = models.BooleanField(default=True)
     
     # Audit logging fields for data integrity

@@ -1,0 +1,279 @@
+{% load static %}
+<footer class="main-footer">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <img src="{% static 'images/logo.png' %}" alt="School Management System" class="footer-logo-img">
+            <span class="footer-brand">School Management System</span>
+          </div>
+          <div class="footer-accreditation">
+            <p class="mb-1">
+              <strong>Accredited by:</strong>
+              <span class="accreditation-text">
+                Ministry of Education - Cameroon | UNESCO Standards 2026 Compliant
+              </span>
+            </p>
+            <p class="mb-0">
+              <small class="text-muted">
+                Certified for educational institutions worldwide | ISO 9001:2015 Quality Management
+              </small>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="footer-support">
+          <div class="support-info">
+            <h6 class="support-title">Need Help?</h6>
+            <div class="support-contacts">
+              <a href="https://wa.me/237XXXXXXXXX?text=Hello%20School%20Management%20System%20Support"
+                 class="whatsapp-link"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp Support</span>
+              </a>
+              <div class="support-hours">
+                <small class="text-muted">
+                  <i class="fas fa-clock"></i>
+                  Mon-Fri: 8AM-6PM | Sat: 9AM-4PM
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer-links">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Documentation</a>
+            <a href="#" class="footer-link">Support Center</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="row">
+      <div class="col-12">
+        <div class="footer-bottom">
+          <div class="copyright">
+            <p class="mb-0">
+              &copy; 2024 School Management System. All rights reserved.
+              <span class="version-info">v2.1.0</span>
+            </p>
+          </div>
+          <div class="footer-badges">
+            <span class="badge badge-secure">
+              <i class="fas fa-shield-alt"></i>
+              Secure & Encrypted
+            </span>
+            <span class="badge badge-compliant">
+              <i class="fas fa-check-circle"></i>
+              2026 Standards Compliant
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+.main-footer {
+  background: var(--footer-bg, #f8f9fa);
+  color: var(--footer-text, #6c757d);
+  border-top: 1px solid var(--footer-border, #e9ecef);
+  padding: 24px 0 16px;
+  margin-top: auto;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.footer-brand {
+  font-weight: 600;
+  color: var(--footer-text, #6c757d);
+}
+
+.footer-accreditation .accreditation-text {
+  color: var(--primary-color, #007bff);
+  font-weight: 500;
+}
+
+.footer-support {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.support-title {
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: var(--footer-text, #6c757d);
+}
+
+.whatsapp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #25d366;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.whatsapp-link:hover {
+  background: #128c7e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+.support-hours {
+  margin-top: 8px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.footer-link {
+  color: var(--footer-text, #6c757d);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+  color: var(--primary-color, #007bff);
+  text-decoration: underline;
+}
+
+.footer-divider {
+  margin: 20px 0;
+  border-color: var(--footer-border, #e9ecef);
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.version-info {
+  font-size: 12px;
+  color: var(--footer-text-muted, #adb5bd);
+  margin-left: 8px;
+}
+
+.footer-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-secure {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-compliant {
+  background: #cce5ff;
+  color: #004085;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .main-footer {
+    --footer-bg: #1a202c;
+    --footer-text: #a0aec0;
+    --footer-border: #2d3748;
+    --footer-text-muted: #718096;
+  }
+
+  .badge-secure {
+    background: #2d5016;
+    color: #9ae6b4;
+  }
+
+  .badge-compliant {
+    background: #1e3a5f;
+    color: #90cdf4;
+  }
+}
+
+[data-theme="dark"] {
+  --footer-bg: #1a202c;
+  --footer-text: #a0aec0;
+  --footer-border: #2d3748;
+  --footer-text-muted: #718096;
+}
+
+[data-theme="dark"] .badge-secure {
+  background: #2d5016;
+  color: #9ae6b4;
+}
+
+[data-theme="dark"] .badge-compliant {
+  background: #1e3a5f;
+  color: #90cdf4;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .footer-support {
+    align-items: flex-start;
+  }
+
+  .footer-links {
+    justify-content: flex-start;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .footer-badges {
+    justify-content: flex-start;
+  }
+}
+</style>

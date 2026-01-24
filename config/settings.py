@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "apps.communication",
     "apps.observability",  # Observability/monitoring
     "apps.api",
+    "emis",
 ]
 
 MIDDLEWARE = [

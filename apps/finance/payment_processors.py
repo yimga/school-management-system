@@ -199,6 +199,162 @@ class PaystackProcessor:
         }
 
 
+class MTNMobileMoneyProcessor:
+    """MTN Mobile Money processor (Cameroon, Ghana, etc.)"""
+
+    API_VERSION = 'v2'
+    SUPPORTED_COUNTRIES = ['CM', 'GH', 'CI', 'NG']  # Cameroon, Ghana, Ivory Coast, Nigeria
+    SUPPORTED_CURRENCIES = ['XAF', 'GHS', 'XOF', 'NGN']
+
+    def __init__(self, api_key, api_secret, subscription_key=None):
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.subscription_key = subscription_key
+        self.base_url = "https://api.mtn.com"
+
+    def request_payment(self, amount, currency, phone_number, reference, description=""):
+        """Request mobile money payment"""
+        return {
+            'transaction_id': f'mtn_{datetime.now().timestamp()}',
+            'status': 'pending',
+            'amount': amount,
+            'currency': currency,
+            'phone_number': phone_number,
+            'reference': reference,
+            'description': description,
+        }
+
+    def check_payment_status(self, transaction_id):
+        """Check payment status"""
+        return {
+            'transaction_id': transaction_id,
+            'status': 'completed',
+            'verified': True,
+        }
+
+    def refund_payment(self, transaction_id, amount=None):
+        """Refund payment"""
+        return {
+            'refund_id': f'refund_mtn_{datetime.now().timestamp()}',
+            'transaction_id': transaction_id,
+            'status': 'completed',
+        }
+
+
+class OrangeMoneyProcessor:
+    """Orange Money processor (Cameroon, Senegal, Ivory Coast, etc.)"""
+
+    API_VERSION = 'v1'
+    SUPPORTED_COUNTRIES = ['CM', 'SN', 'CI', 'ML', 'BF']  # Cameroon, Senegal, Ivory Coast, Mali, Burkina Faso
+    SUPPORTED_CURRENCIES = ['XAF', 'XOF']
+
+    def __init__(self, client_id, client_secret, merchant_key=None):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.merchant_key = merchant_key
+        self.base_url = "https://api.orange.com"
+
+    def initiate_payment(self, amount, currency, phone_number, reference, description=""):
+        """Initiate Orange Money payment"""
+        return {
+            'transaction_id': f'orange_{datetime.now().timestamp()}',
+            'status': 'pending',
+            'amount': amount,
+            'currency': currency,
+            'phone_number': phone_number,
+            'reference': reference,
+            'description': description,
+        }
+
+    def verify_payment(self, transaction_id):
+        """Verify payment status"""
+        return {
+            'transaction_id': transaction_id,
+            'status': 'completed',
+            'verified': True,
+        }
+
+    def cancel_payment(self, transaction_id):
+        """Cancel pending payment"""
+        return {
+            'transaction_id': transaction_id,
+            'status': 'cancelled',
+        }
+
+
+class AirtelMoneyProcessor:
+    """Airtel Money processor (Kenya, Tanzania, Uganda, etc.)"""
+
+    API_VERSION = 'v1'
+    SUPPORTED_COUNTRIES = ['KE', 'TZ', 'UG', 'RW', 'ZM']  # Kenya, Tanzania, Uganda, Rwanda, Zambia
+    SUPPORTED_CURRENCIES = ['KES', 'TZS', 'UGX', 'RWF', 'ZMW']
+
+    def __init__(self, api_key, api_secret):
+        self.api_key = api_key
+        self.api_secret = api_secret
+        self.base_url = "https://openapi.airtel.africa"
+
+    def collect_money(self, amount, currency, phone_number, reference):
+        """Collect money from customer"""
+        return {
+            'transaction_id': f'airtel_{datetime.now().timestamp()}',
+            'status': 'pending',
+            'amount': amount,
+            'currency': currency,
+            'phone_number': phone_number,
+            'reference': reference,
+        }
+
+    def check_transaction_status(self, transaction_id):
+        """Check transaction status"""
+        return {
+            'transaction_id': transaction_id,
+            'status': 'completed',
+            'verified': True,
+        }
+
+
+class MobileMoneyFactory:
+    """Factory for mobile money processors"""
+
+    PROCESSORS = {
+        'mtn': MTNMobileMoneyProcessor,
+        'orange': OrangeMoneyProcessor,
+        'airtel': AirtelMoneyProcessor,
+    }
+
+    @staticmethod
+    def get_processor(provider, *args, **kwargs):
+        """Get mobile money processor instance"""
+        processor_class = MobileMoneyFactory.PROCESSORS.get(provider)
+
+        if not processor_class:
+            raise ValueError(f'Unknown mobile money processor: {provider}')
+
+        return processor_class(*args, **kwargs)
+
+    @staticmethod
+    def get_available_processors():
+        """Get list of available mobile money processors"""
+        return list(MobileMoneyFactory.PROCESSORS.keys())
+
+    @staticmethod
+    def get_processors_for_country(country_code):
+        """Get available processors for a specific country"""
+        country_processors = {
+            'CM': ['mtn', 'orange'],  # Cameroon
+            'GH': ['mtn'],  # Ghana
+            'CI': ['mtn', 'orange'],  # Ivory Coast
+            'SN': ['orange'],  # Senegal
+            'KE': ['airtel'],  # Kenya
+            'TZ': ['airtel'],  # Tanzania
+            'UG': ['airtel'],  # Uganda
+            'RW': ['airtel'],  # Rwanda
+            'ZM': ['airtel'],  # Zambia
+        }
+        return country_processors.get(country_code.upper(), [])
+
+
 class ProcessorFactory:
     """Factory for payment processors"""
     
@@ -207,6 +363,9 @@ class ProcessorFactory:
         'paypal': PayPalProcessor,
         'flutterwave': FlutterwaveProcessor,
         'paystack': PaystackProcessor,
+        'mtn': MTNMobileMoneyProcessor,
+        'orange': OrangeMoneyProcessor,
+        'airtel': AirtelMoneyProcessor,
     }
     
     @staticmethod

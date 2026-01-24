@@ -249,6 +249,23 @@ class Invoice(models.Model):
         validators=[validate_document_file, validate_file_size_5mb],
         help_text="Optional PDF or image attachment for this invoice (max 5MB).",
     )
+    # Payment proof fields for bank transfers and mobile money
+    payment_proof = models.FileField(
+        upload_to="finance/payment_proofs/",
+        blank=True,
+        null=True,
+        validators=[validate_receipt_file, validate_file_size_2mb],
+        help_text="Upload proof of payment (receipt, screenshot, etc.) - max 2MB",
+    )
+    transaction_reference = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Transaction ID or reference number from payment provider",
+    )
+    payment_notes = models.TextField(
+        blank=True,
+        help_text="Additional notes about the payment",
+    )
     total_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
