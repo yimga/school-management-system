@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
           'X-CSRFToken': CSRF_TOKEN,
         },
         body: JSON.stringify({
-          query: buildContextualPrompt(message)
+          query: message
         })
       });
 
