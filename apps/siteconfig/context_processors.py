@@ -1,3 +1,4 @@
+import json
 from .models import SiteSettings, RegionConfig
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from django.core.files.storage import default_storage
@@ -258,6 +259,6 @@ def ai_copilot_settings(request):
     
     return {
         'GEMINI_API_KEY': os.environ.get('GEMINI_API_KEY', ''),
-        'AI_PERMISSIONS': ai_permissions,
+        'AI_PERMISSIONS': json.dumps(ai_permissions),
         'USER_ROLE': user_role,
     }

@@ -137,6 +137,8 @@
 <style>
   .ai-copilot-wrapper {
     position: fixed;
+    bottom: 16px;
+    right: 16px;
     bottom: max(16px, env(safe-area-inset-bottom));
     right: max(16px, env(safe-area-inset-right));
     left: auto !important;
@@ -459,7 +461,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const GEMINI_API_KEY = '{{ GEMINI_API_KEY|default:"" }}';
   const USE_AI_BACKEND = GEMINI_API_KEY !== '';
-  const AI_PERMISSIONS = {{ AI_PERMISSIONS|safe }};
+  const AI_PERMISSIONS = {{ AI_PERMISSIONS|default:"{}"|safe }};
   const USER_ROLE = '{{ USER_ROLE|default:"USER" }}';
   const CSRF_TOKEN = '{{ csrf_token }}';
 
