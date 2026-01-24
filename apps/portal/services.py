@@ -149,6 +149,7 @@ def _attendance_snapshot(students, year, term):
             "missing": 0,
             "late": 0,
             "label": "Attendance data updates with evaluation entry completion.",
+            "per_student": [],
         }
 
     # Single aggregation query
@@ -169,19 +170,40 @@ def _attendance_snapshot(students, year, term):
             "missing": 0,
             "late": 0,
             "label": "No evaluation data yet; attendance will appear as scores populate.",
+            "per_student": [],
         }
 
     # Load evaluations to check completion status
     # Note: is_complete_for_ranking is a property that requires Python evaluation
     # This loads the data once rather than multiple queries
-    evals = Evaluation.objects.filter(
+    evals = list(Evaluation.objects.filter(
         student__in=students,
         academic_year=year,
         term=term,
-    )
+    ))
+
+    per_student_stats = {}
+    for e in evals:
+        bucket = per_student_stats.setdefault(e.student_id, {"total": 0, "complete": 0})
+        bucket["total"] += 1
+        if e.is_complete_for_ranking:
+            bucket["complete"] += 1
     
     complete = sum(1 for e in evals if e.is_complete_for_ranking)
     overall_pct = int(round((complete / total) * 100)) if total > 0 else 0
+
+    per_student = []
+    for student in students:
+        stats = per_student_stats.get(student.id, {"total": 0, "complete": 0})
+        total_s = stats["total"]
+        complete_s = stats["complete"]
+        pct = int(round((complete_s / total_s) * 100)) if total_s else 0
+        per_student.append({
+            "student_id": student.id,
+            "student_name": f"{student.last_name} {student.first_name}",
+            "overall": pct,
+            "missing": max(0, total_s - complete_s),
+        })
     
     return {
         "today": min(100, overall_pct + 2),
@@ -189,6 +211,7 @@ def _attendance_snapshot(students, year, term):
         "missing": total - complete,
         "late": max(0, total - complete),
         "label": "Completion uses weighted evaluations as a proxy for class attendance.",
+        "per_student": per_student,
     }
 
 
@@ -254,6 +277,7 @@ def _performance_overview(students, year, term):
         
         summaries.append({
             "student": f"{student.last_name} {student.first_name}",
+            "student_id": student.id,
             "average": avg,
             "promotion": None,  # Could be added if needed with additional logic
         })
@@ -266,12 +290,17 @@ def _performance_overview(students, year, term):
         overall_avg = sum(avg_scores) / len(avg_scores)
         trend = "On track" if overall_avg >= float(pass_mark) else "Needs attention"
         
+        ranked = sorted(summaries, key=lambda item: item["average"], reverse=True)
+        for idx, item in enumerate(ranked, start=1):
+            item["rank"] = idx
+
         result = {
             "average": round(overall_avg, 2),
             "top_student": top,
             "pass_mark": float(pass_mark),
             "trend": trend,
             "label": "Shows live term averages for linked students.",
+            "per_student": ranked,
         }
     
     # Cache result for 10 minutes
@@ -286,13 +315,14 @@ def _empty_performance_data() -> dict:
         SiteSettings.get_solo().pass_mark,
         3600
     )
-    return {
-        "average": None,
-        "top_student": None,
-        "pass_mark": float(pass_mark),
-        "trend": "Pending results",
-        "label": "Results populate as teachers publish marks.",
-    }
+        return {
+            "average": None,
+            "top_student": None,
+            "pass_mark": float(pass_mark),
+            "trend": "Pending results",
+            "label": "Results populate as teachers publish marks.",
+            "per_student": [],
+        }
 
 
 def _finance_summary(students):
@@ -314,11 +344,9 @@ def _finance_summary(students):
         }
 
     # Single aggregation query with all needed statistics
-    invoice_stats = Invoice.objects.filter(
-        student__in=students
-    ).exclude(
-        status=Invoice.Status.DRAFT
-    ).aggregate(
+    qs = Invoice.objects.filter(student__in=students).exclude(status=Invoice.Status.DRAFT)
+
+    invoice_stats = qs.aggregate(
         total_due=Sum("total_amount"),
         total_balance=Sum("balance_amount"),
         overdue_count=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
@@ -329,12 +357,31 @@ def _finance_summary(students):
     paid = total_due - balance
     overdue_count = invoice_stats.get("overdue_count") or 0
 
+    per_student = []
+    per_student_qs = qs.values("student_id").annotate(
+        total_due=Sum("total_amount"),
+        balance_amount=Sum("balance_amount"),
+        overdue=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
+    )
+    for row in per_student_qs:
+        student_id = row.get("student_id")
+        total_s = row.get("total_due") or Decimal("0.00")
+        bal_s = row.get("balance_amount") or Decimal("0.00")
+        per_student.append({
+            "student_id": student_id,
+            "total_due": total_s,
+            "paid": total_s - bal_s,
+            "balance": bal_s,
+            "overdue": row.get("overdue") or 0,
+        })
+
     return {
         "total_due": total_due,
         "paid": paid,
         "balance": balance,
         "overdue": overdue_count,
         "label": "Data refreshes when invoices or payments are recorded.",
+        "per_student": per_student,
     }
 
 

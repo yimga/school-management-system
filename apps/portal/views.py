@@ -123,6 +123,27 @@ def parent_dashboard(request: HttpRequest):
     
     # Widget data is now cached internally for 5 minutes
     widget_data = parent_dashboard_widget_data(students)
+
+    # Per-student maps for live cards
+    perf_map = {row.get("student_id"): row for row in widget_data.get("performance", {}).get("per_student", [])}
+    att_map = {row.get("student_id"): row for row in widget_data.get("attendance", {}).get("per_student", [])}
+    fin_map = {row.get("student_id"): row for row in widget_data.get("finance", {}).get("per_student", [])}
+
+    child_cards = []
+    for link in links:
+        student_id = link.student.id
+        perf = perf_map.get(student_id, {})
+        att = att_map.get(student_id, {})
+        fin = fin_map.get(student_id, {})
+        child_cards.append({
+            "link": link,
+            "attendance": att.get("overall", 0),
+            "average": perf.get("average"),
+            "rank": perf.get("rank"),
+            "finance_total": fin.get("total_due"),
+            "finance_paid": fin.get("paid"),
+            "finance_balance": fin.get("balance"),
+        })
     
     preference = getattr(request.user, "preferences", None)
     display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
@@ -161,6 +182,7 @@ def parent_dashboard(request: HttpRequest):
         "links": links,
         "portal_features": portal_features,
         "widget_data": widget_data,
+        "child_cards": child_cards,
         "display_widgets": display_widgets,
         "hero": hero,
         "reminders_count": reminders_count,

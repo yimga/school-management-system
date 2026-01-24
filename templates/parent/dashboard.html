@@ -736,34 +736,52 @@
             <span>My Children</span>
           </div>
           <div class="row g-3">
-            {% for link in links %}
+            {% for card in child_cards %}
             <div class="col-md-6">
               <div class="card h-100">
                 <div class="card-body">
                   <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="avatar-circle bg-primary text-white">
-                      {{ link.student.first_name|first }}{{ link.student.last_name|first }}
+                      {{ card.link.student.first_name|first }}{{ card.link.student.last_name|first }}
                     </div>
                     <div class="flex-grow-1">
-                      <h5 class="mb-0">{{ link.student.get_full_name }}</h5>
-                      <small class="text-muted">{{ link.student.grade|default:"N/A" }} • {{ link.student.section|default:"N/A" }}</small>
+                      <h5 class="mb-0">{{ card.link.student.get_full_name }}</h5>
+                      <small class="text-muted">{{ card.link.student.grade|default:"N/A" }} • {{ card.link.student.section|default:"N/A" }}</small>
                     </div>
                   </div>
                   <div class="row g-2 text-center">
                     <div class="col-4">
                       <div class="small text-muted">Attendance</div>
-                      <div class="fw-bold text-success">95%</div>
+                      <div class="fw-bold text-success">{{ card.attendance|default:0 }}%</div>
                     </div>
                     <div class="col-4">
                       <div class="small text-muted">Average</div>
-                      <div class="fw-bold text-primary">85.5</div>
+                      <div class="fw-bold text-primary">{{ card.average|default:"--" }}</div>
                     </div>
                     <div class="col-4">
                       <div class="small text-muted">Rank</div>
-                      <div class="fw-bold text-info">12/45</div>
+                      <div class="fw-bold text-info">{% if card.rank %}{{ card.rank }}{% else %}--{% endif %}</div>
                     </div>
                   </div>
-                  <a href="#" class="btn btn-sm btn-outline-primary w-100 mt-3">View Details</a>
+                  <div class="row g-2 mt-3 text-center">
+                    <div class="col-4">
+                      <div class="small text-muted">Total</div>
+                      <div class="fw-semibold text-primary">${{ card.finance_total|default:"0.00" }}</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="small text-muted">Paid</div>
+                      <div class="fw-semibold text-success">${{ card.finance_paid|default:"0.00" }}</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="small text-muted">Due</div>
+                      <div class="fw-semibold text-danger">${{ card.finance_balance|default:"0.00" }}</div>
+                    </div>
+                  </div>
+                  <div class="d-flex gap-2 mt-3">
+                    <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary flex-fill">Make Payment</a>
+                    <a href="{% url 'portal:parent_finance' %}#history" class="btn btn-sm btn-outline-secondary flex-fill">History</a>
+                  </div>
+                  <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary w-100 mt-3">View Details</a>
                 </div>
               </div>
             </div>
@@ -775,6 +793,34 @@
               </div>
             </div>
             {% endfor %}
+          </div>
+        </div>
+
+        <!-- Fee Payment Status (moved near child cards) -->
+        <div class="card mb-3 fee-status-card">
+          <div class="card-body py-3">
+            <div class="d-flex align-items-center mb-2">
+              <i class="bi bi-credit-card me-2 text-primary"></i>
+              <span class="fw-semibold">Fee Payment Status</span>
+            </div>
+            <div class="row g-2 align-items-center text-center">
+              <div class="col-4">
+                <div class="small text-muted">Total</div>
+                <div class="fw-semibold text-primary">${{ widget_data.finance.total_due|default:"0.00" }}</div>
+              </div>
+              <div class="col-4">
+                <div class="small text-muted">Paid</div>
+                <div class="fw-semibold text-success">${{ widget_data.finance.paid|default:"0.00" }}</div>
+              </div>
+              <div class="col-4">
+                <div class="small text-muted">Due</div>
+                <div class="fw-semibold text-danger">${{ widget_data.finance.balance|default:"0.00" }}</div>
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <a href="{% url 'portal:parent_finance' %}" class="btn btn-gradient flex-fill">Make Payment</a>
+              <a href="{% url 'portal:parent_finance' %}#history" class="btn btn-outline-secondary flex-fill">History</a>
+            </div>
           </div>
         </div>
 
@@ -888,40 +934,6 @@
       <div class="col-lg-4">
         <div class="sidebar-sticky">
 
-          <!-- Fee Payment Status (compact) -->
-          <div class="card mb-3 fee-status-card">
-            <div class="card-body py-3">
-              <div class="d-flex align-items-center mb-2">
-                <i class="bi bi-credit-card me-2 text-primary"></i>
-                <span class="fw-semibold">Fee Payment Status</span>
-              </div>
-              <div class="row g-2 align-items-center">
-                <div class="col-4">
-                  <div class="text-center small-tile">
-                    <div class="amount text-primary">${{ widget_data.finance.total_fees|default:"0.00" }}</div>
-                    <div class="label">Total</div>
-                  </div>
-                </div>
-                <div class="col-4">
-                  <div class="text-center small-tile">
-                    <div class="amount text-success">${{ widget_data.finance.paid|default:"0.00" }}</div>
-                    <div class="label">Paid</div>
-                  </div>
-                </div>
-                <div class="col-4">
-                  <div class="text-center small-tile">
-                    <div class="amount text-danger">${{ widget_data.finance.balance|default:"0.00" }}</div>
-                    <div class="label">Due</div>
-                  </div>
-                </div>
-              </div>
-              <div class="d-flex gap-2 mt-3">
-                <a href="#" class="btn btn-gradient flex-fill">Make Payment</a>
-                <a href="#" class="btn btn-outline-secondary flex-fill">History</a>
-              </div>
-            </div>
-          </div>
-          
           <!-- Quick Actions -->
           <div class="quick-tools-box">
             <div class="quick-tools-title">Quick Actions</div>

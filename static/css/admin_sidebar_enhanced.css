@@ -5,13 +5,13 @@
 
 :root {
   --admin-sidebar-bg: #0b0f14;
-  --admin-sidebar-surface: #0f172a;
+  --admin-sidebar-surface: #111827;
   --admin-sidebar-border: #1f2937;
   --admin-sidebar-text: #e2e8f0;
   --admin-sidebar-text-muted: #94a3b8;
-  --admin-sidebar-hover-bg: #111827;
-  --admin-sidebar-active-bg: #111827;
-  --admin-sidebar-active-border: #e2e8f0;
+  --admin-sidebar-hover-bg: #0f172a;
+  --admin-sidebar-active-bg: #0f172a;
+  --admin-sidebar-active-border: #38bdf8;
   --admin-sidebar-badge-bg: #1f2937;
   --admin-sidebar-badge-text: #e2e8f0;
 }
