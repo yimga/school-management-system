@@ -74,6 +74,9 @@ def metrics(request):
     try:
         total = cache.get('ai_copilot_usage_total') or 0
         denied = cache.get('ai_copilot_usage_denied_total') or 0
+        errors = cache.get('ai_copilot_usage_errors_total') or 0
+        last_success_ts = cache.get('ai_copilot_last_success_ts') or 0
+        last_error_ts = cache.get('ai_copilot_last_error_ts') or 0
         roles = cache.get('ai_copilot_usage_roles') or []
 
         lines.append('# HELP ai_copilot_usage_total Total AI Copilot queries processed')
