@@ -466,6 +466,14 @@
           <span class="small text-muted">Config</span>
           <span class="badge bg-light text-dark" id="copilotConfigBadge">Disabled</span>
         </div>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <span class="small text-muted">Rate limit</span>
+          <span class="badge bg-light text-dark" id="copilotLimitRemaining">0 remaining</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-1">
+          <span class="small text-muted">Resets</span>
+          <span class="badge bg-light text-dark" id="copilotLimitReset">—</span>
+        </div>
       </div>
     </div>
 
@@ -623,6 +631,35 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadCopilotConfig);
+
+    async function loadCopilotLimits() {
+      const rem = document.getElementById('copilotLimitRemaining');
+      const reset = document.getElementById('copilotLimitReset');
+      if (!rem || !reset) return;
+      try {
+        const res = await fetch('/api/ai-copilot/limits/');
+        const data = await res.json();
+        if (!data || !data.success) {
+          rem.textContent = 'Unavailable';
+          reset.textContent = '—';
+          return;
+        }
+        const remaining = Number(data.remaining || 0);
+        const rateLimit = Number(data.rate_limit || 0);
+        const resetSec = Number(data.reset_in_seconds || 0);
+        rem.textContent = `${remaining} remaining / ${rateLimit}`;
+        // Format reset seconds to mm:ss
+        const mm = Math.floor(resetSec / 60);
+        const ss = Math.max(0, resetSec % 60);
+        const pad = (n) => String(n).padStart(2, '0');
+        reset.textContent = `${pad(mm)}:${pad(ss)}`;
+      } catch (e) {
+        rem.textContent = 'Error';
+        reset.textContent = '—';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCopilotLimits);
 
     async function loadCopilotAudit() {
       const auditList = document.getElementById('copilotAuditList');
