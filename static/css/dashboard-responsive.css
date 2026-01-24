@@ -1,0 +1,164 @@
+/* ============================================
+   DASHBOARD RESPONSIVE OPTIMIZATIONS
+   Shared tweaks for dashboards and data-heavy views
+   ============================================ */
+
+/* General layout helpers */
+.dashboard-hero,
+.welcome-hero,
+.dashboard-section,
+.dashboard-card,
+.metrics-section,
+.chart-section,
+.admin-page,
+.parent-dashboard,
+.teacher-dashboard,
+.compliance-dashboard {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+img,
+svg,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Grids used across dashboards */
+.widget-grid,
+.kpi-grid,
+.card-grid,
+.stat-pill-row,
+.metrics-grid,
+.section-two-col,
+.link-grid,
+.stats-grid,
+.filter-grid,
+.hero-metrics,
+.visual-bridge,
+.visual-stack {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* Action rows and chip groups */
+.hero-actions,
+.chart-actions,
+.button-group,
+.filter-actions {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Hero panels */
+.dashboard-hero,
+.welcome-hero {
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.dashboard-hero h2,
+.welcome-hero h1 {
+  font-size: clamp(1.2rem, 2.6vw, 1.8rem);
+}
+
+.kpi-pill .kpi-value {
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+}
+
+/* Floating panels */
+.floating-log-panel {
+  width: min(320px, calc(100vw - 2rem));
+  right: 1rem;
+  bottom: 1rem;
+}
+
+/* Pills and chips */
+.trend-pill,
+.status-pill {
+  min-width: 0;
+  flex: 1 1 140px;
+}
+
+/* Chart containers */
+.chart-container {
+  height: clamp(220px, 40vw, 320px);
+}
+
+/* Cards and panels */
+.dashboard-quick-panel,
+.classes-glance-card,
+.card,
+.stat-card,
+.metric-card {
+  min-width: 0;
+}
+
+/* Small screens */
+@media (max-width: 991px) {
+  .widget-grid,
+  .kpi-grid,
+  .card-grid,
+  .stat-pill-row,
+  .metrics-grid,
+  .section-two-col,
+  .link-grid,
+  .stats-grid,
+  .filter-grid,
+  .hero-metrics,
+  .visual-bridge,
+  .visual-stack {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+
+  .hero-actions a {
+    flex: 1 1 200px;
+  }
+}
+
+@media (max-width: 767px) {
+  .widget-grid,
+  .kpi-grid,
+  .card-grid,
+  .stat-pill-row,
+  .metrics-grid,
+  .section-two-col,
+  .link-grid,
+  .stats-grid,
+  .filter-grid,
+  .hero-metrics,
+  .visual-bridge,
+  .visual-stack {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .hero-actions a,
+  .button-group .btn,
+  .filter-actions .btn {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .floating-log-panel {
+    position: static;
+    width: 100%;
+    max-height: none;
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 575px) {
+  .dashboard-quick-panel,
+  .classes-glance-card,
+  .metric-card,
+  .stat-card,
+  .chart-section,
+  .section {
+    padding: 1rem;
+  }
+
+  .chart-container {
+    height: 220px;
+  }
+}

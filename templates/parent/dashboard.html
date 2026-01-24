@@ -706,6 +706,38 @@
           <span>STUDENTS</span>
           <span class="status-count count-blue">{{ links|length|default:0 }}</span>
         </div>
+
+        <!-- Family Overview Card (fills space) -->
+        <div class="metrics-section" style="min-height: 220px; display: flex; flex-direction: column; justify-content: stretch;">
+          <div class="section-title">
+            <i class="bi bi-house-heart"></i>
+            <span>Family Overview</span>
+          </div>
+          <div class="card flex-grow-1 d-flex flex-column justify-content-center align-items-center p-4" style="min-height: 180px;">
+            <div class="row w-100 text-center mb-3">
+              <div class="col-6 col-md-3 mb-2">
+                <div class="fw-bold text-primary" style="font-size:1.3rem;">{{ links|length|default:0 }}</div>
+                <div class="small text-muted">Children</div>
+              </div>
+              <div class="col-6 col-md-3 mb-2">
+                <div class="fw-bold text-success" style="font-size:1.3rem;">{{ widget_data.attendance.overall|default:0 }}%</div>
+                <div class="small text-muted">Attendance</div>
+              </div>
+              <div class="col-6 col-md-3 mb-2">
+                <div class="fw-bold text-info" style="font-size:1.3rem;">{{ widget_data.grades.overall|default:'--' }}</div>
+                <div class="small text-muted">Avg. Grade</div>
+              </div>
+              <div class="col-6 col-md-3 mb-2">
+                <div class="fw-bold text-danger" style="font-size:1.3rem;">${{ widget_data.finance.balance|default:'0.00' }}</div>
+                <div class="small text-muted">Outstanding Fees</div>
+              </div>
+            </div>
+            <div class="d-flex gap-2 justify-content-center mt-2">
+              <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Finance Details</a>
+              <a href="{% url 'portal:parent_performance' %}" class="btn btn-sm btn-outline-success">Performance</a>
+            </div>
+          </div>
+        </div>
         <div class="status-badge">
           <i class="bi bi-graph-up-arrow me-1"></i>
           <span>ATTENDANCE</span>
@@ -730,6 +762,7 @@
       <div class="col-lg-8">
         
         <!-- Children Overview Section -->
+
         <div class="metrics-section">
           <div class="section-title">
             <i class="bi bi-people-fill"></i>
@@ -759,7 +792,7 @@
                       <div class="fw-bold text-primary">{{ card.average|default:"--" }}</div>
                     </div>
                     <div class="col-4">
-                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto">Live data</span>
+                      <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto">Live data</span>
                       <div class="small text-muted">Rank</div>
                       <div class="fw-bold text-info">{% if card.rank %}{{ card.rank }}{% else %}--{% endif %}</div>
                     </div>
@@ -801,34 +834,6 @@
             No linked students yet. Link a child to see live attendance, grades, and fee status.
           </div>
           {% endif %}
-        </div>
-
-        <!-- Fee Payment Status (moved near child cards) -->
-        <div class="card mb-3 fee-status-card">
-          <div class="card-body py-3">
-            <div class="d-flex align-items-center mb-2">
-              <i class="bi bi-credit-card me-2 text-primary"></i>
-              <span class="fw-semibold">Fee Payment Status</span>
-            </div>
-            <div class="row g-2 align-items-center text-center">
-              <div class="col-4">
-                <div class="small text-muted">Total</div>
-                <div class="fw-semibold text-primary">${{ widget_data.finance.total_due|default:"0.00" }}</div>
-              </div>
-              <div class="col-4">
-                <div class="small text-muted">Paid</div>
-                <div class="fw-semibold text-success">${{ widget_data.finance.paid|default:"0.00" }}</div>
-              </div>
-              <div class="col-4">
-                <div class="small text-muted">Due</div>
-                <div class="fw-semibold text-danger">${{ widget_data.finance.balance|default:"0.00" }}</div>
-              </div>
-            </div>
-            <div class="d-flex gap-2 mt-3">
-              <a href="{% url 'portal:parent_finance' %}" class="btn btn-gradient flex-fill">Make Payment</a>
-              <a href="{% url 'portal:parent_finance' %}#history" class="btn btn-outline-secondary flex-fill">History</a>
-            </div>
-          </div>
         </div>
 
         <!-- Academic Performance Section -->

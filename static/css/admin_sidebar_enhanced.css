@@ -51,6 +51,8 @@
   box-shadow: none;
   border-right: 1px solid var(--admin-sidebar-border);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   padding-bottom: 84px;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
@@ -728,4 +730,54 @@
   .nav-search::placeholder {
     color: var(--admin-sidebar-text-muted);
   }
+}
+
+/* Force sidebar theme overrides */
+#nav-sidebar,
+#nav-sidebar .module {
+  background: var(--admin-sidebar-bg) !important;
+  color: var(--admin-sidebar-text) !important;
+  outline: 2px dashed #ff3b5f !important;
+  outline-offset: -2px;
+}
+
+#nav-sidebar a,
+#nav-sidebar button {
+  color: var(--admin-sidebar-text) !important;
+}
+
+#nav-sidebar a:hover,
+#nav-sidebar button:hover {
+  background: var(--admin-sidebar-hover-bg) !important;
+  color: var(--admin-sidebar-text) !important;
+}
+
+#nav-sidebar .module h2,
+#nav-sidebar .module caption,
+#nav-sidebar .nav-accordion-toggle {
+  color: var(--admin-sidebar-text-muted) !important;
+}
+
+#nav-sidebar .current-model,
+#nav-sidebar .current-model > a,
+#nav-sidebar .nav-accordion-content a.active,
+#nav-sidebar .nav-accordion-content a[aria-current="page"] {
+  background: var(--admin-sidebar-active-bg) !important;
+  color: var(--admin-sidebar-text) !important;
+  border-left-color: var(--admin-sidebar-active-border) !important;
+}
+
+#nav-sidebar .nav-accordion-content a {
+  color: var(--admin-sidebar-text-muted) !important;
+}
+
+#nav-sidebar .nav-accordion-content a:hover {
+  background: var(--admin-sidebar-hover-bg) !important;
+  color: var(--admin-sidebar-text) !important;
+  border-left-color: var(--admin-sidebar-text-muted) !important;
+}
+
+#nav-sidebar .sidebar-submenu,
+#nav-sidebar .nav-accordion-content {
+  background: transparent !important;
 }

@@ -139,7 +139,13 @@
     position: fixed;
     bottom: max(16px, env(safe-area-inset-bottom));
     right: max(16px, env(safe-area-inset-right));
-    z-index: 1030;
+    z-index: 9999 !important;
+    pointer-events: auto;
+  }
+
+  /* Ensure Copilot is never overlapped by other fixed elements */
+  body > .ai-copilot-wrapper, html > .ai-copilot-wrapper {
+    z-index: 9999 !important;
   }
 
   .ai-copilot-trigger {

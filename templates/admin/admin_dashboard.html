@@ -3,6 +3,11 @@
 
 {% block title %}Admin Dashboard{% endblock %}
 
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
+{% endblock %}
+
 {% block content %}
 <style>
 :root {
