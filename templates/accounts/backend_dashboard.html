@@ -710,6 +710,14 @@
         loadCopilotAudit();
       });
     }
+
+    // Auto-refresh lightweight widgets every 30s
+    document.addEventListener('DOMContentLoaded', function() {
+      setInterval(() => {
+        loadCopilotLimits();
+        loadCopilotAudit();
+      }, 30000);
+    });
   })();
   </script>
 
