@@ -4,7 +4,7 @@
       <div class="card h-100 bg-gradient border-0 text-white" style="background:linear-gradient(135deg,#0d6efd,#198754);">
         <div class="card-body">
           <div class="text-white-50 small">Accounts receivable</div>
-          <div class="display-6 fw-bold">{{ summary.receivables|floatformat:2 }}</div>
+          <div class="display-6 fw-bold">{{ summary.receivables|default_if_none:"No data"|floatformat:2 }}</div>
         </div>
       </div>
     </div>
@@ -12,7 +12,7 @@
       <div class="card h-100 bg-light border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Accounts payable</div>
-          <div class="display-6 fw-semibold">{{ summary.payables|floatformat:2 }}</div>
+          <div class="display-6 fw-semibold">{{ summary.payables|default_if_none:"No data"|floatformat:2 }}</div>
         </div>
       </div>
     </div>
@@ -20,7 +20,7 @@
       <div class="card h-100 bg-light border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Paid (YTD)</div>
-          <div class="display-6 fw-semibold">{{ summary.paid|floatformat:2 }}</div>
+          <div class="display-6 fw-semibold">{{ summary.paid|default_if_none:"No data"|floatformat:2 }}</div>
         </div>
       </div>
     </div>
@@ -28,7 +28,7 @@
       <div class="card h-100 bg-light border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Overdue invoices</div>
-          <div class="display-6 fw-semibold">{{ summary.overdue }}</div>
+          <div class="display-6 fw-semibold">{{ summary.overdue|default_if_none:"No data" }}</div>
         </div>
       </div>
     </div>
@@ -41,12 +41,16 @@
       <div class="card-body">
         <h5 class="mb-3">Invoice status</h5>
         <div class="d-flex flex-column gap-2">
-          {% for status in status_counts %}
-            <div class="d-flex justify-content-between">
-              <span class="text-muted small">{{ status.status }}</span>
-              <strong>{{ status.count }}</strong>
-            </div>
-          {% endfor %}
+          {% if status_counts %}
+            {% for status in status_counts %}
+              <div class="d-flex justify-content-between">
+                <span class="text-muted small">{{ status.status }}</span>
+                <strong>{{ status.count }}</strong>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted small">No invoice status data available.</div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -56,12 +60,16 @@
       <div class="card-body">
         <h5 class="mb-3">Recent invoice trend</h5>
         <div class="list-group list-group-flush">
-          {% for point in trend %}
-            <div class="list-group-item px-0 border-0 d-flex justify-content-between">
-              <span class="text-muted small">{{ point.label }}</span>
-              <strong>{{ point.total|floatformat:2 }}</strong>
-            </div>
-          {% endfor %}
+          {% if trend %}
+            {% for point in trend %}
+              <div class="list-group-item px-0 border-0 d-flex justify-content-between">
+                <span class="text-muted small">{{ point.label }}</span>
+                <strong>{{ point.total|floatformat:2 }}</strong>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted small">No invoice trend data available.</div>
+          {% endif %}
         </div>
       </div>
     </div>

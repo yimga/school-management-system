@@ -16,6 +16,32 @@
   --admin-sidebar-badge-text: #e2e8f0;
 }
 
+:root[data-theme="light"] {
+  --admin-sidebar-bg: #111827;
+  --admin-sidebar-surface: #1f2937;
+  --admin-sidebar-border: #334155;
+  --admin-sidebar-text: #f8fafc;
+  --admin-sidebar-text-muted: #cbd5e1;
+  --admin-sidebar-hover-bg: #1f2937;
+  --admin-sidebar-active-bg: #1f2937;
+  --admin-sidebar-active-border: #38bdf8;
+  --admin-sidebar-badge-bg: #334155;
+  --admin-sidebar-badge-text: #f8fafc;
+}
+
+:root[data-theme="dark"] {
+  --admin-sidebar-bg: #0b0f14;
+  --admin-sidebar-surface: #111827;
+  --admin-sidebar-border: #1f2937;
+  --admin-sidebar-text: #e2e8f0;
+  --admin-sidebar-text-muted: #94a3b8;
+  --admin-sidebar-hover-bg: #0f172a;
+  --admin-sidebar-active-bg: #0f172a;
+  --admin-sidebar-active-border: #38bdf8;
+  --admin-sidebar-badge-bg: #1f2937;
+  --admin-sidebar-badge-text: #e2e8f0;
+}
+
 /* Sidebar Container */
 .sidebar,
 #nav-sidebar {
@@ -25,6 +51,7 @@
   box-shadow: none;
   border-right: 1px solid var(--admin-sidebar-border);
   overflow-y: auto;
+  padding-bottom: 84px;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
   transition: width 0.3s ease, margin-left 0.3s ease;
@@ -160,6 +187,11 @@
   color: var(--admin-sidebar-text-muted);
 }
 
+#nav-sidebar .module h2,
+#nav-sidebar .module caption {
+  color: var(--admin-sidebar-text-muted);
+}
+
 /* Sidebar Links */
 .sidebar a,
 .sidebar button {
@@ -255,6 +287,66 @@
 
 .sidebar-submenu a:hover {
   color: var(--admin-sidebar-text);
+}
+
+/* Sidebar user profile/footer */
+#nav-sidebar #user-tools,
+#nav-sidebar .nav-sidebar__footer,
+#nav-sidebar .nav-sidebar-footer,
+#nav-sidebar .sidebar__footer,
+#nav-sidebar .sidebar-footer,
+#nav-sidebar .sidebar-user {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  background: var(--admin-sidebar-bg);
+  border-top: 1px solid var(--admin-sidebar-border);
+  padding: var(--spacing-md) var(--spacing-lg);
+  z-index: 5;
+}
+
+#nav-sidebar #user-tools a,
+#nav-sidebar #user-tools button,
+#nav-sidebar .nav-sidebar__footer a,
+#nav-sidebar .nav-sidebar-footer a,
+#nav-sidebar .sidebar__footer a,
+#nav-sidebar .sidebar-footer a,
+#nav-sidebar .sidebar-user a {
+  color: var(--admin-sidebar-text);
+}
+
+#nav-sidebar #user-tools .dropdown-menu,
+#nav-sidebar .sidebar-user .dropdown-menu {
+  background: var(--admin-sidebar-surface);
+  border: 1px solid var(--admin-sidebar-border);
+  box-shadow: none;
+}
+
+#nav-sidebar #user-tools .dropdown-menu a,
+#nav-sidebar #user-tools .dropdown-menu button,
+#nav-sidebar .sidebar-user .dropdown-menu a,
+#nav-sidebar .sidebar-user .dropdown-menu button {
+  color: var(--admin-sidebar-text);
+}
+
+#nav-sidebar #user-tools .dropdown-menu a:hover,
+#nav-sidebar #user-tools .dropdown-menu button:hover,
+#nav-sidebar .sidebar-user .dropdown-menu a:hover,
+#nav-sidebar .sidebar-user .dropdown-menu button:hover {
+  background: var(--admin-sidebar-hover-bg);
+  color: var(--admin-sidebar-text);
+}
+
+#nav-sidebar .admin-user-name,
+#nav-sidebar .admin-user-info,
+#nav-sidebar .admin-user-meta,
+#nav-sidebar .admin-user-code {
+  color: var(--admin-sidebar-text);
+}
+
+#nav-sidebar .admin-user-meta,
+#nav-sidebar .admin-user-code {
+  color: var(--admin-sidebar-text-muted);
 }
 
 /* Sidebar Toggle Button */
