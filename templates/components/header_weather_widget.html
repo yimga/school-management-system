@@ -1,9 +1,8 @@
 <!-- Header Weather Widget - Compact weather, date, and quote for topbar -->
 <style>
   .header-weather-widget {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+    position: relative;
+    overflow: hidden;
     padding: 4px 12px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
@@ -11,23 +10,39 @@
     font-size: 13px;
     color: rgba(255, 255, 255, 0.95);
     white-space: nowrap;
+    min-width: 300px;
     max-width: 600px;
+    height: 32px;
+  }
+
+  .header-weather-widget__container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 100%;
+  }
+
+  .header-weather-widget__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    position: absolute;
+    left: 12px;
+    right: 12px;
+  }
+
+  .header-weather-widget__item.active {
+    opacity: 1;
+    position: relative;
+    left: auto;
+    right: auto;
   }
 
   .header-weather-widget__date {
-    display: flex;
-    align-items: center;
-    gap: 6px;
     font-weight: 600;
     letter-spacing: 0.3px;
-  }
-
-  .header-weather-widget__weather {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-    padding-left: 12px;
   }
 
   .header-weather-widget__icon {
@@ -46,21 +61,14 @@
   }
 
   .header-weather-widget__quote {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-    padding-left: 12px;
     font-style: italic;
     opacity: 0.85;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 300px;
   }
 
   @media (max-width: 1200px) {
-    .header-weather-widget__quote {
-      display: none;
+    .header-weather-widget {
+      min-width: 250px;
+      max-width: 400px;
     }
   }
 
@@ -85,18 +93,20 @@
 </style>
 
 <div class="header-weather-widget">
-  <div class="header-weather-widget__date">
-    📅 <span id="headerWidgetDate">Loading...</span>
-  </div>
-  
-  <div class="header-weather-widget__weather">
-    <span class="header-weather-widget__icon" id="headerWidgetIcon">🌤️</span>
-    <span class="header-weather-widget__temp" id="headerWidgetTemp">--°</span>
-    <span class="header-weather-widget__desc" id="headerWidgetDesc">...</span>
-  </div>
-  
-  <div class="header-weather-widget__quote">
-    💡 <span id="headerWidgetQuote">Loading wisdom...</span>
+  <div class="header-weather-widget__container">
+    <div class="header-weather-widget__item header-weather-widget__date active" id="headerWidgetDateItem">
+      📅 <span id="headerWidgetDate">Loading...</span>
+    </div>
+    
+    <div class="header-weather-widget__item header-weather-widget__weather" id="headerWidgetWeatherItem">
+      <span class="header-weather-widget__icon" id="headerWidgetIcon">🌤️</span>
+      <span class="header-weather-widget__temp" id="headerWidgetTemp">--°</span>
+      <span class="header-weather-widget__desc" id="headerWidgetDesc">...</span>
+    </div>
+    
+    <div class="header-weather-widget__item header-weather-widget__quote" id="headerWidgetQuoteItem">
+      💡 <span id="headerWidgetQuote">Loading wisdom...</span>
+    </div>
   </div>
 </div>
 
@@ -224,8 +234,35 @@
     loadHeaderWeather();
     loadHeaderQuote();
     
-    // Update date every minute
+    // Cycle through date, weather, and quote every 5 seconds
+    startCycle();
+    
+    // Update date every minute (but don't interrupt cycle)
     setInterval(updateHeaderDate, 60000);
+  }
+
+  // Cycle through items
+  function startCycle() {
+    const items = [
+      document.getElementById('headerWidgetDateItem'),
+      document.getElementById('headerWidgetWeatherItem'),
+      document.getElementById('headerWidgetQuoteItem')
+    ];
+    
+    if (!items[0] || !items[1] || !items[2]) return;
+    
+    let currentIndex = 0;
+    
+    setInterval(() => {
+      // Remove active from current
+      items[currentIndex].classList.remove('active');
+      
+      // Move to next
+      currentIndex = (currentIndex + 1) % items.length;
+      
+      // Add active to next
+      items[currentIndex].classList.add('active');
+    }, 5000); // Change every 5 seconds
   }
 
   // Run on load
