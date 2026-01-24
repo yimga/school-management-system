@@ -10,6 +10,7 @@ from django.db import connection
 from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 
@@ -288,8 +289,26 @@ def admin_dashboard(request):
     # Get active sessions (approximate)
     from django.contrib.sessions.models import Session
     import datetime
-    active_sessions = Session.objects.filter(expire_date__gte=datetime.datetime.now()).count()
-    sessions_24h = Session.objects.filter(expire_date__gte=datetime.datetime.now() - datetime.timedelta(hours=24)).count()
+    now = timezone.now()
+    active_sessions = Session.objects.filter(expire_date__gte=now).count()
+    sessions_24h = Session.objects.filter(expire_date__gte=now - datetime.timedelta(hours=24)).count()
+
+    new_logins_24h = 0
+    failed_logins_24h = 0
+    try:
+        from apps.compliance.models_audit import AccessLog
+        login_cutoff = now - datetime.timedelta(hours=24)
+        login_paths = ["/authentication/login/", "/admin/login/"]
+        login_attempts = AccessLog.objects.filter(
+            resource__in=login_paths,
+            request_method="POST",
+            timestamp__gte=login_cutoff,
+        )
+        new_logins_24h = login_attempts.filter(status__in=["302", "303"]).count()
+        failed_logins_24h = login_attempts.exclude(status__in=["302", "303"]).count()
+    except Exception:
+        new_logins_24h = 0
+        failed_logins_24h = 0
     
     context = {
         'total_users': total_users,
@@ -298,6 +317,8 @@ def admin_dashboard(request):
         'teacher_count': teacher_count,
         'active_sessions': active_sessions,
         'sessions_24h': sessions_24h,
+        'new_logins_24h': new_logins_24h,
+        'failed_logins_24h': failed_logins_24h,
     }
     
     return render(request, 'admin/admin_dashboard.html', context)

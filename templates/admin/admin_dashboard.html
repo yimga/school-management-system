@@ -216,6 +216,12 @@
                 <div style="font-size: 10px; color: var(--admin-muted); margin-bottom: 8px;">5m ago</div>
                 <button onclick="alert('Kick user functionality')" style="width: 100%; padding: 4px 8px; background: #dc3545; color: white; border: none; border-radius: 4px; font-size: 10px; font-weight: 600; cursor: pointer; transition: background 0.2s;">End Session</button>
               </div>
+              <div style="padding: 12px; background: rgba(13, 110, 253, 0.08); border: 1px solid #0d6efd; border-radius: 6px; text-align: center;">
+                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #0d6efd 0%, #6ea8fe 100%); border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">LG</div>
+                <div style="font-size: 11px; color: var(--admin-text); font-weight: 600; margin-bottom: 6px;">Logins (24h)</div>
+                <div style="font-size: 10px; color: var(--admin-muted); margin-bottom: 4px;">New: <span style="color: var(--admin-text); font-weight: 600;">{{ new_logins_24h|default:"0" }}</span></div>
+                <div style="font-size: 10px; color: #dc3545;">Failed: <span style="font-weight: 600;">{{ failed_logins_24h|default:"0" }}</span></div>
+              </div>
             </div>
             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--admin-border); text-align: center; font-size: 12px; color: var(--admin-muted);">
               {{ active_sessions|default:"3" }} user{{ active_sessions|default:"3"|pluralize }} online • {{ sessions_24h|default:"25" }} in last 24h

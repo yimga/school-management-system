@@ -11,6 +11,7 @@ from django.contrib.sessions.models import Session
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import path
+from django.utils import timezone
 
 
 class GileadAdminSite(AdminSite):
@@ -39,11 +40,28 @@ class GileadAdminSite(AdminSite):
             student_count = 0
             teacher_count = 0
 
-        now = datetime.datetime.now()
+        now = timezone.now()
         active_sessions = Session.objects.filter(expire_date__gte=now).count()
         sessions_24h = Session.objects.filter(
             expire_date__gte=now - datetime.timedelta(hours=24)
         ).count()
+
+        new_logins_24h = 0
+        failed_logins_24h = 0
+        try:
+            from apps.compliance.models_audit import AccessLog
+            login_cutoff = now - datetime.timedelta(hours=24)
+            login_paths = ["/authentication/login/", "/admin/login/"]
+            login_attempts = AccessLog.objects.filter(
+                resource__in=login_paths,
+                request_method="POST",
+                timestamp__gte=login_cutoff,
+            )
+            new_logins_24h = login_attempts.filter(status__in=["302", "303"]).count()
+            failed_logins_24h = login_attempts.exclude(status__in=["302", "303"]).count()
+        except Exception:
+            new_logins_24h = 0
+            failed_logins_24h = 0
 
         context = {
             **self.each_context(request),
@@ -54,6 +72,8 @@ class GileadAdminSite(AdminSite):
             'teacher_count': teacher_count,
             'active_sessions': active_sessions,
             'sessions_24h': sessions_24h,
+            'new_logins_24h': new_logins_24h,
+            'failed_logins_24h': failed_logins_24h,
         }
         if extra_context:
             context.update(extra_context)
