@@ -100,6 +100,27 @@
         {% endif %}
         position: sticky;
         top: 10px;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      
+      /* Custom scrollbar for sidebar */
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(15,23,42,0.2);
+        border-radius: 3px;
+      }
+      
+      .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(15,23,42,0.3);
       }
 
       .nav-pill {
@@ -232,10 +253,10 @@
     </nav>
 
     <div class="container-fluid px-3 py-2">
-      <div class="row g-3" style="min-height: calc(100vh - 140px); display: flex;">
-        <!-- Sidebar (desktop) -->
-        <div class="col-lg-3 col-xl-2 d-none d-lg-block d-flex flex-column">
-          <div class="sidebar p-3 d-flex flex-column h-100">
+      <div class="row g-3">
+        <!-- Sidebar (desktop) - Fixed Position -->
+        <div class="col-lg-3 col-xl-2 d-none d-lg-block">
+          <div class="sidebar p-3">
             {% include "partials/portal_sidebar.html" %}
           </div>
         </div>
