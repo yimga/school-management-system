@@ -21,6 +21,9 @@ echo "Installing dependencies..."
 python3 -m pip install --upgrade pip --no-cache-dir
 python3 -m pip install -r requirements.txt --no-cache-dir
 
+# Set Django settings module for production build
+export DJANGO_SETTINGS_MODULE=config.settings
+
 # Never run makemigrations in CI/production.
 python3 manage.py migrate --noinput
 python3 manage.py collectstatic --noinput
