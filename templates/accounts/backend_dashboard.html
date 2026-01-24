@@ -429,6 +429,30 @@
   
   {% admin_health as health %}
 
+  <!-- Dashboard Status Badges Bar -->
+  <div class="mb-4 d-flex flex-wrap gap-2 align-items-center">
+    <div class="badge bg-light text-dark" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px;">
+      <i class="bi bi-mortarboard me-2"></i>
+      <strong>STUDENTS</strong>
+      <span style="margin-left: 0.5rem; background: #667eea; color: white; padding: 0.2rem 0.5rem; border-radius: 4px;">{{ student_count|default:0 }}</span>
+    </div>
+    <div class="badge bg-light text-dark" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px;">
+      <i class="bi bi-person-workspace me-2"></i>
+      <strong>TEACHERS</strong>
+      <span style="margin-left: 0.5rem; background: #198754; color: white; padding: 0.2rem 0.5rem; border-radius: 4px;">{{ teacher_count|default:0 }}</span>
+    </div>
+    <div class="badge bg-light text-dark" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px;">
+      <i class="bi bi-hourglass-split me-2"></i>
+      <strong>PENDING</strong>
+      <span style="margin-left: 0.5rem; background: #ffc107; color: #333; padding: 0.2rem 0.5rem; border-radius: 4px;">${{ pending_amount|default:0 }}</span>
+    </div>
+    <div class="badge bg-light text-dark" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 6px;">
+      <i class="bi bi-bell me-2"></i>
+      <strong>NOTIFICATIONS</strong>
+      <span style="margin-left: 0.5rem; background: #dc3545; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700;">{{ notification_count|default:0 }}</span>
+    </div>
+  </div>
+
   <!-- Account Stats Header Card -->
   <div class="card shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
     <div class="card-body">
