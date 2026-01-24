@@ -321,3 +321,200 @@
 .sidebar-badge.pulse {
   animation: pulse var(--transition-duration) infinite;
 }
+/* ============================================
+   ACCORDION SIDEBAR ENHANCEMENTS
+   Multi-mode accordion with smooth animations
+   ============================================ */
+
+/* Accordion Toggle Button */
+.nav-accordion-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin: 0;
+  background: rgba(226, 232, 240, 0.05);
+  border: none;
+  border-radius: 0;
+  color: rgba(226, 232, 240, 0.9);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  font-family: var(--font-family);
+}
+
+.nav-accordion-toggle:hover {
+  background: rgba(226, 232, 240, 0.1);
+  color: #fff;
+}
+
+.nav-accordion-toggle.collapsed {
+  background: transparent;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+/* Accordion Chevron Icon */
+.nav-accordion-chevron {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+  color: rgba(226, 232, 240, 0.6);
+  font-style: normal;
+  display: inline-block;
+  margin-left: auto;
+}
+
+.nav-accordion-toggle:hover .nav-accordion-chevron {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+/* Accordion Content Wrapper */
+.nav-accordion-content {
+  overflow: hidden;
+  max-height: 2000px;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-accordion-content ul {
+  padding: var(--spacing-sm) 0;
+  margin: 0;
+  list-style: none;
+}
+
+.nav-accordion-content li {
+  margin: 0;
+}
+
+.nav-accordion-content a {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  padding-left: calc(var(--spacing-lg) + var(--spacing-md));
+  margin: 0;
+  color: rgba(226, 232, 240, 0.8);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-normal);
+  border-left: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.nav-accordion-content a:hover {
+  background: rgba(226, 232, 240, 0.08);
+  color: #fff;
+  border-left-color: rgba(226, 232, 240, 0.3);
+  padding-left: calc(var(--spacing-lg) + var(--spacing-md) + 2px);
+}
+
+.nav-accordion-content a.active,
+.nav-accordion-content a[aria-current="page"] {
+  background: rgba(226, 232, 240, 0.12);
+  color: #fff;
+  font-weight: var(--font-weight-medium);
+  border-left-color: var(--color-primary, #3b82f6);
+}
+
+/* Search Box Styling */
+.nav-search {
+  width: calc(100% - var(--spacing-lg) * 2);
+  margin: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid rgba(226, 232, 240, 0.2);
+  border-radius: var(--radius-md);
+  background: rgba(226, 232, 240, 0.05);
+  color: rgba(226, 232, 240, 0.9);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.nav-search::placeholder {
+  color: rgba(226, 232, 240, 0.5);
+}
+
+.nav-search:focus {
+  background: rgba(226, 232, 240, 0.08);
+  border-color: rgba(226, 232, 240, 0.4);
+  box-shadow: 0 0 0 3px rgba(226, 232, 240, 0.1);
+}
+
+/* Badge Enhancement for Accordion Items */
+.admin-sidebar-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(226, 232, 240, 0.15);
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 11px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  min-width: 24px;
+  text-align: center;
+}
+
+.admin-sidebar-badge--empty {
+  background: rgba(226, 232, 240, 0.08);
+  color: rgba(226, 232, 240, 0.5);
+}
+
+/* Mobile Responsive Accordion */
+@media (max-width: 768px) {
+  .nav-accordion-toggle {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .nav-accordion-content a {
+    padding: var(--spacing-xs) var(--spacing-md);
+    padding-left: calc(var(--spacing-md) + var(--spacing-sm));
+    font-size: var(--font-size-xs);
+  }
+  
+  .nav-search {
+    margin: var(--spacing-md);
+    width: calc(100% - var(--spacing-md) * 2);
+  }
+}
+
+/* Dark Mode Accordion Adjustments */
+@media (prefers-color-scheme: dark) {
+  .nav-accordion-toggle {
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .nav-accordion-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
+  
+  .nav-accordion-toggle.collapsed {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .nav-accordion-content a {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .nav-accordion-content a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+  }
+  
+  .nav-search {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .nav-search::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+}

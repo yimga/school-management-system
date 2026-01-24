@@ -91,8 +91,10 @@
       // Add badges after DOM is ready
       addCountBadges();
 
-      // Accordion for each app group
+      // Enhanced Multi-Mode Accordion for each app group
       const modules = sidebar.querySelectorAll(".module");
+      const accordionState = {};
+      
       modules.forEach((module, idx) => {
         const header = module.querySelector("h2, caption");
         const list = module.querySelector("ul");
@@ -100,27 +102,73 @@
 
         const title = header.textContent.trim() || `group-${idx}`;
         const stateKey = `nav-accordion-${title}`;
+        
+        // Create toggle button with chevron icon
         const toggle = document.createElement("button");
         toggle.type = "button";
         toggle.className = "nav-accordion-toggle";
-        toggle.textContent = title;
+        
+        const chevron = document.createElement("span");
+        chevron.className = "nav-accordion-chevron";
+        chevron.innerHTML = "▼";
+        
+        const titleSpan = document.createElement("span");
+        titleSpan.textContent = title;
+        
+        toggle.appendChild(titleSpan);
+        toggle.appendChild(chevron);
         toggle.setAttribute("aria-expanded", "true");
 
         header.replaceWith(toggle);
+        
+        // Wrap list for smooth animation
+        const wrapper = document.createElement("div");
+        wrapper.className = "nav-accordion-content";
+        list.parentNode.insertBefore(wrapper, list);
+        wrapper.appendChild(list);
 
-        const applyState = (open) => {
-          list.style.display = open ? "" : "none";
+        const applyState = (open, animate = true) => {
+          if (!animate) {
+            wrapper.style.transition = "none";
+          }
+          
+          if (open) {
+            wrapper.style.maxHeight = wrapper.scrollHeight + "px";
+            toggle.classList.remove("collapsed");
+            chevron.style.transform = "rotate(0deg)";
+          } else {
+            wrapper.style.maxHeight = "0";
+            toggle.classList.add("collapsed");
+            chevron.style.transform = "rotate(-90deg)";
+          }
+          
           toggle.setAttribute("aria-expanded", open);
+          accordionState[stateKey] = open;
+          
+          if (!animate) {
+            setTimeout(() => { wrapper.style.transition = ""; }, 10);
+          }
         };
 
-        const initial = localStorage.getItem(stateKey);
-        applyState(initial !== "false");
+        // Load saved state or default to open for "People Management"
+        const savedState = localStorage.getItem(stateKey);
+        const defaultOpen = savedState !== null ? savedState === "true" : title.includes("People");
+        applyState(defaultOpen, false);
 
         toggle.addEventListener("click", () => {
-          const open = list.style.display === "none";
-          applyState(open);
-          localStorage.setItem(stateKey, open);
+          const isOpen = toggle.getAttribute("aria-expanded") === "true";
+          const newState = !isOpen;
+          applyState(newState, true);
+          localStorage.setItem(stateKey, newState);
         });
+        
+        // Update maxHeight on content change (for dynamic badges)
+        const observer = new MutationObserver(() => {
+          if (toggle.getAttribute("aria-expanded") === "true") {
+            wrapper.style.maxHeight = wrapper.scrollHeight + "px";
+          }
+        });
+        observer.observe(list, { childList: true, subtree: true });
       });
 
       // Filter models on search
