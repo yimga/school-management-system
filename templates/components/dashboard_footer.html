@@ -47,7 +47,7 @@
     <!-- Primary Footer Section -->
     <div class="row g-4 pt-4 pb-4 border-bottom border-secondary justify-content-between align-items-stretch flex-wrap">
       <!-- Support & Help Section (Role-based KB/FAQ) -->
-      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100">
+      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100 debug-footer-col">
         <h5 class="footer-heading">
           <i class="bi bi-life-preserver"></i> Support & Help
         </h5>
@@ -140,7 +140,7 @@
       </div>
 
       <!-- Quick Links Section (Role-based features) -->
-      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100">
+      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100 debug-footer-col">
         <h5 class="footer-heading">
           <i class="bi bi-lightning"></i> Quick Links
         </h5>
@@ -301,7 +301,7 @@
       </div>
 
       <!-- Contact & System Status -->
-      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100">
+      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100 debug-footer-col">
         <h5 class="footer-heading">
           <i class="bi bi-envelope"></i> Contact Us
         </h5>
@@ -331,7 +331,7 @@
       </div>
 
       <!-- Legal & Utility Links -->
-      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100">
+      <div class="col-12 col-md-6 col-lg-3 d-flex flex-column h-100 debug-footer-col">
         <h5 class="footer-heading">
           <i class="bi bi-shield"></i> Legal & Info
         </h5>
@@ -743,6 +743,33 @@
   {% endif %}
 }
 </style>
+  /* DEBUG: Visually mark each footer column to confirm new layout */
+  .debug-footer-col {
+    border: 2px dashed #8b5cf6 !important;
+    background: rgba(139,92,246,0.07) !important;
+    min-height: 100px;
+    transition: background 0.3s, border 0.3s;
+  }
+  /* ENHANCEMENT: Add more space and modern look */
+  .dashboard-footer .footer-heading {
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.02em;
+  }
+  .dashboard-footer .footer-links {
+    margin-bottom: 1.5rem;
+  }
+  .dashboard-footer .footer-links li {
+    margin-bottom: 0.75rem;
+  }
+  .dashboard-footer .footer-link {
+    padding: 0.4rem 0.2rem;
+    border-radius: 6px;
+  }
+  .dashboard-footer .footer-link:hover {
+    background: #f3f4f6;
+    color: #4f46e5;
+    padding-left: 0.75rem;
+  }
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
