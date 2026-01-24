@@ -10,6 +10,9 @@ from django.middleware.csrf import get_token
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
 from apps.compliance.models import AuditLog
+import os
+import urllib.request
+import urllib.error
 
 logger = logging.getLogger(__name__)
 
@@ -147,14 +150,62 @@ def ai_copilot_query(request):
             severity='INFO',
         )
         
-        # Return permissions for frontend to refine response
+        # Build contextual prompt and call Gemini if configured
         permissions = get_ai_permissions(request.user)
-        
+        prompt = build_contextual_prompt(request.user, user_query)
+
+        response_text = None
+        api_key = os.environ.get('GEMINI_API_KEY', '')
+        if api_key:
+            try:
+                url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}'
+                payload = {
+                    "contents": [{
+                        "parts": [{"text": prompt}]
+                    }],
+                    "generationConfig": {
+                        "temperature": 0.7,
+                        "maxOutputTokens": 500,
+                    },
+                    "safetySettings": [
+                        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"}
+                    ]
+                }
+                req = urllib.request.Request(
+                    url,
+                    data=json.dumps(payload).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'},
+                    method='POST'
+                )
+                with urllib.request.urlopen(req, timeout=20) as resp:
+                    data = json.loads(resp.read().decode('utf-8'))
+                    # Safely extract text
+                    response_text = (
+                        data.get('candidates', [{}])[0]
+                            .get('content', {})
+                            .get('parts', [{}])[0]
+                            .get('text')
+                    ) or "I'm here to help."
+            except urllib.error.HTTPError as e:
+                logger.error(f'Gemini HTTPError: {e.code} {e.reason}', exc_info=True)
+            except Exception as e:
+                logger.error(f'Gemini request failed: {str(e)}', exc_info=True)
+
+        if not response_text:
+            # Fallback response if API key missing or error occurred
+            response_text = (
+                f"I understand you're asking about: {user_query}. "
+                f"Your role is {permissions.get('scope', 'general')}. "
+                f"For AI-powered answers, ensure GEMINI_API_KEY is configured."
+            )
+
         return JsonResponse({
             'success': True,
             'allowed': True,
             'permissions': permissions,
             'user_role': getattr(request.user, 'role', 'USER'),
+            'response': response_text,
         })
         
     except json.JSONDecodeError:
@@ -194,3 +245,39 @@ def ai_permissions(request):
         'permissions': permissions,
         'user_role': getattr(request.user, 'role', 'USER'),
     })
+
+
+def build_contextual_prompt(user, user_message: str) -> str:
+    """
+    Build a role-aware prompt for the AI backend.
+    """
+    user_name = getattr(user, 'first_name', '') or getattr(user, 'username', 'User')
+    role = getattr(user, 'role', 'USER')
+    context = "You are an AI assistant for a school management system. "
+
+    if role in ['ADMIN', 'LEADERSHIP']:
+        context += (
+            f"The user is an administrator named {user_name}. "
+            "Help with system analytics, user management, financial summaries, compliance tasks, and administrative operations. "
+        )
+    elif role == 'TEACHER':
+        context += (
+            f"The user is a teacher named {user_name}. "
+            "Help with grade entry, class roster information, attendance tracking, student performance insights, and lesson planning. "
+        )
+    elif role == 'PARENT':
+        context += (
+            f"The user is a parent named {user_name}. "
+            "Focus responses on their child's information only, including progress, fee payment status, communication with teachers, and school events. "
+        )
+    else:
+        context += (
+            f"The user is {user_name}. Help with general system navigation and common tasks. "
+        )
+
+    context += (
+        "Keep responses concise (2-3 sentences max), helpful, and professional. "
+        "IMPORTANT: Only provide information the user has access to. "
+        f"User question: {user_message}"
+    )
+    return context
