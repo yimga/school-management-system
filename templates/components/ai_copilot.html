@@ -176,6 +176,12 @@
     opacity: 0;
   }
 
+  @media (max-width: 576px) {
+    .ai-shortcut-hint {
+      display: none !important;
+    }
+  }
+
   .ai-copilot-trigger:hover {
     transform: scale(1.1);
     box-shadow: 0 12px 32px rgba(99, 102, 241, 0.6);
@@ -750,29 +756,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const seen = localStorage.getItem(HINT_KEY) === '1';
     if (seen) return;
 
-    const showOnce = () => {
-      // Guard if already seen after first show
-      if (localStorage.getItem(HINT_KEY) === '1') return;
-      shortcutHint.style.display = 'inline-block';
-      shortcutHint.style.opacity = '1';
-      shortcutHint.style.transition = 'opacity 0.3s ease';
-      setTimeout(() => {
-        shortcutHint.style.opacity = '0';
+      const showOnce = () => {
+        // Guard if already seen after first show
+        if (localStorage.getItem(HINT_KEY) === '1') return;
+        shortcutHint.style.display = 'inline-block';
+        shortcutHint.style.opacity = '1';
+        shortcutHint.style.transition = 'opacity 0.3s ease';
         setTimeout(() => {
-          shortcutHint.style.display = 'none';
-          localStorage.setItem(HINT_KEY, '1');
-        }, 350);
-      }, 3000); // shorter timer
-    };
+          shortcutHint.style.opacity = '0';
+          setTimeout(() => {
+            shortcutHint.style.display = 'none';
+            localStorage.setItem(HINT_KEY, '1');
+          }, 350);
+        }, 3000); // shorter timer
+      };
 
-    // Show on first hover or focus of trigger
-    const onFirstReveal = () => {
-      showOnce();
-      trigger.removeEventListener('mouseenter', onFirstReveal);
-      trigger.removeEventListener('focus', onFirstReveal);
-    };
-    trigger.addEventListener('mouseenter', onFirstReveal);
-    trigger.addEventListener('focus', onFirstReveal);
+      // Show on first click of trigger (desktop)
+      const onFirstClick = () => {
+        showOnce();
+        trigger.removeEventListener('click', onFirstClick);
+      };
+
+      trigger.addEventListener('click', onFirstClick, { once: true });
   })();
 });
 </script>
