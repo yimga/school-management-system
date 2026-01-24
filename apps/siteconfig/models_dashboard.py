@@ -9,10 +9,10 @@ import json
 User = get_user_model()
 
 
-class UserPreference(models.Model):
-    """Store user UI/UX preferences and customizations."""
+class DashboardUserPreference(models.Model):
+    """Store user UI/UX preferences and customizations for dashboard."""
     
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preferences')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='dashboard_preferences')
     
     # Dashboard customization
     dashboard_layout = models.JSONField(
@@ -52,7 +52,7 @@ class UserPreference(models.Model):
     high_contrast = models.BooleanField(default=False, help_text="Enable high contrast mode")
     reduced_motion = models.BooleanField(default=False, help_text="Reduce animations")
     font_size = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=[('normal', 'Normal'), ('large', 'Large'), ('extra-large', 'Extra Large')],
         default='normal'
     )
@@ -69,13 +69,13 @@ class UserPreference(models.Model):
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
-        verbose_name = "User Preference"
-        verbose_name_plural = "User Preferences"
-    
+        verbose_name = "Dashboard User Preference"
+        verbose_name_plural = "Dashboard User Preferences"
+
     def __str__(self):
-        return f"{self.user.username}'s Preferences"
+        return f"{self.user.username}'s Dashboard Preferences"
     
     def get_dashboard_widgets(self):
         """Get list of visible dashboard widgets."""
