@@ -36,123 +36,12 @@
 }
 
 .admin-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 20px;
-  align-items: start;
+  display: block;
+  max-width: 100%;
 }
 
-.admin-sidebar {
-  background: var(--admin-surface);
-  border: 1px solid var(--admin-border);
-  border-radius: 12px;
-  box-shadow: var(--admin-shadow);
-  padding: 16px;
-  position: sticky;
-  top: 16px;
-  height: fit-content;
-}
+/* Sidebar removed - using Django admin sidebar instead */
 
-.sidebar-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--admin-text);
-  margin: 0 0 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.accordion-section {
-  border: 1px solid var(--admin-border);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  background: var(--admin-dashboard-bg);
-}
-
-.accordion-button {
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--admin-text);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.accordion-button .label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.accordion-button .chevron {
-  transition: transform 0.2s ease;
-}
-
-.accordion-button[aria-expanded="true"] .chevron {
-  transform: rotate(180deg);
-}
-
-.accordion-body {
-  padding: 0 12px 12px 12px;
-}
-
-.sidebar-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 10px;
-  border-radius: 8px;
-  color: var(--admin-text);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
-}
-
-.sidebar-link:hover {
-  background: rgba(255, 149, 0, 0.12);
-  color: var(--admin-text);
-  transform: translateX(2px);
-}
-
-.sidebar-link .badge {
-  margin-left: auto;
-  background: rgba(255, 149, 0, 0.15);
-  color: var(--admin-text);
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.admin-main {
-  background: var(--admin-dashboard-bg);
-  border-radius: 12px;
-}
-
-.sidebar-toggle-btn {
-  background: var(--admin-accent);
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.sidebar-toggle-btn:hover {
-  background: var(--admin-accent-light);
-  transform: scale(1.05);
-}
 
 .theme-toggle-btn {
   background: var(--admin-accent);
@@ -172,7 +61,6 @@
 }
 
 .sidebar-toggle-btn:focus-visible,
-.accordion-button:focus-visible,
 .theme-toggle-btn:focus-visible {
   outline: 2px solid var(--admin-accent);
   outline-offset: 2px;
@@ -224,16 +112,7 @@
 
 @media (max-width: 992px) {
   .admin-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-sidebar {
-    position: relative;
-    top: auto;
-  }
-
-  .sidebar-toggle-btn {
-    width: 100%;
+    /* No grid needed - full width */
   }
 }
 </style>
@@ -241,82 +120,7 @@
   <div style="max-width: 1280px; margin: 0 auto;">
     <div class="admin-layout">
 
-      <!-- ACCORDION SIDEBAR -->
-      <aside class="admin-sidebar">
-        <div class="sidebar-title">📂 Quick Navigation</div>
-
-        <div class="accordion-section">
-          <button class="accordion-button" type="button" data-section="admin-panel" aria-expanded="true" onclick="toggleAccordion('admin-panel')">
-            <span class="label">🛡️ Admin Panel</span>
-            <span class="chevron">⌄</span>
-          </button>
-          <div class="accordion-body" data-body="admin-panel">
-            <a class="sidebar-link" href="/admin/">🏛️ Admin Interface</a>
-            <a class="sidebar-link" href="{% url 'accounts:backend_dashboard' %}">🧭 Backend Console</a>
-            <a class="sidebar-link" href="{% url 'accounts:backend_dashboard_alt' %}">🧰 Backend Tools</a>
-          </div>
-        </div>
-
-        <div class="accordion-section">
-          <button class="accordion-button" type="button" data-section="academic" aria-expanded="true" onclick="toggleAccordion('academic')">
-            <span class="label">📚 Academic Management</span>
-            <span class="chevron">⌄</span>
-          </button>
-          <div class="accordion-body" data-body="academic">
-            <a class="sidebar-link" href="{% url 'evals:evaluation_admin' %}">🗂️ Evaluation Admin</a>
-            <a class="sidebar-link" href="{% url 'evals:class_ranking' %}">🏆 Class Ranking</a>
-            <a class="sidebar-link" href="{% url 'evals:school_ranking' %}">📊 School Ranking</a>
-            <a class="sidebar-link" href="{% url 'reports:publish_term_results' %}">📣 Publish Results</a>
-          </div>
-        </div>
-
-        <div class="accordion-section">
-          <button class="accordion-button" type="button" data-section="finance" aria-expanded="true" onclick="toggleAccordion('finance')">
-            <span class="label">💰 Financial Management</span>
-            <span class="chevron">⌄</span>
-          </button>
-          <div class="accordion-body" data-body="finance">
-            <a class="sidebar-link" href="{% url 'finance:dashboard' %}">💵 Finance Dashboard</a>
-            <a class="sidebar-link" href="{% url 'payroll:dashboard' %}">🧾 Payroll</a>
-          </div>
-        </div>
-
-        <div class="accordion-section">
-          <button class="accordion-button" type="button" data-section="analytics" aria-expanded="true" onclick="toggleAccordion('analytics')">
-            <span class="label">📈 Analytics & Reports</span>
-            <span class="chevron">⌄</span>
-          </button>
-          <div class="accordion-body" data-body="analytics">
-            <a class="sidebar-link" href="{% url 'analytics:dashboard' %}">📈 Analytics</a>
-            <a class="sidebar-link" href="{% url 'siteconfig:report_library' %}">📑 Report Library</a>
-          </div>
-        </div>
-
-        <div class="accordion-section">
-          <button class="accordion-button" type="button" data-section="system" aria-expanded="true" onclick="toggleAccordion('system')">
-            <span class="label">⚙️ System Settings</span>
-            <span class="chevron">⌄</span>
-          </button>
-          <div class="accordion-body" data-body="system">
-            <a class="sidebar-link" href="{% url 'accounts:rbac' %}">🔐 Access Control</a>
-            <a class="sidebar-link" href="{% url 'siteconfig:customizer' %}">🎨 Customizer</a>
-            <a class="sidebar-link" href="{% url 'siteconfig:report_library' %}">📚 Templates</a>
-          </div>
-        </div>
-
-        <div class="accordion-section">
-          <button class="accordion-button" type="button" data-section="portal" aria-expanded="false" onclick="toggleAccordion('portal')">
-            <span class="label">🌐 Portal Tools</span>
-            <span class="chevron">⌄</span>
-          </button>
-          <div class="accordion-body" data-body="portal" style="display: none;">
-            <a class="sidebar-link" href="{% url 'portal:portal_stats' %}">📊 Portal Stats</a>
-            <a class="sidebar-link" href="{% url 'portal:parent_dashboard' %}">👨‍👩‍👧 Parent Portal</a>
-            <a class="sidebar-link" href="{% url 'evals:teacher_dashboard' %}">👩‍🏫 Teacher Portal</a>
-          </div>
-        </div>
-
-      </aside>
+      <!-- Sidebar removed - using Django admin sidebar navigation -->
 
       <div class="admin-main">
         <!-- HEADER SECTION WITH LOGO & CONTROLS -->
@@ -332,7 +136,6 @@
             </div>
             <!-- Controls -->
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button class="sidebar-toggle-btn" onclick="document.body.style.overflow=document.body.style.overflow==='hidden'?'auto':'hidden'; alert('Sidebar is now accordion style and always visible on desktop');">☰ Toggle Nav</button>
               <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark</button>
             </div>
           </div>
@@ -477,8 +280,6 @@
 <!-- /page background -->
 
 <script>
-  const accordionStateKey = 'adminAccordionState';
-
   // Theme Toggle
   function toggleTheme() {
     const root = document.documentElement;
@@ -494,42 +295,9 @@
     const savedTheme = localStorage.getItem('adminTheme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
-    restoreAccordion();
     generateCalendar();
     document.getElementById('timestamp').textContent = new Date().toLocaleString();
   });
-
-  // Accordion functionality
-  function toggleAccordion(sectionId) {
-    const body = document.querySelector(`[data-body="${sectionId}"]`);
-    const trigger = document.querySelector(`[data-section="${sectionId}"]`);
-    if (!body || !trigger) return;
-
-    const isOpen = body.style.display !== 'none';
-    const newState = !isOpen;
-    body.style.display = newState ? 'block' : 'none';
-    trigger.setAttribute('aria-expanded', newState);
-    persistAccordionState(sectionId, newState);
-  }
-
-  function persistAccordionState(sectionId, isOpen) {
-    const saved = JSON.parse(localStorage.getItem(accordionStateKey) || '{}');
-    saved[sectionId] = isOpen;
-    localStorage.setItem(accordionStateKey, JSON.stringify(saved));
-  }
-
-  function restoreAccordion() {
-    const saved = JSON.parse(localStorage.getItem(accordionStateKey) || '{}');
-    document.querySelectorAll('.accordion-button').forEach(btn => {
-      const id = btn.dataset.section;
-      const body = document.querySelector(`[data-body="${id}"]`);
-      if (!body) return;
-      const defaultOpen = btn.getAttribute('aria-expanded') === 'true';
-      const expanded = saved[id] !== undefined ? saved[id] : defaultOpen;
-      body.style.display = expanded ? 'block' : 'none';
-      btn.setAttribute('aria-expanded', expanded);
-    });
-  }
 
   // Calendar functionality
   let currentDate = new Date();
