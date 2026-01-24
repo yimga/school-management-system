@@ -420,6 +420,21 @@ document.addEventListener('DOMContentLoaded', function() {
   const AI_PERMISSIONS = {{ AI_PERMISSIONS|safe }};
   const USER_ROLE = '{{ USER_ROLE|default:"USER" }}';
   const CSRF_TOKEN = '{{ csrf_token }}';
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrfTokenEffective = (CSRF_TOKEN && CSRF_TOKEN !== 'NOTPROVIDED') ? CSRF_TOKEN : getCookie('csrftoken');
   
   // Always show trigger; if access is limited, show info when opened
 
@@ -528,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': CSRF_TOKEN,
+          'X-CSRFToken': csrfTokenEffective,
         },
         body: JSON.stringify({
           query: message
@@ -586,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': CSRF_TOKEN,
+          'X-CSRFToken': csrfTokenEffective,
         },
         body: JSON.stringify({
           query: query
