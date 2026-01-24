@@ -233,45 +233,6 @@
     })();
   </script>
   
-  <!-- Sidebar Collapse/Expand Script -->
-  <script>
-    (function() {
-      const COLLAPSE_KEY = "admin-sidebar-collapsed";
-      const sidebar = document.getElementById("nav-sidebar");
-      const toggleBtn = document.getElementById("sidebarCollapseToggle");
-      const mainContent = document.getElementById("content");
-      
-      if (!sidebar || !toggleBtn) return;
-      
-      // Apply collapse state
-      const applyCollapseState = (collapsed) => {
-        if (collapsed) {
-          sidebar.classList.add("sidebar-collapsed");
-          if (mainContent) mainContent.classList.add("sidebar-collapsed");
-          toggleBtn.classList.add("collapsed");
-          toggleBtn.setAttribute("aria-expanded", "false");
-          toggleBtn.title = "Expand Sidebar";
-        } else {
-          sidebar.classList.remove("sidebar-collapsed");
-          if (mainContent) mainContent.classList.remove("sidebar-collapsed");
-          toggleBtn.classList.remove("collapsed");
-          toggleBtn.setAttribute("aria-expanded", "true");
-          toggleBtn.title = "Collapse Sidebar";
-        }
-        localStorage.setItem(COLLAPSE_KEY, collapsed ? "true" : "false");
-      };
-      
-      // Load saved state
-      const savedState = localStorage.getItem(COLLAPSE_KEY) === "true";
-      applyCollapseState(savedState);
-      
-      // Toggle on button click
-      toggleBtn.addEventListener("click", () => {
-        const isCollapsed = sidebar.classList.contains("sidebar-collapsed");
-        applyCollapseState(!isCollapsed);
-      });
-    })();
-  </script>
 {% endblock %}
 
 <!-- Include Keyboard Shortcuts for Power Users -->
@@ -287,11 +248,15 @@
   <!-- Sidebar Collapse Toggle Button - Inject via JavaScript -->
   <script>
     (function() {
-      // Create and inject toggle button after page loads
-      const createToggleButton = () => {
+      const COLLAPSE_KEY = "admin-sidebar-collapsed";
+      
+      // Initialize sidebar collapse functionality
+      const initSidebarCollapse = () => {
         const sidebar = document.getElementById("nav-sidebar");
+        const mainContent = document.getElementById("content");
         if (!sidebar) return;
         
+        // Create toggle button
         const toggleBtn = document.createElement("button");
         toggleBtn.type = "button";
         toggleBtn.id = "sidebarCollapseToggle";
@@ -301,14 +266,41 @@
         toggleBtn.innerHTML = '<span class="toggle-icon">&#9776;</span>';
         
         document.body.appendChild(toggleBtn);
-        return toggleBtn;
+        
+        // Apply collapse state function
+        const applyCollapseState = (collapsed) => {
+          if (collapsed) {
+            sidebar.classList.add("sidebar-collapsed");
+            if (mainContent) mainContent.classList.add("sidebar-collapsed");
+            toggleBtn.classList.add("collapsed");
+            toggleBtn.setAttribute("aria-expanded", "false");
+            toggleBtn.title = "Expand Sidebar";
+          } else {
+            sidebar.classList.remove("sidebar-collapsed");
+            if (mainContent) mainContent.classList.remove("sidebar-collapsed");
+            toggleBtn.classList.remove("collapsed");
+            toggleBtn.setAttribute("aria-expanded", "true");
+            toggleBtn.title = "Collapse Sidebar";
+          }
+          localStorage.setItem(COLLAPSE_KEY, collapsed ? "true" : "false");
+        };
+        
+        // Load saved state
+        const savedState = localStorage.getItem(COLLAPSE_KEY) === "true";
+        applyCollapseState(savedState);
+        
+        // Toggle on button click
+        toggleBtn.addEventListener("click", () => {
+          const isCollapsed = sidebar.classList.contains("sidebar-collapsed");
+          applyCollapseState(!isCollapsed);
+        });
       };
       
       // Wait for DOM to be ready
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', createToggleButton);
+        document.addEventListener('DOMContentLoaded', initSidebarCollapse);
       } else {
-        createToggleButton();
+        initSidebarCollapse();
       }
     })();
   </script>
