@@ -388,13 +388,13 @@ def ai_copilot_audit_feed(request):
 
     actions = ['AI_QUERY_SUBMITTED', 'AI_QUERY_DENIED', 'AI_QUERY_RATE_LIMITED']
     # Minimal fields to avoid leaking sensitive data
-    qs = AuditLog.objects.filter(action__in=actions).order_by('-created_at')[:limit]
+    qs = AuditLog.objects.filter(action__in=actions).order_by('-timestamp')[:limit]
     items = []
     for row in qs:
         items.append({
             'id': getattr(row, 'id', None),
             'action': getattr(row, 'action', ''),
-            'when': getattr(row, 'created_at', None).isoformat() if getattr(row, 'created_at', None) else None,
+            'when': getattr(row, 'timestamp', None).isoformat() if getattr(row, 'timestamp', None) else None,
             'user': getattr(getattr(row, 'user', None), 'username', None),
             'details': getattr(row, 'details', {}),
             'severity': getattr(row, 'severity', 'INFO'),
