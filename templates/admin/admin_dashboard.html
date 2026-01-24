@@ -177,6 +177,19 @@
             </div>
           </div>
 
+          <!-- System Health Card -->
+          <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">System Health</span>
+              <span style="font-size: 20px;">⚙️</span>
+            </div>
+            <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;"><span style="color: #38a169;">100%</span></div>
+            <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
+              <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Status:</span> <span style="color: #38a169; font-weight: 600;">Operational</span></span>
+              <span style="display: flex; justify-content: space-between;"><span>Uptime:</span> <span style="color: var(--admin-text); font-weight: 600;">24/7</span></span>
+            </div>
+          </div>
+
           <!-- Logged-In Users Card -->
           <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease; grid-column: 1 / -1;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
@@ -206,19 +219,6 @@
             </div>
             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--admin-border); text-align: center; font-size: 12px; color: var(--admin-muted);">
               {{ active_sessions|default:"3" }} user{{ active_sessions|default:"3"|pluralize }} online • {{ sessions_24h|default:"25" }} in last 24h
-            </div>
-          </div>
-
-          <!-- System Status Card -->
-          <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">System Health</span>
-              <span style="font-size: 20px;">⚙️</span>
-            </div>
-            <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;"><span style="color: #38a169;">100%</span></div>
-            <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
-              <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Status:</span> <span style="color: #38a169; font-weight: 600;">Operational</span></span>
-              <span style="display: flex; justify-content: space-between;"><span>Uptime:</span> <span style="color: var(--admin-text); font-weight: 600;">24/7</span></span>
             </div>
           </div>
         </div>
