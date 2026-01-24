@@ -1,0 +1,555 @@
+/* ============================================
+   MOBILE-OPTIMIZED TABLES & FORMS
+   Responsive design for data displays and inputs
+   ============================================ */
+
+/* Base Form Styles - Mobile-First */
+.form-group,
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.form-control,
+.form-select,
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem; /* Prevents zoom on iOS */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 106, 136, 0.1);
+}
+
+/* Touch target sizing (44px minimum) */
+.form-control,
+.form-select,
+.btn {
+  min-height: 44px;
+}
+
+/* Checkbox and Radio buttons - Touch-friendly */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  min-height: 44px;
+}
+
+.form-check-label {
+  margin-bottom: 0;
+  cursor: pointer;
+  flex: 1;
+}
+
+/* Mobile-First Media Queries */
+
+/* Mobile: 320px - 479px */
+@media (max-width: 479px) {
+  .form-group,
+  .mb-3 {
+    margin-bottom: 1.25rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .form-control,
+  .form-select,
+  textarea {
+    padding: 0.75rem;
+    font-size: 16px; /* Prevents zoom on iOS */
+    line-height: 1.5;
+  }
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  /* Stack form groups */
+  .row > [class*="col"] {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+
+  /* Full-width buttons */
+  .btn {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    min-height: 44px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-group .btn {
+    flex: 1;
+  }
+
+  /* Help text */
+  .form-text,
+  small {
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 0.3rem;
+  }
+
+  /* Error messages */
+  .invalid-feedback,
+  .error {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--color-danger);
+  }
+
+  /* Success messages */
+  .valid-feedback,
+  .success {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--color-success);
+  }
+
+  /* Fieldset */
+  fieldset {
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  legend {
+    padding: 0 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablet: 480px - 767px */
+@media (max-width: 767px) {
+  .form-control,
+  .form-select,
+  textarea {
+    padding: 0.75rem;
+    font-size: 15px;
+  }
+
+  .btn {
+    min-height: 42px;
+  }
+
+  /* Two-column layout on tablet */
+  .row.row-cols-2 > [class*="col"] {
+    flex-basis: calc(50% - 0.5rem);
+  }
+
+  /* Keep single column for forms on tablet */
+  .form-row > [class*="col"] {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Desktop: 768px+ */
+@media (min-width: 768px) {
+  .form-control,
+  .form-select,
+  textarea {
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  /* Multi-column layouts on desktop */
+  .row.row-cols-2 > [class*="col"] {
+    flex-basis: calc(50% - 0.75rem);
+  }
+
+  .row.row-cols-3 > [class*="col"] {
+    flex-basis: calc(33.333% - 0.75rem);
+  }
+
+  /* Horizontal button groups */
+  .btn-group {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .btn-group .btn {
+    flex: 1;
+  }
+
+  /* Inline forms */
+  .form-inline {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .form-inline .form-group {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+/* ============================================
+   TABLE RESPONSIVE DESIGN
+   ============================================ */
+
+/* Base table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+thead {
+  background: var(--color-bg-light);
+  border-bottom: 2px solid var(--color-border);
+}
+
+th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+tbody tr:hover {
+  background: var(--color-bg-lighter);
+}
+
+/* Mobile Table Design - Card Layout */
+@media (max-width: 767px) {
+  table {
+    display: block;
+    width: 100%;
+    border: none;
+    margin-bottom: 1.5rem;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: block;
+  }
+
+  tbody tr {
+    display: block;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0;
+  }
+
+  tbody td {
+    display: block;
+    padding: 0.75rem;
+    border: none;
+    border-bottom: 1px solid var(--color-border-light);
+    text-align: right;
+  }
+
+  tbody td:last-child {
+    border-bottom: none;
+  }
+
+  /* Add data labels before each cell */
+  tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 600;
+    float: left;
+    text-align: left;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+  }
+
+  tbody td::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+  /* First cell in row */
+  tbody tr > td:first-child {
+    background: var(--color-bg-light);
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+
+  tbody tr > td:first-child::before {
+    display: none;
+  }
+}
+
+/* Horizontal scroll table - Alternative for mobile */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1.5rem;
+}
+
+.table-responsive table {
+  min-width: 600px;
+}
+
+@media (max-width: 479px) {
+  .table-responsive {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .table-responsive table {
+    min-width: 500px;
+  }
+
+  th, td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Sticky table headers on scroll */
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-bg-light);
+}
+
+/* ============================================
+   FORM VALIDATION STYLES
+   ============================================ */
+
+/* Input validation states */
+.form-control.is-invalid,
+.form-control.is-invalid:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-control.is-valid,
+.form-control.is-valid:focus {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Loading state */
+.form-control:disabled,
+.form-select:disabled {
+  background-color: var(--color-bg-light);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ============================================
+   SPECIAL FORM ELEMENTS
+   ============================================ */
+
+/* Select dropdown */
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  padding-right: 2.5rem;
+}
+
+.form-select::-ms-expand {
+  display: none;
+}
+
+/* File input */
+.form-control[type="file"] {
+  padding: 0.5rem;
+}
+
+.form-control[type="file"]::file-selector-button {
+  padding: 0.5rem 1rem;
+  margin-right: 0.75rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 40px;
+}
+
+/* Range input */
+input[type="range"] {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-bg-light);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* ============================================
+   TOUCH-FRIENDLY ENHANCEMENTS
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  .form-control,
+  .form-select,
+  .btn,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 48px;
+  }
+
+  .form-check {
+    min-height: 48px;
+  }
+
+  /* Better spacing for touch */
+  .form-group {
+    margin-bottom: 2rem;
+  }
+
+  .btn {
+    padding: 0.85rem;
+  }
+
+  /* Remove hover effects */
+  table tbody tr:hover {
+    background: inherit;
+  }
+
+  /* Active state for touch */
+  .btn:active {
+    opacity: 0.8;
+  }
+
+  input:active,
+  textarea:active,
+  select:active {
+    box-shadow: 0 0 0 3px rgba(255, 106, 136, 0.15);
+  }
+}
+
+/* ============================================
+   LANDSCAPE MODE OPTIMIZATIONS
+   ============================================ */
+
+@media (max-height: 500px) {
+  .form-group,
+  .mb-3 {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-control,
+  .form-select,
+  .btn {
+    padding: 0.6rem;
+    font-size: 0.95rem;
+  }
+
+  label {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-row > * {
+  flex: 1;
+  min-width: 200px;
+}
+
+@media (max-width: 767px) {
+  .form-row > * {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+}
+
+.form-group.required label::after {
+  content: " *";
+  color: var(--color-danger);
+}
+
+.form-help {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}

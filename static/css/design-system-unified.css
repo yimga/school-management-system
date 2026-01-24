@@ -436,3 +436,214 @@ textarea {
 .rounded-2xl {
   border-radius: var(--radius-2xl);
 }
+/* ============================================
+   MOBILE-FIRST RESPONSIVE DESIGN
+   Base styles are mobile, breakpoints enhance
+   ============================================ */
+
+/* Mobile: 320px - 479px */
+@media (max-width: 479px) {
+  /* Font sizing for small screens */
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  /* Reduce padding on mobile */
+  body {
+    padding: 0;
+  }
+
+  /* Stack elements vertically */
+  .flex-row,
+  .d-flex {
+    flex-direction: column;
+  }
+
+  /* Reduce button size */
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    min-height: 44px; /* Touch target */
+  }
+
+  /* Full width inputs on mobile */
+  input,
+  select,
+  textarea,
+  .form-control {
+    width: 100%;
+    min-height: 44px; /* Touch target */
+  }
+
+  /* Reduce spacing on mobile */
+  .mt-3, .my-3 {
+    margin-top: var(--spacing-md) !important;
+  }
+
+  .mb-3, .my-3 {
+    margin-bottom: var(--spacing-md) !important;
+  }
+
+  .p-3 {
+    padding: var(--spacing-md) !important;
+  }
+
+  .p-4 {
+    padding: var(--spacing-lg) !important;
+  }
+
+  /* Stack grid items on mobile */
+  [class*="grid"],
+  .row {
+    gap: var(--spacing-md);
+  }
+
+  [class*="grid"] > * {
+    width: 100%;
+  }
+}
+
+/* Tablet: 480px - 767px */
+@media (max-width: 767px) {
+  /* Optimize spacing for tablets */
+  body {
+    font-size: 0.95rem;
+  }
+
+  /* Stack containers */
+  .container-fluid {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+  }
+
+  /* Full-width cards on small tablets */
+  .card,
+  .widget-card {
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Responsive tables */
+  table {
+    font-size: 0.85rem;
+  }
+
+  th, td {
+    padding: var(--spacing-sm) !important;
+  }
+
+  /* Hide unnecessary columns on tablet */
+  .d-none.d-md-table-cell {
+    display: none !important;
+  }
+}
+
+/* Tablet Landscape & Small Desktop: 768px - 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Adjust grid columns for tablet landscape */
+  [class*="grid-cols"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* More breathing room */
+  .container-fluid {
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-lg);
+  }
+}
+
+/* Desktop: 1024px+ */
+@media (min-width: 1024px) {
+  /* Desktop optimizations */
+  body {
+    font-size: 1rem;
+  }
+
+  /* Sidebar can be fixed on desktop */
+  .sidebar {
+    position: sticky;
+    top: 10px;
+  }
+
+  /* Multi-column layouts */
+  [class*="grid-cols-2"] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  [class*="grid-cols-3"] {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  [class*="grid-cols-4"] {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Large Desktop: 1440px+ */
+@media (min-width: 1440px) {
+  /* Use full width benefits */
+  .container-xl {
+    max-width: 1440px;
+  }
+
+  /* More generous spacing */
+  .p-4 {
+    padding: 2.5rem;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button,
+  a,
+  .btn,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Bigger tap areas */
+  .nav-link,
+  .dropdown-item {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Remove hover effects on touch */
+  button:hover,
+  a:hover,
+  .btn:hover {
+    transform: none;
+  }
+
+  /* Optimize spacing for touch */
+  .btn {
+    margin-bottom: var(--spacing-sm);
+  }
+}
+
+/* Landscape orientation fixes */
+@media (max-height: 500px) {
+  /* Reduce vertical padding in landscape */
+  .navbar,
+  .header,
+  .page-wrap {
+    padding-top: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+  }
+
+  /* Sticky position for critical elements */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-navigation);
+  }
+}

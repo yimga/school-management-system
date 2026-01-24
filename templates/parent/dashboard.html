@@ -39,6 +39,35 @@
     margin: 0 0 1rem 0;
   }
 
+  /* Mobile-first responsive design */
+  @media (max-width: 479px) {
+    .welcome-hero {
+      padding: 1.5rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .welcome-hero h1 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome-hero p {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .welcome-hero {
+      padding: 2rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .welcome-hero h1 {
+      font-size: 1.5rem;
+    }
+  }
+
   .quick-stats-grid {
     display: none; /* replaced by status badge bar */
   }
@@ -213,8 +242,44 @@
     margin-bottom: 1rem;
   }
 
-  .child-metric {
-    text-align: center;
+  @media (max-width: 479px) {
+    .child-metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      padding: 0.75rem 0;
+      margin-bottom: 0.75rem;
+    }
+
+    .child-metric-value {
+      font-size: 1.1rem;
+    }
+
+    .child-metric-label {
+      font-size: 0.65rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .child-actions {
+      flex-direction: column;
+    }
+
+    .child-actions .btn {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 0.85rem;
+      min-height: 40px;
+    }
+
+    .child-info {
+      flex-direction: column;
+    }
+
+    .child-info img {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 0.5rem;
+    }
   }
 
   .child-metric-value {
@@ -295,6 +360,44 @@
   .btn-gradient:hover {
     opacity: 0.95;
     color: #fff;
+  }
+
+  /* Mobile fee card optimizations */
+  @media (max-width: 479px) {
+    .fee-status-card {
+      padding: 0.75rem;
+    }
+
+    .fee-status-card .small-tile {
+      padding: 6px 4px;
+      min-height: 60px;
+    }
+
+    .fee-status-card .amount {
+      font-size: 0.9rem;
+    }
+
+    .fee-status-card .label {
+      font-size: 0.65rem;
+    }
+
+    .fee-status-card .btn {
+      height: 36px;
+      padding: 0 8px;
+      font-size: 0.8rem;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .fee-status-card {
+      padding: 1rem;
+    }
+
+    .fee-status-card .btn {
+      width: 100%;
+    }
   }
 
   .activity-list {
@@ -526,6 +629,60 @@
   .count-green { background: #34d399; color: #0f172a; }
   .count-yellow { background: #facc15; color: #0f172a; }
   .count-red { background: #f87171; color: #fff; }
+
+  /* Mobile-friendly status badge bar */
+  @media (max-width: 479px) {
+    .status-badge-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 8px;
+    }
+
+    .status-badge {
+      gap: 8px;
+      width: 100%;
+      padding: 8px;
+      background: rgba(13, 110, 253, 0.04);
+      border-radius: 8px;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+
+    .status-count {
+      min-width: 32px;
+      height: 24px;
+      padding: 0 10px;
+      font-size: 0.75rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .status-badge-bar {
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px 8px;
+    }
+
+    .status-badge {
+      flex: 0 1 calc(50% - 5px);
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+
+    .status-count {
+      min-width: 30px;
+      height: 22px;
+      padding: 0 6px;
+      font-size: 0.7rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .status-badge {
+      white-space: nowrap;
+    }
+  }
     .sidebar-sticky {
       position: static;
       margin-top: 2rem;
