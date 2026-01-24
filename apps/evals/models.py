@@ -61,77 +61,53 @@ class AssessmentWeights(models.Model):
         default='numeric_0_20',
     )
 
-# Add a property for total_score and average_score to Evaluation if not present
-
-class Evaluation(models.Model):
-    # ...existing fields...
-    seq1_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    seq2_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    exam_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    grading_scale = models.CharField(
-        max_length=50,
-        choices=[
-            ('numeric_0_20', 'Numeric 0–20 (Cameroon Francophone)'),
-            ('letter_a_e', 'Letters A–E (Cameroon Anglophone)'),
-            ('gpa_4_0', 'GPA 4.0 Scale'),
-            ('percentage', 'Percentage 0–100'),
-        ],
-    )
-    mock_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    practical_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-
-    @property
-    def total_score(self):
-        # Example: sum all available scores
-        return sum(
-            s for s in [self.seq1_score, self.seq2_score, self.exam_score, self.mock_score, self.practical_score]
-            if s is not None
-        )
 
     @classmethod
-    def average_score(cls):
-        # Example: average of total_score for all objects
-        scores = [e.total_score for e in cls.objects.all() if e.total_score is not None]
-        return sum(scores) / len(scores) if scores else 0
-    
-    # Letter grade mapping thresholds (for A–E scales)
-    grade_a_min = models.DecimalField(max_digits=5, decimal_places=2, default=18.00, help_text="Minimum score for A")
-    grade_b_min = models.DecimalField(max_digits=5, decimal_places=2, default=16.00)
-    grade_c_min = models.DecimalField(max_digits=5, decimal_places=2, default=14.00)
-    grade_d_min = models.DecimalField(max_digits=5, decimal_places=2, default=10.00)
-    grade_e_min = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    def get_for(cls, academic_year, classroom=None, term=None):
+        # Priority: classroom+term, classroom, term, year only.
+        if academic_year is None:
+            return cls()
 
-    class Meta:
-        unique_together = ("academic_year", "term", "classroom")
+        if classroom is not None and term is not None:
+            match = cls.objects.filter(
+                academic_year=academic_year,
+                classroom=classroom,
+                term=term,
+            ).first()
+            if match:
+                return match
 
-    def clean(self):
-        if AssessmentWeights.objects.filter(
-            academic_year=self.academic_year,
-            term=self.term,
-            classroom=self.classroom,
-        ).exclude(pk=self.pk).exists():
-            raise ValidationError("Assessment weights already exist for this year/term/classroom.")
-        total = (
-            self.seq1_weight
-            + self.seq2_weight
-            + self.exam_weight
-            + self.mock_weight
-            + self.practical_weight
+        if classroom is not None:
+            match = cls.objects.filter(
+                academic_year=academic_year,
+                classroom=classroom,
+                term__isnull=True,
+            ).first()
+            if match:
+                return match
+
+        if term is not None:
+            match = cls.objects.filter(
+                academic_year=academic_year,
+                classroom__isnull=True,
+                term=term,
+            ).first()
+            if match:
+                return match
+
+        match = cls.objects.filter(
+            academic_year=academic_year,
+            classroom__isnull=True,
+            term__isnull=True,
+        ).first()
+        if match:
+            return match
+
+        return cls.objects.create(
+            academic_year=academic_year,
+            classroom=classroom if classroom is not None else None,
+            term=term if term is not None else None,
         )
-        if total <= 0:
-            raise ValidationError("At least one component weight must be > 0.")
-        if total > 100:
-            raise ValidationError("Total weights cannot exceed 100%.")
-        if self.score_scale <= 0:
-            raise ValidationError("Score scale must be > 0.")
-
-    # ...existing code...
-
-    def __str__(self) -> str:
-        scope = f"{self.classroom}" if self.classroom_id else "School default"
-        term_label = self.term.label if self.term_id else "All terms"
-        return f"Weights ({scope}) {self.academic_year} • {term_label}"
-
 
 class TeacherAssignment(models.Model):
     """
