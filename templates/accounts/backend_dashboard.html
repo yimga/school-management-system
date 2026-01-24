@@ -435,6 +435,106 @@
     <p class="text-muted">Manage your school operations from this unified dashboard</p>
   </div>
 
+  <!-- Right Sidebar (Desktop) -->
+  <aside class="d-none d-lg-block backend-right-sidebar">
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Recent Activity</h6>
+          <a href="/metrics" class="small text-muted">View all</a>
+        </div>
+        <ul class="list-unstyled mb-0 small" id="recentActivityList">
+          <li class="text-muted">Loading activity…</li>
+        </ul>
+      </div>
+    </div>
+
+    {% if section_stats %}
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Dashboard Stats</h6>
+          <span class="badge bg-light text-dark">{{ section_stats|length }} sections</span>
+        </div>
+        <div class="row g-2">
+        {% for section, stats in section_stats.items|slice:":3" %}
+          <div class="col-12">
+            <div class="border rounded p-2">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-uppercase text-muted small">{{ section }}</span>
+                <span class="badge bg-light text-dark">{{ stats|length }} stats</span>
+              </div>
+              <ul class="list-unstyled mb-0 small">
+                {% for label, value in stats.items|dictsort:"key" %}
+                <li class="d-flex justify-content-between mb-1">
+                  <span>{{ label }}</span>
+                  <strong class="text-dark">{{ value }}</strong>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </aside>
+
+  <style>
+    .backend-right-sidebar {
+      position: sticky;
+      top: 80px;
+      float: right;
+      width: 320px;
+      margin-left: 12px;
+    }
+    @media (min-width: 992px) {
+      /* Reserve space on the right for sidebar */
+      .container, .container-fluid {
+        padding-right: 340px;
+      }
+    }
+  </style>
+
+  <script>
+  (function() {
+    async function loadRecentActivity() {
+      const list = document.getElementById('recentActivityList');
+      if (!list) return;
+      try {
+        const res = await fetch('/api/activities/?limit=8');
+        const data = await res.json();
+        if (!data || !Array.isArray(data.activities) || data.activities.length === 0) {
+          list.innerHTML = '<li class="text-muted">No recent activity.</li>';
+          return;
+        }
+        list.innerHTML = '';
+        data.activities.slice(0,8).forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'd-flex justify-content-between align-items-start mb-2';
+          li.innerHTML = `
+            <div>
+              <span class="fw-semibold">${escapeHtml(item.title || item.type || 'Event')}</span>
+              <div class="text-muted small">${escapeHtml(item.description || '')}</div>
+            </div>
+            <span class="badge bg-light text-dark">${escapeHtml(item.when || item.time || '')}</span>
+          `;
+          list.appendChild(li);
+        });
+      } catch (e) {
+        list.innerHTML = '<li class="text-danger">Failed to load activity.</li>';
+      }
+    }
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = String(text || '');
+      return div.innerHTML;
+    }
+    document.addEventListener('DOMContentLoaded', loadRecentActivity);
+  })();
+  </script>
+
   <!-- Quick Actions Section - Moved to Top -->
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -747,7 +847,7 @@
   </div>
 
   {% if section_stats %}
-    <div class="card shadow-sm mt-4">
+    <div class="card shadow-sm mt-4 d-lg-none">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">Section KPIs</h5>
