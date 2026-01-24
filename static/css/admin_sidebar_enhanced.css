@@ -70,6 +70,11 @@
   cursor: pointer;
   transition: var(--transition-all);
   font-family: var(--font-family);
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
+  text-align: left;
+  width: calc(100% - var(--spacing-md) * 2);
 }
 
 .sidebar a:hover,
@@ -402,6 +407,10 @@
   font-weight: var(--font-weight-normal);
   border-left: 2px solid transparent;
   transition: all 0.2s ease;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.4;
+  min-height: 36px;
 }
 
 .nav-accordion-content a:hover {
