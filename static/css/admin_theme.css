@@ -483,4 +483,189 @@ input[type="file"][accept*="image"]:hover,
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+/* ============================================
+   ENHANCED LIST VIEW VISIBILITY
+   ============================================ */
+
+/* Improve table row visibility and contrast */
+.change-list table tbody tr {
+  background: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.2s ease;
+}
+
+.change-list table tbody tr:nth-child(odd) {
+  background: rgba(15, 23, 42, 0.015);
+}
+
+.change-list table tbody tr:hover {
+  background: rgba(102, 126, 234, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(102, 126, 234, 0.1);
+}
+
+/* Better table cell styling */
+.change-list table td {
+  padding: 12px 8px;
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.change-list table th {
+  padding: 12px 8px;
+  background: var(--color-bg-light);
+  border-bottom: 2px solid var(--color-border);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* Checkbox visibility */
+.change-list .action-checkbox {
+  margin: 0;
+  padding: 0 8px;
+}
+
+.change-list input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.change-list input[type="checkbox"]:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.change-list input[type="checkbox"]:checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Link visibility in tables */
+.change-list table a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.change-list table a:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* Status indicators visibility */
+.change-list .status-badge,
+.change-list .badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.change-list .status-badge.active {
+  background: rgba(56, 161, 105, 0.15);
+  color: #38a169;
+  border: 1px solid rgba(56, 161, 105, 0.3);
+}
+
+.change-list .status-badge.inactive {
+  background: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+  border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.change-list .status-badge.pending {
+  background: rgba(245, 87, 108, 0.15);
+  color: #f5576c;
+  border: 1px solid rgba(245, 87, 108, 0.3);
+}
+
+/* Action links visibility */
+.change-list table td .viewsitelink,
+.change-list table td .deletelink,
+.change-list table td .addlink {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 0 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.change-list table td .viewsitelink {
+  color: var(--color-primary);
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.change-list table td .viewsitelink:hover {
+  background: rgba(102, 126, 234, 0.15);
+  color: var(--color-primary-dark);
+}
+
+.change-list table td .deletelink {
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.05);
+}
+
+.change-list table td .deletelink:hover {
+  background: rgba(220, 53, 69, 0.15);
+  color: #c82333;
+}
+
+.change-list table td .addlink {
+  color: #38a169;
+  background: rgba(56, 161, 105, 0.05);
+}
+
+.change-list table td .addlink:hover {
+  background: rgba(56, 161, 105, 0.15);
+  color: #2d7a4a;
+}
+
+/* Pagination and results info visibility */
+.change-list-resultsText {
+  color: var(--color-text-primary);
+  padding: 8px 0;
+  font-size: 13px;
+}
+
+.paginator {
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border);
+  margin-top: 12px;
+}
+
+.paginator a,
+.paginator span {
+  padding: 6px 10px;
+  margin: 0 2px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.paginator a:hover {
+  background: var(--color-bg-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.paginator .step-links {
+  text-align: center;
+}
+
+
+
 
