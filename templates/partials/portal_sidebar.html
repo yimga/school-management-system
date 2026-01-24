@@ -117,6 +117,86 @@
     display: block;
     margin-bottom: 0.25rem;
   }
+
+  .sidebar-collapsible {
+    margin: 1.5rem 0;
+  }
+
+  .sidebar-collapsible-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: rgba(13, 110, 253, 0.08);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+  }
+
+  .sidebar-collapsible-header:hover {
+    background: rgba(13, 110, 253, 0.12);
+  }
+
+  .sidebar-collapsible-header span {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #0d6efd;
+  }
+
+  .sidebar-collapsible-header i {
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar-collapsible-header i.collapsed {
+    transform: rotate(-90deg);
+  }
+
+  .sidebar-collapsible-content {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 1;
+  }
+
+  .sidebar-collapsible-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+  }
+
+  .activity-item {
+    padding: 0.5rem;
+    border-left: 3px solid #e1e8ed;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+  }
+
+  .activity-item.success {
+    border-left-color: #28a745;
+    background: rgba(40, 167, 69, 0.05);
+  }
+
+  .activity-item.error {
+    border-left-color: #dc3545;
+    background: rgba(220, 53, 69, 0.05);
+  }
+
+  .activity-item.info {
+    border-left-color: #0d6efd;
+    background: rgba(13, 110, 253, 0.05);
+  }
+
+  .activity-item-time {
+    font-size: 0.65rem;
+    color: #6c757d;
+  }
+
+  .activity-item-message {
+    color: #495057;
+    margin-top: 0.2rem;
+  }
 </style>
 
 <!-- User Header -->
@@ -241,9 +321,70 @@
       <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard_alt' %}">
         <i class="bi bi-layout-wtf me-2"></i>Backend Tools
       </a>
+
+      <!-- Recent Activity Collapsible Widget -->
+      <div class="sidebar-collapsible">
+        <div class="sidebar-collapsible-header" onclick="toggleActivityLog(event)">
+          <span><i class="bi bi-clock-history me-2"></i>Recent Activity</span>
+          <i class="bi bi-chevron-down"></i>
+        </div>
+        <div class="sidebar-collapsible-content">
+          <div style="padding: 0.5rem 0; max-height: 300px; overflow-y: auto;">
+            <!-- Sample activity items - would be populated from backend -->
+            <div class="activity-item info">
+              <div class="activity-item-time">Just now</div>
+              <div class="activity-item-message">Dashboard accessed</div>
+            </div>
+            <div class="activity-item success">
+              <div class="activity-item-time">5 min ago</div>
+              <div class="activity-item-message">Student record created</div>
+            </div>
+            <div class="activity-item info">
+              <div class="activity-item-time">15 min ago</div>
+              <div class="activity-item-message">Settings updated</div>
+            </div>
+            <div class="activity-item success">
+              <div class="activity-item-time">1 hour ago</div>
+              <div class="activity-item-message">Invoice generated</div>
+            </div>
+            <div class="activity-item info">
+              <div class="activity-item-time">2 hours ago</div>
+              <div class="activity-item-message">Report exported</div>
+            </div>
+          </div>
+        </div>
+      </div>
     {% endif %}
   {% endif %}
 </div>
+
+<script>
+  function toggleActivityLog(event) {
+    event.stopPropagation();
+    const header = event.currentTarget;
+    const content = header.nextElementSibling;
+    const icon = header.querySelector('i:last-child');
+    
+    content.classList.toggle('collapsed');
+    icon.classList.toggle('collapsed');
+    
+    // Save state to localStorage
+    const isCollapsed = content.classList.contains('collapsed');
+    localStorage.setItem('activityLogCollapsed', isCollapsed);
+  }
+
+  // Restore collapsed state on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const isCollapsed = localStorage.getItem('activityLogCollapsed') === 'true';
+    const content = document.querySelector('.sidebar-collapsible-content');
+    const icon = document.querySelector('.sidebar-collapsible-header i:last-child');
+    
+    if (content && isCollapsed) {
+      content.classList.add('collapsed');
+      if (icon) icon.classList.add('collapsed');
+    }
+  });
+</script>
 
 <!-- Portal Features -->
 {% with portal_cfg=SITE.portal_features %}
