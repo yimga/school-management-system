@@ -479,20 +479,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Toggle panel
   trigger.addEventListener('click', function(event) {
-    // Alt-click restores shortcut hint for testing/QA
-    if (event.altKey && shortcutHint) {
-      localStorage.removeItem('ai-shortcut-hint-seen');
-      shortcutHint.style.display = 'inline-block';
-      shortcutHint.style.opacity = '1';
-      shortcutHint.style.transition = 'opacity 0.3s ease';
-      setTimeout(() => {
-        shortcutHint.style.opacity = '0';
-        setTimeout(() => {
-          shortcutHint.style.display = 'none';
-          localStorage.setItem('ai-shortcut-hint-seen', '1');
-        }, 350);
-      }, 3000);
-    }
 
     panel.classList.toggle('active');
     const isOpen = panel.classList.contains('active');
