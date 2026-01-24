@@ -690,5 +690,23 @@ document.addEventListener('DOMContentLoaded', function() {
       trigger.setAttribute('aria-expanded', 'false');
     }
   });
+
+  // Keyboard shortcuts: Ctrl/Cmd+Shift+? to toggle, Esc to close
+  document.addEventListener('keydown', function(e) {
+    const isToggleShortcut = (e.key === '/' || e.key === '?') && (e.ctrlKey || e.metaKey) && e.shiftKey;
+    if (isToggleShortcut) {
+      e.preventDefault();
+      trigger.click();
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      if (panel.classList.contains('active')) {
+        panel.classList.remove('active');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      }
+    }
+  });
 });
 </script>
