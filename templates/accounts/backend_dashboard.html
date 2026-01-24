@@ -1,419 +1,299 @@
 {% extends "portal_base.html" %}
-{% load static %}
 {% load admin_health %}
 
 {% block title %}Backend Dashboard{% endblock %}
 
 {% block extrastyle %}
+<!-- Include navigation bridge styles -->
+<link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
 <style>
-  /* Reset defaults */
-  body { margin: 0; padding: 0; overflow-x: hidden; }
-  
-  /* Hide the old admin hero section */
-  .admin-hero { display: none !important; }
-  
-  /* Floating Sidebar */
-  .floating-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 260px;
-    height: 100vh;
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    color: #e2e8f0;
-    overflow-y: auto;
-    z-index: 1000;
-    padding: 20px 16px;
-    box-shadow: 4px 0 12px rgba(0,0,0,0.3);
+  .admin-hero {
+    border-radius: 20px;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.95), rgba(99, 102, 241, 0.9));
+    color: #fff;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
   }
-  
-  /* Sidebar styling */
-  .sidebar-brand {
+  .hero-edits {
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-    padding: 16px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
+    margin-top: 1rem;
   }
-  
-  .sidebar-brand-logo {
-    width: 48px;
-    height: 48px;
-    background: #3b82f6;
-    border-radius: 8px;
+  .hero-edits a {
+    min-width: 150px;
+  }
+  .hero-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+  .hero-main {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: bold;
-    font-size: 20px;
+    flex-direction: column;
+    gap: 1rem;
   }
-  
-  .sidebar-brand h5 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
-    color: #fff;
+  .hero-kpi-card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    min-height: 110px;
+    padding: 1rem;
   }
-  
-  .sidebar-brand small {
-    color: #94a3b8;
-    font-size: 12px;
-  }
-  
-  .sidebar-nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    color: #94a3b8;
-    text-decoration: none;
-    border-radius: 8px;
-    margin-bottom: 4px;
-    transition: all 0.2s;
-    font-size: 14px;
-    font-weight: 500;
-  }
-  
-  .sidebar-nav-link:hover {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-    transform: translateX(4px);
-  }
-  
-  .sidebar-nav-link.active {
-    background: #3b82f6;
-    color: #fff;
-  }
-  
-  /* Main content with left margin for sidebar */
-  .main-content-wrapper {
-    margin-left: 260px;
-    min-height: 100vh;
-    background: #f8fafc;
-    padding: 0;
-  }
-  
-  /* Analytics filters at the top */
-  .analytics-filters {
-    background: #fff;
-    padding: 24px;
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  }
-  
-  .filter-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 4px;
-  }
-  
-  .filter-subtitle {
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 16px;
-  }
-  
-  /* Dashboard content */
-  .dashboard-content {
-    padding: 24px;
-  }
-  
-  /* KPI Cards */
-  .kpi-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    border: 1px solid #e2e8f0;
-    transition: all 0.2s;
-  }
-  
-  .kpi-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transform: translateY(-2px);
-  }
-  
-  .kpi-icon {
-    font-size: 2rem;
-  }
-  
-  .kpi-label {
-    font-size: 13px;
-    color: #64748b;
+  .hero-kpi-label {
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-    margin-bottom: 8px;
+    letter-spacing: 0.15em;
+    opacity: 0.85;
   }
-  
-  .kpi-value {
-    font-size: 28px;
+  .hero-kpi-value {
+    font-size: 1.75rem;
     font-weight: 700;
-    color: #1e293b;
+    margin-top: 0.3rem;
+  }
+  .hero-kpi-meta {
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+  .hero-status {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+  .hero-status-chip {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .hero-ai-note {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: 0.7rem;
+  }
+  .widget-chart {
+    margin-top: 1rem;
+  }
+  .trend-pill {
+    border-radius: 12px;
+    background: rgba(13, 110, 253, 0.08);
+    padding: 0.65rem 0.9rem;
+    text-align: center;
+    flex: 1;
+    min-width: 90px;
+  }
+  .trend-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(15, 23, 42, 0.6);
+  }
+  .trend-value {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .attendance-trend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.9rem;
+  }
+  .attendance-trend-item {
+    text-align: center;
+    padding: 0.65rem;
+    border-radius: 12px;
+    background: rgba(13, 110, 253, 0.05);
+  }
+  .attendance-trend-item strong {
+    display: block;
+    font-size: 1.1rem;
+  }
+  .portal-pill {
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    background: rgba(255, 255, 255, 0.7);
+  }
+  .portal-pill.enabled {
+    border-color: rgba(25, 135, 84, 0.4);
+    color: #0f5132;
+    background: rgba(25, 135, 84, 0.08);
+  }
+  .hero-info-panel {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+    min-height: 100%;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .hero-actions a {
+    min-width: 160px;
+  }
+  .hero-status-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .hero-kpi-sparkline {
+    height: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(13,110,253,0.8));
+    border-radius: 20px;
+    margin-top: 0.7rem;
+  }
+  .hero-status-chip {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .modular-card {
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .modular-card .card-body {
+    padding: 1.5rem;
+  }
+  .modular-card .card-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modular-card .card-title h5 {
     margin: 0;
   }
-  
-  /* Button visibility improvements */
-  .btn-primary {
-    background: #3b82f6 !important;
-    border-color: #3b82f6 !important;
-    color: #fff !important;
-  }
-  
-  .btn-primary:hover {
-    background: #2563eb !important;
-    border-color: #2563eb !important;
-  }
-  
-  .btn-outline-primary {
-    border: 2px solid #3b82f6 !important;
-    color: #3b82f6 !important;
-    background: transparent !important;
-  }
-  
-  .btn-outline-primary:hover {
-    background: #3b82f6 !important;
-    color: #fff !important;
-  }
-  
-  .btn-outline-secondary {
-    border: 2px solid #64748b !important;
-    color: #64748b !important;
-    background: transparent !important;
-  }
-  
-  .btn-outline-secondary:hover {
-    background: #64748b !important;
-    color: #fff !important;
-  }
-  
-  .form-select, .form-control {
-    border: 1px solid #cbd5e1;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-  }
-  
-  .form-select:focus, .form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  
-  .form-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #64748b;
+  .modular-card .meta-tag {
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    letter-spacing: 0.12em;
+    opacity: 0.6;
   }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-    .floating-sidebar {
-      transform: translateX(-100%);
-      transition: transform 0.3s;
-    }
-    
-    .floating-sidebar.open {
-      transform: translateX(0);
-    }
-    
-    .main-content-wrapper {
-      margin-left: 0;
-    }
-    
-    .kpi-card {
-      margin-bottom: 12px;
-    }
+  .modular-card .mini-sparkline {
+    height: 30px;
+    background: linear-gradient(90deg, rgba(13,110,253,0.4), rgba(99,102,241,0.9));
+    border-radius: 12px;
+    margin-top: 1rem;
   }
-  
-  /* Print styles */
-  @media print {
-    .floating-sidebar, .analytics-filters { display: none; }
-    .main-content-wrapper { margin-left: 0; }
+  .modular-card .card-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .contact-card .social-link {
+    border-radius: 12px;
+    padding: 0.65rem 1rem;
+    background: rgba(13, 110, 253, 0.08);
+    color: #0b5ed7;
+    border: 1px solid rgba(13, 110, 253, 0.2);
+    text-transform: capitalize;
+  }
+  .attendance-dial {
+    height: 10px;
+    border-radius: 999px;
+    background: #dee2e6;
+    overflow: hidden;
+    margin-top: 0.8rem;
+  }
+  .attendance-dial .dial-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #0dcaf0, #6610f2);
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Floating Sidebar -->
-<aside class="floating-sidebar">
-  <div class="sidebar-brand">
-    <div class="sidebar-brand-logo">GT</div>
-    <div>
-      <h5>Gilead Tech High</h5>
-      <small>Operations Portal</small>
+  {# Role-based dashboard header #}
+  {% include 'components/dashboard_header.html' %}
+  
+  {% include 'components/admin_nav_bridge.html' %}
+  
+  {% admin_health as health %}
+  <div class="admin-hero mb-4">
+    <div class="hero-grid">
+      <div class="hero-main">
+        <div>
+          <div class="text-uppercase small opacity-75 mb-1">{{ hero.tagline|default:"Operations" }}</div>
+          <h1 class="fw-bold mb-1">{{ hero.title }}</h1>
+          <p class="opacity-85 mb-2">{{ hero.subtitle }}</p>
+        </div>
+        <div class="hero-kpi-grid">
+          {% for stat in hero.stats %}
+            <div class="hero-kpi-card">
+              <div class="hero-kpi-label">{{ stat.label }}</div>
+              <div class="hero-kpi-value">{{ stat.value }}</div>
+              {% if stat.meta %}
+                <div class="hero-kpi-meta">{{ stat.meta }}</div>
+              {% endif %}
+              <div class="hero-kpi-sparkline" aria-hidden="true"></div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="hero-ai-note">{{ ai_insight }}</div>
+      </div>
+      <div class="hero-info-panel">
+        <div class="hero-actions">
+          {% for action in hero.actions %}
+            <a class="btn btn-sm btn-light text-primary fw-semibold" href="{{ action.url }}">{{ action.label }}</a>
+          {% endfor %}
+          {% if can_manage_settings %}
+            <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:customizer' %}">Open Full Site Settings</a>
+          {% endif %}
+        </div>
+        <div class="hero-status-grid">
+          <span class="hero-status-chip">Overdue invoices: {{ finance_summary.overdue|default:0 }}</span>
+          <span class="hero-status-chip">Pending referrals: {{ stats.pending_referrals }}</span>
+          <span class="hero-status-chip">Last 7 days present: {{ attendance_trend_total|default:0 }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center small">
+          <span class="text-uppercase opacity-75">Data source: finance + attendance</span>
+          <span class="text-uppercase opacity-75">Updated {% now "H:i" %}</span>
+        </div>
+      </div>
     </div>
   </div>
-  
-  <nav>
-    <a href="{% url 'accounts:backend_dashboard' %}" class="sidebar-nav-link active">
-      📊 Dashboard
-    </a>
-    <a href="{% url 'admin:index' %}" class="sidebar-nav-link">
-      ⚙️ Admin Config
-    </a>
-    <a href="{% url 'analytics:dashboard' %}" class="sidebar-nav-link">
-      📈 Analytics
-    </a>
-    <a href="{% url 'finance:dashboard' %}" class="sidebar-nav-link">
-      💰 Finance
-    </a>
-    <a href="{% url 'payroll:dashboard' %}" class="sidebar-nav-link">
-      💵 Payroll
-    </a>
-    <a href="{% url 'compliance:dashboard' %}" class="sidebar-nav-link">
-      🛡️ Compliance
-    </a>
-    <a href="{% url 'reports:publish_term_results' %}" class="sidebar-nav-link">
-      📑 Reports
-    </a>
-    <a href="{% url 'portal:parent_dashboard' %}" class="sidebar-nav-link">
-      👪 Parent Portal
-    </a>
-    <a href="{% url 'portal:teacher_dashboard_alias' %}" class="sidebar-nav-link">
-      👩‍🏫 Teacher Portal
-    </a>
-  </nav>
-</aside>
 
-<!-- Main Content -->
-<div class="main-content-wrapper">
-  <!-- Quick Action Tablets Row -->
-  <section class="quick-actions-bar" style="background: #fff; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-    <div class="row align-items-center g-2">
-      <div class="col-auto">
-        <a href="/admin/auth/user/add/" class="btn btn-sm" style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 8px; font-weight: 600; gap: 6px; display: inline-flex; align-items: center;">
-          <span>➕</span> Add Student
-        </a>
-      </div>
-      <div class="col-auto">
-        <a href="/admin/auth/user/add/" class="btn btn-sm" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 600; gap: 6px; display: inline-flex; align-items: center;">
-          <span>👩‍🏫</span> Add Teacher
-        </a>
-      </div>
-      <div class="col-auto">
-        <a href="/admin/finance/invoice/add/" class="btn btn-sm" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 8px; font-weight: 600; gap: 6px; display: inline-flex; align-items: center;">
-          <span>💵</span> Create Invoice
-        </a>
-      </div>
-      <div class="col-auto">
-        <a href="/admin/auth/auditlog/" class="btn btn-sm" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; border: none; border-radius: 8px; font-weight: 600; gap: 6px; display: inline-flex; align-items: center; font-size: 12px;">
-          <span>📋</span> Admin Logs
-        </a>
-      </div>
-      <div class="col-auto ms-auto">
-        <a href="{% url 'accounts:rbac' %}" class="btn btn-sm" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid #3b82f6; border-radius: 8px; font-weight: 600; font-size: 12px; gap: 4px; display: inline-flex; align-items: center;">
-          <span>🔐</span> RBAC: 5 roles • 32 perms
-        </a>
-      </div>
-    </div>
-  </section>
+  {# Weather & Daily Message Widget #}
+  {% include 'components/weather_widget.html' %}
 
-  <!-- Analytics Filters at Top -->
-  <section class="analytics-filters">
-    <h5 class="filter-title">Analytics Filters</h5>
-    <p class="filter-subtitle">Mirror the portal inputs so you can tune KPIs exactly as parents and teachers see them.</p>
-    
-    <div class="row g-3">
-      <div class="col-md-3">
-        <label class="form-label">Academic Year</label>
-        <select class="form-select">
-          <option>2024/2025</option>
-          <option>2025/2026</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label">Term</label>
-        <select class="form-select">
-          <option>First Term</option>
-          <option>Second Term</option>
-          <option>Third Term</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label">Classroom</label>
-        <select class="form-select">
-          <option>All Classrooms</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label">Specialty</label>
-        <select class="form-select">
-          <option>All Specialties</option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="d-flex gap-2 mt-3">
-      <button class="btn btn-primary btn-sm">Apply Filters</button>
-      <button class="btn btn-outline-secondary btn-sm">Reset</button>
-      <button class="btn btn-outline-secondary btn-sm">Sync to Portal</button>
-      <a href="{% url 'admin:index' %}" class="btn btn-outline-primary btn-sm ms-auto">
-        ⚙️ Switch to Admin
-      </a>
-    </div>
-  </section>
-
-  <!-- Dashboard Content -->
-  <div class="dashboard-content">
-    {% admin_health as health %}
-    
-    <!-- KPI Cards -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <div class="kpi-card">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <div class="kpi-label">Students</div>
-              <h3 class="kpi-value">{{ stats.students|default:0 }}</h3>
-            </div>
-            <div class="kpi-icon text-primary">🎓</div>
-          </div>
+  <div class="card filter-card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <h5 class="mb-1">Analytics filters</h5>
+          <p class="text-muted small mb-0">Mirror the portal inputs so you can tune KPIs exactly as parents and teachers see them.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-sm btn-outline-secondary">Sync to portal</button>
+          <button class="btn btn-sm btn-gradient-pill">Refresh stats</button>
         </div>
       </div>
-      
-      <div class="col-md-3">
-        <div class="kpi-card">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <div class="kpi-label">Guardians</div>
-              <h3 class="kpi-value">{{ stats.guardians|default:0 }}</h3>
-            </div>
-            <div class="kpi-icon text-success">👪</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-3">
-        <div class="kpi-card">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <div class="kpi-label">Pending Invites</div>
-              <h3 class="kpi-value">{{ stats.pending_invites|default:0 }}</h3>
-            </div>
-            <div class="kpi-icon text-warning">📧</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-md-3">
-        <div class="kpi-card">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <div class="kpi-label">Overdue Invoices</div>
-              <h3 class="kpi-value">{{ stats.overdue_invoices|default:0 }}</h3>
-            </div>
-            <div class="kpi-icon text-danger">💸</div>
-          </div>
-        </div>
-      </div>
-    </div>
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-uppercase text-muted">Academic year</label>
           <select class="form-select form-select-sm">
             {% if active_year %}<option>{{ active_year.name }}</option>{% else %}<option>2025/2026</option>{% endif %}
           </select>
@@ -533,10 +413,8 @@
   </div>
 
   <div class="row g-3 mb-4">
-    <!-- LEFT COLUMN: Finance & Attendance (2-row stack) -->
     <div class="col-lg-6">
-      <!-- Finance & Trend -->
-      <div class="card modular-card shadow-sm h-100 mb-3">
+      <div class="card modular-card shadow-sm h-100">
         <div class="card-body">
           <div class="card-title">
             <h5>Finance & trend</h5>
@@ -586,8 +464,8 @@
           </div>
         </div>
       </div>
-      
-      <!-- Attendance Snapshot -->
+    </div>
+    <div class="col-lg-6">
       <div class="card modular-card shadow-sm h-100">
         <div class="card-body">
           <div class="card-title">
@@ -639,10 +517,10 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- RIGHT COLUMN: Portal Insight, Pending Referrals, Grade Import (stacked vertically) -->
-    <div class="col-lg-6 d-flex flex-column gap-3">
-      <!-- Portal Insights -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4 col-md-6">
       <div class="card modular-card shadow-sm h-100">
         <div class="card-body">
           <div class="card-title">
@@ -666,8 +544,8 @@
           </details>
         </div>
       </div>
-
-      <!-- Pending Referrals -->
+    </div>
+    <div class="col-lg-4 col-md-6">
       <div class="card modular-card shadow-sm h-100">
         <div class="card-body">
           <div class="card-title">
@@ -683,8 +561,8 @@
           </div>
         </div>
       </div>
-
-      <!-- Grade Imports -->
+    </div>
+    <div class="col-lg-4 col-md-12">
       <div class="card modular-card shadow-sm h-100">
         <div class="card-body d-flex flex-column justify-content-between">
           <div>
@@ -748,7 +626,29 @@
   </div>
 
 
-
+  <div class="card shadow-sm mt-4 contact-card">
+    <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
+      <div>
+        <h5 class="mb-1">Contact & social</h5>
+        <p class="text-muted small mb-1">Display the people & channels parents can use to reach you.</p>
+        {% if site.company_phone %}
+          <div class="small text-dark">Phone: {{ site.company_phone }}</div>
+        {% endif %}
+        {% if site.company_email %}
+          <div class="small text-dark">Email: {{ site.company_email }}</div>
+        {% endif %}
+      </div>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        {% for link in social_links %}
+          <a class="social-link" href="{{ link.url }}" target="_blank">
+            <i class="{{ link.icon }}"></i> {{ link.platform }}
+          </a>
+        {% empty %}
+          <span class="small text-muted">No social links configured.</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 
   {% if section_stats %}
     <div class="card shadow-sm mt-4">
@@ -800,50 +700,86 @@
   <div class="mobile-fab d-lg-none">
     <button class="btn btn-primary btn-fab" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileQuickActions">
       <i class="fas fa-bars"></i>
+    </button>
+  </div>
+
+  <!-- Mobile Quick Actions Offcanvas -->
+  <div class="offcanvas offcanvas-bottom" tabindex="-1" id="mobileQuickActions">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Quick Actions</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="row g-2">
+        <div class="col-6"><a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100"><i class="fas fa-user-plus"></i> Add User</a></div>
+        <div class="col-6"><a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100"><i class="fas fa-user-graduate"></i> Add Student</a></div>
+        <div class="col-6"><a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100"><i class="fas fa-chalkboard-teacher"></i> Add Teacher</a></div>
+        <div class="col-6"><a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100"><i class="fas fa-file-invoice"></i> Create Invoice</a></div>
+        <div class="col-12"><a href="{% url 'admin:index' %}" class="btn btn-dark w-100"><i class="fas fa-th"></i> View All Admin</a></div>
+      </div>
     </div>
   </div>
 
-  <!-- Footer Section: Contact & Social -->
-  <footer class="mt-5 pt-4 border-top border-light">
-    <div class="card shadow-sm mb-4" style="border: none; background: linear-gradient(135deg, #f8fafc, #f1f5f9);">
-      <div class="card-body">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
-          <div>
-            <h6 class="mb-2" style="font-weight: 700; color: #1e293b;">📍 Contact Information</h6>
-            <div class="d-flex flex-column gap-2 text-muted small">
-              {% if site.company_phone %}
-                <div><strong>Phone:</strong> {{ site.company_phone }}</div>
-              {% endif %}
-              {% if site.company_email %}
-                <div><strong>Email:</strong> {{ site.company_email }}</div>
-              {% endif %}
-              {% if site.company_address %}
-                <div><strong>Address:</strong> {{ site.company_address }}</div>
-              {% endif %}
-            </div>
-          </div>
-          <div>
-            <h6 class="mb-2" style="font-weight: 700; color: #1e293b;">🌐 Social Media</h6>
-            <div class="d-flex flex-wrap gap-2">
-              {% for link in social_links %}
-                <a class="btn btn-sm" href="{{ link.url }}" target="_blank" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid #3b82f6; border-radius: 6px; font-size: 12px;">
-                  <i class="{{ link.icon }}"></i> {{ link.platform }}
-                </a>
-              {% empty %}
-                <span class="small text-muted">No social links configured.</span>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="text-center py-3 text-muted small" style="border-top: 1px solid #e2e8f0;">
-      <p class="mb-0">&copy; {% now "Y" %} Gilead Tech High. All rights reserved.</p>
-    </div>
-  </footer>
-</div>
-
-{# AI Copilot Assistant - RBAC Compatible #}
-{% include 'components/ai_copilot.html' %}
-
+  <!-- Mobile Responsive Styles -->
+  <style>
+    .mobile-fab {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+    
+    .btn-fab {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn-fab:hover {
+      transform: scale(1.1);
+      transition: transform 0.2s ease;
+    }
+    
+    @media (max-width: 992px) {
+      .admin-hero {
+        padding: 1.5rem !important;
+      }
+      
+      .hero-kpi-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+      
+      .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .admin-hero h1 {
+        font-size: 1.5rem !important;
+      }
+      
+      .hero-kpi-card {
+        min-height: 90px !important;
+      }
+      
+      .quick-action-item {
+        flex-direction: column;
+        text-align: center;
+        padding: 12px !important;
+      }
+      
+      .quick-action-icon {
+        margin: 0 auto 8px !important;
+      }
+    }
+  </style>
+  
+  {# Role-based dashboard footer #}
+  {% include 'components/dashboard_footer.html' %}
 {% endblock %}
