@@ -189,11 +189,6 @@
 {% block branding %}
   {% include 'components/admin_nav_bridge.html' %}
   
-  <!-- Sidebar Collapse Toggle Button -->
-  <button type="button" id="sidebarCollapseToggle" class="sidebar-collapse-toggle" aria-label="Toggle Sidebar" title="Collapse Sidebar">
-    <span class="toggle-icon">&#9776;</span>
-  </button>
-  
   <!-- Weather + Date + Quote Widget for Admin -->
   <div style="margin: 12px 0;">
     {% include 'components/header_weather_widget.html' %}
@@ -288,6 +283,35 @@
   
   <!-- Dashboard Charts (Chart.js) -->
   <script src="{% static 'js/dashboard-charts.js' %}"></script>
+  
+  <!-- Sidebar Collapse Toggle Button - Inject via JavaScript -->
+  <script>
+    (function() {
+      // Create and inject toggle button after page loads
+      const createToggleButton = () => {
+        const sidebar = document.getElementById("nav-sidebar");
+        if (!sidebar) return;
+        
+        const toggleBtn = document.createElement("button");
+        toggleBtn.type = "button";
+        toggleBtn.id = "sidebarCollapseToggle";
+        toggleBtn.className = "sidebar-collapse-toggle";
+        toggleBtn.setAttribute("aria-label", "Toggle Sidebar");
+        toggleBtn.title = "Collapse Sidebar";
+        toggleBtn.innerHTML = '<span class="toggle-icon">&#9776;</span>';
+        
+        document.body.appendChild(toggleBtn);
+        return toggleBtn;
+      };
+      
+      // Wait for DOM to be ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', createToggleButton);
+      } else {
+        createToggleButton();
+      }
+    })();
+  </script>
   
   <style>
     /* Position dashboard header at top of admin */
