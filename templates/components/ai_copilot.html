@@ -13,6 +13,7 @@
     <i class="bi bi-stars"></i>
     <span class="pulse-ring"></span>
   </button>
+  <span class="ai-shortcut-hint" aria-hidden="true">Ctrl/Cmd+Shift+?</span>
 
   <!-- AI Copilot Chat Panel -->
   <div class="ai-copilot-panel" id="aiCopilotPanel">
@@ -156,6 +157,21 @@
     position: relative;
     transition: all 0.3s ease;
     outline: none;
+  }
+
+  .ai-shortcut-hint {
+    position: absolute;
+    right: 0;
+    bottom: 70px;
+    transform: translateX(10%);
+    background: rgba(15, 23, 42, 0.85);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.18);
+    white-space: nowrap;
+    pointer-events: none;
   }
 
   .ai-copilot-trigger:hover {
