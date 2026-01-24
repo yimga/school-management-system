@@ -94,35 +94,65 @@ class StudentProfileAdminForm(forms.ModelForm):
 
 class TeacherProfileAdmin(ModelAdmin):
     list_display = (
-        "user",
+        "teacher_display_in_list",
         "staff_id",
         "phone",
         "department",
         "position_title",
         "pay_grade",
-        "default_dashboard_view",
         "next_pay_date",
-        "allow_finance_panel",
-        "profile_photo",
     )
     search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "staff_id")
     list_filter = ("department", "default_dashboard_view", "allow_leave_approvals", "allow_finance_panel")
     list_per_page = 50  # PERFORMANCE: Add pagination
+
+    def teacher_display_in_list(self, obj):
+        """Display teacher with photo thumbnail in list view"""
+        from django.utils.html import format_html
+        
+        photo_url = obj.profile_photo.url if obj.profile_photo else None
+        user = obj.user
+        
+        # Build HTML with optional photo
+        if photo_url:
+            return format_html(
+                '<div style="display: flex; align-items: center; gap: 10px;">'
+                '<img src="{}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e1e8ed;" />'
+                '<div>'
+                '<div style="font-weight: 600; margin-bottom: 2px;">{}</div>'
+                '<div style="font-size: 11px; color: #6c757d;">{}</div>'
+                '</div>'
+                '</div>',
+                photo_url,
+                user.get_full_name() or user.username,
+                user.username
+            )
+        else:
+            initials = f"{user.first_name[0]}{user.last_name[0]}".upper() if user.first_name and user.last_name else user.username[:2].upper()
+            return format_html(
+                '<div style="display: flex; align-items: center; gap: 10px;">'
+                '<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">{}</div>'
+                '<div>'
+                '<div style="font-weight: 600; margin-bottom: 2px;">{}</div>'
+                '<div style="font-size: 11px; color: #6c757d;">{}</div>'
+                '</div>'
+                '</div>',
+                initials,
+                user.get_full_name() or user.username,
+                user.username
+            )
+    teacher_display_in_list.short_description = "Teacher"
 
 
 class StudentProfileAdmin(ModelAdmin):
     form = StudentProfileAdminForm
     inlines = (StudentGuardianInline,)
     list_display = (
-        "admission_number",
-        "student_code",
-        "last_name",
-        "first_name",
+        "student_display_in_list",
         "academic_year",
         "classroom",
         "specialty",
         "is_active",
-        "profile_photo",
         "parent_completeness",
     )
     list_filter = ("academic_year", "classroom", "specialty", "is_active")
@@ -165,6 +195,41 @@ class StudentProfileAdmin(ModelAdmin):
     )
 
     actions = ("create_guardian_invites", "issue_referral_rewards")
+
+    def student_display_in_list(self, obj):
+        """Display student with photo thumbnail in list view"""
+        from django.utils.html import format_html
+        
+        photo_url = obj.profile_photo.url if obj.profile_photo else None
+        
+        # Build HTML with optional photo
+        if photo_url:
+            return format_html(
+                '<div style="display: flex; align-items: center; gap: 10px;">'
+                '<img src="{}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e1e8ed;" />'
+                '<div>'
+                '<div style="font-weight: 600; margin-bottom: 2px;">{}</div>'
+                '<div style="font-size: 11px; color: #6c757d;">{}</div>'
+                '</div>'
+                '</div>',
+                photo_url,
+                obj.get_full_name(),
+                obj.student_code
+            )
+        else:
+            return format_html(
+                '<div style="display: flex; align-items: center; gap: 10px;">'
+                '<div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">{}</div>'
+                '<div>'
+                '<div style="font-weight: 600; margin-bottom: 2px;">{}</div>'
+                '<div style="font-size: 11px; color: #6c757d;">{}</div>'
+                '</div>'
+                '</div>',
+                obj.first_name[0].upper() if obj.first_name else "S",
+                obj.get_full_name(),
+                obj.student_code
+            )
+    student_display_in_list.short_description = "Student"
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
@@ -237,16 +302,12 @@ class StudentProfileAdmin(ModelAdmin):
 
 class StudentGuardianAdmin(ModelAdmin):
     list_display = (
-        "guardian_user",
-        "student",
+        "guardian_display_with_photo",
+        "student_display_with_photo",
         "relationship",
         "phone",
         "email",
-        "whatsapp_number",
         "preferred_contact",
-        "receives_email",
-        "receives_sms",
-        "receives_whatsapp",
         "can_view_results",
         "can_view_finance",
     )
@@ -262,6 +323,74 @@ class StudentGuardianAdmin(ModelAdmin):
     )
     list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("guardian_user__username", "guardian_user__email", "student__student_code", "student__last_name")
+
+    def guardian_display_with_photo(self, obj):
+        """Display guardian user with optional photo thumbnail"""
+        from django.utils.html import format_html
+        from django.urls import reverse
+        
+        guardian = obj.guardian_user
+        if not guardian:
+            return "—"
+        
+        # Try to get photo from user profile if it exists
+        photo_url = None
+        if hasattr(guardian, 'profile') and guardian.profile.profile_photo:
+            photo_url = guardian.profile.profile_photo.url
+        
+        # Build HTML with optional photo
+        if photo_url:
+            return format_html(
+                '<div style="display: flex; align-items: center; gap: 8px;">'
+                '<img src="{}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #e1e8ed;" />'
+                '<span>{}</span>'
+                '</div>',
+                photo_url,
+                guardian.get_full_name() or guardian.username
+            )
+        else:
+            return format_html(
+                '<div style="display: flex; align-items: center; gap: 8px;">'
+                '<div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">{}</div>'
+                '<span>{}</span>'
+                '</div>',
+                guardian.first_name[0].upper() if guardian.first_name else guardian.username[0].upper(),
+                guardian.get_full_name() or guardian.username
+            )
+    guardian_display_with_photo.short_description = "Guardian"
+
+    def student_display_with_photo(self, obj):
+        """Display student with optional photo thumbnail"""
+        from django.utils.html import format_html
+        
+        student = obj.student
+        if not student:
+            return "—"
+        
+        photo_url = student.profile_photo.url if student.profile_photo else None
+        
+        # Build HTML with optional photo
+        if photo_url:
+            return format_html(
+                '<div style="display: flex; align-items: center; gap: 8px;">'
+                '<img src="{}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #e1e8ed;" />'
+                '<span>{} ({})</span>'
+                '</div>',
+                photo_url,
+                student.get_full_name(),
+                student.student_code
+            )
+        else:
+            return format_html(
+                '<div style="display: flex; align-items: center; gap: 8px;">'
+                '<div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 12px;">{}</div>'
+                '<span>{} ({})</span>'
+                '</div>',
+                student.first_name[0].upper() if student.first_name else "S",
+                student.get_full_name(),
+                student.student_code
+            )
+    student_display_with_photo.short_description = "Student"
 
 
 class TeacherPayRecordAdmin(ModelAdmin):
