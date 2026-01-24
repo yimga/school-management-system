@@ -1,6 +1,8 @@
 {% load static %}
+{% load accounts_extras %}
 {# Role-based dashboard footer with support, quick links, and legal info #}
 <footer class="dashboard-footer mt-5 bg-light border-top" id="dashboardFooter">
+  {% with can_portal=request.user|has_feature_permission:"portal.manage" can_reports=request.user|has_feature_permission:"reports.manage" can_attendance=request.user|has_feature_permission:"attendance.manage" can_attendance_view=request.user|has_feature_permission:"attendance.view" can_finance_view=request.user|has_feature_permission:"finance.view" can_finance_manage=request.user|has_feature_permission:"finance.manage" can_data_access=request.user|has_feature_permission:"data.access" can_settings=request.user|has_feature_permission:"settings.manage" can_comms=request.user|has_feature_permission:"communication.manage" %}
   <div class="container-fluid py-5">
     <!-- Brand + Accreditation + Support -->
     <div class="row g-3 align-items-center pb-4 border-bottom border-secondary footer-topbar">
@@ -56,7 +58,7 @@
             </a>
           </li>
           
-          {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+          {% if can_settings or can_data_access %}
             <!-- Admin/Leadership KB links -->
             <li>
               <a href="{% url 'kb:kb_category' 'admin' %}" class="footer-link">
@@ -74,7 +76,7 @@
               </a>
             </li>
           
-          {% elif request.user.role == 'TEACHER' %}
+          {% elif request.user|has_role:"TEACHER" %}
             <!-- Teacher KB links -->
             <li>
               <a href="{% url 'kb:kb_category' 'getting-started' %}" class="footer-link">
@@ -92,7 +94,7 @@
               </a>
             </li>
           
-          {% elif request.user.role == 'PARENT' %}
+          {% elif request.user|has_role:"PARENT" %}
             <!-- Parent KB links -->
             <li>
               <a href="{% url 'kb:kb_category' 'getting-started' %}" class="footer-link">
@@ -110,7 +112,7 @@
               </a>
             </li>
           
-          {% elif request.user.role == 'STUDENT' %}
+          {% elif request.user|has_role:"STUDENT" %}
             <!-- Student KB links -->
             <li>
               <a href="{% url 'kb:kb_category' 'getting-started' %}" class="footer-link">
@@ -143,117 +145,157 @@
           <i class="bi bi-lightning"></i> Quick Links
         </h5>
         <ul class="footer-links">
-          {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+          {% if can_settings or can_data_access %}
             <!-- Admin Quick Links -->
+            {% if request.user.is_staff or request.user.is_superuser %}
             <li>
               <a href="{% url 'admin:index' %}" class="footer-link">
                 <i class="bi bi-speedometer2"></i> Django Admin
               </a>
             </li>
+            {% endif %}
+            {% if can_settings or can_data_access %}
             <li>
               <a href="{% url 'accounts:backend_dashboard' %}" class="footer-link">
                 <i class="bi bi-grid"></i> Backend Dashboard
               </a>
             </li>
+            {% endif %}
+            {% if can_data_access %}
             <li>
               <a href="/accounts/dashboard/" class="footer-link">
                 <i class="bi bi-clock-history"></i> Activity Logs
               </a>
             </li>
+            {% endif %}
+            {% if can_settings %}
             <li>
               <a href="{% url 'accounts:rbac' %}" class="footer-link">
                 <i class="bi bi-shield-lock"></i> RBAC Management
               </a>
             </li>
+            {% endif %}
+            {% if can_data_access or can_reports %}
             <li>
               <a href="/compliance/dashboard/" class="footer-link">
                 <i class="bi bi-file-earmark-check"></i> Compliance Audit
               </a>
             </li>
+            {% endif %}
           
-          {% elif request.user.role == 'TEACHER' %}
+          {% elif request.user|has_role:"TEACHER" %}
             <!-- Teacher Quick Links -->
+            {% if can_portal or can_reports or can_attendance %}
             <li>
               <a href="{% url 'portal:teacher_dashboard_alias' %}" class="footer-link">
                 <i class="bi bi-house"></i> My Dashboard
               </a>
             </li>
+            {% endif %}
+            {% if can_portal %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="My Classes">
                 <i class="bi bi-people"></i> My Classes
               </a>
             </li>
+            {% endif %}
+            {% if can_reports %}
             <li>
               <a href="{% url 'evals:teacher_marks_entry' %}" class="footer-link">
                 <i class="bi bi-journal-text"></i> Grade Entry
               </a>
             </li>
+            {% endif %}
+            {% if can_attendance %}
             <li>
               <a href="{% url 'portal:teacher_attendance' %}" class="footer-link">
                 <i class="bi bi-calendar-check"></i> Attendance
               </a>
             </li>
+            {% endif %}
+            {% if can_comms or can_portal %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="Messages">
                 <i class="bi bi-envelope"></i> Messages
               </a>
             </li>
+            {% endif %}
           
-          {% elif request.user.role == 'PARENT' %}
+          {% elif request.user|has_role:"PARENT" %}
             <!-- Parent Quick Links -->
+            {% if can_portal %}
             <li>
               <a href="{% url 'portal:parent_dashboard' %}" class="footer-link">
                 <i class="bi bi-house"></i> My Dashboard
               </a>
             </li>
+            {% endif %}
+            {% if can_portal %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="My Children">
                 <i class="bi bi-people"></i> My Children
               </a>
             </li>
+            {% endif %}
+            {% if can_finance_view or can_finance_manage %}
             <li>
               <a href="{% url 'finance:invoices' %}" class="footer-link">
                 <i class="bi bi-receipt"></i> Invoices & Payments
               </a>
             </li>
+            {% endif %}
+            {% if can_reports %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="Report Cards">
                 <i class="bi bi-file-text"></i> Report Cards
               </a>
             </li>
+            {% endif %}
+            {% if can_comms or can_portal %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="Messages">
                 <i class="bi bi-envelope"></i> Messages
               </a>
             </li>
+            {% endif %}
           
-          {% elif request.user.role == 'STUDENT' %}
+          {% elif request.user|has_role:"STUDENT" %}
             <!-- Student Quick Links -->
+            {% if can_reports %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="My Dashboard">
                 <i class="bi bi-house"></i> My Dashboard
               </a>
             </li>
+            {% endif %}
+            {% if can_reports %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="My Grades">
                 <i class="bi bi-trophy"></i> My Grades
               </a>
             </li>
+            {% endif %}
+            {% if can_attendance_view or can_attendance %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="My Attendance">
                 <i class="bi bi-calendar-check"></i> My Attendance
               </a>
             </li>
+            {% endif %}
+            {% if can_reports %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="Timetable">
                 <i class="bi bi-calendar3"></i> Timetable
               </a>
             </li>
+            {% endif %}
+            {% if can_comms or can_portal %}
             <li>
               <a href="javascript:void(0);" class="footer-link" title="Messages">
                 <i class="bi bi-envelope"></i> Messages
               </a>
             </li>
+            {% endif %}
           {% endif %}
         </ul>
       </div>
@@ -319,7 +361,7 @@
               <i class="bi bi-life-preserver"></i> Support Center
             </a>
           </li>
-          {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+          {% if can_settings or can_data_access %}
           <li>
             <a href="/compliance/dashboard/" class="footer-link">
               <i class="bi bi-file-earmark-check"></i> Compliance Reports
@@ -373,6 +415,7 @@
       </div>
     </div>
   </div>
+  {% endwith %}
 </footer>
 
 <style>
