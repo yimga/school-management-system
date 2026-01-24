@@ -417,10 +417,16 @@
       </div>
     </div>
 
-    {# Weather & Daily Message Widget #}
-    {% include 'components/weather_widget.html' %}
+    {# Weather Marquee - Scrolling version #}
+    <div class=\"mt-5 pt-4 border-top\">
+      {% include 'components/weather_marquee.html' %}
+    </div>
 
-    <div class="row g-4">
+    {# Logo Watermark #}
+    {% include 'components/logo_watermark.html' %}
+  </div>
+</div>
+{% endblock %}
       <!-- Main Content Area -->
       <div class="col-lg-9">
 
