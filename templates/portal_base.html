@@ -44,6 +44,54 @@
         padding: 4px;
       }
 
+      /* Header Elements Styles */
+      .search-bar-wrapper {
+        position: relative;
+      }
+
+      .search-bar-wrapper input::placeholder {
+        color: rgba(255,255,255,0.6);
+      }
+
+      .search-bar-wrapper input:focus {
+        background: rgba(255,255,255,0.25) !important;
+        border-color: rgba(255,255,255,0.4) !important;
+        box-shadow: 0 0 0 0.25rem rgba(255,255,255,0.1) !important;
+      }
+
+      /* Theme Toggle Button */
+      #themeToggle {
+        transition: transform 0.3s ease, color 0.3s ease;
+      }
+
+      #themeToggle:hover {
+        transform: rotate(20deg);
+        color: #ffc107 !important;
+      }
+
+      /* Admin Dropdown Menu */
+      .dropdown-menu {
+        border: 1px solid rgba(0,0,0,0.1);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        border-radius: 12px;
+      }
+
+      .dropdown-item {
+        padding: 0.7rem 1rem;
+        transition: all 0.2s ease;
+      }
+
+      .dropdown-item:hover {
+        background-color: rgba(13,110,253,0.1);
+        color: var(--school-primary);
+      }
+
+      .dropdown-item i {
+        margin-right: 0.5rem;
+        width: 18px;
+        text-align: center;
+      }
+
       .card {
         border: 0;
         border-radius: 18px;
@@ -233,6 +281,51 @@
             <div class="flex-grow-1" style="max-width: 400px;">
               {% include 'components/header_weather_widget.html' %}
             </div>
+
+            <!-- Search Bar (Ctrl+K) -->
+            <div class="search-bar-wrapper" style="position: relative;">
+              <input 
+                type="text" 
+                class="form-control form-control-sm" 
+                placeholder="Search... (Ctrl+K)"
+                id="headerSearchInput"
+                style="width: 200px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white;"
+              />
+              <small class="text-muted position-absolute" style="right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem;">⌘K</small>
+            </div>
+
+            <!-- Theme Toggle Button -->
+            <button 
+              class="btn btn-link text-white p-0" 
+              id="themeToggle" 
+              title="Toggle Dark/Light Theme"
+              style="font-size: 1.2rem;"
+            >
+              <i class="bi bi-moon-stars"></i>
+            </button>
+
+            <!-- Admin Dropdown Menu -->
+            <div class="dropdown">
+              <button 
+                class="btn btn-link text-white p-0 dropdown-toggle" 
+                type="button" 
+                id="adminMenuDropdown" 
+                data-bs-toggle="dropdown" 
+                aria-expanded="false"
+                title="Admin Menu"
+                style="font-size: 1.2rem;"
+              >
+                <i class="bi bi-gear"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
+                <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
+                <li><a class="dropdown-item" href="{% url 'siteconfig:dashboard' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+              </ul>
+            </div>
+
             <span class="small opacity-75 d-none d-sm-inline">{{ request.user.username }}</span>
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
@@ -283,6 +376,64 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+      // Theme Toggle Functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-bs-theme', currentTheme);
+        updateThemeIcon(currentTheme);
+        
+        themeToggle.addEventListener('click', function() {
+          const theme = htmlElement.getAttribute('data-bs-theme');
+          const newTheme = theme === 'light' ? 'dark' : 'light';
+          htmlElement.setAttribute('data-bs-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+          const icon = themeToggle.querySelector('i');
+          if (theme === 'dark') {
+            icon.classList.remove('bi-moon-stars');
+            icon.classList.add('bi-sun-fill');
+          } else {
+            icon.classList.remove('bi-sun-fill');
+            icon.classList.add('bi-moon-stars');
+          }
+        }
+      });
+
+      // Search Bar Functionality (Ctrl+K)
+      document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('headerSearchInput');
+        
+        if (searchInput) {
+          // Focus on Ctrl+K or Cmd+K
+          document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+              e.preventDefault();
+              searchInput.focus();
+            }
+          });
+          
+          // Handle search on Enter
+          searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              const query = this.value.trim();
+              if (query) {
+                // Perform search - redirect to search results or filter
+                window.location.href = `/search/?q=${encodeURIComponent(query)}`;
+              }
+            }
+          });
+        }
+      });
+    </script>
     
     {# AI Copilot Assistant - RBAC Compatible #}
     {% include 'components/ai_copilot.html' %}
