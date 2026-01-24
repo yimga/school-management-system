@@ -209,9 +209,55 @@ def language_context(request):
 def ai_copilot_settings(request):
     """
     Context processor for AI Copilot settings.
-    Provides the Gemini API key to templates for AI-powered assistance.
+    Provides the Gemini API key and RBAC permissions to templates.
+    
+    Ensures AI copilot respects role-based access control:
+    - ADMIN/LEADERSHIP: Full system access (analytics, finance, compliance)
+    - TEACHER: Class and grade data access
+    - PARENT: Child-specific data access
+    - Other: General navigation only
     """
     import os
+    
+    # Get user role
+    user_role = 'USER'
+    if request.user and request.user.is_authenticated:
+        user_role = getattr(request.user, 'role', 'USER')
+    
+    # Determine AI permissions based on role
+    ai_permissions = {
+        'can_access_ai': request.user and request.user.is_authenticated,
+        'can_analyze_data': False,
+        'can_view_financial': False,
+        'can_view_compliance': False,
+        'can_access_grades': False,
+        'can_access_roster': False,
+        'scope': 'general',
+    }
+    
+    if user_role in ['ADMIN', 'LEADERSHIP']:
+        ai_permissions.update({
+            'can_analyze_data': True,
+            'can_view_financial': True,
+            'can_view_compliance': True,
+            'can_access_grades': True,
+            'can_access_roster': True,
+            'scope': 'admin',
+        })
+    elif user_role == 'TEACHER':
+        ai_permissions.update({
+            'can_access_grades': True,
+            'can_access_roster': True,
+            'scope': 'teacher',
+        })
+    elif user_role == 'PARENT':
+        ai_permissions.update({
+            'can_access_grades': True,  # Only their child's
+            'scope': 'parent',
+        })
+    
     return {
         'GEMINI_API_KEY': os.environ.get('GEMINI_API_KEY', ''),
+        'AI_PERMISSIONS': ai_permissions,
+        'USER_ROLE': user_role,
     }

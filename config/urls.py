@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.urls import include, path
 
 from apps.observability import views as obs_views
+from apps.portal.views_ai_copilot import ai_copilot_query, ai_permissions
 from config.admin import admin_site
 
 
@@ -49,6 +50,10 @@ urlpatterns = [
     # Phase 3 API endpoints
     path('api/activities/', obs_views.api_activities, name='api_activities'),
     path('api/dashboard/charts/', obs_views.api_dashboard_charts, name='api_dashboard_charts'),
+    
+    # AI Copilot API endpoints (RBAC Protected)
+    path('api/ai-copilot/validate/', ai_copilot_query, name='ai_copilot_query'),
+    path('api/ai-copilot/permissions/', ai_permissions, name='ai_permissions'),
 
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
