@@ -453,32 +453,6 @@
     </div>
   </div>
 
-  <!-- Account Stats Header Card -->
-  <div class="card shadow-sm mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-    <div class="card-body">
-      <div class="row g-4 text-center">
-        <div class="col-md-4">
-          <div class="stat-group">
-            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">{{ request.user.stats.login_count|default:0 }}</div>
-            <div style="font-size: 0.85rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.1em;">Logins</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="stat-group">
-            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">{{ last_login_minutes|default:0 }}</div>
-            <div style="font-size: 0.85rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.1em;">Minutes<br/>Last Login</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="stat-group">
-            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">{{ member_since|default:"--" }}</div>
-            <div style="font-size: 0.85rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.1em;">Member For</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Welcome Header -->
   <div class="mb-4">
     <h2 class="fw-bold mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h2>
@@ -843,77 +817,4 @@
   <div class="mt-5">
     {% include 'components/dashboard_footer.html' %}
   </div>
-
-  <!-- Floating Admin Log Panel -->
-  <div class="floating-log-panel" id="adminLogPanel">
-    <div class="log-panel-header">
-      <h6><i class="bi bi-terminal me-2"></i>Admin Panel</h6>
-      <button class="log-panel-close" onclick="document.getElementById('adminLogPanel').style.display='none';">&times;</button>
-    </div>
-    <div class="log-panel-body" id="logPanelContent" style="padding: 1rem 0;">
-      
-      <!-- Account Section -->
-      <div style="padding: 0.75rem 1rem; border-bottom: 1px solid #e1e8ed;">
-        <div style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #6c757d; margin-bottom: 0.75rem; letter-spacing: 0.05em;">ACCOUNT</div>
-        <a href="/admin/accounts/user/{{ request.user.id }}/change/" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-person"></i>My Profile
-          <span style="margin-left: auto; font-size: 0.7rem; color: #6c757d;">P</span>
-        </a>
-        <a href="{% url 'siteconfig:customizer' %}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-gear"></i>Settings
-          <span style="margin-left: auto; font-size: 0.7rem; color: #6c757d;">S</span>
-        </a>
-        <a href="#" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-bell"></i>Notifications
-          <span style="margin-left: auto;">
-            <span style="background: #0d6efd; color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.65rem; font-weight: 600;">0</span>
-          </span>
-        </a>
-      </div>
-
-      <!-- Admin Tools Section -->
-      <div style="padding: 0.75rem 1rem; border-bottom: 1px solid #e1e8ed;">
-        <div style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #6c757d; margin-bottom: 0.75rem; letter-spacing: 0.05em;">ADMIN TOOLS</div>
-        <a href="/admin/" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-shield-lock"></i>Django Admin
-        </a>
-        <a href="/admin/admin/logentry/" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-clock-history"></i>Activity Logs
-        </a>
-        <a href="/admin/" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-heart-pulse"></i>System Health
-        </a>
-      </div>
-
-      <!-- Help & Support Section -->
-      <div style="padding: 0.75rem 1rem;">
-        <div style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #6c757d; margin-bottom: 0.75rem; letter-spacing: 0.05em;">HELP & SUPPORT</div>
-        <a href="#" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-question-circle"></i>Help Center
-          <span style="margin-left: auto; font-size: 0.7rem; color: #6c757d;">?</span>
-        </a>
-        <a href="#" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-book"></i>Knowledge Base
-        </a>
-        <a href="#" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; color: #495057; text-decoration: none; font-size: 0.9rem;">
-          <i class="bi bi-envelope"></i>Contact Support
-        </a>
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    // Auto-hide log panel on mobile or small screens
-    if (window.innerWidth < 768) {
-      document.getElementById('adminLogPanel').style.display = 'none';
-    }
-    
-    // Responsive behavior
-    window.addEventListener('resize', function() {
-      if (window.innerWidth < 768) {
-        document.getElementById('adminLogPanel').style.display = 'none';
-      }
-    });
-  </script>
 {% endblock %}
