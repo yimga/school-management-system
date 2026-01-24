@@ -315,14 +315,14 @@ def _empty_performance_data() -> dict:
         SiteSettings.get_solo().pass_mark,
         3600
     )
-        return {
-            "average": None,
-            "top_student": None,
-            "pass_mark": float(pass_mark),
-            "trend": "Pending results",
-            "label": "Results populate as teachers publish marks.",
-            "per_student": [],
-        }
+    return {
+        "average": None,
+        "top_student": None,
+        "pass_mark": float(pass_mark),
+        "trend": "Pending results",
+        "label": "Results populate as teachers publish marks.",
+        "per_student": [],
+    }
 
 
 def _finance_summary(students):
