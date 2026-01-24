@@ -52,33 +52,37 @@
 
       // Add count badges to model links
       const addCountBadges = () => {
-        const modelLinks = sidebar.querySelectorAll("ul li a");
-        modelLinks.forEach((link) => {
-          const href = link.getAttribute("href");
-          if (!href || !href.includes("/admin/")) return;
-          
-          // Extract app_label and model_name from URL
-          // Format: /admin/app_label/model_name/
-          const match = href.match(/\/admin\/([^\/]+)\/([^\/]+)\//);
-          if (!match) return;
-          
-          const [, appLabel, modelName] = match;
-          const countKey = `${appLabel}.${modelName}`;
-          const count = MODEL_COUNTS[countKey];
-          
-          if (count !== undefined) {
-            // Remove existing badge if any
-            const existingBadge = link.querySelector(".admin-sidebar-badge");
-            if (existingBadge) existingBadge.remove();
+        try {
+          const modelLinks = sidebar.querySelectorAll("ul li a");
+          modelLinks.forEach((link) => {
+            const href = link.getAttribute("href");
+            if (!href || !href.includes("/admin/")) return;
             
-            // Create and append badge
-            const badge = document.createElement("span");
-            badge.className = count > 0 ? "admin-sidebar-badge" : "admin-sidebar-badge admin-sidebar-badge--empty";
-            badge.textContent = formatCount(count);
-            badge.title = `${count} record${count !== 1 ? 's' : ''}`;
-            link.appendChild(badge);
-          }
-        });
+            // Extract app_label and model_name from URL
+            // Format: /admin/app_label/model_name/
+            const match = href.match(/\/admin\/([^\/]+)\/([^\/]+)\//);
+            if (!match) return;
+            
+            const [, appLabel, modelName] = match;
+            const countKey = `${appLabel}.${modelName}`;
+            const count = MODEL_COUNTS[countKey];
+            
+            if (count !== undefined) {
+              // Remove existing badge if any
+              const existingBadge = link.querySelector(".admin-sidebar-badge");
+              if (existingBadge) existingBadge.remove();
+              
+              // Create and append badge
+              const badge = document.createElement("span");
+              badge.className = count > 0 ? "admin-sidebar-badge" : "admin-sidebar-badge admin-sidebar-badge--empty";
+              badge.textContent = formatCount(count);
+              badge.title = `${count} record${count !== 1 ? 's' : ''}`;
+              link.appendChild(badge);
+            }
+          });
+        } catch(e) {
+          console.warn('Error adding badges:', e);
+        }
       };
 
       // Format count for display
@@ -92,8 +96,9 @@
       addCountBadges();
 
       // Enhanced Multi-Mode Accordion for each app group
-      const modules = sidebar.querySelectorAll(".module");
-      const accordionState = {};
+      try {
+        const modules = sidebar.querySelectorAll(".module");
+        const accordionState = {};
       
       modules.forEach((module, idx) => {
         const header = module.querySelector("h2, caption");
@@ -180,6 +185,9 @@
           li.style.display = text.includes(term) ? "" : "none";
         });
       });
+      } catch(e) {
+        console.warn('Error during sidebar initialization:', e);
+      }
     });
   </script>
 {% endblock %}
@@ -188,11 +196,6 @@
 
 {% block branding %}
   {% include 'components/admin_nav_bridge.html' %}
-  
-  <!-- Weather + Date + Quote Widget for Admin -->
-  <div style="margin: 12px 0;">
-    {% include 'components/header_weather_widget.html' %}
-  </div>
   
   <h1 id="site-name">
     <a href="{% url 'admin:index' %}">
