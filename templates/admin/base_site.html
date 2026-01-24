@@ -252,9 +252,26 @@
       
       // Initialize sidebar collapse functionality
       const initSidebarCollapse = () => {
-        const sidebar = document.getElementById("nav-sidebar");
-        const mainContent = document.getElementById("content");
-        if (!sidebar) return;
+        // Try multiple selectors to find the sidebar (Django admin uses #nav-sidebar or nav#nav-sidebar)
+        let sidebar = document.getElementById("nav-sidebar") || 
+                      document.querySelector("nav#nav-sidebar") ||
+                      document.querySelector(".sidebar") ||
+                      document.querySelector("aside[role='navigation']");
+        
+        const mainContent = document.getElementById("content") || 
+                           document.querySelector("main") ||
+                           document.querySelector(".main-content");
+        
+        if (!sidebar) {
+          console.warn("Admin sidebar not found. Retrying in 500ms...");
+          setTimeout(initSidebarCollapse, 500);
+          return;
+        }
+        
+        // Check if button already exists
+        if (document.getElementById("sidebarCollapseToggle")) {
+          return;
+        }
         
         // Create toggle button
         const toggleBtn = document.createElement("button");
@@ -296,11 +313,13 @@
         });
       };
       
-      // Wait for DOM to be ready
+      // Wait for DOM to be fully ready and give Django admin time to render
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSidebarCollapse);
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(initSidebarCollapse, 100);
+        });
       } else {
-        initSidebarCollapse();
+        setTimeout(initSidebarCollapse, 100);
       }
     })();
   </script>
@@ -320,6 +339,9 @@
     }
   </style>
 
+  {# AI Copilot Assistant - RBAC Compatible #}
+  {% include 'components/ai_copilot.html' %}
+  
   {# Logo Watermark on all admin pages #}
   {% include 'components/logo_watermark.html' %}
 {% endblock %}
