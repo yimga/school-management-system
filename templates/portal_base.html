@@ -572,7 +572,7 @@
       <div class="col-lg-9 col-xl-10" id="main-content" role="main">
         <div class="page-wrap">
           {% include "partials/breadcrumbs.html" %}
-          {% if messages %}
+            {% if messages %}
             <div class="mb-3">
               <!-- Global Announcements Banner -->
               {% include 'components/announcement_banner.html' %}
@@ -580,6 +580,49 @@
               {% for message in messages %}
                 <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
               {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if request.user.is_staff or request.user.role == 'ADMIN' %}
+              <div class="mb-3">
+                <div class="section-title">
+                  <i class="bi bi-graph-up-arrow"></i>
+                  <span>Dashboard Stats</span>
+                </div>
+                <div class="row g-2">
+                  <div class="col-6 col-xl-3">
+                    <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.08)); border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 10px; padding: 0.75rem;">
+                      <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">Students</span>
+                        <span style="background: #667eea; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">0</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-xl-3">
+                    <div style="background: linear-gradient(135deg, rgba(56, 161, 105, 0.1), rgba(56, 161, 105, 0.08)); border: 1px solid rgba(56, 161, 105, 0.2); border-radius: 10px; padding: 0.75rem;">
+                      <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">Teachers</span>
+                        <span style="background: #38a169; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">4</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-xl-3">
+                    <div style="background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.08)); border: 1px solid rgba(240, 147, 251, 0.2); border-radius: 10px; padding: 0.75rem;">
+                      <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">Pending</span>
+                        <span style="background: #f5576c; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">0</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6 col-xl-3">
+                    <div style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.08)); border: 1px solid rgba(220, 53, 69, 0.2); border-radius: 10px; padding: 0.75rem;">
+                      <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">Notifications</span>
+                        <span style="background: #dc3545; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">0</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             {% endif %}
 

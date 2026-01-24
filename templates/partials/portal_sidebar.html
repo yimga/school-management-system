@@ -570,37 +570,6 @@
     </div>
   {% endif %}
 
-  <!-- Dashboard Stats Widget (Admin Only) -->
-  {% if request.user.is_staff or request.user.role == 'ADMIN' %}
-    <div style="margin: 1.5rem 0;">
-      <div class="sidebar-section-title">Dashboard Stats</div>
-      <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.08)); border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 10px; padding: 0.75rem; margin-bottom: 0.75rem;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-          <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">Students</span>
-          <span style="background: #667eea; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">0</span>
-        </div>
-      </div>
-      <div style="background: linear-gradient(135deg, rgba(56, 161, 105, 0.1), rgba(56, 161, 105, 0.08)); border: 1px solid rgba(56, 161, 105, 0.2); border-radius: 10px; padding: 0.75rem; margin-bottom: 0.75rem;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-          <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">Teachers</span>
-          <span style="background: #38a169; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">4</span>
-        </div>
-      </div>
-      <div style="background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.08)); border: 1px solid rgba(240, 147, 251, 0.2); border-radius: 10px; padding: 0.75rem; margin-bottom: 0.75rem;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-          <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">Pending</span>
-          <span style="background: #f5576c; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">0</span>
-        </div>
-      </div>
-      <div style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.08)); border: 1px solid rgba(220, 53, 69, 0.2); border-radius: 10px; padding: 0.75rem;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-          <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">Notifications</span>
-          <span style="background: #dc3545; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">0</span>
-        </div>
-      </div>
-    </div>
-  {% endif %}
-
 {% endwith %}
 
 <!-- Additional Links -->
