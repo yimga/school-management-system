@@ -620,6 +620,15 @@
         if (lastSuccess) lastSuccess.textContent = formatTs(data.last_success_ts);
         if (lastError) lastError.textContent = formatTs(data.last_error_ts);
 
+        if (errorBadge) {
+          const hasErrors = Number(data.errors || 0) > 0;
+          errorBadge.className = hasErrors ? 'badge bg-danger' : 'badge bg-light text-dark';
+        }
+        if (lastError) {
+          const hasErrors = Number(data.errors || 0) > 0 && data.last_error_ts;
+          lastError.className = hasErrors ? 'badge bg-danger' : 'badge bg-light text-dark';
+        }
+
         const roles = Array.isArray(data.roles) ? data.roles : [];
         if (roles.length === 0) {
           roleList.innerHTML = '<li class="text-muted">No usage recorded.</li>';

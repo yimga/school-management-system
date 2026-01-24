@@ -3,17 +3,30 @@
    Uses CSS variables from design-system-unified.css
    ============================================ */
 
+:root {
+  --admin-sidebar-bg: #0b0f14;
+  --admin-sidebar-surface: #0f172a;
+  --admin-sidebar-border: #1f2937;
+  --admin-sidebar-text: #e2e8f0;
+  --admin-sidebar-text-muted: #94a3b8;
+  --admin-sidebar-hover-bg: #111827;
+  --admin-sidebar-active-bg: #111827;
+  --admin-sidebar-active-border: #e2e8f0;
+  --admin-sidebar-badge-bg: #1f2937;
+  --admin-sidebar-badge-text: #e2e8f0;
+}
+
 /* Sidebar Container */
 .sidebar,
 #nav-sidebar {
   width: 280px;
-  background: var(--color-text-primary);
-  color: var(--color-bg-light);
-  box-shadow: var(--shadow-lg);
-  border-right: 1px solid var(--color-border);
+  background: var(--admin-sidebar-bg);
+  color: var(--admin-sidebar-text);
+  box-shadow: none;
+  border-right: 1px solid var(--admin-sidebar-border);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(226, 232, 240, 0.2) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
   transition: width 0.3s ease, margin-left 0.3s ease;
 }
 
@@ -61,9 +74,9 @@
   left: 270px;
   top: 15px;
   z-index: 1002;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  color: #fff;
+  background: var(--admin-sidebar-surface);
+  border: 1px solid var(--admin-sidebar-border);
+  color: var(--admin-sidebar-text);
   width: 40px;
   height: 40px;
   border-radius: 8px;
@@ -74,15 +87,15 @@
   font-size: 20px;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: none;
   padding: 0;
   outline: none;
 }
 
 .sidebar-collapse-toggle:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: var(--admin-sidebar-hover-bg);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  box-shadow: none;
 }
 
 .sidebar-collapse-toggle:focus-visible {
@@ -119,12 +132,12 @@
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: rgba(226, 232, 240, 0.2);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: var(--radius-full);
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: rgba(226, 232, 240, 0.4);
+  background: rgba(148, 163, 184, 0.55);
 }
 
 /* Sidebar Section */
@@ -144,7 +157,7 @@
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wide);
-  color: rgba(226, 232, 240, 0.6);
+  color: var(--admin-sidebar-text-muted);
 }
 
 /* Sidebar Links */
@@ -156,7 +169,7 @@
   padding: var(--spacing-md) var(--spacing-lg);
   margin: 0 var(--spacing-md);
   border-radius: var(--radius-md);
-  color: rgba(226, 232, 240, 0.8);
+  color: var(--admin-sidebar-text);
   text-decoration: none;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
@@ -174,16 +187,16 @@
 
 .sidebar a:hover,
 .sidebar button:hover {
-  background: rgba(226, 232, 240, 0.1);
-  color: #fff;
+  background: var(--admin-sidebar-hover-bg);
+  color: var(--admin-sidebar-text);
 }
 
 .sidebar a.active,
 .sidebar button.active {
-  background: rgba(226, 232, 240, 0.2);
-  color: #fff;
+  background: var(--admin-sidebar-active-bg);
+  color: var(--admin-sidebar-text);
   font-weight: var(--font-weight-semibold);
-  border-left: 2px solid var(--color-primary);
+  border-left: 2px solid var(--admin-sidebar-active-border);
 }
 
 /* Sidebar Icons */
@@ -202,7 +215,7 @@
 }
 
 .sidebar a.active .sidebar-icon {
-  color: var(--color-primary);
+  color: var(--admin-sidebar-text);
 }
 
 /* Sidebar Badge */
@@ -210,8 +223,8 @@
   margin-left: auto;
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--admin-sidebar-badge-bg);
+  color: var(--admin-sidebar-badge-text);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   display: inline-flex;
@@ -226,6 +239,8 @@
   max-height: 0;
   overflow: hidden;
   transition: max-height var(--transition-duration) ease-out;
+  margin: 0 var(--spacing-md);
+  border-left: 1px solid var(--admin-sidebar-border);
 }
 
 .sidebar-submenu.show {
@@ -235,11 +250,11 @@
 .sidebar-submenu a {
   padding-left: calc(var(--spacing-lg) + 28px);
   font-size: var(--font-size-xs);
-  color: rgba(226, 232, 240, 0.7);
+  color: var(--admin-sidebar-text-muted);
 }
 
 .sidebar-submenu a:hover {
-  color: #fff;
+  color: var(--admin-sidebar-text);
 }
 
 /* Sidebar Toggle Button */
@@ -250,7 +265,7 @@
   top: var(--spacing-md);
   background: transparent;
   border: none;
-  color: var(--color-text-primary);
+  color: var(--admin-sidebar-text);
   font-size: var(--font-size-lg);
   cursor: pointer;
   z-index: 1001;
@@ -350,24 +365,24 @@
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
   .sidebar {
-    background: var(--color-bg-dark);
-    border-right-color: var(--color-border);
+    background: var(--admin-sidebar-bg);
+    border-right-color: var(--admin-sidebar-border);
   }
   
   .sidebar a,
   .sidebar button {
-    color: var(--color-text-secondary);
+    color: var(--admin-sidebar-text);
   }
   
   .sidebar a:hover,
   .sidebar button:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--color-text-primary);
+    background: var(--admin-sidebar-hover-bg);
+    color: var(--admin-sidebar-text);
   }
   
   .sidebar a.active,
   .sidebar button.active {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--admin-sidebar-active-bg);
   }
 }
 
@@ -390,8 +405,8 @@
   transform: translateY(-50%);
   margin-left: var(--spacing-md);
   padding: var(--spacing-md);
-  background: var(--color-bg-light);
-  color: var(--color-text-primary);
+  background: var(--admin-sidebar-surface);
+  color: var(--admin-sidebar-text);
   border-radius: var(--radius-md);
   font-size: var(--font-size-xs);
   white-space: nowrap;
@@ -434,10 +449,10 @@
   justify-content: space-between;
   padding: var(--spacing-md) var(--spacing-lg);
   margin: 0;
-  background: rgba(226, 232, 240, 0.05);
+  background: var(--admin-sidebar-bg);
   border: none;
   border-radius: 0;
-  color: rgba(226, 232, 240, 0.9);
+  color: var(--admin-sidebar-text);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
@@ -449,27 +464,27 @@
 }
 
 .nav-accordion-toggle:hover {
-  background: rgba(226, 232, 240, 0.1);
-  color: #fff;
+  background: var(--admin-sidebar-hover-bg);
+  color: var(--admin-sidebar-text);
 }
 
 .nav-accordion-toggle.collapsed {
   background: transparent;
-  color: rgba(226, 232, 240, 0.7);
+  color: var(--admin-sidebar-text-muted);
 }
 
 /* Accordion Chevron Icon */
 .nav-accordion-chevron {
   font-size: 12px;
   transition: transform 0.3s ease;
-  color: rgba(226, 232, 240, 0.6);
+  color: var(--admin-sidebar-text-muted);
   font-style: normal;
   display: inline-block;
   margin-left: auto;
 }
 
 .nav-accordion-toggle:hover .nav-accordion-chevron {
-  color: rgba(226, 232, 240, 0.9);
+  color: var(--admin-sidebar-text);
 }
 
 /* Accordion Content Wrapper */
@@ -496,7 +511,7 @@
   padding: var(--spacing-sm) var(--spacing-lg);
   padding-left: calc(var(--spacing-lg) + var(--spacing-md));
   margin: 0;
-  color: rgba(226, 232, 240, 0.8);
+  color: var(--admin-sidebar-text-muted);
   text-decoration: none;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-normal);
@@ -509,18 +524,18 @@
 }
 
 .nav-accordion-content a:hover {
-  background: rgba(226, 232, 240, 0.08);
-  color: #fff;
-  border-left-color: rgba(226, 232, 240, 0.3);
+  background: var(--admin-sidebar-hover-bg);
+  color: var(--admin-sidebar-text);
+  border-left-color: var(--admin-sidebar-text-muted);
   padding-left: calc(var(--spacing-lg) + var(--spacing-md) + 2px);
 }
 
 .nav-accordion-content a.active,
 .nav-accordion-content a[aria-current="page"] {
-  background: rgba(226, 232, 240, 0.12);
-  color: #fff;
+  background: var(--admin-sidebar-active-bg);
+  color: var(--admin-sidebar-text);
   font-weight: var(--font-weight-medium);
-  border-left-color: var(--color-primary, #3b82f6);
+  border-left-color: var(--admin-sidebar-active-border);
 }
 
 /* Search Box Styling */
@@ -528,10 +543,10 @@
   width: calc(100% - var(--spacing-lg) * 2);
   margin: var(--spacing-lg);
   padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid rgba(226, 232, 240, 0.2);
+  border: 1px solid var(--admin-sidebar-border);
   border-radius: var(--radius-md);
-  background: rgba(226, 232, 240, 0.05);
-  color: rgba(226, 232, 240, 0.9);
+  background: var(--admin-sidebar-surface);
+  color: var(--admin-sidebar-text);
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
   outline: none;
@@ -539,13 +554,13 @@
 }
 
 .nav-search::placeholder {
-  color: rgba(226, 232, 240, 0.5);
+  color: var(--admin-sidebar-text-muted);
 }
 
 .nav-search:focus {
-  background: rgba(226, 232, 240, 0.08);
-  border-color: rgba(226, 232, 240, 0.4);
-  box-shadow: 0 0 0 3px rgba(226, 232, 240, 0.1);
+  background: var(--admin-sidebar-surface);
+  border-color: var(--admin-sidebar-text-muted);
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
 }
 
 /* Badge Enhancement for Accordion Items */
@@ -553,8 +568,8 @@
   margin-left: auto;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  background: rgba(226, 232, 240, 0.15);
-  color: rgba(226, 232, 240, 0.9);
+  background: var(--admin-sidebar-badge-bg);
+  color: var(--admin-sidebar-badge-text);
   font-size: 11px;
   font-weight: var(--font-weight-medium);
   line-height: 1.4;
@@ -563,8 +578,8 @@
 }
 
 .admin-sidebar-badge--empty {
-  background: rgba(226, 232, 240, 0.08);
-  color: rgba(226, 232, 240, 0.5);
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--admin-sidebar-text-muted);
 }
 
 /* Mobile Responsive Accordion */
@@ -589,36 +604,36 @@
 /* Dark Mode Accordion Adjustments */
 @media (prefers-color-scheme: dark) {
   .nav-accordion-toggle {
-    background: rgba(255, 255, 255, 0.03);
-    color: rgba(255, 255, 255, 0.8);
+    background: var(--admin-sidebar-bg);
+    color: var(--admin-sidebar-text);
   }
   
   .nav-accordion-toggle:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: var(--admin-sidebar-hover-bg);
+    color: var(--admin-sidebar-text);
   }
   
   .nav-accordion-toggle.collapsed {
     background: transparent;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--admin-sidebar-text-muted);
   }
   
   .nav-accordion-content a {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--admin-sidebar-text-muted);
   }
   
   .nav-accordion-content a:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
+    background: var(--admin-sidebar-hover-bg);
+    color: var(--admin-sidebar-text);
   }
   
   .nav-search {
-    border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.03);
-    color: rgba(255, 255, 255, 0.9);
+    border-color: var(--admin-sidebar-border);
+    background: var(--admin-sidebar-surface);
+    color: var(--admin-sidebar-text);
   }
   
   .nav-search::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--admin-sidebar-text-muted);
   }
 }
