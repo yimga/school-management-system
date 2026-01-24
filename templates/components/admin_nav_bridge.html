@@ -99,6 +99,27 @@
     text-decoration: none;
 }
 
+/* Top-left logout button, aligned near brand */
+.admin-nav-bridge__logout-left {
+    margin-left: 1rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.admin-nav-bridge__logout-left:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    text-decoration: none;
+}
+
 @media (max-width: 768px) {
     .admin-nav-bridge {
         flex-direction: column;
@@ -141,6 +162,8 @@
                     Backend Dashboard - Operations Overview
                 {% endif %}
             </div>
+            <!-- Top-left logout placed near brand for quick access -->
+            <a href="{% url 'admin:logout' %}" class="admin-nav-bridge__logout-left">Logout</a>
         </div>
     </div>
     
