@@ -319,8 +319,8 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
                 <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
-                <li><a class="dropdown-item" href="{% url 'accounts:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
-                <li><a class="dropdown-item" href="{% url 'siteconfig:dashboard' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
+                <li><a class="dropdown-item" href="{% url 'admin:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
+                <li><a class="dropdown-item" href="{% url 'admin:system_health' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
               </ul>
             </div>
 
