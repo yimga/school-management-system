@@ -1,6 +1,6 @@
 {% load static %}
 {# AI Copilot Assistant - RBAC Compatible #}
-<div class="ai-copilot-wrapper">
+<div class="ai-copilot-wrapper" style="position:fixed;right:16px;bottom:16px;left:auto!important;z-index:9999!important;pointer-events:auto;">
   <!-- Floating AI Button -->
   <button 
     class="btn ai-copilot-trigger" 
@@ -499,27 +499,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const csrfTokenEffective = (CSRF_TOKEN && CSRF_TOKEN !== 'NOTPROVIDED') ? CSRF_TOKEN : getCookie('csrftoken');
 
-  async function validateQueryWithBackend(query) {
-    try {
-      const response = await fetch('/api/ai-copilot/validate/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfTokenEffective,
-        },
-        body: JSON.stringify({
-          query: query
-        })
-      });
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.warn('Backend RBAC validation failed:', error);
-      return { success: true };
-    }
-  }
-
   function buildContextualPrompt(userMessage) {
     const userRole = USER_ROLE;
     const userName = '{{ request.user.first_name|default:request.user.username }}';
@@ -603,31 +582,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function sendMessage(message) {
       if (!message.trim()) return;
 
-      try {
-        const rbacValidation = await validateQueryWithBackend(message);
-
-        if (!rbacValidation.success) {
-          const errorMsg = document.createElement('div');
-          errorMsg.className = 'ai-message';
-          errorMsg.innerHTML = `
-            <div class="ai-message-avatar">
-              <i class="bi bi-robot"></i>
-            </div>
-            <div class="ai-message-content">
-              <p class="mb-0 text-danger">
-                <i class="bi bi-lock"></i> 
-                <strong>Access Denied:</strong> ${rbacValidation.error || 'You do not have permission to access this information.'}
-              </p>
-            </div>
-          `;
-          body.appendChild(errorMsg);
-          body.scrollTop = body.scrollHeight;
-          return;
-        }
-      } catch (error) {
-        console.error('RBAC validation error:', error);
-      }
-
       const userMsg = document.createElement('div');
       userMsg.className = 'ai-message user-message';
       userMsg.innerHTML = `
@@ -669,14 +623,33 @@ document.addEventListener('DOMContentLoaded', function() {
             query: message
           })
         });
-
-        if (!resp.ok) {
-          throw new Error('Backend request failed');
+        let result = null;
+        try {
+          result = await resp.json();
+        } catch (error) {
+          result = null;
         }
 
-        const result = await resp.json();
-        if (!result.success) {
-          throw new Error(result.error || 'Backend error');
+        if (!resp.ok || !result || !result.success) {
+          const errText = (result && result.error) || 'An error occurred processing your request.';
+          const isDenied = resp.status === 403 || resp.status === 429;
+          loadingMsg.remove();
+          const errorMsg = document.createElement('div');
+          errorMsg.className = 'ai-message';
+          errorMsg.innerHTML = `
+            <div class="ai-message-avatar">
+              <i class="bi bi-robot"></i>
+            </div>
+            <div class="ai-message-content">
+              <p class="mb-0 text-danger">
+                <i class="bi ${isDenied ? 'bi-lock' : 'bi-exclamation-triangle'}"></i>
+                <strong>${isDenied ? 'Access Denied' : 'Error'}:</strong> ${errText}
+              </p>
+            </div>
+          `;
+          body.appendChild(errorMsg);
+          body.scrollTop = body.scrollHeight;
+          return;
         }
 
         const responseText = result.response || 'I captured your request and validated your access. Please try again in a moment.';
@@ -705,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
           <div class="ai-message-content">
             <p class="mb-0 text-danger">
-              <i class="bi bi-exclamation-triangle"></i> 
+              <i class="bi bi-exclamation-triangle"></i>
               Sorry, I encountered an error. Please try again.
             </p>
           </div>

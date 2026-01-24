@@ -54,6 +54,88 @@ def default_admin_portal_stats_config():
     }
 
 
+def default_portal_quick_actions():
+    return [
+        {
+            "label": "Message Teacher",
+            "url": "#",
+            "icon": "bi-chat-dots",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "label": "View Report Card",
+            "url": "#",
+            "icon": "bi-file-earmark-text",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "label": "Request Meeting",
+            "url": "#",
+            "icon": "bi-calendar-event",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+        {
+            "label": "Download Documents",
+            "url": "#",
+            "icon": "bi-download",
+            "roles": ["PARENT"],
+            "enabled": True,
+        },
+    ]
+
+
+def default_portal_announcements():
+    return [
+        {"title": "New Homework Policy", "meta": "2 days ago", "roles": ["PARENT"], "enabled": True},
+        {"title": "Sports Day Registration Open", "meta": "4 days ago", "roles": ["PARENT"], "enabled": True},
+        {"title": "Library Hours Extended", "meta": "1 week ago", "roles": ["PARENT"], "enabled": True},
+    ]
+
+
+def default_portal_recent_grades():
+    return [
+        {"label": "Mathematics", "grade": "A (92%)", "tone": "success", "roles": ["PARENT"], "enabled": True},
+        {"label": "English", "grade": "A- (88%)", "tone": "success", "roles": ["PARENT"], "enabled": True},
+        {"label": "Science", "grade": "B+ (85%)", "tone": "primary", "roles": ["PARENT"], "enabled": True},
+        {"label": "History", "grade": "B (82%)", "tone": "warning", "roles": ["PARENT"], "enabled": True},
+    ]
+
+
+def default_portal_upcoming_assessments():
+    return [
+        {"title": "Physics Test", "when": "Tomorrow", "detail": "Chapter 5-7", "tone": "info", "roles": ["PARENT"], "enabled": True},
+        {"title": "Math Quiz", "when": "Jan 28", "detail": "Algebra II", "tone": "secondary", "roles": ["PARENT"], "enabled": True},
+        {"title": "English Essay", "when": "Feb 2", "detail": "Due by 5 PM", "tone": "secondary", "roles": ["PARENT"], "enabled": True},
+    ]
+
+
+def default_footer_badges():
+    return [
+        {"label": "Secure & Encrypted", "tone": "secure"},
+        {"label": "2026 Standards Compliant", "tone": "compliant"},
+    ]
+
+
+def filter_portal_items(items, role: str | None) -> list[dict]:
+    if not isinstance(items, list):
+        return []
+    role_value = (role or "").upper()
+    filtered = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        if item.get("enabled", True) is False:
+            continue
+        roles = item.get("roles") or []
+        if roles and role_value not in [str(r).upper() for r in roles]:
+            continue
+        filtered.append(item)
+    return filtered
+
+
 class DashboardView(models.TextChoices):
     OVERVIEW = "OVERVIEW", "Overview"
     FINANCE = "FINANCE", "Finances"
@@ -120,7 +202,8 @@ ROLE_WIDGET_DEFAULTS = {
 
 
 def default_dashboard_widgets(role: str | None) -> list[str]:
-    return list(ROLE_WIDGET_DEFAULTS.get(role, [key for key, _ in DASHBOARD_WIDGET_OPTIONS]))
+    role_key = (role or "").upper()
+    return list(ROLE_WIDGET_DEFAULTS.get(role_key, [key for key, _ in DASHBOARD_WIDGET_OPTIONS]))
 
 
 def get_dashboard_widget_choices(role: str | None) -> list[tuple[str, str]]:
@@ -130,9 +213,19 @@ def get_dashboard_widget_choices(role: str | None) -> list[tuple[str, str]]:
 
 def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | None" = None) -> list[str]:
     allowed = default_dashboard_widgets(role)
-    if preference and preference.dashboard_view == DashboardView.CUSTOM and preference.dashboard_widgets:
-        selected = [key for key in preference.dashboard_widgets if key in allowed]
-        return selected or allowed
+    if preference:
+        if preference.dashboard_view == DashboardView.CUSTOM and preference.dashboard_widgets:
+            selected = [key for key in preference.dashboard_widgets if key in allowed]
+            return selected or allowed
+        view_map = {
+            DashboardView.FINANCE: ["finance", "events", "communications", "links"],
+            DashboardView.ATTENDANCE: ["attendance", "events", "tasks", "links"],
+            DashboardView.ACADEMICS: ["performance", "completion", "upcoming", "analytics", "tasks", "links"],
+        }
+        mapped = view_map.get(preference.dashboard_view)
+        if mapped:
+            filtered = [key for key in mapped if key in allowed]
+            return filtered or allowed
     return allowed
 
 
@@ -205,6 +298,60 @@ class SiteSettings(models.Model):
             "Admin portal stats JSON. Keys: sections, max_sections, max_items, items. "
             "Example: {\"sections\":[\"academics\"],\"max_items\":2,\"items\":{\"academics\":[\"Students\"]}}"
         ),
+    )
+    portal_quick_actions = models.JSONField(
+        default=default_portal_quick_actions,
+        blank=True,
+        help_text="Portal quick actions list (JSON). Each item: label, url, icon, roles, enabled.",
+    )
+    portal_announcements = models.JSONField(
+        default=default_portal_announcements,
+        blank=True,
+        help_text="Portal announcements list (JSON). Each item: title, meta, roles, enabled.",
+    )
+    portal_recent_grades = models.JSONField(
+        default=default_portal_recent_grades,
+        blank=True,
+        help_text="Portal recent grades list (JSON). Each item: label, grade, tone, roles, enabled.",
+    )
+    portal_upcoming_assessments = models.JSONField(
+        default=default_portal_upcoming_assessments,
+        blank=True,
+        help_text="Portal upcoming assessments list (JSON). Each item: title, when, detail, tone, roles, enabled.",
+    )
+    footer_accreditation_text = models.CharField(
+        max_length=255,
+        blank=True,
+        default="Ministry of Education - Cameroon | UNESCO Standards 2026 Compliant",
+        help_text="Footer accreditation text.",
+    )
+    footer_accreditation_subtext = models.CharField(
+        max_length=255,
+        blank=True,
+        default="Certified for educational institutions worldwide | ISO 9001:2015 Quality Management",
+        help_text="Footer accreditation subtext.",
+    )
+    footer_support_hours = models.CharField(
+        max_length=120,
+        blank=True,
+        default="Mon-Fri: 8AM-6PM | Sat: 9AM-4PM",
+        help_text="Footer support hours label.",
+    )
+    footer_whatsapp_url = models.URLField(
+        blank=True,
+        default="https://wa.me/237XXXXXXXXX?text=Hello%20School%20Management%20System%20Support",
+        help_text="Footer WhatsApp support link.",
+    )
+    footer_status_text = models.CharField(
+        max_length=120,
+        blank=True,
+        default="All Systems Operational",
+        help_text="Footer system status label.",
+    )
+    footer_badges = models.JSONField(
+        default=default_footer_badges,
+        blank=True,
+        help_text="Footer badges list (JSON). Each item: label, tone.",
     )
 
     # Feature toggles

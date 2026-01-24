@@ -23,8 +23,18 @@ class AdminDashboardOverviewAPI(View):
     """Admin dashboard overview metrics"""
     
     def get(self, request):
+        role_value = (getattr(request.user, "role", "") or "").upper()
+        is_admin_like = request.user.is_superuser or request.user.is_staff or role_value in [
+            "ADMIN",
+            "LEADERSHIP",
+            "PRINCIPAL",
+            "VICE_PRINCIPAL",
+            "DEAN",
+            "IT_ADMIN",
+            "BURSAR",
+        ]
         # Check admin permission
-        if not (request.user.is_staff or request.user.role == 'ADMIN'):
+        if not is_admin_like:
             return JsonResponse({'error': 'Permission denied'}, status=403)
         
         try:
@@ -38,7 +48,7 @@ class AdminDashboardOverviewAPI(View):
             total_parents = 0  # Implement based on your parent model
             
             # Finance data
-            total_invoices = Invoice.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+            total_invoices = Invoice.objects.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
             total_paid = Payment.objects.aggregate(Sum('amount'))['amount__sum'] or 0
             pending_fees = total_invoices - total_paid
             
@@ -75,22 +85,49 @@ class TeacherDashboardAPI(View):
     """Teacher dashboard summary"""
     
     def get(self, request):
-        if request.user.role != 'TEACHER':
+        role_value = (getattr(request.user, "role", "") or "").upper()
+        if role_value != 'TEACHER':
             return JsonResponse({'error': 'Permission denied'}, status=403)
         
         try:
-            from apps.people.models import TeacherProfile
-            from apps.academics.models import Classroom
+            from apps.people.models import TeacherProfile, StudentProfile
+            from apps.evals.models import TeacherAssignment
+            from apps.academics.services import get_active_year_and_term
             
             teacher = TeacherProfile.objects.get(user=request.user)
             
-            # Get teacher's classes
-            my_classes = Classroom.objects.filter(teacher=teacher).count()
-            
-            # Get total students
-            my_students = 0
-            for classroom in Classroom.objects.filter(teacher=teacher):
-                my_students += classroom.student_set.filter(is_active=True).count()
+            active_year, _active_term = get_active_year_and_term()
+            assignments = TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+            )
+            if active_year:
+                assignments = assignments.filter(academic_year=active_year)
+
+            assignment_pairs = list(
+                assignments.values_list(
+                    "subject_assignment__classroom_id",
+                    "subject_assignment__specialty_id",
+                ).distinct()
+            )
+            classroom_ids = {pair[0] for pair in assignment_pairs if pair[0]}
+
+            my_classes = len(classroom_ids)
+            if assignment_pairs:
+                student_filters = Q()
+                for classroom_id, specialty_id in assignment_pairs:
+                    if classroom_id and specialty_id:
+                        student_filters |= Q(classroom_id=classroom_id, specialty_id=specialty_id)
+                    elif classroom_id:
+                        student_filters |= Q(classroom_id=classroom_id)
+                if active_year:
+                    student_filters &= Q(academic_year=active_year)
+                my_students = StudentProfile.objects.filter(
+                    student_filters,
+                    is_active=True,
+                ).distinct().count()
+            else:
+                my_students = 0
             
             # Pending grades (implement based on your assessment model)
             pending_grades = 0
@@ -119,7 +156,8 @@ class ParentDashboardAPI(View):
     """Parent dashboard summary"""
     
     def get(self, request):
-        if request.user.role != 'PARENT':
+        role_value = (getattr(request.user, "role", "") or "").upper()
+        if role_value != 'PARENT':
             return JsonResponse({'error': 'Permission denied'}, status=403)
         
         try:
@@ -128,7 +166,7 @@ class ParentDashboardAPI(View):
             
             # Get parent's children
             children = StudentGuardian.objects.filter(
-                guardian__user=request.user,
+                guardian_user=request.user,
                 student__is_active=True
             ).values_list('student_id', flat=True)
             
@@ -137,7 +175,7 @@ class ParentDashboardAPI(View):
             # Get pending fees for children
             total_invoices = Invoice.objects.filter(
                 student_id__in=children
-            ).aggregate(Sum('amount'))['amount__sum'] or 0
+            ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
             
             total_paid = Payment.objects.filter(
                 invoice__student_id__in=children
@@ -169,7 +207,8 @@ class StudentDashboardAPI(View):
     """Student dashboard summary"""
     
     def get(self, request):
-        if request.user.role != 'STUDENT':
+        role_value = (getattr(request.user, "role", "") or "").upper()
+        if role_value != 'STUDENT':
             return JsonResponse({'error': 'Permission denied'}, status=403)
         
         try:
@@ -218,7 +257,8 @@ class FinancialDashboardAPI(View):
     """Financial overview dashboard"""
     
     def get(self, request):
-        if not (request.user.is_staff or request.user.role in ['ADMIN', 'BURSAR', 'LEADERSHIP']):
+        role_value = (getattr(request.user, "role", "") or "").upper()
+        if not (request.user.is_superuser or request.user.is_staff or role_value in ['ADMIN', 'BURSAR', 'LEADERSHIP']):
             return JsonResponse({'error': 'Permission denied'}, status=403)
         
         try:
@@ -228,7 +268,7 @@ class FinancialDashboardAPI(View):
             total_revenue = Payment.objects.aggregate(Sum('amount'))['amount__sum'] or 0
             
             # Outstanding fees
-            total_invoiced = Invoice.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+            total_invoiced = Invoice.objects.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
             outstanding = total_invoiced - total_revenue
             
             # Payment breakdown by method
@@ -260,7 +300,8 @@ class AcademicDashboardAPI(View):
     """Academic performance dashboard"""
     
     def get(self, request):
-        if not (request.user.is_staff or request.user.role in ['ADMIN', 'LEADERSHIP', 'HOD']):
+        role_value = (getattr(request.user, "role", "") or "").upper()
+        if not (request.user.is_superuser or request.user.is_staff or role_value in ['ADMIN', 'LEADERSHIP', 'HOD']):
             return JsonResponse({'error': 'Permission denied'}, status=403)
         
         try:

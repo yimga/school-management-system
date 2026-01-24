@@ -232,20 +232,40 @@
     margin: 0;
   }
 
+  .child-card .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .child-actions {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .child-actions .child-action-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
   .child-metrics-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.85rem;
     padding: 1rem 0;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     margin-bottom: 1rem;
+    align-items: center;
   }
 
   @media (max-width: 479px) {
     .child-metrics-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 0.6rem;
       padding: 0.75rem 0;
       margin-bottom: 0.75rem;
     }
@@ -472,12 +492,6 @@
     background: rgba(13, 110, 253, 0.08);
     transform: translateX(4px);
   }
-    margin-bottom: 0.75rem;
-  }
-
-  .tool-item:last-child {
-    margin-bottom: 0;
-  }
 
   .tool-item .btn {
     width: 100%;
@@ -558,6 +572,81 @@
     letter-spacing: 0.05em;
   }
 
+  .summary-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 1.25rem;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+  }
+
+  .summary-tile {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 82px;
+  }
+
+  .summary-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .summary-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: #6c757d;
+  }
+
+  .summary-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .summary-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .tile-blue .summary-icon { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+  .tile-green .summary-icon { background: rgba(16, 185, 129, 0.18); color: #059669; }
+  .tile-yellow .summary-icon { background: rgba(245, 158, 11, 0.18); color: #d97706; }
+  .tile-red .summary-icon { background: rgba(239, 68, 68, 0.18); color: #dc2626; }
+
+  .family-overview {
+    margin-top: 1.5rem;
+  }
+
+  .family-overview .card {
+    border-radius: 14px;
+  }
+
+  @media (max-width: 991px) {
+    .summary-tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 575px) {
+    .summary-tiles {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @media (max-width: 768px) {
     .welcome-hero {
       padding: 1.5rem 1rem;
@@ -572,117 +661,6 @@
       grid-template-columns: 1fr;
     }
 
-    .status-badge-bar {
-      flex-wrap: wrap;
-      gap: 8px 14px;
-    }
-
-
-  /* Status Badge Bar - compact horizontal summary */
-  .status-badge-bar {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    padding: 10px 12px;
-    border-top: 4px solid transparent;
-    background: #fff;
-    position: relative;
-  }
-
-  .status-badge-bar::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #ff6a88 0%, #9b6bff 100%);
-  }
-
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: 0.01em;
-  }
-
-  .status-badge i {
-    color: #0f172a;
-  }
-
-  .status-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 28px;
-    height: 22px;
-    padding: 0 8px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 800;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
-
-  .count-blue { background: #738ef1; color: #fff; }
-  .count-green { background: #34d399; color: #0f172a; }
-  .count-yellow { background: #facc15; color: #0f172a; }
-  .count-red { background: #f87171; color: #fff; }
-
-  /* Mobile-friendly status badge bar */
-  @media (max-width: 479px) {
-    .status-badge-bar {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 12px 8px;
-    }
-
-    .status-badge {
-      gap: 8px;
-      width: 100%;
-      padding: 8px;
-      background: rgba(13, 110, 253, 0.04);
-      border-radius: 8px;
-      justify-content: space-between;
-      font-size: 0.85rem;
-    }
-
-    .status-count {
-      min-width: 32px;
-      height: 24px;
-      padding: 0 10px;
-      font-size: 0.75rem;
-    }
-  }
-
-  @media (max-width: 767px) {
-    .status-badge-bar {
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 12px 8px;
-    }
-
-    .status-badge {
-      flex: 0 1 calc(50% - 5px);
-      gap: 6px;
-      font-size: 0.85rem;
-    }
-
-    .status-count {
-      min-width: 30px;
-      height: 22px;
-      padding: 0 6px;
-      font-size: 0.7rem;
-    }
-  }
-
-  @media (min-width: 768px) {
-    .status-badge {
-      white-space: nowrap;
-    }
-  }
     .sidebar-sticky {
       position: static;
       margin-top: 2rem;
@@ -692,6 +670,7 @@
 {% endblock %}
 
 {% block content %}
+{% with widgets=display_widgets %}
 <div class="parent-dashboard">
   <div class="container-lg py-4">
     
@@ -700,62 +679,88 @@
       <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
       <p>Stay updated on your children's progress, attendance, and school activities.</p>
       
-      <div class="status-badge-bar">
-        <div class="status-badge">
-          <i class="bi bi-people me-1"></i>
-          <span>STUDENTS</span>
-          <span class="status-count count-blue">{{ links|length|default:0 }}</span>
-        </div>
-
-        <!-- Family Overview Card (fills space) -->
-        <div class="metrics-section" style="min-height: 220px; display: flex; flex-direction: column; justify-content: stretch;">
-          <div class="section-title">
-            <i class="bi bi-house-heart"></i>
-            <span>Family Overview</span>
+      <div class="summary-tiles">
+        <div class="summary-tile tile-blue">
+          <div class="summary-meta">
+            <span class="summary-label">Children</span>
+            <span class="summary-value">{{ links|length|default:0 }}</span>
           </div>
-          <div class="card flex-grow-1 d-flex flex-column justify-content-center align-items-center p-4" style="min-height: 180px;">
-            <div class="row w-100 text-center mb-3">
-              <div class="col-6 col-md-3 mb-2">
-                <div class="fw-bold text-primary" style="font-size:1.3rem;">{{ links|length|default:0 }}</div>
-                <div class="small text-muted">Children</div>
-              </div>
-              <div class="col-6 col-md-3 mb-2">
-                <div class="fw-bold text-success" style="font-size:1.3rem;">{{ widget_data.attendance.overall|default:0 }}%</div>
-                <div class="small text-muted">Attendance</div>
-              </div>
-              <div class="col-6 col-md-3 mb-2">
-                <div class="fw-bold text-info" style="font-size:1.3rem;">{{ widget_data.grades.overall|default:'--' }}</div>
-                <div class="small text-muted">Avg. Grade</div>
-              </div>
-              <div class="col-6 col-md-3 mb-2">
-                <div class="fw-bold text-danger" style="font-size:1.3rem;">${{ widget_data.finance.balance|default:'0.00' }}</div>
-                <div class="small text-muted">Outstanding Fees</div>
-              </div>
-            </div>
-            <div class="d-flex gap-2 justify-content-center mt-2">
-              <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Finance Details</a>
-              {# <a href="{% url 'portal:parent_performance' %}" class="btn btn-sm btn-outline-success">Performance</a> #}
-              <a href="#" class="btn btn-sm btn-outline-success disabled" title="Performance view unavailable">Performance</a>
-            </div>
+          <span class="summary-icon"><i class="bi bi-people"></i></span>
+        </div>
+        {% if not widgets or "attendance" in widgets %}
+        <div class="summary-tile tile-green">
+          <div class="summary-meta">
+            <span class="summary-label">Attendance</span>
+            <span class="summary-value">{{ widget_data.attendance.overall|default:0 }}%</span>
           </div>
+          <span class="summary-icon"><i class="bi bi-graph-up-arrow"></i></span>
         </div>
-        <div class="status-badge">
-          <i class="bi bi-graph-up-arrow me-1"></i>
-          <span>ATTENDANCE</span>
-          <span class="status-count count-green">{{ widget_data.attendance.overall|default:0 }}%</span>
+        {% endif %}
+        {% if not widgets or "finance" in widgets %}
+        <div class="summary-tile tile-yellow">
+          <div class="summary-meta">
+            <span class="summary-label">Balance</span>
+            <span class="summary-value">${{ widget_data.finance.balance|default:"0.00" }}</span>
+          </div>
+          <span class="summary-icon"><i class="bi bi-hourglass-split"></i></span>
         </div>
-        <div class="status-badge">
-          <i class="bi bi-hourglass-split me-1"></i>
-          <span>PENDING</span>
-          <span class="status-count count-yellow">${{ widget_data.finance.balance|default:"0" }}</span>
-        </div>
-        <div class="status-badge">
-          <i class="bi bi-bell me-1"></i>
-          <span>NOTIFICATIONS</span>
-          <span class="status-count count-red">{{ widget_data.notifications.unread|default:0 }}</span>
+        {% endif %}
+        <div class="summary-tile tile-red">
+          <div class="summary-meta">
+            <span class="summary-label">Notifications</span>
+            <span class="summary-value">{{ notifications_unread|default:0 }}</span>
+          </div>
+          <span class="summary-icon"><i class="bi bi-bell"></i></span>
         </div>
       </div>
     </div>
+
+    {% if not widgets or "attendance" in widgets or "performance" in widgets or "finance" in widgets %}
+    <div class="family-overview">
+      <div class="section-title">
+        <i class="bi bi-house-heart"></i>
+        <span>Family Overview</span>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="row g-3 text-center">
+            <div class="col-6 col-md-3">
+              <div class="fw-bold text-primary" style="font-size:1.3rem;">{{ links|length|default:0 }}</div>
+              <div class="small text-muted">Children</div>
+            </div>
+            {% if not widgets or "attendance" in widgets %}
+            <div class="col-6 col-md-3">
+              <div class="fw-bold text-success" style="font-size:1.3rem;">{{ widget_data.attendance.overall|default:0 }}%</div>
+              <div class="small text-muted">Attendance</div>
+            </div>
+            {% endif %}
+            {% if not widgets or "performance" in widgets %}
+            <div class="col-6 col-md-3">
+              <div class="fw-bold text-info" style="font-size:1.3rem;">{{ widget_data.performance.average|default:"--" }}</div>
+              <div class="small text-muted">Avg. Grade</div>
+            </div>
+            {% endif %}
+            {% if not widgets or "finance" in widgets %}
+            <div class="col-6 col-md-3">
+              <div class="fw-bold text-danger" style="font-size:1.3rem;">${{ widget_data.finance.balance|default:"0.00" }}</div>
+              <div class="small text-muted">Outstanding Fees</div>
+            </div>
+            {% endif %}
+          </div>
+          {% if not widgets or "finance" in widgets or "performance" in widgets %}
+          <div class="d-flex flex-wrap gap-2 justify-content-center mt-3">
+            {% if not widgets or "finance" in widgets %}
+            <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Finance Details</a>
+            {% endif %}
+            {% if not widgets or "performance" in widgets %}
+            <a href="#" class="btn btn-sm btn-outline-success disabled" title="Performance view unavailable">Performance</a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
     <!-- Main Content Grid -->
     <div class="row g-4">
@@ -772,7 +777,7 @@
           <div class="row g-3">
             {% for card in child_cards %}
             <div class="col-md-6">
-              <div class="card h-100">
+              <div class="card h-100 child-card">
                 <div class="card-body">
                   <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="avatar-circle bg-primary text-white">
@@ -782,22 +787,30 @@
                       <h5 class="mb-0">{{ card.link.student.get_full_name }}</h5>
                       <small class="text-muted">{{ card.link.student.grade|default:"N/A" }} • {{ card.link.student.section|default:"N/A" }}</small>
                     </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto">Live data</span>
                   </div>
-                  <div class="row g-2 text-center">
-                    <div class="col-4">
+                  {% if not widgets or "attendance" in widgets or "performance" in widgets %}
+                  <div class="child-metrics-grid text-center">
+                    {% if not widgets or "attendance" in widgets %}
+                    <div>
                       <div class="small text-muted">Attendance</div>
                       <div class="fw-bold text-success">{{ card.attendance|default:0 }}%</div>
                     </div>
-                    <div class="col-4">
+                    {% endif %}
+                    {% if not widgets or "performance" in widgets %}
+                    <div>
                       <div class="small text-muted">Average</div>
                       <div class="fw-bold text-primary">{{ card.average|default:"--" }}</div>
                     </div>
-                    <div class="col-4">
-                      <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto">Live data</span>
+                    <div>
                       <div class="small text-muted">Rank</div>
                       <div class="fw-bold text-info">{% if card.rank %}{{ card.rank }}{% else %}--{% endif %}</div>
                     </div>
+                    {% endif %}
                   </div>
+                  {% endif %}
+
+                  {% if not widgets or "finance" in widgets %}
                   <div class="row g-2 mt-3 text-center">
                     <div class="col-4">
                       <div class="small text-muted">Total</div>
@@ -812,11 +825,14 @@
                       <div class="fw-semibold text-danger">${{ card.finance_balance|default:"0.00" }}</div>
                     </div>
                   </div>
-                  <div class="d-flex gap-2 mt-3">
-                    <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary flex-fill">Make Payment</a>
-                    <a href="{% url 'portal:parent_finance' %}#history" class="btn btn-sm btn-outline-secondary flex-fill">History</a>
+                  <div class="child-actions">
+                    <div class="child-action-row">
+                      <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary flex-fill">Make Payment</a>
+                      <a href="{% url 'portal:parent_finance' %}#history" class="btn btn-sm btn-outline-secondary flex-fill">History</a>
+                    </div>
+                    <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
                   </div>
-                  <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary w-100 mt-3">View Details</a>
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -838,6 +854,7 @@
         </div>
 
         <!-- Academic Performance Section -->
+        {% if not widgets or "performance" in widgets %}
         <div class="metrics-section mt-4">
           <div class="section-title">
             <i class="bi bi-graph-up"></i>
@@ -849,56 +866,54 @@
                 <div class="col-md-6">
                   <h6 class="text-muted mb-3">Recent Grades</h6>
                   <div class="list-group list-group-flush">
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                      <span>Mathematics</span>
-                      <span class="badge bg-success">A (92%)</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                      <span>English</span>
-                      <span class="badge bg-success">A- (88%)</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                      <span>Science</span>
-                      <span class="badge bg-primary">B+ (85%)</span>
-                    </div>
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                      <span>History</span>
-                      <span class="badge bg-warning text-dark">B (82%)</span>
-                    </div>
+                    {% if portal_recent_grades %}
+                      {% for item in portal_recent_grades %}
+                      <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ item.label }}</span>
+                        {% with tone=item.tone|default:"primary" %}
+                        <span class="badge {% if tone == 'success' %}bg-success{% elif tone == 'warning' %}bg-warning text-dark{% elif tone == 'info' %}bg-info{% elif tone == 'secondary' %}bg-secondary{% else %}bg-primary{% endif %}">
+                          {{ item.grade }}
+                        </span>
+                        {% endwith %}
+                      </div>
+                      {% endfor %}
+                    {% else %}
+                      <div class="text-muted small">No recent grades configured.</div>
+                    {% endif %}
                   </div>
                 </div>
                 <div class="col-md-6">
                   <h6 class="text-muted mb-3">Upcoming Assessments</h6>
                   <div class="list-group list-group-flush">
-                    <div class="list-group-item">
-                      <div class="d-flex justify-content-between">
-                        <span class="fw-medium">Physics Test</span>
-                        <span class="badge bg-info">Tomorrow</span>
+                    {% if portal_upcoming_assessments %}
+                      {% for item in portal_upcoming_assessments %}
+                      <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                          <span class="fw-medium">{{ item.title }}</span>
+                          {% with tone=item.tone|default:"secondary" %}
+                          <span class="badge {% if tone == 'info' %}bg-info{% elif tone == 'warning' %}bg-warning text-dark{% elif tone == 'success' %}bg-success{% elif tone == 'primary' %}bg-primary{% else %}bg-secondary{% endif %}">
+                            {{ item.when }}
+                          </span>
+                          {% endwith %}
+                        </div>
+                        {% if item.detail %}
+                        <small class="text-muted">{{ item.detail }}</small>
+                        {% endif %}
                       </div>
-                      <small class="text-muted">Chapter 5-7</small>
-                    </div>
-                    <div class="list-group-item">
-                      <div class="d-flex justify-content-between">
-                        <span class="fw-medium">Math Quiz</span>
-                        <span class="badge bg-secondary">Jan 28</span>
-                      </div>
-                      <small class="text-muted">Algebra II</small>
-                    </div>
-                    <div class="list-group-item">
-                      <div class="d-flex justify-content-between">
-                        <span class="fw-medium">English Essay</span>
-                        <span class="badge bg-secondary">Feb 2</span>
-                      </div>
-                      <small class="text-muted">Due by 5 PM</small>
-                    </div>
+                      {% endfor %}
+                    {% else %}
+                      <div class="text-muted small">No upcoming assessments configured.</div>
+                    {% endif %}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        {% endif %}
 
         <!-- Attendance Tracking Section -->
+        {% if not widgets or "attendance" in widgets %}
         <div class="metrics-section mt-4">
           <div class="section-title">
             <i class="bi bi-calendar-check"></i>
@@ -940,6 +955,7 @@
             </div>
           </div>
         </div>
+        {% endif %}
 
       </div>
 
@@ -948,29 +964,26 @@
         <div class="sidebar-sticky">
 
           <!-- Quick Actions -->
+          {% if not widgets or "links" in widgets %}
           <div class="quick-tools-box">
             <div class="quick-tools-title">Quick Actions</div>
             <div class="d-grid gap-2">
-              <a href="#" class="btn btn-outline-primary tool-item">
-                <i class="bi bi-chat-dots"></i>
-                <span>Message Teacher</span>
-              </a>
-              <a href="#" class="btn btn-outline-primary tool-item">
-                <i class="bi bi-file-earmark-text"></i>
-                <span>View Report Card</span>
-              </a>
-              <a href="#" class="btn btn-outline-primary tool-item">
-                <i class="bi bi-calendar-event"></i>
-                <span>Request Meeting</span>
-              </a>
-              <a href="#" class="btn btn-outline-primary tool-item">
-                <i class="bi bi-download"></i>
-                <span>Download Documents</span>
-              </a>
+              {% if portal_quick_actions %}
+                {% for action in portal_quick_actions %}
+                <a href="{{ action.url }}" class="btn btn-outline-primary tool-item">
+                  {% if action.icon %}<i class="bi {{ action.icon }}"></i>{% endif %}
+                  <span>{{ action.label }}</span>
+                </a>
+                {% endfor %}
+              {% else %}
+                <div class="text-muted small">No quick actions configured.</div>
+              {% endif %}
             </div>
           </div>
+          {% endif %}
 
           <!-- Upcoming Events -->
+          {% if not widgets or "events" in widgets %}
           <div class="card mb-3">
             <div class="card-body">
               <h6 class="card-title mb-3">
@@ -978,32 +991,27 @@
                 Upcoming Events
               </h6>
               <div class="list-group list-group-flush">
-                <div class="list-group-item px-0">
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="fw-medium">Parent-Teacher Meeting</span>
-                    <span class="badge bg-warning text-dark">Jan 27</span>
+                {% if widget_data.events %}
+                  {% for event in widget_data.events %}
+                  <div class="list-group-item px-0">
+                    <div class="d-flex justify-content-between mb-1">
+                      <span class="fw-medium">{{ event.title }}</span>
+                      <span class="badge bg-info">{{ event.when|date:"M j" }}</span>
+                    </div>
+                    <small class="text-muted">{{ event.detail }}</small>
                   </div>
-                  <small class="text-muted">Virtual • 3:00 PM</small>
-                </div>
-                <div class="list-group-item px-0">
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="fw-medium">Science Fair</span>
-                    <span class="badge bg-info">Feb 5</span>
-                  </div>
-                  <small class="text-muted">School Auditorium</small>
-                </div>
-                <div class="list-group-item px-0">
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="fw-medium">Mid-Term Break</span>
-                    <span class="badge bg-secondary">Feb 10-14</span>
-                  </div>
-                  <small class="text-muted">No classes</small>
-                </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="text-muted small">No upcoming deadlines yet.</div>
+                {% endif %}
+
               </div>
             </div>
           </div>
+          {% endif %}
 
           <!-- Recent Announcements -->
+          {% if not widgets or "communications" in widgets %}
           <div class="card mb-3">
             <div class="card-body">
               <h6 class="card-title mb-3">
@@ -1011,21 +1019,22 @@
                 Recent Announcements
               </h6>
               <div class="activity-list">
-                <div class="activity-item">
-                  <div class="activity-title">New Homework Policy</div>
-                  <div class="activity-meta">2 days ago</div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-title">Sports Day Registration Open</div>
-                  <div class="activity-meta">4 days ago</div>
-                </div>
-                <div class="activity-item">
-                  <div class="activity-title">Library Hours Extended</div>
-                  <div class="activity-meta">1 week ago</div>
-                </div>
+                {% if portal_announcements %}
+                  {% for item in portal_announcements %}
+                  <div class="activity-item">
+                    <div class="activity-title">{{ item.title }}</div>
+                    {% if item.meta %}
+                    <div class="activity-meta">{{ item.meta }}</div>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="text-muted small">No announcements configured.</div>
+                {% endif %}
               </div>
             </div>
           </div>
+          {% endif %}
 
           
 
@@ -1035,4 +1044,5 @@
 
   </div>
 </div>
+{% endwith %}
 {% endblock %}

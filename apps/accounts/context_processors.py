@@ -3,7 +3,9 @@ Context processors for dashboard header/footer components.
 Provides role-based data, system information, and metrics for templates.
 """
 from datetime import datetime
+from decimal import Decimal
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
 from apps.siteconfig.models import SiteSettings
 
@@ -25,11 +27,68 @@ def dashboard_context(request):
         return context
     
     user = request.user
-    role = user.role
+    role_value = (getattr(user, "role", "") or "").upper()
+
+    def format_stat_value(value, prefix="", suffix=""):
+        if value is None:
+            value = 0
+        if isinstance(value, Decimal):
+            display = f"{value:,.2f}"
+        elif isinstance(value, (int, float)):
+            display = f"{value:,}"
+        else:
+            display = str(value)
+        return f"{prefix}{display}{suffix}"
+
+    def stat_card(label, value, tone, prefix="", suffix=""):
+        tone_styles = {
+            "blue": {
+                "bg": "linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.08))",
+                "border": "rgba(102, 126, 234, 0.2)",
+                "badge": "#667eea",
+                "badge_text": "#fff",
+            },
+            "green": {
+                "bg": "linear-gradient(135deg, rgba(56, 161, 105, 0.1), rgba(56, 161, 105, 0.08))",
+                "border": "rgba(56, 161, 105, 0.2)",
+                "badge": "#38a169",
+                "badge_text": "#fff",
+            },
+            "pink": {
+                "bg": "linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.08))",
+                "border": "rgba(240, 147, 251, 0.2)",
+                "badge": "#f5576c",
+                "badge_text": "#fff",
+            },
+            "red": {
+                "bg": "linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.08))",
+                "border": "rgba(220, 53, 69, 0.2)",
+                "badge": "#dc3545",
+                "badge_text": "#fff",
+            },
+        }
+        style = tone_styles.get(tone, tone_styles["blue"])
+        return {
+            "label": label,
+            "value": format_stat_value(value, prefix=prefix, suffix=suffix),
+            "card_style": f"background: {style['bg']}; border: 1px solid {style['border']};",
+            "badge_style": f"background: {style['badge']}; color: {style['badge_text']};",
+        }
+
+    notifications_unread = 0
+    try:
+        from apps.finance.models import Notification as FinanceNotification
+
+        notifications_unread = FinanceNotification.objects.filter(
+            recipient=user,
+            is_read=False,
+        ).count()
+    except Exception:
+        notifications_unread = 0
     
     # Role-specific metrics
     try:
-        if role in ['ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN']:
+        if role_value in ['ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN']:
             # Admin/Leadership metrics
             from apps.people.models import StudentProfile, TeacherProfile
             from apps.finance.models import Invoice
@@ -40,54 +99,101 @@ def dashboard_context(request):
             # Pending invoices
             pending_invoices = Invoice.objects.filter(status__in=['PENDING', 'PARTIAL'])
             context['pending_amount'] = sum(inv.balance or 0 for inv in pending_invoices)
+            context['pending_invoices_count'] = pending_invoices.count()
+
+            context['dashboard_stats_cards'] = [
+                stat_card("Students", context.get('total_students', 0), "blue"),
+                stat_card("Teachers", context.get('total_teachers', 0), "green"),
+                stat_card("Pending", context.get('pending_invoices_count', 0), "pink"),
+                stat_card("Notifications", notifications_unread, "red"),
+            ]
             
-        elif role == 'TEACHER':
+        elif role_value == 'TEACHER':
             # Teacher metrics
             try:
                 teacher_profile = user.teacher_profile
-                classrooms = teacher_profile.classrooms.all()
-                
-                # Count students across all classrooms
+                from apps.evals.models import TeacherAssignment, Evaluation
                 from apps.people.models import StudentProfile
-                context['teacher_student_count'] = StudentProfile.objects.filter(
-                    classroom__in=classrooms,
-                    is_active=True
-                ).count()
-                
-                context['teacher_class_count'] = classrooms.count()
-                
+                from apps.academics.services import get_active_year_and_term
+
+                active_year, _active_term = get_active_year_and_term()
+
+                assignments = TeacherAssignment.objects.filter(
+                    teacher=teacher_profile,
+                    is_active=True,
+                )
+                if active_year:
+                    assignments = assignments.filter(academic_year=active_year)
+
+                assignment_pairs = list(
+                    assignments.values_list(
+                        "subject_assignment__classroom_id",
+                        "subject_assignment__specialty_id",
+                    ).distinct()
+                )
+                classroom_ids = {pair[0] for pair in assignment_pairs if pair[0]}
+                context['teacher_class_count'] = len(classroom_ids)
+
+                if assignment_pairs:
+                    student_filters = models.Q()
+                    for classroom_id, specialty_id in assignment_pairs:
+                        if classroom_id and specialty_id:
+                            student_filters |= models.Q(classroom_id=classroom_id, specialty_id=specialty_id)
+                        elif classroom_id:
+                            student_filters |= models.Q(classroom_id=classroom_id)
+                    if active_year:
+                        student_filters &= models.Q(academic_year=active_year)
+
+                    context['teacher_student_count'] = StudentProfile.objects.filter(
+                        student_filters,
+                        is_active=True,
+                    ).distinct().count()
+                else:
+                    context['teacher_student_count'] = 0
+
                 # Pending tasks (grades not entered, attendance not marked, etc.)
-                from apps.evals.models import Assessment
                 try:
                     from apps.attendance.models import TeacherAttendance
-                    
-                    # Count assessments without grades
-                    pending_assessments = Assessment.objects.filter(
-                        subject__teachers=teacher_profile,
-                        is_published=False
+
+                    eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
+                    if active_year:
+                        eval_qs = eval_qs.filter(academic_year=active_year)
+                    pending_assessments = eval_qs.filter(
+                        models.Q(seq1_score__isnull=True) |
+                        models.Q(seq2_score__isnull=True) |
+                        models.Q(exam_score__isnull=True)
                     ).count()
-                    
-                    # Count days without attendance
+
                     today = timezone.now().date()
                     attendance_today = TeacherAttendance.objects.filter(
                         teacher=teacher_profile,
                         date=today
                     ).exists()
-                    
+
                     context['teacher_pending_tasks'] = pending_assessments + (0 if attendance_today else 1)
                 except ImportError:
-                    # attendance app not installed
-                    context['teacher_pending_tasks'] = Assessment.objects.filter(
-                        subject__teachers=teacher_profile,
-                        is_published=False
+                    eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
+                    if active_year:
+                        eval_qs = eval_qs.filter(academic_year=active_year)
+                    context['teacher_pending_tasks'] = eval_qs.filter(
+                        models.Q(seq1_score__isnull=True) |
+                        models.Q(seq2_score__isnull=True) |
+                        models.Q(exam_score__isnull=True)
                     ).count()
-                
+
             except AttributeError:
                 context['teacher_student_count'] = 0
                 context['teacher_class_count'] = 0
                 context['teacher_pending_tasks'] = 0
+
+            context['dashboard_stats_cards'] = [
+                stat_card("Students", context.get('teacher_student_count', 0), "blue"),
+                stat_card("Classes", context.get('teacher_class_count', 0), "green"),
+                stat_card("Pending", context.get('teacher_pending_tasks', 0), "pink"),
+                stat_card("Notifications", notifications_unread, "red"),
+            ]
         
-        elif role == 'PARENT':
+        elif role_value == 'PARENT':
             # Parent metrics
             from apps.people.models import StudentProfile
             from apps.finance.models import Invoice
@@ -122,8 +228,25 @@ def dashboard_context(request):
             else:
                 context['parent_avg_attendance'] = 0
                 context['parent_balance'] = 0
+
+            try:
+                from apps.portal.portal_models import PortalNotification
+
+                notifications_unread = PortalNotification.objects.filter(
+                    parent_id=user.id,
+                    is_read=False,
+                ).count()
+            except Exception:
+                pass
+
+            context['dashboard_stats_cards'] = [
+                stat_card("Children", context.get('parent_children_count', 0), "blue"),
+                stat_card("Attendance", context.get('parent_avg_attendance', 0), "green", suffix="%"),
+                stat_card("Balance", context.get('parent_balance', 0), "pink", prefix="$"),
+                stat_card("Notifications", notifications_unread, "red"),
+            ]
         
-        elif role == 'STUDENT':
+        elif role_value == 'STUDENT':
             # Student metrics
             try:
                 student_profile = user.student_profile
@@ -167,12 +290,21 @@ def dashboard_context(request):
                 context['student_attendance'] = 0
                 context['student_average'] = 0
                 context['student_pending'] = 0
+
+            context['dashboard_stats_cards'] = [
+                stat_card("Attendance", context.get('student_attendance', 0), "blue", suffix="%"),
+                stat_card("Average", context.get('student_average', 0), "green"),
+                stat_card("Pending", context.get('student_pending', 0), "pink"),
+                stat_card("Notifications", notifications_unread, "red"),
+            ]
+        context['notifications_unread'] = notifications_unread
     
     except Exception as e:
         # Log error but don't break the page
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error in dashboard_context: {e}")
+        context['notifications_unread'] = notifications_unread
     
     return context
 

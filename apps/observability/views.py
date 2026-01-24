@@ -166,7 +166,16 @@ def copilot_metrics_json(request):
             'roles': role_counts,
         })
     except Exception as exc:  # noqa: BLE001
-        return JsonResponse({'success': False, 'error': str(exc)}, status=500)
+        return JsonResponse({
+            'success': True,
+            'total': 0,
+            'denied': 0,
+            'errors': 0,
+            'last_success_ts': None,
+            'last_error_ts': None,
+            'roles': [],
+            'warning': str(exc),
+        })
 
 
 # ============================================

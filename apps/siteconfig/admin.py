@@ -21,12 +21,105 @@ from .models import (
     GradingScaleConfig,
     HolidayCalendar,
 )
+from .models_dashboard import DashboardUserPreference, DashboardWidget
 from apps.academics.models import AcademicYear
 
 
 # ==========================
 # SITE CUSTOMIZER (CORE)
 # ==========================
+from django import forms
+import json
+
+class DashboardLayoutWidget(forms.Textarea):
+    """Custom widget to pretty-print JSON for dashboard_layout."""
+    def format_value(self, value):
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except Exception:
+                return value
+        try:
+            return json.dumps(value, indent=2, ensure_ascii=False)
+        except Exception:
+            return value
+
+class DashboardUserPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = DashboardUserPreference
+        fields = "__all__"
+        widgets = {
+            "dashboard_layout": DashboardLayoutWidget(attrs={"rows": 10, "style": "font-family:monospace; width:90%"}),
+            "visible_widgets": forms.SelectMultiple(attrs={"size": 8, "style": "width:60%"}),
+        }
+
+class DashboardUserPreferenceAdmin(ModelAdmin):
+    form = DashboardUserPreferenceForm
+    list_display = ("user", "theme_preference", "language", "created_at", "updated_at", "list_widgets")
+    search_fields = ("user__username", "user__email")
+    readonly_fields = ("created_at", "updated_at")
+    list_filter = ("theme_preference", "language")
+    actions = ["set_theme_dark", "set_theme_light"]
+    fieldsets = (
+        ("User", {"fields": ("user",)}),
+        ("Dashboard Layout", {"fields": ("dashboard_layout", "visible_widgets")}),
+        ("Theme & Localization", {"fields": ("theme_preference", "language")}),
+        ("Accessibility", {"fields": ("high_contrast", "reduced_motion", "font_size")}),
+        ("Notifications", {"fields": ("email_notifications", "sms_notifications", "push_notifications")}),
+        ("UI Preferences", {"fields": ("items_per_page", "sidebar_collapsed")}),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
+
+    def list_widgets(self, obj):
+        return ", ".join(obj.visible_widgets or [])
+    list_widgets.short_description = "Visible Widgets"
+
+    def set_theme_dark(self, request, queryset):
+        updated = queryset.update(theme_preference="dark")
+        self.message_user(request, f"Set {updated} user(s) to dark mode.")
+    set_theme_dark.short_description = "Set theme to Dark"
+
+    def set_theme_light(self, request, queryset):
+        updated = queryset.update(theme_preference="light")
+        self.message_user(request, f"Set {updated} user(s) to light mode.")
+    set_theme_light.short_description = "Set theme to Light"
+
+    class Media:
+        css = {"all": ("admin/css/widgets.css",)}
+
+
+class DashboardWidgetAdmin(ModelAdmin):
+    list_display = ("id", "name", "widget_type", "required_role", "is_active", "order")
+    search_fields = ("id", "name", "description")
+    list_filter = ("widget_type", "required_role", "is_active")
+    ordering = ("order",)
+    actions = ["activate_widgets", "deactivate_widgets", "assign_to_role"]
+    readonly_fields = ("id",)
+    fieldsets = (
+        ("Widget Info", {"fields": ("id", "name", "description", "widget_type", "template_path")}),
+        ("Access Control", {"fields": ("required_role",)}),
+        ("Display Settings", {"fields": ("default_width", "refresh_interval", "order", "is_active")}),
+    )
+
+    def activate_widgets(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"Activated {updated} widget(s).")
+    activate_widgets.short_description = "Activate selected widgets"
+
+    def deactivate_widgets(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"Deactivated {updated} widget(s).")
+    deactivate_widgets.short_description = "Deactivate selected widgets"
+
+    def assign_to_role(self, request, queryset):
+        # Example: assign all selected widgets to ADMIN role
+        updated = queryset.update(required_role="ADMIN")
+        self.message_user(request, f"Assigned {updated} widget(s) to ADMIN role.")
+    assign_to_role.short_description = "Assign selected widgets to ADMIN role"
+
+    class Media:
+        js = ("admin/js/vendor/jquery/jquery.js",)
+        css = {"all": ("admin/css/widgets.css",)}
 class SiteSettingsAdmin(ModelAdmin):
     """
     Main Site Customizer UI.
@@ -82,6 +175,24 @@ class SiteSettingsAdmin(ModelAdmin):
         ("Admin Portal", {
             "fields": (
                 "admin_portal_stats_config",
+            )
+        }),
+        ("Portal Content", {
+            "fields": (
+                "portal_quick_actions",
+                "portal_announcements",
+                "portal_recent_grades",
+                "portal_upcoming_assessments",
+            )
+        }),
+        ("Footer Content", {
+            "fields": (
+                "footer_accreditation_text",
+                "footer_accreditation_subtext",
+                "footer_support_hours",
+                "footer_whatsapp_url",
+                "footer_status_text",
+                "footer_badges",
             )
         }),
         ("System Behavior", {
@@ -869,3 +980,7 @@ admin_site.register(Integration, IntegrationAdmin)
 admin_site.register(RegionConfig, RegionConfigAdmin)
 admin_site.register(GradingScaleConfig, GradingScaleConfigAdmin)
 admin_site.register(HolidayCalendar, HolidayCalendarAdmin)
+
+# Register dashboard preference and widget models for admin configurability
+admin_site.register(DashboardUserPreference, DashboardUserPreferenceAdmin)
+admin_site.register(DashboardWidget, DashboardWidgetAdmin)

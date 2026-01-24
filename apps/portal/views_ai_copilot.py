@@ -48,18 +48,30 @@ def _check_rate_limit(user):
     """Simple per-user sliding window rate limiter using Django cache."""
     key = f"ai_rl:{getattr(user, 'id', 'anon')}"
     now = time.time()
-    events = cache.get(key, [])
+    try:
+        events = cache.get(key, [])
+    except Exception:
+        # If cache is unavailable, allow requests without rate limiting.
+        return True, 0
+    if not isinstance(events, (list, tuple)):
+        events = []
     # Keep only events within window
     events = [t for t in events if now - t < RATE_LIMIT_WINDOW]
     if len(events) >= RATE_LIMIT_PER_MIN:
         # Save pruned events and deny
-        cache.set(key, events, RATE_LIMIT_WINDOW)
+        try:
+            cache.set(key, events, RATE_LIMIT_WINDOW)
+        except Exception:
+            pass
         # Calculate approximate seconds until next allowed (based on oldest event)
         retry_after = max(0, int(RATE_LIMIT_WINDOW - (now - events[0]))) if events else RATE_LIMIT_WINDOW
         return False, retry_after
     # Allow and record this event
     events.append(now)
-    cache.set(key, events, RATE_LIMIT_WINDOW)
+    try:
+        cache.set(key, events, RATE_LIMIT_WINDOW)
+    except Exception:
+        pass
     return True, 0
 
 
@@ -68,28 +80,46 @@ def _increment_usage_metrics(user, allowed: bool):
     try:
         cache.incr('ai_copilot_usage_total')
     except ValueError:
-        cache.set('ai_copilot_usage_total', 1, None)
+        try:
+            cache.set('ai_copilot_usage_total', 1, None)
+        except Exception:
+            pass
+    except Exception:
+        pass
 
-    role = getattr(user, 'role', 'USER')
+    role = (getattr(user, 'role', 'USER') or '').upper()
     # Track seen roles for metrics endpoint
     try:
         roles = cache.get('ai_copilot_usage_roles') or []
         if role not in roles:
             roles.append(role)
-            cache.set('ai_copilot_usage_roles', roles, None)
+            try:
+                cache.set('ai_copilot_usage_roles', roles, None)
+            except Exception:
+                pass
     except Exception:
         pass
 
     try:
         cache.incr(f'ai_copilot_usage_role:{role}')
     except ValueError:
-        cache.set(f'ai_copilot_usage_role:{role}', 1, None)
+        try:
+            cache.set(f'ai_copilot_usage_role:{role}', 1, None)
+        except Exception:
+            pass
+    except Exception:
+        pass
 
     if not allowed:
         try:
             cache.incr('ai_copilot_usage_denied_total')
         except ValueError:
-            cache.set('ai_copilot_usage_denied_total', 1, None)
+            try:
+                cache.set('ai_copilot_usage_denied_total', 1, None)
+            except Exception:
+                pass
+        except Exception:
+            pass
 
 
 def get_ai_permissions(user):
@@ -97,8 +127,11 @@ def get_ai_permissions(user):
     Determine what AI copilot features are available for the user's role.
     Returns a dict of available features and scopes.
     """
-    role = getattr(user, 'role', 'USER')
-    
+    role = (getattr(user, 'role', 'USER') or '').upper()
+    admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN"}
+    finance_roles = admin_roles | {"BURSAR"}
+    is_admin_like = user.is_superuser or user.is_staff or role in admin_roles
+
     permissions = {
         'can_access_ai': user.is_authenticated,
         'can_analyze_data': False,
@@ -108,8 +141,8 @@ def get_ai_permissions(user):
         'can_access_roster': False,
         'scope': 'general',
     }
-    
-    if role in ['ADMIN', 'LEADERSHIP']:
+
+    if is_admin_like:
         permissions.update({
             'can_analyze_data': True,
             'can_view_financial': True,
@@ -117,6 +150,12 @@ def get_ai_permissions(user):
             'can_access_grades': True,
             'can_access_roster': True,
             'scope': 'admin',
+        })
+    elif role == 'BURSAR':
+        permissions.update({
+            'can_analyze_data': True,
+            'can_view_financial': True,
+            'scope': 'finance',
         })
     elif role == 'TEACHER':
         permissions.update({
@@ -127,6 +166,7 @@ def get_ai_permissions(user):
     elif role == 'PARENT':
         permissions.update({
             'can_access_grades': True,  # Only their child's grades
+            'can_view_financial': True,  # Only their child's fees
             'scope': 'parent',
         })
     
@@ -147,10 +187,15 @@ def is_query_allowed(user, query):
     query_lower = query.lower()
     
     # Keyword-based restrictions
-    financial_keywords = ['invoice', 'payment', 'fee', 'salary', 'payroll', 'financial']
+    financial_keywords = ['invoice', 'payment', 'fee', 'financial']
+    payroll_keywords = ['salary', 'payroll']
     compliance_keywords = ['audit', 'compliance', 'permission', 'access log', 'security']
     all_grades_keywords = ['all grades', 'all students grade', 'every student']
     
+    if any(kw in query_lower for kw in payroll_keywords):
+        if permissions.get('scope') not in {'admin', 'finance'}:
+            return False, "You don't have permission to access payroll data."
+
     if any(kw in query_lower for kw in financial_keywords):
         if not permissions['can_view_financial']:
             return False, "You don't have permission to access financial data."
@@ -297,7 +342,10 @@ def ai_copilot_query(request):
             )
 
         _increment_usage_metrics(request.user, allowed=True)
-        cache.set('ai_copilot_last_success_ts', time.time(), None)
+        try:
+            cache.set('ai_copilot_last_success_ts', time.time(), None)
+        except Exception:
+            pass
         return JsonResponse({
             'success': True,
             'allowed': True,
@@ -316,8 +364,16 @@ def ai_copilot_query(request):
         try:
             cache.incr('ai_copilot_usage_errors_total')
         except ValueError:
-            cache.set('ai_copilot_usage_errors_total', 1, None)
-        cache.set('ai_copilot_last_error_ts', time.time(), None)
+            try:
+                cache.set('ai_copilot_usage_errors_total', 1, None)
+            except Exception:
+                pass
+        except Exception:
+            pass
+        try:
+            cache.set('ai_copilot_last_error_ts', time.time(), None)
+        except Exception:
+            pass
         return JsonResponse({
             'success': False,
             'error': 'An error occurred processing your request.'
@@ -356,7 +412,19 @@ def ai_copilot_limits(request):
     """Return current rate limit status for the logged-in user."""
     key = f"ai_rl:{getattr(request.user, 'id', 'anon')}"
     now = time.time()
-    events = cache.get(key, [])
+    try:
+        events = cache.get(key, [])
+    except Exception:
+        return JsonResponse({
+            'success': True,
+            'rate_limit': RATE_LIMIT_PER_MIN,
+            'window_seconds': RATE_LIMIT_WINDOW,
+            'used': 0,
+            'remaining': RATE_LIMIT_PER_MIN,
+            'reset_in_seconds': 0,
+        })
+    if not isinstance(events, (list, tuple)):
+        events = []
     events = [t for t in events if now - t < RATE_LIMIT_WINDOW]
     used = len(events)
     remaining = max(0, RATE_LIMIT_PER_MIN - used)
@@ -386,7 +454,7 @@ def ai_copilot_config(request):
         'model': model,
         'rate_limit': RATE_LIMIT_PER_MIN,
         'window_seconds': RATE_LIMIT_WINDOW,
-        'user_role': getattr(request.user, 'role', 'USER'),
+        'user_role': (getattr(request.user, 'role', 'USER') or '').upper(),
     })
 
 
@@ -395,7 +463,8 @@ def ai_copilot_config(request):
 def ai_copilot_audit_feed(request):
     """Return recent AI-related audit logs; staff/admin only."""
     user = request.user
-    if not (user.is_staff or user.is_superuser or getattr(user, 'role', '') in ('ADMIN', 'LEADERSHIP')):
+    role_value = (getattr(user, 'role', '') or '').upper()
+    if not (user.is_staff or user.is_superuser or role_value in ('ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN', 'IT_ADMIN')):
         return JsonResponse({'success': False, 'error': 'Forbidden'}, status=403)
 
     try:
@@ -425,13 +494,20 @@ def build_contextual_prompt(user, user_message: str) -> str:
     Build a role-aware prompt for the AI backend.
     """
     user_name = getattr(user, 'first_name', '') or getattr(user, 'username', 'User')
-    role = getattr(user, 'role', 'USER')
+    role = (getattr(user, 'role', 'USER') or '').upper()
+    admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN"}
+    is_admin_like = user.is_superuser or user.is_staff or role in admin_roles
     context = "You are an AI assistant for a school management system. "
 
-    if role in ['ADMIN', 'LEADERSHIP']:
+    if is_admin_like:
         context += (
             f"The user is an administrator named {user_name}. "
             "Help with system analytics, user management, financial summaries, compliance tasks, and administrative operations. "
+        )
+    elif role == 'BURSAR':
+        context += (
+            f"The user is a finance officer named {user_name}. "
+            "Help with fee collection, invoice status, payment reconciliation, and finance reporting. "
         )
     elif role == 'TEACHER':
         context += (

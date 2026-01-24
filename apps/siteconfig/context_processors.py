@@ -223,8 +223,11 @@ def ai_copilot_settings(request):
     # Get user role
     user_role = 'USER'
     if request.user and request.user.is_authenticated:
-        user_role = getattr(request.user, 'role', 'USER')
+        user_role = (getattr(request.user, 'role', 'USER') or '').upper()
     
+    admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN"}
+    is_admin_like = request.user.is_superuser or request.user.is_staff or user_role in admin_roles
+
     # Determine AI permissions based on role
     ai_permissions = {
         'can_access_ai': request.user and request.user.is_authenticated,
@@ -236,7 +239,7 @@ def ai_copilot_settings(request):
         'scope': 'general',
     }
     
-    if user_role in ['ADMIN', 'LEADERSHIP']:
+    if is_admin_like:
         ai_permissions.update({
             'can_analyze_data': True,
             'can_view_financial': True,
@@ -244,6 +247,12 @@ def ai_copilot_settings(request):
             'can_access_grades': True,
             'can_access_roster': True,
             'scope': 'admin',
+        })
+    elif user_role == 'BURSAR':
+        ai_permissions.update({
+            'can_analyze_data': True,
+            'can_view_financial': True,
+            'scope': 'finance',
         })
     elif user_role == 'TEACHER':
         ai_permissions.update({
@@ -254,6 +263,7 @@ def ai_copilot_settings(request):
     elif user_role == 'PARENT':
         ai_permissions.update({
             'can_access_grades': True,  # Only their child's
+            'can_view_financial': True,  # Only their child's fees
             'scope': 'parent',
         })
     

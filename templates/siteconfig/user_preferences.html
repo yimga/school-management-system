@@ -28,21 +28,8 @@
         <div class="card-body">
           <form method="post">
             {% csrf_token %}
-            {% for field in form.visible_fields %}
-              {% if field.name == "dashboard_widgets" %}
-                <div class="mb-3" id="dashboard-widgets-row">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% else %}
+            {% with field=form.timezone %}
+              {% if field %}
                 <div class="mb-3">
                   <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
                   {{ field }}
@@ -56,7 +43,87 @@
                   {% endif %}
                 </div>
               {% endif %}
-            {% endfor %}
+            {% endwith %}
+            {% with field=form.dashboard_view %}
+              {% if field %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            {% if form.dashboard_widgets %}
+              {% with field=form.dashboard_widgets %}
+                <div class="mb-3" id="dashboard-widgets-row">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endwith %}
+            {% endif %}
+            {% with field=form.refresh_rate_minutes %}
+              {% if field %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            {% with field=form.notification_channels %}
+              {% if field %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            {% with field=form.receive_weekly_summary %}
+              {% if field %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
 
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-primary">Save preferences</button>

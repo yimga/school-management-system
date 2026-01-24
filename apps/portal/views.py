@@ -37,7 +37,13 @@ from apps.reports.services import (
     terms_for_student,
     term_report_context,
 )
-from apps.siteconfig.models import Integration, SiteSettings, default_portal_features, resolve_dashboard_widgets
+from apps.siteconfig.models import (
+    Integration,
+    SiteSettings,
+    default_portal_features,
+    resolve_dashboard_widgets,
+    filter_portal_items,
+)
 from apps.analytics.services import (
     student_improvements,
     specialty_pass_rates,
@@ -147,6 +153,13 @@ def parent_dashboard(request: HttpRequest):
     
     preference = getattr(request.user, "preferences", None)
     display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
+
+    site = SiteSettings.get_solo()
+    role = getattr(request.user, "role", None)
+    portal_quick_actions = filter_portal_items(site.portal_quick_actions, role)
+    portal_announcements = filter_portal_items(site.portal_announcements, role)
+    portal_recent_grades = filter_portal_items(site.portal_recent_grades, role)
+    portal_upcoming_assessments = filter_portal_items(site.portal_upcoming_assessments, role)
     
     # Single aggregation query for reminders
     reminders_count = PaymentReminder.objects.filter(
@@ -184,6 +197,10 @@ def parent_dashboard(request: HttpRequest):
         "widget_data": widget_data,
         "child_cards": child_cards,
         "display_widgets": display_widgets,
+        "portal_quick_actions": portal_quick_actions,
+        "portal_announcements": portal_announcements,
+        "portal_recent_grades": portal_recent_grades,
+        "portal_upcoming_assessments": portal_upcoming_assessments,
         "hero": hero,
         "reminders_count": reminders_count,
     })
