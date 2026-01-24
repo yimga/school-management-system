@@ -1,0 +1,238 @@
+<!-- Header Weather Widget - Compact weather, date, and quote for topbar -->
+<style>
+  .header-weather-widget {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.95);
+    white-space: nowrap;
+    max-width: 600px;
+  }
+
+  .header-weather-widget__date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  .header-weather-widget__weather {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 12px;
+  }
+
+  .header-weather-widget__icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .header-weather-widget__temp {
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .header-weather-widget__desc {
+    opacity: 0.8;
+    font-size: 12px;
+  }
+
+  .header-weather-widget__quote {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 12px;
+    font-style: italic;
+    opacity: 0.85;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+  }
+
+  @media (max-width: 1200px) {
+    .header-weather-widget__quote {
+      display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .header-weather-widget {
+      gap: 8px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    .header-weather-widget__weather {
+      padding-left: 8px;
+    }
+    .header-weather-widget__desc {
+      display: none;
+    }
+  }
+
+  .header-weather-widget__loading {
+    opacity: 0.6;
+    font-size: 12px;
+  }
+</style>
+
+<div class="header-weather-widget">
+  <div class="header-weather-widget__date">
+    📅 <span id="headerWidgetDate">Loading...</span>
+  </div>
+  
+  <div class="header-weather-widget__weather">
+    <span class="header-weather-widget__icon" id="headerWidgetIcon">🌤️</span>
+    <span class="header-weather-widget__temp" id="headerWidgetTemp">--°</span>
+    <span class="header-weather-widget__desc" id="headerWidgetDesc">...</span>
+  </div>
+  
+  <div class="header-weather-widget__quote">
+    💡 <span id="headerWidgetQuote">Loading wisdom...</span>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // Format current date
+  function updateHeaderDate() {
+    const now = new Date();
+    const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+    const formatted = now.toLocaleDateString('en-US', options);
+    const dateEl = document.getElementById('headerWidgetDate');
+    if (dateEl) dateEl.textContent = formatted;
+  }
+
+  // Weather code mappings
+  const weatherIcons = {
+    0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️',
+    51: '🌦️', 53: '🌦️', 55: '🌦️', 61: '🌧️', 63: '🌧️', 65: '🌧️',
+    71: '🌨️', 73: '🌨️', 75: '🌨️', 80: '🌦️', 81: '🌦️', 82: '🌦️',
+    95: '⛈️', 96: '⛈️', 99: '⛈️'
+  };
+  
+  const weatherDescriptions = {
+    0: 'Clear', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+    45: 'Foggy', 48: 'Foggy', 51: 'Light drizzle', 53: 'Drizzle', 55: 'Heavy drizzle',
+    61: 'Light rain', 63: 'Rain', 65: 'Heavy rain', 71: 'Light snow', 73: 'Snow', 75: 'Heavy snow',
+    80: 'Light showers', 81: 'Showers', 82: 'Heavy showers', 95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Thunderstorm'
+  };
+
+  // Load weather with geolocation
+  async function loadHeaderWeather() {
+    try {
+      // Try to get user's location
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async function(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            await fetchWeatherData(lat, lon);
+          },
+          async function(error) {
+            console.log('Geolocation unavailable, using default location:', error.message);
+            // Fallback to default location (Abuja, Nigeria)
+            await fetchWeatherData(9.0820, 8.6753);
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 300000 // Cache for 5 minutes
+          }
+        );
+      } else {
+        // Geolocation not supported, use default
+        await fetchWeatherData(9.0820, 8.6753);
+      }
+    } catch (error) {
+      console.log('Header weather loading error:', error);
+      const iconEl = document.getElementById('headerWidgetIcon');
+      const tempEl = document.getElementById('headerWidgetTemp');
+      const descEl = document.getElementById('headerWidgetDesc');
+      if (iconEl) iconEl.textContent = '🌐';
+      if (tempEl) tempEl.textContent = '--°';
+      if (descEl) descEl.textContent = 'Unavailable';
+    }
+  }
+
+  async function fetchWeatherData(lat, lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=auto`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.current) {
+      const temp = Math.round(data.current.temperature_2m);
+      const weatherCode = data.current.weather_code;
+      
+      const icon = weatherIcons[weatherCode] || '🌤️';
+      const desc = weatherDescriptions[weatherCode] || 'Unknown';
+      
+      const iconEl = document.getElementById('headerWidgetIcon');
+      const tempEl = document.getElementById('headerWidgetTemp');
+      const descEl = document.getElementById('headerWidgetDesc');
+      
+      if (iconEl) iconEl.textContent = icon;
+      if (tempEl) tempEl.textContent = `${temp}°F`;
+      if (descEl) descEl.textContent = desc;
+    }
+  }
+
+  // Daily quote
+  function loadHeaderQuote() {
+    const quotes = [
+      'Great things are done by a series of small things brought together.',
+      'Education is the most powerful weapon to change the world.',
+      'The beautiful thing about learning is that no one can take it away.',
+      'Success is the courage to continue that counts.',
+      'The only way to do great work is to love what you do.',
+      'Believe you can and you\'re halfway there.',
+      'In the middle of difficulty lies opportunity.',
+      'Quality is not an act, it is a habit.',
+      'Excellence is not a skill, it\'s an attitude.',
+      'The expert in anything was once a beginner.',
+      'Teaching is the greatest act of optimism.',
+      'The mind is a fire to be kindled, not a vessel to be filled.',
+      'Learning is a treasure that follows its owner everywhere.',
+      'The roots of education are bitter, but the fruit is sweet.',
+      'An investment in knowledge pays the best interest.'
+    ];
+    
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now - start;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    
+    const quote = quotes[dayOfYear % quotes.length];
+    const quoteEl = document.getElementById('headerWidgetQuote');
+    if (quoteEl) quoteEl.textContent = quote;
+  }
+
+  // Initialize
+  function initHeaderWidget() {
+    updateHeaderDate();
+    loadHeaderWeather();
+    loadHeaderQuote();
+    
+    // Update date every minute
+    setInterval(updateHeaderDate, 60000);
+  }
+
+  // Run on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeaderWidget);
+  } else {
+    initHeaderWidget();
+  }
+})();
+</script>

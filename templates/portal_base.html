@@ -216,7 +216,12 @@
           <a class="btn btn-sm btn-outline-light portal-logout-left" href="{% url 'accounts:logout' %}">Logout</a>
         {% endif %}
 
-        <div class="ms-auto d-flex align-items-center gap-3 text-white">
+        <!-- Weather + Date + Quote Widget -->
+        <div class="flex-grow-1 d-flex justify-content-center">
+          {% include 'components/header_weather_widget.html' %}
+        </div>
+
+        <div class="d-flex align-items-center gap-3 text-white">
           {% if request.user.is_authenticated %}
             <span class="small opacity-75 d-none d-sm-inline">{{ request.user.username }}</span>
           {% else %}
