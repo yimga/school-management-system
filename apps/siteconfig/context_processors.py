@@ -204,3 +204,14 @@ def language_context(request):
         'supported_languages': SUPPORTED_LANGUAGES,
         'translate': lambda text: TranslationManager.get_text(text, current_language),
     }
+
+
+def ai_copilot_settings(request):
+    """
+    Context processor for AI Copilot settings.
+    Provides the Gemini API key to templates for AI-powered assistance.
+    """
+    import os
+    return {
+        'GEMINI_API_KEY': os.environ.get('GEMINI_API_KEY', ''),
+    }

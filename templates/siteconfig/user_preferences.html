@@ -71,6 +71,7 @@
     (function () {
       const viewSelect = document.getElementById("id_dashboard_view");
       const widgetRow = document.getElementById("dashboard-widgets-row");
+      const timezoneSelect = document.getElementById("id_timezone");
       if (!viewSelect || !widgetRow) {
         return;
       }
@@ -81,6 +82,17 @@
 
       viewSelect.addEventListener("change", toggleWidgets);
       toggleWidgets();
+
+      if (timezoneSelect) {
+        const defaultTz = timezoneSelect.dataset.defaultTimezone || "";
+        const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+        const hasOption = Array.from(timezoneSelect.options).some(
+          (option) => option.value === browserTz
+        );
+        if (hasOption && (!timezoneSelect.value || timezoneSelect.value === defaultTz)) {
+          timezoneSelect.value = browserTz;
+        }
+      }
     })();
   </script>
 {% endblock %}

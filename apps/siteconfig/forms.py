@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytz
 
 from django import forms
+from django.conf import settings
 
 from apps.academics.models import Classroom
 
@@ -159,6 +160,11 @@ class SiteSettingsForm(forms.ModelForm):
 
 
 class UserPreferenceForm(forms.ModelForm):
+    timezone = forms.ChoiceField(
+        choices=[(tz, tz) for tz in pytz.common_timezones],
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
     notification_channels = forms.MultipleChoiceField(
         choices=UserPreference.NotificationChannel.choices,
         widget=forms.CheckboxSelectMultiple,
@@ -182,7 +188,6 @@ class UserPreferenceForm(forms.ModelForm):
             "receive_weekly_summary",
         ]
         widgets = {
-            "timezone": forms.Select(attrs={"class": "form-select"}),
             "dashboard_view": forms.Select(attrs={"class": "form-select"}),
             "refresh_rate_minutes": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
         }
@@ -191,10 +196,7 @@ class UserPreferenceForm(forms.ModelForm):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         
-        # Build timezone choices without empty option (model has default)
-        tz_choices = [(tz, tz) for tz in pytz.common_timezones]
-        self.fields["timezone"].choices = tz_choices
-        self.fields["timezone"].required = False  # Allow optional selection since model has default
+        self.fields["timezone"].widget.attrs["data-default-timezone"] = settings.TIME_ZONE
         
         if self.instance and self.instance.notification_channels:
             self.initial["notification_channels"] = self.instance.notification_channels
