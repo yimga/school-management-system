@@ -174,12 +174,13 @@
             <small>Splash onboard for staff, families, and admins</small>
           </div>
         </div>
-        <div class="auth-hero hero-meta">
-          <div class="d-flex align-items-center gap-2">
-            <span>Logged in as {{ request.user.username|default:"admin" }}</span>
-            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-light btn-sm px-3">Logout</a>
+        {% if request.user.is_authenticated %}
+          <div class="auth-hero hero-meta">
+            <div class="d-flex align-items-center gap-2">
+              <span>Logged in as {{ request.user.username }}</span>
+            </div>
           </div>
-        </div>
+        {% endif %}
       </div>
       <div class="auth-breadcrumb text-muted text-uppercase small">
         <span>Home / Authentication / Login</span>

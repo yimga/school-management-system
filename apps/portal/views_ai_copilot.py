@@ -7,7 +7,7 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_GET
 from django.views.decorators.csrf import csrf_protect
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
@@ -50,6 +50,15 @@ def _increment_usage_metrics(user, allowed: bool):
         cache.set('ai_copilot_usage_total', 1, None)
 
     role = getattr(user, 'role', 'USER')
+    # Track seen roles for metrics endpoint
+    try:
+        roles = cache.get('ai_copilot_usage_roles') or []
+        if role not in roles:
+            roles.append(role)
+            cache.set('ai_copilot_usage_roles', roles, None)
+    except Exception:
+        pass
+
     try:
         cache.incr(f'ai_copilot_usage_role:{role}')
     except ValueError:
@@ -315,6 +324,76 @@ def ai_permissions(request):
         'permissions': permissions,
         'user_role': getattr(request.user, 'role', 'USER'),
     })
+
+
+@require_GET
+@login_required(login_url='/authentication/login/')
+def ai_copilot_limits(request):
+    """Return current rate limit status for the logged-in user."""
+    key = f"ai_rl:{getattr(request.user, 'id', 'anon')}"
+    now = time.time()
+    events = cache.get(key, [])
+    events = [t for t in events if now - t < RATE_LIMIT_WINDOW]
+    used = len(events)
+    remaining = max(0, RATE_LIMIT_PER_MIN - used)
+    reset_in = 0
+    if events:
+        reset_in = max(0, int(RATE_LIMIT_WINDOW - (now - events[0])))
+    return JsonResponse({
+        'success': True,
+        'rate_limit': RATE_LIMIT_PER_MIN,
+        'window_seconds': RATE_LIMIT_WINDOW,
+        'used': used,
+        'remaining': remaining,
+        'reset_in_seconds': reset_in,
+    })
+
+
+@require_GET
+@login_required(login_url='/authentication/login/')
+def ai_copilot_config(request):
+    """Return AI Copilot backend config visibility for frontend widgets."""
+    api_key = os.environ.get('GEMINI_API_KEY', '')
+    enabled = bool(api_key)
+    model = 'gemini-pro' if enabled else None
+    return JsonResponse({
+        'success': True,
+        'enabled': enabled,
+        'model': model,
+        'rate_limit': RATE_LIMIT_PER_MIN,
+        'window_seconds': RATE_LIMIT_WINDOW,
+        'user_role': getattr(request.user, 'role', 'USER'),
+    })
+
+
+@require_GET
+@login_required(login_url='/authentication/login/')
+def ai_copilot_audit_feed(request):
+    """Return recent AI-related audit logs; staff/admin only."""
+    user = request.user
+    if not (user.is_staff or user.is_superuser or getattr(user, 'role', '') in ('ADMIN', 'LEADERSHIP')):
+        return JsonResponse({'success': False, 'error': 'Forbidden'}, status=403)
+
+    try:
+        limit = int(request.GET.get('limit', '20'))
+        limit = max(1, min(limit, 100))
+    except ValueError:
+        limit = 20
+
+    actions = ['AI_QUERY_SUBMITTED', 'AI_QUERY_DENIED', 'AI_QUERY_RATE_LIMITED']
+    # Minimal fields to avoid leaking sensitive data
+    qs = AuditLog.objects.filter(action__in=actions).order_by('-created_at')[:limit]
+    items = []
+    for row in qs:
+        items.append({
+            'id': getattr(row, 'id', None),
+            'action': getattr(row, 'action', ''),
+            'when': getattr(row, 'created_at', None).isoformat() if getattr(row, 'created_at', None) else None,
+            'user': getattr(getattr(row, 'user', None), 'username', None),
+            'details': getattr(row, 'details', {}),
+            'severity': getattr(row, 'severity', 'INFO'),
+        })
+    return JsonResponse({'success': True, 'items': items})
 
 
 def build_contextual_prompt(user, user_message: str) -> str:

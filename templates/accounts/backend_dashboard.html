@@ -449,6 +449,34 @@
       </div>
     </div>
 
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Copilot Usage</h6>
+          <span class="badge bg-light text-dark" id="copilotTotalBadge">0 total</span>
+        </div>
+        <ul class="list-unstyled mb-2 small" id="copilotRoleList">
+          <li class="text-muted">Loading usage…</li>
+        </ul>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="small text-muted">Denied</span>
+          <span class="badge bg-light text-dark" id="copilotDeniedBadge">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Copilot Audit</h6>
+          <a href="#" class="small text-muted" id="copilotAuditRefresh">Refresh</a>
+        </div>
+        <ul class="list-unstyled mb-0 small" id="copilotAuditList">
+          <li class="text-muted">Loading audit…</li>
+        </ul>
+      </div>
+    </div>
+
     {% if section_stats %}
     <div class="card shadow-sm mb-3">
       <div class="card-body">
@@ -532,6 +560,95 @@
       return div.innerHTML;
     }
     document.addEventListener('DOMContentLoaded', loadRecentActivity);
+
+    async function loadCopilotMetrics() {
+      const roleList = document.getElementById('copilotRoleList');
+      const totalBadge = document.getElementById('copilotTotalBadge');
+      const deniedBadge = document.getElementById('copilotDeniedBadge');
+      if (!roleList || !totalBadge || !deniedBadge) return;
+      try {
+        const res = await fetch('/api/observability/copilot-metrics/');
+        const data = await res.json();
+        if (!data || !data.success) {
+          roleList.innerHTML = '<li class="text-danger">Failed to load usage.</li>';
+          return;
+        }
+        totalBadge.textContent = `${data.total} total`;
+        deniedBadge.textContent = String(data.denied);
+
+        const roles = Array.isArray(data.roles) ? data.roles : [];
+        if (roles.length === 0) {
+          roleList.innerHTML = '<li class="text-muted">No usage recorded.</li>';
+        } else {
+          roleList.innerHTML = '';
+          roles.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'd-flex justify-content-between mb-1';
+            const roleLabel = String(item.role || 'USER');
+            const countVal = Number(item.count || 0);
+            li.innerHTML = `
+              <span class="text-uppercase text-muted">${escapeHtml(roleLabel)}</span>
+              <strong class="text-dark">${countVal}</strong>
+            `;
+            roleList.appendChild(li);
+          });
+        }
+      } catch (e) {
+        roleList.innerHTML = '<li class="text-danger">Failed to load usage.</li>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCopilotMetrics);
+
+    async function loadCopilotAudit() {
+      const auditList = document.getElementById('copilotAuditList');
+      if (!auditList) return;
+      try {
+        const res = await fetch('/api/ai-copilot/audit/?limit=10');
+        const data = await res.json();
+        if (!data || !data.success) {
+          auditList.innerHTML = '<li class="text-danger">Failed to load audit.</li>';
+          return;
+        }
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (items.length === 0) {
+          auditList.innerHTML = '<li class="text-muted">No recent AI activity.</li>';
+        } else {
+          auditList.innerHTML = '';
+          items.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'd-flex justify-content-between align-items-start mb-2';
+            const action = String(item.action || 'AI');
+            const when = String(item.when || '');
+            const user = String(item.user || '');
+            const sev = String(item.severity || 'INFO');
+            const sevClass = sev === 'WARNING' ? 'badge bg-warning text-dark' : (sev === 'ERROR' ? 'badge bg-danger' : 'badge bg-light text-dark');
+            li.innerHTML = `
+              <div>
+                <span class="fw-semibold">${escapeHtml(action)}</span>
+                <div class="text-muted small">${escapeHtml(user)}</div>
+              </div>
+              <div class="text-end">
+                <span class="${sevClass} me-1">${escapeHtml(sev)}</span>
+                <span class="badge bg-light text-dark">${escapeHtml(when)}</span>
+              </div>
+            `;
+            auditList.appendChild(li);
+          });
+        }
+      } catch (e) {
+        auditList.innerHTML = '<li class="text-danger">Failed to load audit.</li>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCopilotAudit);
+    const auditRefresh = document.getElementById('copilotAuditRefresh');
+    if (auditRefresh) {
+      auditRefresh.addEventListener('click', function(evt) {
+        evt.preventDefault();
+        loadCopilotAudit();
+      });
+    }
   })();
   </script>
 

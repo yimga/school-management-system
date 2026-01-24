@@ -41,6 +41,38 @@
         width: auto;
       }
 
+      .base-topbar {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .base-topbar-actions {
+        margin-left: auto;
+      }
+
+      @media (max-width: 767px) {
+        .base-topbar-actions {
+          order: 2;
+          width: 100%;
+          justify-content: flex-end;
+        }
+
+        .base-topbar-weather {
+          order: 3;
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 575px) {
+        .base-topbar-weather {
+          display: none;
+        }
+
+        .base-topbar-actions .btn {
+          padding: 0.2rem 0.4rem;
+        }
+      }
+
       .card {
         border: 0;
         border-radius: 16px;
@@ -70,22 +102,26 @@
 
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark">
-      <div class="container d-flex align-items-center">
+      <div class="container d-flex align-items-center base-topbar">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
           {% if SITE_LOGO_URL %}
             <img src="{{ SITE_LOGO_URL }}" alt="Logo">
           {% endif %}
           <span>{% if SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>
+        {% if request.user.is_authenticated %}
+          <a class="btn btn-sm btn-outline-light ms-3" href="{% url 'accounts:redirect' %}">Home</a>
+        {% endif %}
 
         <!-- Weather + Date + Quote Widget -->
-        <div class="flex-grow-1 d-flex justify-content-center">
+        <div class="base-topbar-weather flex-grow-1 d-flex justify-content-center order-3 order-lg-2">
           {% include 'components/header_weather_widget.html' %}
         </div>
 
-        <div class="text-white d-flex align-items-center gap-2">
+        <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
           {% if request.user.is_authenticated %}
-            <span class="small">Logged in as {{ request.user.username }}</span>
+            <span class="small d-none d-md-inline">Logged in as {{ request.user.username }}</span>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">Logout</a>
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
           {% endif %}

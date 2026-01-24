@@ -4,7 +4,13 @@ from django.shortcuts import redirect, render
 from django.urls import include, path
 
 from apps.observability import views as obs_views
-from apps.portal.views_ai_copilot import ai_copilot_query, ai_permissions
+from apps.portal.views_ai_copilot import (
+    ai_copilot_query,
+    ai_permissions,
+    ai_copilot_limits,
+    ai_copilot_config,
+    ai_copilot_audit_feed,
+)
 from config.admin import admin_site
 
 
@@ -38,6 +44,7 @@ urlpatterns = [
     # Health and metrics
     path('healthz/', obs_views.healthz, name='healthz'),
     path('metrics/', obs_views.metrics, name='metrics'),
+    path('api/observability/copilot-metrics/', obs_views.copilot_metrics_json, name='copilot_metrics_json'),
     
     # Admin Dashboard (Backend-focused)
     path('admin/dashboard/', obs_views.admin_dashboard, name='admin_dashboard'),
@@ -54,6 +61,9 @@ urlpatterns = [
     # AI Copilot API endpoints (RBAC Protected)
     path('api/ai-copilot/validate/', ai_copilot_query, name='ai_copilot_query'),
     path('api/ai-copilot/permissions/', ai_permissions, name='ai_permissions'),
+    path('api/ai-copilot/limits/', ai_copilot_limits, name='ai_copilot_limits'),
+    path('api/ai-copilot/config/', ai_copilot_config, name='ai_copilot_config'),
+    path('api/ai-copilot/audit/', ai_copilot_audit_feed, name='ai_copilot_audit'),
 
     # Back-compat shortcut
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),

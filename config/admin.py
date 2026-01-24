@@ -8,6 +8,8 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
+from django.db.models import Count, Q, Value
+from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import path
@@ -48,20 +50,43 @@ class GileadAdminSite(AdminSite):
 
         new_logins_24h = 0
         failed_logins_24h = 0
+        failed_logins_by_role = []
+        security_alerts_24h = 0
+        access_denials_24h = 0
         try:
-            from apps.compliance.models_audit import AccessLog
-            login_cutoff = now - datetime.timedelta(hours=24)
+            from apps.compliance.models_audit import AccessLog, AuditLog
+            cutoff_24h = now - datetime.timedelta(hours=24)
             login_paths = ["/authentication/login/", "/admin/login/"]
             login_attempts = AccessLog.objects.filter(
                 resource__in=login_paths,
                 request_method="POST",
-                timestamp__gte=login_cutoff,
+                timestamp__gte=cutoff_24h,
             )
+
             new_logins_24h = login_attempts.filter(status__in=["302", "303"]).count()
-            failed_logins_24h = login_attempts.exclude(status__in=["302", "303"]).count()
+            failed_logins = login_attempts.exclude(status__in=["302", "303"])
+            failed_logins_24h = failed_logins.count()
+            failed_logins_by_role = list(
+                failed_logins.values(
+                    role=Coalesce("user__role", Value("Unknown"))
+                ).annotate(count=Count("id")).order_by("-count")[:3]
+            )
+
+            security_alerts_24h = AuditLog.objects.filter(
+                timestamp__gte=cutoff_24h
+            ).filter(
+                Q(action=AuditLog.Action.ACCESS_DENIED) | Q(sensitivity__in=["HIGH", "CRITICAL"])
+            ).count()
+            access_denials_24h = AuditLog.objects.filter(
+                action=AuditLog.Action.ACCESS_DENIED,
+                timestamp__gte=cutoff_24h,
+            ).count()
         except Exception:
             new_logins_24h = 0
             failed_logins_24h = 0
+            failed_logins_by_role = []
+            security_alerts_24h = 0
+            access_denials_24h = 0
 
         context = {
             **self.each_context(request),
@@ -74,6 +99,9 @@ class GileadAdminSite(AdminSite):
             'sessions_24h': sessions_24h,
             'new_logins_24h': new_logins_24h,
             'failed_logins_24h': failed_logins_24h,
+            'failed_logins_by_role': failed_logins_by_role,
+            'security_alerts_24h': security_alerts_24h,
+            'access_denials_24h': access_denials_24h,
         }
         if extra_context:
             context.update(extra_context)

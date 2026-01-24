@@ -11,7 +11,10 @@ from django.views.decorators.http import require_GET, require_POST
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
+from django.db.models import Count, Q, Value
+from django.db.models.functions import Coalesce
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from django.core.cache import cache
 
 
 def _is_observability_authorized(request) -> bool:
@@ -64,8 +67,66 @@ def healthz(request):
 @observability_auth_required
 def metrics(request):
     """Prometheus metrics endpoint."""
-    output = generate_latest()
-    return HttpResponse(output, content_type=CONTENT_TYPE_LATEST)
+    base_output = generate_latest()
+
+    # Append AI Copilot lightweight counters from cache in Prometheus text format
+    lines = []
+    try:
+        total = cache.get('ai_copilot_usage_total') or 0
+        denied = cache.get('ai_copilot_usage_denied_total') or 0
+        roles = cache.get('ai_copilot_usage_roles') or []
+
+        lines.append('# HELP ai_copilot_usage_total Total AI Copilot queries processed')
+        lines.append('# TYPE ai_copilot_usage_total counter')
+        lines.append(f'ai_copilot_usage_total {int(total)}')
+
+        lines.append('# HELP ai_copilot_usage_denied_total Total AI Copilot queries denied (RBAC/Rate limit)')
+        lines.append('# TYPE ai_copilot_usage_denied_total counter')
+        lines.append(f'ai_copilot_usage_denied_total {int(denied)}')
+
+        lines.append('# HELP ai_copilot_usage_role AI Copilot queries by role')
+        lines.append('# TYPE ai_copilot_usage_role counter')
+        for role in roles:
+            val = cache.get(f'ai_copilot_usage_role:{role}') or 0
+            # Sanitize role label value
+            role_label = str(role).replace('"', '')
+            lines.append(f'ai_copilot_usage_role{{role="{role_label}"}} {int(val)}')
+    except Exception:
+        # If cache backend doesn't support this, skip appending
+        pass
+
+    extra = ('\n'.join(lines) + '\n').encode('utf-8') if lines else b''
+    return HttpResponse(base_output + extra, content_type=CONTENT_TYPE_LATEST)
+
+
+@require_GET
+@observability_auth_required
+def copilot_metrics_json(request):
+    """JSON endpoint for AI Copilot usage counters.
+
+    Returns: { total: int, denied: int, roles: [{role: str, count: int}] }
+    """
+    try:
+        total = cache.get('ai_copilot_usage_total') or 0
+        denied = cache.get('ai_copilot_usage_denied_total') or 0
+        roles = cache.get('ai_copilot_usage_roles') or []
+
+        role_counts = []
+        for role in roles:
+            val = cache.get(f'ai_copilot_usage_role:{role}') or 0
+            role_counts.append({
+                'role': str(role),
+                'count': int(val),
+            })
+
+        return JsonResponse({
+            'success': True,
+            'total': int(total),
+            'denied': int(denied),
+            'roles': role_counts,
+        })
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse({'success': False, 'error': str(exc)}, status=500)
 
 
 # ============================================
@@ -295,20 +356,42 @@ def admin_dashboard(request):
 
     new_logins_24h = 0
     failed_logins_24h = 0
+    failed_logins_by_role = []
+    security_alerts_24h = 0
+    access_denials_24h = 0
     try:
-        from apps.compliance.models_audit import AccessLog
-        login_cutoff = now - datetime.timedelta(hours=24)
+        from apps.compliance.models_audit import AccessLog, AuditLog
+        cutoff_24h = now - datetime.timedelta(hours=24)
         login_paths = ["/authentication/login/", "/admin/login/"]
         login_attempts = AccessLog.objects.filter(
             resource__in=login_paths,
             request_method="POST",
-            timestamp__gte=login_cutoff,
+            timestamp__gte=cutoff_24h,
         )
         new_logins_24h = login_attempts.filter(status__in=["302", "303"]).count()
-        failed_logins_24h = login_attempts.exclude(status__in=["302", "303"]).count()
+        failed_logins = login_attempts.exclude(status__in=["302", "303"])
+        failed_logins_24h = failed_logins.count()
+        failed_logins_by_role = list(
+            failed_logins.values(
+                role=Coalesce("user__role", Value("Unknown"))
+            ).annotate(count=Count("id")).order_by("-count")[:3]
+        )
+
+        security_alerts_24h = AuditLog.objects.filter(
+            timestamp__gte=cutoff_24h
+        ).filter(
+            Q(action=AuditLog.Action.ACCESS_DENIED) | Q(sensitivity__in=["HIGH", "CRITICAL"])
+        ).count()
+        access_denials_24h = AuditLog.objects.filter(
+            action=AuditLog.Action.ACCESS_DENIED,
+            timestamp__gte=cutoff_24h,
+        ).count()
     except Exception:
         new_logins_24h = 0
         failed_logins_24h = 0
+        failed_logins_by_role = []
+        security_alerts_24h = 0
+        access_denials_24h = 0
     
     context = {
         'total_users': total_users,
@@ -319,6 +402,9 @@ def admin_dashboard(request):
         'sessions_24h': sessions_24h,
         'new_logins_24h': new_logins_24h,
         'failed_logins_24h': failed_logins_24h,
+        'failed_logins_by_role': failed_logins_by_role,
+        'security_alerts_24h': security_alerts_24h,
+        'access_denials_24h': access_denials_24h,
     }
     
     return render(request, 'admin/admin_dashboard.html', context)

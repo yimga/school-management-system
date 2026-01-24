@@ -61,6 +61,18 @@
         box-shadow: 0 0 0 0.25rem rgba(255,255,255,0.1) !important;
       }
 
+      .topbar-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .topbar-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+      }
+
       /* Theme Toggle Button */
       #themeToggle {
         transition: transform 0.3s ease, color 0.3s ease;
@@ -274,8 +286,44 @@
         .offcanvas-body {
           padding: 0.75rem;
         }
+
+        .topbar-actions {
+          gap: 0.5rem;
+          width: 100%;
+        }
+
+        .topbar-controls {
+          order: 1;
+          flex-basis: 100%;
+          justify-content: flex-end;
+        }
+
+        .topbar-weather,
+        .topbar-search {
+          order: 2;
+          flex-basis: 100%;
+          max-width: 100%;
+        }
+
+        .topbar-search {
+          order: 3;
+        }
+
+        .topbar-search input {
+          width: 100% !important;
+        }
       }
 
+      @media (max-width: 575px) {
+        .topbar-weather {
+          display: none;
+        }
+
+        .topbar-controls .btn,
+        .topbar-controls .btn-link {
+          padding: 0.2rem 0.4rem;
+        }
+      }
       @media (max-width: 1023px) {
         .communication-link {
           min-width: 140px;
@@ -378,6 +426,7 @@
         {% url 'payroll:dashboard' as payroll_url %}
         {% url 'analytics:dashboard' as analytics_url %}
         {% url 'compliance:dashboard' as compliance_url %}
+        {% url 'accounts:redirect' as portal_home_url %}
         
         {% if request.user.role == 'ADMIN' or request.user.is_staff %}
           <a class="navbar-brand d-flex align-items-center gap-2" href="{{ backend_url }}" title="Back to your home dashboard">
@@ -417,15 +466,27 @@
         </a>
         {% endif %}
 
-        <div class="d-flex align-items-center gap-3 text-white ms-auto">
+        {% if request.user.is_authenticated %}
+          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{{ portal_home_url }}">
+            <i class="bi bi-house"></i>
+            <span class="d-none d-sm-inline">Home</span>
+          </a>
+        {% else %}
+          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="/">
+            <i class="bi bi-house"></i>
+            <span class="d-none d-sm-inline">Home</span>
+          </a>
+        {% endif %}
+
+        <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto">
           {% if request.user.is_authenticated %}
             <!-- Weather Widget - Scrolling Header -->
-            <div class="flex-grow-1" style="max-width: 400px;">
+            <div class="topbar-weather flex-grow-1" style="max-width: 400px;">
               {% include 'components/header_weather_widget.html' %}
             </div>
 
             <!-- Search Bar (Ctrl+K) -->
-            <div class="search-bar-wrapper" style="position: relative;">
+            <div class="topbar-search search-bar-wrapper" style="position: relative;">
               <input 
                 type="text" 
                 class="form-control form-control-sm" 
@@ -436,37 +497,41 @@
               <small class="text-muted position-absolute" style="right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem;">⌘K</small>
             </div>
 
-            <!-- Theme Toggle Button -->
-            <button 
-              class="btn btn-link text-white p-0" 
-              id="themeToggle" 
-              title="Toggle Dark/Light Theme"
-              style="font-size: 1.2rem;"
-            >
-              <i class="bi bi-moon-stars"></i>
-            </button>
-
-            <!-- Admin Dropdown Menu -->
-            <div class="dropdown">
+            <div class="topbar-controls">
               <button 
-                class="btn btn-link text-white p-0 dropdown-toggle" 
-                type="button" 
-                id="adminMenuDropdown" 
-                data-bs-toggle="dropdown" 
-                aria-expanded="false"
-                title="Admin Menu"
+                class="btn btn-link text-white p-0" 
+                id="themeToggle" 
+                title="Toggle Dark/Light Theme"
                 style="font-size: 1.2rem;"
               >
-                <i class="bi bi-gear"></i>
+                <i class="bi bi-moon-stars"></i>
               </button>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
-                <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
-                <li><a class="dropdown-item" href="{% url 'admin:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
-                <li><a class="dropdown-item" href="{% url 'admin:system_health' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
-              </ul>
-            </div>
 
-            <span class="small opacity-75 d-none d-sm-inline">{{ request.user.username }}</span>
+              <div class="dropdown">
+                <button 
+                  class="btn btn-link text-white p-0 dropdown-toggle" 
+                  type="button" 
+                  id="adminMenuDropdown" 
+                  data-bs-toggle="dropdown" 
+                  aria-expanded="false"
+                  title="Admin Menu"
+                  style="font-size: 1.2rem;"
+                >
+                  <i class="bi bi-gear"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
+                  <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
+                  <li><a class="dropdown-item" href="{% url 'admin:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
+                  <li><a class="dropdown-item" href="{% url 'admin:system_health' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
+                </ul>
+              </div>
+
+              <span class="small opacity-75 d-none d-md-inline">{{ request.user.username }}</span>
+              <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" href="{% url 'accounts:logout' %}">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="d-none d-sm-inline">Logout</span>
+              </a>
+            </div>
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
           {% endif %}
