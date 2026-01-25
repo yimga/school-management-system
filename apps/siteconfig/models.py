@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from .image_utils import optimize_image
 from django.apps import apps as django_apps
 
 from apps.accounts.models import User
@@ -240,11 +242,56 @@ def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | No
 
 
 class SiteSettings(models.Model):
+        video_background = models.FileField(
+            upload_to="branding/video/",
+            blank=True,
+            null=True,
+            help_text="Optional: Short looping video (mp4/webm) for animated background."
+        )
+        svg_background = models.FileField(
+            upload_to="branding/svg/",
+            blank=True,
+            null=True,
+            help_text="Optional: SVG file for animated or vector background."
+        )
     # Branding
     site_name = models.CharField(max_length=120, default="Gilead School System")
     tagline = models.CharField(max_length=200, blank=True, default="Knowledge ƒ?› Technology ƒ?› Excellence")
     logo = models.ImageField(upload_to="branding/", blank=True, null=True)
+    logo_opacity = models.FloatField(
+        default=0.3,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text="Opacity for logo background (0.0 = fully transparent, 1.0 = fully opaque)"
+    )
+    LOGO_BG_MODE_CHOICES = [
+        ("contain", "Contain (default)"),
+        ("cover", "Cover"),
+        ("tile", "Tile/Repeat"),
+        ("center", "Center (no scale)"),
+    ]
+    logo_background_mode = models.CharField(
+        max_length=16,
+        choices=LOGO_BG_MODE_CHOICES,
+        default="contain",
+        help_text="How the logo background image is displayed: contain, cover, tile, or center."
+    )
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
+        def save(self, *args, **kwargs):
+            # Optimize logo
+            if self.logo and hasattr(self.logo, 'file') and not getattr(self.logo.file, '_optimized', False):
+                optimized = optimize_image(self.logo)
+                if optimized:
+                    optimized._optimized = True
+                    self.logo.save(self.logo.name, optimized, save=False)
+            # Optimize background image
+            if self.background_image and hasattr(self.background_image, 'file') and not getattr(self.background_image.file, '_optimized', False):
+                optimized = optimize_image(self.background_image)
+                if optimized:
+                    optimized._optimized = True
+                    self.background_image.save(self.background_image.name, optimized, save=False)
+            super().save(*args, **kwargs)
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
     school_code = models.CharField(
         max_length=20,
@@ -287,6 +334,81 @@ class SiteSettings(models.Model):
         null=True,
         blank=True,
         related_name="site_settings",
+    )
+    admin_sidebar_bg_color = models.CharField(
+        max_length=20,
+        default="#0b0f14",
+        help_text="Base sidebar background color (hex)."
+    )
+    admin_sidebar_surface_color = models.CharField(
+        max_length=20,
+        default="#111827",
+        help_text="Sidebar surface/surface overlay color."
+    )
+    admin_sidebar_border_color = models.CharField(
+        max_length=20,
+        default="#1f2937",
+        help_text="Sidebar border color."
+    )
+    admin_sidebar_text_color = models.CharField(
+        max_length=20,
+        default="#e2e8f0",
+        help_text="Primary sidebar text color."
+    )
+    admin_sidebar_text_muted_color = models.CharField(
+        max_length=20,
+        default="#94a3b8",
+        help_text="Muted sidebar text color."
+    )
+    admin_sidebar_hover_color = models.CharField(
+        max_length=20,
+        default="#0f172a",
+        help_text="Sidebar hover color."
+    )
+    admin_sidebar_active_color = models.CharField(
+        max_length=20,
+        default="#0f172a",
+        help_text="Sidebar active background color."
+    )
+    admin_sidebar_active_border_color = models.CharField(
+        max_length=20,
+        default="#38bdf8",
+        help_text="Sidebar active border color."
+    )
+    admin_sidebar_badge_bg_color = models.CharField(
+        max_length=20,
+        default="#1f2937",
+        help_text="Sidebar badge background color."
+    )
+    admin_sidebar_badge_text_color = models.CharField(
+        max_length=20,
+        default="#e2e8f0",
+        help_text="Sidebar badge text color."
+    )
+    admin_sidebar_child_bg_start = models.CharField(
+        max_length=20,
+        default="#0b1224",
+        help_text="Gradient start color for sidebar child rows."
+    )
+    admin_sidebar_child_bg_end = models.CharField(
+        max_length=20,
+        default="#131b33",
+        help_text="Gradient end color for sidebar child rows."
+    )
+    admin_sidebar_child_border_color = models.CharField(
+        max_length=20,
+        default="#e2e8f0",
+        help_text="Border color used for sidebar child cards."
+    )
+    admin_sidebar_child_hover_color = models.CharField(
+        max_length=20,
+        default="#1d4ed8",
+        help_text="Hover color for sidebar child cards."
+    )
+    admin_sidebar_child_active_color = models.CharField(
+        max_length=20,
+        default="#0f172a",
+        help_text="Active color for sidebar child cards."
     )
 
     # Behavior & personalization defaults
@@ -533,10 +655,16 @@ class ThemePack(models.Model):
     layout = models.CharField(max_length=20, choices=ThemeLayout.choices, default=ThemeLayout.STANDARD)
     custom_css = models.TextField(blank=True)
     palette = models.JSONField(default=dict, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_default = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    logo = models.ImageField(upload_to="branding/themepack/logo/", blank=True, null=True, help_text="Optional: Logo for this theme pack.")
+    background_image = models.ImageField(upload_to="branding/themepack/bg/", blank=True, null=True, help_text="Optional: Background image for this theme pack.")
+        video_background = models.FileField(upload_to="branding/themepack/video/", blank=True, null=True, help_text="Optional: Video background for this theme pack.")
+        svg_background = models.FileField(upload_to="branding/themepack/svg/", blank=True, null=True, help_text="Optional: SVG background for this theme pack.")
+        logo_opacity = models.FloatField(default=0.3, blank=True, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)")
+        logo_background_mode = models.CharField(max_length=16, choices=SiteSettings.LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
+        is_active = models.BooleanField(default=True)
+        is_default = models.BooleanField(default=False)
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["name"]
@@ -545,6 +673,18 @@ class ThemePack(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+        # Optimize logo
+        if self.logo and hasattr(self.logo, 'file') and not getattr(self.logo.file, '_optimized', False):
+            optimized = optimize_image(self.logo)
+            if optimized:
+                optimized._optimized = True
+                self.logo.save(self.logo.name, optimized, save=False)
+        # Optimize background image
+        if self.background_image and hasattr(self.background_image, 'file') and not getattr(self.background_image.file, '_optimized', False):
+            optimized = optimize_image(self.background_image)
+            if optimized:
+                optimized._optimized = True
+                self.background_image.save(self.background_image.name, optimized, save=False)
         if self.is_default:
             ThemePack.objects.exclude(pk=self.pk).filter(is_default=True).update(is_default=False)
         super().save(*args, **kwargs)

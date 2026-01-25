@@ -1,3 +1,20 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+# User UI/UX preferences (background logo, opacity, etc.)
+class UserPreference(models.Model):
+        high_contrast_mode = models.BooleanField(default=False, help_text="Enable high contrast mode for accessibility.")
+        reduced_motion = models.BooleanField(default=False, help_text="Reduce background/video motion for accessibility.")
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='preference')
+    show_background_logo = models.BooleanField(default=True, help_text="Show the background logo image.")
+    background_logo_opacity = models.FloatField(
+        default=0.3,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text="Custom opacity for background logo (0.0–1.0). Leave blank to use site default."
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Preferences for {self.user.username}"
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 

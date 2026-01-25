@@ -1,3 +1,21 @@
+from .models import UserPreference
+
+# User preference form for background logo and opacity
+class UserPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = UserPreference
+        fields = [
+            "show_background_logo",
+            "background_logo_opacity",
+            "high_contrast_mode",
+            "reduced_motion",
+        ]
+        widgets = {
+            "show_background_logo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "background_logo_opacity": forms.NumberInput(attrs={"class": "form-range", "min": 0, "max": 1, "step": 0.01}),
+            "high_contrast_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "reduced_motion": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
 from django import forms
 
 from .models import AccessRole, Permission, User

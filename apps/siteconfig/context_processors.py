@@ -94,14 +94,30 @@ def site_settings(request):
         setattr(site, "is_preview", False)
 
     breadcrumbs = _build_breadcrumbs(request.path)
-    logo_url = _resolve_media_url(site.logo, "images/logo.png")
-    background_url = _resolve_media_url(site.background_image)
+    # Use theme pack backgrounds if set, else site settings
+    logo_url = _resolve_media_url(site.get_theme_background("logo"), "images/logo.png")
+    background_url = _resolve_media_url(site.get_theme_background("background_image"))
 
     try:
         portal_home_url = reverse("portal:home")
     except NoReverseMatch:
         portal_home_url = "/"
 
+    # User preference override
+    show_background_logo = True
+    logo_opacity = site.get_theme_logo_opacity()
+    high_contrast_mode = False
+    reduced_motion = False
+    if request.user.is_authenticated and hasattr(request.user, "preference"):
+        pref = request.user.preference
+        show_background_logo = pref.show_background_logo
+        if pref.background_logo_opacity is not None:
+            logo_opacity = pref.background_logo_opacity
+        high_contrast_mode = getattr(pref, "high_contrast_mode", False)
+        reduced_motion = getattr(pref, "reduced_motion", False)
+
+    video_bg_url = _resolve_media_url(site.get_theme_background("video_background"))
+    svg_bg_url = _resolve_media_url(site.get_theme_background("svg_background"))
     return {
         "SITE": site,
         "SITE_SETTINGS": site,
@@ -110,6 +126,13 @@ def site_settings(request):
         "BREADCRUMBS": breadcrumbs,
         "SITE_LOGO_URL": logo_url,
         "SITE_BACKGROUND_URL": background_url,
+        "SITE_VIDEO_BG_URL": video_bg_url,
+        "SITE_SVG_BG_URL": svg_bg_url,
+        "SITE_LOGO_OPACITY": logo_opacity,
+        "SHOW_BACKGROUND_LOGO": show_background_logo,
+        "SITE_LOGO_BG_MODE": site.get_theme_logo_bg_mode(),
+        "HIGH_CONTRAST_MODE": high_contrast_mode,
+        "REDUCED_MOTION": reduced_motion,
         "portal_home_url": portal_home_url,
     }
 

@@ -5,7 +5,12 @@ from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 
-from .models import User, AccessRole, Permission
+from .models import User, AccessRole, Permission, UserPreference
+
+class UserPreferenceAdmin(ModelAdmin):
+    list_display = ("user", "show_background_logo", "background_logo_opacity", "updated_at")
+    search_fields = ("user__username", "user__email")
+
 
 
 # Unregister Group from default admin site (we'll re-register it here)
@@ -51,8 +56,10 @@ class GroupAdmin(ModelAdmin):
         verbose_name_plural = "User Groups"
 
 
+
 # Register all models with custom admin site
 admin_site.register(User, UserAdmin)
 admin_site.register(AccessRole, RoleAdmin)
 admin_site.register(Permission, PermissionAdmin)
 admin_site.register(Group, GroupAdmin)
+admin_site.register(UserPreference, UserPreferenceAdmin)

@@ -26,6 +26,49 @@
   
   <!-- Font Awesome for icons (Command Palette, Activity Feed, Student 360) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      /* Subtle transparent logo background for admin dashboard */
+      body.admin-bg-logo::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 0;
+        background: url('{{ SITE_LOGO_URL }}') center center no-repeat;
+        background-size: contain;
+        opacity: {{ SITE_LOGO_OPACITY|default:0.08 }};
+        pointer-events: none;
+        filter: grayscale(1) brightness(1.2);
+        transition: opacity 0.3s;
+      }
+      #container, #content, .dashboard-container, .main-content, .content {
+        position: relative;
+        z-index: 1;
+      }
+    </style>
+  <style>
+    :root {
+      --admin-sidebar-bg: {{ SITE.admin_sidebar_bg_color|default:"#0b0f14" }};
+      --admin-sidebar-surface: {{ SITE.admin_sidebar_surface_color|default:"#111827" }};
+      --admin-sidebar-border: {{ SITE.admin_sidebar_border_color|default:"#1f2937" }};
+      --admin-sidebar-text: {{ SITE.admin_sidebar_text_color|default:"#e2e8f0" }};
+      --admin-sidebar-text-muted: {{ SITE.admin_sidebar_text_muted_color|default:"#94a3b8" }};
+      --admin-sidebar-hover-bg: {{ SITE.admin_sidebar_hover_color|default:"#0f172a" }};
+      --admin-sidebar-active-bg: {{ SITE.admin_sidebar_active_color|default:"#0f172a" }};
+      --admin-sidebar-active-border: {{ SITE.admin_sidebar_active_border_color|default:"#38bdf8" }};
+      --admin-sidebar-badge-bg: {{ SITE.admin_sidebar_badge_bg_color|default:"#1f2937" }};
+      --admin-sidebar-badge-text: {{ SITE.admin_sidebar_badge_text_color|default:"#e2e8f0" }};
+      --admin-sidebar-child-bg-start: {{ SITE.admin_sidebar_child_bg_start|default:"#0b1224" }};
+      --admin-sidebar-child-bg-end: {{ SITE.admin_sidebar_child_bg_end|default:"#131b33" }};
+      --admin-sidebar-child-bg: linear-gradient(
+        135deg,
+        var(--admin-sidebar-child-bg-start),
+        var(--admin-sidebar-child-bg-end)
+      );
+      --admin-sidebar-child-border: {{ SITE.admin_sidebar_child_border_color|default:"#e2e8f0" }};
+      --admin-sidebar-child-hover: {{ SITE.admin_sidebar_child_hover_color|default:"#1d4ed8" }};
+      --admin-sidebar-child-active: {{ SITE.admin_sidebar_child_active_color|default:"#0f172a" }};
+    }
+  </style>
 {% endblock %}
 
 {% block extrahead %}
@@ -189,6 +232,10 @@
       } catch(e) {
         console.warn('Error during sidebar initialization:', e);
       }
+        // Add a class to body for admin dashboard background logo
+        document.addEventListener('DOMContentLoaded', function() {
+          document.body.classList.add('admin-bg-logo');
+        });
     });
   </script>
 {% endblock %}
@@ -208,6 +255,7 @@
       {{ site_header|default:_('Gilead Admin') }}
     </a>
   </h1>
+    {# The logo background is handled by CSS above. #}
 {% endblock %}
 
 {% block nav-global %}
