@@ -56,6 +56,7 @@ from .services import (
     award_referral_reward,
     link_guardian_via_invite,
     guardian_student_links,
+    guardian_students,
     class_announcements_for_parent,
 )
 from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
@@ -240,16 +241,13 @@ def parent_dashboard(request: HttpRequest):
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_finance(request: HttpRequest):
-    links = StudentGuardian.objects.filter(
-        guardian_user=request.user,
-        can_view_finance=True,
-    ).select_related("student", "student__classroom", "student__specialty", "student__academic_year")
+    links = guardian_student_links(request.user, finance_only=True)
 
     if not links:
         messages.info(request, "Link a student first to view finance details.")
         return redirect("portal:link_child")
 
-    students = [link.student for link in links]
+    students = guardian_students(request.user, finance_only=True)
     invoices_qs = (
         Invoice.objects.filter(student__in=students)
         .exclude(status=Invoice.Status.DRAFT)
