@@ -50,7 +50,7 @@
               <a class="btn btn-outline-primary btn-sm" href="mailto:{{ support_email }}">Request invite (Email)</a>
             {% endif %}
             {% if support_phone %}
-              <a class="btn btn-outline-secondary btn-sm" href="tel:{{ support_phone|default_if_none:''|replace:' ','' }}">Request invite (Phone)</a>
+              <a class="btn btn-outline-secondary btn-sm" href="tel:{{ support_phone|default_if_none:''|cut:' ' }}">Request invite (Phone)</a>
             {% endif %}
             {% if whatsapp_invite_link %}
               <a class="btn btn-outline-success btn-sm" href="{{ whatsapp_invite_link }}" target="_blank">Request invite (WhatsApp)</a>

@@ -68,17 +68,21 @@
       <div class="footer-card list-card">
         <div class="segment-title">Legal &amp; Info</div>
         <div class="segment-links">
-          {% for item in SITE.footer_links|default:[] %}
-            {% if item.enabled|default:True %}
-              {% if not item.roles or request.user.role|default_if_none:''|upper in item.roles|stringformat:"s"|upper or request.user.role|default_if_none:'' in item.roles %}
-                {% if item.url %}
-                  <a href="{{ item.url }}"><i class="bi bi-link-45deg"></i> {{ item.label }}</a>
-                {% else %}
-                  <span class="muted-link"><i class="bi bi-dot"></i> {{ item.label }}</span>
+          {% if SITE.footer_links %}
+            {% for item in SITE.footer_links %}
+              {% if item.enabled|default:True %}
+              {% with user_role=request.user.role|default_if_none:''|upper %}
+                {% if not item.roles or user_role in item.roles %}
+                  {% if item.url %}
+                    <a href="{{ item.url }}"><i class="bi bi-link-45deg"></i> {{ item.label }}</a>
+                  {% else %}
+                    <span class="muted-link"><i class="bi bi-dot"></i> {{ item.label }}</span>
+                  {% endif %}
                 {% endif %}
+                {% endwith %}
               {% endif %}
-            {% endif %}
-          {% endfor %}
+            {% endfor %}
+          {% endif %}
           <span class="muted-link">Version {{ system_version|default:"3.2.1" }}</span>
         </div>
       </div>
@@ -88,7 +92,7 @@
       <span class="status-pill">Live Chat Ready</span>
       <span class="status-pill">API Status: Nominal</span>
       {% for badge in SITE.footer_badges %}
-        <span class="status-pill {{ badge.tone|default:'' }}">{{ badge.label }}</span>
+                <span class="status-pill {{ badge.tone|default:"" }}">{{ badge.label }}</span>
       {% endfor %}
     </div>
 

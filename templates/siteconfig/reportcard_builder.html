@@ -59,9 +59,11 @@
                       <strong>{{ style.name }}</strong>
                       <div class="text-muted small">{{ style.description }}</div>
                     </div>
-                    <span class="badge bg-{{ "success" if style.is_active else "secondary" }} rounded-pill">
-                      {{ "Active" if style.is_active else "Inactive" }}
-                    </span>
+                    {% if style.is_active %}
+                      <span class="badge bg-success rounded-pill">Active</span>
+                    {% else %}
+                      <span class="badge bg-secondary rounded-pill">Inactive</span>
+                    {% endif %}
                   </div>
                   <div class="small text-muted mt-2">
                     Term template: {{ style.term_template }}, Annual: {{ style.annual_template }}

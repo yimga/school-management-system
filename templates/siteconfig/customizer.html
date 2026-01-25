@@ -32,7 +32,11 @@
             <h5 class="mb-0">Theme packs</h5>
             <p class="text-muted small mb-0">Switch between preset looks inside Site Settings for a fresh face lift.</p>
           </div>
-          <span class="small text-muted">Active theme: {{ settings.theme_pack.name if settings.theme_pack else "Custom" }}</span>
+          {% if settings.theme_pack %}
+            <span class="small text-muted">Active theme: {{ settings.theme_pack.name }}</span>
+          {% else %}
+            <span class="small text-muted">Active theme: Custom</span>
+          {% endif %}
         </div>
         <div class="row g-3">
           {% for pack in theme_packs %}
@@ -78,9 +82,13 @@
             <dt class="col-5 text-muted small">School code</dt>
             <dd class="col-7 mb-2">{{ settings.school_code }}</dd>
             <dt class="col-5 text-muted small">Theme pack</dt>
-            <dd class="col-7 mb-2">{{ settings.theme_pack.name if settings.theme_pack else "Custom" }}</dd>
+            <dd class="col-7 mb-2">
+              {% if settings.theme_pack %}{{ settings.theme_pack.name }}{% else %}Custom{% endif %}
+            </dd>
             <dt class="col-5 text-muted small">Logo</dt>
-            <dd class="col-7 mb-2">{{ settings.logo.name if settings.logo else "Not provided" }}</dd>
+            <dd class="col-7 mb-2">
+              {% if settings.logo %}{{ settings.logo.name }}{% else %}Not provided{% endif %}
+            </dd>
           </dl>
         </div>
       </div>
