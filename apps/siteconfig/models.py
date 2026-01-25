@@ -242,18 +242,18 @@ def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | No
 
 
 class SiteSettings(models.Model):
-        video_background = models.FileField(
-            upload_to="branding/video/",
-            blank=True,
-            null=True,
-            help_text="Optional: Short looping video (mp4/webm) for animated background."
-        )
-        svg_background = models.FileField(
-            upload_to="branding/svg/",
-            blank=True,
-            null=True,
-            help_text="Optional: SVG file for animated or vector background."
-        )
+    video_background = models.FileField(
+        upload_to="branding/video/",
+        blank=True,
+        null=True,
+        help_text="Optional: Short looping video (mp4/webm) for animated background."
+    )
+    svg_background = models.FileField(
+        upload_to="branding/svg/",
+        blank=True,
+        null=True,
+        help_text="Optional: SVG file for animated or vector background."
+    )
     # Branding
     site_name = models.CharField(max_length=120, default="Gilead School System")
     tagline = models.CharField(max_length=200, blank=True, default="Knowledge ƒ?› Technology ƒ?› Excellence")
