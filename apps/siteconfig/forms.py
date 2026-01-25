@@ -18,6 +18,7 @@ from .models import (
     default_dashboard_widgets,
     get_dashboard_widget_choices,
 )
+from .models_dashboard import DashboardUserPreference
 
 
 class SiteSettingsForm(forms.ModelForm):
@@ -207,6 +208,13 @@ class UserPreferenceForm(forms.ModelForm):
         label="Dashboard widgets",
         help_text="Select which widgets display when you choose the Custom dashboard view.",
     )
+    theme_preference = forms.ChoiceField(
+        choices=DashboardUserPreference.THEME_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Theme preference",
+        help_text="Select light, dark, or follow your device setting.",
+    )
 
     class Meta:
         model = UserPreference
@@ -216,10 +224,12 @@ class UserPreferenceForm(forms.ModelForm):
             "refresh_rate_minutes",
             "notification_channels",
             "receive_weekly_summary",
+            "theme_preference",
         ]
         widgets = {
             "dashboard_view": forms.Select(attrs={"class": "form-select"}),
             "refresh_rate_minutes": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
+            "theme_preference": forms.Select(attrs={"class": "form-select"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -238,6 +248,9 @@ class UserPreferenceForm(forms.ModelForm):
         else:
             selected = default_dashboard_widgets(role)
         self.initial["dashboard_widgets"] = selected
+        if self.user:
+            dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=self.user)
+            self.fields["theme_preference"].initial = dashboard_pref.theme_preference
 
     def clean_timezone(self):
         """Allow empty timezone - model default will be used."""
@@ -263,13 +276,14 @@ class UserPreferenceForm(forms.ModelForm):
         # If no timezone provided, model default will be used
         preference.notification_channels = self.cleaned_data.get("notification_channels", [])
         preference.dashboard_widgets = self.cleaned_data.get("dashboard_widgets", [])
+        theme = self.cleaned_data.get("theme_preference")
         if commit:
             preference.save()
             try:
-                from apps.siteconfig.models_dashboard import DashboardUserPreference
-
                 dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=preference.user)
                 dashboard_pref.visible_widgets = preference.dashboard_widgets or []
+                if theme:
+                    dashboard_pref.theme_preference = theme
                 dashboard_pref.save()
             except Exception:
                 # Avoid blocking preference updates if dashboard prefs aren't migrated yet.

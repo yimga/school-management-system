@@ -271,6 +271,35 @@
     (function() {
       const root = document.documentElement;
       const THEME_KEY = "admin-theme";
+      const themeUpdateUrl = "{% url 'siteconfig:update_theme' %}";
+      let serverThemePref = "{{ USER_THEME_PREFERENCE|default:'auto' }}";
+
+      const getCookie = (name) => {
+        const match = document.cookie.match(new RegExp('(^|;)\\s*' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : "";
+      };
+
+      const persistThemePreference = async (value) => {
+        if (!themeUpdateUrl) return;
+        const payload = { theme: value };
+        try {
+          const response = await fetch(themeUpdateUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify(payload),
+            credentials: "same-origin",
+          });
+          const data = await response.json();
+          return data.theme || value;
+        } catch (error) {
+          console.warn("Unable to persist theme preference:", error);
+          return value;
+        }
+      };
+
       const apply = (value) => {
         if (value === "system") {
           root.removeAttribute("data-theme");
@@ -282,11 +311,27 @@
           btn.classList.toggle("active", btn.dataset.theme === value);
         });
       };
-      const saved = localStorage.getItem(THEME_KEY) || "system";
-      apply(saved);
+
+      const chooseInitialTheme = () => {
+        const saved = localStorage.getItem(THEME_KEY);
+        if (saved) {
+          return saved;
+        }
+        return serverThemePref && serverThemePref !== "auto" ? serverThemePref : "system";
+      };
+
       document.querySelectorAll(".theme-toggle button").forEach(btn => {
-        btn.addEventListener("click", () => apply(btn.dataset.theme));
+        btn.addEventListener("click", async () => {
+          const selected = btn.dataset.theme;
+          apply(selected);
+          const serverValue = selected === "system" ? "auto" : selected;
+          if (serverValue !== serverThemePref) {
+            serverThemePref = await persistThemePreference(serverValue);
+          }
+        });
       });
+
+      apply(chooseInitialTheme());
     })();
   </script>
   

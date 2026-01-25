@@ -11,6 +11,7 @@ from .views import (
     reportcard_style_preview,
     user_preferences,
 )
+from .dashboard_views import update_theme
 
 app_name = "siteconfig"
 
@@ -20,6 +21,7 @@ urlpatterns = [
     path("customizer/", customizer, name="customizer"),
     path("customizer/clear-preview/", clear_preview, name="clear_preview"),
     path("preferences/", user_preferences, name="user_preferences"),
+    path("preferences/theme/", update_theme, name="update_theme"),
     path("reports/", report_library, name="report_library"),
     path("reports/download/<slug:slug>/", download_report, name="report_download"),
     path("reports/builder/", reportcard_builder, name="reportcard_builder"),

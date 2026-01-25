@@ -1,6 +1,7 @@
 import json
 from .models import SiteSettings, RegionConfig
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
+from .models_dashboard import DashboardUserPreference
 from django.core.files.storage import default_storage
 from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
@@ -108,6 +109,7 @@ def site_settings(request):
     logo_opacity = site.get_theme_logo_opacity()
     high_contrast_mode = False
     reduced_motion = False
+    theme_pref = "auto"
     if request.user.is_authenticated and hasattr(request.user, "preference"):
         pref = request.user.preference
         show_background_logo = pref.show_background_logo
@@ -115,6 +117,9 @@ def site_settings(request):
             logo_opacity = pref.background_logo_opacity
         high_contrast_mode = getattr(pref, "high_contrast_mode", False)
         reduced_motion = getattr(pref, "reduced_motion", False)
+    if request.user.is_authenticated:
+        dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
+        theme_pref = dashboard_pref.theme_preference or "auto"
 
     video_bg_url = _resolve_media_url(site.get_theme_background("video_background"))
     svg_bg_url = _resolve_media_url(site.get_theme_background("svg_background"))
@@ -133,6 +138,7 @@ def site_settings(request):
         "SITE_LOGO_BG_MODE": site.get_theme_logo_bg_mode(),
         "HIGH_CONTRAST_MODE": high_contrast_mode,
         "REDUCED_MOTION": reduced_motion,
+        "USER_THEME_PREFERENCE": theme_pref,
         "portal_home_url": portal_home_url,
     }
 
