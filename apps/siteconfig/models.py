@@ -654,6 +654,14 @@ class SiteSettings(models.Model):
             return theme.logo_opacity
         return 0.3
 
+    def get_theme_logo_bg_mode(self) -> str:
+        if self.logo_background_mode:
+            return self.logo_background_mode
+        theme = self.active_theme
+        if theme and getattr(theme, "logo_background_mode", None):
+            return theme.logo_background_mode
+        return self.LOGO_BG_MODE_CHOICES[0][0]
+
     @property
     def active_theme(self) -> "ThemePack | None":
         if self.theme_pack:
