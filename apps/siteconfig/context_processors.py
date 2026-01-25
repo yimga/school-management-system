@@ -1,4 +1,5 @@
 import json
+from django.db import DatabaseError
 from .models import SiteSettings, RegionConfig
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
@@ -113,16 +114,22 @@ def site_settings(request):
     high_contrast_mode = False
     reduced_motion = False
     theme_pref = "auto"
-    if request.user.is_authenticated and hasattr(request.user, "preference"):
-        pref = request.user.preference
-        show_background_logo = pref.show_background_logo
-        if pref.background_logo_opacity is not None:
-            logo_opacity = pref.background_logo_opacity
-        high_contrast_mode = getattr(pref, "high_contrast_mode", False)
-        reduced_motion = getattr(pref, "reduced_motion", False)
     if request.user.is_authenticated:
-        dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
-        theme_pref = dashboard_pref.theme_preference or "auto"
+        try:
+            if hasattr(request.user, "preference"):
+                pref = request.user.preference
+                show_background_logo = pref.show_background_logo
+                if pref.background_logo_opacity is not None:
+                    logo_opacity = pref.background_logo_opacity
+                high_contrast_mode = getattr(pref, "high_contrast_mode", False)
+                reduced_motion = getattr(pref, "reduced_motion", False)
+        except DatabaseError:
+            pass
+        try:
+            dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
+            theme_pref = dashboard_pref.theme_preference or "auto"
+        except DatabaseError:
+            theme_pref = "auto"
 
     video_bg_url = _resolve_media_url(site.get_theme_background("video_background"))
     svg_bg_url = _resolve_media_url(site.get_theme_background("svg_background"))

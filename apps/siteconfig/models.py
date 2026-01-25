@@ -297,6 +297,7 @@ class SiteSettings(models.Model):
                 optimized._optimized = True
                 self.background_image.save(self.background_image.name, optimized, save=False)
         super().save(*args, **kwargs)
+
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
     school_code = models.CharField(
         max_length=20,
