@@ -1,16 +1,20 @@
 {% load static %}
-{# Theme toggle component for light/dark mode #}
+{# Theme toggle with admin-configurable brightness defaults #}
 <div class="theme-toggle-wrapper">
-  <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme">
+  <div class="theme-toggle-btn" id="themeToggle" title="Toggle light/dark">
     <div class="theme-icon">
       <i class="bi bi-sun-fill sun-icon"></i>
       <i class="bi bi-moon-stars-fill moon-icon"></i>
     </div>
-    <span class="theme-label">
-      <span class="light-label">Light</span>
-      <span class="dark-label">Dark</span>
-    </span>
-  </button>
+    <span class="theme-label" id="themeLabel">Light</span>
+  </div>
+  <select id="themeSelector" class="theme-select" aria-label="Theme brightness">
+    <option value="system">System</option>
+    <option value="light">Light</option>
+    <option value="dark">Dark</option>
+    <option value="classic">Classic</option>
+    <option value="high_contrast">High contrast</option>
+  </select>
 </div>
 
 <style>
@@ -46,8 +50,41 @@
   --sidebar-bg: #0f172a;
 }
 
+[data-theme="classic"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #eef2ff;
+  --bg-tertiary: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #475569;
+  --border-color: #cbd5e1;
+  --shadow: rgba(15, 23, 42, 0.12);
+  --link-color: #2563eb;
+  --card-bg: #ffffff;
+  --header-bg: #ffffff;
+  --sidebar-bg: #f1f5f9;
+}
+
+[data-theme="high_contrast"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #0f172a;
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-tertiary: #cbd5e1;
+  --border-color: #e2e8f0;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --link-color: #38bdf8;
+  --card-bg: #0f172a;
+  --header-bg: #0b1220;
+  --sidebar-bg: #0a0f1a;
+}
+
 .theme-toggle-wrapper {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .theme-toggle-btn {
@@ -106,36 +143,7 @@
 
 .theme-label {
   font-size: 0.85rem;
-  font-weight: 500;
-  position: relative;
-  width: 40px;
-}
-
-.light-label,
-.dark-label {
-  position: absolute;
-  left: 0;
-  transition: all 0.3s ease;
-}
-
-.light-label {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.dark-label {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-[data-theme="dark"] .light-label {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-[data-theme="dark"] .dark-label {
-  opacity: 1;
-  transform: translateY(0);
+  font-weight: 600;
 }
 
 /* Apply theme colors to body and main elements */
@@ -218,13 +226,21 @@ a {
   background-color: var(--bg-tertiary);
 }
 
+.theme-select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: 12px;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 768px) {
-  .theme-label {
-    display: none;
+  .theme-toggle-wrapper {
+    gap: 0.35rem;
   }
-  
-  .theme-toggle-btn {
-    padding: 0.5rem;
+  .theme-select {
+    padding: 0.4rem 0.5rem;
   }
 }
 </style>
@@ -232,44 +248,77 @@ a {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const themeToggle = document.getElementById('themeToggle');
+  const themeSelector = document.getElementById('themeSelector');
+  const themeLabel = document.getElementById('themeLabel');
   const htmlElement = document.documentElement;
+  const adminDefault = (htmlElement.dataset.adminTheme || 'system').toLowerCase();
 
-  // Load saved theme preference or default to light
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  setTheme(savedTheme);
+  // initialize selector to admin default
+  themeSelector.value = adminDefault === 'system' ? 'system' : adminDefault;
 
-  // Toggle theme on button click
+  // Load saved theme preference or fall back to admin default (supports system)
+  const savedTheme = localStorage.getItem('theme');
+  const initial = savedTheme || adminDefault || 'system';
+  setTheme(resolveTheme(initial), !!savedTheme);
+
+  // Toggle button cycles light/dark quickly
   themeToggle.addEventListener('click', function() {
     const currentTheme = htmlElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
+    setTheme(newTheme, true);
   });
 
-  function setTheme(theme) {
+  // Selector supports all modes
+  themeSelector.addEventListener('change', (e) => {
+    const choice = e.target.value;
+    if (choice === 'system') {
+      localStorage.removeItem('theme');
+      setTheme(resolveTheme('system'), false);
+    } else {
+      setTheme(choice, true);
+    }
+  });
+
+  function resolveTheme(pref) {
+    if (pref === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return prefersDark ? 'dark' : 'light';
+    }
+    return pref;
+  }
+
+  function setTheme(theme, persist = false) {
     htmlElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
+    themeSelector.value = persist ? theme : (localStorage.getItem('theme') || adminDefault || 'system');
+    themeLabel.textContent = labelFor(theme);
+    if (persist) {
+      localStorage.setItem('theme', theme);
+    }
 
     // Update meta theme-color for mobile browsers
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', theme === 'dark' ? '#0f172a' : '#ffffff');
+      const fallback = (theme === 'dark' || theme === 'high_contrast') ? '#0f172a' : '#ffffff';
+      metaThemeColor.setAttribute('content', fallback);
     }
 
     // Dispatch custom event for other components
     window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));
   }
 
-  // Respect system preference if no saved preference
-  if (!localStorage.getItem('theme')) {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (prefersDark) {
-      setTheme('dark');
+  function labelFor(theme) {
+    switch (theme) {
+      case 'dark': return 'Dark';
+      case 'classic': return 'Classic';
+      case 'high_contrast': return 'High contrast';
+      case 'light': return 'Light';
+      default: return 'System';
     }
   }
 
-  // Listen for system theme changes
+  // Listen for system theme changes when user is following system
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('theme')) {
+    if (!localStorage.getItem('theme') && (adminDefault === 'system')) {
       setTheme(e.matches ? 'dark' : 'light');
     }
   });

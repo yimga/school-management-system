@@ -1,4 +1,7 @@
 from django.conf import settings
+from django.utils import timezone
+from django.db.models import Max
+from apps.academics.models import Classroom, Department
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
@@ -170,11 +173,22 @@ class ClassAnnouncement(models.Model):
 
 class MessageThread(models.Model):
     """
-    Group message threads for class communication
+    Group message threads for class / department / role communication.
     """
+
+    class Scope(models.TextChoices):
+        CLASSROOM = "CLASSROOM", "Classroom"
+        DEPARTMENT = "DEPARTMENT", "Department"
+        ROLE = "ROLE", "Role-based"
+        GLOBAL = "GLOBAL", "Global"
+
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    
+    scope = models.CharField(max_length=20, choices=Scope.choices, default=Scope.CLASSROOM)
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True, related_name="message_threads")
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True, related_name="message_threads")
+    audience_role = models.CharField(max_length=30, blank=True, help_text="Optional: limit by role (e.g., PARENT, TEACHER)")
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -187,6 +201,7 @@ class MessageThread(models.Model):
     )
     
     is_archived = models.BooleanField(default=False)
+    last_message_at = models.DateTimeField(null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -199,10 +214,15 @@ class MessageThread(models.Model):
     def __str__(self):
         return self.title
 
+    def touch_last_message(self):
+        latest = self.messages.aggregate(latest=Max("created_at")).get("latest")
+        self.last_message_at = latest or timezone.now()
+        self.save(update_fields=["last_message_at", "updated_at"])
+
 
 class ThreadMessage(models.Model):
     """
-    Messages within a thread
+    Messages within a thread with audit-friendly soft delete/edit.
     """
     thread = models.ForeignKey(
         MessageThread,
@@ -217,6 +237,23 @@ class ThreadMessage(models.Model):
     )
     
     content = models.TextField()
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deleted_thread_messages",
+    )
+    edited_at = models.DateTimeField(null=True, blank=True)
+    edited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="edited_thread_messages",
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -228,6 +265,38 @@ class ThreadMessage(models.Model):
     
     def __str__(self):
         return f"Message in {self.thread.title} by {self.author.get_full_name()}"
+
+    def save(self, *args, **kwargs):
+        new = self.pk is None
+        if new:
+            self.thread.last_message_at = timezone.now()
+            self.thread.save(update_fields=["last_message_at", "updated_at"])
+        else:
+            self.edited_at = timezone.now()
+        super().save(*args, **kwargs)
+
+
+class ThreadReadState(models.Model):
+    """
+    Tracks last read per user/thread for unread counts.
+    """
+    thread = models.ForeignKey(
+        MessageThread,
+        on_delete=models.CASCADE,
+        related_name="read_states",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="thread_read_states",
+    )
+    last_read_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("thread", "user")
+        ordering = ["-updated_at"]
 
 
 class AlertRule(models.Model):

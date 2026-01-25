@@ -30,6 +30,7 @@ from apps.portal.services import (
     teacher_dashboard_widget_data,
     teacher_scope,
     class_announcements_for_teacher,
+    class_threads_for_teacher,
 )
 from apps.siteconfig.models import resolve_dashboard_widgets
 
@@ -203,6 +204,22 @@ def teacher_dashboard(request: HttpRequest):
         department_id=getattr(teacher_profile.department, "id", None),
         limit=6,
     )
+    class_threads = class_threads_for_teacher(request.user, limit=6)
+
+    peers = []
+    if getattr(teacher_profile, "department", None):
+        peer_qs = (
+            TeacherProfile.objects.select_related("user")
+            .filter(department=teacher_profile.department)
+            .exclude(id=teacher_profile.id)[:6]
+        )
+        for peer in peer_qs:
+            user = peer.user
+            peers.append({
+                "name": user.get_full_name() or user.username,
+                "role": getattr(user, "role", ""),
+            })
+
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -215,6 +232,9 @@ def teacher_dashboard(request: HttpRequest):
         "grade_import_template_url": reverse("evals:grade_import_template"),
         "display_widgets": display_widgets,
         "class_announcements": class_announcements,
+        "class_threads": class_threads,
+        "team_peers": peers,
+        "team_department": getattr(teacher_profile, "department", None),
     })
 
 @teacher_portal_required

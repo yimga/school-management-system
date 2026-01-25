@@ -4,9 +4,14 @@
 
 {% block extrastyle %}
 <style>
+  .teacher-shell {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 12px;
+  }
   .dashboard-quick-panel {
-    border-radius: 16px;
-    padding: 1rem 1.15rem;
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
     background: rgba(13, 110, 253, 0.05);
     border: 1px solid rgba(15, 23, 42, 0.08);
   }
@@ -53,16 +58,16 @@
 
   .mini-kpis {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.6rem;
   }
 
   .mini-kpi {
     border-radius: 12px;
     border: 1px solid rgba(15, 23, 42, 0.08);
     background: white;
-    padding: 0.85rem 1rem;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+    padding: 0.8rem 0.95rem;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
   }
 
   .announcement-item + .announcement-item {
@@ -76,7 +81,8 @@
 {% block content %}
   {% admin_health as health %}
   {% with widgets=display_widgets %}
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3" style="max-width:1200px;margin:0 auto;">
+  <div class="teacher-shell">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
     <div>
       <h2 class="mb-1">Teacher Dashboard</h2>
       <div class="text-muted">Welcome back{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}.</div>
@@ -92,7 +98,7 @@
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
-  <div class="mini-kpis mb-3" style="max-width:1200px;margin:0 auto;">
+  <div class="mini-kpis mb-3">
     <div class="mini-kpi">
       <div class="text-uppercase small text-muted">Classes</div>
       <div class="h5 mb-0">{{ assignments|length }}</div>
@@ -109,6 +115,83 @@
       <div class="small text-muted">Marks entered</div>
     </div>
   </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-6">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="text-uppercase small text-muted">Department</div>
+              <h6 class="mb-0">{{ team_department.name|default:"Your department" }}</h6>
+            </div>
+            <span class="badge text-bg-light">Org view</span>
+          </div>
+          <p class="small text-muted mb-2">Quick view of peers in your department.</p>
+          {% if team_peers %}
+          <ul class="list-unstyled small mb-0">
+            {% for peer in team_peers %}
+            <li class="d-flex justify-content-between py-1 border-bottom {% if forloop.last %}border-0{% endif %}">
+              <span>{{ peer.name }}</span>
+              <span class="text-muted">{{ peer.role }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="small text-muted">No peers listed for this department yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="text-uppercase small text-muted">Schedule</div>
+              <h6 class="mb-0">Today</h6>
+            </div>
+            <span class="badge text-bg-light">At a glance</span>
+          </div>
+          <p class="small text-muted mb-2">Your upcoming classes and tasks.</p>
+          <div class="mini-sparkline mb-2">
+            <span style="height:32%"></span><span style="height:64%"></span><span style="height:48%"></span><span style="height:72%"></span><span style="height:40%"></span>
+          </div>
+          <div class="small text-muted">Keep attendance and grading on track.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if class_threads %}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <div class="text-uppercase small text-muted">Threads</div>
+          <h6 class="mb-0">Class / Department chats</h6>
+        </div>
+        <span class="badge text-bg-light">Scoped</span>
+      </div>
+      <div class="row g-2">
+        {% for thread in class_threads %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body py-3">
+              <div class="fw-semibold">{{ thread.title }}</div>
+              {% if thread.description %}<div class="text-muted small mb-1">{{ thread.description|truncatechars:120 }}</div>{% endif %}
+              <div class="d-flex justify-content-between align-items-center text-muted small">
+                <span>Updated {{ thread.last_message_at|date:"M d" }}</span>
+                {% if thread.unread_count %}<span class="badge bg-primary text-light">Unread {{ thread.unread_count }}</span>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="row g-3 mb-4">
     {% if not widgets or "links" in widgets or "communications" in widgets %}
@@ -518,6 +601,7 @@
   </div>
 
   {% include "widgets/teacher_dashboard_widgets.html" %}
+  </div> {# teacher-shell #}
 
   {% endwith %}
 {% endblock %}

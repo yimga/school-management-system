@@ -172,6 +172,7 @@ class SiteSettingsAdmin(ModelAdmin):
             "fields": (
                 "primary_color",
                 "accent_color",
+                "theme_brightness",
                 "use_dark_mode",
                 "report_downloads_enabled",
                 "default_dashboard_view",
@@ -221,6 +222,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "footer_whatsapp_url",
                 "footer_status_text",
                 "footer_badges",
+                "footer_links",
             )
         }),
         ("System Behavior", {

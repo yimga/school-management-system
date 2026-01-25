@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-admin-theme="{{ SITE.theme_brightness|default:'system'|lower }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -80,7 +80,7 @@
         height: 100%;
         {% if SHOW_BACKGROUND_LOGO %}
           background-image: {% if SITE_LOGO_URL %}url('{{ SITE_LOGO_URL }}'){% else %}none{% endif %};
-          opacity: {{ SITE_LOGO_OPACITY|default:0.3 }};
+          opacity: {{ SITE_LOGO_OPACITY|default:0.16 }};
           {% if SITE_LOGO_BG_MODE == "cover" %}
             background-size: cover;
             background-repeat: no-repeat;

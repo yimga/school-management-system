@@ -123,6 +123,17 @@ def default_footer_badges():
     ]
 
 
+def default_footer_links():
+    return [
+        {"label": "Privacy Policy", "url": "", "enabled": True, "roles": []},
+        {"label": "Terms of Service", "url": "", "enabled": True, "roles": []},
+        {"label": "About Us", "url": "", "enabled": True, "roles": []},
+        {"label": "Documentation", "url": "", "enabled": True, "roles": []},
+        {"label": "Support Center", "url": "", "enabled": True, "roles": []},
+        {"label": "Compliance Reports", "url": "", "enabled": True, "roles": []},
+    ]
+
+
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
 
 def filter_portal_items(items, role: str | None) -> list[dict]:
@@ -280,6 +291,19 @@ class SiteSettings(models.Model):
         choices=LOGO_BG_MODE_CHOICES,
         default="contain",
         help_text="How the logo background image is displayed: contain, cover, tile, or center."
+    )
+    BRIGHTNESS_CHOICES = [
+        ("system", "System"),
+        ("light", "Light"),
+        ("dark", "Dark"),
+        ("classic", "Classic"),
+        ("high_contrast", "High Contrast"),
+    ]
+    theme_brightness = models.CharField(
+        max_length=16,
+        choices=BRIGHTNESS_CHOICES,
+        default="system",
+        help_text="Choose default theme brightness (System/Light/Dark/Classic/High Contrast)."
     )
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
 
@@ -490,6 +514,11 @@ class SiteSettings(models.Model):
         default=default_footer_badges,
         blank=True,
         help_text="Footer badges list (JSON). Each item: label, tone.",
+    )
+    footer_links = models.JSONField(
+        default=default_footer_links,
+        blank=True,
+        help_text="Footer links list (JSON). Each item: label, url, roles, enabled.",
     )
 
     # Feature toggles

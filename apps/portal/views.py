@@ -58,6 +58,7 @@ from .services import (
     guardian_student_links,
     guardian_students,
     class_announcements_for_parent,
+    class_threads_for_parent,
 )
 from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
 from apps.communication.models import Message
@@ -180,6 +181,7 @@ def parent_dashboard(request: HttpRequest):
     portal_recent_grades = filter_portal_items(site.portal_recent_grades, role)
     portal_upcoming_assessments = filter_portal_items(site.portal_upcoming_assessments, role)
     class_announcements = class_announcements_for_parent(request.user, students)
+    class_threads = class_threads_for_parent(request.user, limit=3)
     
     # Single aggregation query for reminders
     if can_view_finance:
@@ -231,6 +233,7 @@ def parent_dashboard(request: HttpRequest):
         "hero": hero,
         "reminders_count": reminders_count,
         "class_announcements": class_announcements,
+        "class_threads": class_threads,
         "attendance_pct": attendance_pct,
         "finance_paid_pct": finance_paid_pct,
         "finance_total": finance_total,
@@ -476,36 +479,55 @@ def portal_stats(request: HttpRequest):
     weak_threshold = site.weak_subject_threshold
     improvement_delta = site.improvement_delta_threshold
 
-    class_rankings = term_rankings(term)
-    top_students = class_rankings[:5]
-    specialty_rows = specialty_pass_rates(
-        academic_year=year,
-        term=term,
-        pass_mark=pass_mark,
-        use_promotion_rule=site.use_promotion_rule_for_pass,
-    )
-    weak_subjects = subject_weaknesses(
-        academic_year=year,
-        term=term,
-        classroom=None,
-        specialty=None,
-        threshold=weak_threshold,
-    )
-    improvement_rows = []
-    if prev_term:
-        improvement_rows = student_improvements(
-            academic_year=year,
-            from_term=prev_term,
-            to_term=term,
-            classroom=None,
-            min_delta=improvement_delta,
-        )
-
-    students = [link.student for link in StudentGuardian.objects.filter(
-        guardian_user=request.user,
-        can_view_results=True,
-    ).select_related("student")]
+    students = guardian_students(request.user, results_only=True)
     widget_data = parent_dashboard_widget_data(students)
+
+    top_students = []
+    specialty_rows = []
+    weak_subjects = []
+    improvement_rows = []
+
+    if students:
+        classrooms = []
+        specialty_ids = set()
+        for s in students:
+            if getattr(s, "classroom", None):
+                classrooms.append(s.classroom)
+            if getattr(s, "specialty_id", None):
+                specialty_ids.add(s.specialty_id)
+
+        seen_classrooms = set()
+        for classroom in classrooms:
+            if classroom.id in seen_classrooms:
+                continue
+            seen_classrooms.add(classroom.id)
+            top_students.extend(classroom_term_rankings(classroom, term)[:3])
+
+        specialty_rows = specialty_pass_rates(
+            academic_year=year,
+            term=term,
+            pass_mark=pass_mark,
+            use_promotion_rule=site.use_promotion_rule_for_pass,
+        )
+        if specialty_ids:
+            specialty_rows = [row for row in specialty_rows if row.specialty.id in specialty_ids]
+
+        classroom_scope = classrooms[0] if classrooms else None
+        weak_subjects = subject_weaknesses(
+            academic_year=year,
+            term=term,
+            classroom=classroom_scope,
+            specialty=None,
+            threshold=weak_threshold,
+        )
+        if prev_term:
+            improvement_rows = student_improvements(
+                academic_year=year,
+                from_term=prev_term,
+                to_term=term,
+                classroom=classroom_scope,
+                min_delta=improvement_delta,
+            )
 
     return render(request, "portal/stats.html", {
         "year": year,

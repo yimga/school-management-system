@@ -7,7 +7,7 @@ from typing import Iterable, List
 import re
 
 from django.core.cache import cache
-from django.db.models import Sum, Count, Q, F, Value, Case, When
+from django.db.models import Sum, Count, Q, F, Value, Case, When, Max
 from django.urls import reverse
 from django.utils import timezone
 
@@ -23,7 +23,7 @@ from apps.evals.models import TeacherAssignment
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
 from apps.siteconfig.models import Integration, SiteSettings
-from apps.communication.models import ClassAnnouncement
+from apps.communication.models import ClassAnnouncement, MessageThread, ThreadReadState
 
 
 # --- RBAC-aware scoping helpers ---
@@ -100,6 +100,53 @@ def class_announcements_for_teacher(user: User, classrooms, department_id=None, 
     )
     qs = ClassAnnouncement.objects.filter(filters).select_related("classroom", "department")
     return list(qs.order_by("-is_pinned", "-created_at")[:limit])
+
+
+def _serialize_thread(thread: MessageThread, user: User):
+    last_read = ThreadReadState.objects.filter(thread=thread, user=user).first()
+    last_read_at = last_read.last_read_at if last_read else None
+    recent_msgs = list(thread.messages.filter(is_deleted=False).order_by("-created_at")[:5])
+    latest = recent_msgs[0] if recent_msgs else None
+    if last_read_at:
+        unread_count = thread.messages.filter(is_deleted=False, created_at__gt=last_read_at).count()
+    else:
+        unread_count = thread.messages.filter(is_deleted=False).count()
+    return {
+        "title": thread.title,
+        "description": thread.description,
+        "last_message_at": thread.last_message_at or (latest.created_at if latest else thread.updated_at),
+        "unread_count": unread_count,
+        "snippet": latest.content if latest else "",
+        "scope": thread.scope,
+        "classroom": getattr(thread, "classroom", None),
+        "department": getattr(thread, "department", None),
+    }
+
+
+def class_threads_for_parent(user: User, limit: int = 4):
+    """
+    Recent message threads the guardian belongs to (membership scoped).
+    """
+    threads = (
+        MessageThread.objects.filter(members=user, is_archived=False)
+        .prefetch_related("members")
+        .annotate(last_message_at=Max("messages__created_at"))
+        .order_by(F("last_message_at").desc(nulls_last=True), "-updated_at")[:limit]
+    )
+    return [_serialize_thread(t, user) for t in threads]
+
+
+def class_threads_for_teacher(user: User, limit: int = 6):
+    """
+    Recent message threads the teacher belongs to (membership scoped).
+    """
+    threads = (
+        MessageThread.objects.filter(members=user, is_archived=False)
+        .prefetch_related("members")
+        .annotate(last_message_at=Max("messages__created_at"))
+        .order_by(F("last_message_at").desc(nulls_last=True), "-updated_at")[:limit]
+    )
+    return [_serialize_thread(t, user) for t in threads]
 
 
 def parent_dashboard_widget_data(
