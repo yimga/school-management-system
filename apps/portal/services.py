@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from datetime import timedelta
 from decimal import Decimal
 from typing import Iterable, List
 import re
@@ -55,7 +56,12 @@ def parent_dashboard_widget_data(
     widget_data = {
         "attendance": _attendance_snapshot(students, year, term),
         "performance": _performance_overview(students, year, term),
+        "attendance_trend": _attendance_trend(students, year, term),
+        "grade_trend": _grade_trend(students, year, term),
+        "subject_performance": _subject_performance(students, year, term),
         "finance": _finance_summary(students),
+        "fees_breakdown": _fees_breakdown(students),
+        "assignment_completion": _assignment_completion(students, year, term),
         "events": _upcoming_deadlines(year),
         "tasks": _task_tracker(students, year, term),
         "access": _portal_access_links(),
@@ -213,6 +219,120 @@ def _attendance_snapshot(students, year, term):
         "label": "Completion uses weighted evaluations as a proxy for class attendance.",
         "per_student": per_student,
     }
+
+
+def _attendance_trend(students, year, term):
+    """Prepare a five-day attendance trend for sparklines."""
+    if not students or not year or not term:
+        return [{"label": "Day", "value": 0} for _ in range(5)]
+
+    today = timezone.localdate()
+    trend = []
+    for offset in range(4, -1, -1):
+        day = today - timedelta(days=offset)
+        evaluations = Evaluation.objects.filter(
+            student__in=students,
+            academic_year=year,
+            term=term,
+            updated_at__date=day,
+        )
+        total = evaluations.count()
+        complete = sum(1 for e in evaluations if e.is_complete_for_ranking)
+        pct = int(round((complete / total) * 100)) if total else 0
+        trend.append({"label": day.strftime("%a"), "value": pct})
+    return trend
+
+
+def _grade_trend(students, year, term):
+    """Weekly grade averages derived from recent evaluations."""
+    if not students or not year or not term:
+        return [{"label": "Week", "value": 0} for _ in range(4)]
+
+    evaluations = (
+        Evaluation.objects.filter(
+            student__in=students,
+            academic_year=year,
+            term=term,
+        )
+        .order_by("-updated_at")[:20]
+    )
+
+    buckets = []
+    for idx, eval_obj in enumerate(reversed(evaluations)):
+        label = f"#{idx + 1}"
+        score = float(eval_obj.total_score or 0)
+        buckets.append({"label": label, "value": score})
+
+    if not buckets:
+        return [{"label": "Avg", "value": 0}]
+    return buckets[-4:]
+
+
+def _subject_performance(students, year, term):
+    """Top 3 subjects with averages and delta direction."""
+    if not students or not year or not term:
+        return []
+
+    evals = Evaluation.objects.filter(
+        student__in=students,
+        academic_year=year,
+        term=term,
+    ).select_related("subject_assignment__subject")
+
+    stats = {}
+    for eval_obj in evals:
+        subject = eval_obj.subject_assignment.subject.name if eval_obj.subject_assignment_id else "General"
+        entry = stats.setdefault(subject, {"total": 0.0, "count": 0})
+        entry["total"] += float(eval_obj.total_score or 0.0)
+        entry["count"] += 1
+
+    results = []
+    for subject, entry in stats.items():
+        avg = round(entry["total"] / entry["count"], 2) if entry["count"] else 0.0
+        results.append({"subject": subject, "average": avg})
+
+    results.sort(key=lambda row: row["average"], reverse=True)
+    return results[:3]
+
+
+def _fees_breakdown(students):
+    if not students:
+        return {"paid": 0, "due": 0, "overdue": 0}
+
+    qs = Invoice.objects.filter(student__in=students).exclude(status=Invoice.Status.DRAFT)
+    stats = qs.aggregate(
+        paid=Sum("total_amount", filter=Q(status=Invoice.Status.PAID)),
+        due=Sum("total_amount"),
+        overdue=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
+    )
+    paid = stats.get("paid") or Decimal("0.00")
+    due = stats.get("due") or Decimal("0.00")
+    remaining = due - paid
+    overdue = stats.get("overdue") or 0
+    percent = min(100, int(round((paid / due) * 100))) if due > 0 else 0
+    return {
+        "paid": paid,
+        "due": due,
+        "remaining": remaining,
+        "overdue": overdue,
+        "percent": percent,
+    }
+
+
+def _assignment_completion(students, year, term):
+    if not students or not year or not term:
+        return {"complete": 0, "pending": 0, "total": 0}
+
+    evals = Evaluation.objects.filter(
+        student__in=students,
+        academic_year=year,
+        term=term,
+    )
+    total = evals.count()
+    complete = sum(1 for e in evals if e.is_complete_for_ranking)
+    pending = max(0, total - complete)
+    pct = int(round((complete / total) * 100)) if total else 0
+    return {"complete": complete, "pending": pending, "total": total, "percent": pct}
 
 
 def _performance_overview(students, year, term):

@@ -970,6 +970,77 @@
         </div>
         {% endif %}
 
+        <!-- Insights Section -->
+        {% if can_view_results or can_view_finance %}
+        <div class="insights-section mt-4">
+          <div class="section-title">
+            <i class="bi bi-bar-chart"></i>
+            <span>Insights</span>
+          </div>
+          <div class="insights-grid">
+            <div class="insight-card">
+              <div class="insight-title">Attendance Trend</div>
+              <div class="insight-bar-row">
+                {% for point in widget_data.attendance_trend %}
+                <div class="bar-group">
+                  <div class="bar-fill" style="height: {{ point.value }}%;"></div>
+                  <small>{{ point.label }}</small>
+                </div>
+                {% endfor %}
+              </div>
+              <small class="insight-note">Completion last 5 days.</small>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Grade Trend</div>
+              <div class="insight-bar-row">
+                {% for point in widget_data.grade_trend %}
+                <div class="bar-group">
+                  <div class="bar-fill grade" style="height: {{ point.value }}%;"></div>
+                  <small>{{ point.label }}</small>
+                </div>
+                {% endfor %}
+              </div>
+              <small class="insight-note">Last published grade snapshots.</small>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Subject Performance</div>
+              <ul class="subject-list list-unstyled mb-0">
+                {% for subject in widget_data.subject_performance %}
+                <li>
+                  <span class="subject-name">{{ subject.subject }}</span>
+                  <span class="subject-value">{{ subject.average }}</span>
+                </li>
+                {% empty %}
+                <li class="text-muted">No subject data yet.</li>
+                {% endfor %}
+              </ul>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Fees Snapshot</div>
+              <div class="pill-bar">
+                <div class="pill-fill" style="width: {{ widget_data.fees_breakdown.percent }}%;"></div>
+              </div>
+              <div class="insight-pill-row">
+                <span>Paid ${{ widget_data.fees_breakdown.paid }}</span>
+                <span>Due ${{ widget_data.fees_breakdown.due }}</span>
+              </div>
+              <div class="insight-footnote">Overdue {{ widget_data.fees_breakdown.overdue }} invoices</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Assignment Completion</div>
+              <div class="pill-bar">
+                <div class="pill-fill complete" style="width: {{ widget_data.assignment_completion.percent }}%;"></div>
+              </div>
+              <div class="insight-pill-row">
+                <span>Complete {{ widget_data.assignment_completion.complete }}</span>
+                <span>Pending {{ widget_data.assignment_completion.pending }}</span>
+              </div>
+              <small class="insight-note">{{ widget_data.assignment_completion.total }} evaluated items</small>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
         <!-- Attendance Tracking Section -->
         {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
         <div class="metrics-section mt-4">
