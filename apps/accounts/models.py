@@ -1,4 +1,5 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
 
 # User UI/UX preferences (background logo, opacity, etc.)
 class UserPreference(models.Model):
@@ -13,10 +14,11 @@ class UserPreference(models.Model):
     )
     updated_at = models.DateTimeField(auto_now=True)
 
+
     def __str__(self):
         return f"Preferences for {self.user.username}"
+
 from django.contrib.auth.models import AbstractUser
-from django.db import models
 
 
 class Permission(models.Model):
