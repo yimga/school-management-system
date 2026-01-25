@@ -24,6 +24,11 @@
         {% if can_reports and request.user|has_role:"TEACHER" %}
           <a href="{% url 'evals:teacher_marks_entry' %}">Grade Entry</a>
         {% endif %}
+        {% if can_settings or can_data_access or can_reports %}
+          <a href="{% url 'admin:index' %}">Admin Documentation</a>
+          <a href="{% url 'accounts:backend_dashboard' %}">Activity Logs</a>
+          <a href="javascript:void(0);">Security &amp; Compliance</a>
+        {% endif %}
       </div>
     </div>
     <div class="footer-segment footer-links">
