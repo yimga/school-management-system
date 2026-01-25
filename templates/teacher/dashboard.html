@@ -117,34 +117,87 @@
   </div>
 
   <div class="row g-3 mb-3">
-    <div class="col-lg-6">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <div class="text-uppercase small text-muted">Department</div>
-              <h6 class="mb-0">{{ team_department.name|default:"Your department" }}</h6>
-            </div>
-            <span class="badge text-bg-light">Org view</span>
+    <div class="col-xl-8">
+      <div class="card h-100 border-0 shadow-sm classes-glance-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <div class="text-uppercase small text-muted mb-1">Your class at a glance</div>
+            <h5 class="mb-0">Progress & assignments</h5>
           </div>
-          <p class="small text-muted mb-2">Quick view of peers in your department.</p>
-          {% if team_peers %}
-          <ul class="list-unstyled small mb-0">
-            {% for peer in team_peers %}
-            <li class="d-flex justify-content-between py-1 border-bottom {% if forloop.last %}border-0{% endif %}">
-              <span>{{ peer.name }}</span>
-              <span class="text-muted">{{ peer.role }}</span>
-            </li>
-            {% endfor %}
-          </ul>
+          <span class="badge text-bg-light">{{ assignments|length }} classes</span>
+        </div>
+        <div class="row g-2 mb-3">
+          {% for assign in assignments|slice:":3" %}
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">{{ assign.classroom }}</div>
+                  <div class="small text-muted">{{ assign.subject }}</div>
+                </div>
+                {% with prog=progress|get_item:assign.id %}
+                  {% if prog %}
+                    <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">0/0</span>
+                  {% endif %}
+                {% endwith %}
+              </div>
+              <div class="progress mt-1" style="height:6px;">
+                {% with prog=progress|get_item:assign.id %}
+                  {% if prog %}
+                    <div class="progress-bar" role="progressbar" style="width: {{ prog.width }}%;" aria-valuenow="{{ prog.filled }}" aria-valuemin="0" aria-valuemax="{{ prog.total }}"></div>
+                  {% else %}
+                    <div class="progress-bar" role="progressbar" style="width:0%;"></div>
+                  {% endif %}
+                {% endwith %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="mt-2">
+          <h6 class="mb-2">Teaching assignments</h6>
+          {% if assignments %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Class</th>
+                  <th>Subject</th>
+                  <th class="text-end">Marks</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in assignments|slice:':5' %}
+                <tr>
+                  <td>{{ a.classroom }}</td>
+                  <td>{{ a.subject }}</td>
+                  <td class="text-end">
+                    {% with p=progress|get_item:a.id %}
+                      {% if p %}
+                        <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ p.filled }}/{{ p.total }}</span>
+                      {% else %}
+                        <span class="badge bg-secondary">0/0</span>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                  <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}">Enter</a>
+                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">View</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
           {% else %}
-          <div class="small text-muted">No peers listed for this department yet.</div>
+            <div class="small text-muted">No teaching assignments found yet.</div>
           {% endif %}
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
-      <div class="card h-100 border-0 shadow-sm">
+    <div class="col-xl-4">
+      <div class="card h-100 border-0 shadow-sm mb-3">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
@@ -153,11 +206,50 @@
             </div>
             <span class="badge text-bg-light">At a glance</span>
           </div>
-          <p class="small text-muted mb-2">Your upcoming classes and tasks.</p>
+          <p class="small text-muted mb-2">Upcoming classes and tasks.</p>
           <div class="mini-sparkline mb-2">
             <span style="height:32%"></span><span style="height:64%"></span><span style="height:48%"></span><span style="height:72%"></span><span style="height:40%"></span>
           </div>
           <div class="small text-muted">Keep attendance and grading on track.</div>
+          <div class="small text-muted mt-2">
+            <div class="d-flex justify-content-between">
+              <span>Pending evals</span>
+              <span class="fw-semibold">{{ widget_data.tasks.pending_evaluations|default:"0" }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Pending payments</span>
+              <span class="fw-semibold">{{ widget_data.tasks.pending_payments|default:"0" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <div class="text-uppercase small text-muted">Org tree</div>
+              <h6 class="mb-0">{{ team_department.name|default:"Your department" }}</h6>
+            </div>
+            <span class="badge text-bg-light">Hierarchy</span>
+          </div>
+          <p class="small text-muted mb-2">Leadership and peers in your department.</p>
+          <ul class="list-unstyled small mb-0">
+            <li class="fw-semibold mb-1">Department lead</li>
+            <li class="mb-2">{{ team_department.lead|default:"Not set" }}</li>
+            <li class="fw-semibold mb-1">Department</li>
+            <li class="mb-2">{{ team_department.name|default:"Unassigned" }}</li>
+            <li class="fw-semibold mb-1">Peers</li>
+            {% if team_peers %}
+              {% for peer in team_peers %}
+              <li class="d-flex justify-content-between py-1 border-bottom {% if forloop.last %}border-0{% endif %}">
+                <span>{{ peer.name }}</span>
+                <span class="text-muted">{{ peer.role }}</span>
+              </li>
+              {% endfor %}
+            {% else %}
+              <li class="text-muted">No peers listed yet.</li>
+            {% endif %}
+          </ul>
         </div>
       </div>
     </div>
@@ -416,65 +508,6 @@
       </div>
     </div>
     {% endif %}
-  </div>
-  {% endif %}
-
-  {% if not widgets or "completion" in widgets or "upcoming" in widgets %}
-  <div class="row g-3 mb-4">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="mb-0">My Teaching Assignments</h5>
-          </div>
-          {% if assignments %}
-            <div class="table-responsive">
-              <table class="table align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Academic Year</th>
-                    <th>Term</th>
-                    <th>Class</th>
-                    <th>Subject</th>
-                    <th class="text-end">Marks filled</th>
-                    <th class="text-end">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for a in assignments %}
-                    <tr>
-                      <td>{{ a.academic_year }}</td>
-                      <td>{{ a.term }}</td>
-                      <td>{{ a.classroom }}</td>
-                      <td>{{ a.subject }}</td>
-                      <td class="text-end">
-                        {% with p=progress|get_item:a.id %}
-                          {% if p %}
-                            <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">
-                              {{ p.filled }}/{{ p.total }}
-                            </span>
-                          {% else %}
-                            <span class="badge bg-secondary">0/0</span>
-                          {% endif %}
-                        {% endwith %}
-                      </td>
-                      <td class="text-end">
-                        <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}">Enter marks</a>
-                        <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">View</a>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          {% else %}
-            <div class="alert alert-info mb-0">
-              No teaching assignments found. Ask the admin to assign you to a subject/class.
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
   </div>
   {% endif %}
 
