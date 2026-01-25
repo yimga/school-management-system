@@ -18,14 +18,18 @@
     min-height: 100vh;
   }
 
+  .parent-dashboard .container-lg {
+    max-width: 1200px;
+  }
+
   .dashboard-hero {
     background: #ffffff;
     color: #0f172a;
-    padding: 1.75rem;
-    border-radius: 16px;
-    margin-bottom: 2rem;
+    padding: 1.35rem 1.5rem;
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
     border: 1px solid #e9ecef;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
   }
 
   .dashboard-header {
@@ -66,6 +70,7 @@
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
+    align-items: center;
   }
 
   .dashboard-actions .btn {
@@ -615,11 +620,11 @@
     letter-spacing: 0.05em;
   }
 
-  .summary-tiles {
+.summary-tiles {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-top: 1.2rem;
     align-items: stretch;
     grid-auto-rows: 1fr;
   }
@@ -627,7 +632,7 @@
   .summary-tile {
     background: #ffffff;
     border-radius: 12px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     border: 1px solid #e9ecef;
     display: flex;
     align-items: center;
@@ -722,15 +727,26 @@
           <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
           <p>Stay updated on your children's progress, attendance, and school activities.</p>
         </div>
-        {% if hero.actions %}
         <div class="dashboard-actions">
-          {% for action in hero.actions %}
-          <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">
-            {{ action.label }}
-          </a>
-          {% endfor %}
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            {% if links %}
+            <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
+              <option selected disabled>Switch child</option>
+              {% for child in links %}
+                <option value="{{ child.url|default:'#' }}">{{ child.label|default:'Child' }}</option>
+              {% endfor %}
+            </select>
+            {% endif %}
+            <a class="btn btn-sm btn-outline-secondary" href="#notifications">Manage notifications</a>
+            {% if hero.actions %}
+              {% for action in hero.actions %}
+              <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                {{ action.label }}
+              </a>
+              {% endfor %}
+            {% endif %}
+          </div>
         </div>
-        {% endif %}
       </div>
       
       <div class="summary-tiles">
