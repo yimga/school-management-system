@@ -1,0 +1,11 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+  {{ block.super }}
+  {% include "admin/components/theme_preview_assets.html" %}
+{% endblock %}
+
+{% block after_field_sets %}
+  {{ block.super }}
+  {% include "admin/components/theme_preview_section.html" %}
+{% endblock %}

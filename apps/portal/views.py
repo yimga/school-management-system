@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from datetime import timedelta
-from django.http import HttpResponseForbidden, HttpRequest, Http404, HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseForbidden, HttpRequest, Http404, HttpResponse, HttpResponseRedirect
 from collections import Counter
 from django.contrib import messages
 from django.utils import timezone
@@ -53,6 +53,8 @@ from apps.analytics.services import (
 from .models import PortalFeatureItem, PendingGuardianInvite
 from .services import parent_dashboard_widget_data, award_referral_reward, link_guardian_via_invite
 from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
+from apps.communication.models import Message
+from django.views.decorators.http import require_POST
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {
@@ -407,6 +409,55 @@ def portal_syllabus(request: HttpRequest):
     return render(request, "portal/syllabus.html", {
         "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
         "items": items,
+    })
+
+
+@role_required(User.Role.ADMIN)
+def preview_student_syllabus(request: HttpRequest):
+    synthetic_items = [
+        {"title": "Physics Lab Experience", "description": "Hands-on labs with sensors and robotics demos.", "created_at": timezone.now()},
+        {"title": "Digital Literacy Week", "description": "Interactive lesson on AI safety and documentation sharing.", "created_at": timezone.now()},
+        {"title": "Design & Technology", "description": "Project-based curriculum with 2026 compliance mockups.", "created_at": timezone.now()},
+    ]
+    return render(request, "portal/preview/student_syllabus_preview.html", {
+        "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
+        "items": synthetic_items,
+        "is_preview": True,
+    })
+
+
+@role_required(User.Role.ADMIN)
+@require_POST
+def preview_communication_test(request: HttpRequest):
+    subject = request.POST.get("subject", "Preview notice for [Student Name]")
+    body_template = request.POST.get("body", "Dear [Student Name], this is a preview of your [Specialty] update.")
+    student = StudentProfile.objects.filter(is_active=True).select_related("classroom").first()
+    tokens = {
+        "Student Name": f"{student.first_name} {student.last_name}" if student else "Sample Learner",
+        "Classroom": student.classroom.name if student and hasattr(student, "classroom") else "Sample Classroom",
+        "Specialty": student.specialty.name if student and hasattr(student, "specialty") else "General Studies",
+    }
+
+    def fill_template(text):
+        output = text
+        for key, value in tokens.items():
+            output = output.replace(f"[{key}]", value)
+        return output
+
+    filled_subject = fill_template(subject)
+    filled_body = fill_template(body_template)
+
+    Message.objects.create(
+        sender=request.user,
+        recipient=request.user,
+        subject=f"{filled_subject} [Preview]",
+        body=filled_body,
+    )
+
+    return JsonResponse({
+        "status": "success",
+        "subject": filled_subject,
+        "body": filled_body[:200] + ("…" if len(filled_body) > 200 else ""),
     })
 
 

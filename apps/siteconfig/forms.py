@@ -21,6 +21,37 @@ from .models import (
 from .models_dashboard import DashboardUserPreference
 
 
+def _hex_to_rgb(value: str) -> tuple[int, int, int]:
+    value = value.strip()
+    if value.startswith("#"):
+        value = value[1:]
+    if len(value) == 3:
+        value = "".join(2 * c for c in value)
+    if len(value) != 6:
+        raise ValueError("Invalid hex length")
+    return tuple(int(value[i : i + 2], 16) for i in (0, 2, 4))
+
+
+def _luminance(rgb: tuple[int, int, int]) -> float:
+    def _channel(c: int) -> float:
+        c = c / 255.0
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = rgb
+    return 0.2126 * _channel(r) + 0.7152 * _channel(g) + 0.0722 * _channel(b)
+
+
+def contrast_ratio(color1: str, color2: str) -> float:
+    try:
+        lum1 = _luminance(_hex_to_rgb(color1))
+        lum2 = _luminance(_hex_to_rgb(color2))
+    except ValueError:
+        return 0.0
+    lighter, darker = (lum1, lum2) if lum1 >= lum2 else (lum2, lum1)
+    return (lighter + 0.05) / (darker + 0.05)
+from .models_dashboard import DashboardUserPreference
+
+
 class SiteSettingsForm(forms.ModelForm):
     portal_features = forms.MultipleChoiceField(
         choices=PORTAL_FEATURE_OPTIONS,
@@ -179,6 +210,37 @@ class SiteSettingsForm(forms.ModelForm):
             raise forms.ValidationError("Social links must be a JSON list.")
         return data
 
+    def clean(self):
+        cleaned = super().clean()
+        combos = [
+            (
+                "admin_sidebar_bg_color",
+                "admin_sidebar_text_color",
+                "Sidebar background vs text",
+            ),
+            (
+                "admin_sidebar_surface_color",
+                "admin_sidebar_text_color",
+                "Surface color vs text",
+            ),
+            (
+                "admin_sidebar_child_bg_start",
+                "admin_sidebar_child_border_color",
+                "Child card background vs border",
+            ),
+        ]
+        for bg_field, text_field, label in combos:
+            bg = cleaned.get(bg_field)
+            fg = cleaned.get(text_field)
+            if bg and fg:
+                ratio = contrast_ratio(bg, fg)
+                if ratio < 4.5:
+                    self.add_error(
+                        text_field,
+                        f"{label} contrast ({ratio:.1f}:1) falls below WCAG 4.5:1. Choose different colors.",
+                    )
+        return cleaned
+
     def save(self, commit=True):
         pack = self.cleaned_data.get("theme_pack")
         instance = super().save(commit=False)
@@ -215,6 +277,11 @@ class UserPreferenceForm(forms.ModelForm):
         label="Theme preference",
         help_text="Select light, dark, or follow your device setting.",
     )
+    high_contrast = forms.BooleanField(
+        required=False,
+        label="High contrast mode",
+        help_text="Boostifies contrast for better visibility.",
+    )
 
     class Meta:
         model = UserPreference
@@ -225,11 +292,13 @@ class UserPreferenceForm(forms.ModelForm):
             "notification_channels",
             "receive_weekly_summary",
             "theme_preference",
+            "high_contrast",
         ]
         widgets = {
             "dashboard_view": forms.Select(attrs={"class": "form-select"}),
             "refresh_rate_minutes": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
             "theme_preference": forms.Select(attrs={"class": "form-select"}),
+            "high_contrast": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -251,6 +320,7 @@ class UserPreferenceForm(forms.ModelForm):
         if self.user:
             dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=self.user)
             self.fields["theme_preference"].initial = dashboard_pref.theme_preference
+            self.fields["high_contrast"].initial = dashboard_pref.high_contrast
 
     def clean_timezone(self):
         """Allow empty timezone - model default will be used."""
@@ -277,6 +347,7 @@ class UserPreferenceForm(forms.ModelForm):
         preference.notification_channels = self.cleaned_data.get("notification_channels", [])
         preference.dashboard_widgets = self.cleaned_data.get("dashboard_widgets", [])
         theme = self.cleaned_data.get("theme_preference")
+        high_contrast = self.cleaned_data.get("high_contrast")
         if commit:
             preference.save()
             try:
@@ -284,6 +355,8 @@ class UserPreferenceForm(forms.ModelForm):
                 dashboard_pref.visible_widgets = preference.dashboard_widgets or []
                 if theme:
                     dashboard_pref.theme_preference = theme
+                if high_contrast is not None:
+                    dashboard_pref.high_contrast = high_contrast
                 dashboard_pref.save()
             except Exception:
                 # Avoid blocking preference updates if dashboard prefs aren't migrated yet.

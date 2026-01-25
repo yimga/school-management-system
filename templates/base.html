@@ -231,9 +231,34 @@
     </nav>
 
     {% if SITE and SITE.is_preview %}
-      <div class="alert alert-warning text-center m-0 rounded-0">
-        Preview mode enabled (not saved).
-        <a href="/siteconfig/customizer/clear-preview/" class="ms-2">Clear preview</a>
+      <div class="alert alert-danger text-center text-white m-0 rounded-0 fw-bold">
+        <div class="d-flex flex-column flex-md-row flex-wrap align-items-center justify-content-between gap-2">
+          <div class="d-flex flex-column flex-sm-row align-items-center gap-2">
+            <span>PREVIEW MODE - DATA WILL NOT BE SAVED</span>
+            {% if PREVIEW_ACT_AS_ROLE %}
+              <span class="badge bg-info text-dark">Acting as {{ PREVIEW_ACT_AS_ROLE }}</span>
+            {% endif %}
+          </div>
+          <div class="d-flex flex-column flex-sm-row gap-2 align-items-center">
+            <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
+            <a class="btn btn-sm btn-outline-light" href="/siteconfig/customizer/clear-preview/">Clear preview</a>
+            {% if request.user.is_staff %}
+              <form method="post" action="{% url 'siteconfig:set_act_as_role' %}" class="d-flex flex-wrap align-items-center gap-2 mb-0">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <label for="actAsSelect" class="small text-white mb-0">Act as</label>
+                <select name="role" id="actAsSelect" class="form-select form-select-sm" onchange="this.form.submit()">
+                  <option value="">Clear</option>
+                  {% for option in PREVIEW_ACT_AS_CHOICES %}
+                    <option value="{{ option.value }}" {% if option.value == PREVIEW_ACT_AS_ROLE %}selected{% endif %}>
+                      {{ option.label }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </form>
+            {% endif %}
+          </div>
+        </div>
       </div>
     {% endif %}
 

@@ -16,6 +16,8 @@ from .views import (
     student_portal_grades,
     admissions_application_status,
     portal_syllabus,
+    preview_student_syllabus,
+    preview_communication_test,
 )
 
 app_name = "portal"
@@ -37,6 +39,8 @@ urlpatterns = [
     path("features/<str:feature>/", portal_feature_page, name="portal_feature"),
     path("parent/stats/", portal_stats, name="portal_stats"),
     path("syllabus/", portal_syllabus, name="portal_syllabus"),
+    path("preview/syllabus/", preview_student_syllabus, name="preview_syllabus"),
+    path("preview/communication/", preview_communication_test, name="preview_communication_test"),
     
     # Teacher dashboard
     path("teacher/", teacher_dashboard_alias, name="teacher_dashboard_alias"),

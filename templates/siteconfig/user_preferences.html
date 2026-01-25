@@ -60,6 +60,17 @@
                 </div>
               {% endif %}
             {% endwith %}
+            {% with field=form.high_contrast %}
+              {% if field %}
+                <div class="form-check mb-3">
+                  {{ field }}
+                  <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
             {% with field=form.dashboard_view %}
               {% if field %}
                 <div class="mb-3">

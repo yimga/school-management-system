@@ -13,6 +13,10 @@ class SiteconfigConfig(AppConfig):
             from . import models_dashboard  # noqa: F401
         except Exception:
             pass
+        try:
+            from . import geoip_service  # noqa: F401
+        except Exception:
+            pass
         # Import signals for audit logging
         try:
             from . import signals  # noqa: F401

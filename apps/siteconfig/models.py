@@ -3,7 +3,9 @@ from __future__ import annotations
 from decimal import Decimal
 
 from django.conf import settings
-from django.db import models
+from django.db import models, connection, OperationalError
+from django.db.models.fields.files import FieldFile
+from django.db.models.signals import post_delete, post_save
 from django.core.validators import MinValueValidator, MaxValueValidator
 from .image_utils import optimize_image
 from django.apps import apps as django_apps
@@ -120,6 +122,8 @@ def default_footer_badges():
         {"label": "2026 Standards Compliant", "tone": "compliant"},
     ]
 
+
+_SITE_SETTINGS_CACHE: "SiteSettings | None" = None
 
 def filter_portal_items(items, role: str | None) -> list[dict]:
     if not isinstance(items, list):
@@ -608,13 +612,47 @@ class SiteSettings(models.Model):
     class Meta:
         verbose_name = "Site Settings"
 
-    def __str__(self) -> str:
-        return self.site_name
+    @classmethod
+    def _ensure_preview_columns(cls) -> None:
+        with connection.cursor() as cursor:
+            try:
+                columns = [col.name for col in connection.introspection.get_table_description(cursor, cls._meta.db_table)]
+            except OperationalError:
+                return
+
+            if "video_background" not in columns:
+                try:
+                    cursor.execute(
+                        f'ALTER TABLE "{cls._meta.db_table}" ADD COLUMN "video_background" VARCHAR(255)'
+                    )
+                except OperationalError:
+                    pass
 
     @classmethod
     def get_solo(cls) -> "SiteSettings":
-        obj, _ = cls.objects.get_or_create(pk=1)
-        return obj
+        global _SITE_SETTINGS_CACHE
+        if _SITE_SETTINGS_CACHE is None:
+            cls._ensure_preview_columns()
+            obj, _ = cls.objects.get_or_create(pk=1)
+            _SITE_SETTINGS_CACHE = obj
+        return _SITE_SETTINGS_CACHE
+
+    def get_theme_background(self, field_name: str) -> FieldFile | None:
+        target = getattr(self, field_name, None)
+        if target:
+            return target
+        theme = self.active_theme
+        if theme and hasattr(theme, field_name):
+            return getattr(theme, field_name)
+        return None
+
+    def get_theme_logo_opacity(self) -> float:
+        if self.logo_opacity not in (None, ""):
+            return self.logo_opacity
+        theme = self.active_theme
+        if theme and theme.logo_opacity not in (None, ""):
+            return theme.logo_opacity
+        return 0.3
 
     @property
     def active_theme(self) -> "ThemePack | None":
@@ -658,14 +696,14 @@ class ThemePack(models.Model):
     palette = models.JSONField(default=dict, blank=True)
     logo = models.ImageField(upload_to="branding/themepack/logo/", blank=True, null=True, help_text="Optional: Logo for this theme pack.")
     background_image = models.ImageField(upload_to="branding/themepack/bg/", blank=True, null=True, help_text="Optional: Background image for this theme pack.")
-        video_background = models.FileField(upload_to="branding/themepack/video/", blank=True, null=True, help_text="Optional: Video background for this theme pack.")
-        svg_background = models.FileField(upload_to="branding/themepack/svg/", blank=True, null=True, help_text="Optional: SVG background for this theme pack.")
-        logo_opacity = models.FloatField(default=0.3, blank=True, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)")
-        logo_background_mode = models.CharField(max_length=16, choices=SiteSettings.LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
-        is_active = models.BooleanField(default=True)
-        is_default = models.BooleanField(default=False)
-        created_at = models.DateTimeField(auto_now_add=True)
-        updated_at = models.DateTimeField(auto_now=True)
+    video_background = models.FileField(upload_to="branding/themepack/video/", blank=True, null=True, help_text="Optional: Video background for this theme pack.")
+    svg_background = models.FileField(upload_to="branding/themepack/svg/", blank=True, null=True, help_text="Optional: SVG background for this theme pack.")
+    logo_opacity = models.FloatField(default=0.3, blank=True, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)")
+    logo_background_mode = models.CharField(max_length=16, choices=SiteSettings.LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
+    is_active = models.BooleanField(default=True)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["name"]
@@ -1209,4 +1247,18 @@ class HolidayCalendar(models.Model):
     def overlaps_date(self, date):
         """Check if a specific date falls within this holiday."""
         return self.date_start <= date <= self.date_end
+
+
+def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> None:
+    global _SITE_SETTINGS_CACHE
+    _SITE_SETTINGS_CACHE = instance
+
+
+def _clear_site_settings_cache(sender, **kwargs) -> None:
+    global _SITE_SETTINGS_CACHE
+    _SITE_SETTINGS_CACHE = None
+
+
+post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)
+post_delete.connect(_clear_site_settings_cache, sender=SiteSettings)
 

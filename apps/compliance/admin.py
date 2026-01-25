@@ -10,6 +10,7 @@ class ComplianceRuleAdmin(admin.ModelAdmin):
     list_display = ('name', 'rule_type', 'is_mandatory', 'applies_globally')
     list_filter = ('rule_type', 'is_mandatory')
     search_fields = ('name',)
+    change_form_template = "admin/compliance/compliancerule/change_form.html"
 
 class RegionalComplianceRequirementAdmin(admin.ModelAdmin):
     list_display = ('region', 'rule', 'status', 'deadline')
@@ -23,6 +24,7 @@ class ComplianceCheckAdmin(admin.ModelAdmin):
 class LegalDocumentAdmin(admin.ModelAdmin):
     list_display = ('region', 'document_type', 'language', 'version')
     list_filter = ('document_type', 'language')
+    change_form_template = "admin/compliance/legaldocument/change_form.html"
 
 class ComplianceAuditLogAdmin(admin.ModelAdmin):
     list_display = ('region', 'action_type', 'severity', 'timestamp')

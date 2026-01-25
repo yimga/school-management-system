@@ -4,19 +4,23 @@ Handles AI requests with role-based access control and audit logging.
 """
 import json
 import logging
+import os
+import time
+import urllib.error
+import urllib.request
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
-from django.views.decorators.http import require_http_methods, require_GET
 from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_GET, require_http_methods
+
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
-import time
-import os
-import urllib.request
-import urllib.error
 
 logger = logging.getLogger(__name__)
+AI_COPILOT_ENABLED = getattr(settings, "AI_COPILOT_ENABLED", True)
 
 # --- AI Copilot Rate Limiting & Telemetry ---
 RATE_LIMIT_PER_MIN = int(os.environ.get('AI_COPILOT_RATE_LIMIT', '30'))
@@ -223,6 +227,11 @@ def ai_copilot_query(request):
     Validates user permissions before processing.
     Logs all requests for audit purposes.
     """
+    if not AI_COPILOT_ENABLED:
+        return JsonResponse(
+            {"success": False, "error": "AI Copilot is disabled."},
+            status=503,
+        )
     try:
         data = json.loads(request.body)
         user_query = data.get('query', '').strip()

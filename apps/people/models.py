@@ -214,7 +214,13 @@ class StudentProfile(models.Model):
 
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="students", null=True, blank=True)
     classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="students", null=True, blank=True)
-    specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="students")
+    specialty = models.ForeignKey(
+        Specialty,
+        on_delete=models.PROTECT,
+        related_name="students",
+        null=True,
+        blank=True,
+    )
 
     # Exam system fields (configurable for different countries)
     exam_candidate_number = models.CharField(

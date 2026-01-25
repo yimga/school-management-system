@@ -27,3 +27,6 @@ scikit-learn>=1.3.0
 numpy>=1.24.0
 joblib>=1.3.0
 
+geoip2==5.2.0
+maxminddb-geolite2==2018.703
+

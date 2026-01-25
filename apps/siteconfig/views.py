@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import csv
+import logging
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -33,7 +34,10 @@ from .models import (
     GradingScaleConfig,
     HolidayCalendar,
 )
+from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from apps.accounts.decorators import permission_required
+from apps.accounts.models import User
+logger = logging.getLogger(__name__)
 
 CACHE_KEY = "site_settings_v1"
 SESSION_KEY = "site_preview_settings"
@@ -204,6 +208,38 @@ def user_preferences(request):
 def report_library(request):
     templates = ReportTemplate.objects.filter(is_active=True)
     return render(request, "siteconfig/report_library.html", {"reports": templates})
+
+
+@staff_member_required
+def toggle_preview_mode(request):
+    enabled = bool(request.session.get(PREVIEW_MODE_SESSION_KEY))
+    request.session[PREVIEW_MODE_SESSION_KEY] = not enabled
+    status = "enabled" if not enabled else "disabled"
+    messages.info(request, f"Preview/sandbox mode {status}.")
+    next_url = request.GET.get("next") or request.META.get("HTTP_REFERER") or "/"
+    return redirect(next_url)
+
+
+@staff_member_required
+def set_act_as_role(request):
+    if request.method != "POST":
+        return redirect(request.GET.get("next") or request.META.get("HTTP_REFERER") or "/")
+
+    role_code = request.POST.get("role")
+    valid_roles = {code: label for code, label in User.Role.choices}
+    previous = request.session.get(ACT_AS_ROLE_SESSION_KEY)
+
+    if role_code in valid_roles:
+        request.session[ACT_AS_ROLE_SESSION_KEY] = role_code
+        messages.info(request, f"Now acting as {valid_roles[role_code]}.")
+        logger.info("User %s acting as %s (was %s)", request.user.username, role_code, previous)
+    else:
+        request.session.pop(ACT_AS_ROLE_SESSION_KEY, None)
+        messages.info(request, "Act-as role cleared.")
+        logger.info("User %s cleared act-as role (was %s)", request.user.username, previous)
+
+    next_url = request.POST.get("next") or request.GET.get("next") or request.META.get("HTTP_REFERER") or "/"
+    return redirect(next_url)
 
 
 @permission_required("settings.manage")

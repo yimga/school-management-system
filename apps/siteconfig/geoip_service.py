@@ -4,14 +4,24 @@ Geographic IP detection, location-based access control, region customization
 """
 
 import geoip2.database
-from django.contrib.gis.geos import Point
-from django.contrib.gis.db import models as gis_models
-from django.db import models
 from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured
+from django.db import models
 from django.utils.functional import cached_property
 import requests
 from typing import Optional, Dict, List, Tuple
 import json
+
+try:
+    from django.contrib.gis.geos import Point
+    from django.contrib.gis.db import models as gis_models
+except (ImportError, ImproperlyConfigured):
+    Point = None
+
+    class _DummyGIS:
+        PointField = models.JSONField
+
+    gis_models = _DummyGIS()
 
 
 class RegionalConfig(models.Model):
@@ -150,14 +160,16 @@ class GeoIPService:
         if not location:
             return None
         
-        try:
-            config = RegionalConfig.objects.get(
-                countries__contains=location['country_code'],
-                is_active=True
-            )
-            return config.region
-        except RegionalConfig.DoesNotExist:
-            return None
+        configs = RegionalConfig.objects.filter(
+            is_active=True
+        )
+        country_code = location.get('country_code')
+        for config in configs:
+            countries = config.countries or []
+            if country_code in countries:
+                return config.region
+
+        return None
     
     @staticmethod
     def is_ip_whitelisted(ip_address: str) -> bool:

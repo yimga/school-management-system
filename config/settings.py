@@ -72,6 +72,7 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
+    "apps.siteconfig.middleware.preview_mode.PreviewModeMiddleware",
     # Phase 4: Audit & Monitoring middleware
     "apps.compliance.middleware.IPCountryAccessMiddleware",  # IP/Country access control (first!)
     "apps.compliance.middleware.AuditLoggingMiddleware",  # Log all HTTP requests
@@ -116,6 +117,7 @@ import os
 import dj_database_url
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+PREVIEW_DATABASE_URL = os.getenv("PREVIEW_DATABASE_URL")
 
 if DATABASE_URL:
     DATABASES = {
@@ -134,10 +136,21 @@ else:
         }
     }
 
+if PREVIEW_DATABASE_URL:
+    DATABASES["preview"] = dj_database_url.config(
+        default=PREVIEW_DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
+else:
+    DATABASES["preview"] = DATABASES["default"].copy()
+
 # PERFORMANCE: Enable persistent database connections (600 seconds = 10 minutes)
 # Reduces overhead of creating new connection for each request
 for db_config in DATABASES.values():
-    db_config['CONN_MAX_AGE'] = 600
+    db_config["CONN_MAX_AGE"] = 600
+
+DATABASE_ROUTERS = ["apps.siteconfig.db_router.PreviewDatabaseRouter"]
 
 
 AUTH_USER_MODEL = "accounts.User"

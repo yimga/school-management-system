@@ -10,6 +10,7 @@ class PortalFeatureItemAdmin(admin.ModelAdmin):
     search_fields = ("title", "description")
     ordering = ("-created_at",)
     autocomplete_fields = ("created_by",)
+    change_form_template = "admin/portal/portalfeatureitem/change_form.html"
 
 
 class PendingGuardianInviteAdmin(admin.ModelAdmin):
@@ -52,6 +53,8 @@ class AnnouncementAdmin(admin.ModelAdmin):
         if not change:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
+
+    change_form_template = "admin/portal/announcement/change_form.html"
 
 
 # Register all models with custom admin site

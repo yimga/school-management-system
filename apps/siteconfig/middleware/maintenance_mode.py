@@ -38,4 +38,3 @@ class MaintenanceModeMiddleware:
             return render(request, "maintenance.html", {"SITE": site}, status=503)
 
         return self.get_response(request)
-

@@ -53,7 +53,7 @@ class LocalizationService:
     @staticmethod
     def format_currency(amount, currency, lang):
         # Simple formatting for NGN, KES, etc.
-        symbol = {"NGN": "â‚¦", "KES": "KSh", "USD": "$"}.get(currency, currency)
+        symbol = {"NGN": "₦", "KES": "KSh", "USD": "$"}.get(currency, currency)
         return f"{symbol}{amount:,.2f}"
 
     @staticmethod
@@ -125,10 +125,18 @@ class TranslationManager:
     def get_text(cls, text: str, language_code: str = "en") -> str:
         """Get translated text or return original if not translated."""
         if language_code == "en":
-            return text
+            return text.capitalize()
+
+        lower_text = text.lower()
+        direct = TEXT_TRANSLATIONS.get(lower_text)
+        if direct and language_code in direct:
+            return direct[language_code]
 
         translations = cls.load_language(language_code)
-        return translations.get(text, text)
+        translated = translations.get(text)
+        if not translated:
+            translated = translations.get(text.capitalize())
+        return translated or text.capitalize()
 
     @classmethod
     def set_translation(cls, text: str, language_code: str, translation: str) -> None:
@@ -190,6 +198,8 @@ COMMON_STRINGS = {
     "Grade": "Note",
     "Score": "Score",
     "Passing Score": "Score de rÃ©ussite",
+    "Student": "Étudiant",
+    "Teacher": "Enseignant",
     # Portal features
     "Student Portal": "Portail des Ã©tudiants",
     "Parent Portal": "Portail parental",
@@ -253,3 +263,49 @@ def init_translations():
     TranslationManager.bulk_import("sw", english)  # Placeholder
     TranslationManager.bulk_import("ha", english)  # Placeholder
     TranslationManager.bulk_import("yo", english)  # Placeholder
+
+
+TEXT_TRANSLATIONS: dict[str, dict[str, str]] = {
+    "student": {"en": "Student", "fr": "Étudiant"},
+    "teacher": {"en": "Teacher", "fr": "Enseignant"},
+    "grade": {"en": "Grade", "fr": "Note"},
+}
+
+
+class TextTranslator:
+    """Simple translator for UI snippets/tests."""
+
+    @classmethod
+    def get_translated_text(cls, key: str, language: str = "en") -> str:
+        entry = TEXT_TRANSLATIONS.get(key.lower(), {})
+        if language in entry:
+            return entry[language]
+
+        # Fallback to translation manager (handles registered strings)
+        translated = TranslationManager.translate_text(key.capitalize(), language) if language != "en" else key.capitalize()
+        if translated != key.capitalize():
+            return translated
+
+        return key.capitalize()
+
+    @classmethod
+    def batch_translate(cls, keys: list[str], language: str = "en") -> dict[str, str]:
+        return {key: cls.get_translated_text(key, language) for key in keys}
+
+
+class MultiLanguageContent:
+    """Helper for generating lightweight multilingual mockups."""
+
+    @staticmethod
+    def create_multilingual_report(template: str, data: dict, languages: list[str]) -> dict[str, str]:
+        try:
+            rendered = template.format(**data)
+        except Exception:
+            rendered = template
+
+        previews: dict[str, str] = {}
+        for lang in languages:
+            localized = TranslationManager.translate_text(rendered, lang) if lang != "en" else rendered
+            previews[lang] = localized
+
+        return previews

@@ -1,6 +1,7 @@
 """
 Phase 7 Task 6: Dashboard customization API and utilities
 """
+import logging
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -12,6 +13,8 @@ from django.db.models import Q
 
 from apps.siteconfig.models import get_dashboard_widget_choices
 from apps.siteconfig.models_dashboard import DashboardUserPreference, DashboardWidget
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -122,10 +125,12 @@ def update_theme(request):
         preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.theme_preference = theme
         preferences.save()
+        logger.info("User %s set theme preference to %s", request.user.username, theme)
         
         return JsonResponse({'success': True, 'theme': theme})
     
     except Exception as e:
+        logger.exception("Failed to update theme preference for %s", request.user.username)
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 

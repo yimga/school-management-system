@@ -8,9 +8,9 @@ INTEGRATION NOTE: This extends existing infrastructure:
 - Adds executive-level aggregations and export capabilities
 """
 
+from django.core.cache import cache
 from django.db import models, connection
 from django.utils import timezone
-from django.core.cache import cache
 from django.db.models import Count, Sum, Avg, Q
 from datetime import timedelta, datetime
 import csv
@@ -264,12 +264,8 @@ class ReportCacheManager:
         from apps.reports.bi_models import MaterializedReportCache
         
         MaterializedReportCache.objects.filter(report_type=report_type).delete()
-        
-        cache.delete_pattern(f'report:{report_type}:*')
-
         # Clear memory cache (pattern-based) - LocMemCache does not support delete_pattern
         # Instead, manually delete matching keys if using LocMemCache
-        from django.core.cache import cache
         if hasattr(cache, 'delete_pattern'):
             cache.delete_pattern(f'report:{report_type}:*')
         else:

@@ -6,6 +6,8 @@ from django.core.files.storage import default_storage
 from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
+from apps.accounts.models import User
+from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 
 SESSION_KEY = "site_preview_settings"
 
@@ -82,17 +84,18 @@ def site_settings(request):
     """
     site = SiteSettings.get_solo()
 
-    preview = request.session.get(SESSION_KEY)
-    if preview:
-        # overlay draft values on top of the DB object
-        for key, value in preview.items():
+    preview_settings = request.session.get(SESSION_KEY)
+    preview_mode_enabled = getattr(request, "preview_mode_enabled", False)
+    preview_flag = bool(preview_settings) or preview_mode_enabled
+
+    if preview_settings:
+        for key, value in preview_settings.items():
             if hasattr(site, key):
                 setattr(site, key, value)
 
-        # handy flag for template UI
-        setattr(site, "is_preview", True)
-    else:
-        setattr(site, "is_preview", False)
+    act_as_role = request.session.get(ACT_AS_ROLE_SESSION_KEY)
+    act_as_choices = [{"value": code, "label": label} for code, label in User.Role.choices]
+    setattr(site, "is_preview", preview_flag)
 
     breadcrumbs = _build_breadcrumbs(request.path)
     # Use theme pack backgrounds if set, else site settings
@@ -140,6 +143,8 @@ def site_settings(request):
         "REDUCED_MOTION": reduced_motion,
         "USER_THEME_PREFERENCE": theme_pref,
         "portal_home_url": portal_home_url,
+        "PREVIEW_ACT_AS_ROLE": act_as_role,
+        "PREVIEW_ACT_AS_CHOICES": act_as_choices,
     }
 
 

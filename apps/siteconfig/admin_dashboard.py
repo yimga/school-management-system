@@ -88,15 +88,21 @@ class AdminDashboardService:
         total = TeacherProfile.objects.count()
         active = TeacherProfile.objects.filter(is_active=True).count()
         
-        # Distribution by qualification
-        qualifications = TeacherProfile.objects.values('qualification').annotate(
+        # Distribution by pay grade (used as a proxy for qualifications)
+        qualifications = TeacherProfile.objects.values('pay_grade').annotate(
             count=Count('id')
         )
-        
+
+        # Distribution by department
+        departments = TeacherProfile.objects.values('department__name').annotate(
+            count=Count('id')
+        )
+
         return {
             'total': total,
             'active': active,
             'qualifications': list(qualifications),
+            'departments': list(departments),
         }
     
     @staticmethod
@@ -110,12 +116,15 @@ class AdminDashboardService:
             created_at__gte=timezone.now() - timedelta(days=30)
         ).count()
         
-        avg_score = Evaluation.objects.aggregate(avg=Avg('score'))
-        
+        avg_score = Evaluation.objects.aggregate(avg=Avg('final_score'))
+        average_value = avg_score.get('avg')
+        if average_value is None:
+            average_value = 0
+
         return {
             'classrooms': classrooms,
             'evaluations_this_month': evaluations,
-            'average_score': round(avg_score.get('avg', 0), 2),
+            'average_score': round(average_value, 2),
         }
     
     @staticmethod

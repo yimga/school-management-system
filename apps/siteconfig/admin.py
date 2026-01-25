@@ -55,6 +55,7 @@ class DashboardUserPreferenceForm(forms.ModelForm):
 
 class DashboardUserPreferenceAdmin(ModelAdmin):
     form = DashboardUserPreferenceForm
+    change_form_template = "admin/siteconfig/dashboarduserpreference/change_form.html"
     list_display = ("user", "theme_preference", "language", "created_at", "updated_at", "list_widgets")
     search_fields = ("user__username", "user__email")
     readonly_fields = ("created_at", "updated_at")
@@ -89,6 +90,7 @@ class DashboardUserPreferenceAdmin(ModelAdmin):
 
 
 class DashboardWidgetAdmin(ModelAdmin):
+    change_form_template = "admin/siteconfig/dashboardwidget/change_form.html"
     list_display = ("id", "name", "widget_type", "required_role", "is_active", "order")
     search_fields = ("id", "name", "description")
     list_filter = ("widget_type", "required_role", "is_active")
@@ -125,6 +127,8 @@ class SiteSettingsAdmin(ModelAdmin):
     Main Site Customizer UI.
     Enforces a single settings row and groups options cleanly.
     """
+
+    change_form_template = "admin/siteconfig/sitesettings/change_form.html"
 
     # Only allow ONE row
     def has_add_permission(self, request):

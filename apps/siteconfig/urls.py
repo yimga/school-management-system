@@ -10,6 +10,8 @@ from .views import (
     reportcard_builder,
     reportcard_style_preview,
     user_preferences,
+    toggle_preview_mode,
+    set_act_as_role,
 )
 from .dashboard_views import update_theme
 
@@ -26,4 +28,6 @@ urlpatterns = [
     path("reports/download/<slug:slug>/", download_report, name="report_download"),
     path("reports/builder/", reportcard_builder, name="reportcard_builder"),
     path("reports/preview/<slug:slug>/", reportcard_style_preview, name="reportcard_style_preview"),
+    path("preview/toggle/", toggle_preview_mode, name="toggle_preview_mode"),
+    path("act-as/", set_act_as_role, name="set_act_as_role"),
 ]
