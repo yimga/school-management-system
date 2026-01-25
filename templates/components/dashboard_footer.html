@@ -1,203 +1,59 @@
 {% load static %}
 {% load accounts_extras %}
-{% comment %}Role-aware footer with modern layout, brand card + grid + status strip{% endcomment %}
 <footer class="dashboard-footer" id="dashboardFooter">
-  {% with can_portal=request.user|has_feature_permission:"portal.manage" can_reports=request.user|has_feature_permission:"reports.manage" can_attendance=request.user|has_feature_permission:"attendance.manage" can_attendance_view=request.user|has_feature_permission:"attendance.view" can_finance_view=request.user|has_feature_permission:"finance.view" can_finance_manage=request.user|has_feature_permission:"finance.manage" can_data_access=request.user|has_feature_permission:"data.access" can_settings=request.user|has_feature_permission:"settings.manage" can_comms=request.user|has_feature_permission:"communication.manage" %}
-  <div class="footer-inner container-fluid px-2">
-    <div class="row footer-brand-row align-items-center flex-column flex-lg-row gap-3">
-      <div class="col-lg-5">
-        <div class="footer-brand-card">
-          <div class="footer-logo">
-            {% if SITE_LOGO_URL %}
-              <img src="{{ SITE_LOGO_URL }}" alt="{{ SITE.company_name|default:"School Management System" }}" class="footer-logo-img">
-            {% else %}
-              <img src="{% static 'images/logo.png' %}" alt="{{ SITE.company_name|default:"School Management System" }}" class="footer-logo-img">
-            {% endif %}
-          </div>
-          <div class="footer-brand-text">
-            <div class="footer-brand-name">{{ SITE.company_name|default:"Gilead Tech High School" }}</div>
-            <div class="footer-accreditation">
-              <span class="footer-accreditation-label">Accredited by</span>
-              <span>{{ SITE.footer_accreditation_text|default:"Ministry of Education - Cameroon | UNESCO Standards 2026 Compliant" }}</span>
-            </div>
-            <div class="footer-accreditation-sub">
-              {{ SITE.footer_accreditation_subtext|default:"Certified for educational institutions worldwide | ISO 9001:2015 Quality Management" }}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-5">
-        <div class="footer-cta-card">
-          <div>
-            <div class="footer-support-label">Need extra help?</div>
-            <div class="footer-support-hours">{{ SITE.footer_support_hours|default:"Mon-Fri: 8AM-6PM | Sat: 9AM-4PM" }}</div>
-          </div>
-          <a href="{{ SITE.footer_whatsapp_url|default:'#' }}" class="footer-whatsapp" target="_blank" rel="noopener noreferrer">
-            <i class="bi bi-whatsapp"></i>
-            <span>WhatsApp Support</span>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="row footer-grid-row gy-3 mt-2 text-center text-lg-start justify-content-center">
-      <div class="col-12 col-md-6 col-lg-3">
-        <div class="footer-card">
-          <h5 class="footer-heading"><i class="bi bi-life-preserver"></i> Support & Help</h5>
-          <ul class="footer-links">
-            <li><a href="{% url 'kb:kb_home' %}"><i class="bi bi-book"></i> Knowledge Base</a></li>
-            {% if can_settings or can_data_access %}
-              <li><a href="{% url 'kb:kb_category' 'admin' %}"><i class="bi bi-shield-check"></i> Admin Documentation</a></li>
-              <li><a href="{% url 'kb:kb_category' 'technical' %}"><i class="bi bi-code-slash"></i> Technical Guides</a></li>
-              <li><a href="{% url 'kb:kb_category' 'security' %}"><i class="bi bi-lock"></i> Security & Compliance</a></li>
-            {% elif request.user|has_role:"TEACHER" %}
-              <li><a href="{% url 'kb:kb_category' 'getting-started' %}"><i class="bi bi-rocket"></i> Getting Started</a></li>
-              <li><a href="{% url 'kb:kb_category' 'academics' %}"><i class="bi bi-journal-text"></i> Grade Entry & Classes</a></li>
-              <li><a href="{% url 'kb:kb_category' 'attendance' %}"><i class="bi bi-calendar-check"></i> Attendance Management</a></li>
-            {% elif request.user|has_role:"PARENT" %}
-              <li><a href="{% url 'kb:kb_category' 'getting-started' %}"><i class="bi bi-rocket"></i> Getting Started</a></li>
-              <li><a href="{% url 'kb:kb_category' 'parent' %}"><i class="bi bi-people"></i> Parent Portal Guide</a></li>
-              <li><a href="{% url 'kb:kb_category' 'finance' %}"><i class="bi bi-cash-stack"></i> Payments & Billing</a></li>
-            {% elif request.user|has_role:"STUDENT" %}
-              <li><a href="{% url 'kb:kb_category' 'getting-started' %}"><i class="bi bi-rocket"></i> Getting Started</a></li>
-              <li><a href="{% url 'kb:kb_category' 'student' %}"><i class="bi bi-mortarboard"></i> Student Portal Guide</a></li>
-              <li><a href="{% url 'kb:kb_category' 'academics' %}"><i class="bi bi-book"></i> Academics & Assignments</a></li>
-            {% endif %}
-            <li><a href="{% url 'kb:faq_list' %}"><i class="bi bi-question-circle"></i> FAQs</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="col-12 col-md-6 col-lg-3">
-        <div class="footer-card">
-          <h5 class="footer-heading"><i class="bi bi-lightning"></i> Quick Links</h5>
-          <ul class="footer-links">
-            {% if can_settings or can_data_access %}
-              {% if request.user.is_staff or request.user.is_superuser %}
-                <li><a href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
-              {% endif %}
-              <li><a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-grid"></i> Backend Dashboard</a></li>
-              {% if can_data_access %}
-                <li><a href="/accounts/dashboard/"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
-              {% endif %}
-              {% if can_settings %}
-                <li><a href="{% url 'accounts:rbac' %}"><i class="bi bi-shield-lock"></i> RBAC Management</a></li>
-              {% endif %}
-              {% if can_data_access or can_reports %}
-                <li><a href="/compliance/dashboard/"><i class="bi bi-file-earmark-check"></i> Compliance Audit</a></li>
-              {% endif %}
-            {% elif request.user|has_role:"TEACHER" %}
-              {% if can_portal or can_reports or can_attendance %}
-                <li><a href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-house"></i> My Dashboard</a></li>
-              {% endif %}
-              {% if can_portal %}
-                <li><a href="javascript:void(0);" title="My Classes"><i class="bi bi-people"></i> My Classes</a></li>
-              {% endif %}
-              {% if can_reports %}
-                <li><a href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-journal-text"></i> Grade Entry</a></li>
-              {% endif %}
-              {% if can_attendance %}
-                <li><a href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-calendar-check"></i> Attendance</a></li>
-              {% endif %}
-              {% if can_comms or can_portal %}
-                <li><a href="javascript:void(0);" title="Messages"><i class="bi bi-envelope"></i> Messages</a></li>
-              {% endif %}
-            {% elif request.user|has_role:"PARENT" %}
-              {% if can_portal %}
-                <li><a href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-house"></i> My Dashboard</a></li>
-                <li><a href="javascript:void(0);" title="My Children"><i class="bi bi-people"></i> My Children</a></li>
-              {% endif %}
-              {% if can_finance_view or can_finance_manage %}
-                <li><a href="{% url 'finance:invoices' %}"><i class="bi bi-receipt"></i> Invoices & Payments</a></li>
-              {% endif %}
-              {% if can_reports %}
-                <li><a href="javascript:void(0);" title="Report Cards"><i class="bi bi-file-text"></i> Report Cards</a></li>
-              {% endif %}
-              {% if can_comms or can_portal %}
-                <li><a href="javascript:void(0);" title="Messages"><i class="bi bi-envelope"></i> Messages</a></li>
-              {% endif %}
-            {% elif request.user|has_role:"STUDENT" %}
-              {% if can_reports %}
-                <li><a href="javascript:void(0);" title="My Dashboard"><i class="bi bi-house"></i> My Dashboard</a></li>
-                <li><a href="javascript:void(0);" title="My Grades"><i class="bi bi-trophy"></i> My Grades</a></li>
-              {% endif %}
-              {% if can_attendance_view or can_attendance %}
-                <li><a href="javascript:void(0);" title="My Attendance"><i class="bi bi-calendar-check"></i> My Attendance</a></li>
-              {% endif %}
-              {% if can_reports %}
-                <li><a href="javascript:void(0);" title="Timetable"><i class="bi bi-calendar3"></i> Timetable</a></li>
-              {% endif %}
-              {% if can_comms or can_portal %}
-                <li><a href="javascript:void(0);" title="Messages"><i class="bi bi-envelope"></i> Messages</a></li>
-              {% endif %}
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-      <div class="col-12 col-md-6 col-lg-3">
-        <div class="footer-card">
-          <h5 class="footer-heading"><i class="bi bi-envelope"></i> Contact & Status</h5>
-          <ul class="footer-links">
-            <li><a href="mailto:{{ SITE.company_email }}"><i class="bi bi-envelope-at"></i> {{ SITE.company_email|default:"support@school.com" }}</a></li>
-            <li><a href="tel:{{ SITE.company_phone }}"><i class="bi bi-telephone"></i> {{ SITE.company_phone|default:"+1 (555) 123-4567" }}</a></li>
-            {% if SITE.company_address %}
-            <li class="text-muted"><i class="bi bi-geo-alt"></i> {{ SITE.company_address|truncatewords:10 }}</li>
-            {% endif %}
-            <li>
-              <div class="system-status">
-                <span class="status-indicator status-operational"></span>
-                <span class="status-text">{{ SITE.footer_status_text|default:"All Systems Operational" }}</span>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="col-12 col-md-6 col-lg-3">
-        <div class="footer-card">
-          <h5 class="footer-heading"><i class="bi bi-shield"></i> Legal & Info</h5>
-          <ul class="footer-links">
-            <li><a href="javascript:void(0);" title="Privacy Policy"><i class="bi bi-file-lock"></i> Privacy Policy</a></li>
-            <li><a href="javascript:void(0);" title="Terms of Service"><i class="bi bi-file-text"></i> Terms of Service</a></li>
-            <li><a href="javascript:void(0);" title="About Us"><i class="bi bi-info-circle"></i> About Us</a></li>
-            <li><a href="{% url 'kb:kb_home' %}" title="Documentation"><i class="bi bi-journal-code"></i> Documentation</a></li>
-            <li><a href="{% url 'kb:faq_list' %}" title="Support Center"><i class="bi bi-life-preserver"></i> Support Center</a></li>
-            {% if can_settings or can_data_access %}
-            <li><a href="/compliance/dashboard/"><i class="bi bi-file-earmark-check"></i> Compliance Reports</a></li>
-            {% endif %}
-            <li>
-              <div class="version-info">
-                <i class="bi bi-code-square"></i>
-                <span>Version {{ system_version|default:"3.2.1" }}</span>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="row footer-status-row mt-3 align-items-center text-center text-md-start">
-      <div class="col-md-6">
-        <p class="footer-copy mb-1">© {% now "Y" %} {{ SITE.company_name|default:"Gilead Tech High School" }}. All rights reserved.</p>
-        {% if SITE.ministry_registration_code %}
-          <p class="footer-ministry text-muted mb-0">Ministry Registration: {{ SITE.ministry_registration_code }}</p>
+  {% with can_portal=request.user|has_feature_permission:"portal.manage" can_reports=request.user|has_feature_permission:"reports.manage" can_attendance=request.user|has_feature_permission:"attendance.manage" can_finance_view=request.user|has_feature_permission:"finance.view" can_finance_manage=request.user|has_feature_permission:"finance.manage" can_data_access=request.user|has_feature_permission:"data.access" can_settings=request.user|has_feature_permission:"settings.manage" can_comms=request.user|has_feature_permission:"communication.manage" %}
+  <div class="footer-layout">
+    <div class="footer-brand-inline">
+      <div class="footer-logo">
+        {% if SITE_LOGO_URL %}
+          <img src="{{ SITE_LOGO_URL }}" alt="{{ SITE.company_name|default:"School Management System" }}">
+        {% else %}
+          <img src="{% static 'images/logo.png' %}" alt="{{ SITE.company_name|default:"School Management System" }}">
         {% endif %}
       </div>
-      <div class="col-md-6">
-        <div class="footer-status-badges">
-          <span class="footer-badge footer-badge-wave">Live Chat Ready</span>
-          <span class="footer-badge footer-badge-healthy">API Status: Nominal</span>
-          <span class="footer-badge footer-badge-compliant">2026 Standards Compliant</span>
-          {% if SITE.footer_badges %}
-            {% for badge in SITE.footer_badges %}
-              <span class="footer-badge footer-badge-{{ badge.tone|default:'secure' }}">
-                {% if badge.tone == "compliant" %}<i class="bi bi-patch-check"></i>{% else %}<i class="bi bi-shield-check"></i>{% endif %}
-                {{ badge.label }}
-              </span>
-            {% endfor %}
-          {% endif %}
-        </div>
-        <p class="footer-powered mb-0 text-muted">Powered by <strong>School Management System</strong></p>
-        <p class="footer-powered mb-0 text-muted">Built with <i class="bi bi-heart-fill text-danger"></i> for Education</p>
+      <div>
+        <div class="footer-brand-name">{{ SITE.company_name|default:"Gilead Tech High School" }}</div>
+        <div class="footer-accreditation-minor">{{ SITE.footer_accreditation_text|default:"Ministry of Education - Cameroon | UNESCO Standards 2026 Compliant" }}</div>
       </div>
+    </div>
+    <div class="footer-links-line">
+      <div class="footer-mini-group">
+        <span class="footer-mini-label">Support</span>
+        <a href="{% url 'kb:kb_home' %}">Knowledge Base</a>
+        <a href="{% url 'kb:faq_list' %}">FAQs</a>
+      </div>
+      <div class="footer-mini-group">
+        <span class="footer-mini-label">Quick</span>
+        {% if can_settings or can_data_access %}
+          <a href="{% url 'accounts:backend_dashboard' %}">Backend Dashboard</a>
+        {% endif %}
+        {% if request.user|has_role:"PARENT" and (can_finance_view or can_finance_manage) %}
+          <a href="{% url 'finance:invoices' %}">Invoices</a>
+        {% endif %}
+        {% if request.user|has_role:"TEACHER" and can_reports %}
+          <a href="{% url 'evals:teacher_marks_entry' %}">Grade Entry</a>
+        {% endif %}
+        {% if can_reports and not request.user|has_role:"PARENT" %}
+          <a href="javascript:void(0);">Reports</a>
+        {% endif %}
+      </div>
+      <div class="footer-mini-group">
+        <span class="footer-mini-label">Contact</span>
+        <a href="mailto:{{ SITE.company_email|default:"support@school.com" }}">{{ SITE.company_email|default:"support@school.com" }}</a>
+        <a href="tel:{{ SITE.company_phone|default:"+15551234567" }}">{{ SITE.company_phone|default:"+1 (555) 123-4567" }}</a>
+      </div>
+    </div>
+    <div class="footer-status-line">
+      <span class="footer-badge">Live Chat Ready</span>
+      <span class="footer-badge">API Status: Nominal</span>
+      <span class="footer-badge">Secure & Encrypted</span>
+      <span class="footer-badge">Version {{ system_version|default:"3.2.1" }}</span>
+    </div>
+  </div>
+  <div class="footer-meta">
+    <div>© {% now "Y" %} {{ SITE.company_name|default:"Gilead Tech High School" }}. All rights reserved.</div>
+    <div class="footer-meta-extra">
+      <span>{{ SITE.footer_accreditation_subtext|default:"Certified for educational institutions worldwide | ISO 9001:2015 Quality Management" }}</span>
     </div>
   </div>
   {% endwith %}
@@ -205,229 +61,94 @@
 
 <style>
 .dashboard-footer {
-  background: linear-gradient(135deg, #0b1224 0%, #131b33 70%, #0d1220 100%);
-  color: #cfd8ef;
-  border-top: 1px solid rgba(148, 163, 184, 0.4);
-  padding: 1.8rem 0 0.9rem;
-  font-size: 0.88rem;
+  width: 100%;
+  background: rgba(4, 10, 28, 0.92);
+  color: #cbd5f5;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.15);
+  font-size: 0.82rem;
 }
-.footer-inner {
-  max-width: 900px;
-  width: min(90vw, 900px);
-  margin: 0 auto;
-}
-.footer-brand-row {
-  gap: 1rem;
-  justify-content: space-between;
-}
-.footer-brand-card {
-  background: rgba(15, 23, 42, 0.85);
-  padding: 1rem 1.25rem;
-  border-radius: 16px;
-  box-shadow: 0 20px 45px rgba(2, 6, 23, 0.55);
+.footer-layout {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1rem;
+  justify-content: space-between;
   flex-wrap: wrap;
+  gap: 1rem;
 }
-.footer-logo-img {
-  width: 84px;
-  height: 84px;
-  object-fit: contain;
+.footer-brand-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.footer-logo img {
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
-}
-.footer-brand-text {
-  text-align: left;
-  min-width: 220px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
 }
 .footer-brand-name {
-  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #7dd3fc;
+  letter-spacing: 0.05em;
+  font-size: 0.95rem;
 }
-.footer-accreditation {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  background: rgba(29, 78, 216, 0.15);
-  color: #bfdbfe;
-  font-weight: 600;
+.footer-accreditation-minor {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
 }
-.footer-accreditation-label {
-  text-transform: uppercase;
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-}
-.footer-accreditation-sub {
-  margin-top: 0.4rem;
-  color: #94a3b8;
-  font-size: 0.78rem;
-}
-.footer-cta-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  border-radius: 16px;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-}
-.footer-support-label {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #a5b4fc;
-}
-.footer-support-hours {
-  font-size: 0.9rem;
-  color: #e2e8f0;
-}
-.footer-whatsapp {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  background: #25d366;
-  color: #0f172a;
-  font-weight: 700;
-  text-decoration: none;
-}
-.footer-grid-row {
-  margin-top: 1rem;
-  justify-content: space-between;
-  gap: 0.9rem;
-}
-.footer-card {
-  background: rgba(13, 18, 31, 0.8);
-  padding: 0.8rem 0.95rem;
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  min-height: 150px;
+.footer-links-line {
   flex: 1;
-  max-width: 220px;
-}
-.footer-heading {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #e0e7ff;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.85rem;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  justify-content: space-around;
+  gap: 1rem;
+  min-width: 360px;
 }
-.footer-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.footer-mini-group {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  text-transform: uppercase;
+  gap: 0.25rem;
 }
-.footer-links li {
-  display: flex;
-  justify-content: center;
+.footer-mini-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: rgba(248, 250, 252, 0.7);
 }
-.footer-links a {
-  color: #cbd5f5;
+.footer-mini-group a {
+  color: #dbeafe;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.88rem;
-  transition: color 0.2s ease, transform 0.2s ease;
+  font-size: 0.75rem;
 }
-.footer-links a:hover {
-  color: #7dd3fc;
-  transform: translateX(3px);
-}
-.system-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  background: rgba(59, 130, 246, 0.15);
-  justify-content: center;
-}
-.status-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
-  background: #22c55e;
-  animation: pulse 2.2s ease-in-out infinite;
-}
-.status-text {
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: #bae6fd;
-}
-.footer-status-row {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.3);
-}
-.footer-copy {
-  margin-bottom: 0.3rem;
-  color: #cbd5f5;
-}
-.footer-ministry {
-  font-size: 0.78rem;
-  color: #9ca3af;
-}
-.footer-status-badges {
+.footer-status-line {
   display: flex;
+  gap: 0.4rem;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-bottom: 0.45rem;
 }
 .footer-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.9rem;
+  padding: 0.25rem 0.7rem;
   border-radius: 999px;
+  background: rgba(14, 165, 233, 0.18);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  font-size: 0.68rem;
+}
+.footer-meta {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   font-size: 0.75rem;
-  font-weight: 600;
-  background: rgba(59, 130, 246, 0.15);
-  color: #bfdbfe;
+  color: rgba(255, 255, 255, 0.6);
 }
-.footer-badge-healthy { background: rgba(16, 185, 233, 0.18); color: #7dd3fc; }
-.footer-badge-wave { background: rgba(14, 165, 233, 0.18); color: #7dd3fc; }
-.footer-badge-compliant { background: rgba(14, 165, 233, 0.25); color: #bfdbfe; }
-.footer-badge-secure { background: rgba(34, 197, 94, 0.18); color: #bbf7d0; }
-.footer-powered {
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
-  color: #94a3b8;
+.footer-meta-extra {
+  max-width: 70%;
 }
-@media (max-width: 991px) {
-  .footer-inner { padding: 0 12px; }
-  .footer-brand-card { flex-direction: column; text-align: center; }
-  .footer-brand-text { text-align: center; min-width: auto; }
-  .footer-card { min-height: auto; }
-  .footer-grid-row { flex-direction: column; }
-  .footer-status-badges { justify-content: center; }
-}
-@media (prefers-color-scheme: light) {
-  .dashboard-footer { background: #f8f9ff; color: #111827; }
-  .footer-card { background: #ffffff; }
-  .footer-heading { color: #0f172a; }
-  .footer-links a { color: #475569; }
-  .footer-powered, .footer-copy, .footer-ministry { color: #475569; }
+@media (max-width: 900px) {
+  .footer-links-line {
+    min-width: 100%;
+  }
+  .footer-brand-inline {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 </style>
