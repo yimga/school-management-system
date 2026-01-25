@@ -18,10 +18,60 @@ from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation, AssessmentWeights
 from apps.evals.services import completion_for_assignment
 from apps.finance.models import Invoice, PaymentReminder, ReferralReward
-from apps.people.models import StudentGuardian, StudentProfile
+from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
+from apps.evals.models import TeacherAssignment
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
 from apps.siteconfig.models import Integration, SiteSettings
+
+
+# --- RBAC-aware scoping helpers ---
+
+def guardian_student_links(user: User, finance_only: bool = False, results_only: bool = False):
+    """
+    Return StudentGuardian links scoped to the authenticated guardian.
+    Ensures we never leak referred students outside the guardianship table.
+    """
+    qs = StudentGuardian.objects.filter(guardian_user=user)
+    if finance_only:
+        qs = qs.filter(can_view_finance=True)
+    if results_only:
+        qs = qs.filter(can_view_results=True)
+    return qs.select_related(
+        "student",
+        "student__classroom",
+        "student__specialty",
+        "student__academic_year",
+    )
+
+
+def guardian_students(user: User, finance_only: bool = False, results_only: bool = False):
+    """Convenience wrapper returning student instances for the guardian."""
+    return [link.student for link in guardian_student_links(user, finance_only, results_only)]
+
+
+def teacher_scope(user: User, academic_year=None):
+    """
+    Scope teacher data to their own assignments and classrooms.
+    Returns (teacher_profile, assignments_qs, students_qs, classrooms)
+    """
+    teacher = TeacherProfile.objects.filter(user=user).select_related("department").first()
+    if not teacher:
+        return None, TeacherAssignment.objects.none(), StudentProfile.objects.none(), []
+
+    assignments = TeacherAssignment.objects.filter(teacher=teacher, is_active=True)
+    if academic_year:
+        assignments = assignments.filter(subject_assignment__academic_year=academic_year)
+    assignments = assignments.select_related(
+        "subject_assignment__classroom",
+        "subject_assignment__subject",
+        "subject_assignment__specialty",
+        "subject_assignment__term",
+        "subject_assignment__academic_year",
+    )
+    classrooms = [a.subject_assignment.classroom for a in assignments if a.subject_assignment and a.subject_assignment.classroom]
+    students = StudentProfile.objects.filter(classroom__in=classrooms).distinct()
+    return teacher, assignments, students, classrooms
 
 
 def parent_dashboard_widget_data(

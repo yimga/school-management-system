@@ -51,7 +51,12 @@ from apps.analytics.services import (
     term_rankings,
 )
 from .models import PortalFeatureItem, PendingGuardianInvite
-from .services import parent_dashboard_widget_data, award_referral_reward, link_guardian_via_invite
+from .services import (
+    parent_dashboard_widget_data,
+    award_referral_reward,
+    link_guardian_via_invite,
+    guardian_student_links,
+)
 from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
 from apps.communication.models import Message
 from django.views.decorators.http import require_POST
@@ -114,27 +119,9 @@ def parent_dashboard(request: HttpRequest):
     """
     from django.db.models import Prefetch
     
-    links = StudentGuardian.objects.filter(
-        guardian_user=request.user,
-        can_view_results=True
-    ).select_related(
-        "student",
-        "student__classroom",
-        "student__specialty",
-        "student__academic_year"
-    ).prefetch_related(
-        "student__evaluations",
-    )
+    links = guardian_student_links(request.user, results_only=True).prefetch_related("student__evaluations")
 
-    finance_links = StudentGuardian.objects.filter(
-        guardian_user=request.user,
-        can_view_finance=True,
-    ).select_related(
-        "student",
-        "student__classroom",
-        "student__specialty",
-        "student__academic_year",
-    )
+    finance_links = guardian_student_links(request.user, finance_only=True)
 
     portal_features = _portal_features_status()
     students = [link.student for link in links]

@@ -21,6 +21,7 @@ logger = None  # Set after imports to avoid circular deps
 
 # Higher number = higher privilege.
 ROLE_RANK = {
+    "SUPERADMIN": 110,
     "ADMIN": 100,
     "LEADERSHIP": 95,
     "PRINCIPAL": 90,
@@ -29,6 +30,10 @@ ROLE_RANK = {
     "HOD": 75,
     "CENSOR": 75,
     "BURSAR": 75,
+    "DEPT_LEAD": 74,
+    "FINANCE_STAFF": 65,
+    "ACADEMICS_STAFF": 65,
+    "COMMS_STAFF": 60,
     "IT_ADMIN": 70,
     "BOARDING_MANAGER": 60,
     "TEACHER": 50,
@@ -37,28 +42,36 @@ ROLE_RANK = {
 }
 
 STUDENT_DATA_GLOBAL_ROLES = {
+    "SUPERADMIN",
     "ADMIN",
     "LEADERSHIP",
     "PRINCIPAL",
     "VICE_PRINCIPAL",
     "DEAN",
     "CENSOR",
+    "HOD",
+    "DEPT_LEAD",
 }
 
 GRADE_EDIT_GLOBAL_ROLES = {
+    "SUPERADMIN",
     "ADMIN",
     "LEADERSHIP",
     "PRINCIPAL",
     "VICE_PRINCIPAL",
     "DEAN",
     "CENSOR",
+    "HOD",
+    "DEPT_LEAD",
 }
 
 INVOICE_GLOBAL_ROLES = {
+    "SUPERADMIN",
     "ADMIN",
     "LEADERSHIP",
     "PRINCIPAL",
     "BURSAR",
+    "FINANCE_STAFF",
 }
 
 def _role_rank(role: str | None) -> int:

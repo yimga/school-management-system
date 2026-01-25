@@ -26,7 +26,7 @@ from .forms import (
     BatchFillMissingForm,
 )
 from .models import EvaluationEvidence
-from apps.portal.services import teacher_dashboard_widget_data
+from apps.portal.services import teacher_dashboard_widget_data, teacher_scope
 from apps.siteconfig.models import resolve_dashboard_widgets
 
 
@@ -134,16 +134,9 @@ def teacher_dashboard(request: HttpRequest):
     if not year or not term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
-    assignments = TeacherAssignment.objects.filter(
-        teacher=teacher,
-        academic_year=year,
-        is_active=True
-    ).select_related(
-        "subject_assignment__subject",
-        "subject_assignment__classroom",
-        "subject_assignment__specialty",
-        "subject_assignment__term",
-    )
+    teacher_profile, assignments, _, _ = teacher_scope(request.user, academic_year=year)
+    if teacher_profile is None:
+        return error
 
     # Progress indicators per assignment (filled / total)
     progress = {}

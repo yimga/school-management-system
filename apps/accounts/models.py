@@ -48,6 +48,7 @@ class AccessRole(models.Model):
 
 class User(AbstractUser):
     class Role(models.TextChoices):
+        SUPERADMIN = "SUPERADMIN", "Super Administrator"
         ADMIN = "ADMIN", "Administrator"
         LEADERSHIP = "LEADERSHIP", "Leadership"
         PRINCIPAL = "PRINCIPAL", "Principal"
@@ -56,6 +57,10 @@ class User(AbstractUser):
         CENSOR = "CENSOR", "Censor"
         BURSAR = "BURSAR", "Bursar"
         HOD = "HOD", "Head of Department"
+        DEPT_LEAD = "DEPT_LEAD", "Department Lead"
+        FINANCE_STAFF = "FINANCE_STAFF", "Finance Staff"
+        ACADEMICS_STAFF = "ACADEMICS_STAFF", "Academics Staff"
+        COMMS_STAFF = "COMMS_STAFF", "Communications Staff"
         TEACHER = "TEACHER", "Teacher"
         IT_ADMIN = "IT_ADMIN", "IT Administrator"
         BOARDING_MANAGER = "BOARDING_MANAGER", "Boarding Manager"

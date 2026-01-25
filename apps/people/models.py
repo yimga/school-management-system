@@ -106,9 +106,14 @@ class TeacherProfile(models.Model):
         super().save(*args, **kwargs)
 
     def clean(self):
-        # Ensure the linked user is a TEACHER
-        if self.user and self.user.role != User.Role.TEACHER:
-            raise ValidationError("TeacherProfile user must have role=TEACHER")
+        # Ensure the linked user is a teacher-aligned role
+        allowed_roles = {
+            User.Role.TEACHER,
+            getattr(User.Role, "DEPT_LEAD", User.Role.TEACHER),
+            getattr(User.Role, "LEADERSHIP", User.Role.TEACHER),
+        }
+        if self.user and self.user.role not in allowed_roles:
+            raise ValidationError("TeacherProfile user must have a teacher or department-lead role")
 
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username}"

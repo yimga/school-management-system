@@ -4,8 +4,13 @@ from django.dispatch import receiver
 from .models import AccessRole, User
 
 ROLE_TEMPLATES: dict[str, list[str]] = {
+    User.Role.SUPERADMIN: ["ADMIN"],
     User.Role.ADMIN: ["ADMIN"],
     User.Role.LEADERSHIP: ["LEADERSHIP"],
+    User.Role.DEPT_LEAD: ["HOD"],
+    User.Role.FINANCE_STAFF: ["BURSAR"],
+    User.Role.ACADEMICS_STAFF: ["DEAN"],
+    User.Role.COMMS_STAFF: ["BOARDING_MANAGER"],
     User.Role.TEACHER: ["TEACHER"],
     User.Role.PARENT: ["PARENT"],
 }
