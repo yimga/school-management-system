@@ -1,4 +1,10 @@
-from .models import UserPreference
+from django import forms
+from django.contrib.auth import password_validation
+from django.core.exceptions import ValidationError
+
+from .models import AccessRole, Permission, User, UserPreference
+from apps.portal.models import PendingGuardianInvite
+
 
 # User preference form for background logo and opacity
 class UserPreferenceForm(forms.ModelForm):
@@ -16,14 +22,6 @@ class UserPreferenceForm(forms.ModelForm):
             "high_contrast_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "reduced_motion": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
-from django import forms
-
-from .models import AccessRole, Permission, User
-from apps.portal.models import PendingGuardianInvite
-from django.contrib.auth import password_validation
-from django.core.exceptions import ValidationError
-
-
 class RoleForm(forms.ModelForm):
     permissions = forms.ModelMultipleChoiceField(
         queryset=Permission.objects.all(),
