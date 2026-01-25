@@ -51,6 +51,20 @@
     padding: 1rem 1.2rem;
   }
 
+  .mini-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .mini-kpi {
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: white;
+    padding: 0.85rem 1rem;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  }
+
   .announcement-item + .announcement-item {
     border-top: 1px dashed #e2e8f0;
     margin-top: 0.75rem;
@@ -77,6 +91,24 @@
   </div>
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="mini-kpis mb-3" style="max-width:1200px;margin:0 auto;">
+    <div class="mini-kpi">
+      <div class="text-uppercase small text-muted">Classes</div>
+      <div class="h5 mb-0">{{ assignments|length }}</div>
+      <div class="small text-muted">Subjects assigned</div>
+    </div>
+    <div class="mini-kpi">
+      <div class="text-uppercase small text-muted">Students</div>
+      <div class="h5 mb-0">{{ progress|length }}</div>
+      <div class="small text-muted">In your roster</div>
+    </div>
+    <div class="mini-kpi">
+      <div class="text-uppercase small text-muted">Completion</div>
+      <div class="h5 mb-0">{{ widget_data.completion_pct|default:"0" }}%</div>
+      <div class="small text-muted">Marks entered</div>
+    </div>
+  </div>
 
   <div class="row g-3 mb-4">
     {% if not widgets or "links" in widgets or "communications" in widgets %}

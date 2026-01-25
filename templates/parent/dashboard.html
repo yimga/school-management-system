@@ -521,6 +521,48 @@
     margin-top: 0.2rem;
   }
 
+  /* Gauges */
+  .at-a-glance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .gauge-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .donut {
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    background: conic-gradient(var(--primary) calc(var(--value) * 1%), #e2e8f0 0);
+    display: grid;
+    place-items: center;
+    position: relative;
+  }
+
+  .donut::after {
+    content: "";
+    width: 56px;
+    height: 56px;
+    background: white;
+    border-radius: 50%;
+  }
+
+  .donut span {
+    position: absolute;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
   .sidebar-sticky {
     position: sticky;
     top: 100px;
@@ -949,6 +991,34 @@
             No linked students yet. Link a child to see live attendance, grades, and fee status.
           </div>
           {% endif %}
+        </div>
+
+        <!-- At a Glance -->
+        <div class="metrics-section mt-4">
+          <div class="section-title">
+            <i class="bi bi-speedometer2"></i>
+            <span>At a Glance</span>
+          </div>
+          <div class="at-a-glance">
+            <div class="gauge-card">
+              <div class="donut" style="--value: {{ attendance_pct|default:0 }};">
+                <span>{{ attendance_pct|default:0 }}%</span>
+              </div>
+              <div>
+                <div class="text-uppercase small text-muted">Attendance</div>
+                <div class="fw-semibold">Overall completion</div>
+              </div>
+            </div>
+            <div class="gauge-card">
+              <div class="donut" style="--value: {{ finance_paid_pct|default:0 }};">
+                <span>{{ finance_paid_pct|default:0 }}%</span>
+              </div>
+              <div>
+                <div class="text-uppercase small text-muted">Fees Paid</div>
+                <div class="fw-semibold">Paid: ${{ finance_paid|default:"0.00" }} of ${{ finance_total|default:"0.00" }}</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {% if class_announcements %}

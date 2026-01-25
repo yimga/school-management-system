@@ -143,6 +143,10 @@ def parent_dashboard(request: HttpRequest):
             "overdue": 0,
             "label": "Finance access not granted",
         }
+    attendance_pct = widget_data["attendance"].get("overall") or 0
+    finance_total = widget_data["finance"].get("total_due") or Decimal("0.00")
+    finance_paid = widget_data["finance"].get("paid") or Decimal("0.00")
+    finance_paid_pct = int((finance_paid / finance_total) * 100) if finance_total else 0
 
     # Per-student maps for live cards
     perf_map = {row.get("student_id"): row for row in widget_data.get("performance", {}).get("per_student", [])}
@@ -226,6 +230,10 @@ def parent_dashboard(request: HttpRequest):
         "hero": hero,
         "reminders_count": reminders_count,
         "class_announcements": class_announcements,
+        "attendance_pct": attendance_pct,
+        "finance_paid_pct": finance_paid_pct,
+        "finance_total": finance_total,
+        "finance_paid": finance_paid,
     })
 
 
