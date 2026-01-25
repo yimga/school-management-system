@@ -130,8 +130,8 @@ def class_threads_for_parent(user: User, limit: int = 4):
     threads = (
         MessageThread.objects.filter(members=user, is_archived=False)
         .prefetch_related("members")
-        .annotate(last_message_at=Max("messages__created_at"))
-        .order_by(F("last_message_at").desc(nulls_last=True), "-updated_at")[:limit]
+        .annotate(latest_message_at=Max("messages__created_at"))
+        .order_by(F("latest_message_at").desc(nulls_last=True), "-updated_at")[:limit]
     )
     return [_serialize_thread(t, user) for t in threads]
 
@@ -143,8 +143,8 @@ def class_threads_for_teacher(user: User, limit: int = 6):
     threads = (
         MessageThread.objects.filter(members=user, is_archived=False)
         .prefetch_related("members")
-        .annotate(last_message_at=Max("messages__created_at"))
-        .order_by(F("last_message_at").desc(nulls_last=True), "-updated_at")[:limit]
+        .annotate(latest_message_at=Max("messages__created_at"))
+        .order_by(F("latest_message_at").desc(nulls_last=True), "-updated_at")[:limit]
     )
     return [_serialize_thread(t, user) for t in threads]
 

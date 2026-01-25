@@ -49,7 +49,7 @@
             <a href="{% url 'evals:teacher_dashboard' %}"><i class="bi bi-mortarboard"></i> Teacher Portal</a>
             <a href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pen"></i> Marks Entry</a>
           {% endif %}
-          {% if request.user|has_role:"PARENT" and (can_finance_view or can_finance_manage) %}
+          {% if request.user|has_role:"PARENT" and can_finance_view or request.user|has_role:"PARENT" and can_finance_manage %}
             <a href="{% url 'finance:invoices' %}"><i class="bi bi-receipt"></i> Invoices</a>
           {% endif %}
           {% if can_reports and not request.user|has_role:"PARENT" %}
