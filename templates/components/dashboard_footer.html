@@ -3,9 +3,9 @@
 {% comment %}Role-aware footer with modern layout, brand card + grid + status strip{% endcomment %}
 <footer class="dashboard-footer" id="dashboardFooter">
   {% with can_portal=request.user|has_feature_permission:"portal.manage" can_reports=request.user|has_feature_permission:"reports.manage" can_attendance=request.user|has_feature_permission:"attendance.manage" can_attendance_view=request.user|has_feature_permission:"attendance.view" can_finance_view=request.user|has_feature_permission:"finance.view" can_finance_manage=request.user|has_feature_permission:"finance.manage" can_data_access=request.user|has_feature_permission:"data.access" can_settings=request.user|has_feature_permission:"settings.manage" can_comms=request.user|has_feature_permission:"communication.manage" %}
-  <div class="footer-inner container-fluid">
-    <div class="row footer-brand-row align-items-center justify-content-between text-center text-sm-start">
-      <div class="col-lg-6">
+  <div class="footer-inner container-fluid px-2">
+    <div class="row footer-brand-row align-items-center flex-column flex-lg-row gap-3">
+      <div class="col-lg-5">
         <div class="footer-brand-card">
           <div class="footer-logo">
             {% if SITE_LOGO_URL %}
@@ -40,7 +40,7 @@
       </div>
     </div>
 
-    <div class="row footer-grid-row gy-4 mt-3 text-center text-lg-start">
+    <div class="row footer-grid-row gy-3 mt-2 text-center text-lg-start justify-content-center">
       <div class="col-12 col-md-6 col-lg-3">
         <div class="footer-card">
           <h5 class="footer-heading"><i class="bi bi-life-preserver"></i> Support & Help</h5>
@@ -205,14 +205,15 @@
 
 <style>
 .dashboard-footer {
-  background: linear-gradient(135deg, #0b1224 0%, #161c38 70%, #0d1220 100%);
+  background: linear-gradient(135deg, #0b1224 0%, #131b33 70%, #0d1220 100%);
   color: #cfd8ef;
   border-top: 1px solid rgba(148, 163, 184, 0.4);
-  padding: 2.5rem 0 1.5rem;
-  font-size: 0.9rem;
+  padding: 1.8rem 0 0.9rem;
+  font-size: 0.88rem;
 }
 .footer-inner {
-  max-width: 1200px;
+  max-width: 1040px;
+  margin: 0 auto;
 }
 .footer-brand-row {
   gap: 1rem;
@@ -302,11 +303,11 @@
   margin-top: 1rem;
 }
 .footer-card {
-  background: rgba(15, 23, 42, 0.75);
-  padding: 1rem 1.1rem;
+  background: rgba(13, 18, 31, 0.8);
+  padding: 0.8rem 0.95rem;
   border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  min-height: 220px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  min-height: 180px;
 }
 .footer-heading {
   font-size: 1rem;
