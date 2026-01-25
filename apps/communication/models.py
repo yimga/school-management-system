@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
+from apps.academics.models import Classroom, Department
 
 
 def get_default_expiry():
@@ -132,6 +133,39 @@ class Announcement(models.Model):
             return 0
         delta = self.expiry_date - timezone.now()
         return delta.days
+
+
+class ClassAnnouncement(models.Model):
+    """
+    Scoped announcements/comments for a class or department with RBAC-aware visibility.
+    """
+    class Audience(models.TextChoices):
+        PARENTS = "parents", "Parents"
+        TEACHERS = "teachers", "Teachers"
+        STAFF = "staff", "Staff"
+        ALL = "all", "All"
+
+    title = models.CharField(max_length=200)
+    body = models.TextField()
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True, related_name="announcements")
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True, related_name="announcements")
+    audience = models.CharField(max_length=20, choices=Audience.choices, default=Audience.ALL)
+    is_active = models.BooleanField(default=True)
+    is_pinned = models.BooleanField(default=False)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_pinned", "-created_at"]
+        indexes = [
+            models.Index(fields=["-created_at"]),
+            models.Index(fields=["audience", "is_active"]),
+        ]
+
+    def __str__(self):
+        scope = self.classroom or self.department or "General"
+        return f"{self.title} ({scope})"
 
 
 class MessageThread(models.Model):

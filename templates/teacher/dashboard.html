@@ -43,6 +43,19 @@
   .classes-glance-card .progress {
     height: 6px;
   }
+
+  .announcements-card {
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem 1.2rem;
+  }
+
+  .announcement-item + .announcement-item {
+    border-top: 1px dashed #e2e8f0;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
 </style>
 {% endblock %}
 
@@ -187,6 +200,38 @@
     </div>
     {% endif %}
   </div>
+
+  {% if class_announcements %}
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="announcements-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <div class="text-uppercase small text-muted">Class / Dept Updates</div>
+            <h6 class="mb-0">Latest announcements</h6>
+          </div>
+        </div>
+        {% for ann in class_announcements %}
+        <div class="announcement-item">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <div class="fw-semibold">{{ ann.title }}</div>
+              <div class="small text-muted">
+                {% if ann.classroom %}Class: {{ ann.classroom.name }}{% elif ann.department %}Dept: {{ ann.department.name }}{% else %}General{% endif %}
+                · {{ ann.created_at|date:"M d, Y" }}
+              </div>
+            </div>
+            {% if ann.is_pinned %}
+            <span class="badge text-bg-primary">Pinned</span>
+            {% endif %}
+          </div>
+          <div class="small text-muted mt-1">{{ ann.body|truncatechars:220 }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   {% if not widgets or "completion" in widgets or "tasks" in widgets %}
   <div class="row g-3 mb-4">

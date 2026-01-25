@@ -474,6 +474,30 @@
     margin: 0;
   }
 
+  .announcements-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .announcement-item + .announcement-item {
+    border-top: 1px dashed #e2e8f0;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .announcement-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .announcement-meta {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
   .activity-item {
     padding: 0.75rem 0;
     border-left: 3px solid var(--primary);
@@ -926,6 +950,35 @@
           </div>
           {% endif %}
         </div>
+
+        {% if class_announcements %}
+        <!-- Class Updates -->
+        <div class="metrics-section mt-4">
+          <div class="section-title">
+            <i class="bi bi-megaphone"></i>
+            <span>Class Updates</span>
+          </div>
+          <div class="announcements-card">
+            {% for ann in class_announcements %}
+            <div class="announcement-item">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="announcement-title">{{ ann.title }}</div>
+                  <div class="announcement-meta">
+                    {% if ann.classroom %}Class: {{ ann.classroom.name }}{% elif ann.department %}Dept: {{ ann.department.name }}{% else %}General{% endif %}
+                    · {{ ann.created_at|date:"M d, Y" }}
+                  </div>
+                </div>
+                {% if ann.is_pinned %}
+                <span class="badge text-bg-primary">Pinned</span>
+                {% endif %}
+              </div>
+              <div class="text-muted small mt-1">{{ ann.body|truncatechars:200 }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
 
         <!-- Academic Performance Section -->
         {% if can_view_results and not widgets or can_view_results and "performance" in widgets %}

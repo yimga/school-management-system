@@ -56,6 +56,7 @@ from .services import (
     award_referral_reward,
     link_guardian_via_invite,
     guardian_student_links,
+    class_announcements_for_parent,
 )
 from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
 from apps.communication.models import Message
@@ -173,6 +174,7 @@ def parent_dashboard(request: HttpRequest):
     portal_announcements = filter_portal_items(site.portal_announcements, role)
     portal_recent_grades = filter_portal_items(site.portal_recent_grades, role)
     portal_upcoming_assessments = filter_portal_items(site.portal_upcoming_assessments, role)
+    class_announcements = class_announcements_for_parent(request.user, students)
     
     # Single aggregation query for reminders
     if can_view_finance:
@@ -223,6 +225,7 @@ def parent_dashboard(request: HttpRequest):
         "portal_upcoming_assessments": portal_upcoming_assessments,
         "hero": hero,
         "reminders_count": reminders_count,
+        "class_announcements": class_announcements,
     })
 
 

@@ -26,7 +26,11 @@ from .forms import (
     BatchFillMissingForm,
 )
 from .models import EvaluationEvidence
-from apps.portal.services import teacher_dashboard_widget_data, teacher_scope
+from apps.portal.services import (
+    teacher_dashboard_widget_data,
+    teacher_scope,
+    class_announcements_for_teacher,
+)
 from apps.siteconfig.models import resolve_dashboard_widgets
 
 
@@ -134,7 +138,7 @@ def teacher_dashboard(request: HttpRequest):
     if not year or not term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
-    teacher_profile, assignments, _, _ = teacher_scope(request.user, academic_year=year)
+    teacher_profile, assignments, students_qs, classrooms = teacher_scope(request.user, academic_year=year)
     if teacher_profile is None:
         return error
 
@@ -193,6 +197,12 @@ def teacher_dashboard(request: HttpRequest):
 
     preference = getattr(request.user, "preferences", None)
     display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
+    class_announcements = class_announcements_for_teacher(
+        request.user,
+        classrooms,
+        department_id=getattr(teacher_profile.department, "id", None),
+        limit=6,
+    )
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -204,6 +214,7 @@ def teacher_dashboard(request: HttpRequest):
         "grade_import_upload_url": reverse("evals:grade_import_upload"),
         "grade_import_template_url": reverse("evals:grade_import_template"),
         "display_widgets": display_widgets,
+        "class_announcements": class_announcements,
     })
 
 @teacher_portal_required

@@ -23,6 +23,7 @@ from apps.evals.models import TeacherAssignment
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
 from apps.siteconfig.models import Integration, SiteSettings
+from apps.communication.models import ClassAnnouncement
 
 
 # --- RBAC-aware scoping helpers ---
@@ -72,6 +73,33 @@ def teacher_scope(user: User, academic_year=None):
     classrooms = [a.subject_assignment.classroom for a in assignments if a.subject_assignment and a.subject_assignment.classroom]
     students = StudentProfile.objects.filter(classroom__in=classrooms).distinct()
     return teacher, assignments, students, classrooms
+
+
+def class_announcements_for_parent(user: User, students: Iterable[StudentProfile], limit: int = 8):
+    classroom_ids = {s.classroom_id for s in students if s.classroom_id}
+    dept_ids = {getattr(s.classroom, "department_id", None) for s in students if getattr(s, "classroom", None)}
+    dept_ids.discard(None)
+    filters = Q(is_active=True) & (
+        Q(classroom_id__in=classroom_ids)
+        | Q(department_id__in=dept_ids)
+        | Q(audience=ClassAnnouncement.Audience.ALL)
+        | Q(audience=ClassAnnouncement.Audience.PARENTS)
+    )
+    qs = ClassAnnouncement.objects.filter(filters).select_related("classroom", "department")
+    return list(qs.order_by("-is_pinned", "-created_at")[:limit])
+
+
+def class_announcements_for_teacher(user: User, classrooms, department_id=None, limit: int = 8):
+    classroom_ids = {c.id for c in classrooms if c}
+    filters = Q(is_active=True) & (
+        Q(classroom_id__in=classroom_ids)
+        | Q(department_id=department_id)
+        | Q(audience=ClassAnnouncement.Audience.ALL)
+        | Q(audience=ClassAnnouncement.Audience.TEACHERS)
+        | Q(audience=ClassAnnouncement.Audience.STAFF)
+    )
+    qs = ClassAnnouncement.objects.filter(filters).select_related("classroom", "department")
+    return list(qs.order_by("-is_pinned", "-created_at")[:limit])
 
 
 def parent_dashboard_widget_data(
