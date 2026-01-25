@@ -2,8 +2,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 # User UI/UX preferences (background logo, opacity, etc.)
 class UserPreference(models.Model):
-        high_contrast_mode = models.BooleanField(default=False, help_text="Enable high contrast mode for accessibility.")
-        reduced_motion = models.BooleanField(default=False, help_text="Reduce background/video motion for accessibility.")
+    high_contrast_mode = models.BooleanField(default=False, help_text="Enable high contrast mode for accessibility.")
+    reduced_motion = models.BooleanField(default=False, help_text="Reduce background/video motion for accessibility.")
     user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='preference')
     show_background_logo = models.BooleanField(default=True, help_text="Show the background logo image.")
     background_logo_opacity = models.FloatField(
