@@ -278,20 +278,21 @@ class SiteSettings(models.Model):
         help_text="How the logo background image is displayed: contain, cover, tile, or center."
     )
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
-        def save(self, *args, **kwargs):
-            # Optimize logo
-            if self.logo and hasattr(self.logo, 'file') and not getattr(self.logo.file, '_optimized', False):
-                optimized = optimize_image(self.logo)
-                if optimized:
-                    optimized._optimized = True
-                    self.logo.save(self.logo.name, optimized, save=False)
-            # Optimize background image
-            if self.background_image and hasattr(self.background_image, 'file') and not getattr(self.background_image.file, '_optimized', False):
-                optimized = optimize_image(self.background_image)
-                if optimized:
-                    optimized._optimized = True
-                    self.background_image.save(self.background_image.name, optimized, save=False)
-            super().save(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        # Optimize logo
+        if self.logo and hasattr(self.logo, 'file') and not getattr(self.logo.file, '_optimized', False):
+            optimized = optimize_image(self.logo)
+            if optimized:
+                optimized._optimized = True
+                self.logo.save(self.logo.name, optimized, save=False)
+        # Optimize background image
+        if self.background_image and hasattr(self.background_image, 'file') and not getattr(self.background_image.file, '_optimized', False):
+            optimized = optimize_image(self.background_image)
+            if optimized:
+                optimized._optimized = True
+                self.background_image.save(self.background_image.name, optimized, save=False)
+        super().save(*args, **kwargs)
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
     school_code = models.CharField(
         max_length=20,
