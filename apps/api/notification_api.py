@@ -101,7 +101,7 @@ class NotificationViewSet(viewsets.ViewSet):
 
         return Response({'status': 'success', 'notification_id': notification.id})
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='mark-all-read')
     def mark_all_read(self, request):
         """Mark all notifications as read"""
         from apps.finance.models import Notification

@@ -310,6 +310,7 @@ class StudentGuardianAdmin(ModelAdmin):
         "preferred_contact",
         "can_view_results",
         "can_view_finance",
+        "finance_access_state",
     )
     autocomplete_fields = ("guardian_user", "student")
     list_filter = (
@@ -320,9 +321,11 @@ class StudentGuardianAdmin(ModelAdmin):
         "receives_whatsapp",
         "can_view_results",
         "can_view_finance",
+        ("can_view_finance", admin.BooleanFieldListFilter),
     )
     list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("guardian_user__username", "guardian_user__email", "student__student_code", "student__last_name")
+    actions = ("grant_finance_access", "revoke_finance_access")
 
     def guardian_display_with_photo(self, obj):
         """Display guardian user with optional photo thumbnail"""
@@ -347,7 +350,7 @@ class StudentGuardianAdmin(ModelAdmin):
                 '</div>',
                 photo_url,
                 guardian.get_full_name() or guardian.username
-            )
+        )
         else:
             return format_html(
                 '<div class="admin-display-user">'
@@ -358,6 +361,16 @@ class StudentGuardianAdmin(ModelAdmin):
                 guardian.get_full_name() or guardian.username
             )
     guardian_display_with_photo.short_description = "Guardian"
+
+    def finance_access_state(self, obj):
+        from apps.siteconfig.models import SiteSettings
+        flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+        require = bool(flags.get("require_guardian_finance_opt_in"))
+        if require:
+            return "Granted" if obj.can_view_finance else "Blocked (opt-in required)"
+        return "Granted (opt-in off)" if obj.can_view_finance else "Allowed (opt-in off)"
+
+    finance_access_state.short_description = "Finance access"
 
     def student_display_with_photo(self, obj):
         """Display student with optional photo thumbnail"""
@@ -391,6 +404,18 @@ class StudentGuardianAdmin(ModelAdmin):
                 student.student_code
             )
     student_display_with_photo.short_description = "Student"
+
+    def grant_finance_access(self, request, queryset):
+        updated = queryset.update(can_view_finance=True)
+        self.message_user(request, f"Granted finance access to {updated} guardian link(s).")
+
+    grant_finance_access.short_description = "Grant finance access to selected guardians"
+
+    def revoke_finance_access(self, request, queryset):
+        updated = queryset.update(can_view_finance=False)
+        self.message_user(request, f"Revoked finance access for {updated} guardian link(s).")
+
+    revoke_finance_access.short_description = "Revoke finance access for selected guardians"
 
 
 class TeacherPayRecordAdmin(ModelAdmin):

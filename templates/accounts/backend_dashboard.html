@@ -6,6 +6,11 @@
 {% block extrastyle %}
 <!-- Include navigation bridge styles -->
 <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'backend';
+  });
+</script>
 <style>
   :root {
     --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -731,7 +736,7 @@
   </script>
 
   <!-- Quick Actions Section - Moved to Top -->
-  <div class="card shadow-sm mb-4">
+  <div class="card shadow-sm mb-4" data-dashboard-column="main" data-widget-id="backend-quick-actions">
     <div class="card-body">
       <h5 class="fw-bold mb-3">
         <i class="bi bi-lightning-charge text-primary me-2"></i>
@@ -739,25 +744,25 @@
       </h5>
       <div class="row g-3">
         <div class="col-lg-3 col-md-4 col-sm-6">
-          <a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100 py-3">
+          <a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100 py-3" data-role-required="ADMIN,LEADERSHIP,IT_ADMIN">
             <i class="bi bi-person-plus d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Add User</span>
           </a>
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
-          <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100 py-3">
+          <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100 py-3" data-role-required="ADMIN,LEADERSHIP,IT_ADMIN">
             <i class="bi bi-mortarboard d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Add Student</span>
           </a>
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
-          <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100 py-3">
+          <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100 py-3" data-role-required="ADMIN,LEADERSHIP,IT_ADMIN">
             <i class="bi bi-person-workspace d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Add Teacher</span>
           </a>
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
-          <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100 py-3">
+          <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100 py-3" data-role-required="ADMIN,BURSAR,LEADERSHIP,IT_ADMIN">
             <i class="bi bi-receipt d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Create Invoice</span>
           </a>
@@ -790,7 +795,7 @@
     </div>
   </div>
 
-  <div class="card filter-card shadow-sm mb-4">
+  <div class="card filter-card shadow-sm mb-4" data-dashboard-column="main" data-widget-id="backend-analytics-filters">
     <div class="card-body">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-3">
         <div>
@@ -853,7 +858,7 @@
 
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
-      <div class="card modular-card shadow-sm h-100">
+      <div class="card modular-card shadow-sm h-100" data-dashboard-column="main" data-widget-id="backend-finance-trend">
         <div class="card-body">
           <div class="card-title mb-2">
             <h6 class="mb-0">Finance & trend</h6>
@@ -897,7 +902,7 @@
       </div>
     </div>
     <div class="col-lg-6">
-      <div class="card modular-card shadow-sm h-100">
+      <div class="card modular-card shadow-sm h-100" data-dashboard-column="main" data-widget-id="backend-attendance-snapshot">
         <div class="card-body">
           <div class="card-title mb-2">
             <h6 class="mb-0">Attendance snapshot</h6>
@@ -937,7 +942,7 @@
 
   <div class="row g-3 mb-4">
     <div class="col-lg-4 col-md-6">
-      <div class="card modular-card shadow-sm h-100">
+      <div class="card modular-card shadow-sm h-100" data-dashboard-column="main" data-widget-id="backend-portal-insights">
         <div class="card-body">
           <div class="card-title">
             <h5>Portal insights</h5>
@@ -962,7 +967,7 @@
       </div>
     </div>
     <div class="col-lg-4 col-md-6">
-      <div class="card modular-card shadow-sm h-100">
+      <div class="card modular-card shadow-sm h-100" data-dashboard-column="main" data-widget-id="backend-pending-referrals">
         <div class="card-body">
           <div class="card-title">
             <h5>Pending referrals</h5>
@@ -979,7 +984,7 @@
       </div>
     </div>
     <div class="col-lg-4 col-md-12">
-      <div class="card modular-card shadow-sm h-100">
+      <div class="card modular-card shadow-sm h-100" data-dashboard-column="main" data-widget-id="backend-grade-imports">
         <div class="card-body d-flex flex-column justify-content-between">
           <div>
             <div class="card-title">
@@ -1001,7 +1006,7 @@
 
   <div class="row g-3 mb-4">
     <div class="col-md-6">
-      <div class="card shadow-sm h-100">
+      <div class="card shadow-sm h-100" data-dashboard-column="main" data-widget-id="backend-rbac-snapshot">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h5 class="mb-0">RBAC snapshot</h5>
@@ -1025,7 +1030,7 @@
       </div>
     </div>
     <div class="col-md-6">
-      <div class="card shadow-sm h-100">
+      <div class="card shadow-sm h-100" data-dashboard-column="main" data-widget-id="backend-permissions-overview">
         <div class="card-body">
           <h5 class="mb-2">Permissions overview</h5>
           <div class="d-flex flex-wrap gap-2">
@@ -1041,7 +1046,113 @@
     </div>
   </div>
 
+  <div class="card shadow-sm mb-4" data-dashboard-column="main" data-widget-id="backend-entity-orchestrator">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h5 class="mb-1">Frontend orchestration (beta)</h5>
+          <p class="text-muted small mb-0">
+            Drive CRUD from the frontend using the new `/api/entities/*` endpoints and stage bulk updates before committing.
+          </p>
+        </div>
+        <span class="badge bg-light text-dark">Headless ready</span>
+      </div>
+      <form id="bulkAssignForm" class="mt-3">
+        <div class="row g-3">
+          <div class="col-lg-4">
+            <label class="form-label small text-uppercase text-muted">Student IDs</label>
+            <textarea class="form-control" name="student_ids" rows="2" placeholder="e.g., 12, 14, 18"></textarea>
+            <div class="form-text">Paste IDs to stage the change.</div>
+          </div>
+          <div class="col-lg-4">
+            <label class="form-label small text-uppercase text-muted">Classroom</label>
+            <select id="bulkClassroomSelect" class="form-select">
+              <option value="">Loading classrooms…</option>
+            </select>
+          </div>
+          <div class="col-lg-2">
+            <label class="form-label small text-uppercase text-muted">Academic year</label>
+            <input class="form-control" name="academic_year" type="number" placeholder="Optional ID">
+          </div>
+          <div class="col-lg-2">
+            <label class="form-label small text-uppercase text-muted">Specialty</label>
+            <input class="form-control" name="specialty" type="number" placeholder="Optional ID">
+          </div>
+        </div>
+        <div class="d-flex gap-2 align-items-center mt-3">
+          <button class="btn btn-primary btn-sm" type="submit">Sync assignments</button>
+          <div id="bulkAssignStatus" class="small text-muted"></div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Keyboard Shortcuts -->
   {% include 'components/keyboard_shortcuts.html' %}
 
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'js/entity-orchestrator.js' %}"></script>
+  <script>
+    (function() {
+      const form = document.getElementById('bulkAssignForm');
+      const statusEl = document.getElementById('bulkAssignStatus');
+      if (!form || !window.EntityOrchestrator) return;
+
+      window.EntityOrchestrator.populateClassrooms('bulkClassroomSelect');
+
+      form.addEventListener('submit', async function(evt) {
+        evt.preventDefault();
+        statusEl.textContent = 'Syncing…';
+        const studentIds = window.EntityOrchestrator.parseIds(form.student_ids.value);
+        const classroomId = form.querySelector('#bulkClassroomSelect').value;
+        const academicYear = form.academic_year.value;
+        const specialty = form.specialty.value;
+
+        if (!studentIds.length || !classroomId) {
+          statusEl.textContent = 'Provide at least one student ID and a classroom.';
+          statusEl.className = 'small text-danger';
+          return;
+        }
+
+        try {
+          const payload = {
+            student_ids: studentIds,
+            classroom: classroomId || null,
+          };
+          if (academicYear) payload.academic_year = academicYear;
+          if (specialty) payload.specialty = specialty;
+          const result = await window.EntityOrchestrator.bulkAssignStudents(payload);
+          statusEl.textContent = `Updated ${result.updated || 0} students.`;
+          statusEl.className = 'small text-success';
+        } catch (err) {
+          const reason = (err && err.payload && err.payload.error) || err.message || 'Failed';
+          statusEl.textContent = reason;
+          statusEl.className = 'small text-danger';
+        }
+      });
+    })();
+  </script>
+  <script>
+    (function() {
+      if (!window.EntityOrchestrator) return;
+      window.EntityOrchestrator.fetchSessionClaims().then((claims) => {
+        const role = (claims.role || '').toUpperCase();
+        const extraRoles = (claims.roles || []).map((r) => (r || '').toUpperCase());
+        document.body.dataset.userRole = role;
+        document.body.dataset.userRoles = extraRoles.join(',');
+        const allowedRoles = new Set([role, ...extraRoles]);
+        document.querySelectorAll('[data-role-required]').forEach((el) => {
+          const requirement = (el.dataset.roleRequired || '').split(',').map((r) => r.trim().toUpperCase());
+          const allowed = requirement.some((r) => allowedRoles.has(r));
+          if (!allowed) {
+            el.classList.add('d-none');
+          }
+        });
+      }).catch(() => {});
+    })();
+  </script>
+  <script src="{% static 'js/dashboard-layout.js' %}"></script>
 {% endblock %}

@@ -2,11 +2,21 @@
 Phase 7 Task 6: Dashboard UX Overhaul with Widget System
 """
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 import json
 
 User = get_user_model()
+
+
+PAGE_CHOICES = [
+    ("parent", "Parent Portal"),
+    ("teacher", "Teacher Portal"),
+    ("backend", "Backend Dashboard"),
+    ("admin", "Admin Portal"),
+    ("student", "Student Portal"),
+]
 
 
 class DashboardUserPreference(models.Model):
@@ -114,19 +124,25 @@ class DashboardWidget(models.Model):
     """Available dashboard widgets."""
     
     TYPE_CHOICES = [
-        ('stats', 'Statistics Card'),
-        ('chart', 'Chart'),
-        ('list', 'Recent Items'),
-        ('action', 'Quick Action'),
-        ('alert', 'Alert/Notification'),
-        ('feed', 'Activity Feed'),
+        ("stats", "Statistics Card"),
+        ("chart", "Chart"),
+        ("list", "Recent Items"),
+        ("action", "Quick Action"),
+        ("alert", "Alert/Notification"),
+        ("feed", "Activity Feed"),
     ]
-    
+
     id = models.CharField(max_length=50, primary_key=True)
     name = models.CharField(max_length=100)
     description = models.TextField()
     widget_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
-    
+    page = models.CharField(
+        max_length=20,
+        choices=PAGE_CHOICES,
+        default="backend",
+        help_text="Where this widget can be placed (parent/teacher/backend/etc.)",
+    )
+
     # Access control
     required_role = models.CharField(
         max_length=20,
@@ -139,16 +155,23 @@ class DashboardWidget(models.Model):
         ],
         default='ANY'
     )
-    
+    allowed_roles = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional: additional roles permitted to view this widget",
+    )
+
     # Display settings
     template_path = models.CharField(max_length=255, help_text="Path to widget template")
     default_width = models.IntegerField(default=1, choices=[(1, 'Full'), (2, 'Half'), (3, 'Third')])
     refresh_interval = models.IntegerField(default=300, help_text="Seconds between refreshes")
-    
+    default_column = models.PositiveSmallIntegerField(default=1, help_text="Column hint for drag/drop layout")
+    default_order = models.PositiveSmallIntegerField(default=1, help_text="Order hint within a column")
+
     # Metadata
     order = models.IntegerField(default=0, help_text="Display order")
     is_active = models.BooleanField(default=True)
-    
+
     class Meta:
         verbose_name = "Dashboard Widget"
         verbose_name_plural = "Dashboard Widgets"
@@ -160,7 +183,7 @@ class DashboardWidget(models.Model):
 
 class WidgetData(models.Model):
     """Cache widget data for performance."""
-    
+
     widget = models.ForeignKey(DashboardWidget, on_delete=models.CASCADE, related_name='cached_data')
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     
@@ -174,3 +197,43 @@ class WidgetData(models.Model):
     
     def __str__(self):
         return f"{self.widget.name} - {self.user.username if self.user else 'Global'}"
+
+
+class DashboardLayout(models.Model):
+    """
+    Persisted layouts for drag-and-drop dashboards.
+    Can be scoped to a specific user or a default for a role/page combo.
+    """
+
+    page = models.CharField(max_length=20, choices=PAGE_CHOICES)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="dashboard_layouts",
+    )
+    role = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Optional role-scoped default when user layout is not present",
+    )
+    layout = models.JSONField(default=dict, blank=True, help_text="Serialized positions/sizes of widgets")
+    is_default = models.BooleanField(default=False, help_text="Use as default layout for the role/page")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "page"], name="uniq_user_page_layout"),
+            models.UniqueConstraint(
+                fields=["role", "page"],
+                condition=Q(is_default=True),
+                name="uniq_default_role_page_layout",
+            ),
+        ]
+        ordering = ["page", "user_id", "role"]
+
+    def __str__(self):
+        owner = self.user.username if self.user else (self.role or "global")
+        return f"{self.page} layout for {owner}"

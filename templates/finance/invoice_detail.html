@@ -3,12 +3,57 @@
 {% block title %}Invoice Detail{% endblock %}
 
 {% block content %}
+{% if access_denied %}
+<div class="card border-warning mb-3">
+  <div class="card-body">
+    <div class="d-flex align-items-start justify-content-between gap-3">
+      <div>
+        <h5 class="mb-1">Finance access required</h5>
+        <p class="mb-1">This invoice is linked to your student, but finance access must be enabled by an admin before you can view payment details.</p>
+        {% if finance_access_summary %}
+          <div class="small text-muted">{{ finance_access_summary }}</div>
+        {% endif %}
+        {% if invoice_stub %}
+          <div class="small text-muted mt-1">Invoice: {{ invoice_stub.reference }} {% if invoice_stub.student %}for {{ invoice_stub.student }}{% endif %}</div>
+        {% endif %}
+      </div>
+      {% if can_request_finance_access %}
+      <form method="post" action="{{ finance_request_url }}">
+        {% csrf_token %}
+        <button class="btn btn-sm btn-primary">Request finance access</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% else %}
+{% if finance_access_required and finance_access_summary %}
+<div class="alert alert-info d-flex align-items-center justify-content-between gap-2 mb-3" role="alert">
+  <div class="d-flex align-items-center gap-2">
+    <i class="bi bi-shield-check"></i>
+    <div>
+      {{ finance_access_summary }}
+      <div class="small text-muted">Access controls are enforced by the admin.</div>
+    </div>
+  </div>
+  {% if can_request_finance_access %}
+  <form method="post" action="{{ finance_request_url }}">
+    {% csrf_token %}
+    <button class="btn btn-sm btn-outline-primary">Request broader access</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
     <div>
       <h2 class="mb-0">Invoice {{ invoice.reference|default:invoice.id }}</h2>
       <div class="text-muted">{{ invoice.get_invoice_type_display }} → {{ invoice.student|default:invoice.counterparty }}</div>
+      {% if finance_access_summary %}
+      <div class="small text-muted">Finance-enabled guardians: {{ finance_guardian_count|default:0 }}/{{ guardian_link_count|default:0 }}</div>
+      {% endif %}
     </div>
     <div class="d-flex gap-2">
       <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoices' %}">All invoices</a>
@@ -122,4 +167,5 @@
     </div>
   </div>
 </form>
+{% endif %}
 {% endblock %}

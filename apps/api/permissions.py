@@ -98,3 +98,23 @@ class RoleBasedPermission(permissions.BasePermission):
         
         allowed_actions = self.ROLE_PERMISSIONS.get(user_role, [])
         return action in allowed_actions
+
+
+class IsAdminLike(permissions.BasePermission):
+    """Staff/superuser or admin-like role gate for sensitive endpoints."""
+
+    ADMIN_ROLES = {
+        "ADMIN",
+        "LEADERSHIP",
+        "PRINCIPAL",
+        "VICE_PRINCIPAL",
+        "DEAN",
+        "IT_ADMIN",
+        "CENSOR",
+        "BURSAR",
+    }
+
+    def has_permission(self, request, view):
+        user = request.user
+        role = (getattr(user, "role", "") or "").upper()
+        return bool(user and (user.is_staff or user.is_superuser or role in self.ADMIN_ROLES))

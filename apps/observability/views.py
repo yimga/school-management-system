@@ -11,7 +11,7 @@ from django.views.decorators.http import require_GET, require_POST, require_http
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
-from django.db.models import Count, Q, Value
+from django.db.models import Count, Q, Sum, Avg, Value
 from django.db.models.functions import Coalesce
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from django.core.cache import cache
@@ -210,20 +210,21 @@ def api_health(request):
 
 
 @require_POST
-@observability_auth_required
+@login_required
 def api_notifications_mark_all_read(request):
-    """API endpoint to mark all notifications as read.
-    
-    This is a placeholder for notification system integration.
-    Can be extended to work with a real notification model.
-    """
+    """Mark all notifications for the current user as read."""
     try:
-        # Placeholder: In a real system, this would update notification records
-        # For now, just return success
+        from apps.finance.models import Notification
+
+        user = request.user
+        qs = Notification.objects.filter(
+            Q(recipient=user) | Q(created_by=user)
+        ).filter(is_read=False)
+        updated = qs.update(is_read=True)
         return JsonResponse({
             "status": "success",
             "message": "All notifications marked as read",
-            "count": 0
+            "count": updated
         })
     except Exception as exc:
         return JsonResponse({
@@ -233,26 +234,43 @@ def api_notifications_mark_all_read(request):
 
 
 @require_GET
-@observability_auth_required
+@login_required
 def api_notifications(request):
     """API endpoint to fetch recent notifications.
     
     Returns a list of recent system notifications and alerts.
     """
     try:
-        notifications = [
-            {
-                "id": 1,
-                "type": "info",
-                "message": "System running normally",
-                "timestamp": __import__('datetime').datetime.now().isoformat()
-            }
-        ]
-        
+        from apps.finance.models import Notification
+
+        user = request.user
+        notifications_qs = Notification.objects.filter(
+            Q(recipient=user) | Q(created_by=user)
+        ).order_by('-created_at')[:50]
+        mapped = []
+        for notif in notifications_qs:
+            notif_type = "info"
+            if notif.severity == Notification.Severity.ALERT:
+                notif_type = "alert"
+            elif notif.severity == Notification.Severity.WARNING:
+                notif_type = "warning"
+
+            mapped.append({
+                "id": notif.id,
+                "title": notif.title,
+                "message": notif.message,
+                "type": notif_type,
+                "category": notif.severity,
+                "is_read": notif.is_read,
+                "created_at": notif.created_at.isoformat(),
+                "timestamp": notif.created_at.isoformat(),
+                "link": notif.link,
+            })
+
         return JsonResponse({
             "status": "success",
-            "notifications": notifications,
-            "count": len(notifications)
+            "notifications": mapped,
+            "count": len(mapped)
         })
     except Exception as exc:
         return JsonResponse({
@@ -270,60 +288,40 @@ def api_activities(request):
     Supports filtering by type and pagination.
     """
     try:
+        from django.contrib.admin.models import LogEntry
+
         page = int(request.GET.get('page', 1))
-        filter_type = request.GET.get('filter', '')
-        
-        # Default activities - can be extended to pull from database
-        activities = [
-            {
-                "id": 1,
-                "type": "admin",
-                "title": "Settings Updated",
-                "description": "System settings configuration was modified",
-                "timestamp": (__import__('datetime').datetime.now() - __import__('datetime').timedelta(hours=2)).isoformat(),
-                "user": "Administrator"
-            },
-            {
-                "id": 2,
-                "type": "student",
-                "title": "Student Enrolled",
-                "description": "New student added to Mathematics class",
-                "timestamp": (__import__('datetime').datetime.now() - __import__('datetime').timedelta(hours=4)).isoformat(),
-                "user": "Admin User"
-            },
-            {
-                "id": 3,
-                "type": "system",
-                "title": "Database Backup",
-                "description": "Automatic system database backup completed",
-                "timestamp": (__import__('datetime').datetime.now() - __import__('datetime').timedelta(hours=6)).isoformat(),
-                "user": None
-            },
-            {
-                "id": 4,
-                "type": "enrollment",
-                "title": "Course Registration",
-                "description": "Student registered for new course",
-                "timestamp": (__import__('datetime').datetime.now() - __import__('datetime').timedelta(hours=8)).isoformat(),
-                "user": "Student Self-Service"
-            }
-        ]
-        
-        # Apply filter if specified
-        if filter_type:
-            activities = [a for a in activities if a['type'] == filter_type]
-        
-        # Pagination
         per_page = 10
-        start = (page - 1) * per_page
-        end = start + per_page
-        paginated = activities[start:end]
-        
+
+        logs = LogEntry.objects.select_related("user", "content_type").order_by("-action_time")
+        total = logs.count()
+        logs = logs[(page - 1) * per_page: page * per_page]
+
+        activities = []
+        for entry in logs:
+            if entry.is_addition():
+                action_type = "add"
+            elif entry.is_change():
+                action_type = "change"
+            elif entry.is_deletion():
+                action_type = "delete"
+            else:
+                action_type = "activity"
+
+            activities.append({
+                "id": entry.id,
+                "type": action_type,
+                "title": entry.object_repr,
+                "description": entry.get_change_message() or action_type.title(),
+                "timestamp": entry.action_time.isoformat(),
+                "user": getattr(entry.user, "username", None),
+            })
+
         return JsonResponse({
             "status": "success",
-            "activities": paginated,
-            "count": len(paginated),
-            "total": len(activities),
+            "activities": activities,
+            "count": len(activities),
+            "total": total,
             "page": page
         })
     except Exception as exc:
@@ -341,21 +339,90 @@ def api_dashboard_charts(request):
     Returns data for enrollment trends, fee collection, performance analytics, etc.
     """
     try:
+        from apps.people.models import StudentProfile, TeacherAttendance
+        from apps.academics.models import Classroom
+        from apps.finance.models import Invoice, Payment
+        from apps.evals.models import Evaluation
+
+        # Enrollment by classroom
+        classrooms = Classroom.objects.annotate(
+            total=Count("students", filter=Q(students__is_active=True))
+        ).order_by("-total")[:6]
+        enrollment_labels = [c.name for c in classrooms]
+        enrollment_data = [c.total for c in classrooms]
+        enrollment = {
+            "labels": enrollment_labels,
+            "datasets": [{
+                "label": "Active students",
+                "data": enrollment_data,
+                "borderColor": "#ff6a88",
+                "backgroundColor": "rgba(255, 106, 136, 0.1)",
+                "tension": 0.4,
+                "fill": True,
+                "pointRadius": 4,
+                "pointHoverRadius": 6,
+            }],
+        }
+
+        # Fee collection
+        invoiced = Invoice.objects.exclude(status=Invoice.Status.VOID).aggregate(total=Sum("total_amount")).get("total") or 0
+        paid = Payment.objects.filter(status="completed").aggregate(total=Sum("amount")).get("total") or 0
+        overdue_amount = Invoice.objects.filter(status=Invoice.Status.OVERDUE).aggregate(total=Sum("balance_amount")).get("total") or 0
+        fee_collection = {
+            "labels": ["Paid", "Pending", "Overdue"],
+            "datasets": [{
+                "data": [
+                    float(paid),
+                    float(max(invoiced - paid, 0)),
+                    float(overdue_amount or 0),
+                ],
+                "backgroundColor": ['#2dd4bf', '#9b6bff', '#ff6a88'],
+            }],
+        }
+
+        # Performance by subject (exam score average)
+        subject_scores = (
+            Evaluation.objects.exclude(exam_score__isnull=True)
+            .values("subject_assignment__subject__name")
+            .annotate(avg=Avg("exam_score"))
+            .order_by("-avg")[:6]
+        )
+        perf_labels = [row["subject_assignment__subject__name"] or "Subject" for row in subject_scores]
+        perf_data = [round(float(row["avg"]), 1) for row in subject_scores]
+        performance = {
+            "labels": perf_labels,
+            "datasets": [{
+                "label": "Average Grade",
+                "data": perf_data,
+                "borderColor": "#9b6bff",
+                "backgroundColor": "rgba(155, 107, 255, 0.1)",
+                "fill": True,
+            }],
+        }
+
+        # Attendance snapshot for the past 7 days
+        today = timezone.localdate()
+        window = TeacherAttendance.objects.filter(date__range=(today - __import__('datetime').timedelta(days=6), today))
+        attendance_counts = {
+            "Present": window.filter(status=TeacherAttendance.Status.PRESENT).count(),
+            "Absent": window.filter(status=TeacherAttendance.Status.ABSENT).count(),
+            "Late": window.filter(status=TeacherAttendance.Status.LATE).count(),
+            "On leave": window.filter(status=TeacherAttendance.Status.ON_LEAVE).count(),
+        }
+        attendance = {
+            "labels": list(attendance_counts.keys()),
+            "datasets": [{
+                "data": list(attendance_counts.values()),
+                "backgroundColor": ['#2dd4bf', '#ff6a88', '#9b6bff', '#f59e0b'],
+            }],
+        }
+
         return JsonResponse({
             "status": "success",
-            "enrollment": {
-                "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-                "data": [12, 19, 8, 15, 22, 18]
-            },
-            "feeCollection": {
-                "paid": 75,
-                "pending": 15,
-                "overdue": 10
-            },
-            "performance": {
-                "labels": ["Math", "English", "Science", "History", "Arts"],
-                "data": [78, 82, 75, 88, 90]
-            }
+            "enrollment": enrollment,
+            "feeCollection": fee_collection,
+            "performance": performance,
+            "attendance": attendance,
         })
     except Exception as exc:
         return JsonResponse({

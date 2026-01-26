@@ -11,6 +11,37 @@
   <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:dashboard' %}">Back to Finance</a>
 </div>
 
+{% if finance_access_required and not finance_access_granted %}
+<div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
+  <div class="d-flex align-items-center gap-2">
+    <i class="bi bi-shield-lock"></i>
+    <div>
+      Finance access is not yet enabled for your account. Once an admin grants access, invoices and payments will appear here.
+      {% if finance_access_summary %}
+      <div class="small text-muted">{{ finance_access_summary }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% if can_request_finance_access %}
+  <form method="post" action="{{ finance_request_url }}">
+    {% csrf_token %}
+    <button class="btn btn-sm btn-primary">Request finance access</button>
+  </form>
+  {% endif %}
+</div>
+{% elif finance_access_summary %}
+<div class="alert alert-info d-flex align-items-center gap-2 mb-3" role="alert">
+  <i class="bi bi-shield-check"></i>
+  <div>{{ finance_access_summary }}</div>
+  {% if can_request_finance_access %}
+  <form method="post" action="{{ finance_request_url }}" class="ms-auto">
+    {% csrf_token %}
+    <button class="btn btn-sm btn-outline-primary">Request broader access</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
 <form method="get" class="card mb-3">
   <div class="card-body">
     <div class="row g-2 align-items-end">
@@ -43,7 +74,10 @@
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-2">
       <div class="small text-muted">Showing {{ invoices|length }} invoices</div>
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center">
+        {% if user.is_staff or user.is_superuser %}
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:finance_access_bulk' %}">Bulk finance access</a>
+        {% endif %}
         <a class="btn btn-outline-secondary btn-sm" href="?export=csv{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Export CSV</a>
         <a class="btn btn-outline-secondary btn-sm" href="?export=pdf{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Export PDF</a>
       </div>
@@ -57,6 +91,9 @@
             <th>Status</th>
             <th>Due</th>
             <th>Student</th>
+            {% if user.is_staff or user.is_superuser %}
+            <th>Parent access</th>
+            {% endif %}
             <th class="text-end">Total</th>
             <th class="text-end">Balance</th>
             <th class="text-end">Attachment</th>
@@ -75,6 +112,23 @@
               <td>{{ inv.get_status_display }}</td>
               <td>{{ inv.due_date|default:"-" }}</td>
               <td>{{ inv.student|default:"-" }}</td>
+              {% if user.is_staff or user.is_superuser %}
+              {% with guardians=inv.student.studentguardian_set.all %}
+              <td class="small">
+                {% if guardians|length %}
+                  {% with guardian=guardians|dictsort:"-can_view_finance"|first %}
+                    {% if guardian and guardian.can_view_finance %}
+                      <span class="badge bg-success-subtle text-success">Enabled</span>
+                    {% else %}
+                      <span class="badge bg-light text-muted">Not enabled</span>
+                    {% endif %}
+                  {% endwith %}
+                {% else %}
+                  <span class="text-muted">No guardians</span>
+                {% endif %}
+              </td>
+              {% endwith %}
+              {% endif %}
               <td class="text-end">{{ inv.total_amount }}</td>
               <td class="text-end">{{ inv.balance_amount }}</td>
               <td class="text-end">
@@ -93,11 +147,26 @@
                   {% if inv.balance_amount > 0 %}
                     <a class="btn btn-sm btn-primary" href="{% url 'finance:invoice_detail' inv.id %}#pay">Pay now</a>
                   {% endif %}
+                  {% if user.is_staff or user.is_superuser and inv.student %}
+                  <form method="post" action="{% url 'finance:finance_request_access' %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="student_id" value="{{ inv.student.id }}">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="return confirm('Grant finance access to guardians for {{ inv.student }}?');">Grant guardian access</button>
+                  </form>
+                  {% endif %}
                 </div>
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="9" class="text-muted">No invoices found.</td></tr>
+            <tr>
+              <td colspan="9" class="text-muted">
+                {% if finance_access_required and not finance_access_granted %}
+                  Finance access is not enabled yet. Request access to see invoices for your linked students.
+                {% else %}
+                  No invoices found.
+                {% endif %}
+              </td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>

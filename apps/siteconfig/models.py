@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+import logging
 
 from django.conf import settings
 from django.db import models, connection, OperationalError
@@ -15,6 +16,8 @@ from apps.academics.models import Classroom, Subject
 from apps.finance.models import ComplianceProfile, Invoice, Payment
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.reports.models import ReportCard
+
+logger = logging.getLogger(__name__)
 
 PORTAL_FEATURE_OPTIONS: list[tuple[str, str]] = [
     ("messaging", "Messaging"),
@@ -132,6 +135,21 @@ def default_footer_links():
         {"label": "Support Center", "url": "", "enabled": True, "roles": []},
         {"label": "Compliance Reports", "url": "", "enabled": True, "roles": []},
     ]
+
+
+def default_backend_feature_flags():
+    return {
+        "enable_entity_console": True,
+        "enable_entity_import": True,
+        "enable_api_schema_ui": True,
+        "max_bulk_import_rows": 500,
+        "allow_bulk_commit": True,
+        "allowed_roles_entity_console": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
+        "allowed_roles_entity_import": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
+        "allowed_roles_api_schema": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
+        "require_guardian_finance_opt_in": True,
+        "allow_finance_access_requests": True,
+    }
 
 
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
@@ -257,6 +275,22 @@ def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | No
 
 
 class SiteSettings(models.Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._orig_backend_feature_flags = (self.backend_feature_flags or {}).copy()
+
+    def save(self, *args, **kwargs):
+        before = getattr(self, "_orig_backend_feature_flags", {}) or {}
+        after = self.backend_feature_flags or {}
+        changed_opt_in = before.get("require_guardian_finance_opt_in") != after.get("require_guardian_finance_opt_in")
+        super().save(*args, **kwargs)
+        if changed_opt_in:
+            logger.info(
+                "require_guardian_finance_opt_in changed",
+                extra={"from": before.get("require_guardian_finance_opt_in"), "to": after.get("require_guardian_finance_opt_in")},
+            )
+        self._orig_backend_feature_flags = after.copy()
+
     video_background = models.FileField(
         upload_to="branding/video/",
         blank=True,
@@ -528,6 +562,11 @@ class SiteSettings(models.Model):
     report_downloads_enabled = models.BooleanField(default=True)
     portal_features = models.JSONField(default=default_portal_features, blank=True)
     social_links = models.JSONField(default=default_social_links, blank=True)
+    backend_feature_flags = models.JSONField(
+        default=default_backend_feature_flags,
+        blank=True,
+        help_text="Backend/front-office admin feature flags (entity console/import, schema UI, bulk limits).",
+    )
     default_term_report_style = models.ForeignKey(
         "siteconfig.ReportCardStyle",
         on_delete=models.SET_NULL,
@@ -1299,4 +1338,3 @@ def _clear_site_settings_cache(sender, **kwargs) -> None:
 
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)
 post_delete.connect(_clear_site_settings_cache, sender=SiteSettings)
-

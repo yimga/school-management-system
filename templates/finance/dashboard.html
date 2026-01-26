@@ -1,7 +1,13 @@
 {% extends "portal_base.html" %}
+{% load static %}
 {% block title %}Finance Dashboard{% endblock %}
 
 {% block extrastyle %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'finance';
+  });
+</script>
 {% endblock %}
 
 {% block content %}
@@ -18,12 +24,18 @@
     </div>
   </div>
 
-  {% include "widgets/dashboard_hero.html" with hero=hero %}
+  <div class="row g-3 mb-3" data-dashboard-column="hero">
+    <div class="col-12" data-widget-id="finance-hero">
+      {% include "widgets/dashboard_hero.html" with hero=hero %}
+    </div>
+  </div>
 
-  {% include "widgets/finance_dashboard_widgets.html" %}
+  <div class="row g-3 mb-3" data-dashboard-column="main">
+    {% include "widgets/finance_dashboard_widgets.html" %}
+  </div>
 
-  <div class="row g-3 mt-2">
-    <div class="col-lg-6">
+  <div class="row g-3 mt-2" data-dashboard-column="secondary">
+    <div class="col-lg-6" data-widget-id="finance-recent-invoices">
       <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
           <h5 class="mb-3">Recent Invoices</h5>
@@ -52,7 +64,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-6" data-widget-id="finance-recent-payments">
       <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
           <h5 class="mb-3">Recent Payments</h5>
@@ -82,4 +94,8 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/dashboard-layout.js' %}"></script>
 {% endblock %}

@@ -74,6 +74,32 @@ INVOICE_GLOBAL_ROLES = {
     "FINANCE_STAFF",
 }
 
+
+def _guardian_finance_qs(user):
+    """
+    Return guardian links filtered by site flag that can require explicit finance opt-in.
+    When the flag is disabled (default), any guardian relationship is considered sufficient
+    for finance visibility; when enabled, guardians must have can_view_finance=True.
+    """
+    from apps.people.models import StudentGuardian
+    try:
+        from apps.siteconfig.models import SiteSettings
+
+        flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+        require_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
+    except Exception:
+        require_opt_in = False
+
+    filters = {"guardian_user": user}
+    if require_opt_in:
+        filters["can_view_finance"] = True
+    return StudentGuardian.objects.filter(**filters)
+
+
+def guardian_finance_student_ids(user):
+    """Helper to return student IDs a guardian can see for finance purposes."""
+    return _guardian_finance_qs(user).values_list("student_id", flat=True)
+
 def _role_rank(role: str | None) -> int:
     if not role:
         return 0
@@ -268,11 +294,7 @@ def can_view_invoice(user, invoice_id: int) -> bool:
     
     # Parent can view their child's invoice
     if has_role(user, "PARENT"):
-        return StudentGuardian.objects.filter(
-            guardian_user=user,
-            student=invoice.student,
-            can_view_finance=True,
-        ).exists()
+        return _guardian_finance_qs(user).filter(student=invoice.student).exists()
     
     # Student can view their own invoice
     if has_role(user, "STUDENT"):

@@ -44,11 +44,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 student=student_profile
             ).select_related('student__user')
         
-        from apps.people.models import StudentGuardian
-        guardian_children = StudentGuardian.objects.filter(
-            guardian_user=user,
-            can_view_finance=True,
-        ).values_list('student_id', flat=True)
+        from apps.accounts.permissions import guardian_finance_student_ids
+        guardian_children = guardian_finance_student_ids(user)
         
         return Invoice.objects.filter(
             student_id__in=guardian_children
@@ -184,11 +181,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 invoice__student=student_profile
             ).select_related('invoice__student__user')
         
-        from apps.people.models import StudentGuardian
-        guardian_children = StudentGuardian.objects.filter(
-            guardian_user=user,
-            can_view_finance=True,
-        ).values_list('student_id', flat=True)
+        from apps.accounts.permissions import guardian_finance_student_ids
+        guardian_children = guardian_finance_student_ids(user)
         
         return Payment.objects.filter(
             invoice__student_id__in=guardian_children

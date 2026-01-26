@@ -32,7 +32,7 @@ from apps.portal.services import (
     class_announcements_for_teacher,
     class_threads_for_teacher,
 )
-from apps.siteconfig.models import resolve_dashboard_widgets
+from apps.siteconfig.models import resolve_dashboard_widgets, SiteSettings, default_backend_feature_flags
 
 
 def _required_fields(academic_year, classroom, term):
@@ -220,6 +220,16 @@ def teacher_dashboard(request: HttpRequest):
                 "role": getattr(user, "role", ""),
             })
 
+    flags = {**default_backend_feature_flags(), **(getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {})}
+    finance_banner = None
+    if flags.get("require_guardian_finance_opt_in"):
+        finance_banner = (
+            "Parents need finance opt-in to view invoices. "
+            f"Requests are {'enabled' if flags.get('allow_finance_access_requests', True) else 'disabled'}."
+        )
+    else:
+        finance_banner = "Parent finance access is open (no opt-in required)."
+
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -235,6 +245,7 @@ def teacher_dashboard(request: HttpRequest):
         "class_threads": class_threads,
         "team_peers": peers,
         "team_department": getattr(teacher_profile, "department", None),
+        "finance_access_message": finance_banner,
     })
 
 @teacher_portal_required

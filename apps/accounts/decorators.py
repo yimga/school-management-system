@@ -112,7 +112,7 @@ def parent_can_access_invoice(request, invoice_id: int) -> bool:
     if not user.is_authenticated:
         return False
     
-    # Staff can access all invoices
+    # Staff/admin can access all invoices
     if user.is_staff or user.is_superuser or user.role == User.Role.ADMIN:
         return True
     
@@ -123,11 +123,8 @@ def parent_can_access_invoice(request, invoice_id: int) -> bool:
             invoice = Invoice.objects.select_related('student').get(id=invoice_id)
             if not invoice.student:
                 return False  # Non-student invoices not accessible to parents
-            return StudentGuardian.objects.filter(
-                guardian_user=user,
-                student=invoice.student,
-                can_view_finance=True,
-            ).exists()
+            from apps.accounts.permissions import _guardian_finance_qs
+            return _guardian_finance_qs(user).filter(student=invoice.student).exists()
         except Invoice.DoesNotExist:
             return False
     

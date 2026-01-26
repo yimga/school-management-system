@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% load static %}
+{% load static %}
 
 {% block title %}Knowledge Base - Help Center{% endblock %}
 
 {% block content %}
-<div class="container-fluid bg-gradient-primary text-white py-5 mb-5">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'portal-kb';
+  });
+</script>
+
+<div class="container-fluid bg-gradient-primary text-white py-5 mb-5" data-dashboard-column="hero" data-widget-id="kb-hero">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
@@ -26,7 +33,7 @@
 
 <div class="container mb-5">
     <!-- Search Bar -->
-    <div class="row mb-4">
+    <div class="row mb-4" data-dashboard-column="main" data-widget-id="kb-search">
         <div class="col-lg-8 mx-auto">
             <form method="get" action="{% url 'kb:kb_search' %}" class="input-group input-group-lg">
                 <input type="text" 
@@ -44,7 +51,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" data-dashboard-column="main" data-widget-id="kb-featured">
         <!-- Featured Articles Carousel -->
         <div class="col-12 mb-5">
             <h2 class="h4 mb-4">
@@ -99,7 +106,7 @@
     </div>
 
     <!-- Categories Grid -->
-    <div class="row">
+    <div class="row" data-dashboard-column="secondary" data-widget-id="kb-categories">
         <div class="col-12 mb-4">
             <h2 class="h4 mb-4">
                 <i class="fas fa-folder-open"></i> Browse by Category
@@ -139,7 +146,7 @@
     </div>
 
     <!-- Recent Articles -->
-    <div class="row mt-5">
+    <div class="row mt-5" data-dashboard-column="secondary" data-widget-id="kb-recent">
         <div class="col-12 mb-4">
             <h2 class="h4 mb-4">
                 <i class="fas fa-clock"></i> Recently Updated Articles
@@ -292,7 +299,11 @@
 }
 
 .opacity-50 {
-    opacity: 0.5;
+opacity: 0.5;
 }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard-layout.js' %}"></script>
 {% endblock %}

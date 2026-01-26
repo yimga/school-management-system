@@ -1,3 +1,4 @@
+from datetime import date
 """
 Phase 0 Security & Validation Tests
 
@@ -14,6 +15,7 @@ import hashlib
 import hmac
 
 from django.test import TestCase, Client
+from django.test.utils import override_settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -42,6 +44,8 @@ from apps.academics.models import (
     Classroom,
     SubjectAssignment,
     Specialty,
+    Department,
+    Subject,
 )
 
 User = get_user_model()
@@ -226,17 +230,32 @@ class EvaluationValidationTest(TestCase):
         self.profile = ComplianceProfile.objects.create(
             name="Cameroon", country_code="CM"
         )
-        self.year = AcademicYear.objects.create(name="2025/2026")
-        self.term = Term.objects.create(academic_year=self.year, name="Term 1")
-        self.specialty = Specialty.objects.create(name="General")
+        self.year = AcademicYear.objects.create(
+            name="2025/2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30),
+        )
+        self.term = Term.objects.create(
+            academic_year=self.year,
+            name="Term 1",
+            start_date=date(2025, 9, 1),
+            end_date=date(2025, 12, 1),
+            is_active=True,
+        )
+        self.department = Department.objects.create(name="General", code="GEN")
+        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
         self.classroom = Classroom.objects.create(
             name="Form 1A",
+            code="F1A",
             academic_year=self.year,
-            specialty=self.specialty,
+            department=self.department,
         )
+        self.subject = Subject.objects.create(name="Mathematics", category=Subject.Category.GENERAL)
         
         self.student = StudentProfile.objects.create(
-            name="Test Student",
+            first_name="Test",
+            last_name="Student",
+            student_code="STD100",
             academic_year=self.year,
             classroom=self.classroom,
             specialty=self.specialty,
@@ -253,7 +272,7 @@ class EvaluationValidationTest(TestCase):
             term=self.term,
             classroom=self.classroom,
             specialty=self.specialty,
-            teacher=self.teacher,
+            subject=self.subject,
         )
 
     def test_evaluation_score_valid(self):
@@ -315,7 +334,11 @@ class InvoiceValidationTest(TestCase):
         self.profile = ComplianceProfile.objects.create(
             name="Cameroon", country_code="CM"
         )
-        self.year = AcademicYear.objects.create(name="2025/2026")
+        self.year = AcademicYear.objects.create(
+            name="2025/2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30),
+        )
 
     def test_invoice_positive_amount(self):
         """Test invoice with positive amount."""
@@ -347,6 +370,7 @@ class InvoiceValidationTest(TestCase):
             invoice.full_clean()
 
 
+@override_settings(SEND_FINANCE_SIGNALS=False)
 class PaymentValidationTest(TestCase):
     """Test Payment validation."""
 
@@ -354,12 +378,20 @@ class PaymentValidationTest(TestCase):
         self.profile = ComplianceProfile.objects.create(
             name="Cameroon", country_code="CM"
         )
-        self.year = AcademicYear.objects.create(name="2025/2026")
+        self.year = AcademicYear.objects.create(
+            name="2025/2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30),
+        )
         self.invoice = Invoice.objects.create(
             profile=self.profile,
             academic_year=self.year,
             total_amount=Decimal("1000.00"),
         )
+        # Avoid recalculation signals interfering with balance tests
+        self._apply_payment_patch = patch("apps.finance.signals.apply_payment", lambda payment: None)
+        self._apply_payment_patch.start()
+        self.addCleanup(self._apply_payment_patch.stop)
 
     def test_payment_valid_amount(self):
         """Test payment with valid positive amount."""
@@ -451,7 +483,12 @@ class InvoicePermissionTest(TestCase):
         self.profile = ComplianceProfile.objects.create(
             name="Cameroon", country_code="CM"
         )
-        self.year = AcademicYear.objects.create(name="2025/2026")
+        self.year = AcademicYear.objects.create(
+            name="2025/2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30),
+        )
+        self.department = Department.objects.create(name="General", code="GEN")
         
         # Users
         self.admin = User.objects.create_user(
@@ -468,18 +505,20 @@ class InvoicePermissionTest(TestCase):
         )
         
         # Student with guardian link
-        self.specialty = Specialty.objects.create(name="General")
+        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
         self.classroom = Classroom.objects.create(
             name="Form 1",
             academic_year=self.year,
-            specialty=self.specialty,
+            code="F1",
+            department=self.department,
         )
         self.student = StudentProfile.objects.create(
-            name="Test Student",
+            first_name="Test",
+            last_name="Student",
+            student_code="STD200",
             academic_year=self.year,
             classroom=self.classroom,
             specialty=self.specialty,
-            user=None,  # No user yet
         )
         StudentGuardian.objects.create(
             guardian_user=self.parent,

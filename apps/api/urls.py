@@ -20,18 +20,33 @@ from apps.api.dashboard_api import (
     FinancialDashboardAPI,
     AcademicDashboardAPI
 )
+from apps.api.dashboard_layout_api import DashboardLayoutAPI
 from apps.api.search_api import GlobalSearchAPI, SearchSuggestionsAPI
+from apps.api.entity_api import (
+    ClassroomViewSet,
+    SessionClaimsView,
+    StudentGuardianViewSet,
+    StudentProfileViewSet,
+    TeacherProfileViewSet,
+    TeacherRosterView,
+)
 
 router = DefaultRouter()
 router.register(r'devices', MobileDeviceViewSet, basename='mobile-device')
 router.register(r'push-notifications', PushNotificationViewSet, basename='push-notification')
 router.register(r'sync', OfflineSyncViewSet, basename='offline-sync')
 router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'entities/students', StudentProfileViewSet, basename='entity-student')
+router.register(r'entities/teachers', TeacherProfileViewSet, basename='entity-teacher')
+router.register(r'entities/guardians', StudentGuardianViewSet, basename='entity-guardian')
+router.register(r'entities/classrooms', ClassroomViewSet, basename='entity-classroom')
 
 urlpatterns = [
     # JWT Authentication
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('session/claims/', SessionClaimsView.as_view(), name='session-claims'),
+    path('entities/teacher-roster/', TeacherRosterView.as_view(), name='teacher-roster'),
     
     # Dashboard Overview APIs
     path('dashboard/admin/', AdminDashboardOverviewAPI.as_view(), name='admin-dashboard'),
@@ -40,6 +55,7 @@ urlpatterns = [
     path('dashboard/student/', StudentDashboardAPI.as_view(), name='student-dashboard'),
     path('dashboard/financial/', FinancialDashboardAPI.as_view(), name='financial-dashboard'),
     path('dashboard/academic/', AcademicDashboardAPI.as_view(), name='academic-dashboard'),
+    path('dashboard/layout/<str:page>/', DashboardLayoutAPI.as_view(), name='dashboard-layout'),
     
     # Search APIs
     path('search/', GlobalSearchAPI.as_view(), name='global-search'),

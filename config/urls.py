@@ -1,7 +1,14 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect, render
-from django.urls import include, path
+from django.urls import include, path, reverse
+from django.views.decorators.cache import cache_page
+from rest_framework.schemas import get_schema_view
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.template.response import TemplateResponse
+from django.http import HttpResponseForbidden
+
+from apps.siteconfig.models import SiteSettings
 
 from apps.observability import views as obs_views
 from apps.portal.views_ai_copilot import (
@@ -22,6 +29,32 @@ def home(request):
     return redirect("accounts:login")
 
 
+def _is_schema_allowed(user):
+    role = (getattr(user, "role", "") or "").upper()
+    return user.is_authenticated and (user.is_staff or user.is_superuser or role in {"ADMIN", "IT_ADMIN", "LEADERSHIP"})
+
+
+@login_required
+@user_passes_test(_is_schema_allowed)
+def api_schema_ui(request):
+    """Render Redoc/Swagger-lite page for API schema (admin-only)."""
+    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+    allowed_roles = [str(r).upper() for r in flags.get("allowed_roles_api_schema", [])]
+    if not flags.get("enable_api_schema_ui", True):
+        return HttpResponseForbidden("API schema UI disabled by admin.")
+    if allowed_roles:
+        role = (getattr(request.user, "role", "") or "").upper()
+        if role not in allowed_roles and not (request.user.is_staff or request.user.is_superuser):
+            return HttpResponseForbidden("You are not allowed to access API schema UI.")
+    return TemplateResponse(
+        request,
+        "api_schema_ui.html",
+        {
+            "schema_url": reverse("api-schema"),
+        },
+    )
+
+
 def admin_siteconfig_customizer_redirect(request):
     """Backward compatible URL.
 
@@ -37,6 +70,18 @@ urlpatterns = [
 
     # Admin interfaces - /admin/ only for superuser/staff
     path('admin/', admin_site.urls),
+
+    # API schema (RBAC-protected)
+    path(
+        'api/schema/',
+        cache_page(60)(get_schema_view(
+            title="Gilead SMS API",
+            description="Entity/analytics/session claims schema for frontend orchestration",
+            version="1.0.0"
+        )),
+        name='api-schema'
+    ),
+    path('api/schema/ui/', api_schema_ui, name='api-schema-ui'),
     
     # Frontend admin dashboard - separate from /admin/
     path('backend/', lambda request: redirect('/authentication/backend/', permanent=False)),

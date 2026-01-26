@@ -1,8 +1,13 @@
 {% extends "portal_base.html" %}
-{% load admin_health evals_extras %}
+{% load admin_health evals_extras static %}
 {% block title %}Teacher Dashboard{% endblock %}
 
 {% block extrastyle %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'teacher';
+  });
+</script>
 <style>
   .teacher-shell {
     max-width: 1160px;
@@ -134,6 +139,12 @@
   {% admin_health as health %}
   {% with widgets=display_widgets %}
   <div class="teacher-shell">
+  {% if finance_access_message %}
+  <div class="alert alert-info d-flex align-items-start gap-2 mb-3" role="alert">
+    <i class="bi bi-shield-lock"></i>
+    <div>{{ finance_access_message }}</div>
+  </div>
+  {% endif %}
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
     <div>
       <h2 class="mb-1">Teacher Dashboard</h2>
@@ -150,9 +161,9 @@
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
-  <div class="row g-3 mb-3">
+  <div class="row g-3 mb-3" data-dashboard-column="main">
     <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm">
+      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-attendance">
         <div class="card-body d-flex align-items-center gap-3">
           <div class="donut" style="--value: {{ widget_data.attendance.overall|default:'0' }}; --accent: #22c55e;">
             <span>{{ widget_data.attendance.overall|default:"0" }}%</span>
@@ -166,7 +177,7 @@
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm">
+      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-completion">
         <div class="card-body d-flex align-items-center gap-3">
           <div class="donut" style="--value: {{ widget_data.completion_pct|default:'0' }}; --accent: #6d28d9;">
             <span>{{ widget_data.completion_pct|default:"0" }}%</span>
@@ -180,7 +191,7 @@
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm">
+      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-at-a-glance">
         <div class="card-body">
           <div class="text-uppercase small text-muted mb-2">At a glance</div>
           <div class="d-flex flex-column gap-2">
@@ -194,9 +205,9 @@
     </div>
   </div>
 
-  <div class="row g-3 mb-3">
+  <div class="row g-3 mb-3" data-dashboard-column="secondary">
     <div class="col-xl-8">
-      <div class="card h-100 border-0 shadow-sm classes-glance-card">
+      <div class="card h-100 border-0 shadow-sm classes-glance-card" data-widget-id="teacher-assignments" data-dashboard-column="secondary">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <div>
             <div class="text-uppercase small text-muted mb-1">Your class at a glance</div>
@@ -275,7 +286,7 @@
       </div>
     </div>
     <div class="col-xl-4">
-      <div class="card h-100 border-0 shadow-sm mb-3">
+      <div class="card h-100 border-0 shadow-sm mb-3" data-dashboard-column="secondary" data-widget-id="teacher-schedule">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
@@ -301,7 +312,7 @@
           </div>
         </div>
       </div>
-      <div class="card h-100 border-0 shadow-sm">
+      <div class="card h-100 border-0 shadow-sm" data-dashboard-column="secondary" data-widget-id="teacher-org-tree">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
@@ -331,7 +342,7 @@
         </div>
       </div>
       {% if class_threads %}
-      <div class="card border-0 shadow-sm mt-3">
+      <div class="card border-0 shadow-sm mt-3" data-dashboard-column="secondary" data-widget-id="teacher-threads">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
@@ -359,8 +370,8 @@
 
   <div class="row g-3 mb-4">
     {% if not widgets or "links" in widgets or "communications" in widgets %}
-    <div class="col-xl-3 col-lg-4 order-lg-1 order-2">
-      <div class="dashboard-quick-panel h-100">
+    <div class="col-xl-3 col-lg-4 order-lg-1 order-2" data-dashboard-column="tertiary">
+      <div class="dashboard-quick-panel h-100" data-widget-id="teacher-quick-links">
         <h6 class="text-uppercase small mb-2 text-muted">Quick links</h6>
         <div class="d-flex flex-column gap-2 mb-3">
           <a class="btn btn-sm btn-primary w-100" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
@@ -390,8 +401,8 @@
     <div class="col-xl-9 col-lg-8 order-lg-2 order-1">
       <div class="row g-3">
         {% if not widgets or "attendance" in widgets %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-sm">
+        <div class="col-md-6 col-lg-4" data-dashboard-column="tertiary">
+          <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-attendance-detail">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
@@ -421,8 +432,8 @@
         </div>
         {% endif %}
         {% if not widgets or "completion" in widgets %}
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-sm">
+        <div class="col-md-6 col-lg-4" data-dashboard-column="tertiary">
+          <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-completion-detail">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
@@ -457,8 +468,8 @@
         </div>
         {% endif %}
         {% if not widgets or "tasks" in widgets %}
-        <div class="col-md-12 col-lg-4">
-          <div class="card h-100 border-0 shadow-sm">
+        <div class="col-md-12 col-lg-4" data-dashboard-column="tertiary">
+          <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-bulk-import">
             <div class="card-body d-flex flex-column">
               <div>
                 <p class="text-uppercase small text-muted mb-1">Grade import</p>
@@ -583,6 +594,12 @@
             </div>
             <span class="badge text-bg-light">{{ teacher_profile.pay_grade|default:"N/A" }}</span>
           </div>
+          {% if finance_access_message %}
+          <div class="alert alert-light border d-flex align-items-center gap-2 py-2 px-3 mb-3 small">
+            <i class="bi bi-shield-check"></i>
+            <div>{{ finance_access_message }}</div>
+          </div>
+          {% endif %}
           <ul class="list-unstyled small mb-3">
             <li><strong>Next pay date:</strong> {{ teacher_profile.next_pay_date|default:"-" }}</li>
             <li><strong>Method:</strong> {{ teacher_profile.get_payment_method_display|default:"-" }}</li>
@@ -641,4 +658,8 @@
   </div> {# teacher-shell #}
 
   {% endwith %}
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'js/dashboard-layout.js' %}"></script>
 {% endblock %}

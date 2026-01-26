@@ -8,6 +8,7 @@ from apps.accounts.permissions import has_role_hierarchy, can_view_invoice
 from apps.academics.models import AcademicYear, Department, Specialty, Classroom
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.finance.models import ComplianceProfile, Invoice
+from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 
 
 class RoleHierarchyTests(TestCase):
@@ -81,7 +82,7 @@ class InvoiceAccessTests(TestCase):
             password="pass1234",
             role=User.Role.PARENT,
         )
-        StudentGuardian.objects.create(guardian_user=parent, student=self.student)
+        StudentGuardian.objects.create(guardian_user=parent, student=self.student, can_view_finance=True)
         self.assertTrue(can_view_invoice(parent, self.invoice.id))
 
     def test_unrelated_parent_cannot_view_invoice(self):
@@ -91,3 +92,66 @@ class InvoiceAccessTests(TestCase):
             role=User.Role.PARENT,
         )
         self.assertFalse(can_view_invoice(parent, self.invoice.id))
+
+
+class GuardianFinanceOptInTests(TestCase):
+    def setUp(self):
+        site = SiteSettings.get_solo()
+        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags["require_guardian_finance_opt_in"] = True
+        site.backend_feature_flags = flags
+        site.save()
+
+        self.year = AcademicYear.objects.create(
+            name="2025/2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30),
+        )
+        self.department = Department.objects.create(name="General", code="GEN")
+        self.specialty = Specialty.objects.create(name="General", code="GEN", department=self.department)
+        self.classroom = Classroom.objects.create(
+            academic_year=self.year,
+            department=self.department,
+            name="Form 1",
+            code="F1",
+        )
+        self.profile = ComplianceProfile.objects.create(name="Default", country_code="CM")
+        self.student = StudentProfile.objects.create(
+            first_name="Alex",
+            last_name="Student",
+            academic_year=self.year,
+            classroom=self.classroom,
+            specialty=self.specialty,
+        )
+        self.invoice = Invoice.objects.create(
+            profile=self.profile,
+            academic_year=self.year,
+            student=self.student,
+            total_amount=Decimal("100.00"),
+            balance_amount=Decimal("100.00"),
+        )
+
+    def test_parent_blocked_when_opt_in_required_and_not_granted(self):
+        parent = User.objects.create_user(
+            username="parent_no_opt_in",
+            password="pass1234",
+            role=User.Role.PARENT,
+        )
+        StudentGuardian.objects.create(guardian_user=parent, student=self.student, can_view_finance=False)
+        self.assertFalse(can_view_invoice(parent, self.invoice.id))
+
+    def test_parent_allowed_when_opt_in_disabled_even_if_flag_missing(self):
+        parent = User.objects.create_user(
+            username="parent_opt_out",
+            password="pass1234",
+            role=User.Role.PARENT,
+        )
+        StudentGuardian.objects.create(guardian_user=parent, student=self.student, can_view_finance=False)
+
+        site = SiteSettings.get_solo()
+        flags = {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+        flags["require_guardian_finance_opt_in"] = False
+        site.backend_feature_flags = flags
+        site.save()
+
+        self.assertTrue(can_view_invoice(parent, self.invoice.id))

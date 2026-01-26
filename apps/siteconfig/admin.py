@@ -6,8 +6,10 @@ from django.utils.html import format_html
 from django.contrib import messages
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
+from django.db import models
 import csv
 from datetime import datetime
+from django.core.exceptions import ValidationError
 
 from .models import (
     Integration,
@@ -21,8 +23,9 @@ from .models import (
     GradingScaleConfig,
     HolidayCalendar,
 )
-from .models_dashboard import DashboardUserPreference, DashboardWidget
+from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout
 from apps.academics.models import AcademicYear
+from .models import default_backend_feature_flags
 
 
 # ==========================
@@ -52,6 +55,111 @@ class DashboardUserPreferenceForm(forms.ModelForm):
             "dashboard_layout": DashboardLayoutWidget(attrs={"rows": 10, "style": "font-family:monospace; width:90%"}),
             "visible_widgets": forms.SelectMultiple(attrs={"size": 8, "style": "width:60%"}),
         }
+
+class SiteSettingsForm(forms.ModelForm):
+    class Meta:
+        model = SiteSettings
+        fields = "__all__"
+
+    allowed_role_choices = [
+        ("ADMIN", "ADMIN"),
+        ("LEADERSHIP", "LEADERSHIP"),
+        ("PRINCIPAL", "PRINCIPAL"),
+        ("VICE_PRINCIPAL", "VICE_PRINCIPAL"),
+        ("DEAN", "DEAN"),
+        ("IT_ADMIN", "IT_ADMIN"),
+        ("CENSOR", "CENSOR"),
+        ("BURSAR", "BURSAR"),
+    ]
+
+    allowed_roles_entity_console = forms.MultipleChoiceField(
+        required=False,
+        choices=allowed_role_choices,
+        widget=forms.SelectMultiple(attrs={"size": 6, "style": "width: 240px;"}),
+        help_text="Roles allowed to access the Entity Console (frontend CRUD).",
+    )
+    allowed_roles_entity_import = forms.MultipleChoiceField(
+        required=False,
+        choices=allowed_role_choices,
+        widget=forms.SelectMultiple(attrs={"size": 6, "style": "width: 240px;"}),
+        help_text="Roles allowed to access the Entity Import (CSV) page.",
+    )
+    allowed_roles_api_schema = forms.MultipleChoiceField(
+        required=False,
+        choices=allowed_role_choices,
+        widget=forms.SelectMultiple(attrs={"size": 6, "style": "width: 240px;"}),
+        help_text="Roles allowed to access the API schema UI.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        flags = self.instance.backend_feature_flags if self.instance else default_backend_feature_flags()
+        self.fields["allowed_roles_entity_console"].initial = flags.get("allowed_roles_entity_console", [])
+        self.fields["allowed_roles_entity_import"].initial = flags.get("allowed_roles_entity_import", [])
+        self.fields["allowed_roles_api_schema"].initial = flags.get("allowed_roles_api_schema", [])
+        self.fields["max_bulk_import_rows"].initial = flags.get("max_bulk_import_rows", 500)
+        self.fields["allow_bulk_commit"].initial = flags.get("allow_bulk_commit", True)
+        self.fields["enable_entity_console"].initial = flags.get("enable_entity_console", True)
+        self.fields["enable_entity_import"].initial = flags.get("enable_entity_import", True)
+        self.fields["enable_api_schema_ui"].initial = flags.get("enable_api_schema_ui", True)
+        self.fields["require_guardian_finance_opt_in"].initial = flags.get("require_guardian_finance_opt_in", False)
+        self.fields["allow_finance_access_requests"].initial = flags.get("allow_finance_access_requests", True)
+
+    enable_entity_console = forms.BooleanField(required=False, label="Enable entity console")
+    enable_entity_import = forms.BooleanField(required=False, label="Enable entity import")
+    enable_api_schema_ui = forms.BooleanField(required=False, label="Enable API schema UI")
+    allow_bulk_commit = forms.BooleanField(required=False, label="Allow bulk commit")
+    require_guardian_finance_opt_in = forms.BooleanField(
+        required=False,
+        label="Require guardian finance opt-in",
+        help_text="If enabled, guardians must have can_view_finance=True to see invoices/payments.",
+    )
+    allow_finance_access_requests = forms.BooleanField(
+        required=False,
+        label="Allow finance access requests",
+        help_text="If enabled, guardians can submit a request for finance access to admins/finance.",
+    )
+    max_bulk_import_rows = forms.IntegerField(required=False, min_value=0, label="Max bulk import rows")
+
+    def clean_backend_feature_flags(self):
+        raw = self.cleaned_data.get("backend_feature_flags") or {}
+        defaults = default_backend_feature_flags()
+        merged = {**defaults, **raw}
+
+        # Booleans from explicit fields
+        merged["enable_entity_console"] = bool(self.cleaned_data.get("enable_entity_console", merged.get("enable_entity_console", True)))
+        merged["enable_entity_import"] = bool(self.cleaned_data.get("enable_entity_import", merged.get("enable_entity_import", True)))
+        merged["enable_api_schema_ui"] = bool(self.cleaned_data.get("enable_api_schema_ui", merged.get("enable_api_schema_ui", True)))
+        merged["allow_bulk_commit"] = bool(self.cleaned_data.get("allow_bulk_commit", merged.get("allow_bulk_commit", True)))
+        merged["require_guardian_finance_opt_in"] = bool(
+            self.cleaned_data.get(
+                "require_guardian_finance_opt_in",
+                merged.get("require_guardian_finance_opt_in", defaults.get("require_guardian_finance_opt_in", False)),
+            )
+        )
+        merged["allow_finance_access_requests"] = bool(
+            self.cleaned_data.get(
+                "allow_finance_access_requests",
+                merged.get("allow_finance_access_requests", defaults.get("allow_finance_access_requests", True)),
+            )
+        )
+
+        # Role lists from multi-selects
+        merged["allowed_roles_entity_console"] = sorted({str(r).upper() for r in self.cleaned_data.get("allowed_roles_entity_console", [])})
+        merged["allowed_roles_entity_import"] = sorted({str(r).upper() for r in self.cleaned_data.get("allowed_roles_entity_import", [])})
+        merged["allowed_roles_api_schema"] = sorted({str(r).upper() for r in self.cleaned_data.get("allowed_roles_api_schema", [])})
+
+        # Max rows numeric
+        try:
+            merged["max_bulk_import_rows"] = int(
+                self.cleaned_data.get("max_bulk_import_rows", merged.get("max_bulk_import_rows", defaults["max_bulk_import_rows"]))
+            )
+        except Exception:
+            raise ValidationError({"max_bulk_import_rows": "max_bulk_import_rows must be an integer."})
+        if merged["max_bulk_import_rows"] < 0:
+            raise ValidationError({"max_bulk_import_rows": "max_bulk_import_rows cannot be negative."})
+
+        return merged
 
 class DashboardUserPreferenceAdmin(ModelAdmin):
     form = DashboardUserPreferenceForm
@@ -91,16 +199,16 @@ class DashboardUserPreferenceAdmin(ModelAdmin):
 
 class DashboardWidgetAdmin(ModelAdmin):
     change_form_template = "admin/siteconfig/dashboardwidget/change_form.html"
-    list_display = ("id", "name", "widget_type", "required_role", "is_active", "order")
+    list_display = ("id", "name", "page", "widget_type", "required_role", "is_active", "order")
     search_fields = ("id", "name", "description")
-    list_filter = ("widget_type", "required_role", "is_active")
+    list_filter = ("page", "widget_type", "required_role", "is_active")
     ordering = ("order",)
     actions = ["activate_widgets", "deactivate_widgets", "assign_to_role"]
     readonly_fields = ("id",)
     fieldsets = (
-        ("Widget Info", {"fields": ("id", "name", "description", "widget_type", "template_path")}),
-        ("Access Control", {"fields": ("required_role",)}),
-        ("Display Settings", {"fields": ("default_width", "refresh_interval", "order", "is_active")}),
+        ("Widget Info", {"fields": ("id", "name", "description", "widget_type", "page", "template_path")}),
+        ("Access Control", {"fields": ("required_role", "allowed_roles")}),
+        ("Display Settings", {"fields": ("default_width", "default_column", "default_order", "refresh_interval", "order", "is_active")}),
     )
 
     def activate_widgets(self, request, queryset):
@@ -122,6 +230,22 @@ class DashboardWidgetAdmin(ModelAdmin):
     class Media:
         js = ("admin/js/vendor/jquery/jquery.js",)
         css = {"all": ("admin/css/widgets.css",)}
+
+
+class DashboardLayoutAdmin(ModelAdmin):
+    list_display = ("page", "user", "role", "is_default", "updated_at")
+    list_filter = ("page", "role", "is_default")
+    search_fields = ("user__username", "role")
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        ("Scope", {"fields": ("page", "user", "role", "is_default")}),
+        ("Layout", {"fields": ("layout",)}),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
+    formfield_overrides = {
+        # Pretty-print JSON for readability
+        models.JSONField: {"widget": DashboardLayoutWidget(attrs={"rows": 12, "style": "font-family:monospace; width:90%"})},
+    }
 class SiteSettingsAdmin(ModelAdmin):
     """
     Main Site Customizer UI.
@@ -129,6 +253,8 @@ class SiteSettingsAdmin(ModelAdmin):
     """
 
     change_form_template = "admin/siteconfig/sitesettings/change_form.html"
+    form = SiteSettingsForm
+    # form assigned below after SiteSettingsForm definition
 
     # Only allow ONE row
     def has_add_permission(self, request):
@@ -238,6 +364,21 @@ class SiteSettingsAdmin(ModelAdmin):
                 "portal_features",
             )
         }),
+        ("Backend Orchestration & Limits", {
+            "fields": (
+                "enable_entity_console",
+                "allowed_roles_entity_console",
+                "enable_entity_import",
+                "allowed_roles_entity_import",
+                "enable_api_schema_ui",
+                "allowed_roles_api_schema",
+                "allow_bulk_commit",
+                "require_guardian_finance_opt_in",
+                "allow_finance_access_requests",
+                "max_bulk_import_rows",
+                "backend_feature_flags",
+            )
+        }),
         ("Notifications & Analytics", {
             "fields": (
                 "notification_channels",
@@ -259,7 +400,7 @@ class SiteSettingsAdmin(ModelAdmin):
             )
         }),
         ("Metadata", {
-            "fields": ("updated_at",),
+            "fields": ("backend_flags_summary", "updated_at",),
         }),
     )
 
@@ -272,6 +413,40 @@ class SiteSettingsAdmin(ModelAdmin):
         return "No logo uploaded"
 
     logo_preview.short_description = "Logo Preview"
+
+    def backend_flags_summary(self, obj):
+        flags = getattr(obj, "backend_feature_flags", {}) or {}
+        console = "On" if flags.get("enable_entity_console") else "Off"
+        imp = "On" if flags.get("enable_entity_import") else "Off"
+        schema = "On" if flags.get("enable_api_schema_ui") else "Off"
+        roles_console = ", ".join(flags.get("allowed_roles_entity_console", []))
+        roles_import = ", ".join(flags.get("allowed_roles_entity_import", []))
+        roles_schema = ", ".join(flags.get("allowed_roles_api_schema", []))
+        finance_opt_in = "Required" if flags.get("require_guardian_finance_opt_in") else "Not required"
+        finance_requests = "Enabled" if flags.get("allow_finance_access_requests", True) else "Disabled"
+        return format_html(
+            "<ul>"
+            "<li>Entity console: {} (roles: {})</li>"
+            "<li>Entity import: {} (roles: {})</li>"
+            "<li>API schema: {} (roles: {})</li>"
+            "<li>Max bulk rows: {}</li>"
+            "<li>Allow bulk commit: {}</li>"
+            "<li>Guardian finance opt-in: {}</li>"
+            "<li>Finance access requests: {}</li>"
+            "</ul>",
+            console,
+            roles_console or "—",
+            imp,
+            roles_import or "—",
+            schema,
+            roles_schema or "—",
+            flags.get("max_bulk_import_rows", ""),
+            "Yes" if flags.get("allow_bulk_commit") else "No",
+            finance_opt_in,
+            finance_requests,
+        )
+
+    backend_flags_summary.short_description = "Backend feature flags"
 
 
 class ThemePackAdmin(ModelAdmin):
@@ -1014,3 +1189,4 @@ admin_site.register(HolidayCalendar, HolidayCalendarAdmin)
 # Register dashboard preference and widget models for admin configurability
 admin_site.register(DashboardUserPreference, DashboardUserPreferenceAdmin)
 admin_site.register(DashboardWidget, DashboardWidgetAdmin)
+admin_site.register(DashboardLayout, DashboardLayoutAdmin)

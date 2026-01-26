@@ -1,0 +1,257 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Entity Console{% endblock %}
+
+{% block extrastyle %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'entity-console';
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+  {% include 'components/admin_nav_bridge.html' %}
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">Entity Console</h2>
+    <p class="text-muted">Manage students from the frontend using the new headless APIs. RBAC/claims gate visibility.</p>
+  </div>
+
+  <div class="row g-4" data-dashboard-column="main">
+    <div class="col-lg-5" data-widget-id="entity-create-update">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-2">Create student</h5>
+          <form id="createStudentForm" class="small">
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label text-muted small">First name</label>
+                <input name="first_name" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label text-muted small">Last name</label>
+                <input name="last_name" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label text-muted small">Admission #</label>
+                <input name="admission_number" class="form-control form-control-sm" placeholder="Optional">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-muted small">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                  <option value="NEW">NEW</option>
+                  <option value="RETURNING">RETURNING</option>
+                  <option value="PROBATION">PROBATION</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label text-muted small">Academic year ID</label>
+                <input name="academic_year" class="form-control form-control-sm" type="number" placeholder="Optional">
+              </div>
+              <div class="col-6">
+                <label class="form-label text-muted small">Classroom ID</label>
+                <input name="classroom" class="form-control form-control-sm" type="number" placeholder="Optional">
+              </div>
+            </div>
+            <div class="d-flex gap-2 align-items-center mt-3">
+              <button class="btn btn-primary btn-sm" type="submit">Create</button>
+              <div id="createStatus" class="small text-muted"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="card shadow-sm mt-4">
+        <div class="card-body">
+          <h5 class="mb-2">Update / Delete student</h5>
+          <form id="updateStudentForm" class="small">
+            <div class="row g-2">
+              <div class="col-4">
+                <label class="form-label text-muted small">Student ID</label>
+                <input name="id" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-4">
+                <label class="form-label text-muted small">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                  <option value="">(no change)</option>
+                  <option value="NEW">NEW</option>
+                  <option value="RETURNING">RETURNING</option>
+                  <option value="PROBATION">PROBATION</option>
+                  <option value="ALUMNI">ALUMNI</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <label class="form-label text-muted small">Classroom ID</label>
+                <input name="classroom" class="form-control form-control-sm" type="number" placeholder="Optional">
+              </div>
+            </div>
+            <div class="d-flex gap-2 align-items-center mt-3">
+              <button class="btn btn-outline-primary btn-sm" type="submit">Update</button>
+              <button class="btn btn-outline-danger btn-sm" id="deleteStudentBtn" type="button">Delete</button>
+              <div id="updateStatus" class="small text-muted"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-7" data-widget-id="entity-student-table">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0">Students</h5>
+            <button class="btn btn-outline-secondary btn-sm" id="refreshStudents">Refresh</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr class="text-muted">
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Classroom</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="studentRows">
+                <tr><td colspan="4" class="text-muted">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="studentListStatus" class="small text-muted mt-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script src="{% static 'js/dashboard-layout.js' %}"></script>
+  <script src="{% static 'js/entity-orchestrator.js' %}"></script>
+  <script>
+    (function() {
+      const rows = document.getElementById('studentRows');
+      const statusEl = document.getElementById('studentListStatus');
+      const refreshBtn = document.getElementById('refreshStudents');
+      const form = document.getElementById('createStudentForm');
+      const createStatus = document.getElementById('createStatus');
+      const updateForm = document.getElementById('updateStudentForm');
+      const updateStatus = document.getElementById('updateStatus');
+      const deleteBtn = document.getElementById('deleteStudentBtn');
+
+      async function loadStudents() {
+        statusEl.textContent = 'Loading…';
+        if (rows) rows.innerHTML = '<tr><td colspan="4" class="text-muted">Loading…</td></tr>';
+        try {
+          const data = await window.EntityOrchestrator.fetchStudents();
+          const list = Array.isArray(data.results) ? data.results : data;
+          if (!list.length) {
+            rows.innerHTML = '<tr><td colspan="4" class="text-muted">No students</td></tr>';
+          } else {
+            rows.innerHTML = '';
+            list.forEach((item) => {
+              const tr = document.createElement('tr');
+              tr.dataset.studentId = item.id;
+              tr.dataset.classroomId = item.classroom || '';
+              tr.dataset.status = item.status || '';
+              tr.innerHTML = `
+                <td>${item.id}</td>
+                <td>${item.first_name || ''} ${item.last_name || ''}</td>
+                <td>${item.classroom || ''}</td>
+                <td>${item.status || ''}</td>
+                <td><button class="btn btn-link btn-sm select-student">Select</button></td>
+              `;
+              rows.appendChild(tr);
+            });
+            rows.querySelectorAll('.select-student').forEach((btn) => {
+              btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tr = e.target.closest('tr');
+                if (!tr) return;
+                updateForm.id.value = tr.dataset.studentId;
+                updateForm.classroom.value = tr.dataset.classroomId || '';
+                updateForm.status.value = tr.dataset.status || '';
+              });
+            });
+          }
+          statusEl.textContent = `${list.length} students loaded`;
+          statusEl.className = 'small text-muted';
+        } catch (err) {
+          statusEl.textContent = err.message || 'Failed to load students';
+          statusEl.className = 'small text-danger';
+        }
+      }
+
+      async function createStudent(evt) {
+        evt.preventDefault();
+        createStatus.textContent = 'Creating…';
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
+        // Remove empty numeric fields
+        ['academic_year', 'classroom'].forEach((key) => {
+          if (!payload[key]) delete payload[key];
+        });
+        try {
+          await window.EntityOrchestrator.createStudent(payload);
+          createStatus.textContent = 'Created';
+          createStatus.className = 'small text-success';
+          form.reset();
+          loadStudents();
+        } catch (err) {
+          createStatus.textContent = err.message || 'Create failed';
+          createStatus.className = 'small text-danger';
+        }
+      }
+
+      async function updateStudent(evt) {
+        evt.preventDefault();
+        updateStatus.textContent = 'Updating…';
+        const formData = new FormData(updateForm);
+        const id = formData.get('id');
+        if (!id) {
+          updateStatus.textContent = 'Student ID required';
+          updateStatus.className = 'small text-danger';
+          return;
+        }
+        const payload = {};
+        if (formData.get('status')) payload.status = formData.get('status');
+        if (formData.get('classroom')) payload.classroom = formData.get('classroom');
+        try {
+          await window.EntityOrchestrator.updateStudent(id, payload);
+          updateStatus.textContent = 'Updated';
+          updateStatus.className = 'small text-success';
+          loadStudents();
+        } catch (err) {
+          updateStatus.textContent = err.message || 'Update failed';
+          updateStatus.className = 'small text-danger';
+        }
+      }
+
+      async function deleteStudent() {
+        updateStatus.textContent = 'Deleting…';
+        const id = updateForm.id.value;
+        if (!id) {
+          updateStatus.textContent = 'Student ID required';
+          updateStatus.className = 'small text-danger';
+          return;
+        }
+        try {
+          await window.EntityOrchestrator.deleteStudent(id);
+          updateStatus.textContent = 'Deleted';
+          updateStatus.className = 'small text-success';
+          updateForm.reset();
+          loadStudents();
+        } catch (err) {
+          updateStatus.textContent = err.message || 'Delete failed';
+          updateStatus.className = 'small text-danger';
+        }
+      }
+
+      if (refreshBtn) refreshBtn.addEventListener('click', loadStudents);
+      if (form) form.addEventListener('submit', createStudent);
+      if (updateForm) updateForm.addEventListener('submit', updateStudent);
+      if (deleteBtn) deleteBtn.addEventListener('click', deleteStudent);
+      loadStudents();
+    })();
+  </script>
+{% endblock %}

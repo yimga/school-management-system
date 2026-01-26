@@ -22,13 +22,17 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.conf import settings
 
 from django.template.loader import render_to_string
 
 from apps.academics.models import AcademicYear
 from apps.payroll.models import Payslip
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.evals.notifications import NotificationService
 
 from .forms import ReportRequestForm
 from .models import (
@@ -56,6 +60,7 @@ from .security import (
     WebhookSecurityValidator,
     webhook_security_required,
 )
+from apps.communication.models import Message
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +70,38 @@ def _active_profile() -> ComplianceProfile | None:
     if getattr(site, "compliance_profile", None):
         return site.compliance_profile
     return ComplianceProfile.objects.filter(is_active=True).first()
+
+
+def _backend_flags() -> dict:
+    """
+    Convenience wrapper to merge default backend flags with saved settings.
+    Safe for use in early request handling where DB might be missing values.
+    """
+    try:
+        site = SiteSettings.get_solo()
+        return {**default_backend_feature_flags(), **(site.backend_feature_flags or {})}
+    except Exception:
+        return default_backend_feature_flags()
+
+
+def _finance_access_state(user) -> dict:
+    """
+    Snapshot of finance access for a guardian user.
+    Returns counts, whether opt-in is required, and whether requests are allowed.
+    """
+    from apps.accounts.permissions import _guardian_finance_qs
+    from apps.people.models import StudentGuardian
+
+    flags = _backend_flags()
+    guardian_qs = StudentGuardian.objects.filter(guardian_user=user)
+    finance_qs = _guardian_finance_qs(user) if getattr(user, "is_authenticated", False) else StudentGuardian.objects.none()
+    return {
+        "require_opt_in": bool(flags.get("require_guardian_finance_opt_in")),
+        "allow_requests": bool(flags.get("allow_finance_access_requests", True)),
+        "guardian_count": guardian_qs.count(),
+        "finance_count": finance_qs.count(),
+        "guardian_names": [str(link.student) for link in guardian_qs.select_related("student")],
+    }
 
 
 @staff_member_required
@@ -104,8 +141,8 @@ def invoice_list(request: HttpRequest):
     Staff see all invoices; parents see only their children's invoices.
     """
     from apps.accounts.models import User
-    from apps.people.models import StudentGuardian
-    
+    from apps.accounts.permissions import _guardian_finance_qs
+    access_state = _finance_access_state(request.user)
     profile = _active_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -116,12 +153,11 @@ def invoice_list(request: HttpRequest):
     
     # Filter invoices based on user role
     if request.user.role == User.Role.PARENT:
-        # Parents can only see invoices for their children
-        parent_students = StudentGuardian.objects.filter(
-            guardian_user=request.user,
-            can_view_finance=True,
-        ).values_list('student_id', flat=True)
+        # Parents can only see invoices for their children (respect opt-in)
+        parent_students = _guardian_finance_qs(request.user).values_list('student_id', flat=True)
         qs = qs.filter(student_id__in=parent_students)
+        if access_state["require_opt_in"] and not access_state["finance_count"]:
+            qs = qs.none()
     elif not (request.user.is_staff or request.user.is_superuser or request.user.role == User.Role.ADMIN):
         return HttpResponseForbidden("You don't have permission to view invoices.")
     
@@ -144,6 +180,16 @@ def invoice_list(request: HttpRequest):
         "selected_year": year_id or "",
         "page_obj": page_obj,
         "paginator": paginator,
+        "finance_access_required": access_state["require_opt_in"],
+        "finance_access_granted": access_state["finance_count"] > 0,
+        "finance_guardian_count": access_state["finance_count"],
+        "guardian_link_count": access_state["guardian_count"],
+        "finance_access_summary": (
+            f"{access_state['finance_count']} of {access_state['guardian_count']} linked student(s) currently have finance access."
+            if access_state["guardian_count"] else None
+        ),
+        "can_request_finance_access": access_state["allow_requests"] and access_state["require_opt_in"] and access_state["guardian_count"] > access_state["finance_count"],
+        "finance_request_url": reverse("finance:finance_request_access"),
     })
 
 
@@ -235,10 +281,10 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
     Staff can view all invoices; parents can only view their children's invoices.
     """
     from apps.accounts.permissions import can_view_invoice
+    from apps.accounts.models import User
+    from apps.people.models import StudentGuardian
 
-    if not can_view_invoice(request.user, invoice_id):
-        return HttpResponseForbidden("You don't have permission to view this invoice.")
-    
+    access_state = _finance_access_state(request.user)
     profile = _active_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -248,6 +294,40 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         id=invoice_id,
         profile=profile,
     )
+
+    can_view = can_view_invoice(request.user, invoice_id)
+    if not can_view:
+        is_parent = getattr(request.user, "role", "") == User.Role.PARENT
+        is_guardian = bool(invoice.student_id and StudentGuardian.objects.filter(
+            guardian_user=request.user,
+            student_id=invoice.student_id,
+        ).exists())
+        if is_parent and is_guardian:
+            summary = None
+            if access_state["guardian_count"]:
+                summary = (
+                    f"{access_state['finance_count']} of {access_state['guardian_count']} "
+                    "linked student(s) currently have finance access."
+                )
+            return render(
+                request,
+                "finance/invoice_detail.html",
+                {
+                    "access_denied": True,
+                    "invoice_stub": {
+                        "reference": invoice.reference or invoice.id,
+                        "student": invoice.student,
+                    },
+                    "finance_access_required": access_state["require_opt_in"],
+                    "finance_access_granted": access_state["finance_count"] > 0,
+                    "finance_access_summary": summary,
+                    "can_request_finance_access": access_state["allow_requests"] and access_state["require_opt_in"],
+                    "finance_request_url": reverse("finance:invoice_request_access", args=[invoice.id]),
+                },
+                status=403,
+            )
+        return HttpResponseForbidden("You don't have permission to view this invoice.")
+
     if request.method == "POST" and request.FILES.get("attachment"):
         invoice.attachment = request.FILES["attachment"]
         invoice.save(update_fields=["attachment"])
@@ -257,11 +337,336 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
     payment_link = generate_payment_link(invoice)
     reminder = getattr(invoice, "reminder", None)
 
+    finance_summary = None
+    if access_state["guardian_count"]:
+        finance_summary = (
+            f"{access_state['finance_count']} of {access_state['guardian_count']} linked student(s) "
+            "currently have finance access."
+        )
+
     return render(request, "finance/invoice_detail.html", {
         "invoice": invoice,
         "payment_link": payment_link,
         "reminder": reminder,
+        "finance_access_required": access_state["require_opt_in"],
+        "finance_access_granted": access_state["finance_count"] > 0,
+        "finance_access_summary": finance_summary,
+        "can_request_finance_access": access_state["allow_requests"] and access_state["require_opt_in"] and access_state["guardian_count"] > access_state["finance_count"],
+        "finance_request_url": reverse("finance:invoice_request_access", args=[invoice.id]),
+        "finance_guardian_count": access_state["finance_count"],
+        "guardian_link_count": access_state["guardian_count"],
     })
+
+
+@login_required
+@require_POST
+def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
+    """
+    Allow guardians to request finance visibility from admins/finance.
+    Sends internal messages and finance notifications to admin-aligned roles.
+    """
+    from apps.accounts.models import User
+    from apps.people.models import StudentGuardian, StudentProfile
+
+    flags = _backend_flags()
+    if not flags.get("allow_finance_access_requests", True):
+        return HttpResponseForbidden("Finance access requests are disabled by the administrator.")
+
+    role = getattr(request.user, "role", "")
+    is_staff_like = request.user.is_staff or request.user.is_superuser
+    if role != User.Role.PARENT and not is_staff_like:
+        return HttpResponseForbidden("Only guardians or staff can manage finance access.")
+
+    # Staff can directly grant finance access for a student's guardians
+    if is_staff_like and request.method == "POST" and request.POST.get("student_id"):
+        try:
+            student_id = int(request.POST.get("student_id"))
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid student selection.")
+            return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+
+        student = StudentProfile.objects.filter(id=student_id).first()
+        if not student:
+            messages.error(request, "Student not found.")
+            return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+
+        guardians = StudentGuardian.objects.filter(student=student).select_related("guardian_user")
+        to_grant = guardians.filter(can_view_finance=False)
+        updated = to_grant.update(can_view_finance=True)
+
+        notifier = NotificationService()
+        site = SiteSettings.get_solo()
+        channels = getattr(site, "notification_channels", []) or []
+        from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+
+        notifications = []
+        messages_out = []
+        for link in guardians:
+            user = link.guardian_user
+            if not user:
+                continue
+            notifications.append(Notification(
+                title="Finance access granted",
+                message=f"Finance access was enabled for {student}.",
+                severity=Notification.Severity.INFO,
+                recipient=user,
+                created_by=request.user,
+            ))
+            messages_out.append(Message(
+                sender=request.user,
+                recipient=user,
+                subject="Finance access granted",
+                body=f"You can now view finance records for {student}.",
+            ))
+            if "sms" in channels:
+                phone = (
+                    getattr(user, "phone", None)
+                    or getattr(user, "phone_number", None)
+                    or getattr(getattr(user, "profile", None), "phone", None)
+                )
+                if phone:
+                    try:
+                        notifier.send_sms(phone, f"Finance access granted for {student}.")
+                    except Exception:
+                        logger.exception("Failed to send finance access SMS.")
+            if "email" in channels and from_email and user.email:
+                try:
+                    send_mail(
+                        subject="Finance access granted",
+                        message=f"You can now view finance records for {student}.",
+                        from_email=from_email,
+                        recipient_list=[user.email],
+                    )
+                except Exception:
+                    logger.exception("Failed to send finance access email.")
+
+        if notifications:
+            Notification.objects.bulk_create(notifications)
+        if messages_out:
+            Message.objects.bulk_create(messages_out)
+
+        messages.success(request, f"Updated {updated} guardian link(s) for {student}.")
+        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+
+    guardian_links = StudentGuardian.objects.filter(guardian_user=request.user).select_related("student")
+    if request.method == "POST" and request.POST.get("student_id"):
+        try:
+            student_id = int(request.POST.get("student_id"))
+        except (TypeError, ValueError):
+            student_id = None
+        if student_id and guardian_links.filter(student_id=student_id).exists():
+            guardian_links = guardian_links.filter(student_id=student_id)
+    if not guardian_links.exists():
+        messages.error(request, "Link a student first to route your request.")
+        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+
+    invoice_ref = None
+    if invoice_id:
+        invoice = Invoice.objects.filter(id=invoice_id).select_related("student").first()
+        if not invoice:
+            return HttpResponseForbidden("Invoice not found.")
+        if invoice.student_id and not guardian_links.filter(student_id=invoice.student_id).exists():
+            return HttpResponseForbidden("You can only request access for your linked students.")
+        invoice_ref = invoice.reference or str(invoice.id)
+
+    recipients = User.objects.filter(
+        models.Q(role__in=[
+            User.Role.ADMIN,
+            User.Role.BURSAR,
+            User.Role.LEADERSHIP,
+            User.Role.IT_ADMIN,
+            User.Role.SUPERADMIN,
+        ]) | models.Q(is_superuser=True)
+    ).distinct()
+
+    if not recipients.exists():
+        messages.warning(
+            request,
+            "No admin recipients were found to notify. Please contact the school directly.",
+        )
+        return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+
+    student_names = ", ".join(str(link.student) for link in guardian_links)
+    subject = "Finance access request"
+    body_lines = [
+        f"Guardian {request.user.get_full_name() or request.user.username} ({request.user.email}) requested finance access.",
+        f"Linked students: {student_names or 'None'}",
+    ]
+    if invoice_ref:
+        body_lines.append(f"Reference invoice: {invoice_ref}")
+    body_lines.append(f"Finance opt-in required: {'Yes' if flags.get('require_guardian_finance_opt_in') else 'No'}")
+    body = "\n".join(body_lines)
+
+    messages_created = [
+        Message(sender=request.user, recipient=recipient, subject=subject, body=body)
+        for recipient in recipients
+    ]
+    Message.objects.bulk_create(messages_created)
+
+    Notification.objects.bulk_create([
+        Notification(
+            title="Finance access request",
+            message=f"{request.user.get_full_name() or request.user.username} requested finance access.",
+            severity=Notification.Severity.ALERT,
+            recipient=recipient,
+            created_by=request.user,
+        )
+        for recipient in recipients
+    ])
+
+    # Optional email/SMS alerts based on site notification channels
+    site = SiteSettings.get_solo()
+    channels = getattr(site, "notification_channels", []) or []
+    from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    if "email" in channels and from_email:
+        recipient_emails = [r.email for r in recipients if r.email]
+        if recipient_emails:
+            try:
+                send_mail(
+                    subject=subject,
+                    message=body,
+                    from_email=from_email,
+                    recipient_list=recipient_emails,
+                )
+            except Exception:
+                logger.exception("Failed to send finance access email notification.")
+
+    if "sms" in channels:
+        notifier = NotificationService()
+        for recipient in recipients:
+            phone = (
+                getattr(recipient, "phone", None)
+                or getattr(recipient, "phone_number", None)
+                or getattr(getattr(recipient, "profile", None), "phone", None)
+            )
+            if phone:
+                try:
+                    notifier.send_sms(phone, f"Finance access request from {request.user.get_full_name() or request.user.username}.")
+                except Exception:
+                    logger.exception("Failed to send finance access SMS notification.")
+
+    # Notify requesting guardian for confirmation if access already granted
+    if guardian_links.filter(can_view_finance=True).exists():
+        Notification.objects.create(
+            title="Finance access already enabled",
+            message="Finance access is already enabled for your linked students.",
+            severity=Notification.Severity.INFO,
+            recipient=request.user,
+            created_by=None,
+        )
+        Message.objects.create(
+            sender=request.user,
+            recipient=request.user,
+            subject="Finance access confirmation",
+            body="Finance access is already enabled for your linked students. You can view invoices now.",
+        )
+
+    messages.success(request, "Request sent to the admin/finance team.")
+    return redirect(request.META.get("HTTP_REFERER", reverse("finance:invoices")))
+
+
+@staff_member_required
+def finance_access_bulk(request: HttpRequest):
+    """
+    Staff page to bulk-grant guardian finance access by year/class with audit-friendly notifications.
+    """
+    from apps.academics.models import AcademicYear, Classroom
+    from apps.people.models import StudentGuardian
+
+    years = AcademicYear.objects.order_by("-start_date")
+    classrooms = Classroom.objects.select_related("academic_year").order_by("name")
+
+    selected_year = request.POST.get("year") or request.GET.get("year") or ""
+    selected_class = request.POST.get("classroom") or request.GET.get("classroom") or ""
+
+    guardians = StudentGuardian.objects.select_related("guardian_user", "student")
+    if selected_year:
+        guardians = guardians.filter(student__academic_year_id=selected_year)
+    if selected_class:
+        guardians = guardians.filter(student__classroom_id=selected_class)
+
+    pending_qs = guardians.filter(can_view_finance=False)
+    pending_count = pending_qs.count()
+    granted = 0
+
+    flags = _backend_flags()
+    site = SiteSettings.get_solo()
+    channels = getattr(site, "notification_channels", []) or []
+    from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    notifier = NotificationService()
+
+    if request.method == "POST":
+        with transaction.atomic():
+            granted = pending_qs.update(can_view_finance=True)
+
+        notifications = []
+        messages_out = []
+        if granted:
+            for link in pending_qs:
+                user = link.guardian_user
+                if not user:
+                    continue
+                notifications.append(Notification(
+                    title="Finance access granted",
+                    message=f"Finance access was enabled for {link.student}.",
+                    severity=Notification.Severity.INFO,
+                    recipient=user,
+                    created_by=request.user,
+                ))
+                messages_out.append(Message(
+                    sender=request.user,
+                    recipient=user,
+                    subject="Finance access granted",
+                    body=f"You can now view finance records for {link.student}.",
+                ))
+                if "sms" in channels:
+                    phone = (
+                        getattr(user, "phone", None)
+                        or getattr(user, "phone_number", None)
+                        or getattr(getattr(user, "profile", None), "phone", None)
+                    )
+                    if phone:
+                        try:
+                            notifier.send_sms(phone, f"Finance access granted for {link.student}.")
+                        except Exception:
+                            logger.exception("Failed to send finance access SMS.")
+                if "email" in channels and from_email and user.email:
+                    try:
+                        send_mail(
+                            subject="Finance access granted",
+                            message=f"You can now view finance records for {link.student}.",
+                            from_email=from_email,
+                            recipient_list=[user.email],
+                        )
+                    except Exception:
+                        logger.exception("Failed to send finance access email.")
+
+        if notifications:
+            Notification.objects.bulk_create(notifications)
+        if messages_out:
+            Message.objects.bulk_create(messages_out)
+
+        logger.info(
+            "Bulk finance access grant by %s: granted=%s pending_before=%s year=%s class=%s",
+            request.user,
+            granted,
+            pending_count,
+            selected_year,
+            selected_class,
+        )
+        messages.success(request, f"Granted finance access to {granted} guardian link(s).")
+        return redirect(request.path + f"?year={selected_year}&classroom={selected_class}")
+
+    context = {
+        "years": years,
+        "classrooms": classrooms,
+        "selected_year": selected_year,
+        "selected_class": selected_class,
+        "pending_count": pending_count,
+        "total_links": guardians.count(),
+        "require_opt_in": flags.get("require_guardian_finance_opt_in"),
+    }
+    return render(request, "finance/access_bulk.html", context)
 
 
 @staff_member_required

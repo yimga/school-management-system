@@ -5,6 +5,24 @@
 {% block content %}
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
+  {% if finance_access_required and not finance_access_granted %}
+  <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-shield-lock"></i>
+      <div>
+        Finance access is not yet enabled for your account. Once an admin grants access, invoices and payments will appear here.
+        <div class="small text-muted">Finance-enabled students: {{ finance_guardian_count|default:0 }}/{{ guardian_link_count|default:0 }}</div>
+      </div>
+    </div>
+    {% if can_request_finance_access %}
+    <form method="post" action="{{ finance_request_url }}" class="ms-md-auto">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-primary">Request finance access</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <div class="row g-3 mb-3">
     <div class="col-md-4">
       <div class="card h-100">

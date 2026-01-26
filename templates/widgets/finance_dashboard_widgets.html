@@ -1,6 +1,6 @@
 <div class="row g-3 mb-4">
   {% with summary=summary %}
-    <div class="col-sm-6 col-md-3">
+    <div class="col-sm-6 col-md-3" data-widget-id="finance-summary-receivables">
       <div class="card h-100 bg-gradient border-0 text-white" style="background:linear-gradient(135deg,#0d6efd,#198754);">
         <div class="card-body">
           <div class="text-white-50 small">Accounts receivable</div>
@@ -8,7 +8,7 @@
         </div>
       </div>
     </div>
-    <div class="col-sm-6 col-md-3">
+    <div class="col-sm-6 col-md-3" data-widget-id="finance-summary-payables">
       <div class="card h-100 bg-light border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Accounts payable</div>
@@ -16,7 +16,7 @@
         </div>
       </div>
     </div>
-    <div class="col-sm-6 col-md-3">
+    <div class="col-sm-6 col-md-3" data-widget-id="finance-summary-paid">
       <div class="card h-100 bg-light border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Paid (YTD)</div>
@@ -24,7 +24,7 @@
         </div>
       </div>
     </div>
-    <div class="col-sm-6 col-md-3">
+    <div class="col-sm-6 col-md-3" data-widget-id="finance-summary-overdue">
       <div class="card h-100 bg-light border-0 shadow-sm">
         <div class="card-body">
           <div class="text-muted small">Overdue invoices</div>
@@ -36,7 +36,7 @@
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-lg-6">
+  <div class="col-lg-6" data-widget-id="finance-status-counts">
     <div class="card h-100 border-0 shadow-sm">
       <div class="card-body">
         <h5 class="mb-3">Invoice status</h5>
@@ -55,7 +55,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-6">
+  <div class="col-lg-6" data-widget-id="finance-invoice-trend">
     <div class="card h-100 border-0 shadow-sm">
       <div class="card-body">
         <h5 class="mb-3">Recent invoice trend</h5>

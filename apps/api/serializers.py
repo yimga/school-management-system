@@ -1,15 +1,12 @@
 # apps/api/serializers.py
-"""
-Central serializers for all API endpoints
-Location: apps/api/serializers.py
-"""
-
-from rest_framework import serializers
+"""Shared serializers for API endpoints (CRUD + dashboard DTOs)."""
 from django.contrib.auth import get_user_model
-from apps.people.models import StudentProfile, TeacherProfile
-from apps.finance.models import Invoice, Payment
-from apps.academics.models import Attendance, ClassRoom
-from apps.communication.models import Message, Notification
+from rest_framework import serializers
+
+from apps.academics.models import Classroom
+from apps.communication.models import Message
+from apps.finance.models import Invoice, Notification, Payment
+from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 
 User = get_user_model()
 
@@ -40,37 +37,110 @@ class UserSerializer(serializers.ModelSerializer):
 # ==================== STUDENT SERIALIZERS ====================
 
 class StudentProfileSerializer(serializers.ModelSerializer):
-    """Student profile with user details"""
-    user = UserSerializer(read_only=True)
-    
+    """CRUD serializer for student profiles (frontend DTO)."""
+
     class Meta:
         model = StudentProfile
         fields = [
-            'id', 'user', 'student_id', 'current_class', 'date_of_birth',
-            'gender', 'is_active', 'admission_date'
+            "id",
+            "first_name",
+            "last_name",
+            "student_code",
+            "admission_number",
+            "gender",
+            "date_of_birth",
+            "place_of_birth",
+            "status",
+            "joined_term",
+            "joined_date",
+            "section",
+            "parent_phone",
+            "referral_code",
+            "academic_year",
+            "classroom",
+            "specialty",
+            "exam_candidate_number",
+            "exam_center_code",
+            "exam_system",
+            "is_active",
         ]
+        read_only_fields = ["student_code", "referral_code"]
+
+    def validate(self, attrs):
+        # Business rule example: if classroom provided, academic_year must be set.
+        classroom = attrs.get("classroom") or getattr(self.instance, "classroom", None)
+        year = attrs.get("academic_year") or getattr(self.instance, "academic_year", None)
+        if classroom and not year:
+            raise serializers.ValidationError("academic_year is required when classroom is set.")
+        return attrs
+
+
+class StudentGuardianSerializer(serializers.ModelSerializer):
+    """Serializer for guardian-student links (junction table)."""
+
+    class Meta:
+        model = StudentGuardian
+        fields = [
+            "id",
+            "guardian_user",
+            "student",
+            "relationship",
+            "phone",
+            "email",
+            "whatsapp_number",
+            "address",
+            "preferred_contact",
+            "receives_email",
+            "receives_sms",
+            "receives_whatsapp",
+            "can_view_results",
+            "can_view_finance",
+        ]
+
+    def validate_guardian_user(self, user):
+        if getattr(user, "role", "").upper() != "PARENT":
+            raise serializers.ValidationError("guardian_user must have role=PARENT.")
+        return user
 
 
 class StudentSimpleSerializer(serializers.ModelSerializer):
     """Simplified student info"""
-    full_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    full_name = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = StudentProfile
-        fields = ['id', 'student_id', 'full_name', 'current_class']
+        fields = ["id", "student_code", "full_name", "classroom", "specialty"]
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
 
 
 # ==================== TEACHER SERIALIZERS ====================
 
 class TeacherProfileSerializer(serializers.ModelSerializer):
-    """Teacher profile with user details"""
-    user = UserSerializer(read_only=True)
-    
+    """CRUD serializer for teachers (links to user)."""
+
     class Meta:
         model = TeacherProfile
         fields = [
-            'id', 'user', 'staff_id', 'subject', 'department',
-            'qualification', 'is_active', 'hire_date'
+            "id",
+            "user",
+            "staff_id",
+            "phone",
+            "department",
+            "position_title",
+            "reports_to",
+            "pay_grade",
+            "salary_amount",
+            "salary_cap",
+            "next_pay_date",
+            "payment_method",
+            "default_dashboard_view",
+            "allow_finance_panel",
+            "allow_paystub_access",
+            "allow_leave_approvals",
+            "mark_reminder_opt_in",
+            "is_active",
         ]
 
 
@@ -115,26 +185,39 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 # ==================== ACADEMIC SERIALIZERS ====================
 
-class AttendanceSerializer(serializers.ModelSerializer):
-    """Attendance record"""
-    student_name = serializers.CharField(source='student.user.get_full_name', read_only=True)
-    class_name = serializers.CharField(source='classroom.name', read_only=True)
-    
-    class Meta:
-        model = Attendance
-        fields = ['id', 'student', 'student_name', 'classroom', 'class_name', 'date', 'status']
+class AttendanceSerializer(serializers.Serializer):
+    """Lightweight serializer for attendance records (model-agnostic)."""
+
+    id = serializers.IntegerField(read_only=True)
+    student = serializers.IntegerField(source="student_id")
+    student_name = serializers.SerializerMethodField()
+    classroom = serializers.IntegerField(source="classroom_id")
+    class_name = serializers.SerializerMethodField()
+    date = serializers.DateField()
+    status = serializers.CharField()
+
+    def get_student_name(self, obj):
+        student = getattr(obj, "student", None)
+        first = getattr(student, "first_name", "") or getattr(getattr(student, "user", None), "first_name", "")
+        last = getattr(student, "last_name", "") or getattr(getattr(student, "user", None), "last_name", "")
+        return f"{first} {last}".strip()
+
+    def get_class_name(self, obj):
+        classroom = getattr(obj, "classroom", None)
+        return getattr(classroom, "name", None)
 
 
-class ClassRoomSerializer(serializers.ModelSerializer):
+class ClassroomSerializer(serializers.ModelSerializer):
     """Classroom/Class info"""
+
     student_count = serializers.SerializerMethodField()
-    
+
     class Meta:
-        model = ClassRoom
-        fields = ['id', 'name', 'code', 'level', 'capacity', 'student_count']
-    
+        model = Classroom
+        fields = ["id", "academic_year", "department", "name", "code", "allows_third_term", "student_count"]
+
     def get_student_count(self, obj):
-        return obj.student_set.filter(is_active=True).count()
+        return getattr(obj, "students", obj.student_set).filter(is_active=True).count()
 
 
 # ==================== COMMUNICATION SERIALIZERS ====================
@@ -144,8 +227,15 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = [
-            'id', 'title', 'message', 'type', 'category',
-            'is_read', 'created_at', 'link', 'priority'
+            "id",
+            "title",
+            "message",
+            "link",
+            "severity",
+            "is_read",
+            "created_at",
+            "recipient",
+            "created_by",
         ]
 
 

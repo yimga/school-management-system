@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
 from django.shortcuts import redirect, render
+from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
@@ -23,6 +24,38 @@ from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 
 from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
 from .models import AccessRole, Permission, User
+
+
+@permission_required("settings.manage")
+@user_passes_test(lambda u: u.is_authenticated and (u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN))
+def backend_entity_import(request):
+    """Admin-only page to stage CSV imports (students/guardians) against new APIs."""
+    site = SiteSettings.get_solo()
+    flags = getattr(site, "backend_feature_flags", {}) or {}
+    allowed_roles = [r.upper() for r in flags.get("allowed_roles_entity_import", [])]
+    if not flags.get("enable_entity_import", True):
+        return HttpResponseForbidden("Entity import is disabled by admin.")
+    if allowed_roles:
+        role = (getattr(request.user, "role", "") or "").upper()
+        if role not in allowed_roles and not (request.user.is_staff or request.user.is_superuser):
+            return HttpResponseForbidden("You are not allowed to access Entity Import.")
+    return render(request, "accounts/entity_import.html", {})
+
+
+@permission_required("settings.manage")
+@user_passes_test(lambda u: u.is_authenticated and (u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN))
+def backend_entity_console(request):
+    """Admin-only page for EntityForm/Table beta UI."""
+    site = SiteSettings.get_solo()
+    flags = getattr(site, "backend_feature_flags", {}) or {}
+    allowed_roles = [r.upper() for r in flags.get("allowed_roles_entity_console", [])]
+    if not flags.get("enable_entity_console", True):
+        return HttpResponseForbidden("Entity console is disabled by admin.")
+    if allowed_roles:
+        role = (getattr(request.user, "role", "") or "").upper()
+        if role not in allowed_roles and not (request.user.is_staff or request.user.is_superuser):
+            return HttpResponseForbidden("You are not allowed to access Entity Console.")
+    return render(request, "accounts/entity_console.html", {})
 
 
 def redirect_view(request):

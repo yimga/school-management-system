@@ -43,6 +43,7 @@ from apps.siteconfig.models import (
     default_portal_features,
     resolve_dashboard_widgets,
     filter_portal_items,
+    default_backend_feature_flags,
 )
 from apps.analytics.services import (
     student_improvements,
@@ -244,28 +245,45 @@ def parent_dashboard(request: HttpRequest):
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_finance(request: HttpRequest):
-    links = guardian_student_links(request.user, finance_only=True)
+    all_links = guardian_student_links(request.user)
+    finance_links = guardian_student_links(request.user, finance_only=True)
 
-    if not links:
+    if not all_links.exists():
         messages.info(request, "Link a student first to view finance details.")
         return redirect("portal:link_child")
 
-    students = guardian_students(request.user, finance_only=True)
-    invoices_qs = (
-        Invoice.objects.filter(student__in=students)
-        .exclude(status=Invoice.Status.DRAFT)
-        .select_related("student", "academic_year")
-        .prefetch_related("payments")
-        .order_by("-issued_date")
-    )
-    aggregates = invoices_qs.aggregate(
-        total_due=Sum("total_amount"),
-        balance=Sum("balance_amount"),
-    )
+    flags = {**default_backend_feature_flags(), **(SiteSettings.get_solo().backend_feature_flags or {})}
+    require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
+    finance_link_count = finance_links.count()
+    guardian_link_count = all_links.count()
+    finance_access_granted = finance_link_count > 0
+    can_request_finance_access = require_finance_opt_in and guardian_link_count > finance_link_count
+    finance_request_url = reverse("finance:finance_request_access")
+    links = finance_links if (finance_access_granted or not require_finance_opt_in) else all_links
+
+    if require_finance_opt_in and not finance_access_granted:
+        students = []
+        invoices_qs = Invoice.objects.none()
+        aggregates = {"total_due": Decimal("0.00"), "balance": Decimal("0.00")}
+        overdue_count = 0
+    else:
+        students = guardian_students(request.user, finance_only=True)
+        invoices_qs = (
+            Invoice.objects.filter(student__in=students)
+            .exclude(status=Invoice.Status.DRAFT)
+            .select_related("student", "academic_year")
+            .prefetch_related("payments")
+            .order_by("-issued_date")
+        )
+        aggregates = invoices_qs.aggregate(
+            total_due=Sum("total_amount"),
+            balance=Sum("balance_amount"),
+        )
+        overdue_count = invoices_qs.filter(status=Invoice.Status.OVERDUE).count()
+
     total_due = aggregates.get("total_due") or Decimal("0.00")
     balance = aggregates.get("balance") or Decimal("0.00")
     paid = total_due - balance
-    overdue_count = invoices_qs.filter(status=Invoice.Status.OVERDUE).count()
 
     payment_method_counts = Counter()
     invoice_rows = []
@@ -335,6 +353,12 @@ def parent_finance(request: HttpRequest):
             "payment_method_summary": payment_method_summary,
             "referral_total": referral_total,
             "referral_pending": referral_pending,
+            "finance_access_required": require_finance_opt_in,
+            "finance_access_granted": finance_access_granted,
+            "guardian_link_count": guardian_link_count,
+            "finance_guardian_count": finance_link_count,
+            "can_request_finance_access": can_request_finance_access,
+            "finance_request_url": finance_request_url,
         },
     )
 

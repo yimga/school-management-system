@@ -163,6 +163,7 @@ class ParentDashboardAPI(View):
         try:
             from apps.people.models import StudentGuardian
             from apps.finance.models import Invoice, Payment
+            from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
             
             # Get parent's children
             children = StudentGuardian.objects.filter(
@@ -172,6 +173,9 @@ class ParentDashboardAPI(View):
             ).values_list('student_id', flat=True)
             
             children_count = len(children)
+
+            flags = {**default_backend_feature_flags(), **(getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {})}
+            require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
 
             finance_children = StudentGuardian.objects.filter(
                 guardian_user=request.user,
@@ -199,6 +203,8 @@ class ParentDashboardAPI(View):
             
             return JsonResponse({
                 'children_count': children_count,
+                'finance_access_required': require_finance_opt_in,
+                'finance_access_granted': len(finance_children),
                 'total_pending_fees': float(pending_fees),
                 'messages_unread': unread_messages,
                 'upcoming_events': 0,  # Implement based on your event model

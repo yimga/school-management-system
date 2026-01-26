@@ -19,6 +19,7 @@ from apps.evals.models import Evaluation, AssessmentWeights
 from apps.evals.services import completion_for_assignment
 from apps.finance.models import Invoice, PaymentReminder, ReferralReward
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
+from apps.accounts.permissions import _guardian_finance_qs
 from apps.evals.models import TeacherAssignment
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
@@ -35,7 +36,8 @@ def guardian_student_links(user: User, finance_only: bool = False, results_only:
     """
     qs = StudentGuardian.objects.filter(guardian_user=user)
     if finance_only:
-        qs = qs.filter(can_view_finance=True)
+        # Respect the site-level finance opt-in toggle; when disabled, all guardian links apply.
+        qs = _guardian_finance_qs(user)
     if results_only:
         qs = qs.filter(can_view_results=True)
     return qs.select_related(
@@ -107,6 +109,8 @@ def _serialize_thread(thread: MessageThread, user: User):
     last_read_at = last_read.last_read_at if last_read else None
     recent_msgs = list(thread.messages.filter(is_deleted=False).order_by("-created_at")[:5])
     latest = recent_msgs[0] if recent_msgs else None
+    annotated_latest = getattr(thread, "latest_msg_at", None)
+    effective_latest = annotated_latest or thread.last_message_at or (latest.created_at if latest else thread.updated_at)
     if last_read_at:
         unread_count = thread.messages.filter(is_deleted=False, created_at__gt=last_read_at).count()
     else:
@@ -114,7 +118,7 @@ def _serialize_thread(thread: MessageThread, user: User):
     return {
         "title": thread.title,
         "description": thread.description,
-        "last_message_at": thread.last_message_at or (latest.created_at if latest else thread.updated_at),
+        "last_message_at": effective_latest,
         "unread_count": unread_count,
         "snippet": latest.content if latest else "",
         "scope": thread.scope,
@@ -130,8 +134,8 @@ def class_threads_for_parent(user: User, limit: int = 4):
     threads = (
         MessageThread.objects.filter(members=user, is_archived=False)
         .prefetch_related("members")
-        .annotate(latest_message_at=Max("messages__created_at"))
-        .order_by(F("latest_message_at").desc(nulls_last=True), "-updated_at")[:limit]
+        .annotate(latest_msg_at=Max("messages__created_at"))
+        .order_by(F("latest_msg_at").desc(nulls_last=True), "-updated_at")[:limit]
     )
     return [_serialize_thread(t, user) for t in threads]
 
@@ -143,8 +147,8 @@ def class_threads_for_teacher(user: User, limit: int = 6):
     threads = (
         MessageThread.objects.filter(members=user, is_archived=False)
         .prefetch_related("members")
-        .annotate(latest_message_at=Max("messages__created_at"))
-        .order_by(F("latest_message_at").desc(nulls_last=True), "-updated_at")[:limit]
+        .annotate(latest_msg_at=Max("messages__created_at"))
+        .order_by(F("latest_msg_at").desc(nulls_last=True), "-updated_at")[:limit]
     )
     return [_serialize_thread(t, user) for t in threads]
 
