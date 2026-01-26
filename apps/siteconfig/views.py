@@ -6,14 +6,16 @@ import logging
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile
-from apps.reports.services import term_report_context
+from apps.reports.models import ReportCard
+from apps.reports.services import annual_report_context, term_report_context
+from apps.reports.weasy import render_pdf
 
 from types import SimpleNamespace
 
@@ -41,6 +43,7 @@ logger = logging.getLogger(__name__)
 
 CACHE_KEY = "site_settings_v1"
 SESSION_KEY = "site_preview_settings"
+PORTAL_PREF_PREVIOUS_PAGE = "portal_pref_previous_page"
 
 
 def maintenance_view(request):
@@ -66,11 +69,14 @@ def customizer(request):
 def reportcard_builder(request):
     settings_obj = SiteSettings.get_solo()
     styles = ReportCardStyle.objects.order_by("name")
-    assignments = (
+    assignments = list(
         ReportCardStyleAssignment.objects
         .select_related("classroom", "style")
         .order_by("classroom__name")
     )
+    for assignment in assignments:
+        sample = StudentProfile.objects.filter(classroom=assignment.classroom, is_active=True).order_by("last_name", "first_name").first()
+        assignment.sample_student = sample
     style_form = ReportCardStyleForm(request.POST or None, prefix="style")
     assignment_form = ReportCardStyleAssignmentForm(request.POST or None, prefix="assign")
     selection_form = ReportCardStyleSelectionForm(
@@ -119,15 +125,66 @@ class _PreviewTerm(SimpleNamespace):
         return getattr(self, "name", "First term")
 
 
+def _mock_preview_student():
+    return SimpleNamespace(
+        id=0,
+        last_name="Sample",
+        first_name="Learner",
+        student_code="00SAMPLE",
+        classroom=SimpleNamespace(name="Form One"),
+        specialty=SimpleNamespace(name="Carpentry"),
+    )
+
+
+def _preview_student_queryset():
+    return StudentProfile.objects.filter(is_active=True).select_related("classroom", "specialty")
+
+
+def _resolve_preview_student(request):
+    student_id = request.GET.get("student_id")
+    queryset = _preview_student_queryset()
+    if student_id:
+        try:
+            student = queryset.filter(id=int(student_id)).first()
+            if student:
+                return student
+        except ValueError:
+            pass
+    return queryset.first() or _mock_preview_student()
+
+
+def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, student):
+    site = SiteSettings.get_solo()
+    metadata = _build_style_metadata(site)
+    year, term = get_active_year_and_term()
+    context = {
+        "report_style": style,
+        "metadata": metadata,
+        "generated_at": timezone.now(),
+        "preview_mode": True,
+        "student": student,
+        "student_name": f"{student.last_name} {student.first_name}",
+    }
+    if report_type == ReportCard.Type.TERM and year and term:
+        term_ctx = term_report_context(student, year, term)
+        context.update(term_ctx)
+        context.update({"year": year, "term": term})
+    else:
+        annual_ctx = annual_report_context(student, year) if year else {"term_rows": [], "annual_average": None}
+        context.update(annual_ctx)
+        context.update({"year": year})
+    return context
+
+
 @permission_required("settings.manage")
 def reportcard_style_preview(request, slug: str):
     style = get_object_or_404(ReportCardStyle, slug=slug)
     site = SiteSettings.get_solo()
     year, term = get_active_year_and_term()
-    student = StudentProfile.objects.filter(is_active=True).select_related("classroom", "specialty").first()
+    student = _resolve_preview_student(request)
     metadata = _build_style_metadata(site)
 
-    if student and year and term:
+    if year and term:
         base_ctx = term_report_context(student, year, term)
         rows = base_ctx["rows"][:6]
         summary = base_ctx["summary"]
@@ -137,13 +194,7 @@ def reportcard_style_preview(request, slug: str):
         year_obj = year
         term_obj = term
     else:
-        student_obj = SimpleNamespace(
-            last_name="Sample",
-            first_name="Learner",
-            classroom=SimpleNamespace(name="Form One"),
-            specialty=SimpleNamespace(name="Carpentry"),
-            student_code="00SAMPLE",
-        )
+        student_obj = _mock_preview_student()
         student_name = f"{student_obj.last_name} {student_obj.first_name}"
         year_obj = SimpleNamespace(name="2025/2026")
         term_obj = _PreviewTerm(name="First Term")
@@ -180,6 +231,20 @@ def reportcard_style_preview(request, slug: str):
         "preview_mode": True,
     }
     return render(request, "siteconfig/reportcard_style_preview.html", context)
+
+
+@permission_required("settings.manage")
+def reportcard_style_pdf(request, slug: str, report_type: str):
+    style = get_object_or_404(ReportCardStyle, slug=slug)
+    report_type = report_type.upper()
+    if report_type not in ReportCard.Type.values:
+        return HttpResponseBadRequest("Unknown report type.")
+
+    student = _resolve_preview_student(request) or _sample_preview_student()
+    context = _build_report_context_for_pdf(style, report_type, student)
+    template_name = style.template_for(report_type)
+    filename = f"{report_type.lower()}_preview_{style.slug}.pdf"
+    return render_pdf(request, template_name, context, filename=filename)
 @permission_required("settings.manage")
 def clear_preview(request):
     request.session.pop(SESSION_KEY, None)
@@ -191,6 +256,13 @@ def clear_preview(request):
 def user_preferences(request):
     preference, _ = UserPreference.objects.get_or_create(user=request.user)
 
+    if request.method == "GET":
+        previous = request.GET.get("next") or request.META.get("HTTP_REFERER")
+        if previous:
+            normalized = previous.split("?")[0]
+            if "/siteconfig/preferences" not in normalized and "/siteconfig/user_preferences" not in normalized:
+                request.session[PORTAL_PREF_PREVIOUS_PAGE] = previous
+
     if request.method == "POST":
         form = UserPreferenceForm(request.POST, instance=preference, user=request.user)
         if form.is_valid():
@@ -201,7 +273,23 @@ def user_preferences(request):
     else:
         form = UserPreferenceForm(instance=preference, user=request.user)
 
-    return render(request, "siteconfig/user_preferences.html", {"form": form})
+    next_page = (
+        request.GET.get("next")
+        or request.session.pop(PORTAL_PREF_PREVIOUS_PAGE, None)
+        or request.META.get("HTTP_REFERER")
+        or reverse("accounts:redirect")
+    )
+    if next_page and ("/siteconfig/preferences" in next_page or "/siteconfig/user_preferences" in next_page):
+        next_page = reverse("accounts:redirect")
+
+    return render(
+        request,
+        "siteconfig/user_preferences.html",
+        {
+            "form": form,
+            "previous_page": next_page,
+        },
+    )
 
 
 @permission_required("settings.manage")

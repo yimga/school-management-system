@@ -26,12 +26,15 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils.safestring import mark_safe
 
 from django.template.loader import render_to_string
 
 from apps.academics.models import AcademicYear
 from apps.payroll.models import Payslip
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
+from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.evals.notifications import NotificationService
 
 from .forms import ReportRequestForm
@@ -41,6 +44,7 @@ from .models import (
     Invoice,
     LedgerAccount,
     Notification,
+    FinanceRequestAudit,
     Payment,
     PaymentMethod,
     ReportRequest,
@@ -104,6 +108,38 @@ def _finance_access_state(user) -> dict:
     }
 
 
+def _log_finance_request_audit(notification: Notification | None, user, action: str, details: str = "") -> None:
+    if not notification:
+        return
+    FinanceRequestAudit.objects.create(
+        notification=notification,
+        user=user,
+        action=action,
+        details=details or "",
+    )
+
+
+def _create_finance_request_notification(
+    recipient,
+    *,
+    title: str,
+    message: str,
+    severity: str,
+    created_by,
+    action: str,
+    details: str = "",
+) -> Notification:
+    notif = Notification.objects.create(
+        title=title,
+        message=message,
+        severity=severity,
+        recipient=recipient,
+        created_by=created_by,
+    )
+    _log_finance_request_audit(notif, created_by, action, details)
+    return notif
+
+
 @staff_member_required
 def dashboard(request: HttpRequest):
     profile = _active_profile()
@@ -127,11 +163,40 @@ def dashboard(request: HttpRequest):
             {"label": "Payments", "url": "/finance/payments/"},
         ],
     }
-    return render(request, "finance/dashboard.html", {
+    dashboard_settings = load_dashboard_layout_settings(request.user, "finance")
+    allow_custom_layout = _can_customize(request.user)
+    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "finance"})
+    available_sidebar_items = [
+        {"id": "finance-home", "label": "Finance Home", "url": reverse("finance:dashboard"), "icon": "bi-cash-stack"},
+        {"id": "finance-invoices", "label": "Invoices", "url": reverse("finance:invoices"), "icon": "bi-receipt"},
+        {"id": "finance-payments", "label": "Payments", "url": reverse("finance:payments"), "icon": "bi-wallet2"},
+        {"id": "finance-trial", "label": "Trial Balance", "url": reverse("finance:trial_balance"), "icon": "bi-bank"},
+        {"id": "finance-reports", "label": "Reports", "url": reverse("finance:reports"), "icon": "bi-graph-up-arrow"},
+    ]
+    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
+    finance_requests_qs = Notification.objects.filter(
+        recipient=request.user,
+        title__icontains="finance access request",
+        is_read=False,
+    ).order_by("-created_at")
+    finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+
+    context = {
         "profile": profile,
         "hero": hero,
         **dashboard_data,
+    }
+    context.update({
+        "allow_custom_layout": allow_custom_layout,
+        "dashboard_settings": dashboard_settings,
+        "dashboard_layout_url": dashboard_layout_url,
+        "available_sidebar_items": available_sidebar_items,
+        "widget_meta_json": widget_meta_json,
+        "finance_requests_count": finance_requests_qs.count(),
+        "finance_request_notifications": finance_requests_qs[:5],
+        "finance_request_link": finance_request_link,
     })
+    return render(request, "finance/dashboard.html", context)
 
 
 @login_required
@@ -399,19 +464,20 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
         channels = getattr(site, "notification_channels", []) or []
         from_email = getattr(site, "email_from_address", None) or getattr(settings, "DEFAULT_FROM_EMAIL", None)
 
-        notifications = []
         messages_out = []
         for link in guardians:
             user = link.guardian_user
             if not user:
                 continue
-            notifications.append(Notification(
+            _create_finance_request_notification(
+                user,
                 title="Finance access granted",
                 message=f"Finance access was enabled for {student}.",
                 severity=Notification.Severity.INFO,
-                recipient=user,
                 created_by=request.user,
-            ))
+                action="grant_access",
+                details=f"Auto-granted finance visibility for {student}.",
+            )
             messages_out.append(Message(
                 sender=request.user,
                 recipient=user,
@@ -440,8 +506,6 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
                 except Exception:
                     logger.exception("Failed to send finance access email.")
 
-        if notifications:
-            Notification.objects.bulk_create(notifications)
         if messages_out:
             Message.objects.bulk_create(messages_out)
 
@@ -503,16 +567,21 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
     ]
     Message.objects.bulk_create(messages_created)
 
-    Notification.objects.bulk_create([
-        Notification(
+    request_details = (
+        f"Students: {student_names or 'None'}; "
+        f"Invoice: {invoice_ref or 'N/A'}; "
+        f"Opt-in required: {'Yes' if flags.get('require_guardian_finance_opt_in') else 'No'}"
+    )
+    for recipient in recipients:
+        _create_finance_request_notification(
+            recipient,
             title="Finance access request",
             message=f"{request.user.get_full_name() or request.user.username} requested finance access.",
             severity=Notification.Severity.ALERT,
-            recipient=recipient,
             created_by=request.user,
+            action="request_sent",
+            details=request_details,
         )
-        for recipient in recipients
-    ])
 
     # Optional email/SMS alerts based on site notification channels
     site = SiteSettings.get_solo()
@@ -547,12 +616,14 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
 
     # Notify requesting guardian for confirmation if access already granted
     if guardian_links.filter(can_view_finance=True).exists():
-        Notification.objects.create(
+        _create_finance_request_notification(
+            request.user,
             title="Finance access already enabled",
             message="Finance access is already enabled for your linked students.",
             severity=Notification.Severity.INFO,
-            recipient=request.user,
             created_by=None,
+            action="info_already_enabled",
+            details=f"Existing access for {student_names or 'linked students'}.",
         )
         Message.objects.create(
             sender=request.user,
@@ -599,20 +670,21 @@ def finance_access_bulk(request: HttpRequest):
         with transaction.atomic():
             granted = pending_qs.update(can_view_finance=True)
 
-        notifications = []
         messages_out = []
         if granted:
             for link in pending_qs:
                 user = link.guardian_user
                 if not user:
                     continue
-                notifications.append(Notification(
+                _create_finance_request_notification(
+                    user,
                     title="Finance access granted",
                     message=f"Finance access was enabled for {link.student}.",
                     severity=Notification.Severity.INFO,
-                    recipient=user,
                     created_by=request.user,
-                ))
+                    action="grant_access_bulk",
+                    details=f"Bulk access granted for {link.student}.",
+                )
                 messages_out.append(Message(
                     sender=request.user,
                     recipient=user,
@@ -641,8 +713,6 @@ def finance_access_bulk(request: HttpRequest):
                     except Exception:
                         logger.exception("Failed to send finance access email.")
 
-        if notifications:
-            Notification.objects.bulk_create(notifications)
         if messages_out:
             Message.objects.bulk_create(messages_out)
 
@@ -1029,4 +1099,36 @@ def notifications(request: HttpRequest):
     ).order_by("-created_at")[:25]
     return render(request, "finance/notifications.html", {
         "alerts": alerts,
+    })
+
+
+@staff_member_required
+def finance_requests(request: HttpRequest):
+    notifications_qs = Notification.objects.filter(
+        recipient=request.user,
+        title__icontains="finance access request",
+    ).order_by("-created_at")
+
+    if request.method == "POST":
+        selected = request.POST.getlist("notification_id")
+        if selected:
+            targets = list(notifications_qs.filter(id__in=selected))
+            if targets:
+                Notification.objects.filter(id__in=[n.id for n in targets]).update(is_read=True)
+                for notif in targets:
+                    FinanceRequestAudit.objects.create(
+                        notification=notif,
+                        user=request.user,
+                        action="marked_read",
+                        details="Marked read from finance requests dashboard.",
+                    )
+                messages.success(request, f"Marked {len(targets)} finance request(s) as read.")
+        return redirect("finance:requests")
+
+    return render(request, "finance/requests.html", {
+        "notifications": notifications_qs,
+        "unread_count": notifications_qs.filter(is_read=False).count(),
+        "finance_request_audits": list(
+            FinanceRequestAudit.objects.select_related("notification", "user").order_by("-created_at")[:25]
+        ),
     })

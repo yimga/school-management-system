@@ -1,0 +1,115 @@
+{% extends "portal_base.html" %}
+{% block title %}Finance Access Requests{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Finance access requests</h2>
+    <p class="text-muted small mb-0">Review guardian requests and acknowledge them with a single action.</p>
+  </div>
+  <div class="badge bg-warning text-dark">Unread {{ unread_count }}</div>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      {% if notifications %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Details</th>
+                <th scope="col">Status</th>
+                <th scope="col">Received</th>
+                <th scope="col">Mark read</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for notif in notifications %}
+                <tr class="{% if not notif.is_read %}table-warning{% endif %}">
+                  <th scope="row">{{ forloop.counter }}</th>
+                  <td>
+                    <strong>{{ notif.title }}</strong>
+                    <div class="small text-muted">{{ notif.message|linebreaksbr }}</div>
+                  </td>
+                  <td>
+                    {% if notif.is_read %}
+                      <span class="badge bg-success">Read</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">Unread</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ notif.created_at|date:"M j, H:i" }}</td>
+                  <td>
+                    {% if not notif.is_read %}
+                      <input type="checkbox" name="notification_id" value="{{ notif.id }}" aria-label="Mark notification read">
+                    {% else %}
+                      <span class="text-muted small">Already read</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info mb-0">
+          No finance access requests at the moment.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="d-flex justify-content-between align-items-center">
+    <div class="form-text text-muted">Select requests and click “Mark read” to archive them.</div>
+    <button type="submit" class="btn btn-primary" {% if unread_count == 0 %}disabled{% endif %}>Mark read</button>
+  </div>
+</form>
+{% if finance_request_audits %}
+  <div class="card shadow-sm mt-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="mb-0">Finance request audit trail</h5>
+          <p class="text-muted small mb-0">Track who touched each notification and when.</p>
+        </div>
+        <span class="badge bg-info text-dark">{{ finance_request_audits|length }} records</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th scope="col">Action</th>
+              <th scope="col">User</th>
+              <th scope="col">Details</th>
+              <th scope="col">Notification</th>
+              <th scope="col">When</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for audit in finance_request_audits %}
+              <tr>
+                <td class="text-uppercase small">{{ audit.action }}</td>
+                <td>
+                  {% if audit.user %}
+                    {{ audit.user.get_full_name|default:audit.user.username }}
+                  {% else %}
+                    System
+                  {% endif %}
+                </td>
+                <td class="text-muted small">{{ audit.details|default:"-"|truncatechars:90 }}</td>
+                <td>
+                  <strong>{{ audit.notification.title }}</strong>
+                  <div class="small text-muted">{{ audit.notification.message|truncatechars:90 }}</div>
+                </td>
+                <td class="text-muted small">{{ audit.created_at|date:"M j, H:i" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

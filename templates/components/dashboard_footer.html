@@ -49,8 +49,10 @@
             <a href="{% url 'evals:teacher_dashboard' %}"><i class="bi bi-mortarboard"></i> Teacher Portal</a>
             <a href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pen"></i> Marks Entry</a>
           {% endif %}
-          {% if request.user|has_role:"PARENT" and can_finance_view or request.user|has_role:"PARENT" and can_finance_manage %}
-            <a href="{% url 'finance:invoices' %}"><i class="bi bi-receipt"></i> Invoices</a>
+          {% if request.user|has_role:"PARENT" %}
+            {% if can_finance_view or can_finance_manage %}
+              <a href="{% url 'finance:invoices' %}"><i class="bi bi-receipt"></i> Invoices</a>
+            {% endif %}
           {% endif %}
           {% if can_reports and not request.user|has_role:"PARENT" %}
             <a href="{% url 'accounts:backend_dashboard' %}#reports"><i class="bi bi-graph-up"></i> Reports</a>
@@ -71,15 +73,13 @@
           {% if SITE.footer_links %}
             {% for item in SITE.footer_links %}
               {% if item.enabled|default:True %}
-              {% with user_role=request.user.role|default_if_none:''|upper %}
-                {% if not item.roles or user_role in item.roles %}
+                {% if not item.roles or request.user.role|default_if_none:''|upper in item.roles %}
                   {% if item.url %}
                     <a href="{{ item.url }}"><i class="bi bi-link-45deg"></i> {{ item.label }}</a>
                   {% else %}
                     <span class="muted-link"><i class="bi bi-dot"></i> {{ item.label }}</span>
                   {% endif %}
                 {% endif %}
-                {% endwith %}
               {% endif %}
             {% endfor %}
           {% endif %}

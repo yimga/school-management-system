@@ -9,7 +9,7 @@ Includes:
 import hashlib
 import hmac
 import logging
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from functools import wraps
 from typing import Optional
 
@@ -193,6 +193,67 @@ class PaymentValidator:
             return False, f"Amount exceeds maximum limit: {amount_decimal}"
         
         return True, None
+
+    @staticmethod
+    def validate_against_invoice(
+        amount: Decimal,
+        invoice_total: Decimal,
+        invoice_paid: Decimal,
+    ) -> tuple[bool, Optional[str]]:
+        return FraudDetector.validate_against_invoice(amount, invoice_total, invoice_paid)
+
+    @staticmethod
+    def validate_reference(reference: str, max_length: int = 128) -> tuple[bool, Optional[str]]:
+        return FraudDetector.validate_reference(reference, max_length)
+
+
+
+class FraudDetector:
+    """
+    Lightweight fraud detection that scores payments based on known risk patterns.
+
+    Patterns include amount, velocity, geographic anomalies, and new cards.
+    Scores are capped at 100 to keep thresholds easy to reason about.
+    """
+
+    AMOUNT_THRESHOLD = Decimal("100000")
+    MAX_SCORE = 100
+    SCORE_WEIGHTS = {
+        "amount": 40,
+        "high_velocity": 20,
+        "geographic_anomaly": 20,
+        "new_card": 20,
+    }
+
+    @classmethod
+    def check_amount_risk(cls, amount) -> bool:
+        """Flag payments whose amount exceeds the configured threshold."""
+        if amount is None:
+            return False
+
+        try:
+            amount_decimal = Decimal(str(amount))
+        except (InvalidOperation, TypeError, ValueError):
+            return False
+
+        return amount_decimal >= cls.AMOUNT_THRESHOLD
+
+    @classmethod
+    def calculate_fraud_score(cls, payment_data: dict) -> int:
+        """
+        Score a payment request based on individual risk drivers.
+        Each flagged pattern adds a chunk of the total score until we hit MAX_SCORE.
+        """
+        score = 0
+
+        if cls.check_amount_risk(payment_data.get("amount")):
+            score += cls.SCORE_WEIGHTS["amount"]
+
+        for flag in ("high_velocity", "geographic_anomaly", "new_card"):
+            if payment_data.get(flag):
+                score += cls.SCORE_WEIGHTS[flag]
+
+        return min(score, cls.MAX_SCORE)
 
     @staticmethod
     def validate_against_invoice(

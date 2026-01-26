@@ -8,9 +8,11 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.safestring import mark_safe
+import json
 from django_ratelimit.decorators import ratelimit
 from config.admin import admin_site
-from apps.finance.models import Invoice, ReferralReward, PaymentReminder
+from apps.finance.models import Invoice, ReferralReward, PaymentReminder, Notification as FinanceNotification
 from apps.finance.services import finance_dashboard_data
 from apps.portal.models import PendingGuardianInvite
 from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance
@@ -21,6 +23,8 @@ from apps.portal.services import link_guardian_via_invite
 from apps.accounts.decorators import permission_required
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
+from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 
 from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
 from .models import AccessRole, Permission, User
@@ -312,6 +316,14 @@ def backend_dashboard(request):
     avg_weekly_present = attendance_trend_total / 7 if attendance_trend else 0
     ai_insight = f"Average daily presence last week: {avg_weekly_present:.0f} students."
 
+    finance_access_banner = {
+        "text": "Finance dashboards highlight overdue invoices and fee reminders.",
+        "summary": f"{stats['overdue_invoices']} overdue invoices tracked.",
+        "level": "info",
+        "request_url": None,
+        "cta": None,
+    }
+
     reminders_qs = (
         PaymentReminder.objects.select_related("invoice__student")
         .filter(is_active=True)
@@ -383,20 +395,20 @@ def backend_dashboard(request):
             or role_upper in {"ADMIN", "LEADERSHIP", "IT_ADMIN", "TEACHER", "PARENT"}
         )
     )
-    from apps.siteconfig.models_dashboard import DashboardUserPreference
-    preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
-    pref_layout = preferences.dashboard_layout or {}
-    dashboard_settings = pref_layout.get("__settings__", {}) or {}
-    dashboard_settings.setdefault("show_sidebar", False)
-    dashboard_settings.setdefault("sidebar_items", [])
-    dashboard_settings.setdefault("tile_variant", "default")
-    dashboard_settings.setdefault("custom_links", [])
+    dashboard_settings = load_dashboard_layout_settings(request.user, "backend")
     available_sidebar_items = [
         {"id": "admin", "label": "Admin Panel", "url": reverse("admin:index"), "icon": "bi-grid"},
         {"id": "finance", "label": "Finance Dashboard", "url": reverse("finance:dashboard"), "icon": "bi-cash-stack"},
         {"id": "portal", "label": "Parent Portal", "url": reverse("portal:parent_dashboard"), "icon": "bi-people"},
         {"id": "settings", "label": "Preferences", "url": reverse("siteconfig:user_preferences"), "icon": "bi-sliders"},
     ]
+    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "backend"})
+    finance_requests_qs = FinanceNotification.objects.filter(
+        recipient=request.user,
+        title__icontains="finance access request",
+        is_read=False,
+    ).order_by("-created_at")
+    finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
     context = {
         "site": site,
         "stats": stats,
@@ -431,7 +443,13 @@ def backend_dashboard(request):
         "app_list": app_context.get("available_apps", []),
         "allow_custom_layout": allow_custom_layout,
         "dashboard_settings": dashboard_settings,
+        "dashboard_layout_url": dashboard_layout_url,
         "available_sidebar_items": available_sidebar_items,
+        "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
+        "finance_requests_count": finance_requests_qs.count(),
+        "finance_request_notifications": finance_requests_qs[:5],
+        "finance_request_link": finance_request_link,
+        "finance_access_banner": finance_access_banner,
     }
     return render(request, "accounts/backend_dashboard.html", context)
 

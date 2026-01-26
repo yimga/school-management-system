@@ -8,6 +8,8 @@ import io
 from decimal import Decimal
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.safestring import mark_safe
+import json
 
 from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
@@ -33,6 +35,10 @@ from apps.portal.services import (
     class_threads_for_teacher,
 )
 from apps.siteconfig.models import resolve_dashboard_widgets, SiteSettings, default_backend_feature_flags
+from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
+from apps.siteconfig.dashboard_views import _can_customize
+from apps.finance.models import Notification
 
 
 def _required_fields(academic_year, classroom, term):
@@ -229,6 +235,33 @@ def teacher_dashboard(request: HttpRequest):
         )
     else:
         finance_banner = "Parent finance access is open (no opt-in required)."
+    finance_summary = (
+        f"{widget_data['finance']['total_due']} total due • {widget_data['finance']['paid']} paid"
+        if widget_data["finance"].get("total_due")
+        else "Finance metrics will appear once invoices are issued."
+    )
+    finance_access_banner = {
+        "text": finance_banner,
+        "summary": finance_summary,
+        "level": "info",
+        "request_url": None,
+        "cta": None,
+    }
+    finance_requests_qs = Notification.objects.filter(
+        recipient=request.user,
+        title__icontains="finance access request",
+    ).order_by("-created_at")
+    finance_request_link = reverse("finance:requests")
+
+    dashboard_settings = load_dashboard_layout_settings(request.user, "teacher")
+    available_sidebar_items = [
+        {"id": "teacher-home", "label": "Teacher hub", "url": reverse("portal:teacher_dashboard"), "icon": "bi-person-lines-fill"},
+        {"id": "teacher-attendance", "label": "Attendance", "url": reverse("portal:teacher_attendance"), "icon": "bi-calendar-check"},
+        {"id": "teacher-pay", "label": "Pay history", "url": reverse("portal:teacher_pay_history"), "icon": "bi-wallet2"},
+        {"id": "teacher-syllabus", "label": "Syllabus", "url": reverse("portal:portal_syllabus"), "icon": "bi-journal-text"},
+    ]
+    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "teacher"})
+    allow_custom_layout = _can_customize(request.user)
 
     return render(request, "teacher/dashboard.html", {
         "year": year,
@@ -246,6 +279,15 @@ def teacher_dashboard(request: HttpRequest):
         "team_peers": peers,
         "team_department": getattr(teacher_profile, "department", None),
         "finance_access_message": finance_banner,
+        "finance_access_banner": finance_access_banner,
+        "allow_custom_layout": allow_custom_layout,
+        "dashboard_settings": dashboard_settings,
+        "dashboard_layout_url": dashboard_layout_url,
+        "available_sidebar_items": available_sidebar_items,
+        "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
+        "finance_requests_count": finance_requests_qs.count(),
+        "finance_request_notifications": finance_requests_qs[:5],
+        "finance_request_link": finance_request_link,
     })
 
 @teacher_portal_required

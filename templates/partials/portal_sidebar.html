@@ -373,8 +373,8 @@
     <a class="nav-link nav-pill" href="/admin/accounts/user/{{ request.user.id }}/change/">
       <i class="bi bi-person me-2"></i>My Profile
     </a>
-    <a class="nav-link nav-pill" href="{% url 'siteconfig:customizer' %}">
-      <i class="bi bi-gear me-2"></i>Settings
+    <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}">
+      <i class="bi bi-sliders me-2"></i>Portal Preferences
     </a>
     <a class="nav-link nav-pill" href="#">
       <i class="bi bi-bell me-2"></i>Notifications
@@ -436,6 +436,26 @@
       <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}">
         <i class="bi bi-gear-fill me-2"></i>Backend Console
       </a>
+      <a class="nav-link nav-pill" href="{% url 'accounts:backend_entity_console' %}">
+        <i class="bi bi-terminal me-2"></i>Entity Console
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'accounts:backend_entity_import' %}">
+        <i class="bi bi-box-arrow-in-down me-2"></i>Bulk Entity Import
+      </a>
+
+      <div class="sidebar-section-title">People & Access</div>
+      <a class="nav-link nav-pill" href="{% url 'admin:people_studentprofile_changelist' %}">
+        <i class="bi bi-person-lines-fill me-2"></i>Student Profiles
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'admin:people_studentguardian_changelist' %}">
+        <i class="bi bi-people-fill me-2"></i>Student Guardians
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'admin:auth_group_changelist' %}">
+        <i class="bi bi-unlock me-2"></i>Authentication Groups
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}">
+        <i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control
+      </a>
 
       <div class="sidebar-section-title">Academic Management</div>
       <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}">
@@ -467,80 +487,9 @@
         <i class="bi bi-journal-text me-2"></i>Report Library
       </a>
 
-      <div class="sidebar-section-title">System Settings</div>
-      <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}">
-        <i class="bi bi-diagram-3 me-2"></i>Access Control
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'siteconfig:customizer' %}">
-        <i class="bi bi-palette-fill me-2"></i>Customizer
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard_alt' %}">
-        <i class="bi bi-layout-wtf me-2"></i>Backend Tools
-      </a>
-
-      <!-- Recent Activity Collapsible Widget -->
-      <div class="sidebar-collapsible">
-        <div class="sidebar-collapsible-header" onclick="toggleActivityLog(event)">
-          <span><i class="bi bi-clock-history me-2"></i>Recent Activity</span>
-          <i class="bi bi-chevron-down"></i>
-        </div>
-        <div class="sidebar-collapsible-content">
-          <div style="padding: 0.5rem 0; max-height: 300px; overflow-y: auto;">
-            <!-- Sample activity items - would be populated from backend -->
-            <div class="activity-item info">
-              <div class="activity-item-time">Just now</div>
-              <div class="activity-item-message">Dashboard accessed</div>
-            </div>
-            <div class="activity-item success">
-              <div class="activity-item-time">5 min ago</div>
-              <div class="activity-item-message">Student record created</div>
-            </div>
-            <div class="activity-item info">
-              <div class="activity-item-time">15 min ago</div>
-              <div class="activity-item-message">Settings updated</div>
-            </div>
-            <div class="activity-item success">
-              <div class="activity-item-time">1 hour ago</div>
-              <div class="activity-item-message">Invoice generated</div>
-            </div>
-            <div class="activity-item info">
-              <div class="activity-item-time">2 hours ago</div>
-              <div class="activity-item-message">Report exported</div>
-            </div>
-          </div>
-        </div>
-      </div>
     {% endif %}
   {% endif %}
 </div>
-
-<script>
-  function toggleActivityLog(event) {
-    event.stopPropagation();
-    const header = event.currentTarget;
-    const content = header.nextElementSibling;
-    const icon = header.querySelector('i:last-child');
-    
-    content.classList.toggle('collapsed');
-    icon.classList.toggle('collapsed');
-    
-    // Save state to localStorage
-    const isCollapsed = content.classList.contains('collapsed');
-    localStorage.setItem('activityLogCollapsed', isCollapsed);
-  }
-
-  // Restore collapsed state on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    const isCollapsed = localStorage.getItem('activityLogCollapsed') === 'true';
-    const content = document.querySelector('.sidebar-collapsible-content');
-    const icon = document.querySelector('.sidebar-collapsible-header i:last-child');
-    
-    if (content && isCollapsed) {
-      content.classList.add('collapsed');
-      if (icon) icon.classList.add('collapsed');
-    }
-  });
-</script>
 
 <!-- Portal Features -->
 {% with portal_cfg=SITE.portal_features %}
@@ -583,9 +532,6 @@
   </a>
 </div>
 
-<hr class="my-3">
-
-<!-- Quick Actions -->
 <div class="d-grid gap-2 mt-3">
   {% if request.user.is_authenticated and request.user.is_staff %}
     <a class="btn btn-sm btn-primary" href="/admin/">
@@ -593,3 +539,18 @@
     </a>
   {% endif %}
 </div>
+
+  {% if request.user.is_authenticated %}
+    {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
+      <hr class="my-3">
+      <div class="sidebar-section-title mt-3">System Configuration</div>
+      <div class="nav flex-column gap-0">
+        <a class="nav-link nav-pill" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
+          <i class="bi bi-palette me-2"></i>Site Settings
+        </a>
+        <a class="nav-link nav-pill" href="{% url 'admin:siteconfig_regionconfig_changelist' %}">
+          <i class="bi bi-geo-alt me-2"></i>Region Configuration
+        </a>
+      </div>
+    {% endif %}
+  {% endif %}

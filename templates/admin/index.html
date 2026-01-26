@@ -2,20 +2,28 @@
 {% load i18n static %}
 
 {% block extrastyle %}
+{% with ADMIN_THEME=SITE_ADMIN_THEME|default:SITE %}
 <style>
-  :root {
-    --brand-primary: {{ SITE.primary_color|default:"#667eea" }};
-    --brand-accent: {{ SITE.accent_color|default:"#ff9f43" }};
-    --brand-success: {{ SITE.success_color|default:"#22c55e" }};
-    --brand-warning: {{ SITE.warning_color|default:"#fbbf24" }};
-    --brand-danger: {{ SITE.danger_color|default:"#ef4444" }};
+    :root {
+    --brand-primary: {{ ADMIN_THEME.primary_color|default:"#667eea" }};
+    --brand-accent: {{ ADMIN_THEME.accent_color|default:"#ff9f43" }};
+    --brand-success: {{ ADMIN_THEME.success_color|default:"#22c55e" }};
+    --brand-warning: {{ ADMIN_THEME.warning_color|default:"#fbbf24" }};
+    --brand-danger: {{ ADMIN_THEME.danger_color|default:"#ef4444" }};
     --surface-dark: {{ SITE.admin_sidebar_surface_color|default:"#2d2d2d" }};
     --border-dark: {{ SITE.admin_sidebar_border_color|default:"#404040" }};
-    --surface-deep: {{ SITE.admin_sidebar_bg_color|default:"#1a1a1a" }};
+    --surface-deep: {{ ADMIN_THEME.background_color|default:"#1a1a1a" }};
     --text-primary: #fff;
     --text-muted: #9ca3af;
   }
-  body {margin:0;padding:0;background:var(--surface-deep);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+
+  body {margin:0;padding:0;background:var(--surface-deep);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background-image: url('{{ SITE_ADMIN_BACKGROUND_URL|default:"" }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-blend-mode: multiply;
+  }
   #content-main, #content {padding:0!important;margin:0;background:var(--surface-deep);}
   .module {border:none;}
   
@@ -261,7 +269,7 @@
     }
   }
 
-</style>
+</style>{% endwith %}
 {% endblock %}
 
 {% block content %}
@@ -272,6 +280,39 @@
 </div>
 
 <div class="dashboard-container">
+  {% if PREVIEW_MODE_ENABLED %}
+  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <div>
+      <strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-sm-0">
+      <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
+      <a class="btn btn-sm btn-outline-light" href="/siteconfig/customizer/clear-preview/">Clear preview</a>
+    </div>
+  </div>
+  {% elif PREVIEW_TOGGLE_ENABLED %}
+  <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <div>
+      <strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-sm-0">
+      <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if FINANCE_REQUEST_ALERT_COUNT %}
+  <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <div>
+      <strong>{{ FINANCE_REQUEST_ALERT_COUNT }} pending finance access request{% if FINANCE_REQUEST_ALERT_COUNT != 1 %}s{% endif %}</strong>
+      <div class="small text-muted">Handle guardian approvals without leaving the admin hub.</div>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-sm-0">
+      <a class="btn btn-sm btn-light text-dark" href="{{ FINANCE_REQUEST_LINK }}">Open finance inbox</a>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Header -->
   <header class="dashboard-header">
     <h1>Administration Dashboard</h1>
@@ -337,11 +378,16 @@
     <div class="app-grid">
       <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'accounts' %}'">
         <span class="app-icon">👤</span>
-        <h3 class="app-title">Accounts & Authentication</h3>
-        <p class="app-meta">Users, roles, and permissions</p>
+        <h3 class="app-title">People & Access Controls</h3>
+        <p class="app-meta">Users, roles, authentication, and entity orchestration</p>
         <div class="app-actions">
           <a href="{% url 'admin:accounts_user_changelist' %}" class="app-btn">Users</a>
           <a href="{% url 'admin:accounts_accessrole_changelist' %}" class="app-btn">Roles</a>
+          <a href="{% url 'admin:auth_group_changelist' %}" class="app-btn">Groups</a>
+        </div>
+        <div class="app-actions mt-2">
+          <a href="{% url 'accounts:rbac' %}" class="app-btn">RBAC & Access Control</a>
+          <a href="{% url 'accounts:backend_entity_console' %}" class="app-btn">Entity Console</a>
         </div>
       </div>
 
@@ -353,16 +399,6 @@
           <a href="{% url 'admin:people_studentprofile_changelist' %}" class="app-btn">Student profiles</a>
           <a href="{% url 'admin:people_studentguardian_changelist' %}" class="app-btn">Student guardians</a>
           <a href="{% url 'admin:people_teacherprofile_changelist' %}" class="app-btn">Teachers</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'auth' %}'">
-        <span class="app-icon">🔐</span>
-        <h3 class="app-title">Authentication & Authorization</h3>
-        <p class="app-meta">Groups & policies</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:auth_group_changelist' %}" class="app-btn">Groups</a>
-          <a href="{% url 'admin:accounts_user_changelist' %}" class="app-btn">Users</a>
         </div>
       </div>
 

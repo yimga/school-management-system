@@ -144,7 +144,7 @@ class GileadAdminSite(AdminSite):
             "accounts": {"order": 1, "name": "👤 Accounts & Authentication", "icon": "👤"},
             "people": {"order": 2, "name": "👥 People Management", "icon": "👥"},
             # Place built-in auth alongside people for smoother workflow
-            "auth": {"order": 3, "name": "🔐 Authentication & Authorization", "icon": "🔐"},
+            "auth": {"order": 2.5, "name": "🔐 Authentication & Authorization", "icon": "🔐"},
 
             # Academic Structure
             "academics": {"order": 4, "name": "🎓 Academic Structure", "icon": "🎓"},

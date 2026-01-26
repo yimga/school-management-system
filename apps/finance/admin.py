@@ -27,6 +27,7 @@ from .models import (
     PaymentReminder,
     PaymentReminderLog,
     Notification,
+    FinanceRequestAudit,
     ReportRequest,
 )
 
@@ -188,6 +189,12 @@ class NotificationAdmin(ModelAdmin):
     search_fields = ("title", "message", "created_by__username", "recipient__username")
 
 
+class FinanceRequestAuditAdmin(ModelAdmin):
+    list_display = ("notification", "user", "action", "created_at")
+    list_filter = ("action",)
+    list_per_page = 50
+    search_fields = ("notification__title", "user__username")
+
 class ReportRequestAdmin(ModelAdmin):
     list_display = ("report_type", "requested_by", "status", "created_at")
     list_filter = ("report_type", "status")
@@ -221,5 +228,6 @@ admin_site.register(AssetCategory, AssetCategoryAdmin)
 admin_site.register(Asset, AssetAdmin)
 admin_site.register(Grant, GrantAdmin)
 admin_site.register(Notification, NotificationAdmin)
+admin_site.register(FinanceRequestAudit, FinanceRequestAuditAdmin)
 admin_site.register(ReportRequest, ReportRequestAdmin)
 admin_site.register(ReferralReward, ReferralRewardAdmin)

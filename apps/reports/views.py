@@ -3,17 +3,18 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 import csv
+from types import SimpleNamespace
 
-from apps.accounts.decorators import role_required, parent_portal_required
+from apps.accounts.decorators import role_required, parent_portal_required, permission_required
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentGuardian, StudentProfile
-from apps.reports.models import ReportCard, TermPublishStatus
+from apps.reports.models import ReportCard, ReportCardAudit, TermPublishStatus
 from apps.reports.services import (
     annual_report_context,
     are_terms_published,
@@ -25,7 +26,7 @@ from apps.reports.services import (
     terms_for_student,
 )
 from apps.reports.weasy import render_pdf_bytes
-from apps.siteconfig.models import SiteSettings, get_report_card_style_for_student
+from apps.siteconfig.models import ReportCardStyle, SiteSettings, get_report_card_style_for_student
 
 
 def _reports_enabled() -> bool:
@@ -44,6 +45,62 @@ def _get_guardian_student(request: HttpRequest, student_id: int) -> StudentProfi
         .first()
     )
     return link.student if link else None
+
+REPORT_PREVIEW_TEMPLATES = {
+    ReportCard.Type.TERM: "reports/preview_term_card.html",
+    ReportCard.Type.ANNUAL: "reports/preview_annual_card.html",
+}
+
+
+def _sample_student() -> StudentProfile:
+    student = StudentProfile.objects.filter(is_active=True).select_related("classroom", "specialty").first()
+    if student:
+        return student
+    return SimpleNamespace(
+        id=0,
+        last_name="Sample",
+        first_name="Learner",
+        student_code="00SAMPLE",
+        classroom=SimpleNamespace(name="Form One"),
+        specialty=SimpleNamespace(name="Carpentry"),
+    )
+
+
+def _build_preview_context(style: ReportCardStyle, report_type: str) -> dict:
+    student = _sample_student()
+    year, term = get_active_year_and_term()
+    result = {}
+    if report_type == ReportCard.Type.TERM and year and term:
+        context = term_report_context(student, year, term)
+        result.update(context)
+        result.update({
+            "student": student,
+            "student_name": f"{student.last_name} {student.first_name}",
+            "year": year,
+            "term": term,
+        })
+    else:
+        context = annual_report_context(student, year) if year else {"term_rows": [], "annual_average": None}
+        result.update(context)
+        result.update({
+            "student": student,
+            "student_name": f"{student.last_name} {student.first_name}",
+            "year": year,
+        })
+    return result
+
+
+def _log_report_card_action(user: User, report_card: ReportCard, action: str, metadata=None):
+    if not report_card:
+        return
+    if metadata is None:
+        metadata = {}
+    ReportCardAudit.objects.create(
+        report_card=report_card,
+        user=user if getattr(user, "is_authenticated", False) else None,
+        action=action,
+        metadata=metadata,
+    )
 
 
 @parent_portal_required
@@ -89,6 +146,7 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     filename = f"report_{student.student_code}_{year.name}_{term.name}.pdf".replace("/", "-")
     rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
 
+    _log_report_card_action(request.user, rc, "download-term", {"filename": filename})
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
@@ -188,6 +246,7 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
     filename = f"annual_report_{student.student_code}_{year.name}.pdf".replace("/", "-")
     rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
 
+    _log_report_card_action(request.user, rc, "download-annual", {"filename": filename})
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp

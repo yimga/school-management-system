@@ -58,7 +58,7 @@
 
             <div class="d-flex flex-wrap gap-2 mt-3">
               <button type="submit" class="btn btn-primary">Save preferences</button>
-              <a class="btn btn-outline-secondary" href="{% url 'accounts:redirect' %}">Back to dashboard</a>
+              <a class="btn btn-outline-secondary" href="{{ previous_page }}">Back to dashboard</a>
               {% if request.user.is_superuser or request.user.role == "ADMIN" %}
                 <a class="btn btn-outline-secondary" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
                   Manage full Site Settings

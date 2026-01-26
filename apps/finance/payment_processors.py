@@ -13,8 +13,9 @@ class StripeProcessor:
     API_VERSION = 'v1'
     SUPPORTED_CURRENCIES = ['NGN', 'KES', 'USD']
     
-    def __init__(self, api_key):
+    def __init__(self, api_key, api_secret=None):
         self.api_key = api_key
+        self.api_secret = api_secret
     
     def charge_card(self, card_token, amount, currency='USD', description=''):
         """Charge customer card"""
@@ -25,6 +26,18 @@ class StripeProcessor:
             'amount': amount,
             'currency': currency,
             'method': 'card',
+        }
+
+    def charge(self, amount, currency='USD', reference=None, metadata=None):
+        """Generic charge helper"""
+        return {
+            'processor': 'stripe',
+            'transaction_id': f'stripe_{datetime.now().timestamp()}',
+            'status': 'success',
+            'amount': amount,
+            'currency': currency,
+            'reference': reference,
+            'metadata': metadata or {},
         }
     
     def create_customer(self, email, metadata=None):
@@ -86,6 +99,16 @@ class PayPalProcessor:
             'capture_id': f'capture_{datetime.now().timestamp()}',
             'order_id': order_id,
             'status': 'completed',
+            'processor': 'paypal',
+        }
+
+    def charge(self, amount, currency='USD', reference='', metadata=None):
+        """Charge via PayPal (mock)"""
+        return {
+            'status': 'success',
+            'amount': amount,
+            'currency': currency,
+            'reference': reference,
             'processor': 'paypal',
         }
     
@@ -429,3 +452,15 @@ class MultiGatewayProcessor:
             return processor.create_order(**kwargs)
         
         raise ValueError(f'Unknown payment method: {method}')
+
+
+class PaymentProcessorFactory(ProcessorFactory):
+    """Named alias for the legacy payment processor factory."""
+
+    @staticmethod
+    def get_processor(provider, *args, **kwargs):
+        return ProcessorFactory.get_processor(provider, *args, **kwargs)
+
+    @staticmethod
+    def get_available_processors():
+        return ProcessorFactory.get_available_processors()

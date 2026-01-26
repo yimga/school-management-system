@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.apps import apps as django_apps
@@ -188,6 +189,14 @@ class TeacherAttendance(models.Model):
 class StudentProfile(models.Model):
     # Phase 4: Enable audit logging for this model (student record changes, grades tied to this)
     audit_enabled = True
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="student_profile",
+        null=True,
+        blank=True,
+    )
 
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)

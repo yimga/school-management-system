@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from datetime import timedelta
 from django.http import JsonResponse, HttpResponseForbidden, HttpRequest, Http404, HttpResponse, HttpResponseRedirect
+from django.utils.safestring import mark_safe
 from collections import Counter
 from django.contrib import messages
 from django.utils import timezone
@@ -29,7 +30,7 @@ from apps.people.models import (
 from apps.academics.models import Term
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
-from apps.finance.models import Invoice, PaymentReminder, ReferralReward
+from apps.finance.models import Invoice, PaymentReminder, ReferralReward, Notification
 from apps.finance.services import generate_payment_link
 from apps.reports.services import (
     are_terms_published,
@@ -37,6 +38,8 @@ from apps.reports.services import (
     terms_for_student,
     term_report_context,
 )
+import json
+
 from apps.siteconfig.models import (
     Integration,
     SiteSettings,
@@ -45,6 +48,9 @@ from apps.siteconfig.models import (
     filter_portal_items,
     default_backend_feature_flags,
 )
+from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
+from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
     student_improvements,
     specialty_pass_rates,
@@ -127,6 +133,12 @@ def parent_dashboard(request: HttpRequest):
 
     finance_links = guardian_student_links(request.user, finance_only=True)
 
+    flags = {**default_backend_feature_flags(), **(SiteSettings.get_solo().backend_feature_flags or {})}
+    require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
+    finance_link_count = finance_links.count()
+    guardian_link_count = links.count()
+    can_request_finance_access = require_finance_opt_in and guardian_link_count > finance_link_count
+
     portal_features = _portal_features_status()
     students = [link.student for link in links]
     finance_students = [link.student for link in finance_links]
@@ -150,6 +162,29 @@ def parent_dashboard(request: HttpRequest):
     finance_total = widget_data["finance"].get("total_due") or Decimal("0.00")
     finance_paid = widget_data["finance"].get("paid") or Decimal("0.00")
     finance_paid_pct = int((finance_paid / finance_total) * 100) if finance_total else 0
+
+    finance_request_url = reverse("finance:finance_request_access")
+    finance_summary = (
+        f"{finance_paid_pct}% paid ({finance_paid} settled of {finance_total})"
+        if finance_total
+        else "No invoices recorded yet."
+    )
+    finance_access_banner = {
+        "text": (
+            "Finance access is granted for your linked students."
+            if can_view_finance
+            else "Finance details are hidden until access is granted."
+        ),
+        "summary": finance_summary,
+        "level": "success" if can_view_finance else "warning",
+        "request_url": finance_request_url if can_request_finance_access else None,
+        "cta": "Request finance access" if can_request_finance_access else None,
+    }
+    finance_requests_qs = Notification.objects.filter(
+        recipient=request.user,
+        title__icontains="finance access request",
+    ).order_by("-created_at")
+    finance_request_link = reverse("finance:requests")
 
     # Per-student maps for live cards
     perf_map = {row.get("student_id"): row for row in widget_data.get("performance", {}).get("per_student", [])}
@@ -219,6 +254,16 @@ def parent_dashboard(request: HttpRequest):
         hero["status_pills"].insert(1, {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
         hero["actions"].append({"label": "Pay Fees", "url": reverse("portal:parent_finance")})
 
+    dashboard_settings = load_dashboard_layout_settings(request.user, "parent")
+    available_sidebar_items = [
+        {"id": "parent-home", "label": "Parent Home", "url": reverse("portal:parent_dashboard"), "icon": "bi-house"},
+        {"id": "parent-finance", "label": "Finance", "url": reverse("portal:parent_finance"), "icon": "bi-cash-stack"},
+        {"id": "parent-stats", "label": "Portal Stats", "url": reverse("portal:portal_stats"), "icon": "bi-graph-up"},
+        {"id": "parent-links", "label": "Link a Child", "url": reverse("portal:link_child"), "icon": "bi-link-45deg"},
+    ]
+    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "parent"})
+    allow_custom_layout = _can_customize(request.user)
+
     return render(request, "parent/dashboard.html", {
         "links": links,
         "can_view_results": can_view_results,
@@ -239,6 +284,15 @@ def parent_dashboard(request: HttpRequest):
         "finance_paid_pct": finance_paid_pct,
         "finance_total": finance_total,
         "finance_paid": finance_paid,
+        "allow_custom_layout": allow_custom_layout,
+        "dashboard_settings": dashboard_settings,
+        "dashboard_layout_url": dashboard_layout_url,
+        "available_sidebar_items": available_sidebar_items,
+        "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
+        "finance_access_banner": finance_access_banner,
+        "finance_requests_count": finance_requests_qs.count(),
+        "finance_request_notifications": finance_requests_qs[:5],
+        "finance_request_link": finance_request_link,
     })
 
 
@@ -260,6 +314,23 @@ def parent_finance(request: HttpRequest):
     can_request_finance_access = require_finance_opt_in and guardian_link_count > finance_link_count
     finance_request_url = reverse("finance:finance_request_access")
     links = finance_links if (finance_access_granted or not require_finance_opt_in) else all_links
+
+    finance_summary = (
+        f"{finance_paid_pct}% paid ({finance_paid} settled of {finance_total})"
+        if finance_total
+        else "No invoices recorded yet."
+    )
+    finance_access_banner = {
+        "text": (
+            "Finance access is granted for your linked students."
+            if can_view_finance
+            else "Finance details are hidden until access is granted."
+        ),
+        "summary": finance_summary,
+        "level": "success" if can_view_finance else "warning",
+        "request_url": finance_request_url if can_request_finance_access else None,
+        "cta": "Request finance access" if can_request_finance_access else None,
+    }
 
     if require_finance_opt_in and not finance_access_granted:
         students = []

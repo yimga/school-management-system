@@ -14,6 +14,7 @@ from .views import (
     finance_reports,
     notifications,
     submit_report_request,
+    finance_requests,
 )
 
 app_name = "finance"
@@ -34,4 +35,5 @@ urlpatterns = [
     path("reports/", finance_reports, name="reports"),
     path("reports/request/", submit_report_request, name="report_request"),
     path("notifications/", notifications, name="notifications"),
+    path("requests/", finance_requests, name="requests"),
 ]

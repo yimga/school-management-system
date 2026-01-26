@@ -595,34 +595,32 @@ def _finance_summary(students):
     # Single aggregation query with all needed statistics
     qs = Invoice.objects.filter(student__in=students).exclude(status=Invoice.Status.DRAFT)
 
-    invoice_stats = qs.aggregate(
-        total_due=Sum("total_amount"),
-        total_balance=Sum("balance_amount"),
-        overdue_count=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
-    )
-    
-    total_due = invoice_stats.get("total_due") or Decimal("0.00")
-    balance = invoice_stats.get("total_balance") or Decimal("0.00")
-    paid = total_due - balance
-    overdue_count = invoice_stats.get("overdue_count") or 0
-
     per_student = []
     per_student_qs = qs.values("student_id").annotate(
         total_due=Sum("total_amount"),
         balance_amount=Sum("balance_amount"),
         overdue=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
     )
+    total_due = Decimal("0.00")
+    balance = Decimal("0.00")
+    overdue_count = 0
     for row in per_student_qs:
         student_id = row.get("student_id")
         total_s = row.get("total_due") or Decimal("0.00")
         bal_s = row.get("balance_amount") or Decimal("0.00")
+        overdue = row.get("overdue") or 0
+        total_due += total_s
+        balance += bal_s
+        overdue_count += overdue
         per_student.append({
             "student_id": student_id,
             "total_due": total_s,
             "paid": total_s - bal_s,
             "balance": bal_s,
-            "overdue": row.get("overdue") or 0,
+            "overdue": overdue,
         })
+
+    paid = total_due - balance
 
     return {
         "total_due": total_due,

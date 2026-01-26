@@ -312,6 +312,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "brand_font",
                 "custom_css",
                 "theme_pack",
+                "admin_theme_pack",
             )
         }),
         ("Preview & Draft", {
@@ -319,6 +320,9 @@ class SiteSettingsAdmin(ModelAdmin):
             "fields": (
                 "preview_mode_enabled",
                 "preview_note",
+                "preview_toggle_enabled",
+                "preview_toggle_label",
+                "preview_banner_text",
             ),
         }),
         ("Company Details", {
@@ -537,8 +541,8 @@ class SiteSettingsAdmin(ModelAdmin):
 
 
 class ThemePackAdmin(ModelAdmin):
-    list_display = ("name", "is_active", "is_default", "layout", "palette_preview")
-    list_filter = ("is_active", "layout")
+    list_display = ("name", "is_active", "is_default", "layout", "applies_to_admin", "palette_preview")
+    list_filter = ("is_active", "layout", "applies_to_admin")
     prepopulated_fields = {"slug": ("name",)}
     search_fields = ("name", "slug")
 

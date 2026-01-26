@@ -153,6 +153,7 @@ def default_backend_feature_flags():
 
 
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
+_SITE_SETTINGS_PREVIEW_COLUMNS_READY = False
 
 def filter_portal_items(items, role: str | None) -> list[dict]:
     if not isinstance(items, list):
@@ -341,7 +342,21 @@ class SiteSettings(models.Model):
     )
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
 
+    def _ensure_theme_pack_integrity(self) -> None:
+        """Guard against stale theme pack references when the library is empty."""
+        referenced_ids = {self.theme_pack_id, self.admin_theme_pack_id}
+        referenced_ids.discard(None)
+        if not referenced_ids:
+            return
+        existing_ids = set(ThemePack.objects.filter(pk__in=referenced_ids).values_list("pk", flat=True))
+        if self.theme_pack_id and self.theme_pack_id not in existing_ids:
+            default_pack = ThemePack.objects.filter(is_default=True, is_active=True).first()
+            self.theme_pack = default_pack
+        if self.admin_theme_pack_id and self.admin_theme_pack_id not in existing_ids:
+            self.admin_theme_pack = None
+
     def save(self, *args, **kwargs):
+        self._ensure_theme_pack_integrity()
         # Optimize logo
         if self.logo and hasattr(self.logo, 'file') and not getattr(self.logo.file, '_optimized', False):
             optimized = optimize_image(self.logo)
@@ -387,6 +402,34 @@ class SiteSettings(models.Model):
         help_text="Oversight ministry, delegation, or authority.",
     )
 
+    report_preview_contact_email = models.EmailField(
+        blank=True,
+        default="",
+        help_text="Email shown on report card previews/header."
+    )
+    report_preview_contact_phone = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        help_text="Phone number shown on report previews/header."
+    )
+    report_preview_footer_note = models.CharField(
+        max_length=160,
+        blank=True,
+        default="Powered by Gilead Technical High School.",
+        help_text="Footer note text shown on report previews."
+    )
+    REPORT_PREVIEW_CHOICES = [
+        ("term", "Term Report"),
+        ("annual", "Annual Report"),
+    ]
+    default_report_preview_type = models.CharField(
+        max_length=12,
+        choices=REPORT_PREVIEW_CHOICES,
+        default="term",
+        help_text="Template shown to admins when opening a report preview from the builder.",
+    )
+
     # Theme configuration
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
@@ -402,8 +445,31 @@ class SiteSettings(models.Model):
         blank=True,
         related_name="site_settings",
     )
+    admin_theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_site_settings",
+        help_text="Theme pack specifically for the Django /admin interface.",
+    )
     preview_mode_enabled = models.BooleanField(default=False)
     preview_note = models.CharField(max_length=255, blank=True, default="")
+    preview_toggle_enabled = models.BooleanField(
+        default=True,
+        help_text="Allow quick toggle of preview mode from the dashboards."
+    )
+    preview_toggle_label = models.CharField(
+        max_length=60,
+        default="Toggle preview",
+        help_text="Label for the preview toggle button shown when preview mode is inactive.",
+    )
+    preview_banner_text = models.CharField(
+        max_length=160,
+        blank=True,
+        default="Preview changes are staged and won’t go live until you clear the sandbox.",
+        help_text="Banner text shown when preview mode is active or ready.",
+    )
     admin_sidebar_bg_color = models.CharField(
         max_length=20,
         default="#0b0f14",
@@ -688,6 +754,9 @@ class SiteSettings(models.Model):
 
     @classmethod
     def _ensure_preview_columns(cls) -> None:
+        global _SITE_SETTINGS_PREVIEW_COLUMNS_READY
+        if _SITE_SETTINGS_PREVIEW_COLUMNS_READY:
+            return
         with connection.cursor() as cursor:
             try:
                 columns = [col.name for col in connection.introspection.get_table_description(cursor, cls._meta.db_table)]
@@ -701,6 +770,7 @@ class SiteSettings(models.Model):
                     )
                 except OperationalError:
                     pass
+        _SITE_SETTINGS_PREVIEW_COLUMNS_READY = True
 
     @classmethod
     def get_solo(cls) -> "SiteSettings":
@@ -752,6 +822,12 @@ class SiteSettings(models.Model):
         if save:
             self.save(update_fields=update_fields)
 
+    def get_admin_theme(self) -> "ThemePack | None":
+        if self.admin_theme_pack:
+            return self.admin_theme_pack
+        admin_pack = ThemePack.objects.filter(applies_to_admin=True, is_active=True).first()
+        return admin_pack or self.active_theme
+
     @property
     def active_social_links(self) -> list[dict]:
         links = []
@@ -782,6 +858,7 @@ class ThemePack(models.Model):
     svg_background = models.FileField(upload_to="branding/themepack/svg/", blank=True, null=True, help_text="Optional: SVG background for this theme pack.")
     logo_opacity = models.FloatField(default=0.3, blank=True, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)")
     logo_background_mode = models.CharField(max_length=16, choices=SiteSettings.LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
+    applies_to_admin = models.BooleanField(default=False, help_text="Use this pack for the Django /admin interface.")
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1336,7 +1413,7 @@ def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> No
     _SITE_SETTINGS_CACHE = instance
 
 
-def _clear_site_settings_cache(sender, **kwargs) -> None:
+def _clear_site_settings_cache(sender=None, **kwargs) -> None:
     global _SITE_SETTINGS_CACHE
     _SITE_SETTINGS_CACHE = None
 

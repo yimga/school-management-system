@@ -8,6 +8,7 @@ from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
 from apps.accounts.models import User
+from apps.finance.models import Notification
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 
 SESSION_KEY = "site_preview_settings"
@@ -135,10 +136,27 @@ def site_settings(request):
 
     video_bg_url = _resolve_media_url(site.get_theme_background("video_background"))
     svg_bg_url = _resolve_media_url(site.get_theme_background("svg_background"))
+    try:
+        finance_request_url = reverse("finance:requests")
+    except NoReverseMatch:
+        finance_request_url = "/finance/requests/"
+    finance_request_alerts = 0
+    if request.user.is_authenticated:
+        finance_request_alerts = Notification.objects.filter(
+            recipient=request.user,
+            title__icontains="finance access request",
+            is_read=False,
+        ).count()
+    admin_theme = site.get_admin_theme()
+    admin_background_url = _resolve_media_url(admin_theme.background_image if admin_theme else None)
+    admin_logo = _resolve_media_url(admin_theme.logo if admin_theme else None, "images/logo.png")
     return {
         "SITE": site,
         "SITE_SETTINGS": site,
         "SITE_THEME": site.active_theme,
+        "SITE_ADMIN_THEME": admin_theme,
+        "SITE_ADMIN_BACKGROUND_URL": admin_background_url,
+        "SITE_ADMIN_LOGO_URL": admin_logo,
         "REPORT_DOWNLOADS_ENABLED": site.report_downloads_enabled,
         "BREADCRUMBS": breadcrumbs,
         "SITE_LOGO_URL": logo_url,
@@ -156,6 +174,11 @@ def site_settings(request):
         "PREVIEW_ACT_AS_CHOICES": act_as_choices,
         "PREVIEW_NOTE": getattr(site, "preview_note", ""),
         "PREVIEW_MODE_ENABLED": preview_flag,
+        "PREVIEW_TOGGLE_ENABLED": getattr(site, "preview_toggle_enabled", True),
+        "PREVIEW_TOGGLE_LABEL": getattr(site, "preview_toggle_label", "Toggle preview"),
+        "PREVIEW_BANNER_TEXT": getattr(site, "preview_banner_text", ""),
+        "FINANCE_REQUEST_ALERT_COUNT": finance_request_alerts,
+        "FINANCE_REQUEST_LINK": finance_request_url,
     }
 
 

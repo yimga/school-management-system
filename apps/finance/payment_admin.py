@@ -3,8 +3,6 @@ from django.contrib import admin
 from django.utils.html import format_html
 from decimal import Decimal
 from apps.finance.models import Payment, Transaction, RefundRequest, PaymentReconciliation, PaymentAuditLog
-from apps.finance.payment_models_temp import PaymentMethod as TempPaymentMethod
-
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):

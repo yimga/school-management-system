@@ -19,7 +19,7 @@ from apps.accounts.models import User
 from apps.evals.models import Evaluation, AssessmentWeights
 from apps.finance.models import Invoice, PaymentReminder, PaymentMethod, ComplianceProfile
 from apps.people.models import StudentProfile, StudentGuardian, TeacherProfile
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, _clear_site_settings_cache
 from apps.portal.services import (
     parent_dashboard_widget_data,
     _performance_overview,
@@ -251,11 +251,20 @@ class PerformanceOptimizationTest(TransactionTestCase):
         # Create evaluations
         for student in self.students:
             for i in range(5):
+                extra_subject = Subject.objects.create(name=f"Index Test {student.pk}-{i}")
+                extra_assignment = SubjectAssignment.objects.create(
+                    academic_year=self.year,
+                    term=self.term,
+                    classroom=self.classroom,
+                    specialty=self.specialty,
+                    subject=extra_subject,
+                    coefficient=1,
+                )
                 Evaluation.objects.create(
                     student=student,
                     academic_year=self.year,
                     term=self.term,
-                    subject_assignment=self.subject_assignment,
+                    subject_assignment=extra_assignment,
                     teacher=self.teacher,
                     seq1_score=10 + i,
                 )
@@ -300,6 +309,7 @@ class QueryCountValidationTest(TestCase):
             start_date="2024-01-01",
             end_date="2024-04-30",
         )
+        self.compliance_profile = ComplianceProfile.objects.create(name="Default", country_code="US")
 
     def test_finance_summary_single_query_target(self):
         """Finance summary MUST use single aggregation query."""
@@ -317,6 +327,7 @@ class QueryCountValidationTest(TestCase):
             students.append(student)
             StudentGuardian.objects.create(guardian_user=parent, student=student)
             Invoice.objects.create(
+                profile=self.compliance_profile,
                 student=student,
                 total_amount=Decimal("100"),
                 balance_amount=Decimal("50"),
@@ -346,6 +357,7 @@ class QueryCountValidationTest(TestCase):
         cache.clear()
         
         # Should be very few queries (not 10×3 = 30+ queries)
+        _clear_site_settings_cache()
         with self.assertNumQueries(2):  # 1 SiteSettings cache check, 1 evaluation query
             _performance_overview(students, self.year, self.term)
 

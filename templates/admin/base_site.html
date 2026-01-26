@@ -69,6 +69,49 @@
       --admin-sidebar-child-active: {{ SITE.admin_sidebar_child_active_color|default:"#0f172a" }};
     }
   </style>
+  <style>
+    .preview-cue {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--admin-sidebar-border);
+      font-size: 0.92rem;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--admin-sidebar-text);
+      margin-top: 12px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.45);
+    }
+    .preview-cue--active {
+      background: rgba(251, 191, 36, 0.08);
+      border-color: #f97316;
+      color: #f97316;
+    }
+    .preview-cue--ready {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .preview-cue-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .preview-cue-actions a {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid currentColor;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: inherit;
+      transition: all 0.2s ease;
+    }
+    .preview-cue-actions a:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  </style>
 {% endblock %}
 
 {% block extrahead %}
@@ -255,6 +298,26 @@
       {{ site_header|default:_('Gilead Admin') }}
     </a>
   </h1>
+  {% if PREVIEW_MODE_ENABLED %}
+    <div class="preview-cue preview-cue--active">
+      <span>
+        <strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}
+      </span>
+      <div class="preview-cue-actions">
+        <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
+        <a href="/siteconfig/customizer/clear-preview/">Clear preview</a>
+      </div>
+    </div>
+  {% elif PREVIEW_TOGGLE_ENABLED %}
+    <div class="preview-cue preview-cue--ready">
+      <span>
+        <strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}
+      </span>
+      <div class="preview-cue-actions">
+        <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
+      </div>
+    </div>
+  {% endif %}
     {# The logo background is handled by CSS above. #}
 {% endblock %}
 

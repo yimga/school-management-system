@@ -85,6 +85,20 @@ class ReportCard(models.Model):
         return None
 
 
+class ReportCardAudit(models.Model):
+    report_card = models.ForeignKey(ReportCard, on_delete=models.CASCADE, related_name="audits")
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="report_card_audits")
+    action = models.CharField(max_length=40)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.report_card} - {self.action} @ {self.created_at:%Y-%m-%d %H:%M}"
+
+
 class PromotionRule(models.Model):
     """Promotion thresholds per academic year with optional classroom overrides."""
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="promotion_rules")

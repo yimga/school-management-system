@@ -15,6 +15,19 @@ from apps.accounts.validators import (
     validate_receipt_file,
     validate_file_size_2mb
 )
+from apps.finance.payment_models import (
+    Payment as FinancePayment,
+    Transaction as FinanceTransaction,
+    RefundRequest as FinanceRefundRequest,
+    PaymentReconciliation as FinancePaymentReconciliation,
+    PaymentAuditLog as FinancePaymentAuditLog,
+)
+
+Payment = FinancePayment
+Transaction = FinanceTransaction
+RefundRequest = FinanceRefundRequest
+PaymentReconciliation = FinancePaymentReconciliation
+PaymentAuditLog = FinancePaymentAuditLog
 
 
 class ComplianceProfile(models.Model):
@@ -379,98 +392,6 @@ class InvoiceLine(models.Model):
         return self.description
 
 
-class Payment(models.Model):
-    # Phase 4: Enable audit logging for this critical model (financial records)
-    audit_enabled = True
-
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments")
-    amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal("0.01"))],  # Must be positive
-    )
-    method = models.CharField(max_length=20, choices=PaymentMethod.choices)
-    reference = models.CharField(max_length=80, blank=True)
-    paid_at = models.DateTimeField(default=timezone.now)
-    receipt_number = models.CharField(max_length=64, blank=True)
-    external_reference = models.CharField(max_length=128, blank=True)
-    receipt_file = models.FileField(
-        upload_to="finance/receipts/",
-        blank=True,
-        null=True,
-        validators=[validate_receipt_file, validate_file_size_2mb],
-        help_text="Optional uploaded receipt or slip (PDF/image, max 2MB).",
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    # Status tracking (backwards compatible with external payment model expectations)
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('cancelled', 'Cancelled'),
-        ('refunded', 'Refunded'),
-    ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    status_reason = models.TextField(blank=True)
-    
-    # Audit logging fields
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='payments_created',
-        help_text="User who recorded this payment"
-    )
-    deleted_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Soft delete timestamp - set instead of deleting"
-    )
-
-    class Meta:
-        ordering = ["-paid_at"]
-
-    def clean(self):
-        """Validate payment data before saving."""
-        if self.amount < Decimal("0.01"):
-            raise ValidationError({"amount": "Payment amount must be at least 0.01"})
-        
-        # If invoice is set, check payment doesn't exceed balance
-        if self.invoice:
-            # Get total already paid (excluding this payment if editing)
-            paid_amount = sum(
-                p.amount for p in self.invoice.payments.exclude(pk=self.pk)
-            ) or Decimal("0")
-            remaining_balance = self.invoice.total_amount - paid_amount
-            
-            if self.amount > remaining_balance:
-                raise ValidationError({
-                    "amount": f"Payment {self.amount} exceeds remaining balance {remaining_balance}"
-                })
-        # Validate payment method against invoice profile's allowed methods
-        if self.invoice and self.method:
-            profile = self.invoice.profile
-            if profile and isinstance(profile.available_payment_methods, list) and profile.available_payment_methods:
-                if self.method not in profile.available_payment_methods:
-                    raise ValidationError({
-                        "method": (
-                            f"Method '{self.method}' is not allowed for profile {profile.name}. "
-                            f"Allowed: {', '.join(profile.available_payment_methods)}"
-                        )
-                    })
-
-    def save(self, *args, **kwargs):
-        """Call full_clean() before saving to validate."""
-        self.full_clean()
-        super().save(*args, **kwargs)
-
-    def __str__(self) -> str:
-        return f"{self.invoice} {self.amount}"
-
-
 class PaymentReminder(models.Model):
     invoice = models.OneToOneField(Invoice, on_delete=models.CASCADE, related_name="reminder")
     reminder_days_before = models.PositiveSmallIntegerField(default=3)
@@ -541,6 +462,30 @@ class Notification(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title} ({self.severity})"
+
+
+class FinanceRequestAudit(models.Model):
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        related_name="request_audits",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="finance_request_audits",
+    )
+    action = models.CharField(max_length=64, default="marked_read")
+    details = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.notification} {self.action} by {self.user or 'system'}"
 
 
 class ReportRequest(models.Model):

@@ -223,6 +223,22 @@ class DashboardWidget(models.Model):
         return ["default", "compact", "flat"]
 
 
+def get_dashboard_widget_metadata(widget_ids: list[str] | None = None) -> dict[str, dict]:
+    """Return metadata for dashboard widgets (allowed sizes/variants + defaults)."""
+    qs = DashboardWidget.objects.filter(is_active=True)
+    if widget_ids:
+        qs = qs.filter(id__in=widget_ids)
+    metadata: dict[str, dict] = {}
+    for widget in qs:
+        metadata[widget.id] = {
+            "allowed_sizes": widget.resolved_allowed_sizes(),
+            "allowed_variants": widget.resolved_allowed_variants(),
+            "default_size": widget.default_size or "md",
+            "default_variant": widget.default_variant or "default",
+        }
+    return metadata
+
+
 class WidgetData(models.Model):
     """Cache widget data for performance."""
 
@@ -279,3 +295,31 @@ class DashboardLayout(models.Model):
     def __str__(self) -> str:
         owner = self.user.username if self.user else (self.role or "global")
         return f"{self.page} layout for {owner}"
+
+
+class DashboardLayoutAudit(models.Model):
+    """Tracks per-user changes to dashboard layouts for auditing."""
+
+    ACTION_CHOICES = [
+        ("widget_meta", "Widget meta change"),
+        ("settings", "Layout settings change"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="dashboard_layout_audits",
+    )
+    widget_id = models.CharField(max_length=50, blank=True, null=True)
+    action = models.CharField(max_length=32, choices=ACTION_CHOICES)
+    summary = models.CharField(max_length=255, blank=True)
+    details = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Dashboard Layout Audit"
+        verbose_name_plural = "Dashboard Layout Audits"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.user.username} {self.action} {self.widget_id or 'layout'}"

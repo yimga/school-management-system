@@ -3,11 +3,14 @@ from __future__ import annotations
 import csv
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+import json
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Classroom, Specialty, Term, Subject
@@ -15,6 +18,9 @@ from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
 from apps.people.models import TeacherProfile
 from apps.siteconfig.models import SiteSettings
+from apps.finance.models import Notification
+from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
+from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 
 
 from .services import (
@@ -145,6 +151,23 @@ def dashboard(request: HttpRequest):
         use_promotion_rule=use_promotion_rule,
     )
 
+    dashboard_settings = load_dashboard_layout_settings(request.user, "analytics")
+    allow_custom_layout = _can_customize(request.user)
+    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "analytics"})
+    available_sidebar_items = [
+        {"id": "analytics-home", "label": "Analytics Home", "url": reverse("analytics:dashboard"), "icon": "bi-bar-chart-line"},
+        {"id": "analytics-master", "label": "Master Sheet", "url": reverse("analytics:master_sheet"), "icon": "bi-file-earmark-spreadsheet"},
+        {"id": "analytics-deadlines", "label": "Grading Deadlines", "url": reverse("analytics:deadlines"), "icon": "bi-calendar-check"},
+        {"id": "finance-notifications", "label": "Finance Notifications", "url": reverse("finance:notifications"), "icon": "bi-bell"},
+    ]
+    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
+    finance_requests_qs = Notification.objects.filter(
+        recipient=request.user,
+        title__icontains="finance access request",
+        is_read=False,
+    ).order_by("-created_at")
+    finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+
     context = {
         "year": year_obj,
         "term": term_obj,
@@ -178,6 +201,16 @@ def dashboard(request: HttpRequest):
         "improve_from": from_term,
         "improve_to": to_term,
     }
+    context.update({
+        "allow_custom_layout": allow_custom_layout,
+        "dashboard_settings": dashboard_settings,
+        "dashboard_layout_url": dashboard_layout_url,
+        "available_sidebar_items": available_sidebar_items,
+        "widget_meta_json": widget_meta_json,
+        "finance_requests_count": finance_requests_qs.count(),
+        "finance_request_notifications": finance_requests_qs[:5],
+        "finance_request_link": finance_request_link,
+    })
     return render(request, "analytics/dashboard.html", context)
 
 

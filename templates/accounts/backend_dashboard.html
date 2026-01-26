@@ -484,6 +484,40 @@
     <p class="text-muted">Manage your school operations from this unified dashboard</p>
   </div>
 
+  {% if finance_requests_count %}
+  <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-4">
+    <div>
+      <strong>{{ finance_requests_count }} pending finance access request{% if finance_requests_count != 1 %}s{% endif %}</strong>
+      <div class="small text-muted">Audit trails and messages are delivered to your inbox for quick adjudication.</div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-dark" href="{{ finance_request_link }}">Review requests</a>
+      {% if PREVIEW_TOGGLE_ENABLED %}
+      <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle preview</a>
+      {% endif %}
+    </div>
+  </div>
+  {% if finance_request_notifications %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h6 class="mb-3">Finance access alerts</h6>
+      <ul class="list-unstyled mb-0">
+        {% for notif in finance_request_notifications %}
+        <li class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <strong>{{ notif.title }}</strong>
+            <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
+          </div>
+          <span class="badge bg-secondary">{{ notif.created_at|date:"M j, H:i" }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <a class="btn btn-sm btn-link mt-3" href="{{ finance_request_link }}">Open message center</a>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+
   <!-- Right Sidebar (Desktop) -->
   <aside class="d-none d-lg-block backend-right-sidebar">
     <div class="card shadow-sm mb-3">
@@ -898,13 +932,26 @@
   </div>
   {% endif %}
 
-  <div id="dashboard-layout"
-       data-save-url="{% url 'siteconfig:dashboard_customize' %}"
-       data-load-url="{% url 'siteconfig:dashboard_customize' %}"
+  {% if finance_access_banner %}
+  <div class="alert alert-{{ finance_access_banner.level }} d-flex justify-content-between align-items-center shadow-sm rounded-4 mb-3">
+    <div>
+      <strong>Finance</strong> — {{ finance_access_banner.text }}
+      {% if finance_access_banner.summary %}
+      <div class="small text-muted">{{ finance_access_banner.summary }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+        <div id="dashboard-layout"
+           data-save-url="{{ dashboard_layout_url }}"
+           data-load-url="{{ dashboard_layout_url }}"
        data-show-sidebar="{{ dashboard_settings.show_sidebar|yesno:'true,false' }}"
        data-tile-variant="{{ dashboard_settings.tile_variant|default:'default' }}"
        data-sidebar-items='{{ dashboard_settings.sidebar_items|default:"[]"|safe }}'
-       data-custom-links='{{ dashboard_settings.custom_links|default:"[]"|safe }}'>
+       data-custom-links='{{ dashboard_settings.custom_links|default:"[]"|safe }}'
+       data-custom-drag-enabled="true"
+       data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
+       data-widget-config='{{ widget_meta_json }}'>
 
   <!-- Quick Actions Section - Moved to Top -->
   <div class="card shadow-sm mb-4" data-dashboard-column="main" data-widget-id="backend-quick-actions">

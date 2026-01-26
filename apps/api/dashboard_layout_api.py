@@ -4,7 +4,7 @@ Security-first: role-gated per page and user-scoped save.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 
 from django.http import Http404
 from django.db import models
@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import User
+from apps.siteconfig.dashboard_views import _log_layout_audit
 from apps.siteconfig.models_dashboard import DashboardWidget, DashboardLayout
 
 
@@ -47,7 +48,7 @@ class DashboardLayoutSerializer(serializers.Serializer):
     Validates user-submitted layout payloads.
 
     Layout schema:
-      { "items": [ { "id": "...", "column": "...", "order": 0, "size": "md", "variant": "default" }, ... ] }
+      { "items": [ { "id": "...", "column": "...", "order": 0, "size": "md", "variant": "default" }, ... ], "__settings__": {...} }
 
     Security: ensures widget IDs are allowed for the current user/page and prevents invalid size/variant values.
     """
@@ -69,7 +70,7 @@ class DashboardLayoutSerializer(serializers.Serializer):
             allowed_widgets = {}
 
         normalized: List[Dict[str, Any]] = []
-        seen_ids = set()
+        seen_ids: Set[str] = set()
         for idx, item in enumerate(items):
             if not isinstance(item, dict):
                 raise serializers.ValidationError(f"layout.items[{idx}] must be an object.")
@@ -95,21 +96,19 @@ class DashboardLayoutSerializer(serializers.Serializer):
                 raise serializers.ValidationError(f"layout.items[{idx}].order must be an integer.")
 
             widget = allowed_widgets[widget_id]
-            size = item.get("size") or None
+            size = item.get("size")
             if size is not None:
                 size = str(size).strip().lower()
-                allowed_sizes = set(getattr(widget, "resolved_allowed_sizes", lambda: ["sm", "md", "lg"])())
+                allowed_sizes = set(widget.resolved_allowed_sizes())
                 if size not in allowed_sizes:
                     raise serializers.ValidationError(
                         f"layout.items[{idx}].size '{size}' is not allowed for widget '{widget_id}'."
                     )
 
-            variant = item.get("variant") or None
+            variant = item.get("variant")
             if variant is not None:
                 variant = str(variant).strip().lower()
-                allowed_variants = set(
-                    getattr(widget, "resolved_allowed_variants", lambda: ["default", "compact", "flat"])()
-                )
+                allowed_variants = set(widget.resolved_allowed_variants())
                 if variant not in allowed_variants:
                     raise serializers.ValidationError(
                         f"layout.items[{idx}].variant '{variant}' is not allowed for widget '{widget_id}'."
@@ -125,8 +124,67 @@ class DashboardLayoutSerializer(serializers.Serializer):
                 }
             )
 
-        # Keep the submitted shape but ensure items are normalized for persistence.
-        return {"items": normalized}
+        settings = value.get("__settings__", {}) or {}
+        sanitized_settings = _sanitize_layout_settings(settings, allowed_widgets)
+
+        return {"items": normalized, "__settings__": sanitized_settings}
+
+
+ALLOWED_TILE_VARIANTS = {"default", "compact", "flat"}
+
+
+def _sanitize_custom_links(raw_links: Any) -> list[dict]:
+    clean_links = []
+    if not raw_links:
+        return clean_links
+    for link in raw_links:
+        if not isinstance(link, dict):
+            continue
+        label = str(link.get("label") or "").strip()
+        url = str(link.get("url") or "").strip()
+        icon = str(link.get("icon") or "bi-link").strip()
+        if not label or not url:
+            continue
+        clean_links.append({"label": label[:60], "url": url[:256], "icon": icon or "bi-link"})
+    return clean_links
+
+
+def _sanitize_widget_meta(raw_meta: Any, allowed_widgets: Dict[str, DashboardWidget]) -> dict:
+    clean_meta = {}
+    if not isinstance(raw_meta, dict):
+        return clean_meta
+    for widget_id, config in raw_meta.items():
+        if widget_id not in allowed_widgets or not isinstance(config, dict):
+            continue
+        widget = allowed_widgets[widget_id]
+        size = str(config.get("size") or widget.default_size or "md").strip().lower()
+        variant = str(config.get("variant") or widget.default_variant or "default").strip().lower()
+        allowed_sizes = widget.resolved_allowed_sizes()
+        allowed_variants = widget.resolved_allowed_variants()
+        if size not in allowed_sizes:
+            size = widget.default_size or (allowed_sizes[0] if allowed_sizes else "md")
+        if variant not in allowed_variants:
+            variant = widget.default_variant or (allowed_variants[0] if allowed_variants else "default")
+        clean_meta[widget_id] = {"size": size, "variant": variant}
+    return clean_meta
+
+
+def _sanitize_layout_settings(raw_settings: Any, allowed_widgets: Dict[str, DashboardWidget]) -> dict:
+    settings = raw_settings if isinstance(raw_settings, dict) else {}
+    sidebar_items = []
+    for item in settings.get("sidebar_items") or []:
+        sidebar_items.append(str(item))
+    tile_variant = str(settings.get("tile_variant") or "default").strip().lower()
+    if tile_variant not in ALLOWED_TILE_VARIANTS:
+        tile_variant = "default"
+    widget_meta = _sanitize_widget_meta(settings.get("widget_meta"), allowed_widgets)
+    return {
+        "show_sidebar": bool(settings.get("show_sidebar")),
+        "sidebar_items": sidebar_items,
+        "tile_variant": tile_variant,
+        "custom_links": _sanitize_custom_links(settings.get("custom_links")),
+        "widget_meta": widget_meta,
+    }
 
 
 def _allowed_roles_for_page(page: str) -> List[str]:
@@ -246,7 +304,12 @@ class DashboardLayoutAPI(APIView):
             page=page,
             defaults={"role": self.get_user_role(request.user)},
         )
-        layout_obj.layout = serializer.validated_data["layout"]
+        old_layout = layout_obj.layout or {}
+        old_settings = (old_layout.get("__settings__", {}) or {}).copy()
+        new_layout = serializer.validated_data["layout"]
+        layout_obj.layout = new_layout
         layout_obj.is_default = False
         layout_obj.save(update_fields=["layout", "is_default", "updated_at"])
+        new_settings = (new_layout.get("__settings__", {}) or {})
+        _log_layout_audit(request.user, old_settings, new_settings)
         return Response({"status": "ok", "layout": layout_obj.layout}, status=status.HTTP_200_OK)
