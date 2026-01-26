@@ -375,6 +375,28 @@ def backend_dashboard(request):
             {"label": "Published terms", "value": stats["published_terms"], "meta": "published"},
         ],
     }
+    allow_custom_layout = bool(
+        request.user.is_authenticated
+        and (
+            request.user.is_staff
+            or request.user.is_superuser
+            or role_upper in {"ADMIN", "LEADERSHIP", "IT_ADMIN", "TEACHER", "PARENT"}
+        )
+    )
+    from apps.siteconfig.models_dashboard import DashboardUserPreference
+    preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
+    pref_layout = preferences.dashboard_layout or {}
+    dashboard_settings = pref_layout.get("__settings__", {}) or {}
+    dashboard_settings.setdefault("show_sidebar", False)
+    dashboard_settings.setdefault("sidebar_items", [])
+    dashboard_settings.setdefault("tile_variant", "default")
+    dashboard_settings.setdefault("custom_links", [])
+    available_sidebar_items = [
+        {"id": "admin", "label": "Admin Panel", "url": reverse("admin:index"), "icon": "bi-grid"},
+        {"id": "finance", "label": "Finance Dashboard", "url": reverse("finance:dashboard"), "icon": "bi-cash-stack"},
+        {"id": "portal", "label": "Parent Portal", "url": reverse("portal:parent_dashboard"), "icon": "bi-people"},
+        {"id": "settings", "label": "Preferences", "url": reverse("siteconfig:user_preferences"), "icon": "bi-sliders"},
+    ]
     context = {
         "site": site,
         "stats": stats,
@@ -407,6 +429,9 @@ def backend_dashboard(request):
         "avg_weekly_present": avg_weekly_present,
         "hero": hero,
         "app_list": app_context.get("available_apps", []),
+        "allow_custom_layout": allow_custom_layout,
+        "dashboard_settings": dashboard_settings,
+        "available_sidebar_items": available_sidebar_items,
     }
     return render(request, "accounts/backend_dashboard.html", context)
 

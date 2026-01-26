@@ -177,6 +177,9 @@
     ensureColumnKeys(columns);
 
     let widgetMetaById = {};
+    const layoutRoot = document.getElementById('dashboard-layout') || document.body;
+    const dragToggle = document.getElementById('toggleLayoutDrag');
+    let sortables = [];
 
     const saveLayout = () => {
       const payload = collectLayout(columns);
@@ -224,18 +227,41 @@
 
     loadSortable().then((Sortable) => {
       if (!Sortable) return;
-      columns.forEach((col) => {
-        Sortable.create(col, {
-          group: 'dashboard-widgets',
-          handle: '[data-widget-id]',
-          filter: '.dash-widget-controls, .dash-widget-controls *',
-          preventOnFilter: false,
-          animation: 150,
-          onEnd: () => {
-            saveLayout();
-          },
+
+      const enableDrag = () => {
+        if (sortables.length) return;
+        columns.forEach((col) => {
+          sortables.push(
+            Sortable.create(col, {
+              group: 'dashboard-widgets',
+              handle: '[data-widget-id]',
+              filter: '.dash-widget-controls, .dash-widget-controls *',
+              preventOnFilter: false,
+              animation: 150,
+              onEnd: () => {
+                saveLayout();
+              },
+            })
+          );
         });
-      });
+        layoutRoot.classList.add('drag-mode');
+      };
+
+      const disableDrag = () => {
+        sortables.forEach((inst) => inst && inst.destroy && inst.destroy());
+        sortables = [];
+        layoutRoot.classList.remove('drag-mode');
+      };
+
+      const startEnabled = dragToggle ? !!dragToggle.checked : true;
+      if (startEnabled) enableDrag();
+
+      if (dragToggle) {
+        dragToggle.addEventListener('change', () => {
+          if (dragToggle.checked) enableDrag();
+          else disableDrag();
+        });
+      }
     });
   }
 

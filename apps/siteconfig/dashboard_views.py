@@ -16,11 +16,29 @@ from apps.siteconfig.models_dashboard import DashboardUserPreference, DashboardW
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_CUSTOM_ROLES = {
+    "ADMIN",
+    "LEADERSHIP",
+    "IT_ADMIN",
+    "TEACHER",
+    "PARENT",
+    "SUPERADMIN",
+}
+
+
+def _can_customize(user) -> bool:
+    if not user or not user.is_authenticated:
+        return False
+    role = (getattr(user, "role", "") or "").upper()
+    return bool(user.is_staff or user.is_superuser or role in ALLOWED_CUSTOM_ROLES)
+
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def dashboard_customize(request):
     """Handle dashboard customization requests."""
+    if not _can_customize(request.user):
+        return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
     
     if request.method == "POST":
         return _update_dashboard_layout(request)
@@ -62,10 +80,17 @@ def dashboard_customize(request):
             for key, label in get_dashboard_widget_choices(role)
         ]
 
+    settings = preferences.dashboard_layout.get("__settings__", {})
+    settings.setdefault("show_sidebar", False)
+    settings.setdefault("sidebar_items", [])
+    settings.setdefault("custom_links", [])
+    settings.setdefault("tile_variant", "default")
+
     return JsonResponse({
         'success': True,
         'layout': preferences.dashboard_layout,
         'visible_widgets': preferences.get_dashboard_widgets(),
+        'settings': settings,
         'available_widgets': available_widgets,
     })
 
@@ -74,6 +99,8 @@ def dashboard_customize(request):
 @require_http_methods(["POST"])
 def update_widget_position(request):
     """Update widget position in dashboard layout."""
+    if not _can_customize(request.user):
+        return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
     
     try:
         data = json.loads(request.body)
@@ -93,6 +120,8 @@ def update_widget_position(request):
 @require_http_methods(["POST"])
 def toggle_widget_visibility(request):
     """Show/hide widget on dashboard."""
+    if not _can_customize(request.user):
+        return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
     
     try:
         data = json.loads(request.body)
@@ -114,6 +143,8 @@ def toggle_widget_visibility(request):
 @require_http_methods(["POST"])
 def update_theme(request):
     """Update user theme preference."""
+    if not _can_customize(request.user):
+        return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
     
     try:
         data = json.loads(request.body)
@@ -139,6 +170,8 @@ def update_theme(request):
 @require_http_methods(["POST"])
 def update_accessibility_preferences(request):
     """Update accessibility settings."""
+    if not _can_customize(request.user):
+        return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
     
     try:
         data = json.loads(request.body)
@@ -169,10 +202,31 @@ def _update_dashboard_layout(request):
         data = json.loads(request.body)
         layout = data.get('layout', {})
         visible_widgets = data.get('visible_widgets', [])
+        settings = data.get("settings", {})
         
         preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.dashboard_layout = layout
         preferences.visible_widgets = visible_widgets
+        if isinstance(settings, dict):
+            allowed_keys = {"show_sidebar", "sidebar_items", "tile_variant", "custom_links"}
+            clean_settings = {k: v for k, v in settings.items() if k in allowed_keys}
+            if "show_sidebar" in clean_settings:
+                clean_settings["show_sidebar"] = bool(clean_settings["show_sidebar"])
+            if "sidebar_items" in clean_settings:
+                clean_settings["sidebar_items"] = [str(i) for i in clean_settings.get("sidebar_items") or []]
+            if "tile_variant" in clean_settings:
+                clean_settings["tile_variant"] = str(clean_settings["tile_variant"] or "default")
+            if "custom_links" in clean_settings:
+                links = []
+                for link in clean_settings.get("custom_links") or []:
+                    label = str(link.get("label") or "").strip()
+                    url = str(link.get("url") or "").strip()
+                    if label and url:
+                        links.append({"label": label[:60], "url": url[:256], "icon": str(link.get("icon") or "bi-link")})
+                clean_settings["custom_links"] = links
+            pref_layout = preferences.dashboard_layout or {}
+            pref_layout["__settings__"] = clean_settings
+            preferences.dashboard_layout = pref_layout
         preferences.save()
         
         return JsonResponse({'success': True, 'message': 'Layout saved'})

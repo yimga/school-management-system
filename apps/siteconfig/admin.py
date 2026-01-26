@@ -491,6 +491,42 @@ class SiteSettingsAdmin(ModelAdmin):
     backend_flags_summary.short_description = "Backend feature flags"
 
     def save_model(self, request, obj, form, change):
+        # When preview mode is enabled, stash the posted values in session for this user only.
+        if form and form.is_valid() and form.cleaned_data.get("preview_mode_enabled"):
+            preview_payload = {
+                key: form.cleaned_data.get(key)
+                for key in form.cleaned_data
+                if key in [
+                    "site_name",
+                    "tagline",
+                    "primary_color",
+                    "accent_color",
+                    "success_color",
+                    "warning_color",
+                    "danger_color",
+                    "admin_sidebar_bg_color",
+                    "admin_sidebar_surface_color",
+                    "admin_sidebar_border_color",
+                    "admin_sidebar_text_color",
+                    "admin_sidebar_text_muted_color",
+                    "admin_sidebar_hover_color",
+                    "admin_sidebar_active_color",
+                    "admin_sidebar_active_border_color",
+                    "admin_sidebar_child_bg_start",
+                    "admin_sidebar_child_bg_end",
+                    "admin_sidebar_child_border_color",
+                    "admin_sidebar_child_hover_color",
+                    "admin_sidebar_child_active_color",
+                ]
+            }
+            request.session[SESSION_KEY] = preview_payload
+            request.session["preview_mode_enabled"] = True
+            request.session.modified = True
+        else:
+            # Clear preview session when disabled
+            request.session.pop(SESSION_KEY, None)
+            request.session["preview_mode_enabled"] = False
+            request.session.modified = True
         super().save_model(request, obj, form, change)
         # Audit trail in admin log
         if change:
