@@ -2,7 +2,7 @@ from django import forms
 
 from apps.academics.models import AcademicYear, Term, Subject, SubjectAssignment
 from apps.people.models import TeacherProfile
-from .models import TeacherAssignment, EvaluationEvidence, Evaluation, AssessmentWeights
+from .models import GradeApprovalRequest, TeacherAssignment, EvaluationEvidence, Evaluation, AssessmentWeights
 
 
 class EvaluationFilterForm(forms.Form):
@@ -179,3 +179,38 @@ class BatchFillMissingForm(forms.Form):
         widget=forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
         help_text="Value to fill for missing required components.",
     )
+
+
+class MarkSheetUploadForm(forms.Form):
+    subject_assignment_id = forms.IntegerField(widget=forms.HiddenInput())
+    marksheet_file = forms.FileField(
+        widget=forms.ClearableFileInput(attrs={"class": "form-control"}),
+        help_text="Upload a PNG/JPG marksheet. Mobile browsers can capture new photos as needed.",
+    )
+
+    def clean_marksheet_file(self):
+        file = self.cleaned_data.get("marksheet_file")
+        if not file:
+            raise forms.ValidationError("Please upload a marksheet image.")
+        if file.size > 8 * 1024 * 1024:
+            raise forms.ValidationError("File too large (max 8 MB).")
+        return file
+
+
+
+class GradeApprovalDecisionForm(forms.Form):
+    status = forms.ChoiceField(
+        choices=GradeApprovalRequest.Status.choices,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        initial=GradeApprovalRequest.Status.APPROVED,
+    )
+    reviewer_notes = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        required=False,
+        help_text="Optional notes for the teacher if requesting revisions or rejecting.",
+    )
+
+    def __init__(self, *args, status_choices=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if status_choices is not None:
+            self.fields["status"].choices = status_choices

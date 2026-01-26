@@ -12,6 +12,15 @@
 
 <form method="post">
   {% csrf_token %}
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+    <div class="btn-group" role="group" aria-label="Finance inbox view">
+      <a href="{% url 'finance:requests' %}?view=all" class="btn btn-sm {% if view_mode != 'unread' %}btn-outline-dark active{% else %}btn-outline-secondary{% endif %}">All</a>
+      <a href="{% url 'finance:requests' %}?view=unread" class="btn btn-sm {% if view_mode == 'unread' %}btn-dark active{% else %}btn-outline-secondary{% endif %}">Unread only</a>
+    </div>
+    {% if unread_count %}
+    <button type="submit" name="mark_all_unread" value="1" class="btn btn-sm btn-outline-danger">Mark all unread as read</button>
+    {% endif %}
+  </div>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       {% if notifications %}

@@ -18,6 +18,8 @@ from .views import (
     audit_trail_view,
     resolve_offline_conflict_view,
     import_job_monitor_view,
+    grade_approval_list,
+    grade_approval_detail,
 )
 
 urlpatterns = [
@@ -30,6 +32,8 @@ urlpatterns = [
     path("rankings/school/", school_ranking_view, name="school_ranking"),
     path("admin/evaluations/", evaluation_admin, name="evaluation_admin"),
     path("admin/evaluations/evidence/", evaluation_evidence_upload, name="evaluation_evidence_upload"),
+    path("grade-approvals/", grade_approval_list, name="grade_approval_list"),
+    path("grade-approvals/<uuid:request_id>/", grade_approval_detail, name="grade_approval_detail"),
     path("grade-import/upload/", grade_import_upload_view, name="grade_import_upload"),
     path("grade-import-template/", grade_import_template_view, name="grade_import_template"),
     

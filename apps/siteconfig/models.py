@@ -119,6 +119,14 @@ def default_portal_upcoming_assessments():
     ]
 
 
+def default_grade_approval_roles():
+    return ["DEAN", "HOD"]
+
+
+def default_grade_post_roles():
+    return ["REGISTRAR", "ACADEMIC_DIRECTOR"]
+
+
 def default_footer_badges():
     return [
         {"label": "Secure & Encrypted", "tone": "secure"},
@@ -149,6 +157,10 @@ def default_backend_feature_flags():
         "allowed_roles_api_schema": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
         "require_guardian_finance_opt_in": True,
         "allow_finance_access_requests": True,
+        "marksheet_ocr_enabled": False,
+        "marksheet_ocr_confidence_threshold": 70,
+        "marksheet_ocr_manual_review_required": True,
+        "marksheet_ocr_mobile_upload_enabled": True,
     }
 
 
@@ -586,6 +598,12 @@ class SiteSettings(models.Model):
         blank=True,
         help_text="Portal upcoming assessments list (JSON). Each item: title, when, detail, tone, roles, enabled.",
     )
+    marksheet_ocr_command = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Absolute path to the Tesseract binary when the executable is not on PATH.",
+    )
     footer_accreditation_text = models.CharField(
         max_length=255,
         blank=True,
@@ -678,6 +696,34 @@ class SiteSettings(models.Model):
             ('global', 'Global/Other'),
         ],
         default='cameroon_anglophone'
+    )
+    grade_approval_enabled = models.BooleanField(
+        default=True,
+        help_text="Require staff approval before publishing teacher-submitted marks."
+    )
+    grade_approval_roles = models.JSONField(
+        default=default_grade_approval_roles,
+        blank=True,
+        help_text="List of role codes allowed to review/approve teacher grade submissions."
+    )
+    grade_post_roles = models.JSONField(
+        default=default_grade_post_roles,
+        blank=True,
+        help_text="Roles that can finalize/post grade approvals (post/extract)."
+    )
+    grade_approval_deadline_days = models.PositiveSmallIntegerField(
+        default=3,
+        help_text="Days before a submitted request must be reviewed."
+    )
+    grade_approval_deadline_note = models.CharField(
+        max_length=160,
+        blank=True,
+        default="Please review before the deadline.",
+        help_text="Friendly reminder shown when deadline approaches."
+    )
+    grade_approval_auto_validate = models.BooleanField(
+        default=True,
+        help_text="Automatically flag missing or anomalous scores before sending to approvers."
     )
     
     # ===== NEW: NOTIFICATIONS =====

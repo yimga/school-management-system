@@ -30,6 +30,66 @@
   --admin-border-hover: #94a3b8;
 }
 
+.preview-status-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  padding: 18px 22px;
+  box-shadow: var(--admin-shadow);
+  margin-bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.preview-status-card__info {
+  flex: 1 1 320px;
+  min-width: 240px;
+}
+
+.preview-status-card__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.preview-status-card__actions .btn {
+  font-size: 11px;
+  padding: 6px 12px;
+}
+
+.preview-status-card__colors {
+  display: flex;
+  gap: 10px;
+}
+
+.preview-status-card__chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+}
+
+.finance-inbox-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: var(--admin-shadow);
+  margin-bottom: 24px;
+}
+
+.finance-inbox-card li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.finance-inbox-card li:last-child {
+  border-bottom: none;
+}
+
 :root[data-theme="dark"] {
   --admin-dashboard-bg: #0b1220;
   --admin-surface: #111827;
@@ -128,7 +188,63 @@
 </style>
 <div style="background: var(--admin-dashboard-bg); padding: 24px 16px; overflow-y: auto;">
   <div style="max-width: 1280px; margin: 0 auto;">
-    <div class="admin-layout">
+        <div class="admin-layout">
+          {% if preview_data %}
+          <div class="preview-status-card" data-widget-id="admin-preview-status">
+            <div class="preview-status-card__info">
+              <div style="font-size: 13px; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px;">Preview Staging</div>
+              <div style="font-size: 18px; font-weight: 600; color: var(--admin-text);">
+                {% if preview_data.preview_mode_enabled %}Preview mode enabled{% else %}Ready to stage preview changes{% endif %}
+              </div>
+              <p style="margin: 6px 0 0 0; font-size: 12px; color: var(--admin-subtle);">
+                {{ preview_data.preview_banner_text|default:preview_data.preview_note|default:"Use the preview toggle to stage palette/theme edits safely." }}
+              </p>
+            </div>
+            <div class="preview-status-card__actions">
+              {% if preview_data.preview_toggle_enabled %}
+                <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}" class="btn btn-sm btn-outline-dark" title="Toggle preview mode">
+                  {% if preview_data.preview_mode_enabled %}Exit preview{% else %}Enter preview{% endif %}
+                </a>
+              {% endif %}
+              {% if preview_data.preview_mode_enabled %}
+                <a href="/siteconfig/customizer/clear-preview/" class="btn btn-sm btn-outline-secondary" title="Clear staged preview">Clear preview</a>
+              {% endif %}
+              <a href="/siteconfig/customizer/" class="btn btn-sm btn-primary" title="Open the Site Settings preview customizer">Open customizer</a>
+            </div>
+            <div class="preview-status-card__colors">
+              <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.primary }};">Primary</span>
+              <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.accent }};">Accent</span>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if finance_inbox %}
+          <div class="finance-inbox-card" data-widget-id="admin-finance-inbox">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+              <div>
+                <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--admin-text);">Finance inbox</h3>
+                <p style="margin:0; font-size:12px; color:var(--admin-muted);">Track guardian finance access alerts with quick actions.</p>
+              </div>
+              <div class="badge bg-warning text-dark" style="font-size:12px;">
+                Unread {{ finance_inbox_unread|default:0 }}
+              </div>
+            </div>
+            <ul class="list-unstyled mb-0">
+              {% for notif in finance_inbox %}
+              <li>
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <strong>{{ notif.title }}</strong>
+                  <span class="badge bg-secondary text-light small">{{ notif.created_at|date:"M j, H:i" }}</span>
+                </div>
+                <p class="text-muted small mb-0">{{ notif.message|truncatechars:110 }}</p>
+              </li>
+              {% endfor %}
+            </ul>
+            <div class="text-end mt-3">
+              <a href="{{ finance_request_link }}" class="btn btn-sm btn-outline-dark">Open finance requests</a>
+            </div>
+          </div>
+          {% endif %}
 
       <!-- Sidebar removed - using Django admin sidebar navigation -->
 

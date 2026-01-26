@@ -126,7 +126,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
         """Test that widget data is cached and second call uses cache."""
         # First call - cache miss
         cache.clear()
-        with self.assertNumQueries(8):  # Expected: students, evaluations, invoices, etc.
+        with self.assertNumQueries(7):  # Expected: students, evaluations, invoices, etc.
             result1 = parent_dashboard_widget_data(self.students)
         
         self.assertIsNotNone(result1)

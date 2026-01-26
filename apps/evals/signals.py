@@ -37,8 +37,10 @@ def create_audit_trail_and_convert_grades(sender, instance, created, **kwargs):
     3. Convert numeric to letter grade
     """
     try:
-        # Determine change type
-        change_type = 'create' if created else 'update'
+        # Determine change type (allow overriding from the view)
+        change_type = getattr(instance, "_audit_change_type", None)
+        if not change_type:
+            change_type = 'create' if created else 'update'
         prev = instance._previous_values or {}
         
         seq1_before = prev.get('seq1') if not created else None

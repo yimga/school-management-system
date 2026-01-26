@@ -108,6 +108,64 @@ class PaymentTestCase(TestCase):
         self.assertEqual(payment.gateway_transaction_id, 'tx_123')
 
 
+class PaymentAuditLoggingTestCase(TestCase):
+    """Ensure status changes emit audit entries."""
+
+    def setUp(self):
+        self.region = RegionConfig.objects.create(
+            name='Audit', code='AUD', default_language='en', timezone='UTC'
+        )
+        self.user = User.objects.create_user('auditor', 'audit@test.com', 'pass')
+        self.method = PaymentMethod.objects.create(
+            name='Audit Card', method_type='card', gateway='stripe',
+            region=self.region, created_by=self.user
+        )
+        self.student = StudentProfile.objects.create(
+            user=self.user, admission_number='AUD001'
+        )
+        self.payment = Payment.objects.create(
+            reference_number='AUDPAY',
+            student=self.student,
+            region=self.region,
+            payment_method=self.method,
+            amount=Decimal('250.00'),
+            currency_code='USD',
+            purpose='tuition'
+        )
+
+    def test_mark_processing_logs_audit(self):
+        self.payment.mark_processing()
+        log = PaymentAuditLog.objects.filter(
+            payment=self.payment,
+            action_type='payment_initiated'
+        ).last()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.severity, 'medium')
+        self.assertEqual(log.region, self.region)
+        self.assertEqual(log.details.get('status'), 'processing')
+
+    def test_mark_completed_logs_audit(self):
+        self.payment.mark_completed(gateway_tx_id='tx_audit')
+        log = PaymentAuditLog.objects.filter(
+            payment=self.payment,
+            action_type='payment_completed'
+        ).last()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.details.get('gateway_transaction_id'), 'tx_audit')
+        self.assertEqual(log.severity, 'low')
+
+    def test_mark_failed_logs_audit(self):
+        self.payment.mark_failed(reason='test failure')
+        log = PaymentAuditLog.objects.filter(
+            payment=self.payment,
+            action_type='payment_failed'
+        ).last()
+        self.assertIsNotNone(log)
+        self.assertEqual(log.severity, 'high')
+        self.assertIn('reason', log.details)
+        self.assertEqual(log.details.get('reason'), 'test failure')
+
+
 class TransactionTestCase(TestCase):
     """Test transaction models."""
     

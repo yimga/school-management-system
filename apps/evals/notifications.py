@@ -102,6 +102,75 @@ class NotificationService:
         else:
             logger.info(f"[CONSOLE SMS] {phone_number}: {message}")
             return True
+
+    def send_grade_approval_request_email(self, approver, approval_request) -> bool:
+        """Notify approvers when a teacher submits grades for review."""
+        try:
+            base_url = getattr(settings, "BASE_URL", "")
+            link = ""
+            if base_url:
+                link = f"{base_url.rstrip('/')}/evals/grade-approvals/{approval_request.id}/"
+            else:
+                link = f"/evals/grade-approvals/{approval_request.id}/"
+
+            subject = (
+                f"Grade Approval Needed · {approval_request.subject_assignment.subject.name}"
+                if approval_request.subject_assignment and approval_request.subject_assignment.subject
+                else "Grade Approval Requested"
+            )
+            teacher_name = (
+                approval_request.teacher.user.get_full_name()
+                if approval_request.teacher and approval_request.teacher.user
+                else "Teacher"
+            )
+            term_label = approval_request.term.label if approval_request.term else "Term"
+            year_label = approval_request.academic_year.name if approval_request.academic_year else "Academic Year"
+            body = (
+                f"Hello {approver.get_full_name() or approver.username},\n\n"
+                f"{teacher_name} has submitted marks for {approval_request.subject_assignment} "
+                f"in {term_label} ({year_label}). Review the submission here: {link}\n\n"
+                "Thank you,\nSchool Management System"
+            )
+
+            send_mail(
+                subject=subject,
+                message=body,
+                from_email=self.site_settings.email_from_address if self.site_settings else settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[approver.email],
+            )
+            logger.info(f"Grade approval email sent to {approver.email}")
+            return True
+        except Exception as exc:
+            logger.error("Failed to send grade approval email", exc_info=exc)
+            return False
+
+    def send_grade_approval_decision_email(self, approval_request, status) -> bool:
+        """Notify the teacher after a decision is recorded."""
+        try:
+            teacher_user = approval_request.teacher.user if approval_request.teacher else None
+            if not teacher_user or not teacher_user.email:
+                return False
+
+            status_label = dict(approval_request.Status.choices).get(status, status.title())
+            subject = f"Grade Approval {status_label} · {approval_request.subject_assignment}"
+            body = (
+                f"Hello {teacher_user.get_full_name() or teacher_user.username},\n\n"
+                f"Your grade submission for {approval_request.subject_assignment} ({approval_request.term.label if approval_request.term else 'Term'}) "
+                f"has been marked as {status_label}.\n\n"
+                "Check the approval list for details.\n\n"
+                "School Management System"
+            )
+            send_mail(
+                subject=subject,
+                message=body,
+                from_email=self.site_settings.email_from_address if self.site_settings else settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[teacher_user.email],
+            )
+            logger.info(f"Grade approval decision email sent to {teacher_user.email}")
+            return True
+        except Exception as exc:
+            logger.error("Failed to send grade approval decision email", exc_info=exc)
+            return False
     
     def _send_sms_twilio(self, phone_number: str, message: str) -> bool:
         """Twilio SMS."""

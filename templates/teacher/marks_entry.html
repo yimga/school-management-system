@@ -57,6 +57,123 @@
       {% endif %}
     </div>
   </div>
+  <div class="card mb-3">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <span>Upload Marksheet (OCR)</span>
+        {% if marksheet_ocr_enabled %}
+          <span class="badge bg-success">Live</span>
+        {% else %}
+          <span class="badge bg-secondary">Disabled</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-body">
+      {% if marksheet_ocr_ready %}
+        <div class="mb-2 small text-muted">
+          Using <code>{{ marksheet_ocr_command }}</code>{% if marksheet_ocr_version %} (v{{ marksheet_ocr_version }}){% endif %}.
+        </div>
+      {% else %}
+        <div class="alert alert-warning mb-3">
+          Tesseract isn’t configured on the backend (<code>{{ marksheet_ocr_command }}</code> failed). Install it or set the command in Site Settings before uploading.
+        </div>
+      {% endif %}
+      {% if not marksheet_ocr_enabled %}
+        <div class="alert alert-warning mb-3">
+          Marksheet OCR uploads are controlled from Site Settings. Contact an admin to enable this feature.
+        </div>
+      {% endif %}
+      <form method="post" enctype="multipart/form-data" class="mb-3">
+        {% csrf_token %}
+        {{ upload_form.subject_assignment_id }}
+        <div class="mb-2">
+          {{ upload_form.marksheet_file }}
+        </div>
+        <button class="btn btn-outline-primary" type="submit" {% if not marksheet_ocr_enabled or not marksheet_ocr_ready %}disabled{% endif %}>
+          Parse & Apply
+        </button>
+        {% if marksheet_mobile_upload_allowed %}
+          <small class="text-muted ms-2">Works on mobile - choose or capture a photo directly.</small>
+        {% endif %}
+      </form>
+      {% if upload_feedback %}
+        <div class="alert alert-{{ upload_feedback.level }} mb-3">
+          {{ upload_feedback.message }}
+        </div>
+      {% endif %}
+      {% if upload_summary.processed %}
+        <p class="small text-muted mb-3">
+          Processed {{ upload_summary.processed }} row{{ upload_summary.processed|pluralize }} at {{ upload_confidence|floatformat:0 }}% confidence.
+          {% if upload_summary.applied %}
+            Auto-applied {{ upload_summary.applied }} row{{ upload_summary.applied|pluralize }}.
+          {% endif %}
+          {% if upload_manual_review_pending %}
+            Manual verification is required before committing changes.
+          {% endif %}
+        </p>
+      {% endif %}
+      {% if upload_preview %}
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Code</th>
+                <th scope="col">Student</th>
+                <th scope="col">Scores</th>
+                <th scope="col">Extracted line</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in upload_preview %}
+                <tr class="{% if not row.matched %}table-warning{% endif %}">
+                  <td>{{ row.code }}</td>
+                  <td>{{ row.student_name }}</td>
+                  <td>
+                    {% for field, value in row.scores.items %}
+                      <span class="badge bg-light text-dark border border-1 me-1">{{ field|title }}: {{ value }}</span>
+                    {% endfor %}
+                  </td>
+                  <td>{{ row.line }}</td>
+                </tr>
+              {% endfor %}
+          </tbody>
+          </table>
+        </div>
+        {% if upload_manual_review_pending %}
+          <form method="post" class="mt-3">
+            {% csrf_token %}
+            {{ upload_form.subject_assignment_id }}
+            <input type="hidden" name="confirm_pending" value="1">
+            <button class="btn btn-primary" type="submit">Apply parsed marks</button>
+            <span class="ms-2 text-muted">Confirm to apply the reviewed OCR results.</span>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+{% if grade_approval_enabled %}
+  <div class="mb-3">
+    {% if grade_approval_requests %}
+      <div class="alert alert-info">
+        <p class="mb-1"><strong>Recent approval requests for this assignment:</strong></p>
+        <ul class="mb-0 small">
+          {% for req in grade_approval_requests %}
+            <li>
+              {{ req.get_status_display }} · {{ req.requested_at|date:"M d, Y H:i" }}
+              <a href="{% url 'evals:grade_approval_detail' req.id %}">View</a>
+            </li>
+          {% endfor %}
+        </ul>
+        <small class="text-muted">Grade approvals land with {{ grade_approval_roles|join:", " }}.</small>
+      </div>
+    {% else %}
+      <div class="alert alert-secondary">
+        Grade approvals are enabled. Use the action button below to submit your changes for review.
+      </div>
+    {% endif %}
+  </div>
 {% endif %}
 
 {% if sa and students %}
@@ -99,6 +216,11 @@
         </table>
 
         <button class="btn btn-success" type="submit" {% if locked %}disabled{% endif %}>Save All Marks</button>
+        {% if grade_approval_enabled %}
+          <button class="btn btn-outline-warning ms-2" type="submit" name="action" value="submit_for_approval" {% if locked %}disabled{% endif %}>
+            Submit for Review
+          </button>
+        {% endif %}
       </form>
     </div>
   </div>

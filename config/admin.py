@@ -4,6 +4,9 @@ Provides enhanced admin interface with logical app grouping and custom ordering
 """
 import datetime
 
+from apps.finance.models import Notification
+from apps.siteconfig.models import SiteSettings
+
 from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.contrib.auth import get_user_model
@@ -88,6 +91,23 @@ class GileadAdminSite(AdminSite):
             security_alerts_24h = 0
             access_denials_24h = 0
 
+        site = SiteSettings.get_solo()
+        finance_requests_qs = Notification.objects.filter(
+            recipient=request.user,
+            title__icontains="finance access request",
+        ).order_by("-created_at")
+        finance_inbox_preview = list(finance_requests_qs[:3])
+        finance_inbox_unread = finance_requests_qs.filter(is_read=False).count()
+        preview_data = {
+            "preview_mode_enabled": getattr(site, "preview_mode_enabled", False),
+            "preview_toggle_enabled": getattr(site, "preview_toggle_enabled", True),
+            "preview_banner_text": getattr(site, "preview_banner_text", ""),
+            "preview_note": getattr(site, "preview_note", ""),
+            "preview_colors": {
+                "primary": getattr(site, "primary_color", "#0d6efd"),
+                "accent": getattr(site, "accent_color", "#198754"),
+            },
+        }
         context = {
             **self.each_context(request),
             'title': self.index_title,
@@ -102,6 +122,10 @@ class GileadAdminSite(AdminSite):
             'failed_logins_by_role': failed_logins_by_role,
             'security_alerts_24h': security_alerts_24h,
             'access_denials_24h': access_denials_24h,
+            'preview_data': preview_data,
+            'finance_inbox': finance_inbox_preview,
+            'finance_inbox_unread': finance_inbox_unread,
+            'finance_request_link': reverse("finance:requests"),
         }
         if extra_context:
             context.update(extra_context)
@@ -141,10 +165,10 @@ class GileadAdminSite(AdminSite):
         # Define logical grouping with custom order
         app_order = {
             # Core Administration & People
-            "accounts": {"order": 1, "name": "👤 Accounts & Authentication", "icon": "👤"},
+            "accounts": {"order": 1, "name": "👤 Accounts", "icon": "👤"},
             "people": {"order": 2, "name": "👥 People Management", "icon": "👥"},
-            # Place built-in auth alongside people for smoother workflow
-            "auth": {"order": 2.5, "name": "🔐 Authentication & Authorization", "icon": "🔐"},
+            # Keep auth tightly coupled with People Management
+            "auth": {"order": 2.1, "name": "🔐 Authentication & Authorization", "icon": "🔐"},
 
             # Academic Structure
             "academics": {"order": 4, "name": "🎓 Academic Structure", "icon": "🎓"},
@@ -160,12 +184,11 @@ class GileadAdminSite(AdminSite):
             "analytics": {"order": 10, "name": "📈 Analytics & Insights", "icon": "📈"},
             "compliance": {"order": 11, "name": "🔒 Compliance & Audit", "icon": "🔒"},
 
-            # Configuration (kept last)
             # Django Built-ins (if any remain)
             "sites": {"order": 998, "name": "🌐 Sites", "icon": "🌐"},
 
-            # Configuration (kept last)
-            "siteconfig": {"order": 999, "name": "⚙️ System Configuration", "icon": "⚙️"},
+            # Configuration (force last)
+            "siteconfig": {"order": 1000, "name": "⚙️ System Configuration", "icon": "⚙️"},
         }
         
         # Apply custom ordering and naming

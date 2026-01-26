@@ -1104,15 +1104,36 @@ def notifications(request: HttpRequest):
 
 @staff_member_required
 def finance_requests(request: HttpRequest):
-    notifications_qs = Notification.objects.filter(
+    base_qs = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",
     ).order_by("-created_at")
+    view_mode = request.GET.get("view", "all")
+    if view_mode == "unread":
+        notifications_qs = base_qs.filter(is_read=False)
+    else:
+        notifications_qs = base_qs
+
+    unread_count = base_qs.filter(is_read=False).count()
 
     if request.method == "POST":
+        if request.POST.get("mark_all_unread"):
+            targets = list(base_qs.filter(is_read=False))
+            if targets:
+                Notification.objects.filter(id__in=[n.id for n in targets]).update(is_read=True)
+                for notif in targets:
+                    FinanceRequestAudit.objects.create(
+                        notification=notif,
+                        user=request.user,
+                        action="marked_read",
+                        details="Marked all unread from finance inbox.",
+                    )
+                messages.success(request, f"Marked {len(targets)} finance request(s) as read.")
+            return redirect(f"{reverse('finance:requests')}?view={view_mode}")
+
         selected = request.POST.getlist("notification_id")
         if selected:
-            targets = list(notifications_qs.filter(id__in=selected))
+            targets = list(base_qs.filter(id__in=selected))
             if targets:
                 Notification.objects.filter(id__in=[n.id for n in targets]).update(is_read=True)
                 for notif in targets:
@@ -1123,11 +1144,12 @@ def finance_requests(request: HttpRequest):
                         details="Marked read from finance requests dashboard.",
                     )
                 messages.success(request, f"Marked {len(targets)} finance request(s) as read.")
-        return redirect("finance:requests")
+        return redirect(f"{reverse('finance:requests')}?view={view_mode}")
 
     return render(request, "finance/requests.html", {
         "notifications": notifications_qs,
-        "unread_count": notifications_qs.filter(is_read=False).count(),
+        "unread_count": unread_count,
+        "view_mode": view_mode,
         "finance_request_audits": list(
             FinanceRequestAudit.objects.select_related("notification", "user").order_by("-created_at")[:25]
         ),

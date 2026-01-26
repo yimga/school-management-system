@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponseForbidden, HttpResponse
 from django.contrib import messages
@@ -6,6 +7,7 @@ from django import forms
 import csv
 import io
 from decimal import Decimal
+from typing import Any
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -16,7 +18,7 @@ from apps.accounts.models import User
 from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Term, Subject
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import TeacherProfile, StudentProfile
-from apps.evals.models import TeacherAssignment, Evaluation, AssessmentWeights
+from apps.evals.models import GradeApprovalRequest, TeacherAssignment, Evaluation, AssessmentWeights
 from apps.evals.importers import preview_import, apply_import, build_template_headers
 from apps.reports.services import is_term_published
 from apps.reports.weasy import render_pdf_bytes
@@ -26,8 +28,20 @@ from .forms import (
     EvaluationEvidenceForm,
     AssessmentWeightsForm,
     BatchFillMissingForm,
+    MarkSheetUploadForm,
+    GradeApprovalDecisionForm,
 )
 from .models import EvaluationEvidence
+from .ocr import process_marksheet_upload, is_tesseract_available
+from .approval import (
+    create_grade_approval_request,
+    grade_entries_from_submission,
+    grade_approver_roles,
+    grade_post_roles,
+    user_can_finalize_submission,
+    FINAL_STATUSES,
+)
+from .notifications import NotificationService
 from apps.portal.services import (
     teacher_dashboard_widget_data,
     teacher_scope,
@@ -112,6 +126,162 @@ def _serialize_evaluation(evaluation: Evaluation) -> dict[str, str]:
         "total": f"{evaluation.total_score:.2f}",
         "remarks": evaluation.remarks or "",
     }
+
+
+def _update_evaluations_from_entries(entries, students_map, teacher, year, term, subject_assignment) -> int:
+    updated = 0
+    for entry in entries:
+        student = students_map.get(entry["student_id"])
+        if student is None:
+            continue
+        Evaluation.objects.update_or_create(
+            academic_year=year,
+            term=term,
+            subject_assignment=subject_assignment,
+            student=student,
+            defaults={
+                "teacher": teacher,
+                "seq1_score": entry["scores"]["seq1"],
+                "seq2_score": entry["scores"]["seq2"],
+                "exam_score": entry["scores"]["exam"],
+                "mock_score": entry["scores"]["mock"],
+                "practical_score": entry["scores"]["practical"],
+                "test1": entry["scores"]["seq1"],
+                "test2": entry["scores"]["seq2"],
+                "remarks": entry.get("remarks", ""),
+            },
+        )
+        updated += 1
+    return updated
+
+
+def _user_can_review_grades(user: User) -> bool:
+    if not user.is_authenticated:
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    roles = grade_approver_roles()
+    if user.role in roles:
+        return True
+    return user.roles.filter(code__in=roles).exists()
+
+
+def _student_lookup_by_code(students: list[StudentProfile]) -> dict[str, StudentProfile]:
+    return {
+        (student.student_code or "").upper(): student
+        for student in students
+        if student.student_code
+    }
+
+
+def _apply_ocr_entries(entries, student_lookup, sa, year, term, teacher):
+    updated = []
+    for entry in entries:
+        student = student_lookup.get(entry.get("student_code", "").upper())
+        if not student:
+            continue
+        evaluation, _ = Evaluation.objects.get_or_create(
+            academic_year=year,
+            term=term,
+            subject_assignment=sa,
+            student=student,
+            defaults={"teacher": teacher},
+        )
+        changes = {}
+        for field, value in entry.get("scores", {}).items():
+            if value is None:
+                continue
+            existing = getattr(evaluation, field)
+            if existing != value:
+                setattr(evaluation, field, value)
+                changes[field] = value
+        if changes:
+            evaluation._audit_change_type = 'ocr_upload'
+            evaluation.teacher = teacher
+            evaluation.save()
+            updated.append({"student": student, "changes": changes})
+    return updated
+
+
+def _build_ocr_preview(entries, student_lookup):
+    preview = []
+    for entry in entries:
+        student = student_lookup.get(entry.get("student_code", "").upper())
+        full_name = ""
+        if student:
+            full_name = f"{student.last_name} {student.first_name}"
+        preview.append(
+            {
+                "code": entry.get("student_code"),
+                "student_name": full_name if full_name else "Unmatched student",
+                "scores": entry.get("scores", {}),
+                "line": entry.get("line_text"),
+                "matched": bool(student),
+            }
+        )
+    return preview
+
+
+MARKSHEET_OCR_PENDING_SESSION_KEY = "marksheet_ocr_pending"
+
+
+def _serialize_pending_entries(entries):
+    serialized = []
+    for entry in entries:
+        serialized.append(
+            {
+                "student_code": entry.get("student_code"),
+                "line_text": entry.get("line_text"),
+                "scores": {field: str(value) for field, value in entry.get("scores", {}).items()},
+            }
+        )
+    return serialized
+
+
+def _deserialize_pending_entries(payload):
+    deserialized = []
+    for entry in payload:
+        scores = {}
+        for field, value in entry.get("scores", {}).items():
+            try:
+                scores[field] = Decimal(str(value))
+            except Exception:
+                continue
+        deserialized.append(
+            {
+                "student_code": entry.get("student_code"),
+                "line_text": entry.get("line_text"),
+                "scores": scores,
+            }
+        )
+    return deserialized
+
+
+def _pending_ocr_for(session, teacher_id, subject_assignment_id):
+    pending = session.get(MARKSHEET_OCR_PENDING_SESSION_KEY)
+    if not pending:
+        return None
+    if pending.get("teacher") != teacher_id:
+        return None
+    if pending.get("subject_assignment") != subject_assignment_id:
+        return None
+    return pending
+
+
+def _set_pending_ocr(session, teacher_id, subject_assignment_id, entries, confidence):
+    session[MARKSHEET_OCR_PENDING_SESSION_KEY] = {
+        "teacher": teacher_id,
+        "subject_assignment": subject_assignment_id,
+        "entries": _serialize_pending_entries(entries),
+        "confidence": confidence,
+    }
+    session.modified = True
+
+
+def _clear_pending_ocr(session):
+    if MARKSHEET_OCR_PENDING_SESSION_KEY in session:
+        session.pop(MARKSHEET_OCR_PENDING_SESSION_KEY, None)
+        session.modified = True
 
 
 def _build_filter_labels(
@@ -316,6 +486,22 @@ def teacher_marks_entry(request: HttpRequest):
     required_fields = []
     filled_count = 0
     total_students_count = 0
+    site_settings = SiteSettings.get_solo()
+    flags = {**default_backend_feature_flags(), **(site_settings.backend_feature_flags or {})}
+    grade_approval_enabled = getattr(site_settings, "grade_approval_enabled", False)
+    custom_cmd = (site_settings.marksheet_ocr_command or "").strip()
+    env_cmd = getattr(settings, "MARKSHEET_OCR_COMMAND", "") or ""
+    resolved_cmd = (custom_cmd or env_cmd or "").strip()
+    ocr_command = resolved_cmd or None
+    marksheet_ocr_ready, marksheet_ocr_version = is_tesseract_available(ocr_command)
+    marksheet_ocr_command_display = resolved_cmd or "tesseract"
+    upload_form = MarkSheetUploadForm(initial={"subject_assignment_id": selected_sa_id}) if selected_sa_id else MarkSheetUploadForm()
+    upload_preview = []
+    upload_feedback = None
+    upload_summary: dict[str, Any] = {"processed": 0}
+    upload_confidence = 0.0
+    upload_manual_review_pending = False
+    student_lookup: dict[str, StudentProfile] = {}
 
     if selected_sa_id:
         # Guard: must be assigned
@@ -361,8 +547,108 @@ def teacher_marks_entry(request: HttpRequest):
         if show_missing:
             students = [s for s in students if not _is_complete(existing.get(s.id))]
 
-    # POST: save marks
-    if request.method == "POST":
+        student_lookup = _student_lookup_by_code(students)
+
+    grade_approval_requests = GradeApprovalRequest.objects.none()
+    if sa:
+        grade_approval_requests = GradeApprovalRequest.objects.filter(
+            teacher=teacher,
+            subject_assignment=sa,
+        ).order_by("-requested_at")[:3]
+    marksheet_file = request.FILES.get("marksheet_file")
+    confirm_pending = request.POST.get("confirm_pending") == "1"
+    selected_sa_pk = sa.id if sa else None
+    pending_data = _pending_ocr_for(request.session, teacher.id, selected_sa_pk) if selected_sa_pk else None
+
+    if request.method == "POST" and confirm_pending:
+        upload_form = MarkSheetUploadForm(initial={"subject_assignment_id": selected_sa_id}) if selected_sa_id else MarkSheetUploadForm()
+        if not sa:
+            messages.error(request, "Please select an assignment first.")
+            upload_feedback = {"level": "danger", "message": "Select an assignment before uploading a marksheet."}
+        elif locked:
+            return HttpResponseForbidden("This term is published/locked. Marks entry is disabled.")
+        elif not pending_data:
+            upload_feedback = {
+                "level": "warning",
+                "message": "No OCR preview is staged for this assignment.",
+            }
+        else:
+            entries = _deserialize_pending_entries(pending_data["entries"])
+            upload_confidence = pending_data.get("confidence", 0.0) or 0.0
+            upload_preview = _build_ocr_preview(entries, student_lookup)
+            applied = _apply_ocr_entries(entries, student_lookup, sa, year, active_term, teacher)
+            upload_summary = {
+                "processed": len(entries),
+                "confidence": upload_confidence,
+                "applied": len(applied),
+            }
+            upload_feedback = {
+                "level": "success" if applied else "info",
+                "message": (
+                    f"Applied {len(applied)} parsed entries at {upload_confidence:.0f}% confidence."
+                    if applied
+                    else "No matching students were updated."
+                ),
+            }
+            messages.success(request, "OCR preview applied successfully.")
+            _clear_pending_ocr(request.session)
+    elif request.method == "POST" and marksheet_file:
+        upload_form = MarkSheetUploadForm(request.POST, request.FILES)
+        if not sa:
+            messages.error(request, "Please select an assignment first.")
+            upload_feedback = {"level": "danger", "message": "Select an assignment before uploading a marksheet."}
+        elif locked:
+            return HttpResponseForbidden("This term is published/locked. Marks entry is disabled.")
+        elif not upload_form.is_valid():
+            upload_feedback = {"level": "danger", "message": "Upload form is invalid. Check the fields and try again."}
+        elif not flags.get("marksheet_ocr_enabled"):
+            upload_feedback = {
+                "level": "warning",
+                "message": "Marksheet OCR uploads are disabled in Site Settings.",
+            }
+        elif not marksheet_ocr_ready:
+            upload_feedback = {
+                "level": "warning",
+                "message": (
+                    "Tesseract is not available. Please install it or configure the path in Site Settings."
+                ),
+            }
+        else:
+            ocr_result = process_marksheet_upload(
+                upload_form.cleaned_data["marksheet_file"],
+                tesseract_cmd=ocr_command,
+            )
+            entries = ocr_result.get("entries", [])
+            upload_confidence = ocr_result.get("confidence", 0.0) or 0.0
+            upload_preview = _build_ocr_preview(entries, student_lookup)
+            threshold = flags.get("marksheet_ocr_confidence_threshold", 70) or 70
+            upload_manual_review_pending = bool(flags.get("marksheet_ocr_manual_review_required", True)) or upload_confidence < threshold
+            upload_summary = {
+                "processed": len(entries),
+                "confidence": upload_confidence,
+            }
+            if entries and not upload_manual_review_pending:
+                applied = _apply_ocr_entries(entries, student_lookup, sa, year, active_term, teacher)
+                upload_summary["applied"] = len(applied)
+                upload_feedback = {
+                    "level": "success",
+                    "message": f"Applied {len(applied)} parsed entries at {upload_confidence:.0f}% confidence.",
+                }
+                messages.success(request, "OCR upload applied successfully.")
+                _clear_pending_ocr(request.session)
+            elif entries:
+                upload_feedback = {
+                    "level": "info",
+                    "message": "Parsed marks need manual verification before they are applied.",
+                }
+                _set_pending_ocr(request.session, teacher.id, selected_sa_pk, entries, upload_confidence)
+            else:
+                upload_feedback = {
+                    "level": "warning",
+                    "message": ocr_result.get("message") or "No data extracted from the marksheet.",
+                }
+                _clear_pending_ocr(request.session)
+    elif request.method == "POST":
         if not sa:
             messages.error(request, "Please select an assignment first.")
             return redirect("evals:teacher_marks_entry")
@@ -370,36 +656,47 @@ def teacher_marks_entry(request: HttpRequest):
         if locked:
             return HttpResponseForbidden("This term is published/locked. Marks entry is disabled.")
 
-        for s in students:
-            seq1 = request.POST.get(f"seq1_{s.id}") or None
-            seq2 = request.POST.get(f"seq2_{s.id}") or None
-            exam = request.POST.get(f"exam_{s.id}") or None
-            mock = request.POST.get(f"mock_{s.id}") or None
-            practical = request.POST.get(f"practical_{s.id}") or None
-            remarks = request.POST.get(f"remarks_{s.id}") or ""
+        action = request.POST.get("action")
+        entries_payload = grade_entries_from_submission(students, request.POST)
+        students_map = {student.id: student for student in students}
+        _update_evaluations_from_entries(
+            entries_payload,
+            students_map,
+            teacher,
+            year,
+            active_term,
+            sa,
+        )
 
-            Evaluation.objects.update_or_create(
-                academic_year=year,
-                term=active_term,
-                subject_assignment=sa,
-                student=s,
-                defaults={
-                    "teacher": teacher,
-                    # New fields
-                    "seq1_score": seq1,
-                    "seq2_score": seq2,
-                    "exam_score": exam,
-                    "mock_score": mock,
-                    "practical_score": practical,
-                    # Backward compatible mirrors (old UI)
-                    "test1": seq1,
-                    "test2": seq2,
-                    "remarks": remarks
-                }
-            )
+        if action == "submit_for_approval" and grade_approval_enabled:
+            try:
+                create_grade_approval_request(
+                    teacher=teacher,
+                    subject_assignment=sa,
+                    academic_year=year,
+                    term=active_term,
+                    entries=entries_payload,
+                    requested_by=request.user,
+                )
+            except ValueError:
+                messages.warning(request, "Enter at least one mark before requesting approval.")
+            else:
+                messages.success(request, "Grades submitted for review. Awaiting approver feedback.")
+                return redirect("evals:teacher_marks_list")
 
         messages.success(request, "Marks saved successfully.")
         return redirect("evals:teacher_marks_list")
+
+    pending_data = _pending_ocr_for(request.session, teacher.id, selected_sa_pk) if selected_sa_pk else None
+    if pending_data:
+        pending_entries = _deserialize_pending_entries(pending_data["entries"])
+        upload_preview = _build_ocr_preview(pending_entries, student_lookup)
+        upload_confidence = pending_data.get("confidence", upload_confidence) or 0.0
+        upload_summary = {
+            "processed": len(pending_entries),
+            "confidence": upload_confidence,
+        }
+        upload_manual_review_pending = True
 
     # GET: render selection + (optional) student table
     return render(request, "teacher/marks_entry.html", {
@@ -416,6 +713,20 @@ def teacher_marks_entry(request: HttpRequest):
         "required_fields": required_fields,
         "filled_count": filled_count,
         "total_students": total_students_count if selected_sa_id else 0,
+        "upload_form": upload_form,
+        "upload_preview": upload_preview,
+        "upload_feedback": upload_feedback,
+        "upload_summary": upload_summary,
+        "upload_confidence": upload_confidence,
+        "upload_manual_review_pending": upload_manual_review_pending,
+        "marksheet_ocr_enabled": flags.get("marksheet_ocr_enabled"),
+        "marksheet_mobile_upload_allowed": flags.get("marksheet_ocr_mobile_upload_enabled", True),
+        "marksheet_ocr_ready": marksheet_ocr_ready,
+        "marksheet_ocr_version": marksheet_ocr_version,
+        "marksheet_ocr_command": marksheet_ocr_command_display,
+        "grade_approval_enabled": grade_approval_enabled,
+        "grade_approval_requests": grade_approval_requests,
+        "grade_approval_roles": grade_approver_roles(),
     })
 
 @teacher_portal_required
@@ -1023,6 +1334,74 @@ def grade_import_template_view(request: HttpRequest):
     writer.writeheader()
     writer.writerow({})
     return response
+
+@staff_member_required
+def grade_approval_list(request: HttpRequest):
+    if not _user_can_review_grades(request.user):
+        return HttpResponseForbidden("You are not authorized to review grade approvals.")
+
+    status_filter = request.GET.get("status")
+    qs = GradeApprovalRequest.objects.select_related(
+        "teacher__user",
+        "subject_assignment__subject",
+        "term",
+        "academic_year",
+    ).order_by("-requested_at")
+    if status_filter in GradeApprovalRequest.Status.values:
+        qs = qs.filter(status=status_filter)
+
+    context = {
+        "requests": qs,
+        "status_filter": status_filter or "",
+        "status_options": [("", "All")] + list(GradeApprovalRequest.Status.choices),
+    }
+    return render(request, "evals/grade_approval_list.html", context)
+
+
+@staff_member_required
+def grade_approval_detail(request: HttpRequest, request_id):
+    approval = get_object_or_404(GradeApprovalRequest, id=request_id)
+    if not _user_can_review_grades(request.user):
+        return HttpResponseForbidden("You are not authorized to review grade approvals.")
+
+    can_finalize = user_can_finalize_submission(request.user)
+    status_choices = list(GradeApprovalRequest.Status.choices)
+    if not can_finalize:
+        status_choices = [choice for choice in status_choices if choice[0] not in FINAL_STATUSES]
+    form = GradeApprovalDecisionForm(
+        request.POST or None,
+        initial={"status": approval.status},
+        status_choices=status_choices,
+    )
+    if request.method == "POST" and form.is_valid():
+        new_status = form.cleaned_data["status"]
+        if new_status in FINAL_STATUSES and not can_finalize:
+            form.add_error("status", "Only final approvers can finalize or reject grade submissions.")
+        else:
+            approval.mark_reviewed(
+                reviewer=request.user,
+                status=new_status,
+                notes=form.cleaned_data["reviewer_notes"],
+            )
+            NotificationService().send_grade_approval_decision_email(approval, new_status)
+            messages.success(request, "Grade approval decision saved.")
+            return redirect("evals:grade_approval_list")
+
+    deadline_note = getattr(SiteSettings.get_solo(), "grade_approval_deadline_note", "")
+    deadline_display = approval.deadline_at.strftime("%b %d, %Y %H:%M") if approval.deadline_at else None
+    validation_flags = approval.validation_flags or []
+    return render(request, "evals/grade_approval_detail.html", {
+        "approval": approval,
+        "form": form,
+        "entries": approval.entries,
+        "score_fields": ["seq1", "seq2", "exam", "mock", "practical"],
+        "can_finalize": can_finalize,
+        "deadline_display": deadline_display,
+        "deadline_note": deadline_note,
+        "deadline_overdue": approval.is_overdue,
+        "validation_flags": validation_flags,
+        "final_roles": grade_post_roles(),
+    })
 
 # ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========
 

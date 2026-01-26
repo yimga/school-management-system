@@ -202,6 +202,12 @@ class Payment(models.Model):
         self.status = 'processing'
         self.initiated_at = timezone.now()
         self.save()
+        self._log_status_change(
+            action_type='payment_initiated',
+            severity='medium',
+            details={'initiated_at': str(self.initiated_at)},
+            user=self.processed_by,
+        )
 
     def mark_completed(self, gateway_tx_id=None, response=None):
         """Mark payment as completed."""
@@ -212,6 +218,12 @@ class Payment(models.Model):
         if response:
             self.gateway_response = response
         self.save()
+        self._log_status_change(
+            action_type='payment_completed',
+            severity='low',
+            details={'gateway_transaction_id': gateway_tx_id or ''},
+            user=self.processed_by,
+        )
 
     def mark_failed(self, reason='', response=None):
         """Mark payment as failed."""
@@ -221,6 +233,42 @@ class Payment(models.Model):
         if response:
             self.gateway_response = response
         self.save()
+        self._log_status_change(
+            action_type='payment_failed',
+            severity='high',
+            details={'reason': reason or 'manual failure'},
+            user=self.processed_by,
+        )
+
+    def _resolve_audit_region(self):
+        if self.region:
+            return self.region
+        if self.invoice and getattr(self.invoice, "profile", None):
+            return getattr(self.invoice.profile, "region", None)
+        return None
+
+    def _log_status_change(self, *, action_type: str, severity: str = "low", details=None, user=None):
+        region = self._resolve_audit_region()
+        if not region:
+            return
+        description = f"{self.reference_number} {action_type}".strip()
+        if not description:
+            description = action_type
+        payload = {"status": self.status}
+        if isinstance(details, dict):
+            payload.update(details)
+        elif details:
+            payload["note"] = str(details)
+
+        PaymentAuditLog.objects.create(
+            action_type=action_type,
+            payment=self,
+            region=region,
+            description=description,
+            details=payload,
+            severity=severity,
+            user=user or self.processed_by or self.created_by,
+        )
 
 
 class Transaction(models.Model):
