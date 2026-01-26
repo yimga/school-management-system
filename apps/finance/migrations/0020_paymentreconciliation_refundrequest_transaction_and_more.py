@@ -159,11 +159,19 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 ALTER TABLE finance_payment
     ADD COLUMN IF NOT EXISTS __uuid_tmp uuid DEFAULT gen_random_uuid() NOT NULL;
 
-ALTER TABLE finance_payment
-    DROP CONSTRAINT IF EXISTS finance_payment_pkey;
+ALTER TABLE finance_webhooklog
+    ADD COLUMN IF NOT EXISTS __payment_uuid_tmp uuid;
+
+UPDATE finance_webhooklog
+SET __payment_uuid_tmp = finance_payment.__uuid_tmp
+FROM finance_payment
+WHERE finance_webhooklog.payment_id = finance_payment.id;
+
+ALTER TABLE finance_webhooklog
+    DROP CONSTRAINT IF EXISTS finance_webhooklog_payment_id_b0d1fcdf_fk_finance_payment_id;
 
 ALTER TABLE finance_payment
-    ALTER COLUMN id DROP IDENTITY IF EXISTS;
+    DROP CONSTRAINT IF EXISTS finance_payment_pkey;
 
 ALTER TABLE finance_payment
     RENAME COLUMN id TO __legacy_id;
@@ -173,6 +181,19 @@ ALTER TABLE finance_payment
 
 ALTER TABLE finance_payment
     ADD CONSTRAINT finance_payment_pkey PRIMARY KEY (id);
+
+ALTER TABLE finance_webhooklog
+    RENAME COLUMN payment_id TO __legacy_payment_id;
+
+ALTER TABLE finance_webhooklog
+    RENAME COLUMN __payment_uuid_tmp TO payment_id;
+
+ALTER TABLE finance_webhooklog
+    ADD CONSTRAINT finance_webhooklog_payment_id_b0d1fcdf_fk_finance_payment_id
+        FOREIGN KEY (payment_id) REFERENCES finance_payment (id) DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE finance_webhooklog
+    DROP COLUMN IF EXISTS __legacy_payment_id;
 
 ALTER TABLE finance_payment
     DROP COLUMN IF EXISTS __legacy_id;
