@@ -80,7 +80,7 @@
         height: 100%;
         {% if SHOW_BACKGROUND_LOGO %}
           background-image: {% if SITE_LOGO_URL %}url('{{ SITE_LOGO_URL }}'){% else %}none{% endif %};
-          opacity: {{ SITE_LOGO_OPACITY|default:0.16 }};
+          opacity: {{ SITE_LOGO_OPACITY|default:'0.12' }};
           {% if SITE_LOGO_BG_MODE == "cover" %}
             background-size: cover;
             background-repeat: no-repeat;
@@ -195,12 +195,12 @@
     -->
     <div class="app-container">
       {% if SITE_VIDEO_BG_URL %}
-        <video autoplay loop muted playsinline style="position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:-2;pointer-events:none;opacity:{{ SITE_LOGO_OPACITY|default:0.3 }};">
+        <video autoplay loop muted playsinline style="position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:-2;pointer-events:none;opacity:{{ SITE_LOGO_OPACITY|default:'0.12' }};">
           <source src="{{ SITE_VIDEO_BG_URL }}" type="video/mp4">
           <source src="{{ SITE_VIDEO_BG_URL }}" type="video/webm">
         </video>
       {% elif SITE_SVG_BG_URL %}
-        <object data="{{ SITE_SVG_BG_URL }}" type="image/svg+xml" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;pointer-events:none;opacity:{{ SITE_LOGO_OPACITY|default:0.3 }};"></object>
+        <object data="{{ SITE_SVG_BG_URL }}" type="image/svg+xml" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-2;pointer-events:none;opacity:{{ SITE_LOGO_OPACITY|default:'0.12' }};"></object>
       {% endif %}
     <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container d-flex align-items-center base-topbar">
