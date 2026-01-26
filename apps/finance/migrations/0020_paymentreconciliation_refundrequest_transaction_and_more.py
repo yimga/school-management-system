@@ -153,8 +153,33 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='people.studentprofile'),
         ),
         migrations.RunSQL(
-            """CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";\nALTER TABLE finance_payment ALTER COLUMN id TYPE uuid USING gen_random_uuid();""",
-            """ALTER TABLE finance_payment ALTER COLUMN id TYPE bigint;""",
+            """
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+ALTER TABLE finance_payment
+    ADD COLUMN IF NOT EXISTS __uuid_tmp uuid DEFAULT gen_random_uuid() NOT NULL;
+
+ALTER TABLE finance_payment
+    DROP CONSTRAINT IF EXISTS finance_payment_pkey;
+
+ALTER TABLE finance_payment
+    ALTER COLUMN id DROP IDENTITY IF EXISTS;
+
+ALTER TABLE finance_payment
+    RENAME COLUMN id TO __legacy_id;
+
+ALTER TABLE finance_payment
+    RENAME COLUMN __uuid_tmp TO id;
+
+ALTER TABLE finance_payment
+    ADD CONSTRAINT finance_payment_pkey PRIMARY KEY (id);
+
+ALTER TABLE finance_payment
+    DROP COLUMN IF EXISTS __legacy_id;
+
+DROP SEQUENCE IF EXISTS finance_payment_id_seq;
+""",
+            migrations.RunSQL.noop,
         ),
         migrations.AlterField(
             model_name='payment',
