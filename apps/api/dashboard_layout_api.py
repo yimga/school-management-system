@@ -33,19 +33,100 @@ class DashboardWidgetSerializer(serializers.ModelSerializer):
             "refresh_interval",
             "required_role",
             "allowed_roles",
+            # Admin-configurable presentation controls (per-widget)
+            "allowed_sizes",
+            "default_size",
+            "allowed_variants",
+            "default_variant",
             "order",
         ]
 
 
-class DashboardLayoutSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DashboardLayout
-        fields = ["layout"]
+class DashboardLayoutSerializer(serializers.Serializer):
+    """
+    Validates user-submitted layout payloads.
+
+    Layout schema:
+      { "items": [ { "id": "...", "column": "...", "order": 0, "size": "md", "variant": "default" }, ... ] }
+
+    Security: ensures widget IDs are allowed for the current user/page and prevents invalid size/variant values.
+    """
+
+    layout = serializers.DictField()
 
     def validate_layout(self, value: Dict[str, Any]):
         if not isinstance(value, dict):
             raise serializers.ValidationError("Layout must be a JSON object.")
-        return value
+
+        items = value.get("items", [])
+        if items is None:
+            items = []
+        if not isinstance(items, list):
+            raise serializers.ValidationError("layout.items must be a list.")
+
+        allowed_widgets: Dict[str, DashboardWidget] = self.context.get("allowed_widgets") or {}
+        if not isinstance(allowed_widgets, dict):
+            allowed_widgets = {}
+
+        normalized: List[Dict[str, Any]] = []
+        seen_ids = set()
+        for idx, item in enumerate(items):
+            if not isinstance(item, dict):
+                raise serializers.ValidationError(f"layout.items[{idx}] must be an object.")
+
+            widget_id = str(item.get("id") or "").strip()
+            if not widget_id:
+                raise serializers.ValidationError(f"layout.items[{idx}].id is required.")
+            if widget_id in seen_ids:
+                raise serializers.ValidationError(f"Duplicate widget id '{widget_id}' in layout.")
+            seen_ids.add(widget_id)
+
+            if widget_id not in allowed_widgets:
+                raise serializers.ValidationError(f"Widget '{widget_id}' is not allowed for this page/user.")
+
+            column = str(item.get("column") or "").strip()
+            if not column:
+                raise serializers.ValidationError(f"layout.items[{idx}].column is required.")
+
+            order = item.get("order", idx)
+            try:
+                order = int(order)
+            except (TypeError, ValueError):
+                raise serializers.ValidationError(f"layout.items[{idx}].order must be an integer.")
+
+            widget = allowed_widgets[widget_id]
+            size = item.get("size") or None
+            if size is not None:
+                size = str(size).strip().lower()
+                allowed_sizes = set(getattr(widget, "resolved_allowed_sizes", lambda: ["sm", "md", "lg"])())
+                if size not in allowed_sizes:
+                    raise serializers.ValidationError(
+                        f"layout.items[{idx}].size '{size}' is not allowed for widget '{widget_id}'."
+                    )
+
+            variant = item.get("variant") or None
+            if variant is not None:
+                variant = str(variant).strip().lower()
+                allowed_variants = set(
+                    getattr(widget, "resolved_allowed_variants", lambda: ["default", "compact", "flat"])()
+                )
+                if variant not in allowed_variants:
+                    raise serializers.ValidationError(
+                        f"layout.items[{idx}].variant '{variant}' is not allowed for widget '{widget_id}'."
+                    )
+
+            normalized.append(
+                {
+                    "id": widget_id,
+                    "column": column,
+                    "order": order,
+                    "size": size,
+                    "variant": variant,
+                }
+            )
+
+        # Keep the submitted shape but ensure items are normalized for persistence.
+        return {"items": normalized}
 
 
 def _allowed_roles_for_page(page: str) -> List[str]:
@@ -147,7 +228,17 @@ class DashboardLayoutAPI(APIView):
     def _save(self, request, page: str):
         page = page.lower()
         self._enforce_page_access(page, request.user)
-        serializer = DashboardLayoutSerializer(data=request.data)
+
+        role = self.get_user_role(request.user)
+        widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by("order")
+        widgets_qs = widgets_qs.filter(
+            models.Q(required_role="ANY")
+            | models.Q(required_role=role)
+            | models.Q(allowed_roles__contains=[role])
+        )
+        allowed_widgets = {w.id: w for w in widgets_qs}
+
+        serializer = DashboardLayoutSerializer(data=request.data, context={"allowed_widgets": allowed_widgets})
         serializer.is_valid(raise_exception=True)
 
         layout_obj, _ = DashboardLayout.objects.get_or_create(

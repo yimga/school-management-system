@@ -26,6 +26,38 @@ from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermiss
 from .models import AccessRole, Permission, User
 
 
+@login_required
+def user_profile(request):
+    """Lightweight profile landing page for any authenticated user (RBAC-safe)."""
+    return render(request, "accounts/profile.html", {})
+
+
+@login_required
+def user_notifications(request):
+    """User notifications landing page (RBAC-safe)."""
+    return render(request, "accounts/notifications.html", {})
+
+
+@login_required
+def user_messages(request):
+    """Message/threads landing page (RBAC-safe)."""
+    from apps.portal.services import class_threads_for_parent, class_threads_for_teacher
+
+    role = (getattr(request.user, "role", "") or "").upper()
+    threads = []
+    if role == "PARENT":
+        threads = class_threads_for_parent(request.user, limit=12)
+    elif role == "TEACHER":
+        threads = class_threads_for_teacher(request.user, limit=12)
+    return render(request, "accounts/messages.html", {"threads": threads})
+
+
+@login_required
+def user_documentation(request):
+    """Shortcut to role-appropriate documentation/help (RBAC-safe)."""
+    return render(request, "accounts/documentation.html", {})
+
+
 @permission_required("settings.manage")
 @user_passes_test(lambda u: u.is_authenticated and (u.is_staff or u.is_superuser or getattr(u, "role", None) == User.Role.ADMIN))
 def backend_entity_import(request):
@@ -71,9 +103,28 @@ def redirect_view(request):
     if user.has_feature_permission("settings.manage"):
         return redirect("accounts:backend_dashboard")
 
-    if getattr(user, "role", None) == "TEACHER":
+    # Respect the user's "Dashboard view" preference (Portal Preferences) when possible.
+    dash_view = None
+    try:
+        from apps.siteconfig.models import UserPreference as PortalUserPreference
+
+        pref = PortalUserPreference.objects.filter(user=user).only("dashboard_view").first()
+        dash_view = getattr(pref, "dashboard_view", None)
+    except Exception:
+        dash_view = None
+
+    role = getattr(user, "role", None)
+    if role == "TEACHER":
+        # Teacher dashboard is the primary hub; we don't route away, but the preference can
+        # be used for in-page emphasis later.
         return redirect("evals:teacher_dashboard")
-    if getattr(user, "role", None) == "PARENT":
+    if role == "PARENT":
+        if dash_view == "FINANCE":
+            return redirect("portal:parent_finance")
+        if dash_view == "ACADEMICS":
+            return redirect("portal:parent_performance")
+        if dash_view == "ATTENDANCE":
+            return redirect("portal:parent_dashboard")  # attendance is a section on the dashboard
         return redirect("portal:parent_dashboard")
 
     # Default: admin
@@ -276,7 +327,23 @@ def backend_dashboard(request):
         section_stats,
         getattr(site, "admin_portal_stats_config", {}) or {},
     )
-    can_manage_settings = request.user.has_feature_permission("settings.manage")
+    role_upper = (getattr(request.user, "role", "") or "").upper()
+    admin_like = bool(request.user.is_superuser or role_upper in {User.Role.ADMIN, User.Role.SUPERADMIN})
+    can_manage_settings = admin_like and request.user.has_feature_permission("settings.manage")
+
+    # Simple role-based action flags for UI gating (defensive guard in template too)
+    action_perms = {
+        "people": bool(role_upper in {User.Role.ADMIN, User.Role.LEADERSHIP, User.Role.IT_ADMIN, User.Role.SUPERADMIN} or request.user.is_superuser),
+        "finance": bool(role_upper in {
+            User.Role.ADMIN,
+            User.Role.LEADERSHIP,
+            User.Role.IT_ADMIN,
+            User.Role.BURSAR,
+            User.Role.SUPERADMIN,
+        } or request.user.is_superuser),
+        "site_settings": bool(can_manage_settings),
+        "admin_panel": bool(request.user.is_staff or request.user.is_superuser or role_upper in {User.Role.ADMIN, User.Role.IT_ADMIN}),
+    }
 
     app_context = admin_site.each_context(request)
     modules = sum(len(app.get("models") or []) for app in app_context.get("available_apps", []))
@@ -333,6 +400,8 @@ def backend_dashboard(request):
         "section_stats": section_stats,
         "admin_portal_stats": admin_portal_stats,
         "can_manage_settings": can_manage_settings,
+        "action_perms": action_perms,
+        "show_request_settings_access": not action_perms["site_settings"],
         "ai_insight": ai_insight,
         "social_links": site.active_social_links,
         "avg_weekly_present": avg_weekly_present,

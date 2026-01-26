@@ -39,6 +39,8 @@
           id: el.dataset.widgetId,
           column: columnKey,
           order: idx,
+          size: el.dataset.widgetSize || null,
+          variant: el.dataset.widgetVariant || null,
         });
       });
     });
@@ -64,16 +66,159 @@
       });
   }
 
+  function normalizeSize(size) {
+    const v = (size || '').toString().trim().toLowerCase();
+    if (!v) return null;
+    if (v === 'small') return 'sm';
+    if (v === 'medium') return 'md';
+    if (v === 'large') return 'lg';
+    return v;
+  }
+
+  function normalizeVariant(variant) {
+    const v = (variant || '').toString().trim().toLowerCase();
+    return v || null;
+  }
+
+  function applyPresentation(el, item, meta) {
+    const allowedSizes = (meta && meta.allowed_sizes) || ['sm', 'md', 'lg'];
+    const allowedVariants = (meta && meta.allowed_variants) || ['default', 'compact', 'flat'];
+
+    const size = normalizeSize(item && item.size) || normalizeSize(el.dataset.widgetSize) || normalizeSize(meta && meta.default_size) || 'md';
+    const variant =
+      normalizeVariant(item && item.variant) || normalizeVariant(el.dataset.widgetVariant) || normalizeVariant(meta && meta.default_variant) || 'default';
+
+    el.dataset.widgetSize = allowedSizes.includes(size) ? size : (allowedSizes[0] || 'md');
+    el.dataset.widgetVariant = allowedVariants.includes(variant) ? variant : (allowedVariants[0] || 'default');
+  }
+
+  function injectControls(el, meta, onChange) {
+    if (el.dataset.widgetControlsInjected === '1') return;
+    el.dataset.widgetControlsInjected = '1';
+
+    const allowedSizes = (meta && meta.allowed_sizes) || ['sm', 'md', 'lg'];
+    const allowedVariants = (meta && meta.allowed_variants) || ['default', 'compact', 'flat'];
+
+    // Make sure the widget can anchor the control button.
+    el.classList.add('dash-widget');
+
+    const controls = document.createElement('div');
+    controls.className = 'dash-widget-controls';
+    controls.innerHTML = `
+      <button type="button" class="dash-widget-gear" aria-label="Widget settings" title="Widget settings">⋯</button>
+      <div class="dash-widget-menu" aria-hidden="true">
+        <div class="dash-widget-row">
+          <label>Size</label>
+          <select class="dash-widget-size"></select>
+        </div>
+        <div class="dash-widget-row">
+          <label>Style</label>
+          <select class="dash-widget-variant"></select>
+        </div>
+      </div>
+    `;
+
+    const sizeSelect = controls.querySelector('.dash-widget-size');
+    const variantSelect = controls.querySelector('.dash-widget-variant');
+    const gear = controls.querySelector('.dash-widget-gear');
+    const menu = controls.querySelector('.dash-widget-menu');
+
+    allowedSizes.forEach((s) => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s === 'sm' ? 'Small' : s === 'lg' ? 'Large' : 'Medium';
+      sizeSelect.appendChild(opt);
+    });
+    allowedVariants.forEach((v) => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v === 'flat' ? 'Flat' : v === 'compact' ? 'Compact' : 'Default';
+      variantSelect.appendChild(opt);
+    });
+
+    sizeSelect.value = normalizeSize(el.dataset.widgetSize) || 'md';
+    variantSelect.value = normalizeVariant(el.dataset.widgetVariant) || 'default';
+
+    const closeMenu = () => {
+      menu.setAttribute('aria-hidden', 'true');
+      controls.classList.remove('is-open');
+    };
+
+    gear.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const open = menu.getAttribute('aria-hidden') !== 'true';
+      if (open) closeMenu();
+      else {
+        menu.setAttribute('aria-hidden', 'false');
+        controls.classList.add('is-open');
+      }
+    });
+
+    document.addEventListener('click', (evt) => {
+      if (!controls.contains(evt.target)) closeMenu();
+    });
+
+    sizeSelect.addEventListener('change', () => {
+      el.dataset.widgetSize = sizeSelect.value;
+      onChange();
+    });
+    variantSelect.addEventListener('change', () => {
+      el.dataset.widgetVariant = variantSelect.value;
+      onChange();
+    });
+
+    el.appendChild(controls);
+  }
+
   function initDragDrop(page) {
     const columns = Array.from(document.querySelectorAll('[data-dashboard-column]'));
     if (!page || !columns.length) return;
     ensureColumnKeys(columns);
 
-    // Load current layout
+    let widgetMetaById = {};
+
+    const saveLayout = () => {
+      const payload = collectLayout(columns);
+      fetch(`/api/dashboard/layout/${page}/`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+        },
+        body: JSON.stringify({ layout: payload }),
+      }).catch(() => {});
+    };
+
+    // Load current layout + widget metadata
     fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (data && data.layout) applyLayout(columns, data.layout);
+        if (!data) return;
+        if (Array.isArray(data.widgets)) {
+          widgetMetaById = {};
+          data.widgets.forEach((w) => {
+            widgetMetaById[w.id] = w;
+          });
+        }
+        if (data.layout) applyLayout(columns, data.layout);
+
+        // Apply size/variant (defaults + saved) and wire controls.
+        const layoutItemsById = {};
+        if (data.layout && Array.isArray(data.layout.items)) {
+          data.layout.items.forEach((it) => {
+            if (it && it.id) layoutItemsById[it.id] = it;
+          });
+        }
+        columns.forEach((col) => {
+          Array.from(col.querySelectorAll('[data-widget-id]')).forEach((el) => {
+            const item = layoutItemsById[el.dataset.widgetId] || {};
+            const meta = widgetMetaById[el.dataset.widgetId] || {};
+            applyPresentation(el, item, meta);
+            injectControls(el, meta, saveLayout);
+          });
+        });
       })
       .catch(() => {});
 
@@ -83,18 +228,11 @@
         Sortable.create(col, {
           group: 'dashboard-widgets',
           handle: '[data-widget-id]',
+          filter: '.dash-widget-controls, .dash-widget-controls *',
+          preventOnFilter: false,
           animation: 150,
           onEnd: () => {
-            const payload = collectLayout(columns);
-            fetch(`/api/dashboard/layout/${page}/`, {
-              method: 'PUT',
-              credentials: 'include',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfToken(),
-              },
-              body: JSON.stringify({ layout: payload }),
-            }).catch(() => {});
+            saveLayout();
           },
         });
       });

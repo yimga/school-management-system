@@ -275,12 +275,12 @@ class UserPreferenceForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
         label="Theme preference",
-        help_text="Select light, dark, or follow your device setting.",
+        help_text="Select System, Light, Dark, Classic, or High Contrast.",
     )
     high_contrast = forms.BooleanField(
         required=False,
         label="High contrast mode",
-        help_text="Boostifies contrast for better visibility.",
+        help_text="Boost contrast for better visibility.",
     )
 
     class Meta:

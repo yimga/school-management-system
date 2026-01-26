@@ -390,6 +390,9 @@ class SiteSettings(models.Model):
     # Theme configuration
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
+    success_color = models.CharField(max_length=20, default="#22c55e")
+    warning_color = models.CharField(max_length=20, default="#fbbf24")
+    danger_color = models.CharField(max_length=20, default="#ef4444")
     use_dark_mode = models.BooleanField(default=False)
     custom_css = models.TextField(blank=True)
     theme_pack = models.ForeignKey(
@@ -399,6 +402,8 @@ class SiteSettings(models.Model):
         blank=True,
         related_name="site_settings",
     )
+    preview_mode_enabled = models.BooleanField(default=False)
+    preview_note = models.CharField(max_length=255, blank=True, default="")
     admin_sidebar_bg_color = models.CharField(
         max_length=20,
         default="#0b0f14",

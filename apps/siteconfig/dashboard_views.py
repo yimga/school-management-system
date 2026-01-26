@@ -117,21 +117,22 @@ def update_theme(request):
     
     try:
         data = json.loads(request.body)
-        theme = data.get('theme', 'auto')
+        theme = (data.get("theme") or "system").lower()
         
-        if theme not in ['light', 'dark', 'auto']:
-            return JsonResponse({'success': False, 'error': 'Invalid theme'}, status=400)
+        allowed = {"system", "light", "dark", "classic", "high_contrast"}
+        if theme not in allowed:
+            return JsonResponse({"success": False, "error": "Invalid theme"}, status=400)
         
         preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.theme_preference = theme
         preferences.save()
         logger.info("User %s set theme preference to %s", request.user.username, theme)
         
-        return JsonResponse({'success': True, 'theme': theme})
+        return JsonResponse({"success": True, "theme": theme})
     
     except Exception as e:
         logger.exception("Failed to update theme preference for %s", request.user.username)
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
 
 
 @login_required

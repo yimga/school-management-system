@@ -86,7 +86,7 @@ def site_settings(request):
     site = SiteSettings.get_solo()
 
     preview_settings = request.session.get(SESSION_KEY)
-    preview_mode_enabled = getattr(request, "preview_mode_enabled", False)
+    preview_mode_enabled = getattr(request, "preview_mode_enabled", False) or getattr(site, "preview_mode_enabled", False)
     preview_flag = bool(preview_settings) or preview_mode_enabled
 
     if preview_settings:
@@ -113,7 +113,7 @@ def site_settings(request):
     logo_opacity = site.get_theme_logo_opacity()
     high_contrast_mode = False
     reduced_motion = False
-    theme_pref = "auto"
+    theme_pref = "system"
     if request.user.is_authenticated:
         try:
             if hasattr(request.user, "preference"):
@@ -127,9 +127,11 @@ def site_settings(request):
             pass
         try:
             dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
-            theme_pref = dashboard_pref.theme_preference or "auto"
+            theme_pref = (dashboard_pref.theme_preference or "system").lower()
+            high_contrast_mode = high_contrast_mode or bool(getattr(dashboard_pref, "high_contrast", False))
+            reduced_motion = reduced_motion or bool(getattr(dashboard_pref, "reduced_motion", False))
         except DatabaseError:
-            theme_pref = "auto"
+            theme_pref = "system"
 
     video_bg_url = _resolve_media_url(site.get_theme_background("video_background"))
     svg_bg_url = _resolve_media_url(site.get_theme_background("svg_background"))
@@ -152,6 +154,8 @@ def site_settings(request):
         "portal_home_url": portal_home_url,
         "PREVIEW_ACT_AS_ROLE": act_as_role,
         "PREVIEW_ACT_AS_CHOICES": act_as_choices,
+        "PREVIEW_NOTE": getattr(site, "preview_note", ""),
+        "PREVIEW_MODE_ENABLED": preview_flag,
     }
 
 

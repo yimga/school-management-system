@@ -1,0 +1,128 @@
+/* Dashboard drag/drop widget controls + size/variant styling.
+   Kept lightweight: works with existing Bootstrap cards/tiles without changing HTML. */
+
+[data-widget-id].dash-widget {
+  position: relative;
+}
+
+/* Size presets: tune density without breaking the underlying layout grid. */
+[data-widget-id][data-widget-size="sm"] {
+  font-size: 0.92rem;
+}
+[data-widget-id][data-widget-size="sm"] .card-body {
+  padding: 0.75rem !important;
+}
+[data-widget-id][data-widget-size="sm"] .card-header {
+  padding: 0.6rem 0.75rem !important;
+}
+
+[data-widget-id][data-widget-size="md"] .card-body {
+  padding: 1rem;
+}
+
+[data-widget-id][data-widget-size="lg"] {
+  font-size: 1.02rem;
+}
+[data-widget-id][data-widget-size="lg"] .card-body {
+  padding: 1.25rem !important;
+}
+[data-widget-id][data-widget-size="lg"] .card-header {
+  padding: 1rem 1.25rem !important;
+}
+
+/* Variants */
+[data-widget-id][data-widget-variant="flat"] {
+  box-shadow: none !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+[data-widget-id][data-widget-variant="compact"] .card-body {
+  padding-top: 0.7rem !important;
+  padding-bottom: 0.7rem !important;
+}
+
+.dash-widget-controls {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 5;
+}
+
+.dash-widget-gear {
+  appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(2, 6, 23, 0.55);
+  color: rgba(226, 232, 240, 0.92);
+  border-radius: 999px;
+  width: 2.15rem;
+  height: 2.15rem;
+  line-height: 2rem;
+  font-size: 1.25rem;
+  padding: 0;
+  cursor: pointer;
+}
+
+html[data-theme="light"] .dash-widget-gear {
+  background: rgba(255, 255, 255, 0.9);
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.dash-widget-menu {
+  position: absolute;
+  top: 2.5rem;
+  right: 0;
+  min-width: 180px;
+  padding: 0.6rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(2, 6, 23, 0.88);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.dash-widget-menu[aria-hidden="true"] {
+  display: none;
+}
+
+html[data-theme="light"] .dash-widget-menu {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.dash-widget-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.dash-widget-row:last-child {
+  margin-bottom: 0;
+}
+
+.dash-widget-row label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+html[data-theme="light"] .dash-widget-row label {
+  color: rgba(71, 85, 105, 0.9);
+}
+
+.dash-widget-row select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.7);
+  color: rgba(226, 232, 240, 0.95);
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+html[data-theme="light"] .dash-widget-row select {
+  background: rgba(255, 255, 255, 1);
+  color: rgba(15, 23, 42, 0.95);
+}
+

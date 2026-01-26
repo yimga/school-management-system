@@ -140,32 +140,32 @@ class GileadAdminSite(AdminSite):
         
         # Define logical grouping with custom order
         app_order = {
-            # Core Administration
-            'accounts': {'order': 1, 'name': '👤 Accounts & Authentication', 'icon': '👤'},
-            'people': {'order': 2, 'name': '👥 People Management', 'icon': '👥'},
-            
+            # Core Administration & People
+            "accounts": {"order": 1, "name": "👤 Accounts & Authentication", "icon": "👤"},
+            "people": {"order": 2, "name": "👥 People Management", "icon": "👥"},
+            # Place built-in auth alongside people for smoother workflow
+            "auth": {"order": 3, "name": "🔐 Authentication & Authorization", "icon": "🔐"},
+
             # Academic Structure
-            'academics': {'order': 3, 'name': '🎓 Academic Structure', 'icon': '🎓'},
-            'evals': {'order': 4, 'name': '📊 Evaluations & Grading', 'icon': '📊'},
-            'reports': {'order': 5, 'name': '📄 Reports & Transcripts', 'icon': '📄'},
-            
+            "academics": {"order": 4, "name": "🎓 Academic Structure", "icon": "🎓"},
+            "evals": {"order": 5, "name": "📊 Evaluations & Grading", "icon": "📊"},
+            "reports": {"order": 6, "name": "📄 Reports & Transcripts", "icon": "📄"},
+
             # Financial
-            'finance': {'order': 6, 'name': '💰 Finance & Billing', 'icon': '💰'},
-            'payroll': {'order': 7, 'name': '💵 Payroll & Leave', 'icon': '💵'},
-            
-            # Operations
-            'analytics': {'order': 8, 'name': '📈 Analytics & Insights', 'icon': '📈'},
-            'compliance': {'order': 9, 'name': '🔒 Compliance & Audit', 'icon': '🔒'},
-            
-            # Configuration
-            'siteconfig': {'order': 10, 'name': '⚙️ System Configuration', 'icon': '⚙️'},
-            
-            # Content & Communication
-            'portal': {'order': 11, 'name': '📢 Portal & Communication', 'icon': '📢'},
-            
+            "finance": {"order": 7, "name": "💰 Finance & Billing", "icon": "💰"},
+            "payroll": {"order": 8, "name": "💵 Payroll & Leave", "icon": "💵"},
+
+            # Operations & Portals
+            "portal": {"order": 9, "name": "📢 Portal & Communication", "icon": "📢"},
+            "analytics": {"order": 10, "name": "📈 Analytics & Insights", "icon": "📈"},
+            "compliance": {"order": 11, "name": "🔒 Compliance & Audit", "icon": "🔒"},
+
+            # Configuration (kept last)
             # Django Built-ins (if any remain)
-            'auth': {'order': 99, 'name': '🔐 Authentication & Authorization', 'icon': '🔐'},
-            'sites': {'order': 100, 'name': '🌐 Sites', 'icon': '🌐'},
+            "sites": {"order": 998, "name": "🌐 Sites", "icon": "🌐"},
+
+            # Configuration (kept last)
+            "siteconfig": {"order": 999, "name": "⚙️ System Configuration", "icon": "⚙️"},
         }
         
         # Apply custom ordering and naming

@@ -13,18 +13,48 @@
 </script>
 <style>
   :root {
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --brand-primary: {{ SITE.primary_color|default:"#667eea" }};
+    --brand-accent: {{ SITE.accent_color|default:"#764ba2" }};
+    --brand-success: {{ SITE.success_color|default:"#22c55e" }};
+    --brand-warning: {{ SITE.warning_color|default:"#fbbf24" }};
+    --brand-danger: {{ SITE.danger_color|default:"#ef4444" }};
+    --admin-dashboard-bg: {{ SITE.admin_sidebar_surface_color|default:"#f8fafc" }};
+    --admin-surface: {{ SITE.admin_sidebar_bg_color|default:"#ffffff" }};
+    --admin-border: {{ SITE.admin_sidebar_border_color|default:"#e2e8f0" }};
+    --admin-border-strong: {{ SITE.admin_sidebar_border_color|default:"#cbd5e0" }};
+    --admin-text: #0f172a;
+    --admin-muted: #64748b;
+    --admin-subtle: #475569;
+    --admin-accent: var(--brand-primary);
+    --admin-accent-light: var(--brand-accent);
+    --gradient-primary: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
+    --gradient-success: linear-gradient(135deg, #11998e 0%, var(--brand-success) 100%);
     --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
     --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.1);
   }
 
+  :root[data-theme="dark"] {
+    --admin-dashboard-bg: #0b1220;
+    --admin-surface: #111827;
+    --admin-border: #1f2937;
+    --admin-border-strong: #334155;
+    --admin-text: #e2e8f0;
+    --admin-muted: #94a3b8;
+    --admin-subtle: #cbd5e1;
+    --admin-accent: var(--brand-primary);
+    --admin-accent-light: var(--brand-accent);
+    --admin-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    --admin-shadow-hover: 0 6px 16px rgba(0,0,0,0.5);
+    --admin-border-hover: #64748b;
+  }
+
   /* Modern Card Styles */
   .card {
-    border: none;
+    border: 1px solid var(--admin-border);
     border-radius: 20px;
+    background: var(--admin-surface);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
     overflow: hidden;
@@ -34,8 +64,8 @@
     transform: translateY(-4px);
   }
   .filter-card {
-    background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
-    border: 1px solid #e1e8ed;
+    background: linear-gradient(135deg, var(--admin-surface) 0%, #ffffff 100%);
+    border: 1px solid var(--admin-border);
   }
   .modular-card {
     position: relative;
@@ -357,6 +387,7 @@
   }
   .modular-card .card-title h5 {
     margin: 0;
+    color: var(--admin-text);
   }
   .modular-card .meta-tag {
     font-size: 0.8rem;
@@ -418,11 +449,11 @@
     transition: all 0.3s ease;
   }
   .card-actions .btn-outline-light {
-    border-color: #667eea;
-    color: #667eea;
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
   }
   .card-actions .btn-outline-light:hover {
-    background: #667eea;
+    background: var(--brand-primary);
     color: white;
     transform: translateY(-2px);
   }
@@ -494,6 +525,30 @@
         </div>
         <ul class="list-unstyled mb-0 small" id="copilotAuditList">
           <li class="text-muted">Loading audit…</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0">Recent activity</h6>
+          <a class="small text-muted" href="{% url 'admin:index' %}">Admin log</a>
+        </div>
+        <ul class="list-unstyled mb-0 small" id="recentActivityList">
+          {% if recent_activities %}
+            {% for activity in recent_activities|slice:":6" %}
+              <li class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <span class="fw-semibold">{{ activity.user.username }}</span>
+                  <div class="text-muted small">{{ activity.action }} {{ activity.model }}</div>
+                </div>
+                <span class="badge bg-light text-dark">{{ activity.time_ago }} ago</span>
+              </li>
+            {% endfor %}
+          {% else %}
+            <li class="text-muted">Loading activity…</li>
+          {% endif %}
         </ul>
       </div>
     </div>
@@ -744,40 +799,52 @@
       </h5>
       <div class="row g-3">
         <div class="col-lg-3 col-md-4 col-sm-6">
-          <a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100 py-3" data-role-required="ADMIN,LEADERSHIP,IT_ADMIN">
+          {% if action_perms.people %}
+          <a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100 py-3">
             <i class="bi bi-person-plus d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Add User</span>
           </a>
+          {% endif %}
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
-          <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100 py-3" data-role-required="ADMIN,LEADERSHIP,IT_ADMIN">
+          {% if action_perms.people %}
+          <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100 py-3">
             <i class="bi bi-mortarboard d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Add Student</span>
           </a>
+          {% endif %}
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
-          <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100 py-3" data-role-required="ADMIN,LEADERSHIP,IT_ADMIN">
+          {% if action_perms.people %}
+          <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100 py-3">
             <i class="bi bi-person-workspace d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Add Teacher</span>
           </a>
+          {% endif %}
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
-          <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100 py-3" data-role-required="ADMIN,BURSAR,LEADERSHIP,IT_ADMIN">
+          {% if action_perms.finance %}
+          <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100 py-3">
             <i class="bi bi-receipt d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Create Invoice</span>
           </a>
+          {% endif %}
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
+          {% if action_perms.admin_panel %}
           <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary w-100 py-3">
             <i class="bi bi-grid-3x3-gap d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Admin Panel</span>
           </a>
+          {% endif %}
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
+          {% if action_perms.site_settings %}
           <a href="{% url 'siteconfig:customizer' %}" class="btn btn-outline-dark w-100 py-3">
             <i class="bi bi-palette d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Site Settings</span>
           </a>
+          {% endif %}
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
           <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-outline-primary w-100 py-3">
@@ -786,12 +853,24 @@
           </a>
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
+          {% if action_perms.finance %}
           <a href="{% url 'finance:dashboard' %}" class="btn btn-outline-success w-100 py-3">
             <i class="bi bi-cash-stack d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Finance Console</span>
           </a>
+          {% endif %}
         </div>
       </div>
+      {% if show_request_settings_access %}
+      <div class="alert alert-warning mt-3 mb-0">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <strong>Need higher access?</strong> Request Site Settings or admin privileges from your school admins.
+          </div>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">Request access</a>
+        </div>
+      </div>
+      {% endif %}
     </div>
   </div>
 

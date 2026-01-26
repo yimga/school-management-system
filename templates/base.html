@@ -1,9 +1,27 @@
 <!doctype html>
-<html lang="en" data-admin-theme="{{ SITE.theme_brightness|default:'system'|lower }}">
+<html lang="en"
+      data-theme="{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}"
+      data-admin-theme="{{ SITE.theme_brightness|default:'system'|lower }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% load static %}
+
+    <script>
+      // Apply server-stored theme preference early (before CSS paints).
+      (function () {
+        const key = 'gilead-theme-preference';
+        const html = document.documentElement;
+        const pref = (html.getAttribute('data-theme') || 'system').toLowerCase();
+        if (pref === 'system' || pref === 'auto') {
+          html.removeAttribute('data-theme');
+          try { localStorage.removeItem(key); } catch (e) {}
+          return;
+        }
+        html.setAttribute('data-theme', pref);
+        try { localStorage.setItem(key, pref); } catch (e) {}
+      })();
+    </script>
 
     <title>
       {% block title %}
@@ -16,6 +34,7 @@
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
 
     <style>
                               {% if HIGH_CONTRAST_MODE %}

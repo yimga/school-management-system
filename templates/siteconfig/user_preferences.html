@@ -1,78 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}Preferences · {{ SITE.site_name }}{% endblock %}
+{% block title %}Portal Preferences - {{ SITE.site_name }}{% endblock %}
 
 {% block content %}
   <div class="row justify-content-center">
-    <div class="col-lg-7">
-      <div class="card shadow-sm mb-3">
-        <div class="card-body">
-          <h1 class="h4 mb-2">Portal Preferences</h1>
-          <p class="text-muted mb-0">Choose your default dashboard, timezone, refresh cadence, and notification channels.</p>
+    <div class="col-lg-8 col-xl-7">
+      <div class="alert alert-info d-flex align-items-start gap-2">
+        <div class="flex-grow-1">
+          <strong>Personalize your portal.</strong>
+          These settings only change what <em>you</em> see (theme, widgets, notifications). Full Site Settings stay locked to Admins.
         </div>
-        <div class="border-top px-4 py-3 bg-light small">
-          {% with settings=SITE_SETTINGS|default:None %}
-            <div class="d-flex flex-wrap gap-3 align-items-center">
-              <div><strong>School code:</strong> {{ settings.school_code|default:"GIL" }}</div>
-              <div><strong>Theme pack:</strong> {{ settings.theme_pack|default:"Not set" }}</div>
-              <div><strong>Logo:</strong> {{ settings.logo|yesno:"Uploaded,Missing" }}</div>
-              <a class="btn btn-sm btn-outline-secondary" href="/admin/siteconfig/sitesettings/">
-                Manage Site Settings
-              </a>
-            </div>
-          {% endwith %}
-        </div>
+        {% if request.user.is_superuser or request.user.role == "ADMIN" %}
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
+            Open Site Settings
+          </a>
+        {% endif %}
       </div>
 
       <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h1 class="h5 mb-0">Portal preferences</h1>
+          <p class="text-muted small mb-0">Pick your dashboard style, theme, timezone, and how often to refresh data.</p>
+        </div>
         <div class="card-body">
-          <form method="post">
+          <form method="post" novalidate>
             {% csrf_token %}
-            {% with field=form.timezone %}
-              {% if field %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endwith %}
-            {% with field=form.theme_preference %}
-              {% if field %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endwith %}
-            {% with field=form.high_contrast %}
-              {% if field %}
+
+            {% for field in form %}
+              {% if field.field.widget.input_type == "checkbox" %}
                 <div class="form-check mb-3">
                   {{ field }}
                   <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
                   {% if field.help_text %}
                     <div class="form-text">{{ field.help_text }}</div>
                   {% endif %}
+                  {% if field.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ field.errors|join:", " }}
+                    </div>
+                  {% endif %}
                 </div>
-              {% endif %}
-            {% endwith %}
-            {% with field=form.dashboard_view %}
-              {% if field %}
+              {% else %}
                 <div class="mb-3">
                   <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
                   {{ field }}
@@ -86,107 +54,47 @@
                   {% endif %}
                 </div>
               {% endif %}
-            {% endwith %}
-            {% if form.dashboard_widgets %}
-              {% with field=form.dashboard_widgets %}
-                <div class="mb-3" id="dashboard-widgets-row">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% endwith %}
-            {% endif %}
-            {% with field=form.refresh_rate_minutes %}
-              {% if field %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endwith %}
-            {% with field=form.notification_channels %}
-              {% if field %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endwith %}
-            {% with field=form.receive_weekly_summary %}
-              {% if field %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                    <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% if field.errors %}
-                    <div class="invalid-feedback d-block">
-                      {{ field.errors|join:", " }}
-                    </div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endwith %}
+            {% endfor %}
 
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2 mt-3">
               <button type="submit" class="btn btn-primary">Save preferences</button>
-              <a class="btn btn-outline-secondary" href="/admin/siteconfig/sitesettings/">Open full Site Settings</a>
+              <a class="btn btn-outline-secondary" href="{% url 'accounts:redirect' %}">Back to dashboard</a>
+              {% if request.user.is_superuser or request.user.role == "ADMIN" %}
+                <a class="btn btn-outline-secondary" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
+                  Manage full Site Settings
+                </a>
+              {% endif %}
             </div>
           </form>
         </div>
       </div>
     </div>
   </div>
+
   <script>
     (function () {
       const viewSelect = document.getElementById("id_dashboard_view");
-      const widgetRow = document.getElementById("dashboard-widgets-row");
+      const widgetRow = document.getElementById("id_dashboard_widgets")?.closest(".mb-3");
       const timezoneSelect = document.getElementById("id_timezone");
-      if (!viewSelect || !widgetRow) {
-        return;
-      }
 
       const toggleWidgets = () => {
+        if (!viewSelect || !widgetRow) return;
         widgetRow.style.display = viewSelect.value === "CUSTOM" ? "block" : "none";
       };
+      if (viewSelect && widgetRow) {
+        viewSelect.addEventListener("change", toggleWidgets);
+        toggleWidgets();
+      }
 
-      viewSelect.addEventListener("change", toggleWidgets);
-      toggleWidgets();
-
+      // Default to browser timezone when available
       if (timezoneSelect) {
-        const defaultTz = timezoneSelect.dataset.defaultTimezone || "";
         const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-        const hasOption = Array.from(timezoneSelect.options).some(
-          (option) => option.value === browserTz
-        );
-        if (hasOption && (!timezoneSelect.value || timezoneSelect.value === defaultTz)) {
+        const hasOption = Array.from(timezoneSelect.options || []).some((opt) => opt.value === browserTz);
+        if (hasOption && !timezoneSelect.value) {
           timezoneSelect.value = browserTz;
         }
       }
     })();
   </script>
 {% endblock %}
+

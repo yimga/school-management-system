@@ -26,6 +26,7 @@ from .models import (
 from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout
 from apps.academics.models import AcademicYear
 from .models import default_backend_feature_flags
+from apps.accounts.models import User
 
 
 # ==========================
@@ -208,7 +209,23 @@ class DashboardWidgetAdmin(ModelAdmin):
     fieldsets = (
         ("Widget Info", {"fields": ("id", "name", "description", "widget_type", "page", "template_path")}),
         ("Access Control", {"fields": ("required_role", "allowed_roles")}),
-        ("Display Settings", {"fields": ("default_width", "default_column", "default_order", "refresh_interval", "order", "is_active")}),
+        (
+            "Display Settings",
+            {
+                "fields": (
+                    "default_width",
+                    "default_column",
+                    "default_order",
+                    "refresh_interval",
+                    "allowed_sizes",
+                    "default_size",
+                    "allowed_variants",
+                    "default_variant",
+                    "order",
+                    "is_active",
+                )
+            },
+        ),
     )
 
     def activate_widgets(self, request, queryset):
@@ -258,10 +275,25 @@ class SiteSettingsAdmin(ModelAdmin):
 
     # Only allow ONE row
     def has_add_permission(self, request):
-        return not SiteSettings.objects.exists()
+        return self._is_site_admin(request.user) and not SiteSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def _is_site_admin(self, user) -> bool:
+        role = (getattr(user, "role", "") or "").upper()
+        # Require staff + Admin role, or superuser
+        return bool(user.is_superuser or (user.is_staff and role in {User.Role.ADMIN, User.Role.SUPERADMIN}))
+
+    def has_view_permission(self, request, obj=None):
+        return self._is_site_admin(request.user)
+
+    def has_change_permission(self, request, obj=None):
+        return self._is_site_admin(request.user)
+
+    def has_module_permission(self, request):
+        # Keep the model hidden for non-admin staff; other siteconfig models remain visible via their own admins.
+        return self._is_site_admin(request.user)
 
     readonly_fields = ("updated_at", "logo_preview")
 
@@ -282,6 +314,13 @@ class SiteSettingsAdmin(ModelAdmin):
                 "theme_pack",
             )
         }),
+        ("Preview & Draft", {
+            "description": "Stage changes without committing globally. Preview applies only to your session until cleared.",
+            "fields": (
+                "preview_mode_enabled",
+                "preview_note",
+            ),
+        }),
         ("Company Details", {
             "fields": (
                 "company_name",
@@ -298,6 +337,9 @@ class SiteSettingsAdmin(ModelAdmin):
             "fields": (
                 "primary_color",
                 "accent_color",
+                "success_color",
+                "warning_color",
+                "danger_color",
                 "theme_brightness",
                 "use_dark_mode",
                 "report_downloads_enabled",
@@ -447,6 +489,15 @@ class SiteSettingsAdmin(ModelAdmin):
         )
 
     backend_flags_summary.short_description = "Backend feature flags"
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        # Audit trail in admin log
+        if change:
+            summary = ", ".join(form.changed_data) if form and form.changed_data else "saved"
+            self.log_change(request, obj, f"Updated SiteSettings ({summary})")
+        else:
+            self.log_addition(request, obj, {"added": True})
 
 
 class ThemePackAdmin(ModelAdmin):
@@ -648,8 +699,42 @@ class RegionConfigAdmin(ModelAdmin):
     )
     
     inlines = [GradingScaleConfigInline, HolidayCalendarInline]
-    
+
     actions = ['clone_region', 'validate_configuration', 'export_config']
+
+    def _is_site_admin(self, user) -> bool:
+        role = (getattr(user, "role", "") or "").upper()
+        return bool(user.is_superuser or (user.is_staff and role in {User.Role.ADMIN, User.Role.SUPERADMIN}))
+
+    def has_view_permission(self, request, obj=None):
+        return self._is_site_admin(request.user)
+
+    def has_change_permission(self, request, obj=None):
+        return self._is_site_admin(request.user)
+
+    def has_module_permission(self, request):
+        return self._is_site_admin(request.user)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if change:
+            summary = ", ".join(form.changed_data) if form and form.changed_data else "saved"
+            self.log_change(request, obj, f"Updated RegionConfig ({summary})")
+        else:
+            self.log_addition(request, obj, {"added": True})
+
+    def _is_site_admin(self, user) -> bool:
+        role = (getattr(user, "role", "") or "").upper()
+        return bool(user.is_superuser or (user.is_staff and role in {User.Role.ADMIN, User.Role.SUPERADMIN}))
+
+    def has_view_permission(self, request, obj=None):
+        return self._is_site_admin(request.user)
+
+    def has_change_permission(self, request, obj=None):
+        return self._is_site_admin(request.user)
+
+    def has_module_permission(self, request):
+        return self._is_site_admin(request.user)
     
     def code_display(self, obj):
         """Display region code with flag emoji."""

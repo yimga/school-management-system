@@ -9,6 +9,10 @@ from .views import (
     logout_view,
     redirect_view,
     rbac_dashboard,
+    user_documentation,
+    user_messages,
+    user_notifications,
+    user_profile,
 )
 from .views_mfa import mfa_setup, mfa_verify
 
@@ -18,6 +22,10 @@ urlpatterns = [
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     path("redirect/", redirect_view, name="redirect"),
+    path("profile/", user_profile, name="user_profile"),
+    path("notifications/", user_notifications, name="user_notifications"),
+    path("messages/", user_messages, name="user_messages"),
+    path("documentation/", user_documentation, name="user_documentation"),
     path("rbac/", rbac_dashboard, name="rbac"),
     path("backend/", backend_dashboard, name="backend_dashboard"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
