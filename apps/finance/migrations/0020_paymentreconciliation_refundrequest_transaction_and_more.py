@@ -302,14 +302,19 @@ SET __payment_uuid_tmp = finance_payment.__uuid_tmp
 FROM finance_payment
 WHERE finance_transaction.payment_id = finance_payment.id;
 
-ALTER TABLE finance_webhooklog
-    DROP CONSTRAINT IF EXISTS finance_webhooklog_payment_id_b0d1fcdf_fk_finance_payment_id;
-
-ALTER TABLE finance_refundrequest
-    DROP CONSTRAINT IF EXISTS finance_refundrequest_payment_id_db5b5580_fk_finance_payment_id;
-
-ALTER TABLE finance_transaction
-    DROP CONSTRAINT IF EXISTS finance_transaction_payment_id_44c2d4f3_fk_finance_payment_id;
+DO $$
+DECLARE
+    fk_record record;
+BEGIN
+    FOR fk_record IN
+        SELECT conrelid::regclass AS tbl, conname
+        FROM pg_constraint
+        WHERE confrelid = 'finance_payment'::regclass
+          AND contype = 'f'
+    LOOP
+        EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I', fk_record.tbl, fk_record.conname);
+    END LOOP;
+END$$;
 
 ALTER TABLE finance_payment
     DROP CONSTRAINT IF EXISTS finance_payment_pkey;
