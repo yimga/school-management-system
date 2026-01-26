@@ -152,10 +152,9 @@ class Migration(migrations.Migration):
             name='student',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='payments', to='people.studentprofile'),
         ),
-        migrations.AlterField(
-            model_name='payment',
-            name='id',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+        migrations.RunSQL(
+            """CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";\nALTER TABLE finance_payment ALTER COLUMN id TYPE uuid USING gen_random_uuid();""",
+            """ALTER TABLE finance_payment ALTER COLUMN id TYPE bigint;""",
         ),
         migrations.AlterField(
             model_name='payment',
