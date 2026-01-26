@@ -2,15 +2,16 @@
 Utilities supporting dashboard customization workflows.
 """
 import logging
+import json
+from django.db import DatabaseError
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
-import json
 
-from apps.siteconfig.models_dashboard import (
-    DashboardUserPreference,
+from apps/siteconfig.models_dashboard import (
     DashboardLayout,
     DashboardLayoutAudit,
+    DashboardUserPreference,
 )
 
 logger = logging.getLogger(__name__)
@@ -83,15 +84,51 @@ def _normalize_dashboard_settings(settings: dict) -> dict:
     }
 
 
+def _create_layout_from_legacy(user, page: str) -> DashboardLayout | None:
+    if not user or not user.is_authenticated:
+        return None
+
+    try:
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=user)
+    except DatabaseError:
+        return None
+
+    legacy_layout = preferences.dashboard_layout or {}
+    if not isinstance(legacy_layout, dict) or not legacy_layout:
+        return None
+
+    payload = {
+        "items": [],
+        "__settings__": {"legacy_layout": legacy_layout, "migrated_page": page},
+    }
+    layout_obj, created = DashboardLayout.objects.get_or_create(
+        user=user,
+        page=page,
+        defaults={
+            "role": (getattr(user, "role", "") or "").upper(),
+            "layout": payload,
+            "is_default": False,
+        },
+    )
+    if created:
+        preferences.dashboard_layout = {}
+        preferences.save(update_fields=["dashboard_layout", "updated_at"])
+    return layout_obj
+
+
 def load_dashboard_layout_settings(user, page: str) -> dict:
-    """Return the latest dashboard meta settings (user override -> preference fallback)."""
+    """Return the latest dashboard meta settings (user override -> role default)."""
+
     layout_obj = DashboardLayout.objects.filter(user=user, page=page).first()
+    if not layout_obj:
+        role = (getattr(user, "role", "") or "").upper() if user else ""
+        layout_obj = DashboardLayout.objects.filter(page=page, role=role, is_default=True).first()
+    if not layout_obj:
+        layout_obj = _create_layout_from_legacy(user, page)
+
+    raw_settings = {}
     if layout_obj and isinstance(layout_obj.layout, dict):
         raw_settings = layout_obj.layout.get("__settings__", {}) or {}
-    else:
-        preferences, _ = DashboardUserPreference.objects.get_or_create(user=user)
-        pref_layout = preferences.dashboard_layout or {}
-        raw_settings = pref_layout.get("__settings__", {}) or {}
     return _normalize_dashboard_settings(raw_settings)
 
 
