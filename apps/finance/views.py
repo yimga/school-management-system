@@ -1107,14 +1107,31 @@ def finance_requests(request: HttpRequest):
     base_qs = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",
-    ).order_by("-created_at")
+    )
     view_mode = request.GET.get("view", "all")
+    severity_filter = (request.GET.get("severity", "all") or "all").upper()
+    filtered_qs = base_qs.order_by("-created_at")
+    if severity_filter != "ALL":
+        filtered_qs = filtered_qs.filter(severity=severity_filter)
     if view_mode == "unread":
-        notifications_qs = base_qs.filter(is_read=False)
+        notifications_qs = filtered_qs.filter(is_read=False)
     else:
-        notifications_qs = base_qs
+        notifications_qs = filtered_qs
 
     unread_count = base_qs.filter(is_read=False).count()
+    severity_counts = (
+        base_qs
+        .values("severity")
+        .order_by("severity")
+        .annotate(count=Count("id"))
+    )
+    severity_counts_dict = {row["severity"]: row["count"] for row in severity_counts}
+    severity_options = [
+        {"key": "ALL", "label": "All", "param": "all", "count": severity_counts_dict.get("ALL", 0)},
+        {"key": "INFO", "label": "Info", "param": "info", "count": severity_counts_dict.get("INFO", 0)},
+        {"key": "WARNING", "label": "Warning", "param": "warning", "count": severity_counts_dict.get("WARNING", 0)},
+        {"key": "ALERT", "label": "Alert", "param": "alert", "count": severity_counts_dict.get("ALERT", 0)},
+    ]
 
     if request.method == "POST":
         if request.POST.get("mark_all_unread"):
@@ -1129,7 +1146,7 @@ def finance_requests(request: HttpRequest):
                         details="Marked all unread from finance inbox.",
                     )
                 messages.success(request, f"Marked {len(targets)} finance request(s) as read.")
-            return redirect(f"{reverse('finance:requests')}?view={view_mode}")
+            return redirect(f"{reverse('finance:requests')}?view={view_mode}&severity={severity_filter.lower()}")
 
         selected = request.POST.getlist("notification_id")
         if selected:
@@ -1144,12 +1161,15 @@ def finance_requests(request: HttpRequest):
                         details="Marked read from finance requests dashboard.",
                     )
                 messages.success(request, f"Marked {len(targets)} finance request(s) as read.")
-        return redirect(f"{reverse('finance:requests')}?view={view_mode}")
+        return redirect(f"{reverse('finance:requests')}?view={view_mode}&severity={severity_filter.lower()}")
 
     return render(request, "finance/requests.html", {
         "notifications": notifications_qs,
         "unread_count": unread_count,
         "view_mode": view_mode,
+        "severity_filter": severity_filter,
+        "severity_counts": {row["severity"]: row["count"] for row in severity_counts},
+        "severity_options": severity_options,
         "finance_request_audits": list(
             FinanceRequestAudit.objects.select_related("notification", "user").order_by("-created_at")[:25]
         ),
