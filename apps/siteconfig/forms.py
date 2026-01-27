@@ -49,7 +49,78 @@ def contrast_ratio(color1: str, color2: str) -> float:
         return 0.0
     lighter, darker = (lum1, lum2) if lum1 >= lum2 else (lum2, lum1)
     return (lighter + 0.05) / (darker + 0.05)
-from .models_dashboard import DashboardUserPreference
+
+
+SITESETTINGS_FIELD_ORDER = [
+    # Branding
+    "site_name",
+    "tagline",
+    "school_code",
+    "logo",
+    "background_image",
+    "brand_font",
+    "company_name",
+    "company_address",
+    "company_phone",
+    "company_email",
+    "ministry_registration_code",
+    "social_links",
+    "company_slug",
+    "custom_css",
+    "theme_pack",
+    "report_preview_contact_email",
+    "report_preview_contact_phone",
+    "report_preview_footer_note",
+    "default_report_preview_type",
+    # Theme
+    "primary_color",
+    "accent_color",
+    "use_dark_mode",
+    "admin_sidebar_bg_color",
+    "admin_sidebar_surface_color",
+    "admin_sidebar_border_color",
+    "admin_sidebar_text_color",
+    "admin_sidebar_text_muted_color",
+    "admin_sidebar_hover_color",
+    "admin_sidebar_active_color",
+    "admin_sidebar_active_border_color",
+    "admin_sidebar_badge_bg_color",
+    "admin_sidebar_badge_text_color",
+    "admin_sidebar_child_bg_start",
+    "admin_sidebar_child_bg_end",
+    "admin_sidebar_child_border_color",
+    "admin_sidebar_child_hover_color",
+    "admin_sidebar_child_active_color",
+    # Behavior
+    "maintenance_mode",
+    "default_dashboard_view",
+    "default_refresh_rate",
+    # Feature toggles
+    "enable_parent_portal",
+    "enable_teacher_portal",
+    "enable_reports_pdf",
+    "report_downloads_enabled",
+    "portal_features",
+    "marksheet_ocr_command",
+    "default_term_report_style",
+    "default_annual_report_style",
+    "notification_channels",
+    "referral_bonus_amount",
+    # Compliance
+    "compliance_profile",
+    # Analytics defaults
+    "top_students_default_limit",
+    "pass_mark",
+    "use_promotion_rule_for_pass",
+    "weak_subject_threshold",
+    "improvement_delta_threshold",
+    "deadline_mode",
+]
+
+
+def _valid_sitesettings_fields() -> list[str]:
+    model_fields = {field.name for field in SiteSettings._meta.get_fields() if not field.auto_created}
+    return [field for field in SITESETTINGS_FIELD_ORDER if field in model_fields]
 
 
 class SiteSettingsForm(forms.ModelForm):
@@ -68,71 +139,7 @@ class SiteSettingsForm(forms.ModelForm):
 
     class Meta:
         model = SiteSettings
-        fields = [
-            # Branding
-            "site_name",
-            "tagline",
-            "school_code",
-            "logo",
-            "background_image",
-            "brand_font",
-            "company_name",
-            "company_address",
-            "company_phone",
-            "company_email",
-            "ministry_registration_code",
-            "social_links",
-            "company_slug",
-            "custom_css",
-            "theme_pack",
-            "report_preview_contact_email",
-            "report_preview_contact_phone",
-            "report_preview_footer_note",
-            "default_report_preview_type",
-        # Theme
-        "primary_color",
-        "accent_color",
-        "use_dark_mode",
-        "admin_sidebar_bg_color",
-        "admin_sidebar_surface_color",
-        "admin_sidebar_border_color",
-        "admin_sidebar_text_color",
-        "admin_sidebar_text_muted_color",
-        "admin_sidebar_hover_color",
-        "admin_sidebar_active_color",
-        "admin_sidebar_active_border_color",
-        "admin_sidebar_badge_bg_color",
-        "admin_sidebar_badge_text_color",
-        "admin_sidebar_child_bg_start",
-        "admin_sidebar_child_bg_end",
-        "admin_sidebar_child_border_color",
-        "admin_sidebar_child_hover_color",
-        "admin_sidebar_child_active_color",
-        # Behavior
-        "maintenance_mode",
-            "default_dashboard_view",
-            "default_refresh_rate",
-            # Feature toggles
-            "enable_parent_portal",
-            "enable_teacher_portal",
-            "enable_reports_pdf",
-            "report_downloads_enabled",
-            "portal_features",
-            "marksheet_ocr_command",
-            "default_term_report_style",
-            "default_annual_report_style",
-            "notification_channels",
-            "referral_bonus_amount",
-            # Compliance
-            "compliance_profile",
-            # Analytics defaults
-            "top_students_default_limit",
-            "pass_mark",
-            "use_promotion_rule_for_pass",
-            "weak_subject_threshold",
-            "improvement_delta_threshold",
-            "deadline_mode",
-        ]
+        fields = _valid_sitesettings_fields()
 
         widgets = {
         "site_name": forms.TextInput(attrs={"class": "form-control"}),
