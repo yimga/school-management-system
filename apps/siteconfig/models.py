@@ -151,6 +151,14 @@ def default_backend_feature_flags():
     }
 
 
+def default_grade_approval_roles():
+    return ["DEAN", "HOD"]
+
+
+def default_grade_post_roles():
+    return ["DEAN", "PRINCIPAL", "LEADERSHIP"]
+
+
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
 
 def filter_portal_items(items, role: str | None) -> list[dict]:
@@ -564,6 +572,67 @@ class SiteSettings(models.Model):
         default=default_footer_links,
         blank=True,
         help_text="Footer links list (JSON). Each item: label, url, roles, enabled.",
+    )
+
+    # Report preview & OCR configuration
+    report_preview_contact_email = models.EmailField(
+        blank=True,
+        default="",
+        help_text="Email shown on report card previews/header.",
+    )
+    report_preview_contact_phone = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        help_text="Phone number shown on report previews/header.",
+    )
+    report_preview_footer_note = models.CharField(
+        max_length=160,
+        blank=True,
+        default="Powered by Gilead Technical High School.",
+        help_text="Footer note text shown on report previews.",
+    )
+    default_report_preview_type = models.CharField(
+        max_length=12,
+        choices=[("term", "Term Report"), ("annual", "Annual Report")],
+        default="term",
+        help_text="Template shown to admins when opening a report preview from the builder.",
+    )
+    marksheet_ocr_command = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Absolute path to the Tesseract binary when the executable is not on PATH.",
+    )
+
+    # Grade approval workflow settings
+    grade_approval_enabled = models.BooleanField(
+        default=True,
+        help_text="Require staff approval before publishing teacher-submitted marks.",
+    )
+    grade_approval_roles = models.JSONField(
+        default=default_grade_approval_roles,
+        blank=True,
+        help_text="List of role codes allowed to review/approve teacher grade submissions.",
+    )
+    grade_approval_auto_validate = models.BooleanField(
+        default=True,
+        help_text="Automatically flag missing or anomalous scores before sending to approvers.",
+    )
+    grade_approval_deadline_days = models.PositiveSmallIntegerField(
+        default=3,
+        help_text="Days before a submitted request must be reviewed.",
+    )
+    grade_approval_deadline_note = models.CharField(
+        max_length=160,
+        blank=True,
+        default="Please review before the deadline.",
+        help_text="Friendly reminder shown when deadline approaches.",
+    )
+    grade_post_roles = models.JSONField(
+        default=default_grade_post_roles,
+        blank=True,
+        help_text="Roles that can finalize/post grade approvals (post/extract).",
     )
 
     # Feature toggles
