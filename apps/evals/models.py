@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -149,6 +151,64 @@ class TeacherAssignment(models.Model):
 
     def __str__(self):
         return f"{self.teacher} -> {self.subject_assignment}"
+
+
+class GradeApprovalRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending Review"
+        UNDER_REVIEW = "UNDER_REVIEW", "Under Review"
+        REVISION_REQUESTED = "REVISION_REQUESTED", "Revision Requested"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+
+    id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    entries = models.JSONField(default=list, blank=True)
+    summary = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.PENDING)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewer_notes = models.TextField(blank=True)
+
+    teacher = models.ForeignKey(
+        TeacherProfile,
+        on_delete=models.PROTECT,
+        related_name="grade_approval_requests",
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.PROTECT,
+        related_name="grade_approval_requests",
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.PROTECT,
+        related_name="grade_approval_requests",
+    )
+    subject_assignment = models.ForeignKey(
+        SubjectAssignment,
+        on_delete=models.PROTECT,
+        related_name="grade_approval_requests",
+    )
+    requested_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="grade_approval_requests_created",
+    )
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="grade_approval_requests_reviewed",
+    )
+
+    class Meta:
+        ordering = ["-requested_at"]
+
+    def __str__(self) -> str:
+        return f"{self.teacher} - {self.subject_assignment} ({self.get_status_display()})"
 
 
 class Evaluation(models.Model):
