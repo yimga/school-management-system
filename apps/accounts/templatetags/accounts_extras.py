@@ -1,5 +1,6 @@
 from django import template
 from django.db import DatabaseError, connection, transaction
+from django.db.transaction import TransactionManagementError
 
 register = template.Library()
 
@@ -22,7 +23,7 @@ def has_feature_permission(user, code):
         return False
     try:
         return user.has_feature_permission(code)
-    except DatabaseError:
+    except (DatabaseError, TransactionManagementError):
         _reset_db_state()
         return False
 
@@ -39,7 +40,7 @@ def has_role(user, code):
             return False
         try:
             return user.roles.filter(code=code).exists()
-        except DatabaseError:
+        except (DatabaseError, TransactionManagementError):
             _reset_db_state()
             return False
     return False
@@ -62,7 +63,7 @@ def has_any_role(user, codes):
             return False
         try:
             return user.roles.filter(code__in=code_list).exists()
-        except DatabaseError:
+        except (DatabaseError, TransactionManagementError):
             _reset_db_state()
             return False
     return False

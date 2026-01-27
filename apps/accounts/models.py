@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import DatabaseError, connection, models, transaction
+from django.db.transaction import TransactionManagementError
 
 # User UI/UX preferences (background logo, opacity, etc.)
 class UserPreference(models.Model):
@@ -88,7 +89,7 @@ class User(AbstractUser):
             if self.feature_permissions.filter(code=code).exists():
                 return True
             return self.roles.filter(permissions__code=code).exists()
-        except DatabaseError:
+        except (DatabaseError, TransactionManagementError):
             try:
                 if connection.in_atomic_block:
                     transaction.set_rollback(False)

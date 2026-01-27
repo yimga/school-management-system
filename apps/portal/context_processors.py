@@ -2,6 +2,7 @@
 Context processors for portal app.
 """
 from django.db import DatabaseError, connection, transaction
+from django.db.transaction import TransactionManagementError
 from django.db.models import Q
 from django.utils import timezone
 
@@ -37,6 +38,6 @@ def announcements(request):
             .values("id", "title", "message", "banner_type")
         )
         return {"announcements": list(active_announcements)}
-    except DatabaseError:
+    except (DatabaseError, TransactionManagementError):
         _reset_db_state()
         return {"announcements": []}

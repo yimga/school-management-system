@@ -14,6 +14,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponseForbidden
 from django.conf import settings
 from django.db import DatabaseError, connection, transaction
+from django.db.transaction import TransactionManagementError
 from apps.compliance.models_audit import AccessLog, AuditLog
 from apps.compliance.access_control import check_request_access
 
@@ -99,7 +100,7 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 ip_address=ip_address,
                 error_message=error_message or "",  # Ensure never None
             )
-        except DatabaseError as e:
+        except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
             logger.warning(f"Failed to log access: {e}", exc_info=True)
         except Exception as e:
@@ -128,7 +129,7 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 ip_address=ip_address,
                 error_message=str(exception)[:500],
             )
-        except DatabaseError as e:
+        except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
             logger.warning(f"Failed to log exception: {e}", exc_info=True)
         except Exception as e:
