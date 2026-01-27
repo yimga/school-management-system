@@ -4,6 +4,7 @@ from django.utils.html import format_html
 from decimal import Decimal
 from apps.finance.models import Payment, Transaction, RefundRequest, PaymentReconciliation, PaymentAuditLog
 
+
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     """Admin for Payment model."""

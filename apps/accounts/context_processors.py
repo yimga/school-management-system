@@ -5,7 +5,7 @@ Provides role-based data, system information, and metrics for templates.
 from datetime import datetime
 from decimal import Decimal
 from django.conf import settings
-from django.db import models
+from django.db import models, DatabaseError, transaction
 from django.utils import timezone
 from apps.siteconfig.models import SiteSettings
 
@@ -77,228 +77,238 @@ def dashboard_context(request):
 
     notifications_unread = 0
     try:
-        from apps.finance.models import Notification as FinanceNotification
+        with transaction.atomic():
+            from apps.finance.models import Notification as FinanceNotification
 
-        notifications_unread = FinanceNotification.objects.filter(
-            recipient=user,
-            is_read=False,
-        ).count()
-    except Exception:
+            notifications_unread = FinanceNotification.objects.filter(
+                recipient=user,
+                is_read=False,
+            ).count()
+    except DatabaseError:
         notifications_unread = 0
     
     # Role-specific metrics
     try:
-        if role_value in ['ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN']:
-            # Admin/Leadership metrics
-            from apps.people.models import StudentProfile, TeacherProfile
-            from apps.finance.models import Invoice
-            
-            context['total_students'] = StudentProfile.objects.filter(is_active=True).count()
-            context['total_teachers'] = TeacherProfile.objects.count()
-            
-            # Pending invoices
-            pending_invoices = Invoice.objects.filter(status__in=['PENDING', 'PARTIAL'])
-            context['pending_amount'] = sum(inv.balance or 0 for inv in pending_invoices)
-            context['pending_invoices_count'] = pending_invoices.count()
+        with transaction.atomic():
+            if role_value in ['ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN']:
+                # Admin/Leadership metrics
+                from apps.people.models import StudentProfile, TeacherProfile
+                from apps.finance.models import Invoice
+                
+                context['total_students'] = StudentProfile.objects.filter(is_active=True).count()
+                context['total_teachers'] = TeacherProfile.objects.count()
+                
+                # Pending invoices
+                pending_invoices = Invoice.objects.filter(status__in=['PENDING', 'PARTIAL'])
+                context['pending_amount'] = sum(inv.balance or 0 for inv in pending_invoices)
+                context['pending_invoices_count'] = pending_invoices.count()
 
-            context['dashboard_stats_cards'] = [
-                stat_card("Students", context.get('total_students', 0), "blue"),
-                stat_card("Teachers", context.get('total_teachers', 0), "green"),
-                stat_card("Pending", context.get('pending_invoices_count', 0), "pink"),
-                stat_card("Notifications", notifications_unread, "red"),
-            ]
-            
-        elif role_value == 'TEACHER':
-            # Teacher metrics
-            try:
-                teacher_profile = user.teacher_profile
-                from apps.evals.models import TeacherAssignment, Evaluation
-                from apps.people.models import StudentProfile
-                from apps.academics.services import get_active_year_and_term
-
-                active_year, _active_term = get_active_year_and_term()
-
-                assignments = TeacherAssignment.objects.filter(
-                    teacher=teacher_profile,
-                    is_active=True,
-                )
-                if active_year:
-                    assignments = assignments.filter(academic_year=active_year)
-
-                assignment_pairs = list(
-                    assignments.values_list(
-                        "subject_assignment__classroom_id",
-                        "subject_assignment__specialty_id",
-                    ).distinct()
-                )
-                classroom_ids = {pair[0] for pair in assignment_pairs if pair[0]}
-                context['teacher_class_count'] = len(classroom_ids)
-
-                if assignment_pairs:
-                    student_filters = models.Q()
-                    for classroom_id, specialty_id in assignment_pairs:
-                        if classroom_id and specialty_id:
-                            student_filters |= models.Q(classroom_id=classroom_id, specialty_id=specialty_id)
-                        elif classroom_id:
-                            student_filters |= models.Q(classroom_id=classroom_id)
-                    if active_year:
-                        student_filters &= models.Q(academic_year=active_year)
-
-                    context['teacher_student_count'] = StudentProfile.objects.filter(
-                        student_filters,
-                        is_active=True,
-                    ).distinct().count()
-                else:
-                    context['teacher_student_count'] = 0
-
-                # Pending tasks (grades not entered, attendance not marked, etc.)
+                context['dashboard_stats_cards'] = [
+                    stat_card("Students", context.get('total_students', 0), "blue"),
+                    stat_card("Teachers", context.get('total_teachers', 0), "green"),
+                    stat_card("Pending", context.get('pending_invoices_count', 0), "pink"),
+                    stat_card("Notifications", notifications_unread, "red"),
+                ]
+                
+            elif role_value == 'TEACHER':
+                # Teacher metrics
                 try:
-                    from apps.attendance.models import TeacherAttendance
+                    teacher_profile = user.teacher_profile
+                    from apps.evals.models import TeacherAssignment, Evaluation
+                    from apps.people.models import StudentProfile
+                    from apps.academics.services import get_active_year_and_term
 
-                    eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
-                    if active_year:
-                        eval_qs = eval_qs.filter(academic_year=active_year)
-                    pending_assessments = eval_qs.filter(
-                        models.Q(seq1_score__isnull=True) |
-                        models.Q(seq2_score__isnull=True) |
-                        models.Q(exam_score__isnull=True)
-                    ).count()
+                    active_year, _active_term = get_active_year_and_term()
 
-                    today = timezone.now().date()
-                    attendance_today = TeacherAttendance.objects.filter(
+                    assignments = TeacherAssignment.objects.filter(
                         teacher=teacher_profile,
-                        date=today
-                    ).exists()
-
-                    context['teacher_pending_tasks'] = pending_assessments + (0 if attendance_today else 1)
-                except ImportError:
-                    eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
+                        is_active=True,
+                    )
                     if active_year:
-                        eval_qs = eval_qs.filter(academic_year=active_year)
-                    context['teacher_pending_tasks'] = eval_qs.filter(
-                        models.Q(seq1_score__isnull=True) |
-                        models.Q(seq2_score__isnull=True) |
-                        models.Q(exam_score__isnull=True)
-                    ).count()
+                        assignments = assignments.filter(academic_year=active_year)
 
-            except AttributeError:
-                context['teacher_student_count'] = 0
-                context['teacher_class_count'] = 0
-                context['teacher_pending_tasks'] = 0
+                    assignment_pairs = list(
+                        assignments.values_list(
+                            "subject_assignment__classroom_id",
+                            "subject_assignment__specialty_id",
+                        ).distinct()
+                    )
+                    classroom_ids = {pair[0] for pair in assignment_pairs if pair[0]}
+                    context['teacher_class_count'] = len(classroom_ids)
 
-            context['dashboard_stats_cards'] = [
-                stat_card("Students", context.get('teacher_student_count', 0), "blue"),
-                stat_card("Classes", context.get('teacher_class_count', 0), "green"),
-                stat_card("Pending", context.get('teacher_pending_tasks', 0), "pink"),
-                stat_card("Notifications", notifications_unread, "red"),
-            ]
-        
-        elif role_value == 'PARENT':
-            # Parent metrics
-            from apps.people.models import StudentProfile
-            from apps.finance.models import Invoice
+                    if assignment_pairs:
+                        student_filters = models.Q()
+                        for classroom_id, specialty_id in assignment_pairs:
+                            if classroom_id and specialty_id:
+                                student_filters |= models.Q(classroom_id=classroom_id, specialty_id=specialty_id)
+                            elif classroom_id:
+                                student_filters |= models.Q(classroom_id=classroom_id)
+                        if active_year:
+                            student_filters &= models.Q(academic_year=active_year)
+
+                        context['teacher_student_count'] = StudentProfile.objects.filter(
+                            student_filters,
+                            is_active=True,
+                        ).distinct().count()
+                    else:
+                        context['teacher_student_count'] = 0
+
+                    # Pending tasks (grades not entered, attendance not marked, etc.)
+                    try:
+                        from apps.attendance.models import TeacherAttendance
+
+                        eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
+                        if active_year:
+                            eval_qs = eval_qs.filter(academic_year=active_year)
+                        pending_assessments = eval_qs.filter(
+                            models.Q(seq1_score__isnull=True) |
+                            models.Q(seq2_score__isnull=True) |
+                            models.Q(exam_score__isnull=True)
+                        ).count()
+
+                        today = timezone.now().date()
+                        attendance_today = TeacherAttendance.objects.filter(
+                            teacher=teacher_profile,
+                            date=today
+                        ).exists()
+
+                        context['teacher_pending_tasks'] = pending_assessments + (0 if attendance_today else 1)
+                    except ImportError:
+                        eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
+                        if active_year:
+                            eval_qs = eval_qs.filter(academic_year=active_year)
+                        context['teacher_pending_tasks'] = eval_qs.filter(
+                            models.Q(seq1_score__isnull=True) |
+                            models.Q(seq2_score__isnull=True) |
+                            models.Q(exam_score__isnull=True)
+                        ).count()
+
+                except AttributeError:
+                    context['teacher_student_count'] = 0
+                    context['teacher_class_count'] = 0
+                    context['teacher_pending_tasks'] = 0
+
+                context['dashboard_stats_cards'] = [
+                    stat_card("Students", context.get('teacher_student_count', 0), "blue"),
+                    stat_card("Classes", context.get('teacher_class_count', 0), "green"),
+                    stat_card("Pending", context.get('teacher_pending_tasks', 0), "pink"),
+                    stat_card("Notifications", notifications_unread, "red"),
+                ]
             
-            # Get children
-            children = StudentProfile.objects.filter(
-                guardian_links__guardian_user=user
-            ).distinct()
-            
-            context['parent_children_count'] = children.count()
-            
-            if children.exists():
-                # Average attendance across all children
+            elif role_value == 'PARENT':
+                # Parent metrics
+                from apps.people.models import StudentProfile
+                from apps.finance.models import Invoice
+                
+                # Get children
+                children = StudentProfile.objects.filter(
+                    guardian_links__guardian_user=user
+                ).distinct()
+                
+                context['parent_children_count'] = children.count()
+                
+                if children.exists():
+                    # Average attendance across all children
+                    try:
+                        from apps.attendance.models import StudentAttendance
+                        total_attendance = 0
+                        for child in children:
+                            attendance_records = StudentAttendance.objects.filter(student=child)
+                            if attendance_records.exists():
+                                present_count = attendance_records.filter(status='PRESENT').count()
+                                total_count = attendance_records.count()
+                                if total_count > 0:
+                                    total_attendance += (present_count / total_count * 100)
+                        
+                        context['parent_avg_attendance'] = round(total_attendance / children.count()) if children.count() > 0 else 0
+                    except ImportError:
+                        context['parent_avg_attendance'] = 0
+                    
+                    # Total balance for all children
+                    invoices = Invoice.objects.filter(student__in=children, status__in=['PENDING', 'PARTIAL'])
+                    context['parent_balance'] = sum(inv.balance or 0 for inv in invoices)
+                else:
+                    context['parent_avg_attendance'] = 0
+                    context['parent_balance'] = 0
+
                 try:
-                    from apps.attendance.models import StudentAttendance
-                    total_attendance = 0
-                    for child in children:
-                        attendance_records = StudentAttendance.objects.filter(student=child)
+                    with transaction.atomic():
+                        from apps.portal.portal_models import PortalNotification
+
+                        notifications_unread = PortalNotification.objects.filter(
+                            parent_id=user.id,
+                            is_read=False,
+                        ).count()
+                except DatabaseError:
+                    notifications_unread = 0
+                except Exception:
+                    pass
+
+                context['dashboard_stats_cards'] = [
+                    stat_card("Children", context.get('parent_children_count', 0), "blue"),
+                    stat_card("Attendance", context.get('parent_avg_attendance', 0), "green", suffix="%"),
+                    stat_card("Balance", context.get('parent_balance', 0), "pink", prefix="$"),
+                    stat_card("Notifications", notifications_unread, "red"),
+                ]
+            
+            elif role_value == 'STUDENT':
+                # Student metrics
+                try:
+                    student_profile = user.student_profile
+                    from apps.evals.models import MarkEntry
+                    
+                    # Attendance percentage
+                    try:
+                        from apps.attendance.models import StudentAttendance
+                        attendance_records = StudentAttendance.objects.filter(student=student_profile)
                         if attendance_records.exists():
                             present_count = attendance_records.filter(status='PRESENT').count()
                             total_count = attendance_records.count()
-                            if total_count > 0:
-                                total_attendance += (present_count / total_count * 100)
-                    
-                    context['parent_avg_attendance'] = round(total_attendance / children.count()) if children.count() > 0 else 0
-                except ImportError:
-                    context['parent_avg_attendance'] = 0
-                
-                # Total balance for all children
-                invoices = Invoice.objects.filter(student__in=children, status__in=['PENDING', 'PARTIAL'])
-                context['parent_balance'] = sum(inv.balance or 0 for inv in invoices)
-            else:
-                context['parent_avg_attendance'] = 0
-                context['parent_balance'] = 0
-
-            try:
-                from apps.portal.portal_models import PortalNotification
-
-                notifications_unread = PortalNotification.objects.filter(
-                    parent_id=user.id,
-                    is_read=False,
-                ).count()
-            except Exception:
-                pass
-
-            context['dashboard_stats_cards'] = [
-                stat_card("Children", context.get('parent_children_count', 0), "blue"),
-                stat_card("Attendance", context.get('parent_avg_attendance', 0), "green", suffix="%"),
-                stat_card("Balance", context.get('parent_balance', 0), "pink", prefix="$"),
-                stat_card("Notifications", notifications_unread, "red"),
-            ]
-        
-        elif role_value == 'STUDENT':
-            # Student metrics
-            try:
-                student_profile = user.student_profile
-                from apps.evals.models import MarkEntry
-                
-                # Attendance percentage
-                try:
-                    from apps.attendance.models import StudentAttendance
-                    attendance_records = StudentAttendance.objects.filter(student=student_profile)
-                    if attendance_records.exists():
-                        present_count = attendance_records.filter(status='PRESENT').count()
-                        total_count = attendance_records.count()
-                        context['student_attendance'] = round((present_count / total_count) * 100) if total_count > 0 else 0
-                    else:
+                            context['student_attendance'] = round((present_count / total_count) * 100) if total_count > 0 else 0
+                        else:
+                            context['student_attendance'] = 0
+                    except ImportError:
                         context['student_attendance'] = 0
-                except ImportError:
+                    
+                    # Average grade
+                    marks = MarkEntry.objects.filter(
+                        student=student_profile,
+                        mark__isnull=False
+                    ).values_list('mark', flat=True)
+                    
+                    if marks:
+                        context['student_average'] = round(sum(marks) / len(marks))
+                    else:
+                        context['student_average'] = 0
+                    
+                    # Pending assignments/tasks
+                    from apps.academics.models import Assignment
+                    pending_assignments = Assignment.objects.filter(
+                        classroom=student_profile.classroom,
+                        due_date__gte=timezone.now(),
+                        is_active=True
+                    ).count()
+                    
+                    context['student_pending'] = pending_assignments
+                    
+                except AttributeError:
                     context['student_attendance'] = 0
-                
-                # Average grade
-                marks = MarkEntry.objects.filter(
-                    student=student_profile,
-                    mark__isnull=False
-                ).values_list('mark', flat=True)
-                
-                if marks:
-                    context['student_average'] = round(sum(marks) / len(marks))
-                else:
                     context['student_average'] = 0
-                
-                # Pending assignments/tasks
-                from apps.academics.models import Assignment
-                pending_assignments = Assignment.objects.filter(
-                    classroom=student_profile.classroom,
-                    due_date__gte=timezone.now(),
-                    is_active=True
-                ).count()
-                
-                context['student_pending'] = pending_assignments
-                
-            except AttributeError:
-                context['student_attendance'] = 0
-                context['student_average'] = 0
-                context['student_pending'] = 0
+                    context['student_pending'] = 0
 
-            context['dashboard_stats_cards'] = [
-                stat_card("Attendance", context.get('student_attendance', 0), "blue", suffix="%"),
-                stat_card("Average", context.get('student_average', 0), "green"),
-                stat_card("Pending", context.get('student_pending', 0), "pink"),
-                stat_card("Notifications", notifications_unread, "red"),
-            ]
+                context['dashboard_stats_cards'] = [
+                    stat_card("Attendance", context.get('student_attendance', 0), "blue", suffix="%"),
+                    stat_card("Average", context.get('student_average', 0), "green"),
+                    stat_card("Pending", context.get('student_pending', 0), "pink"),
+                    stat_card("Notifications", notifications_unread, "red"),
+                ]
+            context['notifications_unread'] = notifications_unread
+    except DatabaseError as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error("Database error in dashboard_context: %s", e)
         context['notifications_unread'] = notifications_unread
-    
+        return context
     except Exception as e:
         # Log error but don't break the page
         import logging
@@ -315,10 +325,16 @@ def site_settings_context(request):
     Caches the result to avoid repeated database queries.
     """
     try:
-        site = SiteSettings.get_current()
+        with transaction.atomic():
+            site = SiteSettings.get_current()
         return {
             'SITE': site,
             'SITE_THEME': site.get_theme_vars() if hasattr(site, 'get_theme_vars') else {},
+        }
+    except DatabaseError:
+        return {
+            'SITE': None,
+            'SITE_THEME': {},
         }
     except Exception:
         return {

@@ -7,6 +7,23 @@ from decimal import Decimal
 from datetime import datetime
 
 
+class PaymentValidator:
+    """Base payment validator with error tracking."""
+
+    def __init__(self):
+        self.errors = []
+        self.warnings = []
+
+    def add_error(self, message):
+        self.errors.append(message)
+
+    def add_warning(self, message):
+        self.warnings.append(message)
+
+    def is_valid(self):
+        return len(self.errors) == 0
+
+
 class CardValidator:
     """Validate credit card information"""
     
@@ -74,34 +91,30 @@ class CardValidator:
         return 'unknown'
 
 
-class AmountValidator:
-    """Validate transaction amounts"""
+class AmountValidator(PaymentValidator):
+    """Validate transaction amounts."""
 
     MIN_AMOUNT = Decimal('100')
     MAX_AMOUNT = Decimal('10000000')
 
     @staticmethod
     def validate_amount(amount, min_amount=None, max_amount=None):
-        """Validate transaction amount"""
+        """Validate transaction amount."""
         try:
-            amount = Decimal(str(amount))
+            amount_decimal = Decimal(str(amount))
         except Exception:
             return False
 
-        if amount <= 0:
+        if amount_decimal <= 0:
             return False
 
-        if min_amount is not None:
-            min_amount = Decimal(str(min_amount))
-            if amount < min_amount:
-                return False
+        if min_amount is not None and amount_decimal < Decimal(str(min_amount)):
+            return False
 
-        if max_amount is not None:
-            max_amount = Decimal(str(max_amount))
-            if amount > max_amount:
-                return False
+        if max_amount is not None and amount_decimal > Decimal(str(max_amount)):
+            return False
 
-        return AmountValidator.MIN_AMOUNT <= amount <= AmountValidator.MAX_AMOUNT
+        return True
     
     @staticmethod
     def get_amount_category(amount):
@@ -116,6 +129,99 @@ class AmountValidator:
             return 'large'
         else:
             return 'very_large'
+
+
+class CurrencyValidator(PaymentValidator):
+    """Validate currency codes."""
+
+    VALID_CURRENCIES = {
+        'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'SEK', 'NZD',
+        'MXN', 'SGD', 'HKD', 'NOK', 'KRW', 'TRY', 'RUB', 'INR', 'BRL', 'ZAR',
+        'XAF', 'CFA', 'NGN', 'KES', 'GHS',
+    }
+
+    @staticmethod
+    def validate_currency(currency_code):
+        if not currency_code:
+            return False
+        if len(currency_code) != 3:
+            return False
+        if not currency_code.isalpha():
+            return False
+        return True
+
+
+class PaymentMethodValidator(PaymentValidator):
+    """Validate payment method configuration."""
+
+    @staticmethod
+    def validate_api_configuration(gateway, api_key, api_secret):
+        if not gateway:
+            return False
+        if gateway == 'manual':
+            return True
+        if not api_key or not api_secret:
+            return False
+        if len(api_key) < 10 or len(api_secret) < 10:
+            return False
+        return True
+
+    @staticmethod
+    def validate_fees(fee_percent, fixed_fee):
+        try:
+            fee_decimal = Decimal(str(fee_percent))
+            fixed_decimal = Decimal(str(fixed_fee))
+        except Exception:
+            return False
+
+        if fee_decimal < 0 or fee_decimal > 100:
+            return False
+        if fixed_decimal < 0:
+            return False
+        return True
+
+
+class RefundValidator(PaymentValidator):
+    """Validate refund requests."""
+
+    VALID_REASONS = {
+        'duplicate', 'incorrect_amount', 'student_request',
+        'overpayment', 'compliance', 'other',
+    }
+
+    @staticmethod
+    def validate_refund_amount(payment_amount, refund_amount):
+        try:
+            payment_decimal = Decimal(str(payment_amount))
+            refund_decimal = Decimal(str(refund_amount))
+        except Exception:
+            return False
+
+        if refund_decimal <= 0:
+            return False
+        if refund_decimal > payment_decimal:
+            return False
+        return True
+
+    @staticmethod
+    def validate_refund_reason(reason):
+        if not reason:
+            return False
+        return reason in RefundValidator.VALID_REASONS
+
+
+class CompliancePaymentValidator(PaymentValidator):
+    """Validate payments against compliance rules."""
+
+    def validate_against_compliance(self, payment, compliance_rules):
+        if not compliance_rules:
+            return True
+        for rule in compliance_rules:
+            params = getattr(rule, "custom_parameters", None) or {}
+            max_amount = params.get("max_payment_amount")
+            if max_amount is not None and payment.amount > Decimal(str(max_amount)):
+                self.add_error("Payment exceeds compliance limit")
+        return self.is_valid()
 
 
 class BankValidator:
@@ -305,80 +411,3 @@ class PaymentRuleValidator:
             'compliant': len(violations) == 0,
             'violations': violations,
         }
-
-
-class CurrencyValidator:
-    """Validate currency codes"""
-
-    @staticmethod
-    def validate_currency(code):
-        if not code or not isinstance(code, str):
-            return False
-
-        code = code.strip().upper()
-        return len(code) == 3 and code.isalpha()
-
-
-class PaymentMethodValidator:
-    """Validate payment method configuration settings"""
-
-    @staticmethod
-    def validate_api_configuration(gateway, api_key, api_secret):
-        if gateway == 'manual':
-            return True
-
-        return bool(api_key and api_secret)
-
-    @staticmethod
-    def validate_fees(percent, fixed):
-        try:
-            percent = Decimal(str(percent))
-            fixed = Decimal(str(fixed))
-        except Exception:
-            return False
-
-        if percent < 0 or percent > 100 or fixed < 0:
-            return False
-
-        return True
-
-
-class RefundValidator:
-    """Validate refund rules"""
-
-    ALLOWED_REASONS = {
-        'duplicate',
-        'incorrect_amount',
-        'student_request',
-        'overpayment',
-        'compliance',
-        'other',
-    }
-
-    @staticmethod
-    def validate_refund_amount(payment_amount, refund_amount):
-        try:
-            payment_amount = Decimal(str(payment_amount))
-            refund_amount = Decimal(str(refund_amount))
-        except Exception:
-            return False
-
-        if refund_amount <= 0 or refund_amount > payment_amount:
-            return False
-
-        return True
-
-    @staticmethod
-    def validate_refund_reason(reason):
-        if not reason or not isinstance(reason, str):
-            return False
-
-        return reason in RefundValidator.ALLOWED_REASONS
-
-
-class CompliancePaymentValidator:
-    """Placeholder compliance validator for payment workflow"""
-
-    @staticmethod
-    def validate_access(user, data):
-        return True

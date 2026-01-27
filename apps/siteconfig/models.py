@@ -8,6 +8,7 @@ from django.db import models, connection, OperationalError
 from django.db.models.fields.files import FieldFile
 from django.db.models.signals import post_delete, post_save
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models.signals import post_migrate
 from .image_utils import optimize_image
 from django.apps import apps as django_apps
 
@@ -1466,3 +1467,4 @@ def _clear_site_settings_cache(sender=None, **kwargs) -> None:
 
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)
 post_delete.connect(_clear_site_settings_cache, sender=SiteSettings)
+post_migrate.connect(_clear_site_settings_cache)

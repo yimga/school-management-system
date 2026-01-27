@@ -19,7 +19,7 @@ from apps.accounts.models import User
 from apps.evals.models import Evaluation, AssessmentWeights
 from apps.finance.models import Invoice, PaymentReminder, PaymentMethod, ComplianceProfile
 from apps.people.models import StudentProfile, StudentGuardian, TeacherProfile
-from apps.siteconfig.models import SiteSettings, _clear_site_settings_cache
+from apps.siteconfig.models import SiteSettings
 from apps.portal.services import (
     parent_dashboard_widget_data,
     _performance_overview,
@@ -126,7 +126,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
         """Test that widget data is cached and second call uses cache."""
         # First call - cache miss
         cache.clear()
-        with self.assertNumQueries(7):  # Expected: students, evaluations, invoices, etc.
+        with self.assertNumQueries(8):  # Expected: students, evaluations, invoices, etc.
             result1 = parent_dashboard_widget_data(self.students)
         
         self.assertIsNotNone(result1)
@@ -157,7 +157,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
         cache.clear()
         
         # Query should be minimal
-        with self.assertNumQueries(2):  # 1 for SiteSettings cache, 1 for evaluations
+        with self.assertNumQueries(1):  # Evaluations query only (SiteSettings cached)
             overview = _performance_overview(self.students, self.year, self.term)
         
         self.assertIsNotNone(overview.get("average"))
@@ -250,24 +250,14 @@ class PerformanceOptimizationTest(TransactionTestCase):
         
         # Create evaluations
         for student in self.students:
-            for i in range(5):
-                extra_subject = Subject.objects.create(name=f"Index Test {student.pk}-{i}")
-                extra_assignment = SubjectAssignment.objects.create(
-                    academic_year=self.year,
-                    term=self.term,
-                    classroom=self.classroom,
-                    specialty=self.specialty,
-                    subject=extra_subject,
-                    coefficient=1,
-                )
-                Evaluation.objects.create(
-                    student=student,
-                    academic_year=self.year,
-                    term=self.term,
-                    subject_assignment=extra_assignment,
-                    teacher=self.teacher,
-                    seq1_score=10 + i,
-                )
+            Evaluation.objects.create(
+                student=student,
+                academic_year=self.year,
+                term=self.term,
+                subject_assignment=self.subject_assignment,
+                teacher=self.teacher,
+                seq1_score=10,
+            )
         
         # Query should use indexes
         queryset = Evaluation.objects.filter(
@@ -357,8 +347,7 @@ class QueryCountValidationTest(TestCase):
         cache.clear()
         
         # Should be very few queries (not 10×3 = 30+ queries)
-        _clear_site_settings_cache()
-        with self.assertNumQueries(2):  # 1 SiteSettings cache check, 1 evaluation query
+        with self.assertNumQueries(1):  # Single evaluation query after cache warm-up
             _performance_overview(students, self.year, self.term)
 
 

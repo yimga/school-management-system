@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.apps import apps as django_apps
@@ -191,11 +190,11 @@ class StudentProfile(models.Model):
     audit_enabled = True
 
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="student_profile",
+        User,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name="student_profile",
     )
 
     first_name = models.CharField(max_length=80)
