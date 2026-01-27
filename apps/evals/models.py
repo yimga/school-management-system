@@ -48,7 +48,19 @@ class AssessmentWeights(models.Model):
     practical_weight = models.PositiveSmallIntegerField(default=0)
 
     score_scale = models.PositiveSmallIntegerField(default=20)
-    
+
+    # Grade thresholds for letter conversion (Cameroon Anglophone defaults)
+    grade_a_min = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=18.0,
+        help_text="Minimum score for A",
+    )
+    grade_b_min = models.DecimalField(max_digits=5, decimal_places=2, default=16.0)
+    grade_c_min = models.DecimalField(max_digits=5, decimal_places=2, default=14.0)
+    grade_d_min = models.DecimalField(max_digits=5, decimal_places=2, default=10.0)
+    grade_e_min = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
+
     # NEW: Grading scale & locale configuration
     grading_scale = models.CharField(
         max_length=50,
@@ -59,6 +71,15 @@ class AssessmentWeights(models.Model):
             ('percentage', 'Percentage 0–100'),
         ],
         default='numeric_0_20',
+    )
+    region = models.CharField(
+        max_length=50,
+        choices=[
+            ('cameroon_anglophone', 'Cameroon Anglophone'),
+            ('cameroon_francophone', 'Cameroon Francophone'),
+            ('global', 'Global/Other'),
+        ],
+        default='cameroon_anglophone',
     )
 
 

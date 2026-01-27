@@ -4,7 +4,7 @@ from decimal import Decimal
 import logging
 
 from django.conf import settings
-from django.db import models, connection, OperationalError
+from django.db import models, connection, OperationalError, DatabaseError
 from django.db.models.fields.files import FieldFile
 from django.db.models.signals import post_delete, post_save
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -278,18 +278,6 @@ class SiteSettings(models.Model):
         super().__init__(*args, **kwargs)
         self._orig_backend_feature_flags = (self.backend_feature_flags or {}).copy()
 
-    def save(self, *args, **kwargs):
-        before = getattr(self, "_orig_backend_feature_flags", {}) or {}
-        after = self.backend_feature_flags or {}
-        changed_opt_in = before.get("require_guardian_finance_opt_in") != after.get("require_guardian_finance_opt_in")
-        super().save(*args, **kwargs)
-        if changed_opt_in:
-            logger.info(
-                "require_guardian_finance_opt_in changed",
-                extra={"from": before.get("require_guardian_finance_opt_in"), "to": after.get("require_guardian_finance_opt_in")},
-            )
-        self._orig_backend_feature_flags = after.copy()
-
     video_background = models.FileField(
         upload_to="branding/video/",
         blank=True,
@@ -341,6 +329,10 @@ class SiteSettings(models.Model):
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
 
     def save(self, *args, **kwargs):
+        before = getattr(self, "_orig_backend_feature_flags", {}) or {}
+        after = self.backend_feature_flags or {}
+        changed_opt_in = before.get("require_guardian_finance_opt_in") != after.get("require_guardian_finance_opt_in")
+
         # Optimize logo
         if self.logo and hasattr(self.logo, 'file') and not getattr(self.logo.file, '_optimized', False):
             optimized = optimize_image(self.logo)
@@ -353,7 +345,22 @@ class SiteSettings(models.Model):
             if optimized:
                 optimized._optimized = True
                 self.background_image.save(self.background_image.name, optimized, save=False)
-        super().save(*args, **kwargs)
+        try:
+            super().save(*args, **kwargs)
+        except DatabaseError as exc:
+            if kwargs.get("update_fields") and "update_fields did not affect any rows" in str(exc):
+                retry_kwargs = dict(kwargs)
+                retry_kwargs.pop("update_fields", None)
+                super().save(*args, **retry_kwargs)
+            else:
+                raise
+
+        if changed_opt_in:
+            logger.info(
+                "require_guardian_finance_opt_in changed",
+                extra={"from": before.get("require_guardian_finance_opt_in"), "to": after.get("require_guardian_finance_opt_in")},
+            )
+        self._orig_backend_feature_flags = after.copy()
 
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
     school_code = models.CharField(
@@ -742,6 +749,13 @@ class SiteSettings(models.Model):
         if theme and getattr(theme, "logo_background_mode", None):
             return theme.logo_background_mode
         return self.LOGO_BG_MODE_CHOICES[0][0]
+
+    def save(self, *args, **kwargs):
+        if self.theme_pack_id:
+            ThemePackModel = django_apps.get_model("siteconfig", "ThemePack")
+            if not ThemePackModel.objects.filter(pk=self.theme_pack_id).exists():
+                self.theme_pack = None
+        super().save(*args, **kwargs)
 
     @property
     def active_theme(self) -> "ThemePack | None":

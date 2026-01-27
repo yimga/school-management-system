@@ -62,6 +62,13 @@ class SiteSettingsForm(forms.ModelForm):
         model = SiteSettings
         fields = "__all__"
 
+    backend_flags_summary = forms.CharField(
+        required=False,
+        label="Backend feature flags",
+        widget=forms.Textarea(attrs={"rows": 6, "style": "width: 100%;"}),
+        disabled=True,
+    )
+
     allowed_role_choices = [
         ("ADMIN", "ADMIN"),
         ("LEADERSHIP", "LEADERSHIP"),
@@ -105,6 +112,26 @@ class SiteSettingsForm(forms.ModelForm):
         self.fields["enable_api_schema_ui"].initial = flags.get("enable_api_schema_ui", True)
         self.fields["require_guardian_finance_opt_in"].initial = flags.get("require_guardian_finance_opt_in", False)
         self.fields["allow_finance_access_requests"].initial = flags.get("allow_finance_access_requests", True)
+        console = "On" if flags.get("enable_entity_console") else "Off"
+        imp = "On" if flags.get("enable_entity_import") else "Off"
+        schema = "On" if flags.get("enable_api_schema_ui") else "Off"
+        roles_console = ", ".join(flags.get("allowed_roles_entity_console", [])) or "N/A"
+        roles_import = ", ".join(flags.get("allowed_roles_entity_import", [])) or "N/A"
+        roles_schema = ", ".join(flags.get("allowed_roles_api_schema", [])) or "N/A"
+        finance_opt_in = "Required" if flags.get("require_guardian_finance_opt_in") else "Not required"
+        finance_requests = "Enabled" if flags.get("allow_finance_access_requests", True) else "Disabled"
+        max_rows = flags.get("max_bulk_import_rows") or "N/A"
+        allow_bulk_commit = "Yes" if flags.get("allow_bulk_commit") else "No"
+        summary_lines = [
+            f"Entity console: {console} (roles: {roles_console})",
+            f"Entity import: {imp} (roles: {roles_import})",
+            f"API schema: {schema} (roles: {roles_schema})",
+            f"Max bulk rows: {max_rows}",
+            f"Allow bulk commit: {allow_bulk_commit}",
+            f"Guardian finance opt-in: {finance_opt_in}",
+            f"Finance access requests: {finance_requests}",
+        ]
+        self.fields["backend_flags_summary"].initial = "\n".join(summary_lines)
 
     enable_entity_console = forms.BooleanField(required=False, label="Enable entity console")
     enable_entity_import = forms.BooleanField(required=False, label="Enable entity import")
@@ -273,6 +300,16 @@ class SiteSettingsAdmin(ModelAdmin):
     form = SiteSettingsForm
     # form assigned below after SiteSettingsForm definition
 
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Strip non-model fields from the modelform_factory 'fields' list.
+        This prevents FieldError for custom form-only fields like backend_flags_summary.
+        """
+        fields = kwargs.get("fields")
+        if fields:
+            kwargs["fields"] = [field for field in fields if field != "backend_flags_summary"]
+        return super().get_form(request, obj=obj, **kwargs)
+
     # Only allow ONE row
     def has_add_permission(self, request):
         return self._is_site_admin(request.user) and not SiteSettings.objects.exists()
@@ -295,7 +332,7 @@ class SiteSettingsAdmin(ModelAdmin):
         # Keep the model hidden for non-admin staff; other siteconfig models remain visible via their own admins.
         return self._is_site_admin(request.user)
 
-    readonly_fields = ("updated_at", "logo_preview", "backend_flags_summary")
+    readonly_fields = ("updated_at", "logo_preview")
 
     fieldsets = (
         ("Branding", {
