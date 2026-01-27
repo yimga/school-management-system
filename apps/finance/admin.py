@@ -29,7 +29,6 @@ from .models import (
     PaymentReminder,
     PaymentReminderLog,
     Notification,
-    FinanceRequestAudit,
     ReportRequest,
 )
 
@@ -204,13 +203,6 @@ class ReportRequestAdmin(ModelAdmin):
     search_fields = ("requested_by__username", "description")
 
 
-class FinanceRequestAuditAdmin(ModelAdmin):
-    list_display = ("notification", "action", "user", "created_at")
-    list_filter = ("action",)
-    list_per_page = 50
-    search_fields = ("notification__title", "user__username", "action")
-
-
 class ReferralRewardAdmin(ModelAdmin):
     list_display = ("student", "guardian", "amount", "status", "awarded_by", "created_at")
     list_filter = ("status",)
@@ -242,5 +234,4 @@ try:
 except AlreadyRegistered:
     pass
 admin_site.register(ReportRequest, ReportRequestAdmin)
-admin_site.register(FinanceRequestAudit, FinanceRequestAuditAdmin)
 admin_site.register(ReferralReward, ReferralRewardAdmin)
