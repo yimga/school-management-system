@@ -189,6 +189,14 @@ class StudentProfile(models.Model):
     # Phase 4: Enable audit logging for this model (student record changes, grades tied to this)
     audit_enabled = True
 
+    user = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="student_profile",
+    )
+
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
     student_code = models.CharField(max_length=50, unique=True, blank=True)

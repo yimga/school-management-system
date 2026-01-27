@@ -295,7 +295,7 @@ class SiteSettingsAdmin(ModelAdmin):
         # Keep the model hidden for non-admin staff; other siteconfig models remain visible via their own admins.
         return self._is_site_admin(request.user)
 
-    readonly_fields = ("updated_at", "logo_preview")
+    readonly_fields = ("updated_at", "logo_preview", "backend_flags_summary")
 
     fieldsets = (
         ("Branding", {

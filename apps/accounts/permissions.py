@@ -11,6 +11,7 @@ from functools import wraps
 from typing import Optional, Callable, Any
 
 from django.contrib.auth.decorators import user_passes_test
+from django.db import DatabaseError, transaction
 from django.http import HttpResponseForbidden, HttpRequest
 from django.shortcuts import get_object_or_404
 
@@ -84,9 +85,11 @@ def _guardian_finance_qs(user):
     from apps.people.models import StudentGuardian
     try:
         from apps.siteconfig.models import SiteSettings
-
-        flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
-        require_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
+        with transaction.atomic():
+            flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
+            require_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
+    except DatabaseError:
+        require_opt_in = False
     except Exception:
         require_opt_in = False
 

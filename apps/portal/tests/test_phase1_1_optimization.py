@@ -157,7 +157,7 @@ class PerformanceOptimizationTest(TransactionTestCase):
         cache.clear()
         
         # Query should be minimal
-        with self.assertNumQueries(2):  # 1 for SiteSettings cache, 1 for evaluations
+        with self.assertNumQueries(1):  # Evaluations query only (SiteSettings cached)
             overview = _performance_overview(self.students, self.year, self.term)
         
         self.assertIsNotNone(overview.get("average"))
@@ -250,15 +250,14 @@ class PerformanceOptimizationTest(TransactionTestCase):
         
         # Create evaluations
         for student in self.students:
-            for i in range(5):
-                Evaluation.objects.create(
-                    student=student,
-                    academic_year=self.year,
-                    term=self.term,
-                    subject_assignment=self.subject_assignment,
-                    teacher=self.teacher,
-                    seq1_score=10 + i,
-                )
+            Evaluation.objects.create(
+                student=student,
+                academic_year=self.year,
+                term=self.term,
+                subject_assignment=self.subject_assignment,
+                teacher=self.teacher,
+                seq1_score=10,
+            )
         
         # Query should use indexes
         queryset = Evaluation.objects.filter(
@@ -300,6 +299,7 @@ class QueryCountValidationTest(TestCase):
             start_date="2024-01-01",
             end_date="2024-04-30",
         )
+        self.compliance_profile = ComplianceProfile.objects.create(name="Default", country_code="US")
 
     def test_finance_summary_single_query_target(self):
         """Finance summary MUST use single aggregation query."""
@@ -317,6 +317,7 @@ class QueryCountValidationTest(TestCase):
             students.append(student)
             StudentGuardian.objects.create(guardian_user=parent, student=student)
             Invoice.objects.create(
+                profile=self.compliance_profile,
                 student=student,
                 total_amount=Decimal("100"),
                 balance_amount=Decimal("50"),
@@ -346,7 +347,7 @@ class QueryCountValidationTest(TestCase):
         cache.clear()
         
         # Should be very few queries (not 10×3 = 30+ queries)
-        with self.assertNumQueries(2):  # 1 SiteSettings cache check, 1 evaluation query
+        with self.assertNumQueries(1):  # Single evaluation query after cache warm-up
             _performance_overview(students, self.year, self.term)
 
 

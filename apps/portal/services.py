@@ -215,7 +215,13 @@ def _empty_widget_data() -> dict[str, dict]:
         "tasks": {"description": "No tasks", "pending_evaluations": 0, "pending_payments": 0},
         "access": _portal_access_links(),
         "timetable": [],
-        "communication": _communication_center(),
+        "communication": {
+            "items": [],
+            "links": [],
+            "primary_action": None,
+            "cta": "Connect with us",
+            "note": "We also send reminders via SMS/email; update preferences in portal settings.",
+        },
         "analytics": {"highlights": [], "lowlights": [], "label": "No data"},
         "referral": {"code": None, "total_codes": 0, "completeness_avg": 0, "note": "No referral data"},
     }
@@ -287,18 +293,31 @@ def _attendance_snapshot(students, year, term):
             "per_student": [],
         }
 
-    # Single aggregation query
-    eval_stats = Evaluation.objects.filter(
-        student__in=students,
-        academic_year=year,
-        term=term,
-    ).aggregate(
-        total=Count("id"),
+    # Single aggregation query for per-student totals/completion
+    complete_filter = (
+        Q(seq1_score__isnull=False)
+        | Q(seq2_score__isnull=False)
+        | Q(exam_score__isnull=False)
+        | Q(mock_score__isnull=False)
+        | Q(practical_score__isnull=False)
+        | Q(test1__isnull=False)
+        | Q(test2__isnull=False)
     )
-    
-    total = eval_stats.get("total", 0)
-    
-    if total == 0:
+
+    stats = list(
+        Evaluation.objects.filter(
+            student__in=students,
+            academic_year=year,
+            term=term,
+        )
+        .values("student_id")
+        .annotate(
+            total=Count("id"),
+            complete=Count("id", filter=complete_filter),
+        )
+    )
+
+    if not stats:
         return {
             "today": 0,
             "overall": 0,
@@ -308,23 +327,17 @@ def _attendance_snapshot(students, year, term):
             "per_student": [],
         }
 
-    # Load evaluations to check completion status
-    # Note: is_complete_for_ranking is a property that requires Python evaluation
-    # This loads the data once rather than multiple queries
-    evals = list(Evaluation.objects.filter(
-        student__in=students,
-        academic_year=year,
-        term=term,
-    ))
-
     per_student_stats = {}
-    for e in evals:
-        bucket = per_student_stats.setdefault(e.student_id, {"total": 0, "complete": 0})
-        bucket["total"] += 1
-        if e.is_complete_for_ranking:
-            bucket["complete"] += 1
-    
-    complete = sum(1 for e in evals if e.is_complete_for_ranking)
+    total = 0
+    complete = 0
+    for row in stats:
+        student_id = row["student_id"]
+        total_s = row.get("total") or 0
+        complete_s = row.get("complete") or 0
+        total += total_s
+        complete += complete_s
+        per_student_stats[student_id] = {"total": total_s, "complete": complete_s}
+
     overall_pct = int(round((complete / total) * 100)) if total > 0 else 0
 
     per_student = []
@@ -516,8 +529,17 @@ def _performance_overview(students, year, term):
         if not student_evals:
             continue
         
-        # Compute average from already-loaded evaluations
-        total = sum(float(e.total_score or 0) for e in student_evals)
+        # Compute average from already-loaded evaluation fields (avoid extra queries)
+        def _evaluation_score(eval_obj) -> float:
+            if eval_obj.final_score is not None:
+                return float(eval_obj.final_score)
+            for field_name in ("seq1_score", "seq2_score", "exam_score", "mock_score", "practical_score", "test1", "test2"):
+                value = getattr(eval_obj, field_name, None)
+                if value is not None:
+                    return float(value)
+            return 0.0
+
+        total = sum(_evaluation_score(e) for e in student_evals)
         count = len(student_evals)
         avg = round(total / count, 2) if count > 0 else None
         
@@ -592,19 +614,8 @@ def _finance_summary(students):
             "label": "Invoices appear once finance issues fee plans.",
         }
 
-    # Single aggregation query with all needed statistics
+    # Single aggregation query with per-student rollup; totals computed in Python.
     qs = Invoice.objects.filter(student__in=students).exclude(status=Invoice.Status.DRAFT)
-
-    invoice_stats = qs.aggregate(
-        total_due=Sum("total_amount"),
-        total_balance=Sum("balance_amount"),
-        overdue_count=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
-    )
-    
-    total_due = invoice_stats.get("total_due") or Decimal("0.00")
-    balance = invoice_stats.get("total_balance") or Decimal("0.00")
-    paid = total_due - balance
-    overdue_count = invoice_stats.get("overdue_count") or 0
 
     per_student = []
     per_student_qs = qs.values("student_id").annotate(
@@ -612,10 +623,16 @@ def _finance_summary(students):
         balance_amount=Sum("balance_amount"),
         overdue=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
     )
+    total_due = Decimal("0.00")
+    balance = Decimal("0.00")
+    overdue_count = 0
     for row in per_student_qs:
         student_id = row.get("student_id")
         total_s = row.get("total_due") or Decimal("0.00")
         bal_s = row.get("balance_amount") or Decimal("0.00")
+        total_due += total_s
+        balance += bal_s
+        overdue_count += row.get("overdue") or 0
         per_student.append({
             "student_id": student_id,
             "total_due": total_s,
@@ -623,6 +640,8 @@ def _finance_summary(students):
             "balance": bal_s,
             "overdue": row.get("overdue") or 0,
         })
+
+    paid = total_due - balance
 
     return {
         "total_due": total_due,
@@ -841,7 +860,10 @@ def _analytics_insights(students, year, term):
     for e in evals:
         subj = e.subject_assignment.subject.name if e.subject_assignment_id else "General"
         subject_totals.setdefault(subj, {"total": 0.0, "count": 0})
-        subject_totals[subj]["total"] += float(e.total_score or 0.0)
+        score = e.final_score
+        if score is None:
+            score = (e.seq1_score or 0) + (e.seq2_score or 0) + (e.exam_score or 0)
+        subject_totals[subj]["total"] += float(score or 0.0)
         subject_totals[subj]["count"] += 1
 
     averages = []

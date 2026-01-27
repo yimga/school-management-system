@@ -1,5 +1,5 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
+from django.db import DatabaseError, connection, models
 
 # User UI/UX preferences (background logo, opacity, etc.)
 class UserPreference(models.Model):
@@ -75,6 +75,11 @@ class User(AbstractUser):
     def has_feature_permission(self, code: str) -> bool:
         if self.is_superuser:
             return True
-        if self.feature_permissions.filter(code=code).exists():
-            return True
-        return self.roles.filter(permissions__code=code).exists()
+        if connection.in_atomic_block and connection.needs_rollback:
+            return False
+        try:
+            if self.feature_permissions.filter(code=code).exists():
+                return True
+            return self.roles.filter(permissions__code=code).exists()
+        except DatabaseError:
+            return False

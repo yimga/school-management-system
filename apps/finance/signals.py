@@ -38,9 +38,11 @@ def sync_payment(sender, instance: Payment, created: bool, **kwargs):
         receipt = f"RCPT-{instance.id:05d}"
         Payment.objects.filter(id=instance.id, receipt_number="").update(receipt_number=receipt)
         instance.receipt_number = receipt
-    apply_payment(instance)
+    if instance.invoice_id:
+        apply_payment(instance)
 
 
 @receiver(post_delete, sender=Payment)
 def sync_payment_delete(sender, instance: Payment, **kwargs):
-    recalculate_invoice(instance.invoice)
+    if instance.invoice_id:
+        recalculate_invoice(instance.invoice)

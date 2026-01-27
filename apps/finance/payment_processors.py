@@ -429,3 +429,7 @@ class MultiGatewayProcessor:
             return processor.create_order(**kwargs)
         
         raise ValueError(f'Unknown payment method: {method}')
+
+
+# Phase 2 compatibility: provide simple factory with charge/refund interface
+from .payment_processors_temp import PaymentProcessorFactory  # noqa: E402
