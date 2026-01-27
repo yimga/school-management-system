@@ -543,6 +543,32 @@ class Notification(models.Model):
         return f"{self.title} ({self.severity})"
 
 
+class FinanceRequestAudit(models.Model):
+    """Audit trail for finance access requests and notification actions."""
+
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        related_name="request_audits",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="finance_request_audits",
+    )
+    action = models.CharField(max_length=64, default="marked_read")
+    details = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.action} ({self.notification_id})"
+
+
 class ReportRequest(models.Model):
     class RequestStatus(models.TextChoices):
         PENDING = "PENDING", "Pending"

@@ -13,7 +13,6 @@ from django.apps import apps as django_apps
 
 from apps.accounts.models import User
 from apps.academics.models import Classroom, Subject
-from apps.finance.models import ComplianceProfile, Invoice, Payment
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.reports.models import ReportCard
 
@@ -657,7 +656,7 @@ class SiteSettings(models.Model):
 
     # Compliance profile (finance/payroll)
     compliance_profile = models.ForeignKey(
-        ComplianceProfile,
+        "finance.ComplianceProfile",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -692,6 +691,10 @@ class SiteSettings(models.Model):
             try:
                 columns = [col.name for col in connection.introspection.get_table_description(cursor, cls._meta.db_table)]
             except OperationalError:
+                try:
+                    connection.rollback()
+                except Exception:
+                    pass
                 return
 
             if "video_background" not in columns:
@@ -700,6 +703,10 @@ class SiteSettings(models.Model):
                         f'ALTER TABLE "{cls._meta.db_table}" ADD COLUMN "video_background" VARCHAR(255)'
                     )
                 except OperationalError:
+                    try:
+                        connection.rollback()
+                    except Exception:
+                        pass
                     pass
 
     @classmethod
@@ -942,6 +949,7 @@ def _subject_export():
 
 @report_exporter("fee_payments")
 def _payment_export():
+    Payment = django_apps.get_model("finance", "Payment")
     headers = ["Student", "Invoice", "Amount", "Method", "Paid At", "Receipt"]
     rows = []
     qs = Payment.objects.select_related("invoice__student")

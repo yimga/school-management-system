@@ -295,7 +295,7 @@ class SiteSettingsAdmin(ModelAdmin):
         # Keep the model hidden for non-admin staff; other siteconfig models remain visible via their own admins.
         return self._is_site_admin(request.user)
 
-    readonly_fields = ("updated_at", "logo_preview")
+    readonly_fields = ("updated_at", "logo_preview", "backend_flags_summary")
 
     fieldsets = (
         ("Branding", {
@@ -419,6 +419,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "allow_finance_access_requests",
                 "max_bulk_import_rows",
                 "backend_feature_flags",
+                "backend_flags_summary",
             )
         }),
         ("Notifications & Analytics", {
@@ -442,7 +443,7 @@ class SiteSettingsAdmin(ModelAdmin):
             )
         }),
         ("Metadata", {
-            "fields": ("backend_flags_summary", "updated_at",),
+            "fields": ("updated_at",),
         }),
     )
 
