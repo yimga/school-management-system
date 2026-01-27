@@ -159,3 +159,17 @@ class Announcement(models.Model):
         
         return True
 
+
+# Register portal enhancement models so migrations/admin discover them.
+# These live in a separate module to keep this file focused.
+from .portal_models import (  # noqa: E402,F401
+    GuardianLinkInvitation,
+    ParentStudentLink,
+    PortalNotification,
+    PortalPreferences,
+    ParentMessage,
+    PortalFeatureAccess,
+    PortalSession,
+    PortalAuditLog,
+)
+

@@ -23,13 +23,13 @@ from .models import (
     JournalLine,
     LedgerAccount,
     Payment,
-    PaymentMethod,
+    PaymentMethodCode,
 )
 
 
 PAYMENT_METHOD_PROVIDER_SLUGS = {
-    PaymentMethod.MTN_MOMO: "mtn_momo",
-    PaymentMethod.ORANGE_MOMO: "orange_momo",
+    PaymentMethodCode.MTN_MOMO: "mtn_momo",
+    PaymentMethodCode.ORANGE_MOMO: "orange_momo",
 }
 PROVIDER_SLUG_TO_METHOD = {v: k for k, v in PAYMENT_METHOD_PROVIDER_SLUGS.items()}
 DEFAULT_SIGNATURE_FORMAT = "{invoice_id}:{amount}"
@@ -92,7 +92,7 @@ def _account(profile: ComplianceProfile, code: str, name: str, account_type: str
 def generate_payment_link(invoice: Invoice, method: str | None = None) -> dict | None:
     if not invoice:
         return None
-    chosen = method or invoice.preferred_payment_method or PaymentMethod.MTN_MOMO
+    chosen = method or invoice.preferred_payment_method or PaymentMethodCode.MTN_MOMO
     integration = get_payment_integration_by_method(chosen)
     if not integration:
         return None
@@ -231,9 +231,9 @@ def post_payment_to_ledger(payment: Payment) -> None:
     bank_account = _account(profile, "512", "Bank", LedgerAccount.AccountType.ASSET)
     mobile_account = _account(profile, "514", "Mobile Money", LedgerAccount.AccountType.ASSET)
 
-    if payment.method in {PaymentMethod.CASH}:
+    if payment.method in {PaymentMethodCode.CASH}:
         debit_account = cash_account
-    elif payment.method in {PaymentMethod.MTN_MOMO, PaymentMethod.ORANGE_MOMO}:
+    elif payment.method in {PaymentMethodCode.MTN_MOMO, PaymentMethodCode.ORANGE_MOMO}:
         debit_account = mobile_account
     else:
         debit_account = bank_account
@@ -288,6 +288,8 @@ def _invoice_status(total: Decimal, balance: Decimal) -> str:
 
 
 def recalculate_invoice(invoice: Invoice) -> None:
+    if not invoice:
+        return
     total = Decimal("0.00")
     for line in invoice.lines.all():
         total += line.amount
@@ -305,6 +307,8 @@ def recalculate_invoice(invoice: Invoice) -> None:
 
 
 def apply_payment(payment: Payment) -> None:
+    if not payment or not payment.invoice:
+        return
     recalculate_invoice(payment.invoice)
     post_payment_to_ledger(payment)
 

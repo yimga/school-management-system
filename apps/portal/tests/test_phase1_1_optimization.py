@@ -156,8 +156,8 @@ class PerformanceOptimizationTest(TransactionTestCase):
         # Clear cache
         cache.clear()
         
-        # Query should be minimal
-        with self.assertNumQueries(1):  # Evaluations query only (SiteSettings cached)
+        # Query should be minimal (SiteSettings is cached in-memory)
+        with self.assertNumQueries(1):  # 1 for evaluations
             overview = _performance_overview(self.students, self.year, self.term)
         
         self.assertIsNotNone(overview.get("average"))
@@ -247,17 +247,35 @@ class PerformanceOptimizationTest(TransactionTestCase):
     def test_database_indexes_used(self):
         """Test that query optimization uses indexes (via query plans)."""
         from django.db import connection
+
+        subjects = [self.subject]
+        for i in range(1, 5):
+            subjects.append(Subject.objects.create(name=f"Subject {i}"))
+
+        assignments = [self.subject_assignment]
+        for subject in subjects[1:]:
+            assignments.append(
+                SubjectAssignment.objects.create(
+                    academic_year=self.year,
+                    term=self.term,
+                    classroom=self.classroom,
+                    specialty=self.specialty,
+                    subject=subject,
+                    coefficient=1,
+                )
+            )
         
         # Create evaluations
         for student in self.students:
-            Evaluation.objects.create(
-                student=student,
-                academic_year=self.year,
-                term=self.term,
-                subject_assignment=self.subject_assignment,
-                teacher=self.teacher,
-                seq1_score=10,
-            )
+            for i in range(5):
+                Evaluation.objects.create(
+                    student=student,
+                    academic_year=self.year,
+                    term=self.term,
+                    subject_assignment=assignments[i],
+                    teacher=self.teacher,
+                    seq1_score=10 + i,
+                )
         
         # Query should use indexes
         queryset = Evaluation.objects.filter(
@@ -329,7 +347,7 @@ class QueryCountValidationTest(TestCase):
             _finance_summary(students)
 
     def test_performance_overview_reduced_queries(self):
-        """Performance overview should use <3 queries (was N×3 before)."""
+        """Performance overview should use <3 queries (was N x 3 before)."""
         parent = User.objects.create_user(username="parent", role=User.Role.PARENT)
         students = []
         
@@ -346,8 +364,8 @@ class QueryCountValidationTest(TestCase):
         
         cache.clear()
         
-        # Should be very few queries (not 10×3 = 30+ queries)
-        with self.assertNumQueries(1):  # Single evaluation query after cache warm-up
+        # Should be very few queries (not 10 x 3 = 30+ queries)
+        with self.assertNumQueries(1):  # Evaluation query only; SiteSettings is cached
             _performance_overview(students, self.year, self.term)
 
 

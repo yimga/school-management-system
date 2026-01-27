@@ -1,5 +1,5 @@
 import json
-from django.db import DatabaseError
+from django.db import DatabaseError, connection, transaction
 from .models import SiteSettings, RegionConfig
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
@@ -32,6 +32,17 @@ BREADCRUMB_LABELS = {
     "reports/download": "Download",
     "analytics": "Analytics",
 }
+
+
+def _reset_db_state() -> None:
+    """Reset a broken transaction after a handled DB error."""
+    try:
+        if connection.in_atomic_block:
+            transaction.set_rollback(False)
+        else:
+            connection.rollback()
+    except Exception:
+        pass
 
 
 def _build_breadcrumbs(request_path: str) -> list[dict[str, str]]:
@@ -84,7 +95,13 @@ def site_settings(request):
     If preview settings exist in session, use them (draft preview).
     Otherwise use DB singleton.
     """
-    site = SiteSettings.get_solo()
+    if connection.needs_rollback:
+        _reset_db_state()
+    try:
+        site = SiteSettings.get_solo()
+    except DatabaseError:
+        _reset_db_state()
+        site = SiteSettings()
 
     preview_settings = request.session.get(SESSION_KEY)
     preview_mode_enabled = getattr(request, "preview_mode_enabled", False) or getattr(site, "preview_mode_enabled", False)
@@ -125,6 +142,7 @@ def site_settings(request):
                 high_contrast_mode = getattr(pref, "high_contrast_mode", False)
                 reduced_motion = getattr(pref, "reduced_motion", False)
         except DatabaseError:
+            _reset_db_state()
             pass
         try:
             dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
@@ -132,6 +150,7 @@ def site_settings(request):
             high_contrast_mode = high_contrast_mode or bool(getattr(dashboard_pref, "high_contrast", False))
             reduced_motion = reduced_motion or bool(getattr(dashboard_pref, "reduced_motion", False))
         except DatabaseError:
+            _reset_db_state()
             theme_pref = "system"
 
     video_bg_url = _resolve_media_url(site.get_theme_background("video_background"))
@@ -187,6 +206,7 @@ def region_settings(request):
     Provides region-specific settings and utilities to all templates.
     Phase 1.2.4: Internationalization & Multi-Region Support
     """
+    from types import SimpleNamespace
     from django.conf import settings
     from .models import RegionConfig
     from apps.evals.grading import CURRENCY_SYMBOLS
@@ -199,6 +219,22 @@ def region_settings(request):
         region = RegionConfig.objects.get(code=region_code)
     except RegionConfig.DoesNotExist:
         # Fallback to default region (Cameroon)
+        region = RegionConfig.get_default()
+    except DatabaseError:
+        _reset_db_state()
+        region = SimpleNamespace(
+            code=getattr(settings, "REGION_CODE", "CMR"),
+            name="Default",
+            default_currency="XAF",
+            date_format="YYYY-MM-DD",
+            timezone=getattr(settings, "TIME_ZONE", "UTC"),
+            default_language="en",
+            grading_scale="default",
+            decimal_separator=".",
+            thousands_separator=",",
+        )
+    except DatabaseError:
+        _reset_db_state()
         region = RegionConfig.get_default()
     
     currency_symbol = CURRENCY_SYMBOLS.get(region.default_currency, region.default_currency)
@@ -259,7 +295,9 @@ def language_context(request):
             default_language = region_language_map.get(region.code, 'en')
             if default_language in SUPPORTED_LANGUAGES:
                 current_language = default_language
-        except:
+        except DatabaseError:
+            _reset_db_state()
+        except Exception:
             pass
     
     # Get available languages

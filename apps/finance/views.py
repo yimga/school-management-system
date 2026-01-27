@@ -46,7 +46,7 @@ from .models import (
     Notification,
     FinanceRequestAudit,
     Payment,
-    PaymentMethod,
+    PaymentMethodCode,
     ReportRequest,
     WebhookLog,
 )
@@ -957,7 +957,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
             payment = record_provider_payment(
                 invoice=invoice,
                 amount=amount,
-                method=method or PaymentMethod.MTN_MOMO,
+                method=method or PaymentMethodCode.MTN_MOMO,
                 reference=data.get("reference", ""),
                 external_reference=reference_id,
             )

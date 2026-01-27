@@ -4,17 +4,15 @@ from decimal import Decimal
 import logging
 
 from django.conf import settings
-from django.db import models, connection, OperationalError
+from django.db import models, connection, OperationalError, DatabaseError
 from django.db.models.fields.files import FieldFile
 from django.db.models.signals import post_delete, post_save
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models.signals import post_migrate
 from .image_utils import optimize_image
 from django.apps import apps as django_apps
 
 from apps.accounts.models import User
 from apps.academics.models import Classroom, Subject
-from apps.finance.models import ComplianceProfile, Invoice, Payment
 from apps.people.models import StudentProfile, TeacherProfile, StudentGuardian
 from apps.reports.models import ReportCard
 
@@ -120,14 +118,6 @@ def default_portal_upcoming_assessments():
     ]
 
 
-def default_grade_approval_roles():
-    return ["DEAN", "HOD"]
-
-
-def default_grade_post_roles():
-    return ["REGISTRAR", "ACADEMIC_DIRECTOR"]
-
-
 def default_footer_badges():
     return [
         {"label": "Secure & Encrypted", "tone": "secure"},
@@ -158,15 +148,10 @@ def default_backend_feature_flags():
         "allowed_roles_api_schema": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
         "require_guardian_finance_opt_in": True,
         "allow_finance_access_requests": True,
-        "marksheet_ocr_enabled": False,
-        "marksheet_ocr_confidence_threshold": 70,
-        "marksheet_ocr_manual_review_required": True,
-        "marksheet_ocr_mobile_upload_enabled": True,
     }
 
 
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
-_SITE_SETTINGS_PREVIEW_COLUMNS_READY = False
 
 def filter_portal_items(items, role: str | None) -> list[dict]:
     if not isinstance(items, list):
@@ -293,18 +278,6 @@ class SiteSettings(models.Model):
         super().__init__(*args, **kwargs)
         self._orig_backend_feature_flags = (self.backend_feature_flags or {}).copy()
 
-    def save(self, *args, **kwargs):
-        before = getattr(self, "_orig_backend_feature_flags", {}) or {}
-        after = self.backend_feature_flags or {}
-        changed_opt_in = before.get("require_guardian_finance_opt_in") != after.get("require_guardian_finance_opt_in")
-        super().save(*args, **kwargs)
-        if changed_opt_in:
-            logger.info(
-                "require_guardian_finance_opt_in changed",
-                extra={"from": before.get("require_guardian_finance_opt_in"), "to": after.get("require_guardian_finance_opt_in")},
-            )
-        self._orig_backend_feature_flags = after.copy()
-
     video_background = models.FileField(
         upload_to="branding/video/",
         blank=True,
@@ -355,21 +328,11 @@ class SiteSettings(models.Model):
     )
     background_image = models.ImageField(upload_to="branding/bg/", blank=True, null=True)
 
-    def _ensure_theme_pack_integrity(self) -> None:
-        """Guard against stale theme pack references when the library is empty."""
-        referenced_ids = {self.theme_pack_id, self.admin_theme_pack_id}
-        referenced_ids.discard(None)
-        if not referenced_ids:
-            return
-        existing_ids = set(ThemePack.objects.filter(pk__in=referenced_ids).values_list("pk", flat=True))
-        if self.theme_pack_id and self.theme_pack_id not in existing_ids:
-            default_pack = ThemePack.objects.filter(is_default=True, is_active=True).first()
-            self.theme_pack = default_pack
-        if self.admin_theme_pack_id and self.admin_theme_pack_id not in existing_ids:
-            self.admin_theme_pack = None
-
     def save(self, *args, **kwargs):
-        self._ensure_theme_pack_integrity()
+        before = getattr(self, "_orig_backend_feature_flags", {}) or {}
+        after = self.backend_feature_flags or {}
+        changed_opt_in = before.get("require_guardian_finance_opt_in") != after.get("require_guardian_finance_opt_in")
+
         # Optimize logo
         if self.logo and hasattr(self.logo, 'file') and not getattr(self.logo.file, '_optimized', False):
             optimized = optimize_image(self.logo)
@@ -382,7 +345,22 @@ class SiteSettings(models.Model):
             if optimized:
                 optimized._optimized = True
                 self.background_image.save(self.background_image.name, optimized, save=False)
-        super().save(*args, **kwargs)
+        try:
+            super().save(*args, **kwargs)
+        except DatabaseError as exc:
+            if kwargs.get("update_fields") and "update_fields did not affect any rows" in str(exc):
+                retry_kwargs = dict(kwargs)
+                retry_kwargs.pop("update_fields", None)
+                super().save(*args, **retry_kwargs)
+            else:
+                raise
+
+        if changed_opt_in:
+            logger.info(
+                "require_guardian_finance_opt_in changed",
+                extra={"from": before.get("require_guardian_finance_opt_in"), "to": after.get("require_guardian_finance_opt_in")},
+            )
+        self._orig_backend_feature_flags = after.copy()
 
     brand_font = models.CharField(max_length=120, default="Inter, system-ui, sans-serif")
     school_code = models.CharField(
@@ -415,34 +393,6 @@ class SiteSettings(models.Model):
         help_text="Oversight ministry, delegation, or authority.",
     )
 
-    report_preview_contact_email = models.EmailField(
-        blank=True,
-        default="",
-        help_text="Email shown on report card previews/header."
-    )
-    report_preview_contact_phone = models.CharField(
-        max_length=50,
-        blank=True,
-        default="",
-        help_text="Phone number shown on report previews/header."
-    )
-    report_preview_footer_note = models.CharField(
-        max_length=160,
-        blank=True,
-        default="Powered by Gilead Technical High School.",
-        help_text="Footer note text shown on report previews."
-    )
-    REPORT_PREVIEW_CHOICES = [
-        ("term", "Term Report"),
-        ("annual", "Annual Report"),
-    ]
-    default_report_preview_type = models.CharField(
-        max_length=12,
-        choices=REPORT_PREVIEW_CHOICES,
-        default="term",
-        help_text="Template shown to admins when opening a report preview from the builder.",
-    )
-
     # Theme configuration
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
@@ -458,31 +408,8 @@ class SiteSettings(models.Model):
         blank=True,
         related_name="site_settings",
     )
-    admin_theme_pack = models.ForeignKey(
-        "siteconfig.ThemePack",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="admin_site_settings",
-        help_text="Theme pack specifically for the Django /admin interface.",
-    )
     preview_mode_enabled = models.BooleanField(default=False)
     preview_note = models.CharField(max_length=255, blank=True, default="")
-    preview_toggle_enabled = models.BooleanField(
-        default=True,
-        help_text="Allow quick toggle of preview mode from the dashboards."
-    )
-    preview_toggle_label = models.CharField(
-        max_length=60,
-        default="Toggle preview",
-        help_text="Label for the preview toggle button shown when preview mode is inactive.",
-    )
-    preview_banner_text = models.CharField(
-        max_length=160,
-        blank=True,
-        default="Preview changes are staged and won’t go live until you clear the sandbox.",
-        help_text="Banner text shown when preview mode is active or ready.",
-    )
     admin_sidebar_bg_color = models.CharField(
         max_length=20,
         default="#0b0f14",
@@ -599,12 +526,6 @@ class SiteSettings(models.Model):
         blank=True,
         help_text="Portal upcoming assessments list (JSON). Each item: title, when, detail, tone, roles, enabled.",
     )
-    marksheet_ocr_command = models.CharField(
-        max_length=255,
-        blank=True,
-        default="",
-        help_text="Absolute path to the Tesseract binary when the executable is not on PATH.",
-    )
     footer_accreditation_text = models.CharField(
         max_length=255,
         blank=True,
@@ -698,34 +619,6 @@ class SiteSettings(models.Model):
         ],
         default='cameroon_anglophone'
     )
-    grade_approval_enabled = models.BooleanField(
-        default=True,
-        help_text="Require staff approval before publishing teacher-submitted marks."
-    )
-    grade_approval_roles = models.JSONField(
-        default=default_grade_approval_roles,
-        blank=True,
-        help_text="List of role codes allowed to review/approve teacher grade submissions."
-    )
-    grade_post_roles = models.JSONField(
-        default=default_grade_post_roles,
-        blank=True,
-        help_text="Roles that can finalize/post grade approvals (post/extract)."
-    )
-    grade_approval_deadline_days = models.PositiveSmallIntegerField(
-        default=3,
-        help_text="Days before a submitted request must be reviewed."
-    )
-    grade_approval_deadline_note = models.CharField(
-        max_length=160,
-        blank=True,
-        default="Please review before the deadline.",
-        help_text="Friendly reminder shown when deadline approaches."
-    )
-    grade_approval_auto_validate = models.BooleanField(
-        default=True,
-        help_text="Automatically flag missing or anomalous scores before sending to approvers."
-    )
     
     # ===== NEW: NOTIFICATIONS =====
     sms_provider = models.CharField(
@@ -770,7 +663,7 @@ class SiteSettings(models.Model):
 
     # Compliance profile (finance/payroll)
     compliance_profile = models.ForeignKey(
-        ComplianceProfile,
+        "finance.ComplianceProfile",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -801,13 +694,14 @@ class SiteSettings(models.Model):
 
     @classmethod
     def _ensure_preview_columns(cls) -> None:
-        global _SITE_SETTINGS_PREVIEW_COLUMNS_READY
-        if _SITE_SETTINGS_PREVIEW_COLUMNS_READY:
-            return
         with connection.cursor() as cursor:
             try:
                 columns = [col.name for col in connection.introspection.get_table_description(cursor, cls._meta.db_table)]
             except OperationalError:
+                try:
+                    connection.rollback()
+                except Exception:
+                    pass
                 return
 
             if "video_background" not in columns:
@@ -816,8 +710,11 @@ class SiteSettings(models.Model):
                         f'ALTER TABLE "{cls._meta.db_table}" ADD COLUMN "video_background" VARCHAR(255)'
                     )
                 except OperationalError:
+                    try:
+                        connection.rollback()
+                    except Exception:
+                        pass
                     pass
-        _SITE_SETTINGS_PREVIEW_COLUMNS_READY = True
 
     @classmethod
     def get_solo(cls) -> "SiteSettings":
@@ -853,6 +750,13 @@ class SiteSettings(models.Model):
             return theme.logo_background_mode
         return self.LOGO_BG_MODE_CHOICES[0][0]
 
+    def save(self, *args, **kwargs):
+        if self.theme_pack_id:
+            ThemePackModel = django_apps.get_model("siteconfig", "ThemePack")
+            if not ThemePackModel.objects.filter(pk=self.theme_pack_id).exists():
+                self.theme_pack = None
+        super().save(*args, **kwargs)
+
     @property
     def active_theme(self) -> "ThemePack | None":
         if self.theme_pack:
@@ -868,12 +772,6 @@ class SiteSettings(models.Model):
         update_fields = ["theme_pack", "primary_color", "accent_color", "custom_css", "brand_font"]
         if save:
             self.save(update_fields=update_fields)
-
-    def get_admin_theme(self) -> "ThemePack | None":
-        if self.admin_theme_pack:
-            return self.admin_theme_pack
-        admin_pack = ThemePack.objects.filter(applies_to_admin=True, is_active=True).first()
-        return admin_pack or self.active_theme
 
     @property
     def active_social_links(self) -> list[dict]:
@@ -905,7 +803,6 @@ class ThemePack(models.Model):
     svg_background = models.FileField(upload_to="branding/themepack/svg/", blank=True, null=True, help_text="Optional: SVG background for this theme pack.")
     logo_opacity = models.FloatField(default=0.3, blank=True, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)")
     logo_background_mode = models.CharField(max_length=16, choices=SiteSettings.LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
-    applies_to_admin = models.BooleanField(default=False, help_text="Use this pack for the Django /admin interface.")
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1066,6 +963,7 @@ def _subject_export():
 
 @report_exporter("fee_payments")
 def _payment_export():
+    Payment = django_apps.get_model("finance", "Payment")
     headers = ["Student", "Invoice", "Amount", "Method", "Paid At", "Receipt"]
     rows = []
     qs = Payment.objects.select_related("invoice__student")
@@ -1460,11 +1358,10 @@ def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> No
     _SITE_SETTINGS_CACHE = instance
 
 
-def _clear_site_settings_cache(sender=None, **kwargs) -> None:
+def _clear_site_settings_cache(sender, **kwargs) -> None:
     global _SITE_SETTINGS_CACHE
     _SITE_SETTINGS_CACHE = None
 
 
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)
 post_delete.connect(_clear_site_settings_cache, sender=SiteSettings)
-post_migrate.connect(_clear_site_settings_cache)

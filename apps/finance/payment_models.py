@@ -1,4 +1,4 @@
-"""Compatibility exports for Phase 2 payment tests."""
+"""Compatibility exports for Phase 2 payment models."""
 
 from .models import (
     PaymentMethod,

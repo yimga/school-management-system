@@ -218,7 +218,6 @@ class PaymentMethodCode(models.TextChoices):
 
 
 class PaymentMethod(models.Model):
-    """Payment method definitions and gateway configuration."""
     METHOD_TYPES = [
         ("card", "Credit/Debit Card"),
         ("bank_transfer", "Bank Transfer"),
@@ -235,14 +234,6 @@ class PaymentMethod(models.Model):
         ("manual", "Manual Processing"),
     ]
 
-    # Legacy method codes still referenced by services/tests
-    CASH = PaymentMethodCode.CASH
-    BANK = PaymentMethodCode.BANK
-    MTN_MOMO = PaymentMethodCode.MTN_MOMO
-    ORANGE_MOMO = PaymentMethodCode.ORANGE_MOMO
-    CHECK = PaymentMethodCode.CHECK
-    OTHER = PaymentMethodCode.OTHER
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
     method_type = models.CharField(max_length=20, choices=METHOD_TYPES)
@@ -250,13 +241,11 @@ class PaymentMethod(models.Model):
     region = models.ForeignKey("siteconfig.RegionConfig", on_delete=models.CASCADE, related_name="payment_methods")
     is_active = models.BooleanField(default=True)
 
-    # Gateway configuration
     api_key = models.CharField(max_length=500, blank=True, help_text="Encrypted API key")
     api_secret = models.CharField(max_length=500, blank=True, help_text="Encrypted secret")
     webhook_url = models.URLField(blank=True)
     webhook_secret = models.CharField(max_length=500, blank=True)
 
-    # Fees and limits
     transaction_fee_percent = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -272,7 +261,6 @@ class PaymentMethod(models.Model):
     )
     max_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
 
-    # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -291,7 +279,6 @@ class PaymentMethod(models.Model):
         return f"{self.name} ({self.get_method_type_display()})"
 
     def calculate_fee(self, amount: Decimal) -> Decimal:
-        """Calculate transaction fee based on configuration."""
         percent_fee = amount * (Decimal(self.transaction_fee_percent) / 100)
         return percent_fee + Decimal(self.fixed_fee)
 
@@ -463,63 +450,36 @@ class Payment(models.Model):
     # Phase 4: Enable audit logging for this critical model (financial records)
     audit_enabled = True
 
-    invoice = models.ForeignKey(
-        Invoice,
-        on_delete=models.CASCADE,
-        related_name="payments",
-        null=True,
-        blank=True,
-    )
-    reference_number = models.CharField(max_length=50, default=uuid.uuid4)
-    student = models.ForeignKey(
-        StudentProfile,
-        on_delete=models.CASCADE,
-        related_name="payments",
-        null=True,
-        blank=True,
-    )
-    region = models.ForeignKey(
-        "siteconfig.RegionConfig",
-        on_delete=models.CASCADE,
-        related_name="payments",
-        null=True,
-        blank=True,
-    )
-    payment_method = models.ForeignKey(
-        PaymentMethod,
-        on_delete=models.PROTECT,
-        related_name="payments",
-        null=True,
-        blank=True,
-    )
+    PURPOSE_CHOICES = [
+        ("tuition", "Tuition"),
+        ("exam_fee", "Exam Fee"),
+        ("activity_fee", "Activity Fee"),
+        ("accommodation", "Accommodation"),
+        ("other", "Other"),
+    ]
+
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="payments", null=True, blank=True)
+    reference_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="payments", null=True, blank=True)
+    region = models.ForeignKey("siteconfig.RegionConfig", on_delete=models.CASCADE, related_name="payments", null=True, blank=True)
+    payment_method = models.ForeignKey("finance.PaymentMethod", on_delete=models.PROTECT, related_name="payments", null=True, blank=True)
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.01"))],  # Must be positive
     )
     currency_code = models.CharField(max_length=3, default="USD")
-    purpose = models.CharField(
-        max_length=20,
-        choices=[
-            ("tuition", "Tuition"),
-            ("exam_fee", "Exam Fee"),
-            ("activity_fee", "Activity Fee"),
-            ("accommodation", "Accommodation"),
-            ("other", "Other"),
-        ],
-        default="tuition",
-    )
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, default="tuition")
     description = models.TextField(blank=True)
-    method = models.CharField(
-        max_length=20,
-        choices=PaymentMethodCode.choices,
-        blank=True,
-        default="",
-    )
+    method = models.CharField(max_length=20, choices=PaymentMethodCode.choices, blank=True, default="")
     reference = models.CharField(max_length=80, blank=True)
     paid_at = models.DateTimeField(default=timezone.now)
     receipt_number = models.CharField(max_length=64, blank=True)
     external_reference = models.CharField(max_length=128, blank=True)
+    gateway_transaction_id = models.CharField(max_length=100, blank=True, null=True, unique=True, default=None)
+    gateway_response = models.JSONField(blank=True, default=dict)
+    compliance_checked = models.BooleanField(default=False)
+    compliance_issues = models.JSONField(blank=True, default=list)
     receipt_file = models.FileField(
         upload_to="finance/receipts/",
         blank=True,
@@ -527,21 +487,10 @@ class Payment(models.Model):
         validators=[validate_receipt_file, validate_file_size_2mb],
         help_text="Optional uploaded receipt or slip (PDF/image, max 2MB).",
     )
-    gateway_transaction_id = models.CharField(max_length=100, blank=True, unique=True)
-    gateway_response = models.JSONField(default=dict, blank=True)
-    compliance_checked = models.BooleanField(default=False)
-    compliance_issues = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     initiated_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     failed_at = models.DateTimeField(null=True, blank=True)
-    processed_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="processed_payments",
-    )
 
     # Status tracking (backwards compatible with external payment model expectations)
     STATUS_CHOICES = [
@@ -564,6 +513,13 @@ class Payment(models.Model):
         related_name='payments_created',
         help_text="User who recorded this payment"
     )
+    processed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="processed_payments",
+    )
     deleted_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -572,11 +528,6 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ["-paid_at"]
-        indexes = [
-            models.Index(fields=["status", "created_at"]),
-            models.Index(fields=["student", "status"]),
-            models.Index(fields=["region", "created_at"]),
-        ]
 
     def clean(self):
         """Validate payment data before saving."""
@@ -585,6 +536,8 @@ class Payment(models.Model):
         
         # If invoice is set, check payment doesn't exceed balance
         if self.invoice:
+            if not self.method:
+                raise ValidationError({"method": "Payment method is required for invoice payments."})
             # Get total already paid (excluding this payment if editing)
             paid_amount = sum(
                 p.amount for p in self.invoice.payments.exclude(pk=self.pk)
@@ -609,12 +562,19 @@ class Payment(models.Model):
 
     def save(self, *args, **kwargs):
         """Call full_clean() before saving to validate."""
+        if not self.reference_number:
+            self.reference_number = uuid.uuid4().hex
+        if self.gateway_transaction_id == "":
+            self.gateway_transaction_id = None
         self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        label = self.reference_number or self.reference or str(self.id)
-        return f"{label} {self.amount} {self.currency_code}"
+        if self.reference_number:
+            return f"{self.reference_number} {self.amount}"
+        if self.invoice:
+            return f"{self.invoice} {self.amount}"
+        return f"Payment {self.pk} {self.amount}"
 
     def mark_processing(self) -> None:
         """Mark payment as processing."""
@@ -626,24 +586,28 @@ class Payment(models.Model):
         """Mark payment as completed."""
         self.status = "completed"
         self.completed_at = timezone.now()
+        update_fields = ["status", "completed_at"]
         if gateway_tx_id:
             self.gateway_transaction_id = gateway_tx_id
+            update_fields.append("gateway_transaction_id")
         if response is not None:
             self.gateway_response = response
-        self.save(update_fields=["status", "completed_at", "gateway_transaction_id", "gateway_response"])
+            update_fields.append("gateway_response")
+        self.save(update_fields=update_fields)
 
     def mark_failed(self, reason: str = "", response: dict | None = None) -> None:
         """Mark payment as failed."""
         self.status = "failed"
         self.failed_at = timezone.now()
         self.status_reason = reason
+        update_fields = ["status", "failed_at", "status_reason"]
         if response is not None:
             self.gateway_response = response
-        self.save(update_fields=["status", "failed_at", "status_reason", "gateway_response"])
+            update_fields.append("gateway_response")
+        self.save(update_fields=update_fields)
 
 
 class Transaction(models.Model):
-    """Individual transaction records for audit trail."""
     TRANSACTION_TYPE = [
         ("payment", "Payment"),
         ("refund", "Refund"),
@@ -665,7 +629,7 @@ class Transaction(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     gateway_reference = models.CharField(max_length=100, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    metadata = models.JSONField(default=dict, blank=True)
+    metadata = models.JSONField(blank=True, default=dict)
     error_message = models.TextField(blank=True)
 
     class Meta:
@@ -678,7 +642,6 @@ class Transaction(models.Model):
 
 
 class RefundRequest(models.Model):
-    """Refund request tracking."""
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("approved", "Approved"),
@@ -726,11 +689,10 @@ class RefundRequest(models.Model):
         verbose_name_plural = "Refund Requests"
 
     def __str__(self) -> str:
-        return f"Refund: {self.payment.reference_number} - {self.amount}"
+        return f"Refund: {self.payment.reference_number or self.payment.id} - {self.amount}"
 
 
 class PaymentReconciliation(models.Model):
-    """Reconciliation records for accounting."""
     STATUS_CHOICES = [
         ("pending", "Pending"),
         ("reconciled", "Reconciled"),
@@ -738,11 +700,7 @@ class PaymentReconciliation(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    region = models.ForeignKey(
-        "siteconfig.RegionConfig",
-        on_delete=models.CASCADE,
-        related_name="payment_reconciliations",
-    )
+    region = models.ForeignKey("siteconfig.RegionConfig", on_delete=models.CASCADE, related_name="payment_reconciliations")
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT, related_name="reconciliations")
     period_start = models.DateField()
     period_end = models.DateField()
@@ -767,14 +725,13 @@ class PaymentReconciliation(models.Model):
         ordering = ["-period_end"]
         verbose_name = "Payment Reconciliation"
         verbose_name_plural = "Payment Reconciliations"
-        unique_together = [["region", "payment_method", "period_start", "period_end"]]
+        unique_together = [("region", "payment_method", "period_start", "period_end")]
 
     def __str__(self) -> str:
-        return f"{self.region_id} - {self.payment_method} ({self.period_start} to {self.period_end})"
+        return f"{self.region} - {self.payment_method.name} ({self.period_start} to {self.period_end})"
 
 
 class PaymentAuditLog(models.Model):
-    """Audit trail for payment operations."""
     ACTION_TYPES = [
         ("payment_created", "Payment Created"),
         ("payment_initiated", "Payment Initiated"),
@@ -795,22 +752,13 @@ class PaymentAuditLog(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     action_type = models.CharField(max_length=30, choices=ACTION_TYPES)
-    payment = models.ForeignKey(
-        Payment,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="audit_logs",
-    )
-    region = models.ForeignKey(
-        "siteconfig.RegionConfig",
-        on_delete=models.CASCADE,
-        related_name="payment_audit_logs",
-    )
     description = models.TextField()
-    details = models.JSONField(default=dict, blank=True)
+    details = models.JSONField(blank=True, default=dict)
     severity = models.CharField(max_length=20, choices=SEVERITY_LEVELS, default="low")
     timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, null=True, blank=True, related_name="audit_logs")
+    region = models.ForeignKey("siteconfig.RegionConfig", on_delete=models.CASCADE, related_name="payment_audit_logs")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -818,7 +766,6 @@ class PaymentAuditLog(models.Model):
         blank=True,
         related_name="payment_audit_logs",
     )
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
 
     class Meta:
         ordering = ["-timestamp"]
@@ -830,7 +777,7 @@ class PaymentAuditLog(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.get_action_type_display()} - {self.region_id}"
+        return f"{self.get_action_type_display()} - {self.region}"
 
 
 class PaymentReminder(models.Model):
@@ -903,6 +850,32 @@ class Notification(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title} ({self.severity})"
+
+
+class FinanceRequestAudit(models.Model):
+    """Audit trail for finance access requests and notification actions."""
+
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        related_name="request_audits",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="finance_request_audits",
+    )
+    action = models.CharField(max_length=64, default="marked_read")
+    details = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.action} ({self.notification_id})"
 
 
 class ReportRequest(models.Model):

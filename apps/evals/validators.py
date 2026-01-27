@@ -97,10 +97,8 @@ class GradeValidator:
         }
     
     def _detect_outlier(self, evaluation, weights) -> bool:
-        """Check if total_score is >2σ from class mean."""
-        score = evaluation.final_score
-        if score is None:
-            score = evaluation.total_score
+        """Check if final_score is >2σ from class mean."""
+        score = evaluation.final_score if evaluation.final_score is not None else evaluation.total_score
         if score is None:
             return False
         
@@ -129,10 +127,8 @@ class GradeValidator:
     
     def _detect_impossible_jump(self, evaluation) -> bool:
         """Check if grade jumped >50% from previous term."""
-        score = evaluation.final_score
-        if score is None:
-            score = evaluation.total_score
-        if score is None:
+        current_score = evaluation.final_score if evaluation.final_score is not None else evaluation.total_score
+        if current_score is None:
             return False
         
         from apps.academics.models import Term
@@ -152,17 +148,17 @@ class GradeValidator:
             term__in=prev_terms[:1],
         ).first()
         
-        prev_score = prev_eval.final_score if prev_eval else None
-        if prev_score is None and prev_eval:
-            prev_score = prev_eval.total_score
-        if prev_score is None:
+        prev_score = prev_eval.final_score if prev_eval and prev_eval.final_score is not None else (
+            prev_eval.total_score if prev_eval else None
+        )
+        if not prev_eval or prev_score is None:
             return False
-        
+
         if float(prev_score) == 0:
             return False
 
         pct_change = abs(
-            (float(score) - float(prev_score)) /
+            (float(current_score) - float(prev_score)) /
             float(prev_score)
         )
         return pct_change > 0.5
@@ -189,36 +185,6 @@ class GradeConverter:
     
     def __init__(self, weights):
         self.weights = weights
-
-    def _thresholds(self):
-        """Return grade thresholds in a consistent A-E mapping."""
-        if all(hasattr(self.weights, attr) for attr in ("grade_a_min", "grade_b_min", "grade_c_min", "grade_d_min", "grade_e_min")):
-            return {
-                "a": float(self.weights.grade_a_min),
-                "b": float(self.weights.grade_b_min),
-                "c": float(self.weights.grade_c_min),
-                "d": float(self.weights.grade_d_min),
-                "e": float(self.weights.grade_e_min),
-            }
-
-        try:
-            from apps.siteconfig.models import RegionConfig, GradingScaleConfig
-
-            region = RegionConfig.get_default()
-            scale = GradingScaleConfig.objects.filter(region=region, scale_type="0-20").first()
-            if scale:
-                return {
-                    "a": float(scale.grade_a_min),
-                    "b": float(scale.grade_b_min),
-                    "c": float(scale.grade_c_min),
-                    "d": float(scale.grade_d_min),
-                    "e": float(getattr(scale, "grade_e_min", getattr(scale, "grade_f_min", 0))),
-                }
-        except Exception:
-            pass
-
-        # Default Cameroon 0-20 thresholds
-        return {"a": 18.0, "b": 16.0, "c": 14.0, "d": 10.0, "e": 0.0}
     
     def numeric_to_letter(self, numeric_score: Decimal) -> str:
         """Converts 0–20 to A–E."""
@@ -226,21 +192,16 @@ class GradeConverter:
             return ''
         
         score = float(numeric_score)
-        scale = getattr(self.weights, "score_scale", None)
-        if scale and float(scale) not in (0.0, 20.0):
-            score = (score / float(scale)) * 20.0
-
-        thresholds = self._thresholds()
-
-        if score >= thresholds["a"]:
+        
+        if score >= float(self.weights.grade_a_min):
             return 'A'
-        elif score >= thresholds["b"]:
+        elif score >= float(self.weights.grade_b_min):
             return 'B'
-        elif score >= thresholds["c"]:
+        elif score >= float(self.weights.grade_c_min):
             return 'C'
-        elif score >= thresholds["d"]:
+        elif score >= float(self.weights.grade_d_min):
             return 'D'
-        elif score >= thresholds["e"]:
+        elif score >= float(self.weights.grade_e_min):
             return 'E'
         else:
             return ''

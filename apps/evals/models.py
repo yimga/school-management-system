@@ -1,15 +1,9 @@
-import uuid
-from decimal import Decimal
-
-from typing import Optional
-
-from django.conf import settings
+from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
-from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Term, SubjectAssignment
+
 from apps.people.models import TeacherProfile, StudentProfile
 from apps.accounts.models import User
 from apps.accounts.validators import validate_evidence_file, validate_file_size_20mb
@@ -54,7 +48,19 @@ class AssessmentWeights(models.Model):
     practical_weight = models.PositiveSmallIntegerField(default=0)
 
     score_scale = models.PositiveSmallIntegerField(default=20)
-    
+
+    # Grade thresholds for letter conversion (Cameroon Anglophone defaults)
+    grade_a_min = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=18.0,
+        help_text="Minimum score for A",
+    )
+    grade_b_min = models.DecimalField(max_digits=5, decimal_places=2, default=16.0)
+    grade_c_min = models.DecimalField(max_digits=5, decimal_places=2, default=14.0)
+    grade_d_min = models.DecimalField(max_digits=5, decimal_places=2, default=10.0)
+    grade_e_min = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
+
     # NEW: Grading scale & locale configuration
     grading_scale = models.CharField(
         max_length=50,
@@ -66,17 +72,15 @@ class AssessmentWeights(models.Model):
         ],
         default='numeric_0_20',
     )
-    REGION_CHOICES = [
-        ('cameroon_anglophone', 'Cameroon Anglophone'),
-        ('cameroon_francophone', 'Cameroon Francophone'),
-        ('global', 'Global/Other'),
-    ]
-    grade_a_min = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('18.00'))
-    grade_b_min = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('16.00'))
-    grade_c_min = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('14.00'))
-    grade_d_min = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('10.00'))
-    grade_e_min = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.00'))
-    region = models.CharField(max_length=50, choices=REGION_CHOICES, default='cameroon_anglophone')
+    region = models.CharField(
+        max_length=50,
+        choices=[
+            ('cameroon_anglophone', 'Cameroon Anglophone'),
+            ('cameroon_francophone', 'Cameroon Francophone'),
+            ('global', 'Global/Other'),
+        ],
+        default='cameroon_anglophone',
+    )
 
 
     @classmethod
@@ -406,7 +410,6 @@ class GradeAudit(models.Model):
         ('rollback', 'Grade Rolled Back'),
         ('import', 'Imported from CSV'),
         ('offline_sync', 'Synced Offline Entry'),
-        ('ocr_upload', 'OCR Upload'),
     ]
     
     evaluation = models.ForeignKey(
@@ -447,83 +450,6 @@ class GradeAudit(models.Model):
     
     def __str__(self):
         return f"{self.get_change_type_display()} - {self.evaluation}"
-
-
-class GradeApprovalRequest(models.Model):
-    """Tracks manual grade submissions that need staff approval."""
-
-    class Status(models.TextChoices):
-        PENDING = "PENDING", "Pending Review"
-        UNDER_REVIEW = "UNDER_REVIEW", "Under Review"
-        REVISION_REQUESTED = "REVISION_REQUESTED", "Revision Requested"
-        APPROVED = "APPROVED", "Approved"
-        REJECTED = "REJECTED", "Rejected"
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    teacher = models.ForeignKey(
-        TeacherProfile,
-        on_delete=models.PROTECT,
-        related_name="grade_approval_requests",
-    )
-    academic_year = models.ForeignKey(
-        AcademicYear,
-        on_delete=models.PROTECT,
-        related_name="grade_approval_requests",
-    )
-    term = models.ForeignKey(
-        Term,
-        on_delete=models.PROTECT,
-        related_name="grade_approval_requests",
-    )
-    subject_assignment = models.ForeignKey(
-        SubjectAssignment,
-        on_delete=models.PROTECT,
-        related_name="grade_approval_requests",
-    )
-    entries = models.JSONField(default=list, blank=True)
-    summary = models.JSONField(default=dict, blank=True)
-    status = models.CharField(max_length=30, choices=Status.choices, default=Status.PENDING)
-    requested_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="grade_approval_requests_created",
-    )
-    requested_at = models.DateTimeField(auto_now_add=True)
-    reviewed_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="grade_approval_requests_reviewed",
-    )
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    reviewer_notes = models.TextField(blank=True)
-    deadline_at = models.DateTimeField(null=True, blank=True)
-    validation_flags = models.JSONField(default=list, blank=True)
-
-    class Meta:
-        ordering = ["-requested_at"]
-
-    def __str__(self):
-        subject = getattr(self.subject_assignment, "subject", None)
-        student_count = self.summary.get("total_students", 0)
-        return f"{subject or 'Subject'} ({student_count} students) · {self.get_status_display()}"
-
-    def mark_reviewed(self, reviewer: User, status: str, notes: Optional[str] = None):
-        self.status = status
-        self.reviewed_by = reviewer
-        self.reviewed_at = timezone.now()
-        if notes is not None:
-            self.reviewer_notes = notes
-        self.save(update_fields=["status", "reviewed_by", "reviewed_at", "reviewer_notes"])
-
-    @property
-    def is_overdue(self):
-        if not self.deadline_at:
-            return False
-        return timezone.now() > self.deadline_at
 
 
 # ========== OFFLINE SYNC QUEUE ==========

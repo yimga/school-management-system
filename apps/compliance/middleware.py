@@ -13,11 +13,23 @@ from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponseForbidden
 from django.conf import settings
-from django.db import connection
+from django.db import DatabaseError, connection, transaction
+from django.db.transaction import TransactionManagementError
 from apps.compliance.models_audit import AccessLog, AuditLog
 from apps.compliance.access_control import check_request_access
 
 logger = logging.getLogger(__name__)
+
+
+def _reset_db_state() -> None:
+    """Reset a broken transaction after a handled DB error."""
+    try:
+        if connection.in_atomic_block:
+            transaction.set_rollback(False)
+        elif connection.needs_rollback:
+            connection.rollback()
+    except Exception:
+        pass
 
 
 class AuditLoggingMiddleware(MiddlewareMixin):
@@ -45,7 +57,8 @@ class AuditLoggingMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         """Log the HTTP request/response to AccessLog."""
         try:
-            if connection.in_atomic_block and connection.needs_rollback:
+            if connection.needs_rollback:
+                _reset_db_state()
                 return response
             # Skip logging for static/media/health paths
             if any(request.path.startswith(skip) for skip in self.SKIP_PATHS):
@@ -87,6 +100,9 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 ip_address=ip_address,
                 error_message=error_message or "",  # Ensure never None
             )
+        except (DatabaseError, TransactionManagementError) as e:
+            _reset_db_state()
+            logger.warning(f"Failed to log access: {e}", exc_info=True)
         except Exception as e:
             logger.warning(f"Failed to log access: {e}", exc_info=True)
 
@@ -95,7 +111,8 @@ class AuditLoggingMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
         """Log exceptions/failed requests."""
         try:
-            if connection.in_atomic_block and connection.needs_rollback:
+            if connection.needs_rollback:
+                _reset_db_state()
                 return None
             user = None
             if hasattr(request, 'user') and request.user.is_authenticated:
@@ -112,6 +129,9 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 ip_address=ip_address,
                 error_message=str(exception)[:500],
             )
+        except (DatabaseError, TransactionManagementError) as e:
+            _reset_db_state()
+            logger.warning(f"Failed to log exception: {e}", exc_info=True)
         except Exception as e:
             logger.warning(f"Failed to log exception: {e}", exc_info=True)
 

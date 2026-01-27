@@ -274,6 +274,22 @@ def _referral_overview(students: list[StudentProfile]):
     }
 
 
+def _evaluation_complete_for_snapshot(evaluation) -> bool:
+    """Lightweight completeness check without extra DB lookups."""
+    if evaluation.final_score is not None:
+        return True
+    candidates = [
+        evaluation.seq1_score,
+        evaluation.seq2_score,
+        evaluation.exam_score,
+        evaluation.mock_score,
+        evaluation.practical_score,
+        evaluation.test1,
+        evaluation.test2,
+    ]
+    return any(val is not None for val in candidates)
+
+
 def _attendance_snapshot(students, year, term):
     """
     Get attendance snapshot with optimized query.
@@ -293,31 +309,14 @@ def _attendance_snapshot(students, year, term):
             "per_student": [],
         }
 
-    # Single aggregation query for per-student totals/completion
-    complete_filter = (
-        Q(seq1_score__isnull=False)
-        | Q(seq2_score__isnull=False)
-        | Q(exam_score__isnull=False)
-        | Q(mock_score__isnull=False)
-        | Q(practical_score__isnull=False)
-        | Q(test1__isnull=False)
-        | Q(test2__isnull=False)
-    )
-
-    stats = list(
-        Evaluation.objects.filter(
-            student__in=students,
-            academic_year=year,
-            term=term,
-        )
-        .values("student_id")
-        .annotate(
-            total=Count("id"),
-            complete=Count("id", filter=complete_filter),
-        )
-    )
-
-    if not stats:
+    # Load evaluations once and derive totals in memory.
+    evals = list(Evaluation.objects.filter(
+        student__in=students,
+        academic_year=year,
+        term=term,
+    ))
+    total = len(evals)
+    if total == 0:
         return {
             "today": 0,
             "overall": 0,
@@ -328,16 +327,13 @@ def _attendance_snapshot(students, year, term):
         }
 
     per_student_stats = {}
-    total = 0
-    complete = 0
-    for row in stats:
-        student_id = row["student_id"]
-        total_s = row.get("total") or 0
-        complete_s = row.get("complete") or 0
-        total += total_s
-        complete += complete_s
-        per_student_stats[student_id] = {"total": total_s, "complete": complete_s}
-
+    for e in evals:
+        bucket = per_student_stats.setdefault(e.student_id, {"total": 0, "complete": 0})
+        bucket["total"] += 1
+        if _evaluation_complete_for_snapshot(e):
+            bucket["complete"] += 1
+    
+    complete = sum(1 for e in evals if _evaluation_complete_for_snapshot(e))
     overall_pct = int(round((complete / total) * 100)) if total > 0 else 0
 
     per_student = []
@@ -385,6 +381,22 @@ def _attendance_trend(students, year, term):
     return trend
 
 
+def _evaluation_score_fast(eval_obj) -> float:
+    """Return a score without triggering additional DB lookups."""
+    final_score = getattr(eval_obj, "final_score", None)
+    if final_score is not None:
+        return float(final_score)
+
+    values = []
+    for attr in ("seq1_score", "seq2_score", "exam_score", "mock_score", "practical_score", "test1", "test2"):
+        val = getattr(eval_obj, attr, None)
+        if val is not None:
+            values.append(float(val))
+    if not values:
+        return 0.0
+    return round(sum(values) / len(values), 2)
+
+
 def _grade_trend(students, year, term):
     """Weekly grade averages derived from recent evaluations."""
     if not students or not year or not term:
@@ -402,7 +414,7 @@ def _grade_trend(students, year, term):
     buckets = []
     for idx, eval_obj in enumerate(reversed(evaluations)):
         label = f"#{idx + 1}"
-        score = float(eval_obj.total_score or 0)
+        score = _evaluation_score_fast(eval_obj)
         buckets.append({"label": label, "value": score})
 
     if not buckets:
@@ -425,7 +437,7 @@ def _subject_performance(students, year, term):
     for eval_obj in evals:
         subject = eval_obj.subject_assignment.subject.name if eval_obj.subject_assignment_id else "General"
         entry = stats.setdefault(subject, {"total": 0.0, "count": 0})
-        entry["total"] += float(eval_obj.total_score or 0.0)
+        entry["total"] += _evaluation_score_fast(eval_obj)
         entry["count"] += 1
 
     results = []
@@ -529,17 +541,8 @@ def _performance_overview(students, year, term):
         if not student_evals:
             continue
         
-        # Compute average from already-loaded evaluation fields (avoid extra queries)
-        def _evaluation_score(eval_obj) -> float:
-            if eval_obj.final_score is not None:
-                return float(eval_obj.final_score)
-            for field_name in ("seq1_score", "seq2_score", "exam_score", "mock_score", "practical_score", "test1", "test2"):
-                value = getattr(eval_obj, field_name, None)
-                if value is not None:
-                    return float(value)
-            return 0.0
-
-        total = sum(_evaluation_score(e) for e in student_evals)
+        # Compute average from already-loaded evaluations
+        total = sum(_evaluation_score_fast(e) for e in student_evals)
         count = len(student_evals)
         avg = round(total / count, 2) if count > 0 else None
         
@@ -614,25 +617,25 @@ def _finance_summary(students):
             "label": "Invoices appear once finance issues fee plans.",
         }
 
-    # Single aggregation query with per-student rollup; totals computed in Python.
+    # Single aggregation query grouped by student
     qs = Invoice.objects.filter(student__in=students).exclude(status=Invoice.Status.DRAFT)
 
-    per_student = []
     per_student_qs = qs.values("student_id").annotate(
         total_due=Sum("total_amount"),
         balance_amount=Sum("balance_amount"),
         overdue=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
     )
-    total_due = Decimal("0.00")
-    balance = Decimal("0.00")
-    overdue_count = 0
-    for row in per_student_qs:
+    rows = list(per_student_qs)
+    total_due = sum((row.get("total_due") or Decimal("0.00")) for row in rows) or Decimal("0.00")
+    balance = sum((row.get("balance_amount") or Decimal("0.00")) for row in rows) or Decimal("0.00")
+    paid = total_due - balance
+    overdue_count = sum((row.get("overdue") or 0) for row in rows)
+
+    per_student = []
+    for row in rows:
         student_id = row.get("student_id")
         total_s = row.get("total_due") or Decimal("0.00")
         bal_s = row.get("balance_amount") or Decimal("0.00")
-        total_due += total_s
-        balance += bal_s
-        overdue_count += row.get("overdue") or 0
         per_student.append({
             "student_id": student_id,
             "total_due": total_s,
@@ -640,8 +643,6 @@ def _finance_summary(students):
             "balance": bal_s,
             "overdue": row.get("overdue") or 0,
         })
-
-    paid = total_due - balance
 
     return {
         "total_due": total_due,
@@ -862,8 +863,9 @@ def _analytics_insights(students, year, term):
         subject_totals.setdefault(subj, {"total": 0.0, "count": 0})
         score = e.final_score
         if score is None:
-            score = (e.seq1_score or 0) + (e.seq2_score or 0) + (e.exam_score or 0)
-        subject_totals[subj]["total"] += float(score or 0.0)
+            score = e.seq1_score if e.seq1_score is not None else e.test1
+        score_val = float(score) if score is not None else 0.0
+        subject_totals[subj]["total"] += score_val
         subject_totals[subj]["count"] += 1
 
     averages = []
