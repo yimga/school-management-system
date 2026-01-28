@@ -24,3 +24,7 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Frontend build artifacts
+node_modules/
+package-lock.json

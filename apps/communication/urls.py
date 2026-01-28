@@ -1,0 +1,23 @@
+"""
+URL patterns for communication app.
+"""
+from django.urls import path
+from . import views_groups, views_announcements
+
+app_name = 'communication'
+
+urlpatterns = [
+    # Groups/Threads
+    path('groups/', views_groups.group_list, name='group_list'),
+    path('groups/create/', views_groups.group_create, name='group_create'),
+    path('groups/<int:thread_id>/', views_groups.group_detail, name='group_detail'),
+    path('groups/<int:thread_id>/manage/', views_groups.group_manage, name='group_manage'),
+    path('groups/<int:thread_id>/join/', views_groups.group_join, name='group_join'),
+    path('groups/<int:thread_id>/leave/', views_groups.group_leave, name='group_leave'),
+    
+    # Announcements
+    path('announcements/create/', views_announcements.announcement_create, name='announcement_create'),
+    path('announcements/<int:announcement_id>/', views_announcements.announcement_detail, name='announcement_detail'),
+    path('announcements/<int:announcement_id>/edit/', views_announcements.announcement_edit, name='announcement_edit'),
+    path('announcements/department/', views_announcements.department_announcement_create, name='department_announcement_create'),
+]

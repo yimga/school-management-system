@@ -388,6 +388,8 @@ class ReportCardStyleForm(forms.ModelForm):
             "watermark_text",
             "header_tagline",
             "css_snippet",
+            "labels",
+            "layout_config",
             "is_active",
         ]
         widgets = {
@@ -401,6 +403,8 @@ class ReportCardStyleForm(forms.ModelForm):
             "watermark_text": forms.TextInput(attrs={"class": "form-control"}),
             "header_tagline": forms.TextInput(attrs={"class": "form-control"}),
             "css_snippet": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "labels": forms.Textarea(attrs={"class": "form-control", "rows": 6, "placeholder": "{\"rank\": \"Rank\"}"}),
+            "layout_config": forms.Textarea(attrs={"class": "form-control", "rows": 6, "placeholder": "{\"show_specialty_rank\": true}"}),
         }
 
 

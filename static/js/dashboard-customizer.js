@@ -289,6 +289,11 @@
 
   const enableDrag = () => {
     if (!customDragEnabled) return;
+    // Check if dashboard-layout.js (Sortable.js) is already handling drag
+    if (container.classList.contains("drag-mode") && window.Sortable) {
+      // Sortable.js is active, don't interfere
+      return;
+    }
     container.classList.add("drag-mode");
     cards.forEach((card) => {
       card.setAttribute("draggable", "true");

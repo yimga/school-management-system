@@ -141,12 +141,24 @@ def class_threads_for_parent(user: User, limit: int = 4):
     return [_serialize_thread(t, user) for t in threads]
 
 
-def class_threads_for_teacher(user: User, limit: int = 6):
+def class_threads_for_teacher(user: User, limit: int = 6, include_department: bool = True):
     """
     Recent message threads the teacher belongs to (membership scoped).
+    Includes department threads if teacher has a department.
     """
+    threads_qs = MessageThread.objects.filter(members=user, is_archived=False)
+    
+    # Also include department threads if teacher has a department
+    if include_department and hasattr(user, 'teacher_profile') and user.teacher_profile.department:
+        dept_threads = MessageThread.objects.filter(
+            scope=MessageThread.Scope.DEPARTMENT,
+            department=user.teacher_profile.department,
+            is_archived=False
+        )
+        threads_qs = threads_qs | dept_threads
+    
     threads = (
-        MessageThread.objects.filter(members=user, is_archived=False)
+        threads_qs.distinct()
         .prefetch_related("members")
         .annotate(latest_msg_at=Max("messages__created_at"))
         .order_by(F("latest_msg_at").desc(nulls_last=True), "-updated_at")[:limit]
@@ -708,10 +720,15 @@ def _finance_summary(students):
 
 
 def _upcoming_deadlines(year):
+    """
+    Get upcoming grading deadlines.
+    
+    NOTE: GradingDeadline model was removed. This function returns empty list.
+    TODO: Implement using SubjectAssignment.deadline_at if field is added.
+    """
     if not year:
         return []
-    now = timezone.now()
-    # GradingDeadline model is missing. Return empty list or implement alternative logic.
+    # TODO: Query SubjectAssignment.deadline_at when field is added
     return []
 
 

@@ -503,6 +503,19 @@ class GradeApprovalRequest(models.Model):
     deadline_at = models.DateTimeField(null=True, blank=True)
     validation_flags = models.JSONField(default=list, blank=True)
 
+    # Bypass / escalation (when an approver is unavailable)
+    bypassed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="grade_approval_requests_bypassed",
+        help_text="User who bypassed the normal approval chain.",
+    )
+    bypassed_at = models.DateTimeField(null=True, blank=True)
+    bypass_reason = models.TextField(blank=True)
+    bypassed_from_status = models.CharField(max_length=30, blank=True)
+
     class Meta:
         ordering = ["-requested_at"]
 
@@ -519,11 +532,40 @@ class GradeApprovalRequest(models.Model):
             self.reviewer_notes = notes
         self.save(update_fields=["status", "reviewed_by", "reviewed_at", "reviewer_notes"])
 
+    def mark_bypassed(self, *, by_user: User, new_status: str, reason: str, notes: Optional[str] = None):
+        """Bypass the normal chain and record a final decision with audit metadata."""
+        self.bypassed_by = by_user
+        self.bypassed_at = timezone.now()
+        self.bypass_reason = reason or ""
+        self.bypassed_from_status = self.status
+        # also set the decision fields as the effective review action
+        self.status = new_status
+        self.reviewed_by = by_user
+        self.reviewed_at = self.bypassed_at
+        if notes is not None:
+            self.reviewer_notes = notes
+        self.save(
+            update_fields=[
+                "bypassed_by",
+                "bypassed_at",
+                "bypass_reason",
+                "bypassed_from_status",
+                "status",
+                "reviewed_by",
+                "reviewed_at",
+                "reviewer_notes",
+            ]
+        )
+
     @property
     def is_overdue(self):
         if not self.deadline_at:
             return False
         return timezone.now() > self.deadline_at
+
+    @property
+    def is_bypassed(self) -> bool:
+        return bool(self.bypassed_at or self.bypassed_by_id)
 
 
 # ========== OFFLINE SYNC QUEUE ==========

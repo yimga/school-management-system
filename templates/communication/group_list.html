@@ -1,0 +1,133 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Message Groups{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">Message Groups</h2>
+      <p class="text-muted mb-0">Chat with your department, classroom, or custom groups</p>
+    </div>
+    <a href="{% url 'communication:group_create' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-2"></i>Create Group
+    </a>
+  </div>
+
+  {% if department_threads %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0"><i class="bi bi-building me-2"></i>Department Groups</h5>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for thread in department_threads %}
+        <div class="col-md-6">
+          <div class="card border">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h6 class="mb-1">{{ thread.title }}</h6>
+                  {% if thread.description %}
+                  <p class="text-muted small mb-0">{{ thread.description|truncatechars:100 }}</p>
+                  {% endif %}
+                </div>
+                <span class="badge bg-primary">{{ thread.members.count }} members</span>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="{% url 'communication:group_detail' thread_id=thread.id %}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-chat-dots me-1"></i>Open
+                </a>
+                {% if thread.created_by == user or user.is_staff %}
+                <a href="{% url 'communication:group_manage' thread_id=thread.id %}" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-gear me-1"></i>Manage
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if my_threads %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>My Groups</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Group Name</th>
+              <th>Scope</th>
+              <th>Members</th>
+              <th>Last Activity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for thread in my_threads %}
+            <tr>
+              <td>
+                <strong>{{ thread.title }}</strong>
+                {% if thread.description %}
+                <div class="text-muted small">{{ thread.description|truncatechars:60 }}</div>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-secondary">{{ thread.get_scope_display }}</span>
+                {% if thread.department %}
+                <div class="small text-muted">{{ thread.department.name }}</div>
+                {% elif thread.classroom %}
+                <div class="small text-muted">{{ thread.classroom.name }}</div>
+                {% endif %}
+              </td>
+              <td>{{ thread.members.count }}</td>
+              <td>
+                {% if thread.last_message_at %}
+                {{ thread.last_message_at|timesince }} ago
+                {% else %}
+                <span class="text-muted">No messages yet</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'communication:group_detail' thread_id=thread.id %}" class="btn btn-primary">
+                    <i class="bi bi-chat-dots"></i>
+                  </a>
+                  {% if thread.created_by == user or user.is_staff %}
+                  <a href="{% url 'communication:group_manage' thread_id=thread.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-gear"></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not my_threads and not department_threads %}
+  <div class="card shadow-sm">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-chat-dots text-muted" style="font-size: 4rem;"></i>
+      <h4 class="mt-3">No groups yet</h4>
+      <p class="text-muted">Create a group to start chatting with your colleagues</p>
+      <a href="{% url 'communication:group_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Create Your First Group
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

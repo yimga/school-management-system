@@ -32,6 +32,12 @@
       <div class="card-body">
         <p class="mb-1"><strong>Rows submitted:</strong> {{ approval.summary.submitted_rows }} / {{ approval.summary.total_students }}</p>
         <p class="mb-0"><strong>Reviewer notes:</strong> {{ approval.reviewer_notes|default:"None" }}</p>
+        {% if approval.is_bypassed %}
+          <hr class="my-2">
+          <p class="mb-1 text-danger"><strong>Bypassed:</strong> Yes</p>
+          <p class="mb-1"><strong>Bypassed by:</strong> {{ approval.bypassed_by.get_full_name|default:approval.bypassed_by.username }}</p>
+          <p class="mb-0"><strong>Bypass reason:</strong> {{ approval.bypass_reason|default:"—" }}</p>
+        {% endif %}
 </div>
 </div>
 </div>
@@ -105,9 +111,29 @@
   <div class="card-body">
     <form method="post">
       {% csrf_token %}
+      <input type="hidden" name="action" value="decide">
       {{ form.as_p }}
       <button class="btn btn-primary" type="submit">Save decision</button>
     </form>
   </div>
 </div>
+
+{% if bypass_allowed %}
+<div class="card mt-3 border-warning">
+  <div class="card-header bg-warning-subtle">
+    <strong>Bypass / Escalate</strong>
+  </div>
+  <div class="card-body">
+    <p class="text-muted small mb-3">
+      Use this only when the normal approver is unavailable. A bypass is fully audited.
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="bypass">
+      {{ bypass_form.as_p }}
+      <button class="btn btn-warning" type="submit">Bypass and finalize</button>
+    </form>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -41,22 +41,6 @@ class TeacherProfile(models.Model):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
     is_active = models.BooleanField(default=True)
-    profile_photo = models.ImageField(upload_to="profiles/teachers/", blank=True, null=True)
-    position_title = models.CharField(max_length=120, blank=True)
-    reports_to = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="direct_reports",
-    )
-    department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="teachers",
-    )
     pay_grade = models.CharField(max_length=50, blank=True)
     salary_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)

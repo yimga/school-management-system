@@ -12,7 +12,6 @@ from django.apps import apps as django_apps
 
 from apps.siteconfig.models import SiteSettings
 from apps.evals.notifications import NotificationService
-from apps.analytics.models import GradingDeadline
 
 
 class Command(BaseCommand):
@@ -32,6 +31,23 @@ class Command(BaseCommand):
         )
     
     def handle(self, *args, **options):
+        """
+        Send deadline reminders.
+        
+        NOTE: GradingDeadline model was removed. This command is disabled.
+        TODO: Re-implement using SubjectAssignment.deadline_at when field is added.
+        """
+        self.stdout.write(
+            self.style.WARNING(
+                "⚠ Deadline reminder command is currently disabled.\n"
+                "The GradingDeadline model was removed. This feature will be restored\n"
+                "once deadline_at field is added to SubjectAssignment model or a new\n"
+                "deadline management system is implemented.\n"
+            )
+        )
+        return
+        
+        # Code below is kept for reference when re-implementing
         dry_run = options.get('dry_run', False)
         reminder_days_str = options.get('days', '7,3,1,0.5')
         
@@ -41,29 +57,25 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR('Invalid days format'))
             return
         
-        site_settings = SiteSettings.load()
+        site_settings = SiteSettings.get_solo()
         notification_service = NotificationService()
         
         today = timezone.now().date()
         teachers_notified = set()
         reminder_count = 0
         
+        # TODO: Re-implement using SubjectAssignment.deadline_at
         # For each reminder day threshold
         for days_threshold in reminder_days:
             # Calculate target deadline date
             target_date = today + timedelta(days=days_threshold)
             
             # Find deadlines matching this date
-            deadlines = GradingDeadline.objects.filter(
-                deadline_date=target_date
-            ).select_related(
-                'subject_assignment__teacher',
-                'subject_assignment__subject',
-                'academic_year',
-                'term'
-            )
+            # deadlines = SubjectAssignment.objects.filter(
+            #     deadline_at__date=target_date
+            # ).select_related(...)
             
-            for deadline in deadlines:
+            for deadline in []:  # Placeholder
                 teacher = deadline.subject_assignment.teacher
                 teacher_key = (teacher.id, days_threshold)
                 

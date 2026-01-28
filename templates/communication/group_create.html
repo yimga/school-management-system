@@ -1,0 +1,114 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Create Group{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Create Message Group</h4>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+              <label for="{{ form.title.id_for_label }}" class="form-label">Group Name *</label>
+              {{ form.title }}
+              {% if form.title.errors %}
+              <div class="text-danger small">{{ form.title.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+              {{ form.description }}
+              {% if form.description.errors %}
+              <div class="text-danger small">{{ form.description.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.scope.id_for_label }}" class="form-label">Scope *</label>
+              {{ form.scope }}
+              {% if form.scope.errors %}
+              <div class="text-danger small">{{ form.scope.errors }}</div>
+              {% endif %}
+              <div class="form-text">{{ form.scope.help_text }}</div>
+            </div>
+
+            <div class="mb-3" id="department-field" style="display: none;">
+              <label for="{{ form.department.id_for_label }}" class="form-label">Department *</label>
+              {{ form.department }}
+              {% if form.department.errors %}
+              <div class="text-danger small">{{ form.department.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3" id="classroom-field" style="display: none;">
+              <label for="{{ form.classroom.id_for_label }}" class="form-label">Classroom *</label>
+              {{ form.classroom }}
+              {% if form.classroom.errors %}
+              <div class="text-danger small">{{ form.classroom.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.audience_role.id_for_label }}" class="form-label">Audience Role</label>
+              {{ form.audience_role }}
+              {% if form.audience_role.errors %}
+              <div class="text-danger small">{{ form.audience_role.errors }}</div>
+              {% endif %}
+              <div class="form-text">{{ form.audience_role.help_text }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.members.id_for_label }}" class="form-label">Initial Members</label>
+              {{ form.members }}
+              {% if form.members.errors %}
+              <div class="text-danger small">{{ form.members.errors }}</div>
+              {% endif %}
+              <div class="form-text">{{ form.members.help_text }}</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-2"></i>Create Group
+              </button>
+              <a href="{% url 'communication:group_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const scopeSelect = document.getElementById('{{ form.scope.id_for_label }}');
+  const departmentField = document.getElementById('department-field');
+  const classroomField = document.getElementById('classroom-field');
+  
+  function toggleFields() {
+    const scope = scopeSelect.value;
+    if (scope === 'DEPARTMENT') {
+      departmentField.style.display = 'block';
+      classroomField.style.display = 'none';
+    } else if (scope === 'CLASSROOM') {
+      departmentField.style.display = 'none';
+      classroomField.style.display = 'block';
+    } else {
+      departmentField.style.display = 'none';
+      classroomField.style.display = 'none';
+    }
+  }
+  
+  scopeSelect.addEventListener('change', toggleFields);
+  toggleFields(); // Initial state
+});
+</script>
+{% endblock %}

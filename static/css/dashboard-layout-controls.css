@@ -126,3 +126,70 @@ html[data-theme="light"] .dash-widget-row select {
   color: rgba(15, 23, 42, 0.95);
 }
 
+/* Drag-and-drop visual feedback */
+#dashboard-layout.drag-mode [data-widget-id] {
+  cursor: move;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#dashboard-layout.drag-mode [data-widget-id]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.sortable-ghost {
+  opacity: 0.4;
+  background: rgba(102, 126, 234, 0.1) !important;
+  border: 2px dashed rgba(102, 126, 234, 0.5) !important;
+}
+
+.sortable-chosen {
+  cursor: grabbing !important;
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2) !important;
+  z-index: 1000;
+}
+
+.sortable-drag {
+  opacity: 0.8;
+}
+
+/* Drag mode indicator */
+#dashboard-layout.drag-mode::before {
+  content: "Drag mode active — Move widgets to reorder";
+  display: block;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Mobile touch support */
+@media (max-width: 768px) {
+  #dashboard-layout.drag-mode [data-widget-id] {
+    touch-action: none;
+  }
+  
+  .dash-widget-controls {
+    top: 0.25rem;
+    right: 0.25rem;
+  }
+  
+  .dash-widget-gear {
+    width: 1.8rem;
+    height: 1.8rem;
+    line-height: 1.6rem;
+    font-size: 1.1rem;
+  }
+  
+  #dashboard-layout.drag-mode::before {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+  }
+}
+
