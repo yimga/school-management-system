@@ -223,6 +223,54 @@ def _empty_widget_data() -> dict[str, dict]:
     }
 
 
+def parent_onboarding_score(user: User, students: Iterable[StudentProfile]) -> dict[str, object]:
+    """
+    Lightweight onboarding score for the parent portal.
+
+    Heuristics (kept intentionally simple and data-driven, not stateful):
+    - 0% if no linked students yet.
+    - Base score from average StudentProfile.parent_completeness for linked students.
+    - Small boost when the guardian user has basic profile/contact fields set.
+    """
+    students = list(students)
+    if not students:
+        return {
+            "score": 0,
+            "label": "Link a child to get started.",
+        }
+
+    # Average parent completeness across children (0–100, already normalized)
+    completeness_values = [s.parent_completeness for s in students]
+    avg_student_completeness = int(
+        round(sum(completeness_values) / len(completeness_values))
+    ) if completeness_values else 0
+
+    # Simple guardian profile completeness: name + email
+    profile_points = 0
+    if getattr(user, "first_name", "").strip():
+        profile_points += 1
+    if getattr(user, "last_name", "").strip():
+        profile_points += 1
+    if getattr(user, "email", "").strip():
+        profile_points += 1
+
+    profile_pct = int(round((profile_points / 3) * 100)) if profile_points else 0
+
+    # Blend: 70% student/guardian-link completeness, 30% parent profile.
+    blended = int(round(0.7 * avg_student_completeness + 0.3 * profile_pct))
+
+    if blended >= 90:
+        label = "Onboarding complete."
+    elif blended >= 60:
+        label = "Almost there – a few details left."
+    else:
+        label = "Finish setup to unlock full insights."
+
+    return {
+        "score": blended,
+        "label": label,
+    }
+
 def _referral_overview(students: list[StudentProfile]):
     """
     Get referral code and parent completeness without N+1 queries.

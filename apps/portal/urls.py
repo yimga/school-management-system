@@ -7,6 +7,7 @@ from .views import (
     portal_stats,
     parent_finance,
     link_child,
+    link_child_wizard,
     claim_invite,
     teacher_dashboard_alias,
     teacher_attendance_view,
@@ -30,7 +31,8 @@ urlpatterns = [
     # Parent portal
     path("parent/", parent_dashboard, name="parent_dashboard"),
     path("parent/results/<int:student_id>/", parent_child_results, name="parent_child_results"),
-    path("parent/link-child/", link_child, name="link_child"),
+    path("parent/link-child/", link_child_wizard, name="link_child"),  # New wizard as default
+    path("parent/link-child/legacy/", link_child, name="link_child_legacy"),  # Keep old view for compatibility
     path("parent/claim-invite/", claim_invite, name="claim_invite"),
     path("parent/claim-invite/<str:token>/", claim_invite, name="claim_invite_token"),
     path("parent/finance/", parent_finance, name="parent_finance"),

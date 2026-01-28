@@ -128,6 +128,65 @@ class LinkChildForm(forms.Form):
         self.fields["referral_code"].help_text = _(
             "Include a referral code if someone shared one with you; this unlocks bonus credits."
         )
+        
+        # Add Bootstrap classes for wizard styling
+        self.fields["admission_number"].widget.attrs.update({
+            "class": "form-control form-control-lg",
+            "placeholder": "Enter admission number",
+            "autofocus": True,
+        })
+        self.fields["relationship"].widget.attrs.update({
+            "class": "form-select form-select-lg",
+        })
+        self.fields["phone"].widget.attrs.update({
+            "class": "form-control",
+            "placeholder": "e.g., +237 6XX XXX XXX",
+        })
+        self.fields["preferred_contact"].widget.attrs.update({
+            "class": "form-select",
+        })
+        self.fields["student_date_of_birth"].widget.attrs.update({
+            "class": "form-control",
+        })
+        self.fields["student_place_of_birth"].widget.attrs.update({
+            "class": "form-control",
+            "placeholder": "City or town",
+        })
+        self.fields["student_gender"].widget.attrs.update({
+            "class": "form-select",
+        })
+        self.fields["student_status"].widget.attrs.update({
+            "class": "form-select",
+        })
+        self.fields["student_joined_term"].widget.attrs.update({
+            "class": "form-select",
+        })
+        self.fields["student_joined_date"].widget.attrs.update({
+            "class": "form-control",
+        })
+        self.fields["parent_first_name"].widget.attrs.update({
+            "class": "form-control",
+        })
+        self.fields["parent_last_name"].widget.attrs.update({
+            "class": "form-control",
+        })
+        self.fields["parent_email"].widget.attrs.update({
+            "class": "form-control",
+            "type": "email",
+            "placeholder": "your.email@example.com",
+        })
+        self.fields["parent_whatsapp"].widget.attrs.update({
+            "class": "form-control",
+            "placeholder": "e.g., +237 6XX XXX XXX",
+        })
+        self.fields["parent_address"].widget.attrs.update({
+            "class": "form-control",
+            "rows": 2,
+        })
+        self.fields["referral_code"].widget.attrs.update({
+            "class": "form-control",
+            "placeholder": "Optional referral code",
+        })
 
     def clean_admission_number(self):
         admission = self.cleaned_data["admission_number"].strip()

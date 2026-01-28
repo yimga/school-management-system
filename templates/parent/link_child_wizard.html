@@ -1,0 +1,579 @@
+{% extends "portal_base.html" %}
+{% block title %}Link a Child{% endblock %}
+
+{% block extrastyle %}
+<style>
+  .wizard-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .wizard-progress {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .wizard-steps::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 0;
+  }
+
+  .wizard-step {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .wizard-step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .wizard-step.active .wizard-step-number {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+  }
+
+  .wizard-step.completed .wizard-step-number {
+    background: #198754;
+    border-color: #198754;
+    color: #fff;
+  }
+
+  .wizard-step-label {
+    font-size: 0.75rem;
+    text-align: center;
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  .wizard-step.active .wizard-step-label {
+    color: #0d6efd;
+    font-weight: 600;
+  }
+
+  .wizard-progress-bar {
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+
+  .wizard-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0d6efd, #198754);
+    transition: width 0.3s ease;
+  }
+
+  .wizard-step-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 1.5rem;
+  }
+
+  .wizard-step-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #0f172a;
+  }
+
+  .wizard-step-description {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .student-confirmation {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .student-confirmation h6 {
+    margin: 0 0 0.5rem 0;
+    color: #0369a1;
+    font-weight: 600;
+  }
+
+  .student-confirmation p {
+    margin: 0;
+    color: #0c4a6e;
+    font-size: 0.9rem;
+  }
+
+  .wizard-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-top: 2rem;
+  }
+
+  .wizard-actions .btn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+  }
+
+  .optional-section {
+    border-top: 1px dashed #e9ecef;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .optional-section-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  @media (max-width: 575px) {
+    .wizard-container {
+      padding: 0 1rem;
+    }
+
+    .wizard-step-content {
+      padding: 1.5rem;
+    }
+
+    .wizard-step-number {
+      width: 36px;
+      height: 36px;
+      font-size: 0.9rem;
+    }
+
+    .wizard-step-label {
+      font-size: 0.7rem;
+    }
+
+    .wizard-actions {
+      flex-direction: column;
+    }
+
+    .wizard-actions .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+  <div class="mb-4">
+    <h2 class="mb-1">Link a Child</h2>
+    <div class="text-muted">Follow these simple steps to connect your child's account.</div>
+  </div>
+
+  <!-- Progress Indicator -->
+  <div class="wizard-progress">
+    <div class="wizard-steps">
+      <div class="wizard-step {% if step >= 1 %}active{% endif %} {% if step > 1 %}completed{% endif %}">
+        <div class="wizard-step-number">{% if step > 1 %}<i class="bi bi-check"></i>{% else %}1{% endif %}</div>
+        <div class="wizard-step-label">Identify</div>
+      </div>
+      <div class="wizard-step {% if step >= 2 %}active{% endif %} {% if step > 2 %}completed{% endif %}">
+        <div class="wizard-step-number">{% if step > 2 %}<i class="bi bi-check"></i>{% else %}2{% endif %}</div>
+        <div class="wizard-step-label">Contact</div>
+      </div>
+      <div class="wizard-step {% if step >= 3 %}active{% endif %}">
+        <div class="wizard-step-number">3</div>
+        <div class="wizard-step-label">Details</div>
+      </div>
+    </div>
+    <div class="wizard-progress-bar">
+      <div class="wizard-progress-fill" style="width: {{ progress_pct }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Step Content -->
+  <div class="wizard-step-content">
+    <form method="post" id="wizardForm">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="{{ step }}">
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger mb-3">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <!-- Step 1: Identify Child -->
+      {% if step == 1 %}
+        <h3 class="wizard-step-title">Step 1: Identify Your Child</h3>
+        <p class="wizard-step-description">
+          Enter the admission number you received from the school. We'll verify it and show you the student details.
+        </p>
+
+        {% if school_code %}
+          <div class="alert alert-info small mb-3">
+            <strong>School code:</strong> {{ school_code }}<br>
+            <strong>Format:</strong> YY + {{ school_code }} + #### + SPEC + CLASS (no dashes)
+          </div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="{{ form.admission_number.id_for_label }}">
+            {{ form.admission_number.label }}
+            <span class="text-danger">*</span>
+          </label>
+          {{ form.admission_number }}
+          {% if form.admission_number.help_text %}
+            <div class="form-text">{{ form.admission_number.help_text }}</div>
+          {% endif %}
+          {% if form.admission_number.errors %}
+            <div class="text-danger small mt-1">{{ form.admission_number.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold" for="{{ form.relationship.id_for_label }}">
+            {{ form.relationship.label }}
+            <span class="text-danger">*</span>
+          </label>
+          {{ form.relationship }}
+          {% if form.relationship.errors %}
+            <div class="text-danger small mt-1">{{ form.relationship.errors }}</div>
+          {% endif %}
+        </div>
+
+        {% if student_info %}
+          <div class="student-confirmation">
+            <h6><i class="bi bi-check-circle me-2"></i>Student Found</h6>
+            <p>
+              <strong>{{ student_info.get_full_name }}</strong><br>
+              {% if student_info.classroom %}Class: {{ student_info.classroom.name }}{% endif %}
+              {% if student_info.specialty %} • {{ student_info.specialty.name }}{% endif %}
+            </p>
+          </div>
+        {% endif %}
+
+      <!-- Step 2: Contact & Permissions -->
+      {% elif step == 2 %}
+        <h3 class="wizard-step-title">Step 2: Contact & Permissions</h3>
+        <p class="wizard-step-description">
+          How should we reach you? Set your preferred contact method and what you'd like to access.
+        </p>
+
+        {% if student_info %}
+          <div class="student-confirmation mb-3">
+            <h6><i class="bi bi-person me-2"></i>Linking to: {{ student_info.get_full_name }}</h6>
+          </div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">{{ form.phone.label }}</label>
+            {{ form.phone }}
+            {% if form.phone.help_text %}
+              <div class="form-text">{{ form.phone.help_text }}</div>
+            {% endif %}
+            {% if form.phone.errors %}
+              <div class="text-danger small mt-1">{{ form.phone.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">{{ form.preferred_contact.label }}</label>
+            {{ form.preferred_contact }}
+            {% if form.preferred_contact.errors %}
+              <div class="text-danger small mt-1">{{ form.preferred_contact.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <div class="card bg-light border-0 p-3">
+              <h6 class="mb-3">Access Permissions</h6>
+              <div class="form-check mb-2">
+                {{ form.can_view_results }}
+                <label class="form-check-label" for="{{ form.can_view_results.id_for_label }}">
+                  {{ form.can_view_results.label }}
+                </label>
+              </div>
+              <div class="form-check">
+                {{ form.can_view_finance }}
+                <label class="form-check-label" for="{{ form.can_view_finance.id_for_label }}">
+                  {{ form.can_view_finance.label }}
+                </label>
+              </div>
+              {% if form.can_view_results.errors or form.can_view_finance.errors %}
+                <div class="text-danger small mt-2">
+                  {{ form.can_view_results.errors }}
+                  {{ form.can_view_finance.errors }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+      <!-- Step 3: Optional Details -->
+      {% elif step == 3 %}
+        <h3 class="wizard-step-title">Step 3: Additional Details (Optional)</h3>
+        <p class="wizard-step-description">
+          Add more information to unlock better insights. You can skip any fields you don't have.
+        </p>
+
+        {% if student_info %}
+          <div class="student-confirmation mb-3">
+            <h6><i class="bi bi-person me-2"></i>Linking to: {{ student_info.get_full_name }}</h6>
+          </div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-12">
+            <h6 class="mb-3">Student Information</h6>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.student_date_of_birth.label }}</label>
+            {{ form.student_date_of_birth }}
+            {% if form.student_date_of_birth.errors %}
+              <div class="text-danger small mt-1">{{ form.student_date_of_birth.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.student_place_of_birth.label }}</label>
+            {{ form.student_place_of_birth }}
+            {% if form.student_place_of_birth.help_text %}
+              <div class="form-text">{{ form.student_place_of_birth.help_text }}</div>
+            {% endif %}
+            {% if form.student_place_of_birth.errors %}
+              <div class="text-danger small mt-1">{{ form.student_place_of_birth.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">{{ form.student_gender.label }}</label>
+            {{ form.student_gender }}
+            {% if form.student_gender.errors %}
+              <div class="text-danger small mt-1">{{ form.student_gender.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">{{ form.student_status.label }}</label>
+            {{ form.student_status }}
+            {% if form.student_status.errors %}
+              <div class="text-danger small mt-1">{{ form.student_status.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">{{ form.student_joined_term.label }}</label>
+            {{ form.student_joined_term }}
+            {% if form.student_joined_term.errors %}
+              <div class="text-danger small mt-1">{{ form.student_joined_term.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.student_joined_date.label }}</label>
+            {{ form.student_joined_date }}
+            {% if form.student_joined_date.errors %}
+              <div class="text-danger small mt-1">{{ form.student_joined_date.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="optional-section">
+          <div class="optional-section-title">
+            <i class="bi bi-person-circle"></i>
+            Parent Profile (Optional)
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">{{ form.parent_first_name.label }}</label>
+              {{ form.parent_first_name }}
+              {% if form.parent_first_name.errors %}
+                <div class="text-danger small mt-1">{{ form.parent_first_name.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">{{ form.parent_last_name.label }}</label>
+              {{ form.parent_last_name }}
+              {% if form.parent_last_name.errors %}
+                <div class="text-danger small mt-1">{{ form.parent_last_name.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">{{ form.parent_email.label }}</label>
+              {{ form.parent_email }}
+              {% if form.parent_email.errors %}
+                <div class="text-danger small mt-1">{{ form.parent_email.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">{{ form.parent_whatsapp.label }}</label>
+              {{ form.parent_whatsapp }}
+              {% if form.parent_whatsapp.errors %}
+                <div class="text-danger small mt-1">{{ form.parent_whatsapp.errors }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">{{ form.parent_address.label }}</label>
+              {{ form.parent_address }}
+              {% if form.parent_address.errors %}
+                <div class="text-danger small mt-1">{{ form.parent_address.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="optional-section">
+          <div class="optional-section-title">
+            <i class="bi bi-gift"></i>
+            Referral Code (Optional)
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">{{ form.referral_code.label }}</label>
+              {{ form.referral_code }}
+              {% if form.referral_code.help_text %}
+                <div class="form-text">{{ form.referral_code.help_text }}</div>
+              {% endif %}
+              {% if referral_bonus and referral_bonus > 0 %}
+                <div class="alert alert-info small mt-2 mb-0">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Referral bonus: {{ referral_bonus|floatformat:2 }} credits
+                </div>
+              {% endif %}
+              {% if form.referral_code.errors %}
+                <div class="text-danger small mt-1">{{ form.referral_code.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <div class="progress" style="height: 8px;">
+            <div class="progress-bar" role="progressbar" style="width: {{ completeness_pct }}%;" aria-valuenow="{{ completeness_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <p class="small text-muted mt-2 mb-0">
+            Completeness: {{ completeness_pct }}% — More details unlock better insights.
+          </p>
+        </div>
+      {% endif %}
+
+      <!-- Action Buttons -->
+      <div class="wizard-actions">
+        {% if step > 1 %}
+          <button type="submit" name="action" value="back" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back
+          </button>
+        {% else %}
+          <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-outline-secondary">
+            Cancel
+          </a>
+        {% endif %}
+
+        {% if step < 3 %}
+          <button type="submit" name="action" value="next" class="btn btn-primary">
+            Continue<i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        {% else %}
+          <button type="submit" name="action" value="next" class="btn btn-primary">
+            <i class="bi bi-check-circle me-1"></i>Complete Setup
+          </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  <!-- Help Section -->
+  <div class="card bg-light border-0">
+    <div class="card-body">
+      <h6 class="card-title mb-3">
+        <i class="bi bi-question-circle me-2"></i>Need Help?
+      </h6>
+      <p class="small text-muted mb-2">
+        Don't have an admission number? Contact the school:
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        {% if support_email %}
+          <a class="btn btn-outline-primary btn-sm" href="mailto:{{ support_email }}">
+            <i class="bi bi-envelope me-1"></i>Email
+          </a>
+        {% endif %}
+        {% if support_phone %}
+          <a class="btn btn-outline-secondary btn-sm" href="tel:{{ support_phone|default_if_none:''|cut:' ' }}">
+            <i class="bi bi-telephone me-1"></i>Call
+          </a>
+        {% endif %}
+        {% if whatsapp_invite_link %}
+          <a class="btn btn-outline-success btn-sm" href="{{ whatsapp_invite_link }}" target="_blank">
+            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extrajs %}
+<script>
+  // Auto-focus on admission number field in step 1
+  document.addEventListener('DOMContentLoaded', function() {
+    {% if step == 1 %}
+    const admissionField = document.getElementById('{{ form.admission_number.id_for_label }}');
+    if (admissionField) {
+      admissionField.focus();
+    }
+    {% endif %}
+    
+    // Prevent form submission on Enter key in textareas
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(function(textarea) {
+      textarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          e.preventDefault();
+          document.getElementById('wizardForm').submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
