@@ -156,9 +156,9 @@ def site_settings(request):
     video_bg_url = _resolve_media_url(site.get_theme_background("video_background"))
     svg_bg_url = _resolve_media_url(site.get_theme_background("svg_background"))
     try:
-        finance_request_url = reverse("finance:requests")
+        finance_request_url = reverse("requests:dashboard")
     except NoReverseMatch:
-        finance_request_url = "/finance/requests/"
+        finance_request_url = "/requests/"
     finance_request_alerts = 0
     if request.user.is_authenticated:
         finance_request_alerts = Notification.objects.filter(

@@ -421,7 +421,7 @@ def teacher_dashboard(request: HttpRequest):
         recipient=request.user,
         title__icontains="finance access request",
     ).order_by("-created_at")
-    finance_request_link = reverse("finance:requests")
+    finance_request_link = reverse("requests:dashboard")
 
     dashboard_settings = load_dashboard_layout_settings(request.user, "teacher")
     available_sidebar_items = [

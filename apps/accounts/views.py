@@ -408,7 +408,7 @@ def backend_dashboard(request):
         title__icontains="finance access request",
         is_read=False,
     ).order_by("-created_at")
-    finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+    finance_request_link = reverse("requests:dashboard")
     context = {
         "site": site,
         "stats": stats,

@@ -75,6 +75,141 @@ INVOICE_GLOBAL_ROLES = {
     "FINANCE_STAFF",
 }
 
+# Module access defaults (read/write). Use feature permissions to override:
+# - module.<module>.read
+# - module.<module>.write
+# - module.<module>.all
+ALL_AUTHENTICATED = {"*"}
+
+MODULE_ACCESS_DEFAULTS = {
+    # Core portals
+    "portal": {
+        "read": {"PARENT", "TEACHER", "STUDENT", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "ACADEMICS_STAFF", "COMMS_STAFF", "HOD", "DEPT_LEAD"},
+        "write": {"PARENT", "TEACHER", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "ACADEMICS_STAFF", "COMMS_STAFF", "HOD", "DEPT_LEAD"},
+    },
+    "kb": {
+        "read": {"PARENT", "TEACHER", "STUDENT", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "ACADEMICS_STAFF", "COMMS_STAFF"},
+        "write": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "COMMS_STAFF"},
+    },
+    "academics": {
+        "read": {"TEACHER", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+    },
+    "people": {
+        "read": {"TEACHER", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+    },
+    "evals": {
+        "read": {"TEACHER", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"TEACHER", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+    },
+    "reports": {
+        "read": {"TEACHER", "PARENT", "STUDENT", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+    },
+    "finance": {
+        "read": {"PARENT", "STUDENT", "FINANCE_STAFF", "BURSAR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"FINANCE_STAFF", "BURSAR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL"},
+    },
+    "analytics": {
+        "read": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "ACADEMICS_STAFF"},
+        "write": {"ADMIN", "SUPERADMIN"},
+    },
+    "payroll": {
+        "read": {"FINANCE_STAFF", "BURSAR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL"},
+        "write": {"FINANCE_STAFF", "BURSAR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL"},
+    },
+    "compliance": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    "siteconfig": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    "accounts": {
+        "read": ALL_AUTHENTICATED,
+        "write": ALL_AUTHENTICATED,
+    },
+    "communication": {
+        "read": {"TEACHER", "PARENT", "ADMIN", "SUPERADMIN", "COMMS_STAFF", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"TEACHER", "PARENT", "ADMIN", "SUPERADMIN", "COMMS_STAFF", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+    },
+    "requests": {
+        "read": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "HOD", "DEPT_LEAD", "BURSAR", "FINANCE_STAFF", "ACADEMICS_STAFF", "COMMS_STAFF", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "HOD", "DEPT_LEAD", "BURSAR", "FINANCE_STAFF", "ACADEMICS_STAFF", "COMMS_STAFF", "IT_ADMIN"},
+    },
+    "emis": {
+        "read": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "ACADEMICS_STAFF"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN", "ACADEMICS_STAFF"},
+    },
+    "observability": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
+    # API is guarded by endpoint-level permissions; allow all authenticated users.
+    "api": {
+        "read": ALL_AUTHENTICATED,
+        "write": ALL_AUTHENTICATED,
+    },
+}
+
+
+def _user_has_role(user, role: str) -> bool:
+    if not user.is_authenticated:
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    if getattr(user, "role", None) == role:
+        return True
+    return user.roles.filter(code=role).exists()
+
+
+def _user_has_any_role(user, roles: set[str]) -> bool:
+    if not user.is_authenticated:
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    if roles == ALL_AUTHENTICATED:
+        return True
+    user_role = getattr(user, "role", None)
+    if user_role in roles:
+        return True
+    return user.roles.filter(code__in=roles).exists()
+
+
+def can_access_module(user, module: str, action: str = "read") -> bool:
+    """
+    Module-level access guard for role + feature-permission enforcement.
+    Feature permissions override role defaults:
+      - module.<module>.read
+      - module.<module>.write
+      - module.<module>.all
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+
+    module = (module or "").lower()
+    action = "write" if action == "write" else "read"
+
+    if module == "admin":
+        return getattr(user, "is_staff", False)
+
+    if user.has_feature_permission(f"module.{module}.all"):
+        return True
+    if action == "write" and user.has_feature_permission(f"module.{module}.write"):
+        return True
+    if action == "read" and user.has_feature_permission(f"module.{module}.read"):
+        return True
+
+    defaults = MODULE_ACCESS_DEFAULTS.get(module)
+    if not defaults:
+        return True
+    allowed = defaults.get(action, defaults.get("read", set()))
+    return _user_has_any_role(user, allowed)
+
 
 def _guardian_finance_qs(user):
     """

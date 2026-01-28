@@ -179,7 +179,7 @@ def dashboard(request: HttpRequest):
         title__icontains="finance access request",
         is_read=False,
     ).order_by("-created_at")
-    finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+    finance_request_link = reverse("requests:dashboard")
 
     context = {
         "profile": profile,
@@ -459,6 +459,26 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
         to_grant = guardians.filter(can_view_finance=False)
         updated = to_grant.update(can_view_finance=True)
 
+        from apps.requests.services import create_access_request
+        access_request = create_access_request(
+            request_type="FINANCE_ACCESS",
+            requester=request.user,
+            title="Finance access granted (staff)",
+            summary=f"Staff granted finance access for {student}.",
+            details={
+                "student_id": student.id,
+                "student_name": str(student),
+                "granted_links": updated,
+            },
+            status="APPROVED",
+        )
+        access_request.add_audit(
+            "auto_grant",
+            actor=request.user,
+            message="Finance access granted by staff action.",
+            details={"student_id": student.id, "updated_links": updated},
+        )
+
         notifier = NotificationService()
         site = SiteSettings.get_solo()
         channels = getattr(site, "notification_channels", []) or []
@@ -560,6 +580,26 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
         body_lines.append(f"Reference invoice: {invoice_ref}")
     body_lines.append(f"Finance opt-in required: {'Yes' if flags.get('require_guardian_finance_opt_in') else 'No'}")
     body = "\n".join(body_lines)
+
+    from apps.requests.services import create_access_request
+    access_request = create_access_request(
+        request_type="FINANCE_ACCESS",
+        requester=request.user,
+        title="Finance access request",
+        summary=f"Guardian requested finance access for {student_names or 'linked students'}",
+        details={
+            "student_ids": [link.student_id for link in guardian_links],
+            "student_names": student_names,
+            "invoice_ref": invoice_ref,
+            "require_opt_in": bool(flags.get("require_guardian_finance_opt_in")),
+        },
+    )
+    access_request.add_audit(
+        "notify_admins",
+        actor=request.user,
+        message="Finance access request submitted.",
+        details={"recipients": [r.id for r in recipients]},
+    )
 
     messages_created = [
         Message(sender=request.user, recipient=recipient, subject=subject, body=body)

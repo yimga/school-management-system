@@ -125,7 +125,7 @@ class GileadAdminSite(AdminSite):
             'preview_data': preview_data,
             'finance_inbox': finance_inbox_preview,
             'finance_inbox_unread': finance_inbox_unread,
-            'finance_request_link': reverse("finance:requests"),
+            'finance_request_link': reverse("requests:dashboard"),
         }
         if extra_context:
             context.update(extra_context)
