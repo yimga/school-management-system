@@ -316,3 +316,263 @@ class TeacherLeaveForm(forms.ModelForm):
             "end_date": forms.DateInput(attrs={"type": "date"}),
             "reason": forms.Textarea(attrs={"rows": 3, "placeholder": "Reason for leave"}),
         }
+
+
+class TeacherOnboardingForm(forms.Form):
+    """Multi-step form for teacher onboarding"""
+    # Step 1: Basic Information
+    email = forms.EmailField(
+        label=_("Email address"),
+        help_text=_("Used for login and notifications"),
+    )
+    first_name = forms.CharField(
+        label=_("First name"),
+        max_length=150,
+    )
+    last_name = forms.CharField(
+        label=_("Last name"),
+        max_length=150,
+    )
+    phone = forms.CharField(
+        label=_("Phone number"),
+        max_length=50,
+        help_text=_("e.g., +237 6XX XXX XXX"),
+        required=False,
+    )
+    
+    # Step 2: Professional Details
+    staff_id = forms.CharField(
+        label=_("Staff ID"),
+        max_length=50,
+        required=False,
+        help_text=_("Optional: Your employee/staff identification number"),
+    )
+    position_title = forms.CharField(
+        label=_("Position/Title"),
+        max_length=120,
+        required=False,
+        help_text=_("e.g., Mathematics Teacher, Head of Department"),
+    )
+    department = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        label=_("Department"),
+        help_text=_("Select your department"),
+    )
+    
+    # Step 3: Preferences
+    payment_method = forms.ChoiceField(
+        choices=[],
+        required=False,
+        label=_("Preferred payment method"),
+        help_text=_("How you prefer to receive salary payments"),
+    )
+    default_dashboard_view = forms.ChoiceField(
+        choices=[],
+        required=False,
+        label=_("Default dashboard view"),
+    )
+    
+    def __init__(self, *args, **kwargs):
+        from apps.academics.models import Department
+        from apps.people.models import TeacherProfile
+        
+        super().__init__(*args, **kwargs)
+        
+        # Populate department choices
+        self.fields["department"].queryset = Department.objects.filter(is_active=True).order_by("name")
+        
+        # Populate payment method choices
+        self.fields["payment_method"].choices = TeacherProfile.PaymentMethod.choices
+        
+        # Populate dashboard view choices
+        self.fields["default_dashboard_view"].choices = TeacherProfile.DashboardView.choices
+        
+        # Add Bootstrap classes
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.TextInput):
+                field.widget.attrs.update({"class": "form-control"})
+            elif isinstance(field.widget, forms.EmailInput):
+                field.widget.attrs.update({"class": "form-control", "type": "email"})
+            elif isinstance(field.widget, forms.Select):
+                field.widget.attrs.update({"class": "form-select"})
+            elif isinstance(field.widget, forms.Textarea):
+                field.widget.attrs.update({"class": "form-control"})
+        
+        # Auto-focus on email
+        self.fields["email"].widget.attrs.update({"autofocus": True})
+    
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        from apps.accounts.models import User
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError(_("A user with this email already exists."))
+        return email
+
+
+class StudentOnboardingForm(forms.Form):
+    """Multi-step form for student pre-registration"""
+    # Step 1: Basic Information
+    first_name = forms.CharField(
+        label=_("First name"),
+        max_length=150,
+    )
+    last_name = forms.CharField(
+        label=_("Last name"),
+        max_length=150,
+    )
+    date_of_birth = forms.DateField(
+        label=_("Date of birth"),
+        widget=forms.DateInput(attrs={"type": "date"}),
+        required=False,
+    )
+    gender = forms.ChoiceField(
+        choices=[],
+        required=False,
+        label=_("Gender"),
+    )
+    place_of_birth = forms.CharField(
+        label=_("Place of birth"),
+        max_length=100,
+        required=False,
+    )
+    
+    # Step 2: Academic Information
+    academic_year = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        label=_("Academic year"),
+    )
+    specialty = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        label=_("Specialty"),
+    )
+    classroom = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        label=_("Classroom"),
+    )
+    admission_number = forms.CharField(
+        label=_("Admission number"),
+        max_length=50,
+        required=False,
+        help_text=_("Leave blank for auto-generation, or enter manually"),
+    )
+    
+    # Step 3: Parent/Guardian Information
+    parent_first_name = forms.CharField(
+        label=_("Parent/Guardian first name"),
+        max_length=150,
+        required=False,
+    )
+    parent_last_name = forms.CharField(
+        label=_("Parent/Guardian last name"),
+        max_length=150,
+        required=False,
+    )
+    parent_email = forms.EmailField(
+        label=_("Parent/Guardian email"),
+        required=False,
+    )
+    parent_phone = forms.CharField(
+        label=_("Parent/Guardian phone"),
+        max_length=50,
+        required=False,
+        help_text=_("e.g., +237 6XX XXX XXX"),
+    )
+    parent_whatsapp = forms.CharField(
+        label=_("Parent/Guardian WhatsApp"),
+        max_length=50,
+        required=False,
+    )
+    
+    # Step 4: Payment (Optional)
+    payment_method = forms.ChoiceField(
+        choices=[],
+        required=False,
+        label=_("Preferred payment method"),
+    )
+    referral_code = forms.CharField(
+        label=_("Referral code"),
+        max_length=50,
+        required=False,
+        help_text=_("Optional: if someone referred you"),
+    )
+    
+    def __init__(self, *args, **kwargs):
+        from apps.academics.models import AcademicYear, Specialty, Classroom
+        from apps.people.models import StudentProfile
+        try:
+            from apps.finance.payment_models import PaymentMethod
+        except ImportError:
+            # Fallback if payment_models doesn't exist
+            PaymentMethod = None
+        
+        super().__init__(*args, **kwargs)
+        
+        # Populate academic year choices
+        self.fields["academic_year"].queryset = AcademicYear.objects.filter(is_active=True).order_by("-start_year")
+        
+        # Populate specialty choices
+        self.fields["specialty"].queryset = Specialty.objects.filter(is_active=True).order_by("name")
+        
+        # Populate classroom choices
+        self.fields["classroom"].queryset = Classroom.objects.filter(is_active=True).order_by("name")
+        
+        # Populate gender choices
+        self.fields["gender"].choices = StudentProfile.Gender.choices
+        
+        # Populate payment method choices
+        if PaymentMethod:
+            try:
+                payment_methods = PaymentMethod.objects.filter(is_active=True).order_by("name")
+                self.fields["payment_method"].choices = [("", "---------")] + [(str(pm.id), pm.name) for pm in payment_methods]
+            except Exception:
+                # Fallback to text choices if model not available
+                from apps.finance.models import PaymentMethod as PaymentMethodChoices
+                self.fields["payment_method"].choices = [("", "---------")] + list(PaymentMethodChoices.choices)
+        else:
+            # Use text choices as fallback
+            from apps.finance.models import PaymentMethod as PaymentMethodChoices
+            self.fields["payment_method"].choices = [("", "---------")] + list(PaymentMethodChoices.choices)
+        
+        # Add Bootstrap classes
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.TextInput):
+                field.widget.attrs.update({"class": "form-control"})
+            elif isinstance(field.widget, forms.EmailInput):
+                field.widget.attrs.update({"class": "form-control", "type": "email"})
+            elif isinstance(field.widget, forms.Select):
+                field.widget.attrs.update({"class": "form-select"})
+            elif isinstance(field.widget, forms.DateInput):
+                field.widget.attrs.update({"class": "form-control"})
+        
+        # Auto-focus on first name
+        self.fields["first_name"].widget.attrs.update({"autofocus": True})
+    
+    def clean_admission_number(self):
+        admission = self.cleaned_data.get("admission_number", "").strip()
+        if admission:
+            from apps.people.models import StudentProfile
+            from apps.siteconfig.models import SiteSettings
+            
+            site = SiteSettings.get_solo()
+            mode = getattr(site, "admission_number_mode", "AUTO_OR_MANUAL")
+            
+            if mode == "AUTO":
+                # In AUTO mode, admission number should be empty
+                return ""
+            
+            # Validate pattern if configured
+            pattern = getattr(site, "admission_number_pattern", "")
+            if pattern:
+                import re
+                if not re.match(pattern, admission):
+                    raise forms.ValidationError(_("Admission number does not match the required format."))
+            
+            # Check for duplicates
+            if StudentProfile.objects.filter(admission_number__iexact=admission).exists():
+                raise forms.ValidationError(_("This admission number is already in use."))
+        
+        return admission
