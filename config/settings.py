@@ -34,6 +34,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
+    # Django Channels (for WebSocket support) - Optional
+    # Uncomment and install: pip install channels channels-redis
+    # "channels",
+    # "channels_redis",
+
     # Django OTP (MFA)
     "django_otp",
     "django_otp.plugins.otp_totp",
@@ -113,6 +118,28 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
+
+# ASGI Application (WebSocket support) - Optional, requires channels
+# Uncomment after installing: pip install channels channels-redis
+# ASGI_APPLICATION = "config.asgi.application"
+
+# Channels configuration (WebSocket support) - Optional
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")],
+#         },
+#     },
+# }
+# 
+# # Fallback to in-memory channel layer if Redis is not available
+# if not os.getenv("REDIS_URL"):
+#     CHANNEL_LAYERS = {
+#         "default": {
+#             "BACKEND": "channels.layers.InMemoryChannelLayer"
+#         }
+#     }
 
 # --- Database ---
 

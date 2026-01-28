@@ -69,9 +69,11 @@ from .services import (
     class_threads_for_parent,
     parent_onboarding_score,
 )
-from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
+from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm, TeacherOnboardingForm, StudentOnboardingForm
+from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wizard
 from apps.communication.models import Message
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {

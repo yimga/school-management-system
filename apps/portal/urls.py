@@ -19,6 +19,8 @@ from .views import (
     portal_syllabus,
     preview_student_syllabus,
     preview_communication_test,
+    teacher_onboarding_wizard,
+    student_onboarding_wizard,
 )
 
 app_name = "portal"
@@ -46,10 +48,14 @@ urlpatterns = [
     
     # Teacher dashboard
     path("teacher/", teacher_dashboard_alias, name="teacher_dashboard_alias"),
+    path("teacher/onboarding/", teacher_onboarding_wizard, name="teacher_onboarding"),
     path("teacher/attendance/", teacher_attendance_view, name="teacher_attendance"),
     path("teacher/attendance/export/", teacher_attendance_export, name="teacher_attendance_export"),
     path("teacher/pay-history/", teacher_pay_history, name="teacher_pay_history"),
     path("teacher/leave/", teacher_leave, name="teacher_leave"),
+    
+    # Student onboarding
+    path("student/onboarding/", student_onboarding_wizard, name="student_onboarding"),
     
     # Semantic aliases for Phase 7 URL cleanup
     path("student-portal/grades/", student_portal_grades, name="student_portal_grades"),

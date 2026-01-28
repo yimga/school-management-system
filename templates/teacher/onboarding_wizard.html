@@ -1,0 +1,364 @@
+{% extends "portal_base.html" %}
+{% load static %}
+{% block title %}Teacher Onboarding{% endblock %}
+
+{% block extrastyle %}
+<style>
+  .wizard-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .wizard-progress {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .wizard-steps::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 0;
+  }
+
+  .wizard-step {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .wizard-step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .wizard-step.active .wizard-step-number {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+  }
+
+  .wizard-step.completed .wizard-step-number {
+    background: #198754;
+    border-color: #198754;
+    color: #fff;
+  }
+
+  .wizard-step-label {
+    font-size: 0.75rem;
+    text-align: center;
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  .wizard-step.active .wizard-step-label {
+    color: #0d6efd;
+    font-weight: 600;
+  }
+
+  .wizard-progress-bar {
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+
+  .wizard-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0d6efd, #198754);
+    transition: width 0.3s ease;
+  }
+
+  .wizard-step-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 1.5rem;
+  }
+
+  .wizard-step-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #0f172a;
+  }
+
+  .wizard-step-description {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .wizard-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-top: 2rem;
+  }
+
+  .wizard-actions .btn {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 575px) {
+    .wizard-container {
+      padding: 1rem;
+    }
+
+    .wizard-step-content {
+      padding: 1.5rem;
+    }
+
+    .wizard-step-number {
+      width: 36px;
+      height: 36px;
+      font-size: 0.9rem;
+    }
+
+    .wizard-actions {
+      flex-direction: column;
+    }
+
+    .wizard-actions .btn {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wizard-container">
+  <div class="mb-4">
+    <h2 class="mb-1">Teacher Onboarding</h2>
+    <div class="text-muted">Complete your teacher profile in a few simple steps.</div>
+  </div>
+
+  <!-- Progress Indicator -->
+  <div class="wizard-progress">
+    <div class="wizard-steps">
+      <div class="wizard-step {% if step >= 1 %}active{% endif %} {% if step > 1 %}completed{% endif %}">
+        <div class="wizard-step-number">{% if step > 1 %}<i class="bi bi-check"></i>{% else %}1{% endif %}</div>
+        <div class="wizard-step-label">Basic Info</div>
+      </div>
+      <div class="wizard-step {% if step >= 2 %}active{% endif %} {% if step > 2 %}completed{% endif %}">
+        <div class="wizard-step-number">{% if step > 2 %}<i class="bi bi-check"></i>{% else %}2{% endif %}</div>
+        <div class="wizard-step-label">Professional</div>
+      </div>
+      <div class="wizard-step {% if step >= 3 %}active{% endif %}">
+        <div class="wizard-step-number">3</div>
+        <div class="wizard-step-label">Preferences</div>
+      </div>
+    </div>
+    <div class="wizard-progress-bar">
+      <div class="wizard-progress-fill" style="width: {{ progress_pct }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Step Content -->
+  <div class="wizard-step-content">
+    <form method="post" id="wizardForm">
+      {% csrf_token %}
+      <input type="hidden" name="step" value="{{ step }}">
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger mb-3">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <!-- Step 1: Basic Information -->
+      {% if step == 1 %}
+        <h3 class="wizard-step-title">Step 1: Basic Information</h3>
+        <p class="wizard-step-description">
+          Enter your personal details. This will be used to create your account.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">{{ form.email.label }} *</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+            {% endif %}
+            {% if form.email.help_text %}
+              <div class="form-text">{{ form.email.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.phone.label }}</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+              <div class="text-danger small mt-1">{{ form.phone.errors }}</div>
+            {% endif %}
+            {% if form.phone.help_text %}
+              <div class="form-text">{{ form.phone.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.first_name.label }} *</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+              <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.last_name.label }} *</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+              <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Step 2: Professional Details -->
+      {% if step == 2 %}
+        <h3 class="wizard-step-title">Step 2: Professional Details</h3>
+        <p class="wizard-step-description">
+          Tell us about your role and department. All fields are optional.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">{{ form.staff_id.label }}</label>
+            {{ form.staff_id }}
+            {% if form.staff_id.errors %}
+              <div class="text-danger small mt-1">{{ form.staff_id.errors }}</div>
+            {% endif %}
+            {% if form.staff_id.help_text %}
+              <div class="form-text">{{ form.staff_id.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.position_title.label }}</label>
+            {{ form.position_title }}
+            {% if form.position_title.errors %}
+              <div class="text-danger small mt-1">{{ form.position_title.errors }}</div>
+            {% endif %}
+            {% if form.position_title.help_text %}
+              <div class="form-text">{{ form.position_title.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">{{ form.department.label }}</label>
+            {{ form.department }}
+            {% if form.department.errors %}
+              <div class="text-danger small mt-1">{{ form.department.errors }}</div>
+            {% endif %}
+            {% if form.department.help_text %}
+              <div class="form-text">{{ form.department.help_text }}</div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Step 3: Preferences -->
+      {% if step == 3 %}
+        <h3 class="wizard-step-title">Step 3: Preferences</h3>
+        <p class="wizard-step-description">
+          Configure your dashboard and payment preferences.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">{{ form.payment_method.label }}</label>
+            {{ form.payment_method }}
+            {% if form.payment_method.errors %}
+              <div class="text-danger small mt-1">{{ form.payment_method.errors }}</div>
+            {% endif %}
+            {% if form.payment_method.help_text %}
+              <div class="form-text">{{ form.payment_method.help_text }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">{{ form.default_dashboard_view.label }}</label>
+            {{ form.default_dashboard_view }}
+            {% if form.default_dashboard_view.errors %}
+              <div class="text-danger small mt-1">{{ form.default_dashboard_view.errors }}</div>
+            {% endif %}
+            {% if form.default_dashboard_view.help_text %}
+              <div class="form-text">{{ form.default_dashboard_view.help_text }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="alert alert-info mt-3">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Next Steps:</strong> After submitting, please contact the school administration to activate your account and set up login credentials.
+          {% if support_email %}
+            <br><strong>Email:</strong> <a href="mailto:{{ support_email }}">{{ support_email }}</a>
+          {% endif %}
+          {% if support_phone %}
+            <br><strong>Phone:</strong> <a href="tel:{{ support_phone }}">{{ support_phone }}</a>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="wizard-actions">
+        {% if step > 1 %}
+          <button type="submit" name="action" value="back" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back
+          </button>
+        {% else %}
+          <div></div>
+        {% endif %}
+        <button type="submit" name="action" value="next" class="btn btn-primary">
+          {% if step == total_steps %}
+            Complete Setup <i class="bi bi-check-circle ms-1"></i>
+          {% else %}
+            Continue <i class="bi bi-arrow-right ms-1"></i>
+          {% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Auto-focus on first input
+  document.addEventListener('DOMContentLoaded', function() {
+    const firstInput = document.querySelector('#wizardForm input[type="text"], #wizardForm input[type="email"], #wizardForm select');
+    if (firstInput && !firstInput.value) {
+      firstInput.focus();
+    }
+  });
+</script>
+{% endblock %}
