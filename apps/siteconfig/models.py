@@ -1302,6 +1302,14 @@ class RegionConfig(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.code})"
+
+    @property
+    def gradingscaleconfig_set(self):
+        """
+        Backwards-compatible alias for legacy code/tests expecting the
+        default related manager name from GradingScaleConfig.
+        """
+        return self.grading_scales
     
     @classmethod
     def get_default(cls):
@@ -1331,6 +1339,7 @@ class GradingScaleConfig(models.Model):
         RegionConfig, 
         on_delete=models.CASCADE, 
         related_name='grading_scales',
+        related_query_name='gradingscaleconfig',
         help_text="Region this scale applies to"
     )
     scale_type = models.CharField(
