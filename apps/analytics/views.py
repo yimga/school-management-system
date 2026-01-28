@@ -166,7 +166,7 @@ def dashboard(request: HttpRequest):
         title__icontains="finance access request",
         is_read=False,
     ).order_by("-created_at")
-    finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+    finance_request_link = reverse("requests:dashboard")
 
     context = {
         "year": year_obj,

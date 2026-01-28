@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "apps.payroll",
     "apps.compliance.apps.ComplianceConfig",
     "apps.communication",
+    "apps.requests",
     "apps.observability",  # Observability/monitoring
     "apps.api",
     "emis",
@@ -70,6 +71,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
+    "apps.accounts.middleware.ModuleAccessMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",

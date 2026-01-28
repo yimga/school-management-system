@@ -1,0 +1,85 @@
+{% extends "portal_base.html" %}
+{% block title %}Access Requests{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Access requests</h2>
+    <p class="text-muted small mb-0">Review and action all approval requests in one place.</p>
+  </div>
+  <div class="badge bg-secondary">Total {{ requests|length }}</div>
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-md-4">
+    <label class="form-label small">Search</label>
+    <input type="text" name="q" value="{{ search }}" class="form-control form-control-sm" placeholder="REQ-2026...">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small">Request type</label>
+    <select name="type" class="form-select form-select-sm">
+      <option value="all">All</option>
+      {% for option in type_options %}
+        <option value="{{ option.key }}" {% if type_filter == option.key %}selected{% endif %}>
+          {{ option.label }} ({{ option.count }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small">Status</label>
+    <select name="status" class="form-select form-select-sm">
+      <option value="all">All</option>
+      {% for option in status_options %}
+        <option value="{{ option.key }}" {% if status_filter == option.key %}selected{% endif %}>
+          {{ option.label }} ({{ option.count }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2 d-grid">
+    <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+  </div>
+</form>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% if requests %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Type</th>
+              <th>Requester</th>
+              <th>Status</th>
+              <th>Requested</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in requests %}
+              <tr>
+                <td><strong>{{ req.reference }}</strong></td>
+                <td>{{ req.get_request_type_display }}</td>
+                <td>{{ req.requester.get_full_name|default:req.requester.username|default:"-" }}</td>
+                <td>
+                  <span class="badge {% if req.status == 'APPROVED' %}bg-success{% elif req.status == 'DENIED' %}bg-danger{% elif req.status == 'CLARIFICATION_REQUESTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                    {{ req.get_status_display }}
+                  </span>
+                </td>
+                <td class="text-muted small">{{ req.requested_at|date:"M j, H:i" }}</td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'requests:detail' req.id %}">Review</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info mb-0">No matching requests.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
