@@ -500,8 +500,6 @@ class GradeApprovalRequest(models.Model):
     )
     reviewed_at = models.DateTimeField(null=True, blank=True)
     reviewer_notes = models.TextField(blank=True)
-    deadline_at = models.DateTimeField(null=True, blank=True)
-    validation_flags = models.JSONField(default=list, blank=True)
 
     # Bypass / escalation (when an approver is unavailable)
     bypassed_by = models.ForeignKey(
@@ -559,9 +557,8 @@ class GradeApprovalRequest(models.Model):
 
     @property
     def is_overdue(self):
-        if not self.deadline_at:
-            return False
-        return timezone.now() > self.deadline_at
+        # Deadline functionality removed - always return False
+        return False
 
     @property
     def is_bypassed(self) -> bool:
