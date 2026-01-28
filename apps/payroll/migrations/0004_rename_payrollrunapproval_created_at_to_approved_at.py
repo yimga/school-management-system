@@ -1,5 +1,6 @@
 # Generated manually to fix field renames and removals
 
+from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
@@ -8,7 +9,8 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('payroll', '0003_payscale_and_links'),
-        migrations.swappable_dependency('auth.user'),
+        ('auth', '####_first'),  # Ensure auth migrations are applied
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
