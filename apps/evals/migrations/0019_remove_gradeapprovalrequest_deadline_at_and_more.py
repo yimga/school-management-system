@@ -25,9 +25,9 @@ def remove_fields_if_exist(apps, schema_editor):
         
         # Remove columns if they exist
         if deadline_exists:
-            cursor.execute(f'ALTER TABLE {db_table} DROP COLUMN IF EXISTS deadline_at')
+            cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS deadline_at')
         if validation_flags_exists:
-            cursor.execute(f'ALTER TABLE {db_table} DROP COLUMN IF EXISTS validation_flags')
+            cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS validation_flags')
 
 
 def reverse_remove_fields(apps, schema_editor):
