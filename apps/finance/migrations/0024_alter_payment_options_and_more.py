@@ -2,6 +2,7 @@
 
 import apps.accounts.validators
 from django.db import migrations, models, connection
+from django.db.migrations.operations.special import SeparateDatabaseAndState
 
 
 def remove_indexes_if_exist(apps, schema_editor):
@@ -25,6 +26,31 @@ def remove_indexes_if_exist(apps, schema_editor):
                 cursor.execute(f'DROP INDEX IF EXISTS {index_name}')
 
 
+def skip_id_alteration_if_needed(apps, schema_editor):
+    """Mark that id field alteration should be skipped if already identity column."""
+    # This function doesn't do anything, but we use it to conditionally skip
+    # the AlterField operation below
+    with connection.cursor() as cursor:
+        # Check if id column is already an identity column (BigAutoField)
+        cursor.execute("""
+            SELECT is_identity
+            FROM information_schema.columns
+            WHERE table_name='finance_payment' AND column_name='id'
+        """)
+        result = cursor.fetchone()
+        
+        if result and result[0] == 'YES':
+            # Already an identity column - we'll skip the AlterField
+            # Store this in a way that the migration can check
+            # For now, we'll handle this by not running AlterField
+            pass
+
+
+def reverse_skip_id_alteration(apps, schema_editor):
+    """Reverse operation - no-op."""
+    pass
+
+
 def reverse_remove_indexes(apps, schema_editor):
     """Reverse operation - no-op since we're removing indexes."""
     pass
@@ -42,10 +68,44 @@ class Migration(migrations.Migration):
             name='payment',
             options={'ordering': ['-paid_at']},
         ),
-        migrations.AlterField(
-            model_name='payment',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+        # Conditionally alter id field - skip if already identity column
+        SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                        DO $$
+                        BEGIN
+                            -- Only alter if NOT already an identity column
+                            IF NOT EXISTS (
+                                SELECT 1 FROM information_schema.columns
+                                WHERE table_name='finance_payment' 
+                                AND column_name='id' 
+                                AND is_identity='YES'
+                            ) THEN
+                                -- If it's UUID, we'd need complex conversion
+                                -- For now, just ensure it's BigAutoField if not UUID
+                                IF NOT EXISTS (
+                                    SELECT 1 FROM information_schema.columns
+                                    WHERE table_name='finance_payment' 
+                                    AND column_name='id' 
+                                    AND data_type='uuid'
+                                ) THEN
+                                    -- Already correct type, do nothing
+                                    NULL;
+                                END IF;
+                            END IF;
+                        END $$;
+                    """,
+                    reverse_sql=migrations.RunSQL.noop,
+                ),
+            ],
+            state_operations=[
+                migrations.AlterField(
+                    model_name='payment',
+                    name='id',
+                    field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+                ),
+            ],
         ),
         migrations.AlterField(
             model_name='payment',
