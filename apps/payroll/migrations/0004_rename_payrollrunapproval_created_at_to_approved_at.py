@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='payrollrunapproval',
             name='approver',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='auth.user'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterModelOptions(
             name='payrollrunapproval',
