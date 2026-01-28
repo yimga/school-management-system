@@ -416,6 +416,14 @@ class SiteSettings(models.Model):
         blank=True,
         related_name="site_settings",
     )
+    admin_theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_site_settings",
+        help_text="Theme pack specifically for the Django /admin interface.",
+    )
     preview_mode_enabled = models.BooleanField(default=False)
     preview_note = models.CharField(max_length=255, blank=True, default="")
     admin_sidebar_bg_color = models.CharField(
@@ -854,6 +862,14 @@ class SiteSettings(models.Model):
             links.append(item)
         return links
 
+    def get_admin_theme(self):
+        if self.admin_theme_pack:
+            return self.admin_theme_pack
+        if self.theme_pack and getattr(self.theme_pack, "applies_to_admin", False):
+            return self.theme_pack
+        fallback = ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name").first()
+        return fallback or self.theme_pack
+
 
 class ThemePack(models.Model):
     name = models.CharField(max_length=120)
@@ -872,6 +888,10 @@ class ThemePack(models.Model):
     svg_background = models.FileField(upload_to="branding/themepack/svg/", blank=True, null=True, help_text="Optional: SVG background for this theme pack.")
     logo_opacity = models.FloatField(default=0.3, blank=True, null=True, validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], help_text="Opacity for theme logo background (0.0 = transparent, 1.0 = opaque)")
     logo_background_mode = models.CharField(max_length=16, choices=SiteSettings.LOGO_BG_MODE_CHOICES, default="contain", help_text="How the theme logo background image is displayed.")
+    applies_to_admin = models.BooleanField(
+        default=False,
+        help_text="Use this pack for the Django /admin interface.",
+    )
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
