@@ -56,7 +56,19 @@ class TeacherProfile(models.Model):
         blank=True,
         related_name="teachers",
     )
-    pay_grade = models.CharField(max_length=50, blank=True)
+    pay_grade = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Legacy pay grade field (text). Consider using pay_scale instead."
+    )
+    pay_scale = models.ForeignKey(
+        "payroll.PayScale",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="teacher_profiles",
+        help_text="Structured pay scale/grade assigned to this teacher"
+    )
     salary_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     next_pay_date = models.DateField(null=True, blank=True)
