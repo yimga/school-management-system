@@ -172,13 +172,39 @@
   }
 
   function initDragDrop(page) {
-    const columns = Array.from(document.querySelectorAll('[data-dashboard-column]'));
-    if (!page || !columns.length) return;
+    const layoutRoot = document.getElementById('dashboard-layout');
+    if (!layoutRoot) return;
+    
+    // Find explicit column containers, or fall back to treating the root as a single column
+    let columns = Array.from(layoutRoot.querySelectorAll('[data-dashboard-column]'));
+    if (!columns.length) {
+      // No explicit columns: treat the root container as a single column
+      if (!layoutRoot.dataset.dashboardColumn) {
+        layoutRoot.dataset.dashboardColumn = 'main';
+      }
+      columns = [layoutRoot];
+    }
+    
+    if (!page) {
+      // Try to infer page from body dataset or URL
+      page = (document.body.dataset.dashboardPage || '').toLowerCase();
+      if (!page) {
+        const path = window.location.pathname;
+        if (path.includes('/parent/')) page = 'parent';
+        else if (path.includes('/teacher/')) page = 'teacher';
+        else if (path.includes('/backend/')) page = 'backend';
+        else if (path.includes('/finance/')) page = 'finance';
+        else if (path.includes('/analytics/')) page = 'analytics';
+        else page = 'backend'; // default
+      }
+    }
+    
+    if (!page) return;
+    
     ensureColumnKeys(columns);
 
     let widgetMetaById = {};
-    const layoutRoot = document.getElementById('dashboard-layout') || document.body;
-    const dragToggle = document.getElementById('toggleLayoutDrag');
+    const dragToggle = document.getElementById('toggleLayoutDrag') || document.getElementById('toggleCustomize');
     let sortables = [];
 
     const saveLayout = () => {
@@ -226,47 +252,95 @@
       .catch(() => {});
 
     loadSortable().then((Sortable) => {
-      if (!Sortable) return;
+      if (!Sortable) {
+        console.warn('Sortable.js failed to load. Drag-and-drop will not work.');
+        return;
+      }
 
       const enableDrag = () => {
-        if (sortables.length) return;
+        if (sortables.length) {
+          // Already enabled
+          return;
+        }
+        
         columns.forEach((col) => {
-          sortables.push(
-            Sortable.create(col, {
+          const widgets = Array.from(col.querySelectorAll('[data-widget-id]'));
+          if (widgets.length === 0) return; // Skip empty columns
+          
+          try {
+            const sortable = Sortable.create(col, {
               group: 'dashboard-widgets',
               handle: '[data-widget-id]',
-              filter: '.dash-widget-controls, .dash-widget-controls *',
-              preventOnFilter: false,
+              filter: '.dash-widget-controls, .dash-widget-controls *, .widget-meta-control, .widget-meta-control *, button, a, input, select, textarea',
+              preventOnFilter: true,
               animation: 150,
-              onEnd: () => {
+              forceFallback: false,
+              fallbackOnBody: true,
+              swapThreshold: 0.65,
+              ghostClass: 'sortable-ghost',
+              chosenClass: 'sortable-chosen',
+              dragClass: 'sortable-drag',
+              onEnd: (evt) => {
                 saveLayout();
               },
-            })
-          );
+            });
+            sortables.push(sortable);
+          } catch (err) {
+            console.warn('Failed to initialize Sortable for column:', col, err);
+          }
         });
-        layoutRoot.classList.add('drag-mode');
+        
+        if (sortables.length > 0) {
+          layoutRoot.classList.add('drag-mode');
+          console.log(`Drag-and-drop enabled for ${sortables.length} column(s)`);
+        } else {
+          console.warn('No sortable instances created. Check that widgets have [data-widget-id] attributes.');
+        }
       };
 
       const disableDrag = () => {
-        sortables.forEach((inst) => inst && inst.destroy && inst.destroy());
+        sortables.forEach((inst) => {
+          if (inst && inst.destroy) {
+            try {
+              inst.destroy();
+            } catch (err) {
+              console.warn('Error destroying Sortable instance:', err);
+            }
+          }
+        });
         sortables = [];
         layoutRoot.classList.remove('drag-mode');
       };
 
-      const startEnabled = dragToggle ? !!dragToggle.checked : true;
-      if (startEnabled) enableDrag();
+      // Check if customDragEnabled is set (from dashboard-customizer.js)
+      const customDragEnabled = layoutRoot.dataset.customDragEnabled !== "false";
+      const startEnabled = dragToggle ? !!dragToggle.checked : customDragEnabled;
+      
+      if (startEnabled) {
+        // Small delay to ensure DOM is ready and other scripts have run
+        setTimeout(() => enableDrag(), 150);
+      }
 
       if (dragToggle) {
         dragToggle.addEventListener('change', () => {
-          if (dragToggle.checked) enableDrag();
-          else disableDrag();
+          if (dragToggle.checked) {
+            setTimeout(() => enableDrag(), 50);
+          } else {
+            disableDrag();
+          }
         });
+      } else if (customDragEnabled) {
+        // No toggle but drag is enabled: auto-enable after a short delay
+        setTimeout(() => enableDrag(), 250);
       }
     });
   }
 
   ready(() => {
-    const page = (document.body.dataset.dashboardPage || '').toLowerCase();
-    initDragDrop(page);
+    // Wait a bit for body dataset to be set by inline scripts
+    setTimeout(() => {
+      const page = (document.body.dataset.dashboardPage || '').toLowerCase();
+      initDragDrop(page);
+    }, 50);
   });
 })();

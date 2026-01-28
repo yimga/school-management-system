@@ -214,3 +214,27 @@ class GradeApprovalDecisionForm(forms.Form):
         super().__init__(*args, **kwargs)
         if status_choices is not None:
             self.fields["status"].choices = status_choices
+
+
+class GradeApprovalBypassForm(forms.Form):
+    status = forms.ChoiceField(
+        choices=GradeApprovalRequest.Status.choices,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        initial=GradeApprovalRequest.Status.APPROVED,
+        help_text="Bypass should normally be used to finalize (approve/reject) when an approver is unavailable.",
+    )
+    bypass_reason = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        required=True,
+        help_text="Required. Explain why the normal approval chain is being bypassed.",
+    )
+    reviewer_notes = forms.CharField(
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        required=False,
+        help_text="Optional notes sent back to the teacher.",
+    )
+
+    def __init__(self, *args, status_choices=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if status_choices is not None:
+            self.fields["status"].choices = status_choices

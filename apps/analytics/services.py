@@ -82,7 +82,12 @@ def _custom_deadline(
     term: Term,
     classroom: Optional[Classroom],
 ) -> Optional[datetime]:
-    # GradingDeadline model is missing. Return None or implement alternative logic.
+    """
+    Get custom deadline for grading.
+    
+    NOTE: GradingDeadline model was removed. Returns None.
+    TODO: Implement using SubjectAssignment.deadline_at when field is added.
+    """
     return None
 
 
@@ -470,8 +475,9 @@ def get_teacher_compliance(academic_year_id, term_id):
         total_students = StudentProfile.objects.filter(classroom=classroom).count()
         
         for sa in subject_assignments:
-            # GradingDeadline model is missing. Skipping deadline logic.
-            continue
+            # TODO: Implement deadline checking using SubjectAssignment.deadline_at
+            # when field is added. For now, skip deadline logic.
+            pass
             
             # Count submissions
             submitted_count = Evaluation.objects.filter(

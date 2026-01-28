@@ -30,9 +30,10 @@ from .forms import (
     BatchFillMissingForm,
     MarkSheetUploadForm,
     GradeApprovalDecisionForm,
+    GradeApprovalBypassForm,
 )
 from .models import EvaluationEvidence
-from .ocr import process_marksheet_upload, is_tesseract_available
+from .ocr import process_marksheet_upload, is_tesseract_available, FIELD_ORDER
 from .approval import (
     create_grade_approval_request,
     grade_entries_from_submission,
@@ -48,11 +49,13 @@ from apps.portal.services import (
     class_announcements_for_teacher,
     class_threads_for_teacher,
 )
+from apps.communication.models import MessageThread
 from apps.siteconfig.models import resolve_dashboard_widgets, SiteSettings, default_backend_feature_flags
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.finance.models import Notification
+from apps.compliance.models_audit import AuditLog
 
 
 def _required_fields(academic_year, classroom, term):
@@ -174,7 +177,20 @@ def _student_lookup_by_code(students: list[StudentProfile]) -> dict[str, Student
     }
 
 
-def _apply_ocr_entries(entries, student_lookup, sa, year, term, teacher):
+def _apply_ocr_entries(entries, student_lookup, sa, year, term, teacher, delta_mode: bool = True):
+    """
+    Apply OCR entries to evaluations.
+    
+    Args:
+        entries: List of parsed OCR entries
+        student_lookup: Dict mapping student_code -> StudentProfile
+        sa: SubjectAssignment
+        year: AcademicYear
+        term: Term
+        teacher: TeacherProfile
+        delta_mode: If True, only fill missing marks (skip if field already has a value).
+                    If False, update all fields even if they already have values.
+    """
     updated = []
     for entry in entries:
         student = student_lookup.get(entry.get("student_code", "").upper())
@@ -192,6 +208,10 @@ def _apply_ocr_entries(entries, student_lookup, sa, year, term, teacher):
             if value is None:
                 continue
             existing = getattr(evaluation, field)
+            # Delta mode: only update if field is missing (None/empty)
+            if delta_mode and existing is not None:
+                continue
+            # Non-delta mode or field is empty: update if different
             if existing != value:
                 setattr(evaluation, field, value)
                 changes[field] = value
@@ -203,18 +223,40 @@ def _apply_ocr_entries(entries, student_lookup, sa, year, term, teacher):
     return updated
 
 
-def _build_ocr_preview(entries, student_lookup):
+def _build_ocr_preview(entries, student_lookup, existing_evaluations: dict = None):
+    """
+    Build OCR preview with per-field confidence scores.
+    
+    Args:
+        entries: OCR parsed entries (may include 'field_confidences')
+        student_lookup: Dict mapping student_code -> StudentProfile
+        existing_evaluations: Dict mapping student_id -> Evaluation (for showing existing values)
+    """
+    existing_evaluations = existing_evaluations or {}
     preview = []
     for entry in entries:
         student = student_lookup.get(entry.get("student_code", "").upper())
         full_name = ""
         if student:
             full_name = f"{student.last_name} {student.first_name}"
+        
+        # Get existing evaluation to show current values
+        existing_eval = existing_evaluations.get(student.id) if student else None
+        existing_scores = {}
+        if existing_eval:
+            for field in ["seq1_score", "seq2_score", "exam_score", "mock_score", "practical_score"]:
+                val = getattr(existing_eval, field, None)
+                if val is not None:
+                    existing_scores[field] = val
+        
         preview.append(
             {
                 "code": entry.get("student_code"),
                 "student_name": full_name if full_name else "Unmatched student",
+                "student_id": student.id if student else None,
                 "scores": entry.get("scores", {}),
+                "field_confidences": entry.get("field_confidences", {}),  # Per-field confidence
+                "existing_scores": existing_scores,  # Current values in DB
                 "line": entry.get("line_text"),
                 "matched": bool(student),
             }
@@ -233,6 +275,7 @@ def _serialize_pending_entries(entries):
                 "student_code": entry.get("student_code"),
                 "line_text": entry.get("line_text"),
                 "scores": {field: str(value) for field, value in entry.get("scores", {}).items()},
+                "field_confidences": entry.get("field_confidences", {}),  # Preserve confidence data
             }
         )
     return serialized
@@ -252,9 +295,43 @@ def _deserialize_pending_entries(payload):
                 "student_code": entry.get("student_code"),
                 "line_text": entry.get("line_text"),
                 "scores": scores,
+                "field_confidences": entry.get("field_confidences", {}),  # Preserve confidence data
             }
         )
     return deserialized
+
+
+def _extract_corrected_ocr_entries(post_data, original_entries):
+    """
+    Extract user-corrected OCR values from POST data.
+    Form fields: ocr_correct_{student_code}_{field} = value
+    Returns corrected entries or None if no corrections found.
+    """
+    corrected = []
+    for entry in original_entries:
+        student_code = entry.get("student_code", "").upper()
+        corrected_scores = {}
+        for field in FIELD_ORDER:
+            key = f"ocr_correct_{student_code}_{field}"
+            value_str = post_data.get(key, "").strip()
+            if value_str:
+                try:
+                    corrected_scores[field] = Decimal(value_str)
+                except Exception:
+                    continue
+        if corrected_scores:
+            corrected.append(
+                {
+                    "student_code": student_code,
+                    "scores": corrected_scores,
+                    "line_text": entry.get("line_text", ""),
+                    "field_confidences": entry.get("field_confidences", {}),
+                }
+            )
+        else:
+            # Keep original if no corrections
+            corrected.append(entry)
+    return corrected if any(c.get("scores") != orig.get("scores") for c, orig in zip(corrected, original_entries)) else None
 
 
 def _pending_ocr_for(session, teacher_id, subject_assignment_id):
@@ -268,12 +345,13 @@ def _pending_ocr_for(session, teacher_id, subject_assignment_id):
     return pending
 
 
-def _set_pending_ocr(session, teacher_id, subject_assignment_id, entries, confidence):
+def _set_pending_ocr(session, teacher_id, subject_assignment_id, entries, confidence, field_confidences=None):
     session[MARKSHEET_OCR_PENDING_SESSION_KEY] = {
         "teacher": teacher_id,
         "subject_assignment": subject_assignment_id,
         "entries": _serialize_pending_entries(entries),
         "confidence": confidence,
+        "field_confidences": field_confidences or {},
     }
     session.modified = True
 
@@ -371,6 +449,13 @@ def teacher_dashboard(request: HttpRequest):
             {"label": "Download template", "url": reverse("evals:grade_import_template")},
         ],
     }
+    
+    # Add communication actions if teacher has department
+    if teacher_profile and teacher_profile.department:
+        hero["actions"].extend([
+            {"label": "Department Chat", "url": reverse("communication:group_list")},
+            {"label": "Dept Announcement", "url": reverse("communication:department_announcement_create")},
+        ])
 
     preference = getattr(request.user, "preferences", None)
     display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
@@ -380,7 +465,16 @@ def teacher_dashboard(request: HttpRequest):
         department_id=getattr(teacher_profile.department, "id", None),
         limit=6,
     )
-    class_threads = class_threads_for_teacher(request.user, limit=6)
+    class_threads = class_threads_for_teacher(request.user, limit=6, include_department=True)
+    
+    # Get department thread for quick access
+    department_thread = None
+    if teacher_profile and teacher_profile.department:
+        department_thread = MessageThread.objects.filter(
+            scope=MessageThread.Scope.DEPARTMENT,
+            department=teacher_profile.department,
+            is_archived=False
+        ).first()
 
     peers = []
     if getattr(teacher_profile, "department", None):
@@ -423,15 +517,15 @@ def teacher_dashboard(request: HttpRequest):
     ).order_by("-created_at")
     finance_request_link = reverse("requests:dashboard")
 
-    dashboard_settings = load_dashboard_layout_settings(request.user, "teacher")
+    from apps.accounts.utils import get_dashboard_context
+    
+    dashboard_context = get_dashboard_context(request.user, "teacher")
     available_sidebar_items = [
         {"id": "teacher-home", "label": "Teacher hub", "url": reverse("portal:teacher_dashboard_alias"), "icon": "bi-person-lines-fill"},
         {"id": "teacher-attendance", "label": "Attendance", "url": reverse("portal:teacher_attendance"), "icon": "bi-calendar-check"},
         {"id": "teacher-pay", "label": "Pay history", "url": reverse("portal:teacher_pay_history"), "icon": "bi-wallet2"},
         {"id": "teacher-syllabus", "label": "Syllabus", "url": reverse("portal:portal_syllabus"), "icon": "bi-journal-text"},
     ]
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "teacher"})
-    allow_custom_layout = _can_customize(request.user)
 
     return render(request, "teacher/dashboard.html", {
         "year": year,
@@ -446,15 +540,13 @@ def teacher_dashboard(request: HttpRequest):
         "display_widgets": display_widgets,
         "class_announcements": class_announcements,
         "class_threads": class_threads,
+        "department_thread": department_thread,
         "team_peers": peers,
         "team_department": getattr(teacher_profile, "department", None),
         "finance_access_message": finance_banner,
         "finance_access_banner": finance_access_banner,
-        "allow_custom_layout": allow_custom_layout,
-        "dashboard_settings": dashboard_settings,
-        "dashboard_layout_url": dashboard_layout_url,
         "available_sidebar_items": available_sidebar_items,
-        "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
+        **dashboard_context,  # Unpack dashboard settings, layout URL, widget metadata, etc.
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,
@@ -575,17 +667,37 @@ def teacher_marks_entry(request: HttpRequest):
         else:
             entries = _deserialize_pending_entries(pending_data["entries"])
             upload_confidence = pending_data.get("confidence", 0.0) or 0.0
-            upload_preview = _build_ocr_preview(entries, student_lookup)
-            applied = _apply_ocr_entries(entries, student_lookup, sa, year, active_term, teacher)
+            
+            # Extract corrected values from form (if user edited preview table)
+            corrected_entries = _extract_corrected_ocr_entries(request.POST, entries)
+            entries_to_apply = corrected_entries if corrected_entries else entries
+            
+            # Build existing evaluations for delta preview
+            existing_evals = {}
+            if sa and students:
+                existing_evals = {
+                    eval_obj.student_id: eval_obj
+                    for eval_obj in Evaluation.objects.filter(
+                        academic_year=year,
+                        term=active_term,
+                        subject_assignment=sa,
+                        student__in=students,
+                    ).select_related("student")
+                }
+            
+            upload_preview = _build_ocr_preview(entries_to_apply, student_lookup, existing_evals)
+            delta_mode = flags.get("marksheet_ocr_delta_mode", True)
+            applied = _apply_ocr_entries(entries_to_apply, student_lookup, sa, year, active_term, teacher, delta_mode=delta_mode)
             upload_summary = {
-                "processed": len(entries),
+                "processed": len(entries_to_apply),
                 "confidence": upload_confidence,
                 "applied": len(applied),
+                "delta_mode": delta_mode,
             }
             upload_feedback = {
                 "level": "success" if applied else "info",
                 "message": (
-                    f"Applied {len(applied)} parsed entries at {upload_confidence:.0f}% confidence."
+                    f"Applied {len(applied)} parsed entries at {upload_confidence:.0f}% confidence (delta mode: {'on' if delta_mode else 'off'})."
                     if applied
                     else "No matching students were updated."
                 ),
@@ -620,19 +732,37 @@ def teacher_marks_entry(request: HttpRequest):
             )
             entries = ocr_result.get("entries", [])
             upload_confidence = ocr_result.get("confidence", 0.0) or 0.0
-            upload_preview = _build_ocr_preview(entries, student_lookup)
+            field_confidences = ocr_result.get("field_confidences", {})  # Per-field confidence
+            
+            # Build existing evaluations map for delta preview
+            existing_evals = {}
+            if sa and students:
+                existing_evals = {
+                    eval_obj.student_id: eval_obj
+                    for eval_obj in Evaluation.objects.filter(
+                        academic_year=year,
+                        term=active_term,
+                        subject_assignment=sa,
+                        student__in=students,
+                    ).select_related("student")
+                }
+            
+            upload_preview = _build_ocr_preview(entries, student_lookup, existing_evals)
             threshold = flags.get("marksheet_ocr_confidence_threshold", 70) or 70
+            delta_mode = flags.get("marksheet_ocr_delta_mode", True)  # Only fill missing by default
             upload_manual_review_pending = bool(flags.get("marksheet_ocr_manual_review_required", True)) or upload_confidence < threshold
             upload_summary = {
                 "processed": len(entries),
                 "confidence": upload_confidence,
+                "field_confidences": field_confidences,
+                "delta_mode": delta_mode,
             }
             if entries and not upload_manual_review_pending:
-                applied = _apply_ocr_entries(entries, student_lookup, sa, year, active_term, teacher)
+                applied = _apply_ocr_entries(entries, student_lookup, sa, year, active_term, teacher, delta_mode=delta_mode)
                 upload_summary["applied"] = len(applied)
                 upload_feedback = {
                     "level": "success",
-                    "message": f"Applied {len(applied)} parsed entries at {upload_confidence:.0f}% confidence.",
+                    "message": f"Applied {len(applied)} parsed entries at {upload_confidence:.0f}% confidence (delta mode: {'on' if delta_mode else 'off'}).",
                 }
                 messages.success(request, "OCR upload applied successfully.")
                 _clear_pending_ocr(request.session)
@@ -641,7 +771,8 @@ def teacher_marks_entry(request: HttpRequest):
                     "level": "info",
                     "message": "Parsed marks need manual verification before they are applied.",
                 }
-                _set_pending_ocr(request.session, teacher.id, selected_sa_pk, entries, upload_confidence)
+                # Include field_confidences in session for preview
+                _set_pending_ocr(request.session, teacher.id, selected_sa_pk, entries, upload_confidence, field_confidences)
             else:
                 upload_feedback = {
                     "level": "warning",
@@ -690,11 +821,26 @@ def teacher_marks_entry(request: HttpRequest):
     pending_data = _pending_ocr_for(request.session, teacher.id, selected_sa_pk) if selected_sa_pk else None
     if pending_data:
         pending_entries = _deserialize_pending_entries(pending_data["entries"])
-        upload_preview = _build_ocr_preview(pending_entries, student_lookup)
+        # Rebuild existing evaluations for delta preview
+        existing_evals = {}
+        if sa and students:
+            existing_evals = {
+                eval_obj.student_id: eval_obj
+                for eval_obj in Evaluation.objects.filter(
+                    academic_year=year,
+                    term=active_term,
+                    subject_assignment=sa,
+                    student__in=students,
+                ).select_related("student")
+            }
+        upload_preview = _build_ocr_preview(pending_entries, student_lookup, existing_evals)
         upload_confidence = pending_data.get("confidence", upload_confidence) or 0.0
+        field_confidences = pending_data.get("field_confidences", {})
         upload_summary = {
             "processed": len(pending_entries),
             "confidence": upload_confidence,
+            "field_confidences": field_confidences,
+            "delta_mode": flags.get("marksheet_ocr_delta_mode", True),
         }
         upload_manual_review_pending = True
 
@@ -1373,19 +1519,64 @@ def grade_approval_detail(request: HttpRequest, request_id):
         initial={"status": approval.status},
         status_choices=status_choices,
     )
-    if request.method == "POST" and form.is_valid():
-        new_status = form.cleaned_data["status"]
-        if new_status in FINAL_STATUSES and not can_finalize:
-            form.add_error("status", "Only final approvers can finalize or reject grade submissions.")
+
+    bypass_allowed = bool(
+        (request.user.is_superuser or request.user.role == User.Role.ADMIN or can_finalize)
+        and approval.status not in FINAL_STATUSES
+    )
+    bypass_status_choices = [choice for choice in GradeApprovalRequest.Status.choices if choice[0] in FINAL_STATUSES]
+    bypass_form = GradeApprovalBypassForm(
+        request.POST or None,
+        status_choices=bypass_status_choices,
+        initial={"status": GradeApprovalRequest.Status.APPROVED},
+    )
+
+    if request.method == "POST":
+        action = request.POST.get("action") or "decide"
+        if action == "bypass":
+            if not bypass_allowed:
+                return HttpResponseForbidden("You are not authorized to bypass grade approvals.")
+            if bypass_form.is_valid():
+                new_status = bypass_form.cleaned_data["status"]
+                old_status = approval.status
+                approval.mark_bypassed(
+                    by_user=request.user,
+                    new_status=new_status,
+                    reason=bypass_form.cleaned_data["bypass_reason"],
+                    notes=bypass_form.cleaned_data.get("reviewer_notes") or "",
+                )
+                AuditLog.objects.create(
+                    user=request.user,
+                    action=AuditLog.Action.APPROVE
+                    if new_status == GradeApprovalRequest.Status.APPROVED
+                    else AuditLog.Action.REJECT,
+                    model_name="GradeApprovalRequest",
+                    object_id=str(approval.id),
+                    object_repr=str(approval),
+                    sensitivity=AuditLog.Sensitivity.HIGH,
+                    app_label="evals",
+                    reason=f"BYPASS: {bypass_form.cleaned_data['bypass_reason']}",
+                    old_values={"status": old_status},
+                    new_values={"status": approval.status},
+                    changed_fields=["status"],
+                )
+                NotificationService().send_grade_approval_decision_email(approval, new_status)
+                messages.success(request, "Approval bypass recorded and decision finalized.")
+                return redirect("evals:grade_approval_list")
         else:
-            approval.mark_reviewed(
-                reviewer=request.user,
-                status=new_status,
-                notes=form.cleaned_data["reviewer_notes"],
-            )
-            NotificationService().send_grade_approval_decision_email(approval, new_status)
-            messages.success(request, "Grade approval decision saved.")
-            return redirect("evals:grade_approval_list")
+            if form.is_valid():
+                new_status = form.cleaned_data["status"]
+                if new_status in FINAL_STATUSES and not can_finalize:
+                    form.add_error("status", "Only final approvers can finalize or reject grade submissions.")
+                else:
+                    approval.mark_reviewed(
+                        reviewer=request.user,
+                        status=new_status,
+                        notes=form.cleaned_data["reviewer_notes"],
+                    )
+                    NotificationService().send_grade_approval_decision_email(approval, new_status)
+                    messages.success(request, "Grade approval decision saved.")
+                    return redirect("evals:grade_approval_list")
 
     deadline_note = getattr(SiteSettings.get_solo(), "grade_approval_deadline_note", "")
     deadline_display = approval.deadline_at.strftime("%b %d, %Y %H:%M") if approval.deadline_at else None
@@ -1393,6 +1584,8 @@ def grade_approval_detail(request: HttpRequest, request_id):
     return render(request, "evals/grade_approval_detail.html", {
         "approval": approval,
         "form": form,
+        "bypass_form": bypass_form,
+        "bypass_allowed": bypass_allowed,
         "entries": approval.entries,
         "score_fields": ["seq1", "seq2", "exam", "mock", "practical"],
         "can_finalize": can_finalize,
@@ -1456,22 +1649,26 @@ def compliance_dashboard_view(request):
 @staff_member_required
 @role_required(User.Role.ADMIN, 'head_of_academics')
 def extend_deadline_view(request, subject_assignment_id):
-    """Extend grading deadline for a subject assignment."""
-    from apps.analytics.models import GradingDeadline
+    """
+    Extend grading deadline for a subject assignment.
+    
+    NOTE: GradingDeadline model was removed. This view needs to be updated
+    to use SubjectAssignment.deadline_at when that field is added.
+    """
+    from apps.academics.models import SubjectAssignment
     
     academic_year, term = get_active_year_and_term()
-    SubjectAssignment = __import__('apps.academics.models', fromlist=['SubjectAssignment']).SubjectAssignment
     
     try:
         subject_assignment = SubjectAssignment.objects.get(id=subject_assignment_id)
-        deadline = GradingDeadline.objects.get(
-            academic_year=academic_year,
-            term=term,
-            subject_assignment=subject_assignment
-        )
-    except (SubjectAssignment.DoesNotExist, GradingDeadline.DoesNotExist):
-        messages.error(request, "Deadline not found.")
+    except SubjectAssignment.DoesNotExist:
+        messages.error(request, "Subject assignment not found.")
         return redirect('compliance_dashboard')
+    
+    # TODO: Implement deadline extension using SubjectAssignment.deadline_at
+    messages.info(request, f"Deadline extension for {subject_assignment} is under development. "
+                          "This feature will be available once deadline_at field is added to SubjectAssignment.")
+    return redirect('compliance_dashboard')
     
     if request.method == 'POST':
         days_extension = int(request.POST.get('days_extension', 0))

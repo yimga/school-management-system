@@ -49,6 +49,7 @@
       <b>Summary</b><br>
       Average: <b>{{ summary.average|floatformat:2|default:"-" }}</b><br>
       Class Rank: <b>{{ summary.class_position|default:"-" }}</b> / {{ summary.class_size|default:"-" }}<br>
+      Specialty Rank: <b>{{ summary.specialty_position|default:"-" }}</b> / {{ summary.specialty_size|default:"-" }}<br>
       School Rank: <b>{{ summary.school_position|default:"-" }}</b> / {{ summary.school_size|default:"-" }}<br>
       Status: <b>{{ summary.promotion_status|default:"-" }}</b>
     </div>

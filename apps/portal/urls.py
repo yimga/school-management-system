@@ -22,6 +22,11 @@ from .views import (
     teacher_onboarding_wizard,
     student_onboarding_wizard,
 )
+from .views_contact_requests import (
+    parent_contact_school,
+    staff_contact_request_list,
+    staff_contact_request_detail,
+)
 
 app_name = "portal"
 
@@ -38,6 +43,7 @@ urlpatterns = [
     path("parent/claim-invite/", claim_invite, name="claim_invite"),
     path("parent/claim-invite/<str:token>/", claim_invite, name="claim_invite_token"),
     path("parent/finance/", parent_finance, name="parent_finance"),
+    path("parent/contact-school/", parent_contact_school, name="parent_contact_school"),
     # Backwards compatibility: older templates and tests expect 'parent_performance'
     path("parent/performance/", parent_child_results, name="parent_performance"),
     path("features/<str:feature>/", portal_feature_page, name="portal_feature"),
@@ -60,4 +66,8 @@ urlpatterns = [
     # Semantic aliases for Phase 7 URL cleanup
     path("student-portal/grades/", student_portal_grades, name="student_portal_grades"),
     path("admissions/application-status/", admissions_application_status, name="admissions_application_status"),
+
+    # Staff triage: parent contact requests
+    path("staff/contact-requests/", staff_contact_request_list, name="staff_contact_request_list"),
+    path("staff/contact-requests/<uuid:request_id>/", staff_contact_request_detail, name="staff_contact_request_detail"),
 ]

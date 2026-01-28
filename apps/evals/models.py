@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -203,6 +204,19 @@ class GradeApprovalRequest(models.Model):
         blank=True,
         related_name="grade_approval_requests_reviewed",
     )
+
+    # Bypass / escalation (when an approver is unavailable)
+    bypassed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="grade_approval_requests_bypassed",
+        help_text="User who bypassed the normal approval chain.",
+    )
+    bypassed_at = models.DateTimeField(null=True, blank=True)
+    bypass_reason = models.TextField(blank=True)
+    bypassed_from_status = models.CharField(max_length=30, blank=True)
 
     class Meta:
         ordering = ["-requested_at"]
@@ -510,8 +524,6 @@ class GradeAudit(models.Model):
     
     def __str__(self):
         return f"{self.get_change_type_display()} - {self.evaluation}"
-
-
 # ========== OFFLINE SYNC QUEUE ==========
 
 class OfflineMarkEntry(models.Model):

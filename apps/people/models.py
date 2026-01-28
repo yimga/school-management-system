@@ -40,26 +40,10 @@ class TeacherProfile(models.Model):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
     is_active = models.BooleanField(default=True)
-    profile_photo = models.ImageField(upload_to="profiles/teachers/", blank=True, null=True)
-    position_title = models.CharField(max_length=120, blank=True)
-    reports_to = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="direct_reports",
-    )
-    department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="teachers",
-    )
     pay_grade = models.CharField(
         max_length=50,
         blank=True,
-        help_text="Legacy pay grade field (text). Consider using pay_scale instead."
+        help_text="Legacy pay grade field (text). Consider using pay_scale instead.",
     )
     pay_scale = models.ForeignKey(
         "payroll.PayScale",
@@ -67,7 +51,7 @@ class TeacherProfile(models.Model):
         null=True,
         blank=True,
         related_name="teacher_profiles",
-        help_text="Structured pay scale/grade assigned to this teacher"
+        help_text="Structured pay scale/grade assigned to this teacher",
     )
     salary_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)

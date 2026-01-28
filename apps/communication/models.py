@@ -6,6 +6,9 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from apps.academics.models import Classroom, Department
+import uuid
+
+from apps.accounts.validators import validate_kb_attachment_file, validate_file_size_10mb
 
 
 def get_default_expiry():
@@ -317,7 +320,6 @@ class AlertRule(models.Model):
     
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    
     condition = models.CharField(max_length=255)
     frequency = models.CharField(
         max_length=20,
@@ -338,3 +340,124 @@ class AlertRule(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.user.get_full_name()})"
+
+
+class ContactRequest(models.Model):
+    """
+    Parent/guardian request to speak with staff.
+    Routed to secretary/executive assistant/virtual assistant for triage, then assigned to the right person.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", "Open"
+        TRIAGED = "TRIAGED", "Triaged"
+        ASSIGNED = "ASSIGNED", "Assigned"
+        IN_PROGRESS = "IN_PROGRESS", "In progress"
+        RESOLVED = "RESOLVED", "Resolved"
+        CLOSED = "CLOSED", "Closed"
+
+    class Channel(models.TextChoices):
+        PHONE = "PHONE", "Phone call"
+        WHATSAPP = "WHATSAPP", "WhatsApp"
+        EMAIL = "EMAIL", "Email"
+        IN_PERSON = "IN_PERSON", "In-person"
+
+    class Audience(models.TextChoices):
+        TEACHER = "TEACHER", "Teacher"
+        LEADERSHIP = "LEADERSHIP", "Leadership"
+        FINANCE = "FINANCE", "Finance/Bursar"
+        REGISTRAR = "REGISTRAR", "Registrar/Admissions"
+        IT = "IT", "IT Support"
+        OTHER = "OTHER", "Other"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    parent = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="contact_requests_created",
+        help_text="Parent/guardian who submitted the request.",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contact_requests",
+        help_text="Optional: the student this request is about.",
+    )
+
+    # Confirmation details (parents can correct these even if account profile is incomplete)
+    contact_name = models.CharField(max_length=160)
+    contact_phone = models.CharField(max_length=60, blank=True)
+    contact_whatsapp = models.CharField(max_length=60, blank=True)
+    contact_email = models.EmailField(blank=True)
+
+    audience = models.CharField(max_length=30, choices=Audience.choices, default=Audience.TEACHER)
+    preferred_channel = models.CharField(max_length=20, choices=Channel.choices, default=Channel.WHATSAPP)
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+
+    desired_staff = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contact_requests_desired",
+        help_text="Optional: specific user the parent wants to speak to.",
+    )
+
+    triage_owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contact_requests_triaged",
+        help_text="Secretary/executive assistant/virtual assistant handling triage.",
+    )
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contact_requests_assigned",
+        help_text="Staff member responsible for contacting the parent.",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+
+    triage_notes = models.TextField(blank=True)
+    resolution_notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["parent", "-created_at"]),
+            models.Index(fields=["assigned_to", "status"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.subject} · {self.get_status_display()}"
+
+
+class ContactRequestAttachment(models.Model):
+    request = models.ForeignKey(ContactRequest, on_delete=models.CASCADE, related_name="attachments")
+    file = models.FileField(
+        upload_to="communication/contact-requests/%Y/%m/",
+        validators=[validate_kb_attachment_file, validate_file_size_10mb],
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contact_request_attachments_uploaded",
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-uploaded_at"]

@@ -250,6 +250,7 @@ def parent_dashboard(request: HttpRequest):
             {"label": "Tasks", "value": widget_data["tasks"]["pending_evaluations"], "meta": "Eval gaps"},
         ],
     }
+    hero["actions"].append({"label": "Contact School", "url": reverse("portal:parent_contact_school")})
     if can_view_results:
         hero["actions"].insert(0, {"label": "View Results", "url": "#children"})
         hero["actions"].insert(1, {"label": "View Attendance", "url": reverse("portal:portal_stats")})
@@ -259,15 +260,15 @@ def parent_dashboard(request: HttpRequest):
         hero["status_pills"].insert(1, {"label": "Reminders", "value": reminders_count, "meta": "Pending notices"})
         hero["actions"].append({"label": "Pay Fees", "url": reverse("portal:parent_finance")})
 
-    dashboard_settings = load_dashboard_layout_settings(request.user, "parent")
+    from apps.accounts.utils import get_dashboard_context
+    
+    dashboard_context = get_dashboard_context(request.user, "parent")
     available_sidebar_items = [
         {"id": "parent-home", "label": "Parent Home", "url": reverse("portal:parent_dashboard"), "icon": "bi-house"},
         {"id": "parent-finance", "label": "Finance", "url": reverse("portal:parent_finance"), "icon": "bi-cash-stack"},
         {"id": "parent-stats", "label": "Portal Stats", "url": reverse("portal:portal_stats"), "icon": "bi-graph-up"},
         {"id": "parent-links", "label": "Link a Child", "url": reverse("portal:link_child"), "icon": "bi-link-45deg"},
     ]
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "parent"})
-    allow_custom_layout = _can_customize(request.user)
     site = SiteSettings.get_solo()
 
     return render(request, "parent/dashboard.html", {
@@ -291,11 +292,8 @@ def parent_dashboard(request: HttpRequest):
         "finance_paid_pct": finance_paid_pct,
         "finance_total": finance_total,
         "finance_paid": finance_paid,
-        "allow_custom_layout": allow_custom_layout,
-        "dashboard_settings": dashboard_settings,
-        "dashboard_layout_url": dashboard_layout_url,
         "available_sidebar_items": available_sidebar_items,
-        "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
+        **dashboard_context,  # Unpack dashboard settings, layout URL, widget metadata, etc.
         "finance_access_banner": finance_access_banner,
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],

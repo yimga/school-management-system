@@ -164,9 +164,15 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
 
     class_rankings = classroom_term_rankings(student.classroom, term)
     school_rankings = school_term_rankings(term)
+    specialty_rankings = [
+        agg
+        for agg in class_rankings
+        if getattr(getattr(agg, "student", None), "specialty_id", None) == student.specialty_id
+    ]
 
     class_position = _rank_position(class_rankings, student.id)
     school_position = _rank_position(school_rankings, student.id)
+    specialty_position = _rank_position(specialty_rankings, student.id)
 
     promotion_status = get_promotion_status(student, academic_year, overall_average)
 
@@ -174,6 +180,8 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "average": overall_average,
         "class_position": class_position,
         "class_size": len(class_rankings),
+        "specialty_position": specialty_position,
+        "specialty_size": len(specialty_rankings),
         "school_position": school_position,
         "school_size": len(school_rankings),
         "promotion_status": promotion_status,
@@ -234,10 +242,20 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         classroom=student.classroom,
         is_active=True,
     ).select_related("classroom")
+    specialty_students = StudentProfile.objects.filter(
+        classroom=student.classroom,
+        specialty_id=student.specialty_id,
+        is_active=True,
+    ).select_related("classroom")
     school_students = StudentProfile.objects.filter(is_active=True).select_related("classroom")
 
     class_rankings = sorted(
         class_students,
+        key=lambda s: _annual_average_for_student(s, terms) or 0.0,
+        reverse=True,
+    )
+    specialty_rankings = sorted(
+        specialty_students,
         key=lambda s: _annual_average_for_student(s, terms) or 0.0,
         reverse=True,
     )
@@ -251,6 +269,12 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
     for idx, s in enumerate(class_rankings, start=1):
         if s.id == student.id:
             class_position = idx
+            break
+
+    specialty_position = None
+    for idx, s in enumerate(specialty_rankings, start=1):
+        if s.id == student.id:
+            specialty_position = idx
             break
 
     school_position = None
@@ -268,6 +292,8 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "annual_average": annual_average,
         "class_position": class_position,
         "class_size": len(class_rankings),
+        "specialty_position": specialty_position,
+        "specialty_size": len(specialty_rankings),
         "school_position": school_position,
         "school_size": len(school_rankings),
         "promotion_status": promotion_status,

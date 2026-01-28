@@ -321,58 +321,30 @@ def master_sheet(request: HttpRequest):
 
 @staff_member_required
 def grading_deadlines(request: HttpRequest):
+    """
+    Grading deadlines management.
+    
+    NOTE: GradingDeadline model was removed. This view is kept for future implementation.
+    Consider adding deadline_at field to SubjectAssignment model or creating a new
+    GradingDeadline model if needed.
+    """
     active_year, active_term = get_active_year_and_term()
     if not active_year or not active_term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
-    year_id = request.GET.get("year") or request.POST.get("year") or str(active_year.id)
-    term_id = request.GET.get("term") or request.POST.get("term") or str(active_term.id)
+    year_obj = get_object_or_404(AcademicYear, id=request.GET.get("year") or str(active_year.id))
+    term_obj = get_object_or_404(Term, id=request.GET.get("term") or str(active_term.id), academic_year=year_obj)
 
-    year_obj = get_object_or_404(AcademicYear, id=year_id)
-    term_obj = get_object_or_404(Term, id=term_id, academic_year=year_obj)
-
-    classrooms = Classroom.objects.filter(academic_year=year_obj).order_by("name")
-
-    if request.method == "POST":
-        action = request.POST.get("action") or "save"
-        deadline_id = request.POST.get("deadline_id")
-
-        # GradingDeadline model is missing. Skipping delete logic.
-        if action == "delete" and deadline_id:
-            messages.success(request, "Deadline removed (no-op, model missing).")
-            return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
-
-        classroom_id = request.POST.get("classroom") or None
-        deadline_raw = request.POST.get("deadline_at") or ""
-
-        classroom_obj = Classroom.objects.filter(id=classroom_id).first() if classroom_id else None
-
-        if not deadline_raw:
-            messages.error(request, "Please provide a deadline date/time.")
-            return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
-
-        try:
-            deadline_naive = datetime.strptime(deadline_raw, "%Y-%m-%dT%H:%M")
-        except ValueError:
-            messages.error(request, "Invalid deadline format.")
-            return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
-
-        deadline_at = timezone.make_aware(deadline_naive, timezone.get_current_timezone())
-
-
-        # GradingDeadline model is missing. Skipping save logic.
-        messages.success(request, "Deadline saved (no-op, model missing).")
-        return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
-
-    # GradingDeadline model is missing. Use empty list.
-    deadlines = []
+    # TODO: Implement deadline management using SubjectAssignment.deadline_at or new model
+    messages.info(request, "Deadline management feature is under development. "
+                          "Currently, deadlines can be set per SubjectAssignment in the admin panel.")
 
     context = {
         "year": year_obj,
         "term": term_obj,
         "years": AcademicYear.objects.order_by("-start_date"),
         "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date"),
-        "classrooms": classrooms,
-        "deadlines": deadlines,
+        "classrooms": Classroom.objects.filter(academic_year=year_obj).order_by("name"),
+        "deadlines": [],  # Empty until implementation
     }
     return render(request, "analytics/deadlines.html", context)

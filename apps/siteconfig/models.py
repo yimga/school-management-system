@@ -1159,6 +1159,22 @@ class ReportCardStyle(models.Model):
     watermark_text = models.CharField(max_length=150, blank=True)
     header_tagline = models.CharField(max_length=200, blank=True)
     css_snippet = models.TextField(blank=True)
+    labels = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Key/value labels used by report templates for wording. "
+            "Example: {\"report_title\": \"ACADEMIC REPORT SHEET\", \"rank\": \"Rank\"}."
+        ),
+    )
+    layout_config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Layout configuration for report templates (show/hide columns/sections). "
+            "Example: {\"show_school_rank\": true, \"show_specialty_rank\": true}."
+        ),
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1175,6 +1191,18 @@ class ReportCardStyle(models.Model):
         if report_type == ReportCard.Type.TERM:
             return self.term_template
         return self.annual_template
+
+    def label(self, key: str, default: str = "") -> str:
+        """Safe label lookup for templates."""
+        data = self.labels or {}
+        value = data.get(key, default)
+        return str(value) if value is not None else default
+
+    def flag(self, key: str, default: bool = False) -> bool:
+        """Safe boolean lookup for templates."""
+        data = self.layout_config or {}
+        value = data.get(key, default)
+        return bool(value) if value is not None else bool(default)
 
 
 class ReportCardStyleAssignment(models.Model):
