@@ -425,7 +425,7 @@ def teacher_dashboard(request: HttpRequest):
 
     dashboard_settings = load_dashboard_layout_settings(request.user, "teacher")
     available_sidebar_items = [
-        {"id": "teacher-home", "label": "Teacher hub", "url": reverse("portal:teacher_dashboard"), "icon": "bi-person-lines-fill"},
+        {"id": "teacher-home", "label": "Teacher hub", "url": reverse("portal:teacher_dashboard_alias"), "icon": "bi-person-lines-fill"},
         {"id": "teacher-attendance", "label": "Attendance", "url": reverse("portal:teacher_attendance"), "icon": "bi-calendar-check"},
         {"id": "teacher-pay", "label": "Pay history", "url": reverse("portal:teacher_pay_history"), "icon": "bi-wallet2"},
         {"id": "teacher-syllabus", "label": "Syllabus", "url": reverse("portal:portal_syllabus"), "icon": "bi-journal-text"},

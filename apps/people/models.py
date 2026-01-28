@@ -283,6 +283,18 @@ class StudentProfile(models.Model):
     def __str__(self):
         return f"{self.last_name} {self.first_name} ({self.student_code})"
 
+    def get_full_name(self) -> str:
+        """
+        Canonical full name for admin displays and templates.
+        Falls back to linked user or student_code when needed.
+        """
+        name = " ".join(p for p in [self.first_name, self.last_name] if p).strip()
+        if name:
+            return name
+        if self.user:
+            return self.user.get_full_name() or self.user.username
+        return self.student_code or "Student"
+
     @property
     def parent_completeness(self) -> int:
         """
