@@ -363,22 +363,35 @@ class StudentProfile(models.Model):
         return f"{yy}{school_code}{seq_str}{spec_segment}{class_segment}"
 
     def save(self, *args, **kwargs):
-        # Auto-generate admission number when not provided. Use _id checks to avoid
-        # related object descriptor errors when foreign keys aren't set during tests.
-        if (not self.admission_number
-            and getattr(self, 'academic_year_id', None)
-            and getattr(self, 'specialty_id', None)
-            and getattr(self, 'classroom_id', None)):
-            from apps.academics.models import AcademicYear, Classroom, Specialty
-            # Resolve objects for generation
-            year = AcademicYear.objects.get(id=self.academic_year_id)
-            specialty = Specialty.objects.get(id=self.specialty_id)
-            classroom = Classroom.objects.get(id=self.classroom_id)
-            self.admission_number = self.generate_admission_number(
-                year,
-                specialty,
-                classroom,
-            )
+        # Auto-generate admission number when not provided, if enabled in SiteSettings.
+        # Use _id checks to avoid related object descriptor errors when foreign keys
+        # aren't set during tests.
+        if getattr(self, "academic_year_id", None) and getattr(self, "specialty_id", None) and getattr(
+            self, "classroom_id", None
+        ):
+            SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
+            site_settings = SiteSettings.get_solo()
+            mode = getattr(site_settings, "admission_number_mode", None)
+
+            # Backwards-compatible default: allow auto-generation when admission number is blank.
+            auto_modes = {
+                getattr(SiteSettings.AdmissionNumberMode, "AUTO", "AUTO"),
+                getattr(SiteSettings.AdmissionNumberMode, "AUTO_OR_MANUAL", "AUTO_OR_MANUAL"),
+            }
+            auto_allowed = (mode in auto_modes) or (mode is None)
+
+            if auto_allowed and not self.admission_number:
+                from apps.academics.models import AcademicYear, Classroom, Specialty
+
+                # Resolve objects for generation
+                year = AcademicYear.objects.get(id=self.academic_year_id)
+                specialty = Specialty.objects.get(id=self.specialty_id)
+                classroom = Classroom.objects.get(id=self.classroom_id)
+                self.admission_number = self.generate_admission_number(
+                    year,
+                    specialty,
+                    classroom,
+                )
         if not self.student_code:
             self.student_code = self.admission_number or f"TEMP-{uuid.uuid4().hex[:8].upper()}"
         if not self.referral_code:
@@ -390,9 +403,15 @@ class StudentProfile(models.Model):
         Validate admission number format; keep editable but enforce structure.
         """
         if self.admission_number:
-            new_style = r"^\d{2}[A-Z0-9]{2,10}\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4}$"
-            legacy = r"^\d{2}-[A-Z0-9]{2,10}-\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4}$"
-            pattern = rf"({new_style}|{legacy})"
+            # Use admission number pattern from SiteSettings when available,
+            # falling back to the built-in YY + SCHOOL + #### + SPEC + CLASS pattern.
+            SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
+            site_settings = SiteSettings.get_solo()
+            pattern = getattr(site_settings, "admission_number_pattern", "") or ""
+            if not pattern:
+                new_style = r"^\d{2}[A-Z0-9]{2,10}\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4}$"
+                legacy = r"^\d{2}-[A-Z0-9]{2,10}-\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4}$"
+                pattern = rf"({new_style}|{legacy})"
             if not re.match(pattern, self.admission_number):
                 raise ValidationError(
                     {

@@ -6,6 +6,7 @@ from collections import Counter
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse
+from django import forms
 import uuid
 from decimal import Decimal
 from django.db.models import Sum
@@ -66,6 +67,7 @@ from .services import (
     guardian_students,
     class_announcements_for_parent,
     class_threads_for_parent,
+    parent_onboarding_score,
 )
 from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm
 from apps.communication.models import Message
@@ -191,6 +193,7 @@ def parent_dashboard(request: HttpRequest):
     att_map = {row.get("student_id"): row for row in widget_data.get("attendance", {}).get("per_student", [])}
     fin_map = {row.get("student_id"): row for row in widget_data.get("finance", {}).get("per_student", [])}
 
+    onboarding = parent_onboarding_score(request.user, students)
     child_cards = []
     for link in links:
         student_id = link.student.id
@@ -263,6 +266,7 @@ def parent_dashboard(request: HttpRequest):
     ]
     dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "parent"})
     allow_custom_layout = _can_customize(request.user)
+    site = SiteSettings.get_solo()
 
     return render(request, "parent/dashboard.html", {
         "links": links,
@@ -270,6 +274,7 @@ def parent_dashboard(request: HttpRequest):
         "can_view_finance": can_view_finance,
         "portal_features": portal_features,
         "widget_data": widget_data,
+        "onboarding": onboarding,
         "child_cards": child_cards,
         "display_widgets": display_widgets,
         "portal_quick_actions": portal_quick_actions,
@@ -293,6 +298,7 @@ def parent_dashboard(request: HttpRequest):
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,
+        "site": site,
     })
 
 
@@ -918,6 +924,10 @@ def _whatsapp_invite_link() -> str | None:
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def link_child(request: HttpRequest):
+    """
+    Legacy single-page form view (kept for backwards compatibility).
+    New users should use link_child_wizard for a better experience.
+    """
     site = SiteSettings.get_solo()
     form = LinkChildForm(
         request.POST or None,
@@ -962,6 +972,189 @@ def link_child(request: HttpRequest):
             "form": form,
             "school_code": site.school_code,
             "completeness_pct": form.completeness_score(),
+            "referral_bonus": site.referral_bonus_amount,
+            "support_email": site.company_email,
+            "support_phone": site.company_phone,
+            "whatsapp_invite_link": _whatsapp_invite_link(),
+        },
+    )
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def link_child_wizard(request: HttpRequest):
+    """
+    Multi-step wizard for linking a child (mobile-friendly, progressive disclosure).
+    
+    Steps:
+    1. Identify child (admission number + relationship) → shows student confirmation
+    2. Contact & permissions (phone, preferred contact, can_view_results/finance)
+    3. Optional details (DOB, place of birth, joined term/date, address, referral code)
+    
+    Uses session to persist form data between steps.
+    """
+    site = SiteSettings.get_solo()
+    session_key = "link_child_wizard_data"
+    wizard_data = request.session.get(session_key, {})
+    step = int(request.GET.get("step", "1"))
+    
+    # Handle step navigation
+    if request.method == "POST":
+        action = request.POST.get("action", "next")
+        
+        if action == "back":
+            step = max(1, step - 1)
+            request.session[session_key] = wizard_data
+            return redirect(f"{request.path}?step={step}")
+        
+        # Save current step data to session
+        for key, value in request.POST.items():
+            if key not in ("csrfmiddlewaretoken", "action", "step"):
+                wizard_data[key] = value
+        
+        request.session[session_key] = wizard_data
+        
+        # Validate current step
+        form = LinkChildForm(
+            data=request.POST,
+            guardian_user=request.user,
+            school_code=site.school_code,
+        )
+        
+        if step == 1:
+            # Step 1: Validate admission number and relationship
+            admission = request.POST.get("admission_number", "").strip()
+            relationship = request.POST.get("relationship", "")
+            
+            has_errors = False
+            
+            # Basic validation - both fields required
+            if not admission:
+                form.add_error("admission_number", forms.ValidationError("Admission number is required."))
+                has_errors = True
+            if not relationship:
+                form.add_error("relationship", forms.ValidationError("Relationship is required."))
+                has_errors = True
+            
+            # If we have an admission number, validate it
+            if admission and relationship and not has_errors:
+                try:
+                    student = StudentProfile.objects.select_related(
+                        "academic_year", "classroom", "specialty"
+                    ).get(admission_number__iexact=admission)
+                    if not student.is_active:
+                        form.add_error("admission_number", forms.ValidationError("This student profile is inactive."))
+                    elif StudentGuardian.objects.filter(
+                        guardian_user=request.user,
+                        student=student,
+                    ).exists():
+                        form.add_error("admission_number", forms.ValidationError("You are already linked to this student."))
+                    else:
+                        # Valid, move to step 2
+                        step = 2
+                        request.session[session_key] = wizard_data
+                        return redirect(f"{request.path}?step={step}")
+                except StudentProfile.DoesNotExist:
+                    form.add_error("admission_number", forms.ValidationError("No student found with that admission number."))
+                except Exception as e:
+                    # Log the error but show a user-friendly message
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error validating admission number: {e}", exc_info=True)
+                    form.add_error("admission_number", forms.ValidationError("An error occurred. Please try again or contact support."))
+        elif step == 2:
+            # Step 2: Contact & permissions - always valid (fields are optional or have defaults)
+            step = 3
+            request.session[session_key] = wizard_data
+            return redirect(f"{request.path}?step={step}")
+        elif step == 3:
+            # Step 3: Final step - validate and save
+            if form.is_valid():
+                guardian_link = form.save()
+                student = guardian_link.student
+                student_updates = form.student_updates()
+                if student_updates:
+                    StudentProfile.objects.filter(pk=student.pk).update(**student_updates)
+                    student.refresh_from_db()
+                
+                parent_updates = form.parent_updates()
+                if parent_updates:
+                    changed = []
+                    for attr, value in parent_updates.items():
+                        setattr(request.user, attr, value)
+                        changed.append(attr)
+                    if changed:
+                        request.user.save(update_fields=changed)
+                
+                messages.success(
+                    request,
+                    f"Linked {guardian_link.student} successfully. Results and finance access will reflect your choices.",
+                )
+                referral_code = form.cleaned_data.get("referral_code", "").strip()
+                reward = award_referral_reward(guardian_link, referral_code, request.user)
+                if reward and reward.amount > Decimal("0.00"):
+                    messages.info(
+                        request,
+                        f"Referral bonus of {reward.amount:.2f} will appear in your finance view once approved.",
+                    )
+                
+                # Clear wizard session
+                if session_key in request.session:
+                    del request.session[session_key]
+                
+                return redirect("portal:parent_dashboard")
+    
+    # Build form with session data for current step
+    form_data = {}
+    if wizard_data:
+        form_data.update(wizard_data)
+    
+    form = LinkChildForm(
+        data=form_data if request.method == "GET" else None,
+        guardian_user=request.user,
+        school_code=site.school_code,
+    )
+    
+    # Pre-populate form from session
+    if wizard_data:
+        for key, value in wizard_data.items():
+            if key in form.fields:
+                form.fields[key].initial = value
+    
+    # Get student info if admission number was validated
+    student_info = None
+    if hasattr(form, "student"):
+        student_info = form.student
+    elif "admission_number" in wizard_data:
+        try:
+            student_info = StudentProfile.objects.select_related(
+                "academic_year", "classroom", "specialty"
+            ).get(admission_number__iexact=wizard_data["admission_number"])
+        except StudentProfile.DoesNotExist:
+            pass
+    
+    # Auto-fill parent fields from user if not in session
+    if not wizard_data.get("parent_first_name") and request.user.first_name:
+        form.fields["parent_first_name"].initial = request.user.first_name
+    if not wizard_data.get("parent_last_name") and request.user.last_name:
+        form.fields["parent_last_name"].initial = request.user.last_name
+    if not wizard_data.get("parent_email") and request.user.email:
+        form.fields["parent_email"].initial = request.user.email
+    
+    total_steps = 3
+    progress_pct = int((step / total_steps) * 100)
+    
+    return render(
+        request,
+        "parent/link_child_wizard.html",
+        {
+            "form": form,
+            "step": step,
+            "total_steps": total_steps,
+            "progress_pct": progress_pct,
+            "student_info": student_info,
+            "school_code": site.school_code,
+            "completeness_pct": form.completeness_score() if wizard_data else 0,
             "referral_bonus": site.referral_bonus_amount,
             "support_email": site.company_email,
             "support_phone": site.company_phone,

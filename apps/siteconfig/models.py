@@ -376,6 +376,34 @@ class SiteSettings(models.Model):
         default="GIL",
         help_text="Short code used in admission numbers (e.g., GIL).",
     )
+    class AdmissionNumberMode(models.TextChoices):
+        AUTO = "AUTO", "Auto-generate (recommended)"
+        MANUAL = "MANUAL", "Manual entry only"
+        AUTO_OR_MANUAL = "AUTO_OR_MANUAL", "Allow auto or manual"
+
+    admission_number_mode = models.CharField(
+        max_length=20,
+        choices=AdmissionNumberMode.choices,
+        default=AdmissionNumberMode.AUTO_OR_MANUAL,
+        help_text=(
+            "Controls whether student admission numbers are auto-generated, "
+            "entered manually, or can be either. In AUTO/AUTO_OR_MANUAL modes, "
+            "leaving the field blank will generate a number using the school code."
+        ),
+    )
+    admission_number_pattern = models.CharField(
+        max_length=255,
+        blank=True,
+        default=(
+            r"(\\d{2}[A-Z0-9]{2,10}\\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4})|"
+            r"(\\d{2}-[A-Z0-9]{2,10}-\\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4})"
+        ),
+        help_text=(
+            "Regex used to validate admission numbers. "
+            "Defaults to YY + SCHOOL + #### + SPEC + CLASS (no dashes) "
+            "or the legacy dashed format."
+        ),
+    )
     company_name = models.CharField(max_length=160, blank=True, default="")
     company_address = models.TextField(blank=True, default="")
     company_phone = models.CharField(max_length=50, blank=True, default="")
