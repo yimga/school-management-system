@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('payroll', '0003_payscale_and_links'),
-        ('auth', '####_first'),  # Ensure auth migrations are applied
+        ('contenttypes', '0002_remove_content_type_name'),  # Ensure contenttypes is set up (auth depends on it)
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
