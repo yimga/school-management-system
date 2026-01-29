@@ -30,9 +30,25 @@
                 <div>
                   <h6 class="mb-1">{{ item.title }}</h6>
                   <p class="mb-1 small text-muted">{{ item.description }}</p>
-                  {% if item.link %}
-                    <a href="{{ item.link }}" target="_blank" rel="noreferrer" class="small">Open link</a>
-                  {% endif %}
+                  <div class="d-flex gap-2 mt-2">
+                    {% if item.file %}
+                      <a href="{% url 'portal:document_download' item.id %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-download me-1"></i>Download
+                      </a>
+                      {% if item.requires_signature %}
+                        <span class="badge bg-warning text-dark">
+                          <i class="bi bi-pen me-1"></i>Requires Signature
+                        </span>
+                      {% endif %}
+                    {% elif item.link %}
+                      <a href="{{ item.link }}" target="_blank" rel="noreferrer" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Open Link
+                      </a>
+                    {% endif %}
+                    {% if item.document_type %}
+                      <span class="badge bg-secondary">{{ item.get_document_type_display }}</span>
+                    {% endif %}
+                  </div>
                 </div>
                 <div class="text-end text-muted small">
                   {{ item.created_at|date:"Y-m-d" }}<br/>

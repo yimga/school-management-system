@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load static %}
-{% load static %}
 
 {% block title %}Knowledge Base - Help Center{% endblock %}
 
@@ -63,30 +62,27 @@
                 <div class="carousel-inner">
                     {% for article in featured_articles %}
                     <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                        <a href="{% url 'kb:kb_article' article.slug %}}" 
+                        <a href="{% url 'kb:kb_article' article.slug %}" 
                            class="card shadow-lg text-decoration-none h-100"
                            style="cursor: pointer;">
                             <div class="card-body p-4">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <h5 class="card-title text-primary">
-                                        <i class="fas fa-{{ article.icon }}"></i> {{ article.title }}
+                                        {{ article.title }}
                                     </h5>
-                                    <span class="badge badge-warning">
+                                    <span class="badge bg-warning text-dark">
                                         <i class="fas fa-star"></i> Featured
                                     </span>
                                 </div>
                                 <p class="card-text text-muted">{{ article.summary|truncatewords:30 }}</p>
                                 <div class="mt-3">
                                     {% if article.difficulty %}
-                                    <span class="badge 
-                                        {% if article.difficulty == 'BEGINNER' %}badge-success
-                                        {% elif article.difficulty == 'INTERMEDIATE' %}badge-warning
-                                        {% else %}badge-danger{% endif %}">
+                                    <span class="badge {% if article.difficulty == 'BEGINNER' %}bg-success{% elif article.difficulty == 'INTERMEDIATE' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
                                         {{ article.get_difficulty_display }}
                                     </span>
                                     {% endif %}
                                     <small class="text-muted ml-2">
-                                        <i class="fas fa-clock"></i> {{ article.read_time }} min read
+                                        <i class="fas fa-clock"></i> {{ article.estimated_read_time }} min read
                                     </small>
                                 </div>
                             </div>
@@ -128,7 +124,7 @@
                         {{ category.description|truncatewords:15 }}
                     </p>
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge badge-primary">{{ category.article_count }} articles</span>
+                        <span class="badge bg-primary">{{ category.article_count }} articles</span>
                         <small class="text-muted">
                             <i class="fas fa-arrow-right"></i> Browse
                         </small>
@@ -173,9 +169,9 @@
                         {{ article.updated_at|date:"M d, Y" }}
                     </small>
                     {% if article.difficulty %}
-                    <span class="badge {% if article.difficulty == 'BEGINNER' %}badge-success
-                        {% elif article.difficulty == 'INTERMEDIATE' %}badge-warning
-                        {% else %}badge-danger{% endif %} float-right">
+                    <span class="badge {% if article.difficulty == 'BEGINNER' %}bg-success
+                        {% elif article.difficulty == 'INTERMEDIATE' %}bg-warning text-dark
+                        {% else %}bg-danger{% endif %} float-right">
                         {{ article.get_difficulty_display }}
                     </span>
                     {% endif %}
@@ -213,10 +209,10 @@
                         </div>
                         <div class="text-right ml-3">
                             <small class="text-muted d-block">
-                                <i class="fas fa-eye"></i> {{ article.views }} views
+                                <i class="fas fa-eye"></i> {{ article.view_count }} views
                             </small>
                             <small class="text-muted">
-                                <i class="fas fa-clock"></i> {{ article.read_time }} min
+                                <i class="fas fa-clock"></i> {{ article.estimated_read_time }} min
                             </small>
                         </div>
                     </div>

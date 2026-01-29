@@ -24,17 +24,17 @@
   --admin-sidebar-bg: #111827;
   --admin-sidebar-surface: #1f2937;
   --admin-sidebar-border: #334155;
-  --admin-sidebar-text: #f8fafc;
-  --admin-sidebar-text-muted: #cbd5e1;
+  --admin-sidebar-text: #f8fafc; /* Already high contrast */
+  --admin-sidebar-text-muted: #e2e8f0; /* Increased contrast from #cbd5e1 */
   --admin-sidebar-hover-bg: #1f2937;
   --admin-sidebar-active-bg: #1f2937;
   --admin-sidebar-active-border: #38bdf8;
   --admin-sidebar-badge-bg: #334155;
   --admin-sidebar-badge-text: #f8fafc;
   --admin-sidebar-child-bg: linear-gradient(135deg, rgba(17,24,39,0.95), rgba(17,24,39,0.85));
-  --admin-sidebar-child-border: rgba(255, 255, 255, 0.12);
-  --admin-sidebar-child-hover: rgba(59,130,246,0.12);
-  --admin-sidebar-child-active: rgba(14,116,144,0.2);
+  --admin-sidebar-child-border: rgba(255, 255, 255, 0.15); /* Increased visibility */
+  --admin-sidebar-child-hover: rgba(59,130,246,0.15); /* Increased visibility */
+  --admin-sidebar-child-active: rgba(14,116,144,0.25); /* Increased visibility */
 }
 
 :root[data-theme="dark"] {
@@ -194,9 +194,11 @@
 .sidebar-heading {
   padding: var(--spacing-md) var(--spacing-lg);
   margin: 0;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
+  font-size: 0.75rem; /* Increased from var(--font-size-xs) for better readability */
+  font-weight: 700; /* Increased from var(--font-weight-bold) */
   text-transform: uppercase;
+  color: var(--admin-sidebar-text-muted);
+  letter-spacing: 0.05em; /* Added for better readability */
   letter-spacing: var(--letter-spacing-wide);
   color: var(--admin-sidebar-text-muted);
 }
@@ -295,8 +297,9 @@
 
 .sidebar-submenu a {
   padding-left: calc(var(--spacing-lg) + 28px);
-  font-size: var(--font-size-xs);
+  font-size: 0.85rem; /* Increased from var(--font-size-xs) for better readability */
   color: var(--admin-sidebar-text-muted);
+  font-weight: 400; /* Added for consistency */
 }
 
 .sidebar-submenu a:hover {
@@ -753,8 +756,6 @@
 #nav-sidebar .module {
   background: var(--admin-sidebar-bg) !important;
   color: var(--admin-sidebar-text) !important;
-  outline: 2px dashed #ff3b5f !important;
-  outline-offset: -2px;
 }
 
 #nav-sidebar a,
@@ -784,7 +785,7 @@
 }
 
 #nav-sidebar .nav-accordion-content a {
-  color: var(--admin-sidebar-text-muted) !important;
+  color: var(--admin-sidebar-text) !important;
 }
 
 #nav-sidebar .nav-accordion-content a:hover {

@@ -27,6 +27,22 @@ from .views_contact_requests import (
     staff_contact_request_list,
     staff_contact_request_detail,
 )
+try:
+    from .views_documents import (
+        document_library_manage,
+        document_upload,
+        document_delete,
+        document_download,
+        signature_requests_manage,
+        signature_request_create,
+        signature_pending_list,
+        signature_sign,
+    )
+    DOCUMENTS_AVAILABLE = True
+except ImportError:
+    DOCUMENTS_AVAILABLE = False
+    document_library_manage = document_upload = document_delete = document_download = None
+    signature_requests_manage = signature_request_create = signature_pending_list = signature_sign = None
 
 app_name = "portal"
 
@@ -70,4 +86,19 @@ urlpatterns = [
     # Staff triage: parent contact requests
     path("staff/contact-requests/", staff_contact_request_list, name="staff_contact_request_list"),
     path("staff/contact-requests/<uuid:request_id>/", staff_contact_request_detail, name="staff_contact_request_detail"),
+    
+    # Document Library Management (Backend UI)
+    path("backend/documents/", document_library_manage, name="document_library_manage"),
+    path("backend/documents/upload/", document_upload, name="document_upload"),
+    path("backend/documents/upload/<int:document_id>/", document_upload, name="document_edit"),
+    path("backend/documents/delete/<int:document_id>/", document_delete, name="document_delete"),
+    path("backend/documents/download/<int:document_id>/", document_download, name="document_download"),
+    
+    # Signature Requests Management
+    path("backend/signatures/", signature_requests_manage, name="signature_requests_manage"),
+    path("backend/signatures/create/", signature_request_create, name="signature_request_create"),
+    
+    # Parent Signature Interface
+    path("parent/signatures/", signature_pending_list, name="signature_pending_list"),
+    path("parent/signatures/sign/<int:signature_id>/", signature_sign, name="signature_sign"),
 ]

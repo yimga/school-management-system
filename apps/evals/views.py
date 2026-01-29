@@ -527,6 +527,28 @@ def teacher_dashboard(request: HttpRequest):
         {"id": "teacher-syllabus", "label": "Syllabus", "url": reverse("portal:portal_syllabus"), "icon": "bi-journal-text"},
     ]
 
+    # Certification stats (if GCE enabled and teacher teaches exam classes)
+    certification_stats = {}
+    if year and getattr(year, "enable_gce_registration", False):
+        from apps.academics.models import CertificationExamSession, CertificationCandidate
+        # Check if teacher's classrooms have candidates
+        teacher_classroom_ids = [sa.classroom_id for sa in assignments if sa.classroom_id]
+        if teacher_classroom_ids:
+            candidates_in_classes = CertificationCandidate.objects.filter(
+                session__academic_year=year,
+                student__classroom_id__in=teacher_classroom_ids,
+            ).select_related("session", "student")
+            if candidates_in_classes.exists():
+                certification_stats = {
+                    "total_candidates": candidates_in_classes.count(),
+                    "draft_candidates": candidates_in_classes.filter(status="DRAFT").count(),
+                    "verified_candidates": candidates_in_classes.filter(status="VERIFIED").count(),
+                    "sessions": CertificationExamSession.objects.filter(
+                        academic_year=year,
+                        is_active=True,
+                    )[:3],
+                }
+
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -550,6 +572,8 @@ def teacher_dashboard(request: HttpRequest):
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,
+        "certification_stats": certification_stats,
+        "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
     })
 
 @teacher_portal_required

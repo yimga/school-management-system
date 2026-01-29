@@ -482,10 +482,23 @@
   <div class="mb-4">
     <h2 class="fw-bold mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h2>
     <p class="text-muted">Manage your school operations from this unified dashboard</p>
+    <div class="d-flex flex-wrap gap-2 mt-2">
+      <a class="btn btn-sm btn-primary" href="{% url 'accounts:workflow_center' %}">
+        <i class="bi bi-diagram-3 me-1"></i>Workflow Center
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">
+        <i class="bi bi-chat-dots me-1"></i>Messages
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_builder' %}">
+        <i class="bi bi-file-earmark-richtext me-1"></i>Report Card Builder
+      </a>
+    </div>
   </div>
 
+  {% include 'components/recommended_next_steps.html' %}
+
   {% if finance_requests_count %}
-  <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-4">
+  <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
     <div>
       <strong>{{ finance_requests_count }} pending finance access request{% if finance_requests_count != 1 %}s{% endif %}</strong>
       <div class="small text-muted">Audit trails and messages are delivered to your inbox for quick adjudication.</div>
@@ -860,14 +873,32 @@
         <div class="flex-grow-1">
           <label class="form-label small mb-1 d-block">Sidebar items</label>
           <div id="sidebarItemsPicker" class="d-flex flex-wrap align-items-center gap-2">
-            {% for item in available_sidebar_items %}
-              <div class="form-check form-check-inline mb-0">
-                <input class="form-check-input" type="checkbox" value="{{ item.id }}" id="sidebarItem-{{ item.id }}" {% if item.id in dashboard_settings.sidebar_items %}checked{% endif %}>
-                <label class="form-check-label small" for="sidebarItem-{{ item.id }}">
-                  <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
-                </label>
-              </div>
-            {% endfor %}
+            {% if organized_sidebar %}
+              {% for category, items in organized_sidebar.items %}
+                <div class="border rounded p-2 mb-2" style="width: 100%;">
+                  <div class="fw-semibold small text-muted mb-1">{{ sidebar_categories|get_item:category }}</div>
+                  <div class="d-flex flex-wrap gap-2">
+                    {% for item in items %}
+                      <div class="form-check form-check-inline mb-0">
+                        <input class="form-check-input" type="checkbox" value="{{ item.id }}" id="sidebarItem-{{ item.id }}" {% if item.id in dashboard_settings.sidebar_items %}checked{% endif %}>
+                        <label class="form-check-label small" for="sidebarItem-{{ item.id }}">
+                          <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
+                        </label>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              {% for item in available_sidebar_items %}
+                <div class="form-check form-check-inline mb-0">
+                  <input class="form-check-input" type="checkbox" value="{{ item.id }}" id="sidebarItem-{{ item.id }}" {% if item.id in dashboard_settings.sidebar_items %}checked{% endif %}>
+                  <label class="form-check-label small" for="sidebarItem-{{ item.id }}">
+                    <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
+                  </label>
+                </div>
+              {% endfor %}
+            {% endif %}
           </div>
         </div>
         <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#customLinksModal">
@@ -963,25 +994,47 @@
       <div class="row g-3">
         <div class="col-lg-3 col-md-4 col-sm-6">
           {% if action_perms.people %}
-          <a href="{% url 'admin:accounts_user_add' %}" class="btn btn-outline-primary w-100 py-3">
+          {% if use_backend_people_ui %}
+          <a href="{% url 'accounts:backend_student_create' %}" class="btn btn-outline-primary w-100 py-3">
             <i class="bi bi-person-plus d-block fs-3 mb-2"></i>
-            <span class="fw-semibold">Add User</span>
+            <span class="fw-semibold">Add Student</span>
           </a>
-          {% endif %}
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          {% if action_perms.people %}
-          <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-success w-100 py-3">
-            <i class="bi bi-mortarboard d-block fs-3 mb-2"></i>
+          {% else %}
+          <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-outline-primary w-100 py-3">
+            <i class="bi bi-person-plus d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Add Student</span>
           </a>
           {% endif %}
+          {% endif %}
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6">
           {% if action_perms.people %}
-          <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100 py-3">
-            <i class="bi bi-person-workspace d-block fs-3 mb-2"></i>
+          {% if use_backend_people_ui %}
+          <a href="{% url 'accounts:backend_teacher_create' %}" class="btn btn-outline-info w-100 py-3">
+            <i class="bi bi-person-badge d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Add Teacher</span>
+          </a>
+          {% else %}
+          <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-outline-info w-100 py-3">
+            <i class="bi bi-person-badge d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Add Teacher</span>
+          </a>
+          {% endif %}
+          {% endif %}
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          {% if action_perms.people %}
+          <a href="{% url 'portal:student_onboarding' %}" class="btn btn-outline-success w-100 py-3">
+            <i class="bi bi-mortarboard d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Onboard Student (wizard)</span>
+          </a>
+          {% endif %}
+        </div>
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          {% if action_perms.people %}
+          <a href="{% url 'portal:teacher_onboarding' %}" class="btn btn-outline-secondary w-100 py-3">
+            <i class="bi bi-person-workspace d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Onboard Teacher (wizard)</span>
           </a>
           {% endif %}
         </div>
@@ -1023,6 +1076,14 @@
           </a>
           {% endif %}
         </div>
+        {% if gce_enabled %}
+        <div class="col-lg-3 col-md-4 col-sm-6">
+          <a href="{% url 'accounts:certification_home' %}" class="btn btn-outline-danger w-100 py-3">
+            <i class="bi bi-award d-block fs-3 mb-2"></i>
+            <span class="fw-semibold">Certification & Exams</span>
+          </a>
+        </div>
+        {% endif %}
       </div>
       {% if show_request_settings_access %}
       <div class="alert alert-warning mt-3 mb-0">
@@ -1045,8 +1106,12 @@
           <p class="text-muted small mb-0">Mirror the portal inputs so you can tune KPIs exactly as parents and teachers see them.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-          <button class="btn btn-sm btn-outline-secondary">Sync to portal</button>
-          <button class="btn btn-sm btn-gradient-pill">Refresh stats</button>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}">
+            Tune portal settings
+          </a>
+          <a class="btn btn-sm btn-gradient-pill" href="{{ request.path }}">
+            Refresh stats
+          </a>
         </div>
       </div>
       <div class="row g-3">
@@ -1093,10 +1158,12 @@
         <div class="col-12">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="promoRule" {% if site.use_promotion_rule_for_pass %}checked{% endif %}>
-            <label class="form-check-label small" for="promoRole">Use promotion rule</label>
+            <label class="form-check-label small" for="promoRule">Use promotion rule</label>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
   <div class="row g-3 mb-4">
     <div class="col-lg-6">
@@ -1198,7 +1265,9 @@
             {% endfor %}
           </div>
           <div class="card-actions">
-            <button class="btn btn-sm btn-outline-light">Share dashboard</button>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'kb:kb_home' %}">
+              Help / docs
+            </a>
             <a class="btn btn-sm btn-outline-light" href="{% url 'portal:parent_dashboard' %}">Preview portal</a>
           </div>
           <details class="mt-3">
@@ -1219,7 +1288,9 @@
           <p class="small text-muted mb-2">Awaiting finance approval or invoice assignment.</p>
           <p class="small text-muted mb-0">Overdue invoices: {{ stats.overdue_invoices }}</p>
           <div class="card-actions">
-            <button class="btn btn-sm btn-outline-light">Notify finance</button>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:user_messages' %}?subject=finance+pipeline">
+              Message finance
+            </a>
             <a class="btn btn-sm btn-outline-light" href="{% url 'finance:dashboard' %}">Open finance console</a>
           </div>
         </div>
@@ -1245,6 +1316,62 @@
       </div>
     </div>
   </div>
+
+  {% if gce_enabled and certification_stats %}
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card modular-card shadow-sm" data-dashboard-column="main" data-widget-id="backend-certification-overview">
+        <div class="card-body">
+          <div class="card-title mb-3">
+            <h5><i class="bi bi-award text-danger me-2"></i>Certification & Exams</h5>
+            <span class="meta-tag">GCE / OBC Registration</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-3 col-sm-6">
+              <div class="text-muted small">Active Sessions</div>
+              <div class="fs-4 fw-bold">{{ certification_stats.active_sessions }}</div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+              <div class="text-muted small">Total Candidates</div>
+              <div class="fs-4 fw-bold">{{ certification_stats.total_candidates }}</div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+              <div class="text-muted small">Draft</div>
+              <div class="fs-4 fw-bold text-warning">{{ certification_stats.draft_candidates }}</div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+              <div class="text-muted small">Verified</div>
+              <div class="fs-4 fw-bold text-success">{{ certification_stats.verified_candidates }}</div>
+            </div>
+          </div>
+          {% if certification_stats.sessions %}
+          <div class="mt-3">
+            <div class="small text-muted mb-2">Recent Sessions:</div>
+            <div class="d-flex flex-wrap gap-2">
+              {% for session in certification_stats.sessions %}
+              <a href="{% url 'accounts:certification_session_detail' session.id %}" class="btn btn-sm btn-outline-primary">
+                {{ session.name|truncatewords:4 }}
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          <div class="card-actions mt-3">
+            <a class="btn btn-sm btn-primary" href="{% url 'accounts:certification_home' %}">
+              <i class="bi bi-award me-1"></i>Open Certification Center
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:academics_certificationexamsession_add' %}">
+              <i class="bi bi-plus-circle me-1"></i>Create Session
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:workflow_center' %}">
+              <i class="bi bi-diagram-3 me-1"></i>Workflow Center
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="row g-3 mb-4">
     <div class="col-md-6">

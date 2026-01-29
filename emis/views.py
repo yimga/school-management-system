@@ -35,6 +35,19 @@ def emis_dashboard(request):
         'academic_year', 'term', 'exported_by'
     ).order_by('-export_date')[:10]
 
+    from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
+    from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+    from django.utils.safestring import mark_safe
+
+    dashboard_settings = load_dashboard_layout_settings(request.user, "emis")
+    allow_custom_layout = _can_customize(request.user)
+    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "emis"})
+    available_sidebar_items = [
+        {"id": "emis-home", "label": "EMIS Home", "url": reverse("emis:dashboard"), "icon": "bi-file-earmark-spreadsheet"},
+        {"id": "emis-export", "label": "Export Data", "url": reverse("emis:export"), "icon": "bi-download"},
+    ]
+    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
+
     context = {
         'academic_years': academic_years,
         'current_year': current_year,
@@ -42,6 +55,11 @@ def emis_dashboard(request):
         'recent_exports': recent_exports,
         'export_types': EMISExport.EXPORT_TYPES,
         'default_country': site.country_code or 'CMR',
+        'allow_custom_layout': allow_custom_layout,
+        'dashboard_settings': dashboard_settings,
+        'dashboard_layout_url': dashboard_layout_url,
+        'available_sidebar_items': available_sidebar_items,
+        'widget_meta_json': widget_meta_json,
     }
 
     return render(request, 'emis/dashboard.html', context)

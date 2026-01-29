@@ -215,6 +215,33 @@ def parent_dashboard(request: HttpRequest):
     preference = getattr(request.user, "preferences", None)
     display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
 
+    # Get student IDs for queries
+    student_ids = [s.id for s in students] if students else []
+    
+    # Certification stats (if GCE enabled and children are candidates)
+    certification_stats = {}
+    year, _term = get_active_year_and_term()
+    if year and getattr(year, "enable_gce_registration", False) and students:
+        from apps.academics.models import CertificationCandidate
+        candidates = CertificationCandidate.objects.filter(
+            session__academic_year=year,
+            student_id__in=student_ids,
+        ).select_related("session", "student")
+        if candidates.exists():
+            certification_stats = {
+                "total_candidates": candidates.count(),
+                "draft_candidates": candidates.filter(status="DRAFT").count(),
+                "verified_candidates": candidates.filter(status="VERIFIED").count(),
+                "candidates_by_student": {
+                    c.student_id: {
+                        "status": c.status,
+                        "session_name": c.session.name,
+                        "session_id": c.session.id,
+                    }
+                    for c in candidates
+                },
+            }
+
     site = SiteSettings.get_solo()
     role = getattr(request.user, "role", None)
     portal_quick_actions = filter_portal_items(site.portal_quick_actions, role)
@@ -298,6 +325,9 @@ def parent_dashboard(request: HttpRequest):
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,
+        "certification_stats": certification_stats,
+        "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
+        "signature_stats": signature_stats,
         "site": site,
     })
 

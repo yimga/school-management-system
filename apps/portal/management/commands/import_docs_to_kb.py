@@ -43,6 +43,11 @@ class Command(BaseCommand):
             action='store_true',
             help='Show what would be imported without actually importing',
         )
+        parser.add_argument(
+            '--include-root',
+            action='store_true',
+            help='Also import selected operator-facing markdown files from repo root.',
+        )
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('Starting documentation import...'))
@@ -55,21 +60,48 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f'Docs directory not found: {docs_dir}'))
             return
         
-        # Get or create category
-        category_slug = options['category']
-        category, created = KBCategory.objects.get_or_create(
-            slug=category_slug,
+        # Operator Manual structure (Cameroon-first, globally flexible)
+        # This keeps docs organized and discoverable without duplicating content.
+        operator_root_slug = options["category"]
+        operator_root, created = KBCategory.objects.get_or_create(
+            slug=operator_root_slug,
             defaults={
-                'name': self._slug_to_name(category_slug),
-                'description': f'Documentation imported from docs/ directory',
-                'icon': 'fa-book',
-                'display_order': 10,
-            }
+                "name": self._slug_to_name(operator_root_slug),
+                "description": "Operator Manual: guided workflows and practical how-to articles.",
+                "icon": "fa-book",
+                "display_order": 1,
+                "is_active": True,
+            },
         )
         if created:
-            self.stdout.write(self.style.SUCCESS(f'Created category: {category.name}'))
+            self.stdout.write(self.style.SUCCESS(f"Created root KB category: {operator_root.name}"))
         else:
-            self.stdout.write(f'Using existing category: {category.name}')
+            self.stdout.write(f"Using existing root KB category: {operator_root.name}")
+
+        # Child categories as proposed in the plan
+        operator_categories = [
+            ("getting-started", "Getting Started", "fa-rocket", 1),
+            ("year-setup", "Year Setup (Cameroon default)", "fa-calendar-alt", 2),
+            ("onboarding", "Onboarding (Students, Teachers, Parents)", "fa-user-plus", 3),
+            ("academics", "Academics (Assignments, Marks, OCR)", "fa-graduation-cap", 4),
+            ("approvals-audits", "Approvals & Audits", "fa-shield-alt", 5),
+            ("reports", "Reports (Styles, Publishing)", "fa-file-alt", 6),
+            ("communication", "Communication (Messaging, Groups, Announcements)", "fa-comments", 7),
+            ("document-library", "Document Library", "fa-folder-open", 8),
+            ("troubleshooting", "Troubleshooting", "fa-life-ring", 99),
+        ]
+        for slug, name, icon, order in operator_categories:
+            KBCategory.objects.get_or_create(
+                slug=slug,
+                defaults={
+                    "name": name,
+                    "description": f"Operator manual: {name}",
+                    "icon": icon,
+                    "display_order": order,
+                    "parent": operator_root,
+                    "is_active": True,
+                },
+            )
         
         # Get admin user for author
         try:
@@ -85,11 +117,28 @@ class Command(BaseCommand):
         imported_count = 0
         skipped_count = 0
         
+        def iter_source_files():
+            # docs/
+            for p in sorted(docs_dir.glob("*.md")):
+                yield p
+            # selected root docs (operator-facing)
+            if options.get("include_root"):
+                root_allowlist = [
+                    "QUICK_START.md",
+                    "URL_QUICK_REFERENCE.md",
+                    "API_QUICK_REFERENCE.md",
+                    "MOBILE_QUICK_SUMMARY.md",
+                ]
+                for name in root_allowlist:
+                    candidate = base_dir / name
+                    if candidate.exists():
+                        yield candidate
+
         # Process each markdown file
-        for md_file in sorted(docs_dir.glob('*.md')):
+        for md_file in iter_source_files():
             # Skip KB files that are already in KB format
             if md_file.name.startswith('KB_'):
-                self.stdout.write(f'  ⊘ Skipping KB file: {md_file.name}')
+                self.stdout.write(f'  [SKIP] Skipping KB file: {md_file.name}')
                 continue
             
             # Skip implementation guides and checklists (these are for developers)
@@ -103,18 +152,19 @@ class Command(BaseCommand):
                 'TESTING',
                 'READY_FOR_TESTING',
             ]
-            if any(pattern in md_file.name.upper() for pattern in skip_patterns):
-                self.stdout.write(f'  ⊘ Skipping developer doc: {md_file.name}')
+            explicit_mapping = md_file.name in doc_mapping
+            if (not explicit_mapping) and any(pattern in md_file.name.upper() for pattern in skip_patterns):
+                self.stdout.write(f'  [SKIP] Skipping developer doc: {md_file.name}')
                 continue
             
             # Get metadata for this file
             file_metadata = doc_mapping.get(md_file.name, {})
-            target_category_slug = file_metadata.get('category', category_slug)
+            target_category_slug = file_metadata.get("category", operator_root_slug)
             difficulty = file_metadata.get('difficulty', 'INTERMEDIATE')
             tags = file_metadata.get('tags', '')
             
             # Use specific category if provided
-            if target_category_slug != category_slug:
+            if target_category_slug != operator_root_slug:
                 target_category, _ = KBCategory.objects.get_or_create(
                     slug=target_category_slug,
                     defaults={
@@ -122,10 +172,12 @@ class Command(BaseCommand):
                         'description': f'Documentation for {self._slug_to_name(target_category_slug)}',
                         'icon': file_metadata.get('icon', 'fa-book'),
                         'display_order': file_metadata.get('order', 10),
+                        "parent": operator_root,
+                        "is_active": True,
                     }
                 )
             else:
-                target_category = category
+                target_category = operator_root
             
             # Read and convert markdown
             try:
@@ -136,14 +188,14 @@ class Command(BaseCommand):
                 slug = slugify(md_file.stem)
                 
                 if options['dry_run']:
-                    self.stdout.write(f'  → Would import: {title} (slug: {slug})')
+                    self.stdout.write(f'  -> Would import: {title} (slug: {slug})')
                     imported_count += 1
                     continue
                 
                 # Check if article exists
                 existing = KBArticle.objects.filter(slug=slug).first()
                 if existing and not options['overwrite']:
-                    self.stdout.write(f'  ⊘ Skipping existing: {title} (use --overwrite to update)')
+                    self.stdout.write(f'  [SKIP] Skipping existing: {title} (use --overwrite to update)')
                     skipped_count += 1
                     continue
                 
@@ -168,15 +220,15 @@ class Command(BaseCommand):
                     for key, value in article_data.items():
                         setattr(existing, key, value)
                     existing.save()
-                    self.stdout.write(self.style.SUCCESS(f'  ✓ Updated: {title}'))
+                    self.stdout.write(self.style.SUCCESS(f'  [OK] Updated: {title}'))
                 else:
                     article = KBArticle.objects.create(**article_data)
-                    self.stdout.write(self.style.SUCCESS(f'  ✓ Created: {title}'))
+                    self.stdout.write(self.style.SUCCESS(f'  [OK] Created: {title}'))
                 
                 imported_count += 1
                 
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'  ✗ Error processing {md_file.name}: {e}'))
+                self.stdout.write(self.style.ERROR(f'  [ERROR] Error processing {md_file.name}: {e}'))
         
         self.stdout.write('')
         self.stdout.write(self.style.SUCCESS(f'Import complete!'))
@@ -186,9 +238,9 @@ class Command(BaseCommand):
     def _get_doc_mapping(self):
         """Map documentation files to categories and metadata"""
         return {
-            # Onboarding & Getting Started
+            # Getting Started
             'ADMISSION_NUMBER_GUIDE.md': {
-                'category': 'student-management',
+                'category': 'onboarding',
                 'difficulty': 'INTERMEDIATE',
                 'tags': 'admission, registration, student management, configuration',
                 'icon': 'fa-user-plus',
@@ -209,32 +261,46 @@ class Command(BaseCommand):
                 'order': 3,
             },
             
-            # System Administration
+            # Admin / configuration (operator-facing subset)
             'customization.md': {
-                'category': 'system-admin',
+                'category': 'getting-started',
                 'difficulty': 'INTERMEDIATE',
                 'tags': 'customization, settings, branding, theme',
                 'icon': 'fa-cogs',
                 'order': 1,
             },
             'SETUP_NEW_SCHOOL_WORLDWIDE.md': {
-                'category': 'system-admin',
+                'category': 'year-setup',
                 'difficulty': 'ADVANCED',
                 'tags': 'setup, configuration, deployment, installation',
                 'icon': 'fa-globe',
                 'order': 2,
             },
             'PHASE_1_2_5_ADMIN_GUIDE.md': {
-                'category': 'system-admin',
+                'category': 'year-setup',
                 'difficulty': 'INTERMEDIATE',
                 'tags': 'admin, regional configuration, management',
                 'icon': 'fa-user-shield',
                 'order': 3,
             },
             
-            # Student Management
+            # Academics
+            'MARKSHEET_OCR_SETUP.md': {
+                'category': 'academics',
+                'difficulty': 'INTERMEDIATE',
+                'tags': 'marks, ocr, marksheet, setup, evaluations',
+                'icon': 'fa-camera',
+                'order': 4,
+            },
+            'KB_MARKSHEET_OCR_INSTALL.md': {
+                'category': 'academics',
+                'difficulty': 'INTERMEDIATE',
+                'tags': 'marks, ocr, marksheet, install, evaluations',
+                'icon': 'fa-camera',
+                'order': 5,
+            },
             'PHASE_1_2_4_INTERNATIONALIZATION.md': {
-                'category': 'student-management',
+                'category': 'getting-started',
                 'difficulty': 'ADVANCED',
                 'tags': 'i18n, internationalization, languages, regions',
                 'icon': 'fa-language',
@@ -243,14 +309,14 @@ class Command(BaseCommand):
             
             # Finance
             'finance-payments.md': {
-                'category': 'finance',
+                'category': 'getting-started',
                 'difficulty': 'INTERMEDIATE',
                 'tags': 'finance, payments, fees, transactions',
                 'icon': 'fa-coins',
                 'order': 1,
             },
             'payroll-automation.md': {
-                'category': 'finance',
+                'category': 'getting-started',
                 'difficulty': 'ADVANCED',
                 'tags': 'payroll, automation, staff payments',
                 'icon': 'fa-money-bill-wave',
@@ -265,6 +331,13 @@ class Command(BaseCommand):
                 'icon': 'fa-file-alt',
                 'order': 1,
             },
+            'KB_REPORT_STYLE_PREVIEW.md': {
+                'category': 'reports',
+                'difficulty': 'BEGINNER',
+                'tags': 'reports, styles, preview, templates',
+                'icon': 'fa-file-alt',
+                'order': 2,
+            },
             
             # Communication
             'ux.md': {
@@ -274,17 +347,24 @@ class Command(BaseCommand):
                 'icon': 'fa-comments',
                 'order': 1,
             },
+            'MESSAGING_GROUP_OPTIONS.md': {
+                'category': 'communication',
+                'difficulty': 'BEGINNER',
+                'tags': 'messaging, groups, announcements, communication',
+                'icon': 'fa-comments',
+                'order': 2,
+            },
             
             # Security & Compliance
             'security-checklist.md': {
-                'category': 'system-admin',
+                'category': 'approvals-audits',
                 'difficulty': 'ADVANCED',
                 'tags': 'security, compliance, checklist',
                 'icon': 'fa-shield-alt',
                 'order': 10,
             },
             'PHASE_1_2_8_COMPLIANCE_LEGAL.md': {
-                'category': 'system-admin',
+                'category': 'approvals-audits',
                 'difficulty': 'ADVANCED',
                 'tags': 'compliance, legal, audit',
                 'icon': 'fa-gavel',
@@ -293,7 +373,7 @@ class Command(BaseCommand):
             
             # Mobile & API
             'MOBILE_API_HANDBOOK.md': {
-                'category': 'system-admin',
+                'category': 'getting-started',
                 'difficulty': 'ADVANCED',
                 'tags': 'mobile, api, integration',
                 'icon': 'fa-mobile-alt',
@@ -302,7 +382,7 @@ class Command(BaseCommand):
             
             # Accessibility
             'ACCESSIBILITY.md': {
-                'category': 'system-admin',
+                'category': 'getting-started',
                 'difficulty': 'INTERMEDIATE',
                 'tags': 'accessibility, a11y, inclusive design',
                 'icon': 'fa-universal-access',

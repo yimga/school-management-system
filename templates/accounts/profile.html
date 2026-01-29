@@ -53,8 +53,15 @@
               <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">Notifications</a>
               <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_messages' %}">Messaging</a>
               <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_home' %}">Knowledge base</a>
-              {% if request.user.is_staff or request.user.is_superuser %}
+              {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'IT_ADMIN' %}
                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'admin:index' %}">Django admin</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:backend_dashboard' %}">Backend Console</a>
+              {% endif %}
+              {% if request.user.role == 'TEACHER' %}
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">Teacher Dashboard</a>
+              {% endif %}
+              {% if request.user.role == 'PARENT' %}
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:parent_dashboard' %}">Parent Portal</a>
               {% endif %}
             </div>
             <div class="text-muted small mt-3">

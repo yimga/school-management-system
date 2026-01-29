@@ -189,6 +189,7 @@ class DashboardView(models.TextChoices):
     FINANCE = "FINANCE", "Finances"
     ACADEMICS = "ACADEMICS", "Academics"
     ATTENDANCE = "ATTENDANCE", "Attendance"
+    CERTIFICATION = "CERTIFICATION", "Certification & Exams"
     CUSTOM = "CUSTOM", "Custom"
 
 
@@ -213,6 +214,7 @@ DASHBOARD_WIDGET_OPTIONS = [
     ("analytics", "Analytics insights"),
     ("upcoming", "Upcoming classes"),
     ("links", "Quick actions"),
+    ("certification", "Certification & Exams"),
 ]
 
 ROLE_WIDGET_DEFAULTS = {
@@ -245,6 +247,7 @@ ROLE_WIDGET_DEFAULTS = {
         "events",
         "analytics",
         "access",
+        "certification",
     ],
 }
 
@@ -279,6 +282,7 @@ def resolve_dashboard_widgets(role: str | None, preference: "UserPreference | No
             DashboardView.FINANCE: ["finance", "events", "communications", "links"],
             DashboardView.ATTENDANCE: ["attendance", "events", "tasks", "links"],
             DashboardView.ACADEMICS: ["performance", "completion", "upcoming", "analytics", "tasks", "links"],
+            DashboardView.CERTIFICATION: ["certification", "performance", "tasks", "links", "events"],
         }
         mapped = view_map.get(preference.dashboard_view)
         if mapped:

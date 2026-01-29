@@ -1,0 +1,20 @@
+{% comment %}
+Reusable empty state component for dashboards
+Usage: {% include 'components/dashboard_empty_state.html' with icon='bi-inbox' title='No items' message='Get started by creating your first item.' action_url='/create/' action_text='Create Item' %}
+{% endcomment %}
+<div class="dashboard-empty">
+  {% if icon %}
+  <div class="dashboard-empty-icon">
+    <i class="bi {{ icon }}"></i>
+  </div>
+  {% endif %}
+  <h3 class="h5 mb-2">{{ title|default:"No items found" }}</h3>
+  {% if message %}
+  <p class="text-muted mb-3">{{ message }}</p>
+  {% endif %}
+  {% if action_url and action_text %}
+  <a href="{{ action_url }}" class="btn btn-primary">
+    <i class="bi bi-plus-circle me-2"></i>{{ action_text }}
+  </a>
+  {% endif %}
+</div>

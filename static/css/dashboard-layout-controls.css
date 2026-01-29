@@ -5,6 +5,76 @@
   position: relative;
 }
 
+/* Consistent alignment across dashboard views */
+[data-dashboard-column] {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+[data-dashboard-column="main"] {
+  flex: 1;
+  min-width: 0;
+}
+
+[data-dashboard-column="secondary"] {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  [data-dashboard-column="secondary"] {
+    width: 320px;
+  }
+}
+
+/* Ensure widgets align properly when switching views */
+#dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 992px) {
+  #dashboard-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  #dashboard-layout > [data-dashboard-column="main"] {
+    flex: 1;
+  }
+  
+  #dashboard-layout > [data-dashboard-column="secondary"] {
+    flex: 0 0 320px;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+  }
+}
+
+/* Consistent card styling across dashboards */
+[data-widget-id] .card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-widget-id] .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Ensure consistent spacing when switching views */
+.row[data-dashboard-column] {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.row[data-dashboard-column] > [class*="col-"] {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
 /* Size presets: tune density without breaking the underlying layout grid. */
 [data-widget-id][data-widget-size="sm"] {
   font-size: 0.92rem;

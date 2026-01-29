@@ -13,8 +13,30 @@ from .views import (
     user_messages,
     user_notifications,
     user_profile,
+    workflow_center,
+)
+from .views_certification import (
+    certification_home,
+    certification_session_detail,
+    certification_export_zip,
+    certification_bulk_add_candidates,
+    certification_session_override,
 )
 from .views_mfa import mfa_setup, mfa_verify
+
+try:
+    from apps.people.views_backend import (
+        backend_student_list,
+        backend_student_create,
+        backend_teacher_list,
+        backend_teacher_create,
+        backend_classroom_create,
+    )
+    BACKEND_PEOPLE_AVAILABLE = True
+except ImportError:
+    BACKEND_PEOPLE_AVAILABLE = False
+    backend_student_list = backend_student_create = None
+    backend_teacher_list = backend_teacher_create = backend_classroom_create = None
 
 app_name = "accounts"
 
@@ -31,7 +53,22 @@ urlpatterns = [
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),
     path("backend/entities/", backend_entity_console, name="backend_entity_console"),
+    path("workflow/", workflow_center, name="workflow_center"),
+    path("certification/", certification_home, name="certification_home"),
+    path("certification/session/<int:session_id>/", certification_session_detail, name="certification_session_detail"),
+    path("certification/session/<int:session_id>/export.zip", certification_export_zip, name="certification_export_zip"),
+    path("certification/session/<int:session_id>/bulk-add/", certification_bulk_add_candidates, name="certification_bulk_add_candidates"),
+    path("certification/session/<int:session_id>/override/", certification_session_override, name="certification_session_override"),
     path("claim-invite/", claim_invite, name="claim_invite"),
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
     path("mfa/verify/", mfa_verify, name="mfa_verify"),
+    
+    # Backend UI for People Management
+    path("backend/students/", backend_student_list, name="backend_student_list") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/students/create/", backend_student_create, name="backend_student_create") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/teachers/", backend_teacher_list, name="backend_teacher_list") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/teachers/create/", backend_teacher_create, name="backend_teacher_create") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/classrooms/create/", backend_classroom_create, name="backend_classroom_create") if BACKEND_PEOPLE_AVAILABLE else None,
 ]
+# Filter out None values
+urlpatterns = [p for p in urlpatterns if p is not None]

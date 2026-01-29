@@ -3,13 +3,20 @@ from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 from .models import (
-    AcademicYear, Term, Department, Specialty, Classroom, Subject, SubjectAssignment
+    AcademicYear, Term, Department, Specialty, Classroom, Subject, SubjectAssignment,
+    CertificationExamSession, CertificationCandidate, CertificationAuditLog,
+    CertificationExamPreset,
+    CertificationFeeTemplate,
+    CertificationFeeLine,
+    CertificationDocumentChecklist,
+    CertificationDocumentItem,
+    CertificationCandidateDocumentStatus,
 )
 
 
 class AcademicYearAdmin(ModelAdmin):
-    list_display = ("name", "start_date", "end_date", "is_active")
-    list_filter = ("is_active",)
+    list_display = ("name", "start_date", "end_date", "is_active", "enable_gce_registration")
+    list_filter = ("is_active", "enable_gce_registration")
     search_fields = ("name",)
 
 
@@ -46,6 +53,60 @@ class SubjectAssignmentAdmin(ModelAdmin):
     list_display = ("academic_year", "term", "classroom", "specialty", "subject", "coefficient")
     list_filter = ("academic_year", "term", "classroom", "specialty", "subject")
     search_fields = ("classroom__name", "specialty__name", "subject__name", "academic_year__name")
+
+
+class CertificationExamSessionAdmin(ModelAdmin):
+    list_display = ("name", "academic_year", "board", "level", "is_active", "registration_opens_at", "registration_closes_at")
+    list_filter = ("academic_year", "board", "level", "is_active")
+    search_fields = ("name", "academic_year__name")
+
+
+class CertificationCandidateAdmin(ModelAdmin):
+    list_display = ("student", "session", "status", "candidate_number", "ca_uploaded_at", "updated_at")
+    list_filter = ("session", "status", "session__academic_year", "session__board", "session__level")
+    search_fields = ("student__first_name", "student__last_name", "candidate_number", "session__name")
+
+
+class CertificationAuditLogAdmin(ModelAdmin):
+    list_display = ("created_at", "session", "candidate", "actor", "action")
+    list_filter = ("session", "actor", "action")
+    search_fields = ("session__name", "action", "detail", "actor__username")
+
+
+class CertificationExamPresetAdmin(ModelAdmin):
+    list_display = ("name", "code", "board", "level", "is_active", "updated_at")
+    list_filter = ("board", "level", "is_active")
+    search_fields = ("name", "code")
+
+
+class CertificationFeeLineInline(admin.TabularInline):
+    model = CertificationFeeLine
+    extra = 0
+
+
+class CertificationFeeTemplateAdmin(ModelAdmin):
+    list_display = ("name", "preset", "currency", "is_default_for_preset", "is_active", "updated_at")
+    list_filter = ("currency", "is_default_for_preset", "is_active", "preset__board", "preset__level")
+    search_fields = ("name", "preset__name", "preset__code")
+    inlines = [CertificationFeeLineInline]
+
+
+class CertificationDocumentItemInline(admin.TabularInline):
+    model = CertificationDocumentItem
+    extra = 0
+
+
+class CertificationDocumentChecklistAdmin(ModelAdmin):
+    list_display = ("name", "preset", "is_default_for_preset", "is_active", "updated_at")
+    list_filter = ("is_default_for_preset", "is_active", "preset__board", "preset__level")
+    search_fields = ("name", "preset__name", "preset__code")
+    inlines = [CertificationDocumentItemInline]
+
+
+class CertificationCandidateDocumentStatusAdmin(ModelAdmin):
+    list_display = ("candidate", "item", "status", "received_at", "verified_at")
+    list_filter = ("status", "item__checklist", "candidate__session")
+    search_fields = ("candidate__student__first_name", "candidate__student__last_name", "item__label", "item__code")
 
 
 from django import forms
@@ -129,3 +190,10 @@ admin_site.register(Specialty, SpecialtyAdmin)
 admin_site.register(Classroom, ClassroomAdmin)
 admin_site.register(Subject, SubjectAdmin)
 admin_site.register(SubjectAssignment, SubjectAssignmentAdmin)
+admin_site.register(CertificationExamSession, CertificationExamSessionAdmin)
+admin_site.register(CertificationCandidate, CertificationCandidateAdmin)
+admin_site.register(CertificationAuditLog, CertificationAuditLogAdmin)
+admin_site.register(CertificationExamPreset, CertificationExamPresetAdmin)
+admin_site.register(CertificationFeeTemplate, CertificationFeeTemplateAdmin)
+admin_site.register(CertificationDocumentChecklist, CertificationDocumentChecklistAdmin)
+admin_site.register(CertificationCandidateDocumentStatus, CertificationCandidateDocumentStatusAdmin)

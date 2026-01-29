@@ -7,7 +7,8 @@ from apps.academics.models import AcademicYear, Term
 class Command(BaseCommand):
     help = "Backfill or fix Term.position values per academic year (1–4) based on start_date order, avoiding conflicts."
 
-    def add_arguments(self, parser):n        parser.add_argument(
+    def add_arguments(self, parser):
+        parser.add_argument(
             "--dry-run",
             action="store_true",
             help="Do not write changes; just report planned updates.",

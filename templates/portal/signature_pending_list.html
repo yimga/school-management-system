@@ -1,0 +1,100 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Pending Signatures{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Forms Requiring Signature</h1>
+      <p class="text-muted mb-0">Please review and sign the following forms</p>
+    </div>
+    <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+    </a>
+  </div>
+
+  {% if pending_requests %}
+    <div class="row g-3">
+      {% for req in pending_requests %}
+        <div class="col-md-6">
+          <div class="card shadow-sm border-{% if req.is_expired %}danger{% else %}warning{% endif %}">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h5 class="card-title mb-1">{{ req.form_document.title }}</h5>
+                  {% if req.student %}
+                    <p class="text-muted small mb-0">
+                      <i class="bi bi-person me-1"></i>{{ req.student.get_full_name }} ({{ req.student.admission_number }})
+                    </p>
+                  {% endif %}
+                </div>
+                {% if req.is_expired %}
+                  <span class="badge bg-danger">Expired</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {% endif %}
+              </div>
+
+              {% if req.form_document.description %}
+                <p class="card-text small">{{ req.form_document.description }}</p>
+              {% endif %}
+
+              <div class="mb-3">
+                {% if req.expires_at %}
+                  <div class="small">
+                    <i class="bi bi-clock me-1"></i>
+                    {% if req.is_expired %}
+                      <span class="text-danger">Expired {{ req.expires_at|timesince }} ago</span>
+                    {% else %}
+                      Expires in {{ req.expires_at|timeuntil }}
+                    {% endif %}
+                  </div>
+                {% endif %}
+                {% if req.notes %}
+                  <div class="small text-muted mt-2">
+                    <i class="bi bi-info-circle me-1"></i>{{ req.notes }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="d-flex gap-2">
+                {% if req.form_document.file %}
+                  <a href="{% url 'portal:document_download' req.form_document.id %}" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i>View Form
+                  </a>
+                {% elif req.form_document.link %}
+                  <a href="{{ req.form_document.link }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>View Form
+                  </a>
+                {% endif %}
+                {% if not req.is_expired %}
+                  <a href="{% url 'portal:signature_sign' req.id %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-pen me-1"></i>Sign Now
+                  </a>
+                {% else %}
+                  <button class="btn btn-secondary btn-sm" disabled>
+                    <i class="bi bi-x-circle me-1"></i>Expired
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+        <h5 class="mt-3">All Caught Up!</h5>
+        <p class="text-muted">You have no pending signature requests.</p>
+        <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-primary">
+          <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+        </a>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

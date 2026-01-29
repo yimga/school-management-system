@@ -131,6 +131,14 @@ class KBCategory(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+    @property
+    def article_count(self) -> int:
+        """Published article count for UI badges/lists."""
+        try:
+            return self.articles.filter(status="PUBLISHED").count()
+        except Exception:
+            return 0
+
 
 class KBArticle(models.Model):
     """Knowledge Base articles with detailed how-to guides"""

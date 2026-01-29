@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
 from django.shortcuts import redirect, render
 from django.http import HttpResponseForbidden
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 import json
@@ -15,7 +15,8 @@ from config.admin import admin_site
 from apps.finance.models import Invoice, ReferralReward, PaymentReminder, Notification as FinanceNotification
 from apps.finance.services import finance_dashboard_data
 from apps.portal.models import PendingGuardianInvite
-from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance
+from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance, TeacherProfile
+from apps.academics.models import AcademicYear, Classroom
 from apps.reports.models import TermPublishStatus
 from apps.siteconfig.models import SiteSettings
 from apps.academics.services import get_active_year_and_term
@@ -39,7 +40,35 @@ def user_profile(request):
 @login_required
 def user_notifications(request):
     """User notifications landing page (RBAC-safe)."""
-    return render(request, "accounts/notifications.html", {})
+    from apps.finance.models import Notification
+    from django.db.models import Q
+    
+    # Get user's notifications
+    notifications = Notification.objects.filter(
+        Q(recipient=request.user) | Q(created_by=request.user)
+    ).order_by("-created_at")[:50]
+    
+    # Filter by status if requested
+    status_filter = request.GET.get("status")
+    if status_filter == "unread":
+        notifications = notifications.filter(is_read=False)
+    elif status_filter == "read":
+        notifications = notifications.filter(is_read=True)
+    
+    # Stats
+    total_count = notifications.count()
+    unread_count = notifications.filter(is_read=False).count()
+    read_count = notifications.filter(is_read=True).count()
+    
+    context = {
+        "notifications": notifications,
+        "total_count": total_count,
+        "unread_count": unread_count,
+        "read_count": read_count,
+        "status_filter": status_filter,
+    }
+    
+    return render(request, "accounts/notifications.html", context)
 
 
 @login_required
@@ -277,6 +306,22 @@ def backend_dashboard(request):
         "published_terms": TermPublishStatus.objects.filter(is_published=True).count(),
     }
     
+    # Certification/GCE stats (if enabled for active year)
+    certification_stats = {}
+    if year and getattr(year, "enable_gce_registration", False):
+        from apps.academics.models import CertificationExamSession, CertificationCandidate
+        active_sessions = CertificationExamSession.objects.filter(academic_year=year, is_active=True)
+        total_candidates = CertificationCandidate.objects.filter(session__academic_year=year).count()
+        draft_candidates = CertificationCandidate.objects.filter(session__academic_year=year, status="DRAFT").count()
+        verified_candidates = CertificationCandidate.objects.filter(session__academic_year=year, status="VERIFIED").count()
+        certification_stats = {
+            "active_sessions": active_sessions.count(),
+            "total_candidates": total_candidates,
+            "draft_candidates": draft_candidates,
+            "verified_candidates": verified_candidates,
+            "sessions": active_sessions[:3],  # Recent sessions for quick access
+        }
+    
     # Get recent activity
     recent_activities = get_recent_activity(limit=10)
     
@@ -396,12 +441,66 @@ def backend_dashboard(request):
         )
     )
     dashboard_settings = load_dashboard_layout_settings(request.user, "backend")
+    def _safe_reverse(name, default="#", kwargs=None):
+        try:
+            return reverse(name, kwargs=kwargs)
+        except Exception:
+            return default
+    
+    portal_cfg = getattr(site, "portal_features", {}) or {}
+    has_docs = bool(portal_cfg.get("documents"))
+
+    def _item(item_id, label, url_name=None, *, url=None, icon="bi-circle", allow=True, kwargs=None):
+        """Build a sidebar/shortcut item, dropping unresolved links."""
+        if not allow:
+            return None
+        final_url = url if url is not None else _safe_reverse(url_name, kwargs=kwargs)
+        if not final_url or final_url == "#":
+            return None
+        return {"id": item_id, "label": label, "url": final_url, "icon": icon}
+
     available_sidebar_items = [
-        {"id": "admin", "label": "Admin Panel", "url": reverse("admin:index"), "icon": "bi-grid"},
-        {"id": "finance", "label": "Finance Dashboard", "url": reverse("finance:dashboard"), "icon": "bi-cash-stack"},
-        {"id": "portal", "label": "Parent Portal", "url": reverse("portal:parent_dashboard"), "icon": "bi-people"},
-        {"id": "settings", "label": "Preferences", "url": reverse("siteconfig:user_preferences"), "icon": "bi-sliders"},
+        _item("backend", "Backend Console", "accounts:backend_dashboard", icon="bi-speedometer2"),
+        _item("workflow", "Workflow Center", "accounts:workflow_center", icon="bi-diagram-3", allow=bool(action_perms.get("site_settings"))),
+        _item("messages", "Messages", "accounts:user_messages", icon="bi-chat-dots"),
+        _item(
+            "notifications",
+            "Notifications",
+            "accounts:user_notifications",
+            icon="bi-bell",
+        ),
+        _item(
+            "groups",
+            "Message Groups",
+            "communication:group_list",
+            icon="bi-people",
+            allow=bool(role_upper in {User.Role.TEACHER, User.Role.ADMIN, User.Role.LEADERSHIP, User.Role.IT_ADMIN, User.Role.SUPERADMIN} or request.user.is_staff or request.user.is_superuser),
+        ),
+        _item(
+            "announcements",
+            "Announcements",
+            "communication:announcement_create",
+            icon="bi-megaphone",
+            allow=bool(role_upper in {User.Role.ADMIN, User.Role.LEADERSHIP, User.Role.IT_ADMIN, User.Role.SUPERADMIN} or request.user.is_staff or request.user.is_superuser),
+        ),
+        _item("reports", "Publish Results", "reports:publish_term_results", icon="bi-award", allow=bool(action_perms.get("people"))),
+        _item("report_builder", "Report Card Builder", "siteconfig:reportcard_builder", icon="bi-file-earmark-richtext", allow=bool(action_perms.get("people"))),
+        _item("report_library", "Report Library", "siteconfig:report_library", icon="bi-journal-text", allow=bool(action_perms.get("people"))),
+        _item("certification", "Certification & Exams", "accounts:certification_home", icon="bi-award", allow=bool(year and getattr(year, "enable_gce_registration", False) if year else False)),
+        _item("finance", "Finance Dashboard", "finance:dashboard", icon="bi-cash-stack", allow=bool(action_perms.get("finance"))),
+        _item("documents", "Document Library", "portal:document_library_manage", icon="bi-file-earmark-text", allow=bool(action_perms.get("site_settings") or admin_like)),
+        _item("signatures", "Signature Requests", "portal:signature_requests_manage", icon="bi-pen", allow=bool(action_perms.get("site_settings") or admin_like)),
+        _item("documents_portal", "Public Documents", "portal:portal_feature", kwargs={"feature": "documents"}, icon="bi-folder-open", allow=has_docs),
+        _item("customizer", "Customizer", "siteconfig:customizer", icon="bi-palette", allow=bool(action_perms.get("site_settings") or admin_like)),
+        _item("portal", "Parent Portal", "portal:parent_dashboard", icon="bi-people"),
+        _item("preferences", "Preferences", "siteconfig:user_preferences", icon="bi-sliders"),
+        _item("kb", "Help Center", "kb:kb_home", icon="bi-life-preserver"),
+        _item("admin", "Admin Panel", "admin:index", icon="bi-grid", allow=bool(action_perms.get("admin_panel"))),
     ]
+    available_sidebar_items = [item for item in available_sidebar_items if item]
+    from .sidebar_organizer import organize_sidebar_items, get_sidebar_category_labels
+    organized_sidebar = organize_sidebar_items(available_sidebar_items, request.user)
+    sidebar_categories = get_sidebar_category_labels()
     dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "backend"})
     finance_requests_qs = FinanceNotification.objects.filter(
         recipient=request.user,
@@ -409,9 +508,38 @@ def backend_dashboard(request):
         is_read=False,
     ).order_by("-created_at")
     finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+
+    # Workflow progress and recommended next steps for dashboard
+    workflow_progress = _workflow_progress(year)
+    recommended_next_steps = []
+    try:
+        if not year:
+            recommended_next_steps.append({"label": "Set up academic year", "url": reverse("admin:academics_academicyear_changelist"), "icon": "bi-calendar-event"})
+        else:
+            if workflow_progress.get("classrooms", 0) == 0:
+                recommended_next_steps.append({"label": "Create classrooms", "url": reverse("admin:academics_classroom_changelist"), "icon": "bi-door-open"})
+            if workflow_progress.get("students", 0) == 0:
+                try:
+                    recommended_next_steps.append({"label": "Add student", "url": reverse("accounts:backend_student_create"), "icon": "bi-person-plus"})
+                except Exception:
+                    recommended_next_steps.append({"label": "Add student", "url": reverse("admin:people_studentprofile_add"), "icon": "bi-person-plus"})
+            if workflow_progress.get("teachers", 0) == 0:
+                try:
+                    recommended_next_steps.append({"label": "Add teacher", "url": reverse("accounts:backend_teacher_create"), "icon": "bi-person-badge"})
+                except Exception:
+                    recommended_next_steps.append({"label": "Add teacher", "url": reverse("admin:people_teacherprofile_add"), "icon": "bi-person-badge"})
+        if not recommended_next_steps:
+            recommended_next_steps.append({"label": "Workflow Center", "url": reverse("accounts:workflow_center"), "icon": "bi-diagram-3"})
+            recommended_next_steps.append({"label": "Publish results", "url": reverse("reports:publish_term_results"), "icon": "bi-award"})
+    except Exception:
+        recommended_next_steps = [{"label": "Workflow Center", "url": reverse("accounts:workflow_center"), "icon": "bi-diagram-3"}]
+
     context = {
         "site": site,
         "stats": stats,
+        "workflow_progress": workflow_progress,
+        "recommended_next_steps": recommended_next_steps,
+        "use_backend_people_ui": use_backend_people_ui,
         "roles": AccessRole.objects.prefetch_related("permissions").order_by("code"),
         "permissions": Permission.objects.order_by("code"),
         "pending_invites": stats["pending_invites"],
@@ -445,13 +573,179 @@ def backend_dashboard(request):
         "dashboard_settings": dashboard_settings,
         "dashboard_layout_url": dashboard_layout_url,
         "available_sidebar_items": available_sidebar_items,
+        "organized_sidebar": organized_sidebar,
+        "sidebar_categories": sidebar_categories,
         "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,
         "finance_access_banner": finance_access_banner,
+        "certification_stats": certification_stats,
+        "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
+        "breadcrumbs": [{"title": "Backend", "url": reverse("accounts:backend_dashboard"), "icon": "bi-speedometer2"}],
+        "BREADCRUMBS": [
+            {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+            {"label": "Dashboard", "url": "", "active": True},
+        ],
     }
     return render(request, "accounts/backend_dashboard.html", context)
+
+
+def _workflow_progress(year):
+    """Compute workflow progress stats for the active year (counts for progress indicators)."""
+    if not year:
+        return {}
+    try:
+        classrooms = Classroom.objects.filter(academic_year=year, is_active=True).count()
+        students = StudentProfile.objects.filter(academic_year=year, is_active=True).count()
+        teachers = TeacherProfile.objects.filter(is_active=True).count()
+        return {
+            "classrooms": classrooms,
+            "students": students,
+            "teachers": teachers,
+            "has_year_setup": bool(year),
+            "has_classrooms": classrooms > 0,
+            "has_students": students > 0,
+            "has_teachers": teachers > 0,
+        }
+    except Exception:
+        return {}
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+def workflow_center(request):
+    """
+    Operator-friendly entry point to the end-to-end school workflow.
+    Keeps admins out of scattered menus and makes the Cameroon-first lifecycle discoverable.
+    """
+    site = SiteSettings.get_solo()
+    year, term = get_active_year_and_term()
+    progress = _workflow_progress(year)
+
+    # Prefer backend UI links where available (user-friendly), fallback to admin
+    try:
+        student_list_url = reverse("accounts:backend_student_list")
+        student_create_url = reverse("accounts:backend_student_create")
+        teacher_list_url = reverse("accounts:backend_teacher_list")
+        teacher_create_url = reverse("accounts:backend_teacher_create")
+    except Exception:
+        student_list_url = reverse("admin:people_studentprofile_changelist")
+        student_create_url = reverse("admin:people_studentprofile_add")
+        teacher_list_url = reverse("admin:people_teacherprofile_changelist")
+        teacher_create_url = reverse("admin:people_teacherprofile_add")
+
+    steps = [
+        {
+            "title": "1) Year setup",
+            "subtitle": "Academic year, terms, classrooms, departments, specialties.",
+            "step_key": "year_setup",
+            "progress_label": f"{progress.get('classrooms', 0)} classrooms" if year else "Set active year",
+            "links": [
+                {"label": "Academic years", "url": reverse("admin:academics_academicyear_changelist")},
+                {"label": "Terms", "url": reverse("admin:academics_term_changelist")},
+                {"label": "Classrooms", "url": reverse("admin:academics_classroom_changelist")},
+                {"label": "Departments", "url": reverse("admin:people_department_changelist")},
+                {"label": "Specialties", "url": reverse("admin:academics_specialty_changelist")},
+                {"label": "Subjects", "url": reverse("admin:academics_subject_changelist")},
+            ],
+        },
+        {
+            "title": "2) Onboarding",
+            "subtitle": "Enroll students/teachers and link parents.",
+            "step_key": "onboarding",
+            "progress_label": f"{progress.get('students', 0)} students, {progress.get('teachers', 0)} teachers",
+            "links": [
+                {"label": "Add student", "url": student_create_url, "primary": True},
+                {"label": "Add teacher", "url": teacher_create_url, "primary": True},
+                {"label": "Student list", "url": student_list_url},
+                {"label": "Onboard student (wizard)", "url": reverse("portal:student_onboarding")},
+                {"label": "Onboard teacher (wizard)", "url": reverse("portal:teacher_onboarding")},
+                {"label": "Guardian invites", "url": reverse("admin:portal_pendingguardianinvite_changelist")},
+                {"label": "Student profiles (admin)", "url": reverse("admin:people_studentprofile_changelist")},
+            ],
+        },
+        {
+            "title": "3) Marks entry + OCR",
+            "subtitle": "Enter marks, upload marksheets, review OCR, submit for approval.",
+            "step_key": "marks",
+            "progress_label": None,
+            "links": [
+                {"label": "Teacher marks entry", "url": reverse("evals:teacher_marks_entry")},
+                {"label": "Marks history", "url": reverse("evals:teacher_marks_list")},
+                {"label": "Approval requests", "url": reverse("admin:evals_gradeapprovalrequest_changelist")},
+            ],
+        },
+        {
+            "title": "4) Publish reports",
+            "subtitle": "Generate report cards and publish to parents safely.",
+            "step_key": "reports",
+            "progress_label": None,
+            "links": [
+                {"label": "Publish term results", "url": reverse("reports:publish_term_results")},
+                {"label": "Report card builder", "url": reverse("siteconfig:reportcard_builder")},
+                {"label": "Report library", "url": reverse("siteconfig:report_library")},
+            ],
+        },
+        {
+            "title": "5) Communication",
+            "subtitle": "Groups, department chats, announcements, and parent contact requests.",
+            "step_key": "communication",
+            "progress_label": None,
+            "links": [
+                {"label": "Message groups", "url": reverse("communication:group_list")},
+                {"label": "Create announcement", "url": reverse("communication:announcement_create")},
+                {"label": "Parent contact requests", "url": reverse("portal:staff_contact_request_list")},
+            ],
+        },
+        {
+            "title": "5b) Documents & forms",
+            "subtitle": "Document library, upload forms, and electronic signature requests.",
+            "step_key": "documents",
+            "progress_label": None,
+            "links": [
+                {"label": "Document library", "url": reverse("portal:document_library_manage")},
+                {"label": "Signature requests", "url": reverse("portal:signature_requests_manage")},
+                {"label": "Public documents", "url": reverse("portal:portal_feature", kwargs={"feature": "documents"})},
+            ],
+        },
+        {
+            "title": "6) Certification & GCE (optional)",
+            "subtitle": "Enable per academic year. Manage candidates, deadlines, exports, and audit trail.",
+            "step_key": "certification",
+            "progress_label": None,
+            "links": (
+                [
+                    {"label": "Certification Center", "url": reverse("accounts:certification_home")},
+                    {"label": "Exam sessions", "url": reverse("admin:academics_certificationexamsession_changelist")},
+                    {"label": "Candidates", "url": reverse("admin:academics_certificationcandidate_changelist")},
+                    {"label": "Presets & Templates", "url": reverse("admin:academics_certificationexampreset_changelist")},
+                    {"label": "Audit logs", "url": reverse("admin:academics_certificationauditlog_changelist")},
+                ]
+                if (year and getattr(year, "enable_gce_registration", False))
+                else [
+                    {"label": "Enable in Academic Year", "url": reverse("admin:academics_academicyear_changelist")},
+                ]
+            ),
+        },
+        {
+            "title": "7) Settings & theme",
+            "subtitle": "Site settings, preferences, preview/sandbox, and role access.",
+            "step_key": "settings",
+            "progress_label": None,
+            "links": [
+                {"label": "Site settings (admin)", "url": reverse("admin:siteconfig_sitesettings_change", args=(site.pk,))},
+                {"label": "Preferences (operator UI)", "url": reverse("siteconfig:user_preferences")},
+                {"label": "RBAC & access control", "url": reverse("accounts:rbac")},
+            ],
+        },
+    ]
+
+    return render(
+        request,
+        "accounts/workflow_center.html",
+        {"site": site, "active_year": year, "active_term": term, "steps": steps, "workflow_progress": progress},
+    )
 
 
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)

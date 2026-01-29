@@ -370,16 +370,52 @@
     </a>
 
     <div class="sidebar-section-title">Account</div>
-    <a class="nav-link nav-pill" href="/admin/accounts/user/{{ request.user.id }}/change/">
+    <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}">
       <i class="bi bi-person me-2"></i>My Profile
     </a>
     <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}">
       <i class="bi bi-sliders me-2"></i>Portal Preferences
     </a>
-    <a class="nav-link nav-pill" href="#">
+    <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}">
       <i class="bi bi-bell me-2"></i>Notifications
-      <span class="badge bg-primary ms-auto">0</span>
     </a>
+    <a class="nav-link nav-pill" href="{% url 'accounts:user_messages' %}">
+      <i class="bi bi-chat-dots me-2"></i>Messages
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
+      <i class="bi bi-journal-text me-2"></i>Help / Knowledge Base
+    </a>
+  {% endif %}
+
+  {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
+    <div class="sidebar-section-title">Communication</div>
+    <a class="nav-link nav-pill" href="{% url 'accounts:user_messages' %}">
+      <i class="bi bi-chat-dots me-2"></i>Messages
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}">
+      <i class="bi bi-people me-2"></i>Message Groups
+    </a>
+  {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
+    <div class="sidebar-section-title">Communication</div>
+    <a class="nav-link nav-pill" href="{% url 'accounts:user_messages' %}">
+      <i class="bi bi-chat-dots me-2"></i>Class Messages
+    </a>
+    <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}">
+      <i class="bi bi-envelope-paper me-2"></i>Contact School
+    </a>
+  {% elif request.user.is_authenticated %}
+    {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
+      <div class="sidebar-section-title">Communication</div>
+      <a class="nav-link nav-pill" href="{% url 'accounts:user_messages' %}">
+        <i class="bi bi-chat-dots me-2"></i>Messages
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}">
+        <i class="bi bi-people me-2"></i>Message Groups
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'communication:announcement_create' %}">
+        <i class="bi bi-megaphone me-2"></i>Announcements
+      </a>
+    {% endif %}
   {% endif %}
   {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
     <!-- Teacher Navigation -->
@@ -436,6 +472,9 @@
       <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}">
         <i class="bi bi-gear-fill me-2"></i>Backend Console
       </a>
+      <a class="nav-link nav-pill" href="{% url 'accounts:workflow_center' %}">
+        <i class="bi bi-diagram-3 me-2"></i>Workflow Center
+      </a>
       <a class="nav-link nav-pill" href="{% url 'accounts:backend_entity_console' %}">
         <i class="bi bi-terminal me-2"></i>Entity Console
       </a>
@@ -486,6 +525,12 @@
       <a class="nav-link nav-pill" href="{% url 'siteconfig:report_library' %}">
         <i class="bi bi-journal-text me-2"></i>Report Library
       </a>
+      <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}">
+        <i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
+        <i class="bi bi-life-preserver me-2"></i>Help Center
+      </a>
 
     {% endif %}
   {% endif %}
@@ -497,7 +542,7 @@
     <div class="sidebar-section-title">Portal Tools</div>
     <div class="nav flex-column gap-0">
       {% if portal_cfg.messaging %}
-        <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'messaging' %}">
+        <a class="nav-link nav-pill" href="{% url 'accounts:user_messages' %}">
           <i class="bi bi-chat-left-text me-2"></i>Messaging
         </a>
       {% endif %}

@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load admin_health static %}
+{% load admin_health evals_extras static %}
 {% block title %}Parent Dashboard{% endblock %}
 
 {% block extrastyle %}
@@ -1091,7 +1091,7 @@
               {% endfor %}
             </select>
             {% endif %}
-            <a class="btn btn-sm btn-outline-secondary" href="#notifications">Manage notifications</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_notifications' %}">Manage notifications</a>
             {% if hero.actions %}
               {% for action in hero.actions %}
               <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">
@@ -1320,6 +1320,23 @@
                     <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary w-100">View Details</a>
                   </div>
                   {% endif %}
+
+                  {% if gce_enabled and certification_stats and card.link.student.id in certification_stats.candidates_by_student %}
+                  {% with candidate_info=certification_stats.candidates_by_student|get_item:card.link.student.id %}
+                  <div class="mt-3 pt-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <div class="small text-muted"><i class="bi bi-award text-danger me-1"></i>Exam Registration</div>
+                      <span class="badge {% if candidate_info.status == 'VERIFIED' %}bg-success{% elif candidate_info.status == 'SUBMITTED' %}bg-info{% else %}bg-warning text-dark{% endif %}">
+                        {{ candidate_info.status }}
+                      </span>
+                    </div>
+                    <div class="small text-muted mb-2">{{ candidate_info.session_name }}</div>
+                    <a href="{% url 'accounts:certification_session_detail' candidate_info.session_id %}" class="btn btn-sm btn-outline-danger w-100">
+                      <i class="bi bi-eye me-1"></i>View Registration Status
+                    </a>
+                  </div>
+                  {% endwith %}
+                  {% endif %}
                 </div>
               </div>
             </div>
@@ -1378,7 +1395,7 @@
           </div>
           <div class="announcements-card">
             {% for thread in class_threads %}
-            <div class="announcement-item">
+            <a class="announcement-item d-block text-decoration-none text-reset" href="{% url 'accounts:user_messages' %}">
               <div class="d-flex justify-content-between align-items-center">
                 <div class="fw-semibold">{{ thread.title }}</div>
                 {% if thread.unread_count %}
@@ -1391,8 +1408,42 @@
               <div class="announcement-meta mt-1">
                 Updated {{ thread.last_message_at|date:"M d, Y" }}
               </div>
-            </div>
+            </a>
             {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if gce_enabled and certification_stats and certification_stats.total_candidates > 0 %}
+        <!-- Certification Status -->
+        <div class="metrics-section mt-4" data-dashboard-column="secondary" data-widget-id="parent-certification">
+          <div class="section-title">
+            <i class="bi bi-award"></i>
+            <span>Exam Registration Status</span>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="row g-3 text-center mb-3">
+                <div class="col-4">
+                  <div class="small text-muted">Total</div>
+                  <div class="fs-5 fw-bold text-danger">{{ certification_stats.total_candidates }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="small text-muted">Draft</div>
+                  <div class="fs-5 fw-bold text-warning">{{ certification_stats.draft_candidates }}</div>
+                </div>
+                <div class="col-4">
+                  <div class="small text-muted">Verified</div>
+                  <div class="fs-5 fw-bold text-success">{{ certification_stats.verified_candidates }}</div>
+                </div>
+              </div>
+              <p class="small text-muted mb-3">
+                Your children registered for national exams. Check individual child cards for detailed status.
+              </p>
+              <a href="{% url 'accounts:certification_home' %}" class="btn btn-sm btn-outline-danger w-100">
+                <i class="bi bi-award me-1"></i>View Certification Center
+              </a>
+            </div>
           </div>
         </div>
         {% endif %}
