@@ -1,9 +1,10 @@
-{% extends "portal_base.html" %}
+{% extends "backend_base.html" %}
 {% load static %}
 
 {% block title %}Entity Console{% endblock %}
 
 {% block extrastyle %}
+{{ block.super }}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'entity-console';

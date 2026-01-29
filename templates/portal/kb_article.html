@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load static %}
 
 {% block title %}{{ article.title }} - Knowledge Base{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
+<div class="container-fluid mt-3 mb-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'accounts:redirect' %}">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'kb:kb_home' %}">Knowledge Base</a></li>
             {% if article.category %}
             <li class="breadcrumb-item">
@@ -45,8 +45,8 @@
                             {% endif %}
                         </div>
                         {% if user.is_authenticated %}
-                        <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#shareModal">
-                            <i class="fas fa-share-alt"></i> Share
+                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal">
+                            <i class="bi bi-share"></i> Share
                         </button>
                         {% endif %}
                     </div>
@@ -94,7 +94,7 @@
                     {% if article.attachments.count %}
                     <div id="attachments" class="mt-4 pt-4 border-top">
                         <h5 class="mb-3">
-                            <i class="fas fa-images"></i> Screenshots & Visuals
+                            <i class="bi bi-images"></i> Screenshots & Visuals
                         </h5>
                         <div class="row">
                             {% for attachment in article.attachments.all %}
@@ -105,14 +105,14 @@
                                     {% else %}
                                     <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
                                          style="height: 200px;">
-                                        <i class="fas fa-file text-muted fa-2x"></i>
+                                        <i class="bi bi-file-earmark text-muted" style="font-size: 2rem;"></i>
                                     </div>
                                     {% endif %}
                                     <div class="card-body">
                                         <p class="card-text small">{{ attachment.caption }}</p>
                                         <a href="{{ attachment.file.url }}" class="btn btn-sm btn-outline-primary" 
                                            target="_blank">
-                                            <i class="fas fa-download"></i> Download
+                                            <i class="bi bi-download"></i> Download
                                         </a>
                                     </div>
                                 </div>

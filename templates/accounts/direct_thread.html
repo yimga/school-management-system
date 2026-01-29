@@ -1,16 +1,31 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 
-{% block title %}Chat with {{ other_user.get_full_name|default:other_user.username }} - {{ SITE.site_name }}{% endblock %}
+{% block title %}Chat with {{ other_user.get_full_name|default:other_user.username }}{% endblock %}
 
 {% block content %}
-  <div class="container py-4">
+  <div class="container-fluid py-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div class="d-flex align-items-center gap-2">
+        {% if request.user.role == 'PARENT' %}
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-arrow-left me-1"></i>Contact School</a>
+        {% else %}
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}?tab=direct"><i class="bi bi-arrow-left me-1"></i>Messages</a>
+        {% endif %}
         <h1 class="h5 mb-0">Chat with {{ other_user.get_full_name|default:other_user.username }}</h1>
       </div>
+      {% if can_close %}
+      <form method="post" action="{% url 'accounts:direct_thread' other_user.id %}" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="close">
+        <button type="submit" class="btn btn-sm btn-outline-warning">Close conversation</button>
+      </form>
+      {% endif %}
       <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:user_profile' %}">Profile</a>
     </div>
+
+    {% if conversation_closed %}
+    <div class="alert alert-info">This conversation is closed. You can no longer reply. To contact the school again, use <a href="{% url 'portal:parent_contact_school' %}">Contact School</a>.</div>
+    {% endif %}
 
     <div class="card shadow-sm">
       <div class="card-body p-0">
@@ -41,10 +56,11 @@
               </div>
             </div>
           {% empty %}
-            <p class="text-muted text-center py-4">No messages yet. Send a message below to start the conversation.</p>
+            <p class="text-muted text-center py-4">No messages yet.{% if can_reply %} Send a message below to start.{% endif %}</p>
           {% endfor %}
         </div>
 
+        {% if can_reply %}
         <div class="border-top p-3">
           <form method="post" action="{% url 'accounts:direct_thread' other_user.id %}" aria-label="Reply in conversation">
             {% csrf_token %}
@@ -56,6 +72,7 @@
             <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Send</button>
           </form>
         </div>
+        {% endif %}
       </div>
     </div>
   </div>

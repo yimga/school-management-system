@@ -403,6 +403,47 @@
         font-weight: 700;
         letter-spacing: -0.3px;
       }
+
+      /* Messages chathead: fixed bottom-right above AI copilot; staff/teacher only */
+      .portal-chathead {
+        position: fixed;
+        right: 16px;
+        bottom: 72px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+        text-decoration: none;
+        font-size: 1.2rem;
+        z-index: 9998;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .portal-chathead:hover {
+        color: #fff;
+        transform: scale(1.08);
+        box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
+      }
+      .portal-chathead-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+        background: #dc3545;
+        color: #fff;
+        border-radius: 999px;
+        border: 2px solid #fff;
+      }
     </style>
     {% if SITE and SITE.custom_css %}
     <style data-site-custom-css>
@@ -417,9 +458,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="SMS">
     <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
+    {% block extrastyle %}{% endblock %}
   </head>
 
-  <body>
+  <body class="{% block body_extra_class %}{% endblock %}">
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 bg-white rounded" href="#main-content">Skip to main content</a>
     <nav class="navbar navbar-expand-lg navbar-dark topbar">
       <div class="container-fluid px-3">
@@ -584,27 +626,6 @@
               </div>
             {% endif %}
 
-            {% if PREVIEW_MODE_ENABLED %}
-              <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
-                <div>
-                  <strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Changes are staged and won’t persist until preview is cleared." }}
-                </div>
-                <div class="d-flex gap-2 mt-2 mt-sm-0">
-                  <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
-                  <a class="btn btn-sm btn-outline-light" href="/siteconfig/customizer/clear-preview/">Clear preview</a>
-                </div>
-              </div>
-            {% elif PREVIEW_TOGGLE_ENABLED %}
-              <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between mb-3">
-                <div>
-                  <strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be viewed before they go live." }}
-                </div>
-                <div class="d-flex gap-2 mt-2 mt-sm-0">
-                  <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
-                </div>
-              </div>
-            {% endif %}
-
             {% if dashboard_stats_cards %}
               <div class="mb-3">
                 <div class="section-title">
@@ -730,6 +751,14 @@
       }
     </script>
     
+    {# Messages chathead: staff/teacher only (RBAC); parents use Contact School #}
+    {% if request.user.is_authenticated and request.user.role != 'PARENT' %}
+    <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="Open Messages" title="Messages">
+      <i class="bi bi-chat-dots-fill"></i>
+      {% if messages_unread_count %}<span class="portal-chathead-badge">{{ messages_unread_count }}</span>{% endif %}
+    </a>
+    {% endif %}
+
     {# AI Copilot Assistant - RBAC Compatible #}
     {% include 'components/ai_copilot.html' %}
 

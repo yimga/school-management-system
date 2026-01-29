@@ -379,10 +379,12 @@
     <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}">
       <i class="bi bi-bell me-2"></i>Notifications
     </a>
+    {% if request.user.role != 'PARENT' %}
     <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
       <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
       {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
     </a>
+    {% endif %}
     <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
       <i class="bi bi-journal-text me-2"></i>Knowledge Base
     </a>
@@ -398,9 +400,6 @@
     </a>
   {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
     <div class="sidebar-section-title">Communication</div>
-    <a class="nav-link nav-pill" href="{% url 'accounts:user_messages' %}">
-      <i class="bi bi-chat-dots me-2"></i>Class Messages
-    </a>
     <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}">
       <i class="bi bi-envelope-paper me-2"></i>Contact School
     </a>
@@ -475,12 +474,6 @@
       </a>
       <a class="nav-link nav-pill" href="{% url 'accounts:workflow_center' %}">
         <i class="bi bi-diagram-3 me-2"></i>Workflow Center
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'accounts:backend_entity_console' %}">
-        <i class="bi bi-terminal me-2"></i>Entity Console
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'accounts:backend_entity_import' %}">
-        <i class="bi bi-box-arrow-in-down me-2"></i>Bulk Entity Import
       </a>
 
       <div class="sidebar-section-title">People & Access</div>

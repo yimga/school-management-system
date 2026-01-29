@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load static %}
 
 {% block title %}{{ category.name }} - Knowledge Base{% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
+<div class="container-fluid mt-3 mb-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'accounts:redirect' %}">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'kb:kb_home' %}">Knowledge Base</a></li>
             <li class="breadcrumb-item active">{{ category.name }}</li>
         </ol>

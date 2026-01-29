@@ -1,0 +1,9 @@
+{% extends "portal_base.html" %}
+{% load static %}
+{# Backend pages (Workflow Center, Entity Console, etc.) use this base for a consistent light theme. #}
+{# Theme is visible whether the user has dark, light, or classic selected. #}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">
+{% endblock %}
+{% block body_extra_class %}portal-backend-light{% endblock %}

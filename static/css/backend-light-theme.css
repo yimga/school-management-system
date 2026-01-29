@@ -1,0 +1,78 @@
+/**
+ * Backend light theme: visible on dark, light, or classic.
+ * Applied when body has class .portal-backend-light (e.g. Workflow Center, Entity Console).
+ * Uses high specificity so backend pages stay light regardless of user theme.
+ */
+body.portal-backend-light,
+body.portal-backend-light[data-bs-theme="dark"],
+body.portal-backend-light[data-bs-theme="light"] {
+  background: linear-gradient(135deg, #f8f4fc 0%, #fff 50%, #faf5ff 100%) !important;
+  color: #1a1a2e !important;
+}
+
+body.portal-backend-light .card,
+body.portal-backend-light .workflow-card,
+body.portal-backend-light .workflow-hero {
+  background: #fff !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  color: #1a1a2e !important;
+}
+
+body.portal-backend-light .workflow-hero h2,
+body.portal-backend-light .workflow-title,
+body.portal-backend-light .card-title,
+body.portal-backend-light h1, body.portal-backend-light h2, body.portal-backend-light h3 {
+  color: #0f172a !important;
+}
+
+body.portal-backend-light .workflow-hero p,
+body.portal-backend-light .workflow-subtitle,
+body.portal-backend-light .text-muted {
+  color: #475569 !important;
+}
+
+body.portal-backend-light .sidebar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+body.portal-backend-light .breadcrumb,
+body.portal-backend-light .breadcrumb-item a {
+  color: #64748b !important;
+}
+
+body.portal-backend-light .breadcrumb-item.active {
+  color: #0f172a !important;
+}
+
+body.portal-backend-light .btn-outline-primary,
+body.portal-backend-light .btn-outline-secondary {
+  border-color: rgba(102, 126, 234, 0.4);
+  color: #667eea;
+}
+
+body.portal-backend-light .btn-outline-primary:hover,
+body.portal-backend-light .btn-outline-secondary:hover {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+  color: #4c51bf;
+}
+
+body.portal-backend-light .btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: #667eea;
+}
+
+body.portal-backend-light .btn-primary:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  border-color: #5a67d8;
+}
+
+body.portal-backend-light .nav-pill:hover,
+body.portal-backend-light .nav-pill.active {
+  background: rgba(102, 126, 234, 0.12) !important;
+}
+
+body.portal-backend-light .badge.bg-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+}

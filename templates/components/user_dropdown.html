@@ -91,10 +91,17 @@
         </a>
       </li>
       <li>
+        {% if request.user.role == 'PARENT' %}
+        <a class="dropdown-item" href="{% url 'portal:parent_contact_school' %}">
+          <i class="bi bi-envelope-paper"></i>
+          <span>Contact School</span>
+        </a>
+        {% else %}
         <a class="dropdown-item" href="{% url 'accounts:user_messages' %}">
           <i class="bi bi-chat-dots"></i>
           <span>Messaging</span>
         </a>
+        {% endif %}
       </li>
       <li>
         <a class="dropdown-item" href="{% url 'accounts:user_documentation' %}">
