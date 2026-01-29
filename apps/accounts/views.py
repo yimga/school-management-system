@@ -106,13 +106,22 @@ def _direct_conversations(user, limit=50):
         ).values("sender").annotate(cnt=Count("id")).values_list("sender", "cnt")
     )
 
-    # Collect distinct other users and latest message per conversation
+    from apps.communication.models import DirectConversation
+
+    # For parents: only show conversations with staff/teacher that are not closed
+    is_parent = getattr(user, "role", None) == User.Role.PARENT
+
     seen_other_ids = set()
     conversations = []
     for msg in qs:
         other = msg.recipient if msg.sender_id == user.id else msg.sender
         if other.id in seen_other_ids:
             continue
+        if is_parent:
+            if getattr(other, "role", None) == User.Role.PARENT:
+                continue
+            if DirectConversation.is_closed(user, other):
+                continue
         seen_other_ids.add(other.id)
         unread_count = unread_by_sender.get(other.id, 0)
         conversations.append({
@@ -129,7 +138,9 @@ def _direct_conversations(user, limit=50):
 
 @login_required
 def user_messages(request):
-    """Messages hub: Direct (1-on-1) and Groups tabs (RBAC-safe)."""
+    """Messages hub: Direct and Groups. Parents redirected to Contact School (RBAC)."""
+    if getattr(request.user, "role", None) == User.Role.PARENT:
+        return redirect(reverse("portal:parent_contact_school"))
     from apps.portal.services import threads_for_user
 
     active_tab = request.GET.get("tab", "groups")
@@ -144,49 +155,87 @@ def user_messages(request):
     return render(request, "accounts/messages.html", context)
 
 
+def _is_staff_or_teacher(user):
+    if getattr(user, "role", None) == User.Role.PARENT:
+        return False
+    return user.is_staff or user.is_superuser or getattr(user, "role", None) in (
+        User.Role.ADMIN, User.Role.TEACHER, User.Role.LEADERSHIP,
+        User.Role.PRINCIPAL, User.Role.VICE_PRINCIPAL, User.Role.DEPT_LEAD,
+        User.Role.HOD, User.Role.SECRETARY, User.Role.BURSAR,
+    )
+
+
 @login_required
 def direct_thread(request, user_id):
-    """View 1-on-1 thread with another user; GET: show messages, POST: send reply. Mark received as read."""
-    from apps.communication.models import Message
+    """View 1-on-1 thread. Parents can only open threads with staff/teacher (to reply); staff can close the loop."""
+    from apps.communication.models import Message, DirectConversation
+    from django.utils import timezone
 
     User = request.user.__class__
     if user_id == request.user.pk:
         return redirect("accounts:user_messages")
     other = get_object_or_404(User.objects.filter(is_active=True), pk=user_id)
 
-    # All messages between me and other (either direction), ordered by created_at
+    other_is_parent = getattr(other, "role", None) == User.Role.PARENT
+    i_am_parent = getattr(request.user, "role", None) == User.Role.PARENT
+
+    # Parent can only chat with staff/teacher (reply to school); not with another parent
+    if i_am_parent and other_is_parent:
+        return redirect(reverse("portal:parent_contact_school"))
+
+    # Staff–parent conversation record (only when one is parent, one is staff/teacher)
+    conv = None
+    if (i_am_parent and _is_staff_or_teacher(other)) or (other_is_parent and _is_staff_or_teacher(request.user)):
+        conv = DirectConversation.get_or_create_for(request.user, other)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "close" and _is_staff_or_teacher(request.user) and other_is_parent and conv:
+            conv.closed_at = timezone.now()
+            conv.save(update_fields=["closed_at"])
+            messages.success(request, "Conversation closed. Parent can no longer reply.")
+            return redirect("accounts:user_messages")
+        body = (request.POST.get("body") or "").strip()
+        subject = (request.POST.get("subject") or "").strip() or "Direct message"
+        if body:
+            if conv and conv.closed_at:
+                messages.error(request, "This conversation is closed.")
+            else:
+                msg = Message.objects.create(
+                    sender=request.user,
+                    recipient=other,
+                    subject=subject,
+                    body=body,
+                )
+                _notify_new_direct_message(request.user, other, msg)
+                Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(is_read=True)
+            return redirect("accounts:direct_thread", user_id=other.pk)
+
     messages_qs = Message.objects.filter(
         Q(sender=request.user, recipient=other) | Q(sender=other, recipient=request.user)
     ).filter(is_archived=False).select_related("sender", "recipient").order_by("created_at")
 
-    if request.method == "POST":
-        body = (request.POST.get("body") or "").strip()
-        subject = (request.POST.get("subject") or "").strip() or "Direct message"
-        if body:
-            msg = Message.objects.create(
-                sender=request.user,
-                recipient=other,
-                subject=subject,
-                body=body,
-            )
-            _notify_new_direct_message(request.user, other, msg)
-            # Mark messages from other to me as read when I reply
-            Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(is_read=True)
-            return redirect("accounts:direct_thread", user_id=other.pk)
-
-    # Mark received messages as read when opening thread
     Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(is_read=True)
+
+    conversation_closed = conv.closed_at if conv else False
+    can_close = _is_staff_or_teacher(request.user) and other_is_parent and conv and not conv.closed_at
+    can_reply = not conversation_closed
 
     context = {
         "other_user": other,
         "messages": list(messages_qs),
+        "conversation_closed": conversation_closed,
+        "can_close": can_close,
+        "can_reply": can_reply,
     }
     return render(request, "accounts/direct_thread.html", context)
 
 
 @login_required
 def direct_compose(request):
-    """Start a new direct message: pick recipient and send (GET: form, POST: create and redirect to thread)."""
+    """Start a new direct message; staff/teacher only; parents use Contact School (RBAC)."""
+    if getattr(request.user, "role", None) == User.Role.PARENT:
+        return redirect(reverse("portal:parent_contact_school"))
     from apps.communication.models import Message
     from django.contrib.auth import get_user_model
 
@@ -200,6 +249,9 @@ def direct_compose(request):
         recipient = User.objects.filter(pk=recipient_id, is_active=True).exclude(pk=request.user.pk).first()
         if not recipient:
             return redirect("accounts:direct_compose")
+        from apps.communication.models import DirectConversation
+        if getattr(recipient, "role", None) == User.Role.PARENT and _is_staff_or_teacher(request.user):
+            DirectConversation.get_or_create_for(request.user, recipient)
         msg = Message.objects.create(sender=request.user, recipient=recipient, subject=subject, body=body)
         _notify_new_direct_message(request.user, recipient, msg)
         return redirect("accounts:direct_thread", user_id=recipient.pk)

@@ -5,6 +5,7 @@ from .views import (
     backend_entity_import,
     backend_entity_console,
     claim_invite,
+    direct_compose,
     direct_thread,
     login_view,
     logout_view,

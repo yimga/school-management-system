@@ -1395,7 +1395,7 @@
           </div>
           <div class="announcements-card">
             {% for thread in class_threads %}
-            <a class="announcement-item d-block text-decoration-none text-reset" href="{% url 'accounts:user_messages' %}">
+            <a class="announcement-item d-block text-decoration-none text-reset" href="{% url 'portal:parent_contact_school' %}">
               <div class="d-flex justify-content-between align-items-center">
                 <div class="fw-semibold">{{ thread.title }}</div>
                 {% if thread.unread_count %}

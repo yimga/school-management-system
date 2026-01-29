@@ -1,9 +1,10 @@
-{% extends "portal_base.html" %}
+{% extends "backend_base.html" %}
 {% load static %}
 
 {% block title %}Workflow Center{% endblock %}
 
 {% block extrastyle %}
+{{ block.super }}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'workflow';

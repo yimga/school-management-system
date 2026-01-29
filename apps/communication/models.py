@@ -67,6 +67,54 @@ class Message(models.Model):
         return self.body[:100] + '...' if len(self.body) > 100 else self.body
 
 
+class DirectConversation(models.Model):
+    """
+    Staff–parent conversation; only staff can open. When staff close it, the loop closes
+    and the parent can no longer reply. Parents contact school via Contact School form only.
+    """
+    user1 = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="direct_conversations_as_user1",
+    )
+    user2 = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="direct_conversations_as_user2",
+    )
+    closed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        unique_together = [
+            ["user1", "user2"],
+        ]
+        indexes = [
+            models.Index(fields=["user1", "user2"]),
+            models.Index(fields=["closed_at"]),
+        ]
+        verbose_name = "Direct conversation (staff–parent)"
+        verbose_name_plural = "Direct conversations (staff–parent)"
+
+    def __str__(self):
+        return f"{self.user1} ↔ {self.user2}" + (" (closed)" if self.closed_at else "")
+
+    @classmethod
+    def get_or_create_for(cls, user_a, user_b):
+        """Get or create the conversation between two users (order-normalized)."""
+        u1, u2 = (user_a, user_b) if user_a.pk < user_b.pk else (user_b, user_a)
+        obj, _ = cls.objects.get_or_create(user1=u1, user2=u2)
+        return obj
+
+    @classmethod
+    def is_closed(cls, user_a, user_b):
+        """Return True if a conversation exists and is closed (does not create)."""
+        u1, u2 = (user_a, user_b) if user_a.pk < user_b.pk else (user_b, user_a)
+        conv = cls.objects.filter(user1=u1, user2=u2).first()
+        return conv.closed_at is not None if conv else False
+
+
 class Announcement(models.Model):
     """
     School announcements for different audiences

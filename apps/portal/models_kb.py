@@ -250,6 +250,13 @@ class KBArticleAttachment(models.Model):
         verbose_name_plural = _("KB Attachments")
         ordering = ['display_order', 'created_at']
 
+    @property
+    def is_image(self):
+        """True if this attachment is an image (for display vs file placeholder)."""
+        if self.file_type and self.file_type.startswith("image/"):
+            return True
+        return bool(self.is_screenshot)
+
     def __str__(self):
         return f"{self.article.title} - {self.title}"
 

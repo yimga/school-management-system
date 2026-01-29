@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 {% load static %}
 
 {% block title %}Knowledge Base - Help Center{% endblock %}
@@ -10,245 +10,146 @@
   });
 </script>
 
-<div class="container-fluid bg-gradient-primary text-white py-5 mb-5" data-dashboard-column="hero" data-widget-id="kb-hero">
+<div class="container-fluid py-4 mb-4 rounded-3" style="background: linear-gradient(135deg, var(--school-primary, #0d6efd), var(--school-accent, #198754)); color: #fff;" data-dashboard-column="hero" data-widget-id="kb-hero">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h1 class="display-4 mb-3">
-                    <i class="fas fa-book"></i> Knowledge Base
+                <h1 class="h2 mb-2">
+                    <i class="bi bi-journal-text"></i> Knowledge Base
                 </h1>
-                <p class="lead mb-0">
-                    Comprehensive guides, tutorials, and step-by-step instructions for all features
+                <p class="lead mb-0 opacity-90">
+                    Guides, tutorials, and step-by-step instructions for all features
                 </p>
             </div>
-            <div class="col-md-4 text-right">
-                <div class="display-1 opacity-50">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
+            <div class="col-md-4 text-md-end">
+                <span class="opacity-50" style="font-size: 3rem;"><i class="bi bi-book"></i></span>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container mb-5">
-    <!-- Search Bar -->
-    <div class="row mb-4" data-dashboard-column="main" data-widget-id="kb-search">
-        <div class="col-lg-8 mx-auto">
+<div class="container-fluid mb-5 px-0">
+    <!-- Search Bar - full width -->
+    <div class="row mb-4">
+        <div class="col-12">
             <form method="get" action="{% url 'kb:kb_search' %}" class="input-group input-group-lg">
-                <input type="text" 
-                       name="q" 
-                       class="form-control" 
-                       placeholder="Search articles, guides, tutorials..." 
+                <input type="text"
+                       name="q"
+                       class="form-control"
+                       placeholder="Search for an article, FAQ, or more..."
                        value="{{ query }}"
                        autocomplete="off">
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
             </form>
         </div>
     </div>
 
-    <div class="row" data-dashboard-column="main" data-widget-id="kb-featured">
-        <!-- Featured Articles Carousel -->
-        <div class="col-12 mb-5">
-            <h2 class="h4 mb-4">
-                <i class="fas fa-star text-warning"></i> Featured Articles
+    <!-- Featured Articles -->
+    {% if featured_articles %}
+    <div class="row mb-5">
+        <div class="col-12 mb-3">
+            <h2 class="h4 mb-0">
+                <i class="bi bi-star text-warning"></i> Featured Articles
             </h2>
-            
-            {% if featured_articles %}
-            <div id="featuredCarousel" class="carousel slide" data-ride="carousel">
-                <div class="carousel-inner">
-                    {% for article in featured_articles %}
-                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                        <a href="{% url 'kb:kb_article' article.slug %}" 
-                           class="card shadow-lg text-decoration-none h-100"
-                           style="cursor: pointer;">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <h5 class="card-title text-primary">
-                                        {{ article.title }}
-                                    </h5>
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-star"></i> Featured
-                                    </span>
-                                </div>
-                                <p class="card-text text-muted">{{ article.summary|truncatewords:30 }}</p>
-                                <div class="mt-3">
-                                    {% if article.difficulty %}
-                                    <span class="badge {% if article.difficulty == 'BEGINNER' %}bg-success{% elif article.difficulty == 'INTERMEDIATE' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
-                                        {{ article.get_difficulty_display }}
-                                    </span>
-                                    {% endif %}
-                                    <small class="text-muted ml-2">
-                                        <i class="fas fa-clock"></i> {{ article.estimated_read_time }} min read
-                                    </small>
-                                </div>
-                            </div>
-                        </a>
+        </div>
+        {% for article in featured_articles %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <a href="{% url 'kb:kb_article' article.slug %}"
+               class="card shadow-sm h-100 text-decoration-none text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title text-primary mb-0">{{ article.title }}</h5>
+                        <span class="badge bg-warning text-dark"><i class="bi bi-star"></i> Featured</span>
                     </div>
-                    {% endfor %}
+                    <p class="card-text small text-muted">{{ article.summary|truncatewords:30 }}</p>
+                    <small class="text-muted"><i class="bi bi-clock"></i> {{ article.estimated_read_time }} min read</small>
                 </div>
-                <a class="carousel-control-prev" href="#featuredCarousel" role="button" data-slide="prev">
-                    <span class="carousel-control-prev-icon"></span>
-                </a>
-                <a class="carousel-control-next" href="#featuredCarousel" role="button" data-slide="next">
-                    <span class="carousel-control-next-icon"></span>
-                </a>
-            </div>
-            {% endif %}
+            </a>
         </div>
+        {% endfor %}
     </div>
+    {% endif %}
 
-    <!-- Categories Grid -->
-    <div class="row" data-dashboard-column="secondary" data-widget-id="kb-categories">
-        <div class="col-12 mb-4">
-            <h2 class="h4 mb-4">
-                <i class="fas fa-folder-open"></i> Browse by Category
+    <!-- Browse by Category - full width grid -->
+    <div class="row mb-5">
+        <div class="col-12 mb-3">
+            <h2 class="h4 mb-0">
+                <i class="bi bi-folder2-open"></i> Browse by Category
             </h2>
         </div>
-
         {% for category in categories %}
         <div class="col-md-6 col-lg-4 mb-4">
-            <a href="{% url 'kb:kb_category' category.slug %}" 
-               class="card shadow-sm h-100 text-decoration-none text-dark transition"
-               style="cursor: pointer;">
+            <a href="{% url 'kb:kb_category' category.slug %}"
+               class="card shadow-sm h-100 text-decoration-none text-dark">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas {{ category.icon }}"></i> {{ category.name }}
-                    </h5>
+                    <h5 class="mb-0"><i class="bi bi-folder2"></i> {{ category.name }}</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text small text-muted">
-                        {{ category.description|truncatewords:15 }}
-                    </p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary">{{ category.article_count }} articles</span>
-                        <small class="text-muted">
-                            <i class="fas fa-arrow-right"></i> Browse
-                        </small>
-                    </div>
+                    <p class="card-text small text-muted mb-2">{{ category.description|truncatewords:15 }}</p>
+                    <span class="badge bg-primary">{{ category.article_count }} articles</span>
+                    <small class="text-muted ms-2"><i class="bi bi-arrow-right"></i> Browse</small>
                 </div>
             </a>
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> No categories available yet.
-            </div>
+            <div class="alert alert-info"><i class="bi bi-info-circle"></i> No categories available yet.</div>
         </div>
         {% endfor %}
     </div>
 
-    <!-- Recent Articles -->
-    <div class="row mt-5" data-dashboard-column="secondary" data-widget-id="kb-recent">
-        <div class="col-12 mb-4">
-            <h2 class="h4 mb-4">
-                <i class="fas fa-clock"></i> Recently Updated Articles
-            </h2>
-        </div>
-
-        {% if recent_articles %}
-        {% for article in recent_articles %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <a href="{% url 'kb:kb_article' article.slug %}" class="text-primary">
-                            {{ article.title|truncatewords:10 }}
-                        </a>
-                    </h6>
-                    <p class="card-text small text-muted">
-                        {{ article.summary|truncatewords:20 }}
-                    </p>
-                </div>
-                <div class="card-footer bg-white">
-                    <small class="text-muted">
-                        <i class="fas fa-calendar"></i> 
-                        {{ article.updated_at|date:"M d, Y" }}
-                    </small>
-                    {% if article.difficulty %}
-                    <span class="badge {% if article.difficulty == 'BEGINNER' %}bg-success
-                        {% elif article.difficulty == 'INTERMEDIATE' %}bg-warning text-dark
-                        {% else %}bg-danger{% endif %} float-right">
-                        {{ article.get_difficulty_display }}
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-        {% else %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> No articles available yet.
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Popular Articles -->
-    <div class="row mt-4 mb-5">
-        <div class="col-12 mb-4">
-            <h2 class="h4 mb-4">
-                <i class="fas fa-fire text-danger"></i> Most Popular
-            </h2>
-        </div>
-
-        {% if popular_articles %}
-        <div class="col-12">
-            <div class="list-group">
-                {% for article in popular_articles %}
-                <a href="{% url 'kb:kb_article' article.slug %}" 
-                   class="list-group-item list-group-item-action">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="mb-1">{{ article.title }}</h6>
-                            <p class="mb-1 small text-muted">{{ article.summary|truncatewords:15 }}</p>
-                        </div>
-                        <div class="text-right ml-3">
-                            <small class="text-muted d-block">
-                                <i class="fas fa-eye"></i> {{ article.view_count }} views
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-clock"></i> {{ article.estimated_read_time }} min
-                            </small>
-                        </div>
+    <!-- Recently Updated & Most Popular side by side on large screens -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <h2 class="h4 mb-3"><i class="bi bi-clock"></i> Recently Updated Articles</h2>
+            {% if recent_articles %}
+            <ul class="list-group list-group-flush">
+                {% for article in recent_articles %}
+                <a href="{% url 'kb:kb_article' article.slug %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <h6 class="mb-0 text-primary">{{ article.title|truncatewords:10 }}</h6>
+                        <small class="text-muted">{{ article.updated_at|date:"M d, Y" }}</small>
                     </div>
                 </a>
                 {% endfor %}
-            </div>
+            </ul>
+            {% else %}
+            <p class="text-muted"><i class="bi bi-info-circle"></i> No articles yet.</p>
+            {% endif %}
         </div>
-        {% endif %}
+        <div class="col-lg-6">
+            <h2 class="h4 mb-3"><i class="bi bi-graph-up"></i> Most Popular</h2>
+            {% if popular_articles %}
+            <ul class="list-group list-group-flush">
+                {% for article in popular_articles %}
+                <a href="{% url 'kb:kb_article' article.slug %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto">
+                        <h6 class="mb-0 text-primary">{{ article.title }}</h6>
+                        <small class="text-muted">{{ article.view_count }} views · {{ article.estimated_read_time }} min</small>
+                    </div>
+                </a>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Call to Action -->
-    <div class="row mt-5 mb-3">
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card bg-light border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h5 class="card-title mb-2">
-                                <i class="fas fa-lightbulb text-warning"></i> Have Knowledge to Share?
-                            </h5>
-                            <p class="card-text text-muted mb-0">
-                                Help other users by contributing KB articles. Earn points and get recognized!
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-right">
-                            {% if user.is_authenticated %}
-                            <a href="{% url 'kb:kb_article_submit' %}" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Write an Article
-                            </a>
-                            {% else %}
-                            <a href="{% url 'accounts:login' %}?next={% url 'kb:kb_article_submit' %}" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt"></i> Login & Contribute
-                            </a>
-                            {% endif %}
-                        </div>
+                <div class="card-body p-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <h5 class="card-title mb-1"><i class="bi bi-lightbulb text-warning"></i> Have Knowledge to Share?</h5>
+                        <p class="card-text text-muted mb-0 small">Help others by contributing KB articles.</p>
                     </div>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'kb:kb_article_submit' %}" class="btn btn-primary"><i class="bi bi-plus"></i> Write an Article</a>
+                    {% else %}
+                    <a href="{% url 'accounts:login' %}?next={% url 'kb:kb_article_submit' %}" class="btn btn-primary"><i class="bi bi-box-arrow-in-right"></i> Login & Contribute</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -258,48 +159,15 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card bg-info text-white border-0">
-                <div class="card-body p-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h5 class="card-title text-white mb-2">
-                                <i class="fas fa-question-circle"></i> Looking for Quick Answers?
-                            </h5>
-                            <p class="card-text mb-0">
-                                Check our FAQ section for commonly asked questions with quick answers.
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-right">
-                            <a href="{% url 'kb:faq_list' %}" class="btn btn-light">
-                                <i class="fas fa-arrow-right"></i> View FAQ
-                            </a>
-                        </div>
+                <div class="card-body p-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div>
+                        <h5 class="card-title text-white mb-1"><i class="bi bi-question-circle"></i> Looking for Quick Answers?</h5>
+                        <p class="card-text mb-0 opacity-90 small">Check our FAQ for commonly asked questions.</p>
                     </div>
+                    <a href="{% url 'kb:faq_list' %}" class="btn btn-light"><i class="bi bi-arrow-right"></i> View FAQ</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.transition {
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.transition:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
-.opacity-50 {
-opacity: 0.5;
-}
-</style>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'js/dashboard-layout.js' %}"></script>
 {% endblock %}
