@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponseForbidden
 from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
@@ -99,6 +99,7 @@ def _direct_conversations(user, limit=50):
         Q(sender=user) | Q(recipient=user)
     ).filter(is_archived=False).select_related("sender", "recipient").order_by("-created_at")
 
+<<<<<<< HEAD
     # One query: unread counts per sender (senders who messaged me and I haven't read)
     unread_by_sender = dict(
         Message.objects.filter(
@@ -106,6 +107,8 @@ def _direct_conversations(user, limit=50):
         ).values("sender").annotate(cnt=Count("id")).values_list("sender", "cnt")
     )
 
+=======
+>>>>>>> backend_vs_frontend
     # Collect distinct other users and latest message per conversation
     seen_other_ids = set()
     conversations = []
@@ -150,9 +153,15 @@ def direct_thread(request, user_id):
     from apps.communication.models import Message
 
     User = request.user.__class__
+<<<<<<< HEAD
     if user_id == request.user.pk:
         return redirect("accounts:user_messages")
     other = get_object_or_404(User.objects.filter(is_active=True), pk=user_id)
+=======
+    other = User.objects.filter(pk=user_id).select_related().first()
+    if not other or other.pk == request.user.pk:
+        return redirect("accounts:user_messages")
+>>>>>>> backend_vs_frontend
 
     # All messages between me and other (either direction), ordered by created_at
     messages_qs = Message.objects.filter(
