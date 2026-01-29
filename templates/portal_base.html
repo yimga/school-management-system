@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-theme-modes.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui-alignment-improvements.css' %}">
+    {% block extrastyle %}{% endblock %}
 
     <style>
       {% with theme=SITE_THEME %}

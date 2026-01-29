@@ -21,7 +21,6 @@ media/
 .DS_Store
 Thumbs.db
 nul
-
 # Cursor / worktrees
 .cursor/
 
