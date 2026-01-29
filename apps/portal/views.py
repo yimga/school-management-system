@@ -288,7 +288,17 @@ def parent_dashboard(request: HttpRequest):
         hero["actions"].append({"label": "Pay Fees", "url": reverse("portal:parent_finance")})
 
     from apps.accounts.utils import get_dashboard_context
-    
+
+    # Signature stats for parent (forms awaiting signature)
+    try:
+        from apps.portal.models import FormSignature
+        signature_stats = {
+            "pending": FormSignature.objects.filter(parent=request.user, status="PENDING").count(),
+            "signed": FormSignature.objects.filter(parent=request.user, status="SIGNED").count(),
+        }
+    except (ImportError, Exception):
+        signature_stats = {"pending": 0, "signed": 0}
+
     dashboard_context = get_dashboard_context(request.user, "parent")
     available_sidebar_items = [
         {"id": "parent-home", "label": "Parent Home", "url": reverse("portal:parent_dashboard"), "icon": "bi-house"},
