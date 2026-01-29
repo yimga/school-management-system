@@ -25,12 +25,18 @@ def apply_payment_code_idempotent(apps, schema_editor):
             ON finance_invoice (payment_code varchar_pattern_ops);
         """)
 
-    # 4. Backfill
-    Invoice = apps.get_model("finance", "Invoice")
-    for inv in Invoice.objects.filter(payment_code__isnull=True) | Invoice.objects.filter(payment_code=""):
-        short = uuid.uuid4().hex[:8].upper()
-        inv.payment_code = f"INV-{inv.id}-{short}"
-        inv.save(update_fields=["payment_code"])
+    # 4. Backfill using raw SQL (historical model has no payment_code field yet)
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT id FROM finance_invoice
+            WHERE payment_code IS NULL OR payment_code = ''
+        """)
+        for (row_id,) in cursor.fetchall():
+            short = uuid.uuid4().hex[:8].upper()
+            cursor.execute(
+                "UPDATE finance_invoice SET payment_code = %s WHERE id = %s",
+                [f"INV-{row_id}-{short}", row_id],
+            )
 
     with connection.cursor() as cursor:
         # 5. Set NOT NULL only if column is still nullable
