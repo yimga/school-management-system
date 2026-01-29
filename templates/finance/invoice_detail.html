@@ -80,6 +80,11 @@
           <div class="d-flex justify-content-between">
             <span>Due</span><strong>{{ invoice.due_date|default:"TBD" }}</strong>
           </div>
+          {% if invoice.payment_code %}
+          <div class="d-flex justify-content-between mt-2 pt-2 border-top">
+            <span class="small text-muted">Payment code (quote for MoMo)</span><strong class="small">{{ invoice.payment_code }}</strong>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>

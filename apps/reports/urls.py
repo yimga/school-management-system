@@ -6,8 +6,10 @@ from .views import (
     parent_download_term_report,
     parent_download_term_report_csv,
     parent_share_report,
+    promotion_preview,
     publish_term_results,
     report_share,
+    statistical_return,
 )
 
 app_name = 'reports'
@@ -20,5 +22,7 @@ urlpatterns = [
     path("parent/report/<int:student_id>/share/<str:report_type>/", parent_share_report, name="parent_share_report"),
     path("share/<str:token>/", report_share, name="report_share"),
     path("publish/", publish_term_results, name="publish_term_results"),
+    path("statistical-return/", statistical_return, name="statistical_return"),
+    path("promotion-preview/", promotion_preview, name="promotion_preview"),
 ]
 

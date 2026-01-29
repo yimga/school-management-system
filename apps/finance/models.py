@@ -308,6 +308,13 @@ class Invoice(models.Model):
     issued_date = models.DateField(default=timezone.now)
     due_date = models.DateField(null=True, blank=True)
     reference = models.CharField(max_length=64, blank=True)
+    payment_code = models.CharField(
+        max_length=32,
+        unique=True,
+        blank=True,
+        db_index=True,
+        help_text="Unique code for parent to quote when paying (e.g. MoMo). Auto-generated if blank.",
+    )
     notes = models.TextField(blank=True)
     attachment = models.FileField(
         upload_to="finance/invoices/",
@@ -429,6 +436,17 @@ class Invoice(models.Model):
 
     def __str__(self) -> str:
         return f"{self.invoice_type} {self.reference or self.id}"
+
+    def save(self, *args, **kwargs):
+        if not self.payment_code:
+            # Unique code for MoMo/payment quote: INV-<id>-<short> (set after first save if needed)
+            super().save(*args, **kwargs)
+            if not self.payment_code:
+                short = uuid.uuid4().hex[:8].upper()
+                self.payment_code = f"INV-{self.id}-{short}"
+                super().save(update_fields=["payment_code"])
+            return
+        super().save(*args, **kwargs)
 
 
 class InvoiceLine(models.Model):

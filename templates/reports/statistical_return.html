@@ -1,0 +1,95 @@
+{% extends "backend_base.html" %}
+{% load static %}
+
+{% block title %}Statistical return{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:workflow_center' %}">Workflow Center</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Statistical return</li>
+    </ol>
+  </nav>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Statistical return</h2>
+      <p class="text-muted small mb-3">
+        Annual summary for regional/Ministry submission: students by class, gender, success rate, teacher-student ratio.
+      </p>
+      <form method="get" action="" class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label for="year" class="form-label">Academic year</label>
+          <select name="year" id="year" class="form-select" onchange="this.form.submit()">
+            <option value="">— Select —</option>
+            {% for y in years %}
+            <option value="{{ y.id }}" {% if year and year.id == y.id %}selected{% endif %}>{{ y.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <a href="?year={{ year.id|default:'' }}&export=csv" class="btn btn-outline-primary">Export CSV</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if year %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h3 class="h6 mb-3">{{ year.name }}</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Classroom</th>
+              <th>Students</th>
+              <th>Male</th>
+              <th>Female</th>
+              <th>Promoted</th>
+              <th>Success %</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in rows %}
+            <tr>
+              <td>{{ r.classroom }}</td>
+              <td>{{ r.students }}</td>
+              <td>{{ r.male }}</td>
+              <td>{{ r.female }}</td>
+              <td>{{ r.promoted }}</td>
+              <td>{{ r.success_rate }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted">No classrooms in this year.</td></tr>
+            {% endfor %}
+          </tbody>
+          {% if totals %}
+          <tfoot class="table-light">
+            <tr>
+              <th>Total</th>
+              <th>{{ totals.students }}</th>
+              <th>{{ totals.male }}</th>
+              <th>{{ totals.female }}</th>
+              <th>{{ totals.promoted }}</th>
+              <th>{{ totals.success_rate }}%</th>
+            </tr>
+            <tr>
+              <td colspan="2"><strong>Teachers</strong></td>
+              <td colspan="4">{{ totals.teachers }}</td>
+            </tr>
+            <tr>
+              <td colspan="2"><strong>Teacher/student ratio</strong></td>
+              <td colspan="4">{{ totals.teacher_student_ratio|default:"—" }}</td>
+            </tr>
+          </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

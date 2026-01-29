@@ -17,7 +17,7 @@ from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
 from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Term, Subject
 from apps.academics.services import get_active_year_and_term
-from apps.people.models import TeacherProfile, StudentProfile
+from apps.people.models import TeacherProfile, StudentProfile, TeacherAttendance, TeacherLeaveRequest
 from apps.evals.models import GradeApprovalRequest, TeacherAssignment, Evaluation, AssessmentWeights
 from apps.evals.importers import preview_import, apply_import, build_template_headers
 from apps.reports.services import is_term_published
@@ -132,6 +132,8 @@ def _serialize_evaluation(evaluation: Evaluation) -> dict[str, str]:
 
 
 def _update_evaluations_from_entries(entries, students_map, teacher, year, term, subject_assignment) -> int:
+    if getattr(year, "is_locked", False):
+        return 0  # Year hard lock: no grade edits after rollover
     updated = 0
     for entry in entries:
         student = students_map.get(entry["student_id"])
@@ -191,6 +193,8 @@ def _apply_ocr_entries(entries, student_lookup, sa, year, term, teacher, delta_m
         delta_mode: If True, only fill missing marks (skip if field already has a value).
                     If False, update all fields even if they already have values.
     """
+    if getattr(year, "is_locked", False):
+        return []  # Year hard lock: no grade edits after rollover
     updated = []
     for entry in entries:
         student = student_lookup.get(entry.get("student_code", "").upper())
@@ -522,6 +526,7 @@ def teacher_dashboard(request: HttpRequest):
     dashboard_context = get_dashboard_context(request.user, "teacher")
     available_sidebar_items = [
         {"id": "teacher-home", "label": "Teacher hub", "url": reverse("portal:teacher_dashboard_alias"), "icon": "bi-person-lines-fill"},
+        {"id": "teacher-workflow", "label": "My Workflow", "url": reverse("portal:teacher_workflow"), "icon": "bi-diagram-3"},
         {"id": "teacher-attendance", "label": "Attendance", "url": reverse("portal:teacher_attendance"), "icon": "bi-calendar-check"},
         {"id": "teacher-pay", "label": "Pay history", "url": reverse("portal:teacher_pay_history"), "icon": "bi-wallet2"},
         {"id": "teacher-syllabus", "label": "Syllabus", "url": reverse("portal:portal_syllabus"), "icon": "bi-journal-text"},
@@ -576,6 +581,156 @@ def teacher_dashboard(request: HttpRequest):
         "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
     })
 
+
+def _teacher_workflow_link(label: str, url_name: str, *args, **kwargs) -> dict:
+    """Build a workflow link dict; return None if URL fails to resolve."""
+    try:
+        return {"label": label, "url": reverse(url_name, args=args, kwargs=kwargs)}
+    except Exception:
+        return None
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_workflow_center(request: HttpRequest):
+    """
+    Teacher Workflow Center: steps with progress (what you've done → where you are → what's next).
+    RBAC: teacher only; data scoped to current teacher's assignments.
+    """
+    teacher, error = _get_teacher_or_forbid(request)
+    if error:
+        return error
+    year, term = get_active_year_and_term()
+    if not year or not term:
+        return HttpResponseForbidden("No active academic year/term set by admin yet.")
+
+    teacher_profile, assignments, students_qs, classrooms = teacher_scope(request.user, academic_year=year)
+    if teacher_profile is None:
+        return error
+
+    progress = {}
+    for a in assignments:
+        sa = a.subject_assignment
+        total = StudentProfile.objects.filter(
+            academic_year=year,
+            classroom=sa.classroom,
+            specialty=sa.specialty,
+            is_active=True,
+        ).count()
+        required = _required_fields(year, sa.classroom, term)
+        qs = Evaluation.objects.filter(
+            academic_year=year, term=term, subject_assignment=sa,
+        )
+        for f in required:
+            qs = qs.exclude(**{f"{f}__isnull": True})
+        filled = qs.count()
+        width_pct = round((filled / total) * 100, 0) if total else 0
+        progress[a.id] = {"filled": filled, "total": total, "width": width_pct}
+
+    widget_data = teacher_dashboard_widget_data(assignments, progress, year, term, teacher=teacher)
+    total_slots = sum((p.get("total", 0) for p in progress.values()), 0) or 1
+    filled_slots = sum((p.get("filled", 0) for p in progress.values()), 0)
+    completion_pct = int(round((filled_slots / total_slots) * 100))
+    pending_marks = total_slots - filled_slots
+
+    today = timezone.localdate()
+    attendance_today = None
+    if getattr(teacher_profile, "attendance_logs", None) is not None:
+        attendance_today = teacher_profile.attendance_logs.filter(date=today).first()
+    present_today = attendance_today and attendance_today.status == TeacherAttendance.Status.PRESENT
+
+    pending_leaves = 0
+    if getattr(teacher_profile, "leave_requests", None) is not None:
+        pending_leaves = teacher_profile.leave_requests.filter(status=TeacherLeaveRequest.Status.PENDING).count()
+
+    def _filter_links(links):
+        return [lnk for lnk in links if lnk is not None and lnk.get("url")]
+
+    steps = [
+        {
+            "title": "1) My profile & timetable",
+            "subtitle": "Onboarding, assignments, and schedule.",
+            "step_key": "profile",
+            "icon": "bi-person-badge",
+            "progress_label": f"{len(assignments)} classes" if assignments else "No assignments",
+            "tip": "Ensure your profile and class assignments are up to date.",
+            "links": _filter_links([
+                _teacher_workflow_link("Teacher hub", "portal:teacher_dashboard_alias"),
+                _teacher_workflow_link("Syllabus", "portal:portal_syllabus"),
+            ]),
+        },
+        {
+            "title": "2) Daily routine",
+            "subtitle": "Your attendance and class attendance.",
+            "step_key": "daily",
+            "icon": "bi-calendar-check",
+            "progress_label": "Checked in today" if present_today else "Not checked in",
+            "tip": "Check in when you arrive; take class attendance for each period.",
+            "links": _filter_links([
+                _teacher_workflow_link("My attendance", "portal:teacher_attendance"),
+            ]),
+        },
+        {
+            "title": "3) Marks & sequences",
+            "subtitle": "Enter marks (Sequences 1–6), submit for approval.",
+            "step_key": "marks",
+            "icon": "bi-pencil-square",
+            "progress_label": f"{completion_pct}% entered · {pending_marks} pending" if total_slots else "No slots",
+            "tip": "Enter CA for each sequence; submit for approval when ready.",
+            "links": _filter_links([
+                _teacher_workflow_link("Enter marks", "evals:teacher_marks_entry"),
+                _teacher_workflow_link("View marks", "evals:teacher_marks_list"),
+                _teacher_workflow_link("Grade import", "evals:grade_import_upload"),
+                _teacher_workflow_link("Download template", "evals:grade_import_template"),
+            ]),
+        },
+        {
+            "title": "4) Reports & communication",
+            "subtitle": "Report cards, announcements, parent contact.",
+            "step_key": "reports",
+            "icon": "bi-chat-dots",
+            "progress_label": None,
+            "tip": "After approval, admin publishes reports; use messages for parent alerts.",
+            "links": _filter_links([
+                _teacher_workflow_link("Department Chat", "communication:group_list"),
+                _teacher_workflow_link("Create announcement", "communication:department_announcement_create"),
+            ]),
+        },
+        {
+            "title": "5) My attendance & pay",
+            "subtitle": "Your attendance record, pay history, leave.",
+            "step_key": "pay",
+            "icon": "bi-wallet2",
+            "progress_label": f"Present today · {pending_leaves} leave request(s)" if present_today else f"Not checked in · {pending_leaves} leave request(s)",
+            "tip": None,
+            "links": _filter_links([
+                _teacher_workflow_link("My attendance", "portal:teacher_attendance"),
+                _teacher_workflow_link("Pay history", "portal:teacher_pay_history"),
+                _teacher_workflow_link("Leave requests", "portal:teacher_leave"),
+            ]),
+        },
+    ]
+    total_steps = len(steps)
+    for i, s in enumerate(steps, start=1):
+        s["step_index"] = i
+        s["total_steps"] = total_steps
+
+    workflow_progress = {
+        "assignments": len(assignments),
+        "completion_pct": completion_pct,
+        "pending_marks": pending_marks,
+        "present_today": present_today,
+        "pending_leaves": pending_leaves,
+    }
+
+    return render(request, "teacher/workflow_center.html", {
+        "active_year": year,
+        "active_term": term,
+        "steps": steps,
+        "workflow_progress": workflow_progress,
+    })
+
+
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_marks_entry(request: HttpRequest):
@@ -628,8 +783,8 @@ def teacher_marks_entry(request: HttpRequest):
         if getattr(active_term, "position", None) == 3 and not sa.classroom.allows_third_term:
             return HttpResponseForbidden("Third term is not enabled for this classroom.")
 
-        # Publish lock check
-        locked = is_term_published(year.id, active_term.id, sa.classroom_id)
+        # Publish lock check (term published) or year hard lock (rollover finalization)
+        locked = is_term_published(year.id, active_term.id, sa.classroom_id) or getattr(year, "is_locked", False)
 
         # Load students for this class/specialty/year
         students = list(StudentProfile.objects.filter(

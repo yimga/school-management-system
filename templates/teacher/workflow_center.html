@@ -1,13 +1,13 @@
-{% extends "backend_base.html" %}
+{% extends "portal_base.html" %}
 {% load static %}
 
-{% block backend_title %}Workflow Center{% endblock %}
+{% block title %}My Workflow{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'workflow';
+    document.body.dataset.dashboardPage = 'teacher-workflow';
   });
 </script>
 <style>
@@ -28,10 +28,7 @@
     padding-top: 0.75rem;
     border-top: 1px solid rgba(148,163,184,0.2);
   }
-  .workflow-progress-summary .badge {
-    font-size: 0.8rem;
-    padding: 0.35rem 0.65rem;
-  }
+  .workflow-progress-summary .badge { font-size: 0.8rem; padding: 0.35rem 0.65rem; }
   .workflow-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -47,15 +44,9 @@
   .workflow-card .card-body { padding: 1.1rem 1.1rem; }
   .workflow-title { font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem; color: #0f172a; }
   .workflow-subtitle { margin: 0 0 0.5rem; color: #64748b; font-size: 0.9rem; }
-  .workflow-progress-label {
-    font-size: 0.8rem;
-    color: #0d6efd;
-    font-weight: 600;
-    margin-bottom: 0.6rem;
-  }
+  .workflow-progress-label { font-size: 0.8rem; color: #0d6efd; font-weight: 600; margin-bottom: 0.6rem; }
   .workflow-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .workflow-links a { border-radius: 999px; font-weight: 650; }
-  .workflow-links a.btn-primary { border-radius: 999px; }
   .workflow-step-icon { font-size: 1.25rem; color: #6366f1; margin-right: 0.5rem; }
   .workflow-step-meta { font-size: 0.8rem; color: #64748b; margin-bottom: 0.35rem; }
   .workflow-tip {
@@ -65,7 +56,6 @@
   .workflow-quick-jump { font-size: 0.9rem; }
   .workflow-quick-jump a { text-decoration: none; color: #475569; }
   .workflow-quick-jump a:hover { color: #6366f1; }
-  .workflow-progress-bar { height: 6px; border-radius: 3px; background: rgba(148, 163, 184, 0.25); }
   @media (max-width: 575px) {
     .workflow-hero { padding: 1rem; }
     .workflow-grid { grid-template-columns: 1fr; }
@@ -77,35 +67,40 @@
 <div class="container-fluid">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Workflow Center</li>
+      <li class="breadcrumb-item"><a href="{% url 'portal:teacher_dashboard_alias' %}">Teacher hub</a></li>
+      <li class="breadcrumb-item active" aria-current="page">My Workflow</li>
     </ol>
   </nav>
 
   <div class="workflow-hero">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
       <div>
-        <h2>Workflow Center</h2>
-        <p>Follow the year lifecycle: setup → onboarding → marks → reports → documents. Designed for non-technical school operators.</p>
-        <p class="small text-muted mb-0 mt-1">Fits Cameroon general and technical education (GCE, BAC, BEPC, CAP, etc.); use the steps that match your subsystem—no rigid sequence.</p>
+        <h2>My Workflow</h2>
+        <p>What you've done → where you are → what's next. Follow the steps below for daily teaching and reporting.</p>
+        <p class="small text-muted mb-0 mt-1">Profile · Daily routine · Marks & sequences · Communication · Attendance & pay.</p>
       </div>
       <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}">
-          <i class="bi bi-speedometer2 me-1"></i>Backend dashboard
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_dashboard_alias' %}">
+          <i class="bi bi-easel me-1"></i>Teacher hub
         </a>
-        <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
-          <i class="bi bi-journal-text me-1"></i>Help / KB
+        <a class="btn btn-sm btn-primary" href="{% url 'evals:teacher_marks_entry' %}">
+          <i class="bi bi-pencil-square me-1"></i>Enter marks
         </a>
       </div>
     </div>
     <div class="mt-2 small text-muted">
-      Active year: <strong>{{ active_year.name|default:"—" }}</strong> · Active term: <strong>{{ active_term.name|default:active_term|default:"—" }}</strong>
+      Active year: <strong>{{ active_year.name|default:"—" }}</strong> · Active term: <strong>{{ active_term.label|default:active_term|default:"—" }}</strong>
     </div>
     {% if workflow_progress %}
     <div class="workflow-progress-summary">
-      <span class="badge bg-primary">Classrooms: {{ workflow_progress.classrooms|default:0 }}</span>
-      <span class="badge bg-success">Students: {{ workflow_progress.students|default:0 }}</span>
-      <span class="badge bg-info">Teachers: {{ workflow_progress.teachers|default:0 }}</span>
+      <span class="badge bg-primary">Classes: {{ workflow_progress.assignments|default:0 }}</span>
+      <span class="badge bg-success">Marks: {{ workflow_progress.completion_pct|default:0 }}%</span>
+      <span class="badge bg-info">Pending: {{ workflow_progress.pending_marks|default:0 }}</span>
+      {% if workflow_progress.present_today %}
+      <span class="badge bg-success">Present today</span>
+      {% else %}
+      <span class="badge bg-secondary">Not checked in</span>
+      {% endif %}
     </div>
     {% endif %}
     {% if steps %}
@@ -121,14 +116,9 @@
   {% if steps %}
   <div class="mb-3">
     <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
-      <span>Workflow overview — {{ steps|length }} steps</span>
-    </div>
-    <div class="progress workflow-progress-bar">
-      <div class="progress-bar bg-primary" role="progressbar" style="width: 100%; opacity: 0.35;" aria-valuenow="{{ steps|length }}" aria-valuemin="0" aria-valuemax="{{ steps|length }}" title="All steps visible below"></div>
+      <span>Workflow — {{ steps|length }} steps</span>
     </div>
   </div>
-  {% endif %}
-
   <div class="workflow-grid">
     {% for step in steps %}
       <div class="workflow-card" id="step-{{ step.step_key }}">
@@ -147,17 +137,13 @@
           {% endif %}
           <div class="workflow-links">
             {% for link in step.links %}
-              {% if link.primary %}
-              <a class="btn btn-sm btn-primary" href="{{ link.url }}">{{ link.label }}</a>
-              {% else %}
               <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
-              {% endif %}
             {% endfor %}
           </div>
         </div>
       </div>
     {% endfor %}
   </div>
+  {% endif %}
 </div>
 {% endblock %}
-
