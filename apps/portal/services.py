@@ -165,6 +165,36 @@ def class_threads_for_teacher(user: User, limit: int = 6, include_department: bo
     return [_serialize_thread(t, user) for t in threads]
 
 
+def threads_for_user(user: User, limit: int = 12) -> List[dict]:
+    """
+    Recent message threads for any user (role-aware: parent/teacher get
+    class/department threads; others get threads they are members of).
+    """
+    role = (getattr(user, "role", "") or "").upper()
+    if role == "PARENT":
+        return class_threads_for_parent(user, limit=limit)
+    if role == "TEACHER":
+        return class_threads_for_teacher(user, limit=limit)
+    # Admin, staff, other: threads they are members of (or department if applicable)
+    threads_qs = MessageThread.objects.filter(members=user, is_archived=False)
+    if hasattr(user, "teacher_profile") and user.teacher_profile and getattr(user.teacher_profile, "department", None):
+        dept = user.teacher_profile.department
+        if dept:
+            dept_threads = MessageThread.objects.filter(
+                scope=MessageThread.Scope.DEPARTMENT,
+                department=dept,
+                is_archived=False,
+            )
+            threads_qs = threads_qs | dept_threads
+    threads = (
+        threads_qs.distinct()
+        .prefetch_related("members")
+        .annotate(latest_msg_at=Max("messages__created_at"))
+        .order_by(F("latest_msg_at").desc(nulls_last=True), "-updated_at")[:limit]
+    )
+    return [_serialize_thread(t, user) for t in threads]
+
+
 def parent_dashboard_widget_data(
     students: Iterable[StudentProfile],
 ) -> dict[str, dict]:

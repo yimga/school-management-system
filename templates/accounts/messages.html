@@ -7,7 +7,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
         <h1 class="h4 mb-1">Messaging</h1>
-        <div class="text-muted small">Class and department threads you belong to</div>
+        <div class="text-muted small">Direct messages and group chats</div>
       </div>
       <div class="d-flex gap-2">
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_profile' %}">Back to profile</a>
@@ -15,34 +15,77 @@
       </div>
     </div>
 
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'direct' %}active{% endif %}" href="{% url 'accounts:user_messages' %}?tab=direct">
+          <i class="bi bi-chat-dots me-1"></i>Direct
+          {% if direct_conversations %}<span class="badge bg-secondary ms-1">{{ direct_conversations|length }}</span>{% endif %}
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'groups' %}active{% endif %}" href="{% url 'accounts:user_messages' %}?tab=groups">
+          <i class="bi bi-people me-1"></i>Groups
+          {% if threads %}<span class="badge bg-secondary ms-1">{{ threads|length }}</span>{% endif %}
+        </a>
+      </li>
+    </ul>
+
     <div class="card shadow-sm">
       <div class="card-body">
-        {% if threads %}
-          <div class="list-group">
-            {% for t in threads %}
-              <div class="list-group-item d-flex justify-content-between align-items-start">
-                <div>
-                  <div class="fw-semibold">{{ t.title }}</div>
-                  {% if t.snippet %}
-                    <div class="text-muted small">{{ t.snippet|truncatewords:18 }}</div>
-                  {% endif %}
-                  <div class="text-muted small mt-1">
-                    Updated: {{ t.last_message_at }}
+        {% if active_tab == 'direct' %}
+          <div class="mb-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small">1-on-1 conversations</span>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:direct_compose' %}">New message</a>
+          </div>
+          {% if direct_conversations %}
+            <div class="list-group list-group-flush">
+              {% for conv in direct_conversations %}
+                <a href="{% url 'accounts:direct_thread' conv.other_user.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                  <div class="d-flex align-items-start gap-2 w-100">
+                    <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center text-primary" style="width:40px;height:40px;min-width:40px;">
+                      {{ conv.other_user.first_name|slice:":1"|default:conv.other_user.username|slice:":1" }}{{ conv.other_user.last_name|slice:":1" }}
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="fw-semibold">{{ conv.other_user.get_full_name|default:conv.other_user.username }}</div>
+                      {% if conv.snippet %}<div class="text-muted small text-truncate">{{ conv.snippet|truncatewords:15 }}</div>{% endif %}
+                      <div class="text-muted small mt-1">{{ conv.last_message_at|timesince }} ago</div>
+                    </div>
                   </div>
-                </div>
-                {% if t.unread_count %}
-                  <span class="badge bg-primary rounded-pill">{{ t.unread_count }}</span>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
+                  {% if conv.unread_count %}<span class="badge bg-primary rounded-pill ms-2">{{ conv.unread_count }}</span>{% endif %}
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No direct messages yet. Use <strong>New message</strong> to start a conversation, or you’ll see threads here once someone messages you.</p>
+          {% endif %}
         {% else %}
-          <div class="text-muted">
-            No threads yet for your role. Threads appear automatically based on your classroom/department membership.
+          <div class="mb-2 d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Department, class, and role-based threads</span>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'communication:group_list' %}">Manage groups</a>
           </div>
+          {% if threads %}
+            <div class="list-group list-group-flush">
+              {% for t in threads %}
+                <a href="{% url 'communication:group_detail' t.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="fw-semibold">{{ t.title }}</span>
+                      {% if t.scope == 'DEPARTMENT' %}<span class="badge bg-info">Department</span>{% endif %}
+                      {% if t.scope == 'CLASSROOM' %}<span class="badge bg-secondary">Class</span>{% endif %}
+                      {% if t.scope == 'ROLE' %}<span class="badge bg-secondary">Role</span>{% endif %}
+                    </div>
+                    {% if t.snippet %}<div class="text-muted small mt-1">{{ t.snippet|truncatewords:18 }}</div>{% endif %}
+                    <div class="text-muted small mt-1">Updated: {{ t.last_message_at|timesince }} ago</div>
+                  </div>
+                  {% if t.unread_count %}<span class="badge bg-primary rounded-pill">{{ t.unread_count }}</span>{% endif %}
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No group threads yet. Threads appear when you’re added to a department or class group. Use <strong>Manage groups</strong> to create or join threads.</p>
+          {% endif %}
         {% endif %}
       </div>
     </div>
   </div>
 {% endblock %}
-

@@ -512,13 +512,13 @@ class StudentOnboardingForm(forms.Form):
         super().__init__(*args, **kwargs)
         
         # Populate academic year choices
-        self.fields["academic_year"].queryset = AcademicYear.objects.filter(is_active=True).order_by("-start_year")
+        self.fields["academic_year"].queryset = AcademicYear.objects.filter(is_active=True).order_by("-start_date")
         
         # Populate specialty choices
-        self.fields["specialty"].queryset = Specialty.objects.filter(is_active=True).order_by("name")
+        self.fields["specialty"].queryset = Specialty.objects.all().order_by("name")
         
         # Populate classroom choices
-        self.fields["classroom"].queryset = Classroom.objects.filter(is_active=True).order_by("name")
+        self.fields["classroom"].queryset = Classroom.objects.all().order_by("name")
         
         # Populate gender choices
         self.fields["gender"].choices = StudentProfile.Gender.choices

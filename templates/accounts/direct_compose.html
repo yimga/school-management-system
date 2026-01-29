@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}New message - {{ SITE.site_name }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <a class="btn btn-sm btn-outline-secondary mb-1" href="{% url 'accounts:user_messages' %}?tab=direct"><i class="bi bi-arrow-left me-1"></i>Messages</a>
+        <h1 class="h5 mb-0">New message</h1>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{% url 'accounts:direct_compose' %}" aria-label="Compose new message">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="recipient" class="form-label">To</label>
+            <select name="recipient" id="recipient" class="form-select" required>
+              <option value="">Select a user...</option>
+              {% for u in recipients %}
+                <option value="{{ u.id }}">{{ u.first_name }} {{ u.last_name|default:"" }} ({{ u.username }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="subject" class="form-label">Subject (optional)</label>
+            <input type="text" name="subject" id="subject" class="form-control" placeholder="Subject" value="Direct message">
+          </div>
+          <div class="mb-3">
+            <label for="body" class="form-label">Message</label>
+            <textarea name="body" id="body" class="form-control" rows="5" required placeholder="Type your message..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Send</button>
+          <a class="btn btn-outline-secondary" href="{% url 'accounts:user_messages' %}?tab=direct">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

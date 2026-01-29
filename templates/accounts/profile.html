@@ -52,6 +52,7 @@
             <div class="d-flex flex-wrap gap-2">
               <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">Notifications</a>
               <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_messages' %}">Messaging</a>
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:direct_compose' %}">New message</a>
               <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_home' %}">Knowledge base</a>
               {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'IT_ADMIN' %}
                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'admin:index' %}">Django admin</a>

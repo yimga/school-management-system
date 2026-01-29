@@ -142,5 +142,5 @@ def get_cache_stats():
     try:
         stats = cache._cache.get_stats()
         return stats
-    except:
+    except Exception:
         return {}
