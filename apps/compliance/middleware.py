@@ -100,11 +100,14 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 ip_address=ip_address,
                 error_message=error_message or "",  # Ensure never None
             )
+        except ValueError as e:
+            # e.g. database router prevents user FK assignment (multi-DB)
+            logger.debug("AccessLog skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
-            logger.warning(f"Failed to log access: {e}", exc_info=True)
+            logger.warning("Failed to log access: %s", e, exc_info=True)
         except Exception as e:
-            logger.warning(f"Failed to log access: {e}", exc_info=True)
+            logger.warning("Failed to log access: %s", e, exc_info=True)
 
         return response
 
@@ -129,11 +132,13 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 ip_address=ip_address,
                 error_message=str(exception)[:500],
             )
+        except ValueError as e:
+            logger.debug("AccessLog exception skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
-            logger.warning(f"Failed to log exception: {e}", exc_info=True)
+            logger.warning("Failed to log exception: %s", e, exc_info=True)
         except Exception as e:
-            logger.warning(f"Failed to log exception: {e}", exc_info=True)
+            logger.warning("Failed to log exception: %s", e, exc_info=True)
 
         return None  # Re-raise the exception
 

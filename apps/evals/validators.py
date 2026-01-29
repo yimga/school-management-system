@@ -122,7 +122,7 @@ class GradeValidator:
                 return False
             z_score = abs((float(score) - mean_score) / std_dev)
             return z_score > 2.0
-        except:
+        except (TypeError, ValueError, ZeroDivisionError):
             return False
     
     def _detect_impossible_jump(self, evaluation) -> bool:

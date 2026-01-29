@@ -215,7 +215,7 @@ class CertificateLocalizer:
                 to_scale=to_scale
             )
             return converted
-        except:
+        except (TypeError, ValueError):
             return float(score)
     
     def format_score_for_display(self, score: float) -> str:
@@ -228,7 +228,7 @@ class CertificateLocalizer:
                 score=float(score),
                 region=self.region
             )
-        except:
+        except (TypeError, ValueError):
             return f"{score:.2f}"
     
     def get_grade_letter(self, score: float) -> str:

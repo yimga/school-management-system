@@ -112,7 +112,7 @@ class GradeImportJob(models.Model):
             return {}
         try:
             return json.loads(self.error_summary)
-        except:
+        except (TypeError, ValueError):
             return {}
 
 

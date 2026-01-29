@@ -16,7 +16,7 @@ import json
 import logging
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Tuple, Optional, TYPE_CHECKING
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import datetime
 
 from django.db import transaction
@@ -120,7 +120,7 @@ class GradeImportValidator:
                     return None
                 try:
                     return Decimal(str(val).strip())
-                except:
+                except (ValueError, TypeError, InvalidOperation):
                     return None
             
             seq1 = parse_score(normalized_row.get("seq1"))

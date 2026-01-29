@@ -91,6 +91,7 @@ def dashboard_context(request):
         }
 
     notifications_unread = 0
+    messages_unread_count = 0
     try:
         from apps.finance.models import Notification as FinanceNotification
 
@@ -103,6 +104,18 @@ def dashboard_context(request):
         notifications_unread = 0
     except Exception:
         notifications_unread = 0
+
+    try:
+        from apps.communication.models import Message
+        messages_unread_count = Message.objects.filter(
+            recipient=user,
+            is_read=False,
+            is_archived=False,
+        ).count()
+    except Exception:
+        messages_unread_count = 0
+
+    context["messages_unread_count"] = messages_unread_count
     
     # Role-specific metrics
     try:

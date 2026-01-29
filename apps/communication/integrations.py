@@ -106,7 +106,7 @@ class WhatsAppIntegration(IntegrationService):
                 timeout=5
             )
             return response.status_code == 200
-        except:
+        except Exception:
             return False
 
 
@@ -193,7 +193,7 @@ class ZoomIntegration(IntegrationService):
                 timeout=5
             )
             return response.status_code == 200
-        except:
+        except Exception:
             return False
 
 
@@ -221,7 +221,7 @@ class CommunicationService:
         for name, service in self.providers.items():
             try:
                 results[name] = service.check_health()
-            except:
+            except Exception:
                 results[name] = False
 
         return results

@@ -48,7 +48,7 @@ class Command(BaseCommand):
                 password="test123",
                 role="TEACHER"
             )
-        except:
+        except Exception:
             teacher = User.objects.get(username="a11y_test_teacher")
 
         try:
@@ -57,7 +57,7 @@ class Command(BaseCommand):
                 email="a11y@test.com",
                 password="admin123"
             )
-        except:
+        except Exception:
             admin = User.objects.get(username="a11y_test_admin")
 
         # Portal pages

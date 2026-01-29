@@ -75,12 +75,12 @@ class ReportCard(models.Model):
             except RegionConfig.DoesNotExist:
                 pass
         
-        # Try to get from student's school
+        # Try to get from student's school (would need school region mapping)
         if self.student and self.student.current_classroom:
             try:
-                # This would need school region mapping
+                # Placeholder for future school region mapping
                 pass
-            except:
+            except Exception:
                 pass
         return None
 
