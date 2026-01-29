@@ -33,6 +33,7 @@ from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
 from apps.finance.models import Invoice, PaymentReminder, ReferralReward, Notification
 from apps.finance.services import generate_payment_link
+from apps.evals.services import classroom_term_rankings
 from apps.reports.services import (
     are_terms_published,
     is_term_published,
