@@ -97,8 +97,9 @@ class GradeValidator:
         }
     
     def _detect_outlier(self, evaluation, weights) -> bool:
-        """Check if total_score is >2σ from class mean."""
-        if evaluation.total_score is None:
+        """Check if final_score is >2σ from class mean."""
+        score = evaluation.final_score if evaluation.final_score is not None else evaluation.total_score
+        if score is None:
             return False
         
         from apps.evals.models import Evaluation
@@ -107,7 +108,7 @@ class GradeValidator:
             academic_year=evaluation.academic_year,
             term=evaluation.term,
             subject_assignment=evaluation.subject_assignment,
-        ).values_list('total_score', flat=True).exclude(pk=evaluation.pk)
+        ).values_list('final_score', flat=True).exclude(pk=evaluation.pk)
         
         scores = [float(s) for s in sibling_evals if s is not None]
         
@@ -119,14 +120,15 @@ class GradeValidator:
             std_dev = stdev(scores)
             if std_dev == 0:
                 return False
-            z_score = abs((float(evaluation.total_score) - mean_score) / std_dev)
+            z_score = abs((float(score) - mean_score) / std_dev)
             return z_score > 2.0
         except:
             return False
     
     def _detect_impossible_jump(self, evaluation) -> bool:
         """Check if grade jumped >50% from previous term."""
-        if evaluation.total_score is None:
+        current_score = evaluation.final_score if evaluation.final_score is not None else evaluation.total_score
+        if current_score is None:
             return False
         
         from apps.academics.models import Term
@@ -146,15 +148,18 @@ class GradeValidator:
             term__in=prev_terms[:1],
         ).first()
         
-        if not prev_eval or prev_eval.total_score is None:
+        prev_score = prev_eval.final_score if prev_eval and prev_eval.final_score is not None else (
+            prev_eval.total_score if prev_eval else None
+        )
+        if not prev_eval or prev_score is None:
             return False
-        
-        if float(prev_eval.total_score) == 0:
+
+        if float(prev_score) == 0:
             return False
-        
+
         pct_change = abs(
-            (float(evaluation.total_score) - float(prev_eval.total_score)) /
-            float(prev_eval.total_score)
+            (float(current_score) - float(prev_score)) /
+            float(prev_score)
         )
         return pct_change > 0.5
     

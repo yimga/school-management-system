@@ -13,9 +13,8 @@ class StripeProcessor:
     API_VERSION = 'v1'
     SUPPORTED_CURRENCIES = ['NGN', 'KES', 'USD']
     
-    def __init__(self, api_key, api_secret=None):
+    def __init__(self, api_key):
         self.api_key = api_key
-        self.api_secret = api_secret
     
     def charge_card(self, card_token, amount, currency='USD', description=''):
         """Charge customer card"""
@@ -28,8 +27,8 @@ class StripeProcessor:
             'method': 'card',
         }
 
-    def charge(self, amount, currency='USD', reference=None, metadata=None):
-        """Generic charge helper"""
+    def charge(self, amount, currency='USD', reference='', metadata=None):
+        """Compatibility charge method for tests."""
         return {
             'processor': 'stripe',
             'transaction_id': f'stripe_{datetime.now().timestamp()}',
@@ -92,6 +91,18 @@ class PayPalProcessor:
                 {'rel': 'approve', 'href': 'https://paypal.com/...'},
             ],
         }
+
+    def charge(self, amount, currency='USD', reference='', metadata=None):
+        """Compatibility charge method for tests."""
+        return {
+            'processor': 'paypal',
+            'transaction_id': f'paypal_{datetime.now().timestamp()}',
+            'status': 'success',
+            'amount': amount,
+            'currency': currency,
+            'reference': reference,
+            'metadata': metadata or {},
+        }
     
     def capture_order(self, order_id):
         """Capture PayPal order"""
@@ -99,16 +110,6 @@ class PayPalProcessor:
             'capture_id': f'capture_{datetime.now().timestamp()}',
             'order_id': order_id,
             'status': 'completed',
-            'processor': 'paypal',
-        }
-
-    def charge(self, amount, currency='USD', reference='', metadata=None):
-        """Charge via PayPal (mock)"""
-        return {
-            'status': 'success',
-            'amount': amount,
-            'currency': currency,
-            'reference': reference,
             'processor': 'paypal',
         }
     
@@ -141,6 +142,18 @@ class FlutterwaveProcessor:
             'status': 'active',
             'amount': amount,
             'currency': currency,
+        }
+
+    def charge(self, amount, currency='NGN', reference='', metadata=None):
+        """Compatibility charge method for tests."""
+        return {
+            'processor': 'flutterwave',
+            'transaction_id': f'flutterwave_{datetime.now().timestamp()}',
+            'status': 'success',
+            'amount': amount,
+            'currency': currency,
+            'reference': reference,
+            'metadata': metadata or {},
         }
     
     def charge_card(self, card_number, cvv, expiry_month, expiry_year, amount, currency='NGN'):
@@ -190,6 +203,18 @@ class PaystackProcessor:
             'reference': f'ref_{datetime.now().timestamp()}',
             'amount': amount,
             'currency': currency,
+        }
+
+    def charge(self, amount, currency='NGN', reference='', metadata=None):
+        """Compatibility charge method for tests."""
+        return {
+            'processor': 'paystack',
+            'transaction_id': f'paystack_{datetime.now().timestamp()}',
+            'status': 'success',
+            'amount': amount,
+            'currency': currency,
+            'reference': reference,
+            'metadata': metadata or {},
         }
     
     def verify_transaction(self, reference):
@@ -407,6 +432,28 @@ class ProcessorFactory:
         return list(ProcessorFactory.PROCESSORS.keys())
 
 
+class PaymentProcessorFactory:
+    """Factory for creating payment processors (test-compatible)."""
+
+    PROCESSORS = {
+        'stripe': StripeProcessor,
+        'paypal': PayPalProcessor,
+        'flutterwave': FlutterwaveProcessor,
+        'paystack': PaystackProcessor,
+    }
+
+    @classmethod
+    def get_processor(cls, gateway, api_key, api_secret):
+        processor_class = cls.PROCESSORS.get(str(gateway).lower())
+        if not processor_class:
+            raise ValueError(f'Unknown payment gateway: {gateway}')
+        if processor_class is StripeProcessor:
+            return processor_class(api_key)
+        if processor_class is PayPalProcessor:
+            return processor_class(api_key, api_secret)
+        return processor_class(api_key, api_secret)
+
+
 class MultiGatewayProcessor:
     """Aggregate multiple payment gateways"""
     
@@ -454,13 +501,5 @@ class MultiGatewayProcessor:
         raise ValueError(f'Unknown payment method: {method}')
 
 
-class PaymentProcessorFactory(ProcessorFactory):
-    """Named alias for the legacy payment processor factory."""
-
-    @staticmethod
-    def get_processor(provider, *args, **kwargs):
-        return ProcessorFactory.get_processor(provider, *args, **kwargs)
-
-    @staticmethod
-    def get_available_processors():
-        return ProcessorFactory.get_available_processors()
+# Phase 2 compatibility: provide simple factory with charge/refund interface
+from .payment_processors_temp import PaymentProcessorFactory  # noqa: E402

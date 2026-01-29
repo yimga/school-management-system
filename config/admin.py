@@ -15,7 +15,7 @@ from django.db.models import Count, Q, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.urls import path
+from django.urls import path, reverse
 from django.utils import timezone
 
 
@@ -125,7 +125,7 @@ class GileadAdminSite(AdminSite):
             'preview_data': preview_data,
             'finance_inbox': finance_inbox_preview,
             'finance_inbox_unread': finance_inbox_unread,
-            'finance_request_link': reverse("finance:requests"),
+            'finance_request_link': reverse("requests:dashboard"),
         }
         if extra_context:
             context.update(extra_context)

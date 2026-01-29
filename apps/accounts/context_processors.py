@@ -5,9 +5,20 @@ Provides role-based data, system information, and metrics for templates.
 from datetime import datetime
 from decimal import Decimal
 from django.conf import settings
-from django.db import models
+from django.db import DatabaseError, connection, models, transaction
 from django.utils import timezone
 from apps.siteconfig.models import SiteSettings
+
+
+def _reset_db_state() -> None:
+    """Clear broken transaction state after a DatabaseError."""
+    try:
+        if connection.in_atomic_block:
+            transaction.set_rollback(False)
+        elif connection.needs_rollback:
+            connection.rollback()
+    except Exception:
+        pass
 
 
 def dashboard_context(request):
@@ -24,6 +35,10 @@ def dashboard_context(request):
     }
     
     if not request.user.is_authenticated:
+        return context
+
+    if connection.needs_rollback:
+        _reset_db_state()
         return context
     
     user = request.user
@@ -83,6 +98,9 @@ def dashboard_context(request):
             recipient=user,
             is_read=False,
         ).count()
+    except DatabaseError:
+        _reset_db_state()
+        notifications_unread = 0
     except Exception:
         notifications_unread = 0
     
@@ -236,6 +254,8 @@ def dashboard_context(request):
                     parent_id=user.id,
                     is_read=False,
                 ).count()
+            except DatabaseError:
+                _reset_db_state()
             except Exception:
                 pass
 
@@ -299,9 +319,17 @@ def dashboard_context(request):
             ]
         context['notifications_unread'] = notifications_unread
     
+    except DatabaseError as e:
+        _reset_db_state()
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Database error in dashboard_context: {e}")
+        context['notifications_unread'] = notifications_unread
     except Exception as e:
         # Log error but don't break the page
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error in dashboard_context: {e}")
         context['notifications_unread'] = notifications_unread
@@ -319,6 +347,12 @@ def site_settings_context(request):
         return {
             'SITE': site,
             'SITE_THEME': site.get_theme_vars() if hasattr(site, 'get_theme_vars') else {},
+        }
+    except DatabaseError:
+        _reset_db_state()
+        return {
+            'SITE': None,
+            'SITE_THEME': {},
         }
     except Exception:
         return {

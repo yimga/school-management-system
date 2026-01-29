@@ -66,7 +66,7 @@ def get_cached_rankings(year_id=None, term_id=None, subject_id=None, classroom_i
     
     # Group by student and calculate average
     rankings = query.values('student_id', 'student__user__first_name', 'student__user__last_name').annotate(
-        avg_score=Avg('total_score')
+        avg_score=Avg('final_score')
     ).order_by('-avg_score')
     
     # Convert to list with rank and percentile

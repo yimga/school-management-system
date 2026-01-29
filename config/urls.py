@@ -132,6 +132,7 @@ urlpatterns = [
     path('compliance/', include(('apps.compliance.urls', 'compliance'), namespace='compliance')),
     path('communication/', include(('apps.communication.urls', 'communication'), namespace='communication')),
     path('emis/', include(('emis.urls', 'emis'), namespace='emis')),
+    path('requests/', include(('apps.requests.urls', 'requests'), namespace='requests')),
 ]
 
 if settings.DEBUG:

@@ -188,7 +188,7 @@ def parent_dashboard(request: HttpRequest):
         recipient=request.user,
         title__icontains="finance access request",
     ).order_by("-created_at")
-    finance_request_link = reverse("finance:requests")
+    finance_request_link = reverse("requests:dashboard")
 
     # Per-student maps for live cards
     perf_map = {row.get("student_id"): row for row in widget_data.get("performance", {}).get("per_student", [])}
@@ -512,8 +512,20 @@ def portal_feature_page(request: HttpRequest, feature: str):
         raise Http404("Feature not found.")
 
     if not entry["enabled"]:
-        messages.warning(request, f"{entry['label']} is currently disabled.")
-        return redirect("portal:parent_dashboard")
+        if request.method == "POST":
+            from apps.requests.services import create_access_request
+            create_access_request(
+                request_type="PORTAL_FEATURE_ACCESS",
+                requester=request.user,
+                title="Portal feature access request",
+                summary=f"Requested access to {entry['label']}.",
+                details={"feature": entry["key"], "label": entry["label"]},
+            )
+            messages.success(request, "Access request submitted to the admin team.")
+            return redirect("portal:parent_dashboard")
+        return render(request, "portal/feature_disabled.html", {
+            "feature": entry,
+        })
 
     items = PortalFeatureItem.objects.filter(feature=feature, is_active=True).select_related("created_by")
     return render(request, "portal/feature_page.html", {

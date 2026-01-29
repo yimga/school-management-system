@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import timedelta
 from decimal import Decimal
 from typing import Iterable, List
@@ -24,7 +24,6 @@ from apps.evals.models import TeacherAssignment
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
 from apps.siteconfig.models import Integration, SiteSettings
-from apps.siteconfig import models as siteconfig_models
 from apps.communication.models import ClassAnnouncement, MessageThread, ThreadReadState
 
 
@@ -183,7 +182,6 @@ def parent_dashboard_widget_data(
     students = list(students)
     if not students:
         return _empty_widget_data()
-
     
     # Create cache key from sorted student IDs
     student_ids = sorted(s.id for s in students)
@@ -227,9 +225,15 @@ def _empty_widget_data() -> dict[str, dict]:
         "finance": {"total_due": Decimal("0.00"), "paid": Decimal("0.00"), "balance": Decimal("0.00"), "overdue": 0, "label": "No invoices"},
         "events": [],
         "tasks": {"description": "No tasks", "pending_evaluations": 0, "pending_payments": 0},
-        "access": [],
+        "access": _portal_access_links(),
         "timetable": [],
-        "communication": [],
+        "communication": {
+            "items": [],
+            "links": [],
+            "primary_action": None,
+            "cta": "Connect with us",
+            "note": "We also send reminders via SMS/email; update preferences in portal settings.",
+        },
         "analytics": {"highlights": [], "lowlights": [], "label": "No data"},
         "referral": {"code": None, "total_codes": 0, "completeness_avg": 0, "note": "No referral data"},
     }
@@ -300,28 +304,21 @@ def _referral_overview(students: list[StudentProfile]):
             "note": "Referral codes appear after student onboarding.",
         }
 
-    # Collect codes from students
-    codes = [student.referral_code for student in students if getattr(student, "referral_code", None)]
-
-    # Compute completeness using a single query across guardians
-    guardians = StudentGuardian.objects.filter(student__in=students).values(
-        "student_id", "phone", "address", "preferred_contact"
-    )
-    guardians_by_student = defaultdict(list)
-    for guardian in guardians:
-        guardians_by_student[guardian["student_id"]].append(guardian)
-
+    # Collect codes and completeness values from already-loaded students
+    codes = []
     completeness_vals = []
+    
     for student in students:
-        entries = guardians_by_student.get(student.id, [])
-        if not entries:
-            continue
-        score = sum(
-            bool(entry.get("phone")) + bool(entry.get("address")) + bool(entry.get("preferred_contact"))
-            for entry in entries
-        )
-        max_points = len(entries) * 3
-        completeness_vals.append(int(round((score / max_points) * 100)) if max_points else 0)
+        if hasattr(student, 'referral_code') and student.referral_code:
+            codes.append(student.referral_code)
+        
+        # Try to get completeness from cache or attribute
+        try:
+            completeness = getattr(student, 'parent_completeness', 0)
+            if isinstance(completeness, (int, float)):
+                completeness_vals.append(completeness)
+        except Exception:
+            pass  # Skip if property errors
     
     code = codes[0] if codes else None
     completeness_avg = (
@@ -329,14 +326,28 @@ def _referral_overview(students: list[StudentProfile]):
         if completeness_vals else 0
     )
     
-    guardian_count = StudentGuardian.objects.filter(student__in=students).count()
     return {
         "code": code,
         "total_codes": len(codes),
         "completeness_avg": completeness_avg,
-        "guardian_count": guardian_count,
         "note": "Share your referral code during onboarding to unlock bonuses.",
     }
+
+
+def _evaluation_complete_for_snapshot(evaluation) -> bool:
+    """Lightweight completeness check without extra DB lookups."""
+    if evaluation.final_score is not None:
+        return True
+    candidates = [
+        evaluation.seq1_score,
+        evaluation.seq2_score,
+        evaluation.exam_score,
+        evaluation.mock_score,
+        evaluation.practical_score,
+        evaluation.test1,
+        evaluation.test2,
+    ]
+    return any(val is not None for val in candidates)
 
 
 def _attendance_snapshot(students, year, term):
@@ -358,15 +369,13 @@ def _attendance_snapshot(students, year, term):
             "per_student": [],
         }
 
-    # Load evaluations once and derive totals in Python to avoid N+1 queries.
+    # Load evaluations once and derive totals in memory.
     evals = list(Evaluation.objects.filter(
         student__in=students,
         academic_year=year,
         term=term,
     ))
-
     total = len(evals)
-
     if total == 0:
         return {
             "today": 0,
@@ -378,13 +387,13 @@ def _attendance_snapshot(students, year, term):
         }
 
     per_student_stats = {}
-    complete = 0
     for e in evals:
         bucket = per_student_stats.setdefault(e.student_id, {"total": 0, "complete": 0})
         bucket["total"] += 1
-        if _attendance_evaluation_is_complete(e):
+        if _evaluation_complete_for_snapshot(e):
             bucket["complete"] += 1
-            complete += 1
+    
+    complete = sum(1 for e in evals if _evaluation_complete_for_snapshot(e))
     overall_pct = int(round((complete / total) * 100)) if total > 0 else 0
 
     per_student = []
@@ -410,18 +419,6 @@ def _attendance_snapshot(students, year, term):
     }
 
 
-def _attendance_evaluation_is_complete(evaluation: Evaluation) -> bool:
-    components = [
-        evaluation.final_score,
-        evaluation.seq1_score,
-        evaluation.seq2_score,
-        evaluation.exam_score,
-        evaluation.mock_score,
-        evaluation.practical_score,
-    ]
-    return any(component is not None for component in components)
-
-
 def _attendance_trend(students, year, term):
     """Prepare a five-day attendance trend for sparklines."""
     if not students or not year or not term:
@@ -444,6 +441,22 @@ def _attendance_trend(students, year, term):
     return trend
 
 
+def _evaluation_score_fast(eval_obj) -> float:
+    """Return a score without triggering additional DB lookups."""
+    final_score = getattr(eval_obj, "final_score", None)
+    if final_score is not None:
+        return float(final_score)
+
+    values = []
+    for attr in ("seq1_score", "seq2_score", "exam_score", "mock_score", "practical_score", "test1", "test2"):
+        val = getattr(eval_obj, attr, None)
+        if val is not None:
+            values.append(float(val))
+    if not values:
+        return 0.0
+    return round(sum(values) / len(values), 2)
+
+
 def _grade_trend(students, year, term):
     """Weekly grade averages derived from recent evaluations."""
     if not students or not year or not term:
@@ -461,7 +474,7 @@ def _grade_trend(students, year, term):
     buckets = []
     for idx, eval_obj in enumerate(reversed(evaluations)):
         label = f"#{idx + 1}"
-        score = float(eval_obj.total_score or 0)
+        score = _evaluation_score_fast(eval_obj)
         buckets.append({"label": label, "value": score})
 
     if not buckets:
@@ -484,7 +497,7 @@ def _subject_performance(students, year, term):
     for eval_obj in evals:
         subject = eval_obj.subject_assignment.subject.name if eval_obj.subject_assignment_id else "General"
         entry = stats.setdefault(subject, {"total": 0.0, "count": 0})
-        entry["total"] += float(eval_obj.total_score or 0.0)
+        entry["total"] += _evaluation_score_fast(eval_obj)
         entry["count"] += 1
 
     results = []
@@ -565,7 +578,11 @@ def _performance_overview(students, year, term):
     if cached_result is not None:
         return cached_result
     
-    pass_mark = _get_cached_pass_mark(force_refresh=True)
+    pass_mark = cache.get_or_set(
+        f"site_settings:pass_mark",
+        SiteSettings.get_solo().pass_mark,
+        3600  # Cache site settings for 1 hour
+    )
     
     # Batch-load all evaluations for these students in one query
     evals = list(Evaluation.objects.filter(
@@ -584,8 +601,8 @@ def _performance_overview(students, year, term):
         if not student_evals:
             continue
         
-        # Compute average from already-loaded evaluations (avoid extra queries)
-        total = sum(_resolve_evaluation_score(e) for e in student_evals)
+        # Compute average from already-loaded evaluations
+        total = sum(_evaluation_score_fast(e) for e in student_evals)
         count = len(student_evals)
         avg = round(total / count, 2) if count > 0 else None
         
@@ -625,32 +642,13 @@ def _performance_overview(students, year, term):
     return result
 
 
-def _get_cached_pass_mark(force_refresh: bool = False) -> Decimal:
-    global _SITE_SETTINGS_CACHE
-    key = "site_settings:pass_mark"
-
-    if not force_refresh:
-        pass_mark = cache.get(key)
-        if pass_mark is not None:
-            return pass_mark
-
-        if siteconfig_models._SITE_SETTINGS_CACHE is not None:
-            pass_mark = siteconfig_models._SITE_SETTINGS_CACHE.pass_mark
-            cache.set(key, pass_mark, 3600)
-            return pass_mark
-
-    site_settings = SiteSettings.objects.filter(pk=1).first()
-    if site_settings is None:
-        site_settings = SiteSettings()
-    siteconfig_models._SITE_SETTINGS_CACHE = site_settings
-    pass_mark = site_settings.pass_mark if site_settings.pk else Decimal("10")
-    cache.set(key, pass_mark, 3600)
-    return pass_mark
-
-
 def _empty_performance_data() -> dict:
     """Return empty performance data."""
-    pass_mark = _get_cached_pass_mark()
+    pass_mark = cache.get_or_set(
+        f"site_settings:pass_mark",
+        SiteSettings.get_solo().pass_mark,
+        3600
+    )
     return {
         "average": None,
         "top_student": None,
@@ -679,35 +677,32 @@ def _finance_summary(students):
             "label": "Invoices appear once finance issues fee plans.",
         }
 
-    # Single aggregation query with all needed statistics
+    # Single aggregation query grouped by student
     qs = Invoice.objects.filter(student__in=students).exclude(status=Invoice.Status.DRAFT)
 
-    per_student = []
     per_student_qs = qs.values("student_id").annotate(
         total_due=Sum("total_amount"),
         balance_amount=Sum("balance_amount"),
         overdue=Count("id", filter=Q(status=Invoice.Status.OVERDUE)),
     )
-    total_due = Decimal("0.00")
-    balance = Decimal("0.00")
-    overdue_count = 0
-    for row in per_student_qs:
+    rows = list(per_student_qs)
+    total_due = sum((row.get("total_due") or Decimal("0.00")) for row in rows) or Decimal("0.00")
+    balance = sum((row.get("balance_amount") or Decimal("0.00")) for row in rows) or Decimal("0.00")
+    paid = total_due - balance
+    overdue_count = sum((row.get("overdue") or 0) for row in rows)
+
+    per_student = []
+    for row in rows:
         student_id = row.get("student_id")
         total_s = row.get("total_due") or Decimal("0.00")
         bal_s = row.get("balance_amount") or Decimal("0.00")
-        overdue = row.get("overdue") or 0
-        total_due += total_s
-        balance += bal_s
-        overdue_count += overdue
         per_student.append({
             "student_id": student_id,
             "total_due": total_s,
             "paid": total_s - bal_s,
             "balance": bal_s,
-            "overdue": overdue,
+            "overdue": row.get("overdue") or 0,
         })
-
-    paid = total_due - balance
 
     return {
         "total_due": total_due,
@@ -931,7 +926,11 @@ def _analytics_insights(students, year, term):
     for e in evals:
         subj = e.subject_assignment.subject.name if e.subject_assignment_id else "General"
         subject_totals.setdefault(subj, {"total": 0.0, "count": 0})
-        subject_totals[subj]["total"] += _resolve_evaluation_score(e)
+        score = e.final_score
+        if score is None:
+            score = e.seq1_score if e.seq1_score is not None else e.test1
+        score_val = float(score) if score is not None else 0.0
+        subject_totals[subj]["total"] += score_val
         subject_totals[subj]["count"] += 1
 
     averages = []
@@ -950,29 +949,6 @@ def _analytics_insights(students, year, term):
     
     cache.set(cache_key, result, 600)  # Cache 10 minutes
     return result
-
-
-def _resolve_evaluation_score(evaluation: Evaluation) -> float:
-    """Resolve a numeric score without hitting weight lookups repeatedly."""
-    if evaluation.final_score is not None:
-        return float(evaluation.final_score)
-
-    score_components = [
-        evaluation.seq1_score,
-        evaluation.seq2_score,
-        evaluation.exam_score,
-        evaluation.mock_score,
-        evaluation.practical_score,
-    ]
-    values = [float(value) for value in score_components if value is not None]
-    if values:
-        return round(sum(values) / len(values), 2)
-
-    fallback = evaluation.test1 if evaluation.test1 is not None else evaluation.test2
-    if fallback is not None:
-        return float(fallback)
-
-    return 0.0
 
 
 def _assignment_completion_spotlight(assignments, term) -> List[dict]:

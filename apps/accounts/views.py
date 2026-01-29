@@ -507,7 +507,10 @@ def backend_dashboard(request):
         title__icontains="finance access request",
         is_read=False,
     ).order_by("-created_at")
-    finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+    try:
+        finance_request_link = reverse("requests:dashboard")
+    except NoReverseMatch:
+        finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
 
     # Workflow progress and recommended next steps for dashboard
     workflow_progress = _workflow_progress(year)
@@ -533,7 +536,6 @@ def backend_dashboard(request):
             recommended_next_steps.append({"label": "Publish results", "url": reverse("reports:publish_term_results"), "icon": "bi-award"})
     except Exception:
         recommended_next_steps = [{"label": "Workflow Center", "url": reverse("accounts:workflow_center"), "icon": "bi-diagram-3"}]
-
     context = {
         "site": site,
         "stats": stats,

@@ -60,7 +60,9 @@ class PaymentTestCase(TestCase):
             region=self.region, created_by=self.user
         )
         self.student = StudentProfile.objects.create(
-            user=self.user, admission_number='STU001'
+            first_name="Test",
+            last_name="Student",
+            admission_number="STU001",
         )
     
     def test_payment_creation(self):
@@ -179,7 +181,9 @@ class TransactionTestCase(TestCase):
             region=self.region, created_by=self.user
         )
         self.student = StudentProfile.objects.create(
-            user=self.user, admission_number='STU001'
+            first_name="Test",
+            last_name="Student",
+            admission_number="STU001",
         )
         self.payment = Payment.objects.create(
             reference_number='PAY001',
@@ -335,7 +339,9 @@ class RefundRequestTestCase(TestCase):
             region=self.region, created_by=self.user
         )
         self.student = StudentProfile.objects.create(
-            user=self.user, admission_number='STU001'
+            first_name="Test",
+            last_name="Student",
+            admission_number="STU001",
         )
         self.payment = Payment.objects.create(
             reference_number='PAY001',

@@ -399,3 +399,20 @@ class FormSignature(models.Model):
             ip = request.META.get("REMOTE_ADDR")
         return ip
 
+
+# Register portal enhancement models so migrations/admin discover them.
+# These live in a separate module to keep this file focused.
+try:
+    from .portal_models import (  # noqa: E402,F401
+        GuardianLinkInvitation,
+        ParentStudentLink,
+        PortalNotification,
+        PortalPreferences,
+        ParentMessage,
+        PortalFeatureAccess,
+        PortalSession,
+        PortalAuditLog,
+    )
+except ImportError:
+    pass
+

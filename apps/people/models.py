@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.apps import apps as django_apps
@@ -41,7 +40,19 @@ class TeacherProfile(models.Model):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="teacher_profile")
     is_active = models.BooleanField(default=True)
-    pay_grade = models.CharField(max_length=50, blank=True)
+    pay_grade = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Legacy pay grade field (text). Consider using pay_scale instead.",
+    )
+    pay_scale = models.ForeignKey(
+        "payroll.PayScale",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="teacher_profiles",
+        help_text="Structured pay scale/grade assigned to this teacher",
+    )
     salary_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     next_pay_date = models.DateField(null=True, blank=True)
@@ -175,11 +186,11 @@ class StudentProfile(models.Model):
     audit_enabled = True
 
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="student_profile",
+        User,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name="student_profile",
     )
 
     first_name = models.CharField(max_length=80)
@@ -267,6 +278,18 @@ class StudentProfile(models.Model):
 
     def __str__(self):
         return f"{self.last_name} {self.first_name} ({self.student_code})"
+
+    def get_full_name(self) -> str:
+        """
+        Canonical full name for admin displays and templates.
+        Falls back to linked user or student_code when needed.
+        """
+        name = " ".join(p for p in [self.first_name, self.last_name] if p).strip()
+        if name:
+            return name
+        if self.user:
+            return self.user.get_full_name() or self.user.username
+        return self.student_code or "Student"
 
     @property
     def parent_completeness(self) -> int:

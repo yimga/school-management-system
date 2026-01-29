@@ -6,11 +6,13 @@ const DYNAMIC_CACHE = 'sms-dynamic-v1.0.0';
 // Resources to cache immediately
 const STATIC_ASSETS = [
   '/',
-  '/static/css/bootstrap.min.css',
   '/static/css/portal_theme.css',
   '/static/css/dashboard-responsive.css',
-  '/static/js/bootstrap.min.js',
-  '/static/js/jquery.min.js',
+  '/static/css/site-settings-preview.css',
+  '/static/js/command-palette.js',
+  '/static/js/dashboard-layout.js',
+  '/static/js/dashboard-customizer.js',
+  '/static/js/site-settings-preview.js',
   '/static/images/logo.png',
   '/static/manifest.json',
   '/offline/'

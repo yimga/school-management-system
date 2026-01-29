@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty
-from apps.finance.models import ComplianceProfile, Invoice, PaymentMethod
+from apps.finance.models import ComplianceProfile, Invoice, PaymentMethodCode
 from apps.finance.services import generate_payment_link
 from apps.people.models import StudentProfile
 from apps.siteconfig.models import Integration
@@ -76,10 +76,10 @@ class GeneratePaymentLinkTests(TestCase):
 
     def test_generate_payment_link_uses_balance_amount(self):
         invoice = self._create_invoice(Decimal("100.00"), Decimal("45.50"))
-        link = generate_payment_link(invoice, method=PaymentMethod.MTN_MOMO)
+        link = generate_payment_link(invoice, method=PaymentMethodCode.MTN_MOMO)
         self.assertIn("amount=45.50", link["url"])
 
     def test_generate_payment_link_never_uses_negative_balance(self):
         invoice = self._create_invoice(Decimal("100.00"), Decimal("-5.00"))
-        link = generate_payment_link(invoice, method=PaymentMethod.MTN_MOMO)
+        link = generate_payment_link(invoice, method=PaymentMethodCode.MTN_MOMO)
         self.assertIn("amount=0.00", link["url"])

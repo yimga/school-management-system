@@ -99,12 +99,52 @@ class TeacherProfileAdmin(ModelAdmin):
         "phone",
         "department",
         "position_title",
+        "pay_scale",
         "pay_grade",
+        "salary_amount",
         "next_pay_date",
     )
     search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "staff_id")
-    list_filter = ("department", "default_dashboard_view", "allow_leave_approvals", "allow_finance_panel")
+    list_filter = ("department", "pay_scale", "default_dashboard_view", "allow_leave_approvals", "allow_finance_panel")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("user", "staff_id", "phone", "profile_photo", "is_active")
+        }),
+        ("Position & Department", {
+            "fields": ("position_title", "department", "reports_to")
+        }),
+        ("Compensation", {
+            "fields": ("pay_scale", "pay_grade", "salary_amount", "salary_cap", "next_pay_date", "paystub_notes"),
+            "description": "Assign a pay scale for structured salary management, or use pay_grade (legacy text field) and salary_amount directly."
+        }),
+        ("Payment Method", {
+            "fields": ("payment_method",)
+        }),
+        ("Dashboard & Permissions", {
+            "fields": (
+                "default_dashboard_view",
+                "allow_finance_panel",
+                "allow_paystub_access",
+                "allow_leave_approvals",
+                "mark_reminder_opt_in",
+            )
+        }),
+    )
+    actions = ["apply_pay_scale_to_teachers"]
+    
+    def apply_pay_scale_to_teachers(self, request, queryset):
+        """Apply pay scale default salary to selected teachers"""
+        updated = 0
+        for teacher in queryset:
+            if teacher.pay_scale and teacher.pay_scale.default_salary:
+                if not teacher.salary_amount or request.POST.get('force_update') == 'yes':
+                    teacher.salary_amount = teacher.pay_scale.default_salary
+                    teacher.pay_grade = teacher.pay_scale.code  # Sync pay_grade with scale code
+                    teacher.save(update_fields=['salary_amount', 'pay_grade'])
+                    updated += 1
+        self.message_user(request, f"Updated {updated} teacher(s) with pay scale default salaries.")
+    apply_pay_scale_to_teachers.short_description = "Apply pay scale default salary"
 
     def teacher_display_in_list(self, obj):
         """Display teacher with photo thumbnail in list view"""

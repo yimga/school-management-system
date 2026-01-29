@@ -62,6 +62,13 @@ class SiteSettingsForm(forms.ModelForm):
         model = SiteSettings
         fields = "__all__"
 
+    backend_flags_summary = forms.CharField(
+        required=False,
+        label="Backend feature flags",
+        widget=forms.Textarea(attrs={"rows": 6, "style": "width: 100%;"}),
+        disabled=True,
+    )
+
     allowed_role_choices = [
         ("ADMIN", "ADMIN"),
         ("LEADERSHIP", "LEADERSHIP"),
@@ -105,10 +112,26 @@ class SiteSettingsForm(forms.ModelForm):
         self.fields["enable_api_schema_ui"].initial = flags.get("enable_api_schema_ui", True)
         self.fields["require_guardian_finance_opt_in"].initial = flags.get("require_guardian_finance_opt_in", False)
         self.fields["allow_finance_access_requests"].initial = flags.get("allow_finance_access_requests", True)
-        self.fields["marksheet_ocr_enabled"].initial = flags.get("marksheet_ocr_enabled", False)
-        self.fields["marksheet_ocr_confidence_threshold"].initial = flags.get("marksheet_ocr_confidence_threshold", 70)
-        self.fields["marksheet_ocr_manual_review_required"].initial = flags.get("marksheet_ocr_manual_review_required", True)
-        self.fields["marksheet_ocr_mobile_upload_enabled"].initial = flags.get("marksheet_ocr_mobile_upload_enabled", True)
+        console = "On" if flags.get("enable_entity_console") else "Off"
+        imp = "On" if flags.get("enable_entity_import") else "Off"
+        schema = "On" if flags.get("enable_api_schema_ui") else "Off"
+        roles_console = ", ".join(flags.get("allowed_roles_entity_console", [])) or "N/A"
+        roles_import = ", ".join(flags.get("allowed_roles_entity_import", [])) or "N/A"
+        roles_schema = ", ".join(flags.get("allowed_roles_api_schema", [])) or "N/A"
+        finance_opt_in = "Required" if flags.get("require_guardian_finance_opt_in") else "Not required"
+        finance_requests = "Enabled" if flags.get("allow_finance_access_requests", True) else "Disabled"
+        max_rows = flags.get("max_bulk_import_rows") or "N/A"
+        allow_bulk_commit = "Yes" if flags.get("allow_bulk_commit") else "No"
+        summary_lines = [
+            f"Entity console: {console} (roles: {roles_console})",
+            f"Entity import: {imp} (roles: {roles_import})",
+            f"API schema: {schema} (roles: {roles_schema})",
+            f"Max bulk rows: {max_rows}",
+            f"Allow bulk commit: {allow_bulk_commit}",
+            f"Guardian finance opt-in: {finance_opt_in}",
+            f"Finance access requests: {finance_requests}",
+        ]
+        self.fields["backend_flags_summary"].initial = "\n".join(summary_lines)
 
     enable_entity_console = forms.BooleanField(required=False, label="Enable entity console")
     enable_entity_import = forms.BooleanField(required=False, label="Enable entity import")
@@ -125,29 +148,6 @@ class SiteSettingsForm(forms.ModelForm):
         help_text="If enabled, guardians can submit a request for finance access to admins/finance.",
     )
     max_bulk_import_rows = forms.IntegerField(required=False, min_value=0, label="Max bulk import rows")
-    marksheet_ocr_enabled = forms.BooleanField(
-        required=False,
-        label="Enable marksheet OCR uploads",
-        help_text="Allow teachers to upload handwritten marksheets for auto-parsing.",
-    )
-    marksheet_ocr_confidence_threshold = forms.IntegerField(
-        required=False,
-        label="OCR confidence threshold (%)",
-        min_value=0,
-        max_value=100,
-        initial=70,
-        help_text="Confidence level required before parsed marks are auto-applied.",
-    )
-    marksheet_ocr_manual_review_required = forms.BooleanField(
-        required=False,
-        label="Force manual review for OCR uploads",
-        help_text="Even when confidence is high, show parsed sheets for verification before applying.",
-    )
-    marksheet_ocr_mobile_upload_enabled = forms.BooleanField(
-        required=False,
-        label="Allow mobile uploads",
-        help_text="Expose a mobile-friendly upload option (camera/photo) on the teacher portal.",
-    )
 
     def clean_backend_feature_flags(self):
         raw = self.cleaned_data.get("backend_feature_flags") or {}
@@ -169,35 +169,6 @@ class SiteSettingsForm(forms.ModelForm):
             self.cleaned_data.get(
                 "allow_finance_access_requests",
                 merged.get("allow_finance_access_requests", defaults.get("allow_finance_access_requests", True)),
-            )
-        )
-        merged["marksheet_ocr_enabled"] = bool(
-            self.cleaned_data.get(
-                "marksheet_ocr_enabled",
-                merged.get("marksheet_ocr_enabled", defaults.get("marksheet_ocr_enabled", False)),
-            )
-        )
-        try:
-            merged["marksheet_ocr_confidence_threshold"] = int(
-                self.cleaned_data.get(
-                    "marksheet_ocr_confidence_threshold",
-                    merged.get("marksheet_ocr_confidence_threshold", defaults.get("marksheet_ocr_confidence_threshold", 70)),
-                )
-            )
-        except Exception:
-            raise ValidationError({"marksheet_ocr_confidence_threshold": "Enter a valid confidence value between 0 and 100."})
-        if not 0 <= merged["marksheet_ocr_confidence_threshold"] <= 100:
-            raise ValidationError({"marksheet_ocr_confidence_threshold": "Confidence must be between 0 and 100."})
-        merged["marksheet_ocr_manual_review_required"] = bool(
-            self.cleaned_data.get(
-                "marksheet_ocr_manual_review_required",
-                merged.get("marksheet_ocr_manual_review_required", defaults.get("marksheet_ocr_manual_review_required", True)),
-            )
-        )
-        merged["marksheet_ocr_mobile_upload_enabled"] = bool(
-            self.cleaned_data.get(
-                "marksheet_ocr_mobile_upload_enabled",
-                merged.get("marksheet_ocr_mobile_upload_enabled", defaults.get("marksheet_ocr_mobile_upload_enabled", True)),
             )
         )
 
@@ -254,33 +225,7 @@ class DashboardUserPreferenceAdmin(ModelAdmin):
         css = {"all": ("admin/css/widgets.css",)}
 
 
-ROLE_CHOICES = list(User.Role.choices)
-
-
-class DashboardWidgetForm(forms.ModelForm):
-    allowed_roles = forms.MultipleChoiceField(
-        required=False,
-        choices=ROLE_CHOICES,
-        widget=forms.SelectMultiple(attrs={"size": 10, "style": "width: 220px;"})
-    )
-
-    class Meta:
-        model = DashboardWidget
-        fields = "__all__"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        allowed = self.instance.allowed_roles if self.instance and isinstance(self.instance.allowed_roles, list) else []
-        self.fields["allowed_roles"].initial = sorted(set(str(r).upper() for r in allowed))
-
-    def clean_allowed_roles(self):
-        data = self.cleaned_data.get("allowed_roles") or []
-        cleaned = sorted({str(value).upper() for value in data if value})
-        return cleaned
-
-
 class DashboardWidgetAdmin(ModelAdmin):
-    form = DashboardWidgetForm
     change_form_template = "admin/siteconfig/dashboardwidget/change_form.html"
     list_display = ("id", "name", "page", "widget_type", "required_role", "is_active", "order")
     search_fields = ("id", "name", "description")
@@ -355,6 +300,16 @@ class SiteSettingsAdmin(ModelAdmin):
     form = SiteSettingsForm
     # form assigned below after SiteSettingsForm definition
 
+    def get_form(self, request, obj=None, **kwargs):
+        """
+        Strip non-model fields from the modelform_factory 'fields' list.
+        This prevents FieldError for custom form-only fields like backend_flags_summary.
+        """
+        fields = kwargs.get("fields")
+        if fields:
+            kwargs["fields"] = [field for field in fields if field != "backend_flags_summary"]
+        return super().get_form(request, obj=obj, **kwargs)
+
     # Only allow ONE row
     def has_add_permission(self, request):
         return self._is_site_admin(request.user) and not SiteSettings.objects.exists()
@@ -394,7 +349,6 @@ class SiteSettingsAdmin(ModelAdmin):
                 "brand_font",
                 "custom_css",
                 "theme_pack",
-                "admin_theme_pack",
             )
         }),
         ("Preview & Draft", {
@@ -402,9 +356,6 @@ class SiteSettingsAdmin(ModelAdmin):
             "fields": (
                 "preview_mode_enabled",
                 "preview_note",
-                "preview_toggle_enabled",
-                "preview_toggle_label",
-                "preview_banner_text",
             ),
         }),
         ("Company Details", {
@@ -505,15 +456,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "allow_finance_access_requests",
                 "max_bulk_import_rows",
                 "backend_feature_flags",
-            )
-        }),
-        ("Marksheet OCR & Mobile Upload", {
-            "fields": (
-                "marksheet_ocr_enabled",
-                "marksheet_ocr_confidence_threshold",
-                "marksheet_ocr_manual_review_required",
-                "marksheet_ocr_mobile_upload_enabled",
-                "marksheet_ocr_command",
+                "backend_flags_summary",
             )
         }),
         ("Notifications & Analytics", {
@@ -537,7 +480,7 @@ class SiteSettingsAdmin(ModelAdmin):
             )
         }),
         ("Metadata", {
-            "fields": ("backend_flags_summary", "updated_at",),
+            "fields": ("updated_at",),
         }),
     )
 
@@ -561,10 +504,6 @@ class SiteSettingsAdmin(ModelAdmin):
         roles_schema = ", ".join(flags.get("allowed_roles_api_schema", []))
         finance_opt_in = "Required" if flags.get("require_guardian_finance_opt_in") else "Not required"
         finance_requests = "Enabled" if flags.get("allow_finance_access_requests", True) else "Disabled"
-        ocr_enabled = "On" if flags.get("marksheet_ocr_enabled") else "Off"
-        ocr_confidence = flags.get("marksheet_ocr_confidence_threshold", 70)
-        ocr_manual = "Required" if flags.get("marksheet_ocr_manual_review_required") else "Optional"
-        ocr_mobile = "Enabled" if flags.get("marksheet_ocr_mobile_upload_enabled") else "Disabled"
         return format_html(
             "<ul>"
             "<li>Entity console: {} (roles: {})</li>"
@@ -574,7 +513,6 @@ class SiteSettingsAdmin(ModelAdmin):
             "<li>Allow bulk commit: {}</li>"
             "<li>Guardian finance opt-in: {}</li>"
             "<li>Finance access requests: {}</li>"
-            "<li>Marksheet OCR: {} (confidence ≥ {}%, manual review: {}, mobile: {})</li>"
             "</ul>",
             console,
             roles_console or "—",
@@ -586,10 +524,6 @@ class SiteSettingsAdmin(ModelAdmin):
             "Yes" if flags.get("allow_bulk_commit") else "No",
             finance_opt_in,
             finance_requests,
-            ocr_enabled,
-            ocr_confidence,
-            ocr_manual,
-            ocr_mobile,
         )
 
     backend_flags_summary.short_description = "Backend feature flags"
@@ -641,8 +575,8 @@ class SiteSettingsAdmin(ModelAdmin):
 
 
 class ThemePackAdmin(ModelAdmin):
-    list_display = ("name", "is_active", "is_default", "layout", "applies_to_admin", "palette_preview")
-    list_filter = ("is_active", "layout", "applies_to_admin")
+    list_display = ("name", "is_active", "is_default", "layout", "palette_preview")
+    list_filter = ("is_active", "layout")
     prepopulated_fields = {"slug": ("name",)}
     search_fields = ("name", "slug")
 

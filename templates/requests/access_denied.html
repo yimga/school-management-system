@@ -1,0 +1,21 @@
+{% extends "portal_base.html" %}
+{% block title %}Access required{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h3 class="mb-2">Access required</h3>
+    <p class="text-muted">
+      You do not have {{ action }} access for the <strong>{{ module|title }}</strong> module.
+    </p>
+    <form method="post" action="{% url 'requests:module_access' %}">
+      {% csrf_token %}
+      <input type="hidden" name="module" value="{{ module }}">
+      <input type="hidden" name="action" value="{{ action }}">
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-primary">Request access</button>
+      <a class="btn btn-outline-secondary ms-2" href="/">Back to dashboard</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

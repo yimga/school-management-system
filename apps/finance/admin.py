@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin.sites import AlreadyRegistered
 from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
@@ -21,13 +22,13 @@ from .models import (
     JournalEntry,
     JournalLine,
     LedgerAccount,
+    FinanceRequestAudit,
     Payment,
     ReferralReward,
     TaxBracket,
     PaymentReminder,
     PaymentReminderLog,
     Notification,
-    FinanceRequestAudit,
     ReportRequest,
 )
 
@@ -228,6 +229,9 @@ admin_site.register(AssetCategory, AssetCategoryAdmin)
 admin_site.register(Asset, AssetAdmin)
 admin_site.register(Grant, GrantAdmin)
 admin_site.register(Notification, NotificationAdmin)
-admin_site.register(FinanceRequestAudit, FinanceRequestAuditAdmin)
+try:
+    admin_site.register(FinanceRequestAudit, FinanceRequestAuditAdmin)
+except AlreadyRegistered:
+    pass
 admin_site.register(ReportRequest, ReportRequestAdmin)
 admin_site.register(ReferralReward, ReferralRewardAdmin)
