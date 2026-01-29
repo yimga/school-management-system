@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.http import HttpResponseForbidden
 from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
@@ -811,7 +811,7 @@ def workflow_center(request):
             "links": [
                 {"label": "Teacher marks entry", "url": reverse("evals:teacher_marks_entry")},
                 {"label": "Marks history", "url": reverse("evals:teacher_marks_list")},
-                {"label": "Approval requests", "url": reverse("admin:evals_gradeapprovalrequest_changelist")},
+                {"label": "Approval requests", "url": reverse("evals:grade_approval_list")},
             ],
         },
         {
