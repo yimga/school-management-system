@@ -31,6 +31,24 @@ from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermiss
 from .models import AccessRole, Permission, User
 
 
+def _notify_new_direct_message(sender, recipient, message):
+    """Create an in-app notification for the recipient of a direct message."""
+    try:
+        msg_preview = (message.body or message.subject or "")[:200]
+        if len((message.body or "") or (message.subject or "")) > 200:
+            msg_preview += "..."
+        link = reverse("accounts:direct_thread", args=[sender.pk])
+        FinanceNotification.objects.create(
+            recipient=recipient,
+            created_by=sender,
+            title=f"New message from {sender.get_full_name() or sender.username}",
+            message=msg_preview,
+            link=link,
+        )
+    except Exception:
+        pass
+
+
 @login_required
 def user_profile(request):
     """Lightweight profile landing page for any authenticated user (RBAC-safe)."""
@@ -72,18 +90,119 @@ def user_notifications(request):
     return render(request, "accounts/notifications.html", context)
 
 
+def _direct_conversations(user, limit=50):
+    """Build list of 1-on-1 conversations for the Messages hub (Direct tab)."""
+    from apps.communication.models import Message
+
+    # All messages where user is sender or recipient (exclude archived for listing)
+    qs = Message.objects.filter(
+        Q(sender=user) | Q(recipient=user)
+    ).filter(is_archived=False).select_related("sender", "recipient").order_by("-created_at")
+
+    # Collect distinct other users and latest message per conversation
+    seen_other_ids = set()
+    conversations = []
+    for msg in qs:
+        other = msg.recipient if msg.sender_id == user.id else msg.sender
+        if other.id in seen_other_ids:
+            continue
+        seen_other_ids.add(other.id)
+        # Unread count: messages from other to me that I haven't read
+        unread_count = Message.objects.filter(
+            sender=other, recipient=user, is_read=False, is_archived=False
+        ).count()
+        conversations.append({
+            "other_user": other,
+            "last_message": msg,
+            "last_message_at": msg.created_at,
+            "unread_count": unread_count,
+            "snippet": (msg.body or msg.subject or "")[:120],
+        })
+        if len(conversations) >= limit:
+            break
+    return conversations
+
+
 @login_required
 def user_messages(request):
-    """Message/threads landing page (RBAC-safe)."""
-    from apps.portal.services import class_threads_for_parent, class_threads_for_teacher
+    """Messages hub: Direct (1-on-1) and Groups tabs (RBAC-safe)."""
+    from apps.portal.services import threads_for_user
 
-    role = (getattr(request.user, "role", "") or "").upper()
-    threads = []
-    if role == "PARENT":
-        threads = class_threads_for_parent(request.user, limit=12)
-    elif role == "TEACHER":
-        threads = class_threads_for_teacher(request.user, limit=12)
-    return render(request, "accounts/messages.html", {"threads": threads})
+    active_tab = request.GET.get("tab", "groups")
+    threads = threads_for_user(request.user, limit=12)
+    direct_list = _direct_conversations(request.user)
+
+    context = {
+        "threads": threads,
+        "direct_conversations": direct_list,
+        "active_tab": active_tab,
+    }
+    return render(request, "accounts/messages.html", context)
+
+
+@login_required
+def direct_thread(request, user_id):
+    """View 1-on-1 thread with another user; GET: show messages, POST: send reply. Mark received as read."""
+    from apps.communication.models import Message
+
+    User = request.user.__class__
+    other = User.objects.filter(pk=user_id).select_related().first()
+    if not other or other.pk == request.user.pk:
+        return redirect("accounts:user_messages")
+
+    # All messages between me and other (either direction), ordered by created_at
+    messages_qs = Message.objects.filter(
+        Q(sender=request.user, recipient=other) | Q(sender=other, recipient=request.user)
+    ).filter(is_archived=False).select_related("sender", "recipient").order_by("created_at")
+
+    if request.method == "POST":
+        body = (request.POST.get("body") or "").strip()
+        subject = (request.POST.get("subject") or "").strip() or "Direct message"
+        if body:
+            msg = Message.objects.create(
+                sender=request.user,
+                recipient=other,
+                subject=subject,
+                body=body,
+            )
+            _notify_new_direct_message(request.user, other, msg)
+            # Mark messages from other to me as read when I reply
+            Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(is_read=True)
+            return redirect("accounts:direct_thread", user_id=other.pk)
+
+    # Mark received messages as read when opening thread
+    Message.objects.filter(sender=other, recipient=request.user, is_read=False).update(is_read=True)
+
+    context = {
+        "other_user": other,
+        "messages": list(messages_qs),
+    }
+    return render(request, "accounts/direct_thread.html", context)
+
+
+@login_required
+def direct_compose(request):
+    """Start a new direct message: pick recipient and send (GET: form, POST: create and redirect to thread)."""
+    from apps.communication.models import Message
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    if request.method == "POST":
+        recipient_id = request.POST.get("recipient")
+        body = (request.POST.get("body") or "").strip()
+        subject = (request.POST.get("subject") or "").strip() or "Direct message"
+        if not body or not recipient_id:
+            return redirect("accounts:direct_compose")
+        recipient = User.objects.filter(pk=recipient_id, is_active=True).exclude(pk=request.user.pk).first()
+        if not recipient:
+            return redirect("accounts:direct_compose")
+        Message.objects.create(sender=request.user, recipient=recipient, subject=subject, body=body)
+        return redirect("accounts:direct_thread", user_id=recipient.pk)
+
+    # GET: list active users (exclude self) for recipient dropdown
+    recipients = User.objects.filter(is_active=True).exclude(pk=request.user.pk).order_by("first_name", "last_name").values("id", "first_name", "last_name", "username")
+    context = {"recipients": list(recipients)}
+    return render(request, "accounts/direct_compose.html", context)
 
 
 @login_required
@@ -654,7 +773,7 @@ def workflow_center(request):
                 {"label": "Academic years", "url": reverse("admin:academics_academicyear_changelist")},
                 {"label": "Terms", "url": reverse("admin:academics_term_changelist")},
                 {"label": "Classrooms", "url": reverse("admin:academics_classroom_changelist")},
-                {"label": "Departments", "url": reverse("admin:people_department_changelist")},
+                {"label": "Departments", "url": reverse("admin:academics_department_changelist")},
                 {"label": "Specialties", "url": reverse("admin:academics_specialty_changelist")},
                 {"label": "Subjects", "url": reverse("admin:academics_subject_changelist")},
             ],
