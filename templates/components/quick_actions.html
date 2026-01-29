@@ -85,7 +85,8 @@
         </div>
       </a>
 
-      <!-- System Config -->
+      <!-- System Config: admin/superuser only (RBAC - not for teachers) -->
+      {% if request.user.role == 'ADMIN' or request.user.is_superuser %}
       <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="quick-action-item">
         <div class="quick-action-icon bg-teal">
           <i class="fas fa-cog"></i>
@@ -95,6 +96,7 @@
           <div class="quick-action-desc">System config</div>
         </div>
       </a>
+      {% endif %}
 
       <!-- Analytics -->
       <a href="{% url 'admin:analytics_gradingdeadline_changelist' %}" class="quick-action-item">

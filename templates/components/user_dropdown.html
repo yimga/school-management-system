@@ -91,19 +91,6 @@
         </a>
       </li>
       <li>
-        {% if request.user.role == 'PARENT' %}
-        <a class="dropdown-item" href="{% url 'portal:parent_contact_school' %}">
-          <i class="bi bi-envelope-paper"></i>
-          <span>Contact School</span>
-        </a>
-        {% else %}
-        <a class="dropdown-item" href="{% url 'accounts:user_messages' %}">
-          <i class="bi bi-chat-dots"></i>
-          <span>Messaging</span>
-        </a>
-        {% endif %}
-      </li>
-      <li>
         <a class="dropdown-item" href="{% url 'accounts:user_documentation' %}">
           <i class="bi bi-journal-text"></i>
           <span>Documentation</span>
@@ -113,15 +100,9 @@
       {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
       <li><hr class="dropdown-divider"></li>
       
-      <!-- Admin tools -->
+      <!-- Admin tools (RBAC: no Django Admin link in portal; use Backend Console) -->
       <li class="dropdown-section-header">
         <i class="bi bi-tools"></i> Admin Tools
-      </li>
-      <li>
-        <a class="dropdown-item" href="{% url 'admin:index' %}">
-          <i class="bi bi-terminal"></i>
-          <span>Django Admin</span>
-        </a>
       </li>
       {% comment %} Activity logs and system health links are custom admin URLs {% endcomment %}
       {% if request.user.is_staff %}

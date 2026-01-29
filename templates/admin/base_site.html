@@ -12,6 +12,7 @@
   <!-- ADMIN-SPECIFIC CUSTOMIZATIONS -->
   <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-dark-readability.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
   
@@ -492,7 +493,91 @@
     })();
   </script>
   
+  <!-- Admin content toolbar: Back button + Dashboard link (visible on all pages except index) -->
+  <script>
+    (function() {
+      const ADMIN_INDEX_URL = "{% url 'admin:index' %}";
+      const currentPath = window.location.pathname;
+
+      function injectBackToolbar() {
+        const content = document.getElementById("content") || document.querySelector("main") || document.querySelector(".main-content");
+        if (!content) {
+          setTimeout(injectBackToolbar, 150);
+          return;
+        }
+        if (document.getElementById("admin-content-toolbar")) return;
+
+        var isIndex = currentPath === "/admin/" || currentPath === "/admin" || currentPath.endsWith("/admin/");
+        if (isIndex) return;
+
+        const toolbar = document.createElement("div");
+        toolbar.id = "admin-content-toolbar";
+        toolbar.className = "admin-content-toolbar";
+        toolbar.setAttribute("role", "navigation");
+        toolbar.innerHTML =
+          '<a href="' + ADMIN_INDEX_URL + '" class="admin-toolbar-back">' +
+          '<span class="admin-toolbar-icon" aria-hidden="true">←</span> Back to dashboard' +
+          '</a>' +
+          '<a href="' + ADMIN_INDEX_URL + '" class="admin-toolbar-dashboard">Dashboard</a>';
+        content.insertBefore(toolbar, content.firstChild);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function() { setTimeout(injectBackToolbar, 80); });
+      } else {
+        setTimeout(injectBackToolbar, 80);
+      }
+    })();
+  </script>
+
   <style>
+    /* Admin content toolbar: back button + dashboard link */
+    .admin-content-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: 0.75rem 1rem;
+      margin: -0.5rem -0.5rem 1rem -0.5rem;
+      border-radius: 10px;
+      background: var(--admin-surface, #1e293b);
+      border: 1px solid var(--admin-border, rgba(148, 163, 184, 0.25));
+      color: var(--admin-text, #e2e8f0);
+    }
+    .admin-toolbar-back,
+    .admin-toolbar-dashboard {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--admin-text, #e2e8f0);
+      background: transparent;
+      border: 1px solid transparent;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .admin-toolbar-back:hover,
+    .admin-toolbar-dashboard:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(148, 163, 184, 0.3);
+      color: #f1f5f9;
+    }
+    .admin-toolbar-icon { font-size: 1.1rem; }
+    :root[data-theme="light"] .admin-content-toolbar {
+      background: var(--admin-surface, #f8fafc);
+      border-color: var(--admin-border, #e2e8f0);
+      color: #0f172a;
+    }
+    :root[data-theme="light"] .admin-toolbar-back,
+    :root[data-theme="light"] .admin-toolbar-dashboard { color: #0f172a; }
+    :root[data-theme="light"] .admin-toolbar-back:hover,
+    :root[data-theme="light"] .admin-toolbar-dashboard:hover {
+      background: rgba(15, 23, 42, 0.06);
+      color: #0f172a;
+    }
     /* Position dashboard header at top of admin */
     #dashboardHeader {
       position: sticky;
@@ -500,13 +585,11 @@
       z-index: 1030;
       margin-bottom: 0;
     }
-    
-    /* Adjust admin content to account for header */
     .dashboard-header-wrapper + * {
       margin-top: 1rem;
     }
   </style>
-  
+
   {# Include AI Copilot on admin pages as well #}
   {% include 'components/ai_copilot.html' %}
 {% endblock %}

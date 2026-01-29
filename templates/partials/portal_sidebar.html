@@ -379,12 +379,6 @@
     <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}">
       <i class="bi bi-bell me-2"></i>Notifications
     </a>
-    {% if request.user.role != 'PARENT' %}
-    <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
-      <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
-      {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
-    </a>
-    {% endif %}
     <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
       <i class="bi bi-journal-text me-2"></i>Knowledge Base
     </a>
@@ -392,8 +386,9 @@
 
   {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
     <div class="sidebar-section-title">Communication</div>
-    <a class="nav-link nav-pill" href="{% url 'accounts:user_messages' %}">
-      <i class="bi bi-chat-dots me-2"></i>Messages
+    <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
+      <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
+      {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
     </a>
     <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}">
       <i class="bi bi-people me-2"></i>Message Groups
@@ -406,8 +401,9 @@
   {% elif request.user.is_authenticated %}
     {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
       <div class="sidebar-section-title">Communication</div>
-      <a class="nav-link nav-pill" href="{% url 'accounts:user_messages' %}">
-        <i class="bi bi-chat-dots me-2"></i>Messages
+      <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
+        <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
+        {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
       </a>
       <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}">
         <i class="bi bi-people me-2"></i>Message Groups
@@ -466,9 +462,6 @@
     {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
       <!-- Admin Navigation -->
       <div class="sidebar-section-title">Admin Panel</div>
-      <a class="nav-link nav-pill" href="/admin/">
-        <i class="bi bi-shield-lock me-2"></i>Admin Interface
-      </a>
       <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}">
         <i class="bi bi-gear-fill me-2"></i>Backend Console
       </a>
@@ -526,7 +519,7 @@
   {% endif %}
 </div>
 
-<!-- Portal Features (omit Messaging here; already under Account as Messages) -->
+<!-- Portal Features (Messages live under Communication in sidebar) -->
 {% with portal_cfg=SITE.portal_features %}
   {% if portal_cfg.forums or portal_cfg.video or portal_cfg.documents %}
     <div class="sidebar-section-title">Portal Tools</div>
@@ -559,16 +552,9 @@
   </a>
 </div>
 
-<div class="d-grid gap-2 mt-3">
-  {% if request.user.is_authenticated and request.user.is_staff %}
-    <a class="btn btn-sm btn-primary" href="/admin/">
-      <i class="bi bi-shield-lock me-2"></i>Admin Panel
-    </a>
-  {% endif %}
-</div>
-
   {% if request.user.is_authenticated %}
-    {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
+    {% comment %} RBAC: System Configuration only for admin/staff; not shown to teachers or parents {% endcomment %}
+    {% if request.user.is_staff and request.user.role != 'TEACHER' and request.user.role != 'PARENT' or request.user.is_superuser or request.user.role == 'ADMIN' %}
       <hr class="my-3">
       <div class="sidebar-section-title mt-3">System Configuration</div>
       <div class="nav flex-column gap-0">

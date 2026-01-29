@@ -802,12 +802,22 @@ def _workflow_progress(year):
         return {}
 
 
+def _workflow_link(label, url_name, primary=False, args=None, kwargs=None):
+    """Build a workflow step link; return None if URL resolution fails so the button is skipped."""
+    try:
+        url = reverse(url_name, args=args or (), kwargs=kwargs or {})
+        return {"label": label, "url": url, "primary": primary} if primary else {"label": label, "url": url}
+    except NoReverseMatch:
+        return None
+
+
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def workflow_center(request):
     """
     Operator-friendly entry point to the end-to-end school workflow.
     Keeps admins out of scattered menus and makes the Cameroon-first lifecycle discoverable.
+    Every link is resolved defensively so one broken URL does not 500 the page.
     """
     site = SiteSettings.get_solo()
     year, term = get_active_year_and_term()
@@ -825,109 +835,121 @@ def workflow_center(request):
         teacher_list_url = reverse("admin:people_teacherprofile_changelist")
         teacher_create_url = reverse("admin:people_teacherprofile_add")
 
+    # Build links defensively: only include links that resolve
+    year_setup_links = [
+        _workflow_link("Academic years", "admin:academics_academicyear_changelist"),
+        _workflow_link("Terms", "admin:academics_term_changelist"),
+        _workflow_link("Classrooms", "admin:academics_classroom_changelist"),
+        _workflow_link("Departments", "admin:academics_department_changelist"),
+        _workflow_link("Specialties", "admin:academics_specialty_changelist"),
+        _workflow_link("Subjects", "admin:academics_subject_changelist"),
+    ]
+    onboarding_links = [
+        {"label": "Add student", "url": student_create_url, "primary": True},
+        {"label": "Add teacher", "url": teacher_create_url, "primary": True},
+        {"label": "Student list", "url": student_list_url},
+        _workflow_link("Onboard student (wizard)", "portal:student_onboarding"),
+        _workflow_link("Onboard teacher (wizard)", "portal:teacher_onboarding"),
+        _workflow_link("Guardian invites", "admin:portal_pendingguardianinvite_changelist"),
+        _workflow_link("Student profiles (admin)", "admin:people_studentprofile_changelist"),
+    ]
+    marks_links = [
+        _workflow_link("Teacher marks entry", "evals:teacher_marks_entry"),
+        _workflow_link("Marks history", "evals:teacher_marks_list"),
+        _workflow_link("Approval requests", "admin:evals_gradeapprovalrequest_changelist"),
+    ]
+    reports_links = [
+        _workflow_link("Publish term results", "reports:publish_term_results"),
+        _workflow_link("Report card builder", "siteconfig:reportcard_builder"),
+        _workflow_link("Report library", "siteconfig:report_library"),
+    ]
+    communication_links = [
+        _workflow_link("Message groups", "communication:group_list"),
+        _workflow_link("Create announcement", "communication:announcement_create"),
+        _workflow_link("Parent contact requests", "portal:staff_contact_request_list"),
+    ]
+    documents_links = [
+        _workflow_link("Document library", "portal:document_library_manage"),
+        _workflow_link("Signature requests", "portal:signature_requests_manage"),
+        _workflow_link("Public documents", "portal:portal_feature", kwargs={"feature": "documents"}),
+    ]
+    certification_links = (
+        [
+            _workflow_link("Certification Center", "accounts:certification_home"),
+            _workflow_link("Exam sessions", "admin:academics_certificationexamsession_changelist"),
+            _workflow_link("Candidates", "admin:academics_certificationcandidate_changelist"),
+            _workflow_link("Presets & Templates", "admin:academics_certificationexampreset_changelist"),
+            _workflow_link("Audit logs", "admin:academics_certificationauditlog_changelist"),
+        ]
+        if (year and getattr(year, "enable_gce_registration", False))
+        else [_workflow_link("Enable in Academic Year", "admin:academics_academicyear_changelist")]
+    )
+    settings_links = [
+        _workflow_link("Site settings (admin)", "admin:siteconfig_sitesettings_change", args=(site.pk,)),
+        _workflow_link("Preferences (operator UI)", "siteconfig:user_preferences"),
+        _workflow_link("RBAC & access control", "accounts:rbac"),
+    ]
+
+    # Filter out any None links and ensure each step has at least an empty list
+    def _filter_links(links):
+        return [lnk for lnk in links if lnk is not None and lnk.get("url")]
+
     steps = [
         {
             "title": "1) Year setup",
             "subtitle": "Academic year, terms, classrooms, departments, specialties.",
             "step_key": "year_setup",
             "progress_label": f"{progress.get('classrooms', 0)} classrooms" if year else "Set active year",
-            "links": [
-                {"label": "Academic years", "url": reverse("admin:academics_academicyear_changelist")},
-                {"label": "Terms", "url": reverse("admin:academics_term_changelist")},
-                {"label": "Classrooms", "url": reverse("admin:academics_classroom_changelist")},
-                {"label": "Departments", "url": reverse("admin:academics_department_changelist")},
-                {"label": "Specialties", "url": reverse("admin:academics_specialty_changelist")},
-                {"label": "Subjects", "url": reverse("admin:academics_subject_changelist")},
-            ],
+            "links": _filter_links(year_setup_links),
         },
         {
             "title": "2) Onboarding",
             "subtitle": "Enroll students/teachers and link parents.",
             "step_key": "onboarding",
             "progress_label": f"{progress.get('students', 0)} students, {progress.get('teachers', 0)} teachers",
-            "links": [
-                {"label": "Add student", "url": student_create_url, "primary": True},
-                {"label": "Add teacher", "url": teacher_create_url, "primary": True},
-                {"label": "Student list", "url": student_list_url},
-                {"label": "Onboard student (wizard)", "url": reverse("portal:student_onboarding")},
-                {"label": "Onboard teacher (wizard)", "url": reverse("portal:teacher_onboarding")},
-                {"label": "Guardian invites", "url": reverse("admin:portal_pendingguardianinvite_changelist")},
-                {"label": "Student profiles (admin)", "url": reverse("admin:people_studentprofile_changelist")},
-            ],
+            "links": _filter_links(onboarding_links),
         },
         {
             "title": "3) Marks entry + OCR",
             "subtitle": "Enter marks, upload marksheets, review OCR, submit for approval.",
             "step_key": "marks",
             "progress_label": None,
-            "links": [
-                {"label": "Teacher marks entry", "url": reverse("evals:teacher_marks_entry")},
-                {"label": "Marks history", "url": reverse("evals:teacher_marks_list")},
-                {"label": "Approval requests", "url": reverse("admin:evals_gradeapprovalrequest_changelist")},
-            ],
+            "links": _filter_links(marks_links),
         },
         {
             "title": "4) Publish reports",
             "subtitle": "Generate report cards and publish to parents safely.",
             "step_key": "reports",
             "progress_label": None,
-            "links": [
-                {"label": "Publish term results", "url": reverse("reports:publish_term_results")},
-                {"label": "Report card builder", "url": reverse("siteconfig:reportcard_builder")},
-                {"label": "Report library", "url": reverse("siteconfig:report_library")},
-            ],
+            "links": _filter_links(reports_links),
         },
         {
             "title": "5) Communication",
             "subtitle": "Groups, department chats, announcements, and parent contact requests.",
             "step_key": "communication",
             "progress_label": None,
-            "links": [
-                {"label": "Message groups", "url": reverse("communication:group_list")},
-                {"label": "Create announcement", "url": reverse("communication:announcement_create")},
-                {"label": "Parent contact requests", "url": reverse("portal:staff_contact_request_list")},
-            ],
+            "links": _filter_links(communication_links),
         },
         {
             "title": "5b) Documents & forms",
             "subtitle": "Document library, upload forms, and electronic signature requests.",
             "step_key": "documents",
             "progress_label": None,
-            "links": [
-                {"label": "Document library", "url": reverse("portal:document_library_manage")},
-                {"label": "Signature requests", "url": reverse("portal:signature_requests_manage")},
-                {"label": "Public documents", "url": reverse("portal:portal_feature", kwargs={"feature": "documents"})},
-            ],
+            "links": _filter_links(documents_links),
         },
         {
             "title": "6) Certification & GCE (optional)",
             "subtitle": "Enable per academic year. Manage candidates, deadlines, exports, and audit trail.",
             "step_key": "certification",
             "progress_label": None,
-            "links": (
-                [
-                    {"label": "Certification Center", "url": reverse("accounts:certification_home")},
-                    {"label": "Exam sessions", "url": reverse("admin:academics_certificationexamsession_changelist")},
-                    {"label": "Candidates", "url": reverse("admin:academics_certificationcandidate_changelist")},
-                    {"label": "Presets & Templates", "url": reverse("admin:academics_certificationexampreset_changelist")},
-                    {"label": "Audit logs", "url": reverse("admin:academics_certificationauditlog_changelist")},
-                ]
-                if (year and getattr(year, "enable_gce_registration", False))
-                else [
-                    {"label": "Enable in Academic Year", "url": reverse("admin:academics_academicyear_changelist")},
-                ]
-            ),
+            "links": _filter_links(certification_links),
         },
         {
             "title": "7) Settings & theme",
             "subtitle": "Site settings, preferences, preview/sandbox, and role access.",
             "step_key": "settings",
             "progress_label": None,
-            "links": [
-                {"label": "Site settings (admin)", "url": reverse("admin:siteconfig_sitesettings_change", args=(site.pk,))},
-                {"label": "Preferences (operator UI)", "url": reverse("siteconfig:user_preferences")},
-                {"label": "RBAC & access control", "url": reverse("accounts:rbac")},
-            ],
+            "links": _filter_links(settings_links),
         },
     ]
 

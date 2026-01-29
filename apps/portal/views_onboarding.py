@@ -54,8 +54,9 @@ def teacher_onboarding_wizard(request: HttpRequest):
         
         request.session[session_key] = wizard_data
         
-        # Validate current step
-        form = TeacherOnboardingForm(data=request.POST)
+        # Validate: use merged wizard_data on steps 2+ so step 1 required fields are present
+        data_to_validate = wizard_data if step >= 2 else request.POST
+        form = TeacherOnboardingForm(data=data_to_validate)
         
         if step == 1:
             # Step 1: Validate basic information
@@ -109,12 +110,9 @@ def teacher_onboarding_wizard(request: HttpRequest):
                 
                 return redirect("accounts:login")
     
-    # Build form with session data for current step
-    form_data = {}
-    if wizard_data:
-        form_data.update(wizard_data)
-    
-    form = TeacherOnboardingForm(data=form_data if request.method == "GET" else None)
+    # Build form with session data (so re-renders after validation errors show data)
+    form_data = dict(wizard_data) if wizard_data else {}
+    form = TeacherOnboardingForm(data=form_data)
     
     # Pre-populate form from session
     if wizard_data:
@@ -174,15 +172,16 @@ def student_onboarding_wizard(request: HttpRequest):
             request.session[session_key] = wizard_data
             return redirect(f"{request.path}?step={step}")
         
-        # Save current step data to session
+        # Save current step data to session (merge POST into wizard_data so we have all steps)
         for key, value in request.POST.items():
             if key not in ("csrfmiddlewaretoken", "action", "step"):
                 wizard_data[key] = value
         
         request.session[session_key] = wizard_data
         
-        # Validate current step
-        form = StudentOnboardingForm(data=request.POST)
+        # Validate: use merged wizard_data so step 1 required fields are present on steps 2+
+        data_to_validate = wizard_data if step >= 2 else request.POST
+        form = StudentOnboardingForm(data=data_to_validate)
         
         if step == 1:
             # Step 1: Basic information - validate required fields
@@ -276,14 +275,11 @@ def student_onboarding_wizard(request: HttpRequest):
                 
                 return redirect("portal:home")
     
-    # Build form with session data for current step
-    form_data = {}
-    if wizard_data:
-        form_data.update(wizard_data)
+    # Build form with session data (so re-renders after validation errors show data)
+    form_data = dict(wizard_data) if wizard_data else {}
+    form = StudentOnboardingForm(data=form_data)
     
-    form = StudentOnboardingForm(data=form_data if request.method == "GET" else None)
-    
-    # Pre-populate form from session
+    # Pre-populate form from session for GET or when re-rendering after POST
     if wizard_data:
         for key, value in wizard_data.items():
             if key in form.fields:

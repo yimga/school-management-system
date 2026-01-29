@@ -380,7 +380,7 @@ class TeacherOnboardingForm(forms.Form):
         super().__init__(*args, **kwargs)
         
         # Populate department choices
-        self.fields["department"].queryset = Department.objects.filter(is_active=True).order_by("name")
+        self.fields["department"].queryset = Department.objects.all().order_by("name")
         
         # Populate payment method choices
         self.fields["payment_method"].choices = TeacherProfile.PaymentMethod.choices

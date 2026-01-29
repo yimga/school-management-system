@@ -36,6 +36,18 @@ body.portal-backend-light .sidebar {
   border-color: rgba(15, 23, 42, 0.1) !important;
 }
 
+body.portal-backend-light .sidebar .nav-link.nav-pill,
+body.portal-backend-light .sidebar .sidebar-section-title,
+body.portal-backend-light .sidebar .sidebar-info h6,
+body.portal-backend-light .sidebar .sidebar-info p {
+  color: #334155 !important;
+}
+
+body.portal-backend-light .sidebar .nav-link.nav-pill:hover,
+body.portal-backend-light .sidebar .nav-link.nav-pill.active {
+  color: #0f172a !important;
+}
+
 body.portal-backend-light .breadcrumb,
 body.portal-backend-light .breadcrumb-item a {
   color: #64748b !important;
@@ -75,4 +87,49 @@ body.portal-backend-light .nav-pill.active {
 
 body.portal-backend-light .badge.bg-primary {
   background: linear-gradient(135deg, #667eea, #764ba2) !important;
+}
+
+/* Ensure visibility in any mode (light, dark, classic) */
+body.portal-backend-light .alert,
+body.portal-backend-light .list-group-item,
+body.portal-backend-light .form-control,
+body.portal-backend-light .form-select,
+body.portal-backend-light input,
+body.portal-backend-light select,
+body.portal-backend-light textarea {
+  background-color: #fff !important;
+  color: #1a1a2e !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+body.portal-backend-light .list-group-item {
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+body.portal-backend-light .table,
+body.portal-backend-light .table th,
+body.portal-backend-light .table td {
+  color: #1a1a2e !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+body.portal-backend-light .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(248, 244, 252, 0.5) !important;
+}
+
+/* Backend: ensure page-wrap and dropdowns visible in any mode */
+html[data-bs-theme="dark"] body.portal-backend-light .page-wrap,
+html[data-bs-theme="dark"] body.portal-backend-light .dropdown-menu {
+  background: #fff !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  color: #1a1a2e !important;
+}
+
+html[data-bs-theme="dark"] body.portal-backend-light .dropdown-item {
+  color: #1a1a2e !important;
+}
+
+html[data-bs-theme="dark"] body.portal-backend-light .dropdown-item:hover {
+  background: rgba(102, 126, 234, 0.1) !important;
+  color: #0f172a !important;
 }

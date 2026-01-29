@@ -75,14 +75,13 @@ class StudentCreateForm(forms.ModelForm):
         active_year = AcademicYear.objects.filter(is_active=True).first()
         if active_year:
             self.fields['classroom'].queryset = Classroom.objects.filter(
-                academic_year=active_year,
-                is_active=True
+                academic_year=active_year
             ).order_by('name')
         else:
             self.fields['classroom'].queryset = Classroom.objects.none()
         self.fields['classroom'].empty_label = "Select classroom"
         
-        self.fields['specialty'].queryset = Specialty.objects.filter(is_active=True).order_by('name')
+        self.fields['specialty'].queryset = Specialty.objects.all().order_by('name')
         self.fields['specialty'].empty_label = "Select specialty (optional)"
         
         # Make some fields optional
@@ -150,7 +149,7 @@ class TeacherCreateForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['department'].queryset = Department.objects.filter(is_active=True).order_by('name')
+        self.fields['department'].queryset = Department.objects.all().order_by('name')
         self.fields['department'].empty_label = "Select department"
         
         self.fields['reports_to'].queryset = TeacherProfile.objects.filter(is_active=True).order_by('staff_id')

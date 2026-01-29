@@ -1,9 +1,10 @@
-{% extends "portal_base.html" %}
+{% extends "backend_base.html" %}
 {% load admin_health static %}
 
 {% block title %}Backend Dashboard{% endblock %}
 
 {% block extrastyle %}
+{{ block.super }}
 <!-- Include navigation bridge styles -->
 <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
 <script>
@@ -617,14 +618,11 @@
 
   <style>
     .backend-right-sidebar {
-      position: sticky;
-      top: 80px;
       float: right;
       width: 320px;
       margin-left: 12px;
     }
     @media (min-width: 992px) {
-      /* Reserve space on the right for sidebar */
       .container, .container-fluid {
         padding-right: 340px;
       }
@@ -1043,14 +1041,6 @@
           <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-outline-warning w-100 py-3">
             <i class="bi bi-receipt d-block fs-3 mb-2"></i>
             <span class="fw-semibold">Create Invoice</span>
-          </a>
-          {% endif %}
-        </div>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-          {% if action_perms.admin_panel %}
-          <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary w-100 py-3">
-            <i class="bi bi-grid-3x3-gap d-block fs-3 mb-2"></i>
-            <span class="fw-semibold">Admin Panel</span>
           </a>
           {% endif %}
         </div>
