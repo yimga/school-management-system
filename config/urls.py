@@ -83,8 +83,8 @@ urlpatterns = [
     ),
     path('api/schema/ui/', api_schema_ui, name='api-schema-ui'),
     
-    # Frontend admin dashboard - separate from /admin/
-    path('backend/', lambda request: redirect('/authentication/backend/', permanent=False)),
+    # Frontend admin dashboard - separate from /admin/ (redirect to canonical URL)
+    path('backend/', lambda request: redirect('accounts:backend_dashboard', permanent=False)),
 
     # Health and metrics
     path('healthz/', obs_views.healthz, name='healthz'),

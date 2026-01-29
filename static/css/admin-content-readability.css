@@ -1,0 +1,252 @@
+/* ============================================
+   ADMIN CONTENT TOOLBAR & READABILITY
+   Back button, content toolbar, and main content contrast/layout
+   ============================================ */
+
+/* ----- Content toolbar (back button bar) ----- */
+.admin-content-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--admin-toolbar-border, rgba(15, 23, 42, 0.12));
+  background: transparent;
+}
+
+.admin-content-toolbar__back-dashboard {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--admin-toolbar-btn-bg, rgba(56, 189, 248, 0.12));
+  color: var(--admin-toolbar-btn-text, #0e7490);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid var(--admin-toolbar-btn-border, rgba(56, 189, 248, 0.35));
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.admin-content-toolbar__back-dashboard:hover {
+  background: var(--admin-toolbar-btn-hover-bg, rgba(56, 189, 248, 0.2));
+  color: var(--admin-toolbar-btn-hover-text, #0c5c70);
+  border-color: var(--admin-toolbar-btn-hover-border, rgba(56, 189, 248, 0.5));
+}
+
+.admin-content-toolbar__back-browser {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--admin-toolbar-secondary-bg, rgba(15, 23, 42, 0.06));
+  color: var(--admin-toolbar-secondary-text, #475569);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid var(--admin-toolbar-secondary-border, rgba(15, 23, 42, 0.12));
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.admin-content-toolbar__back-browser:hover {
+  background: var(--admin-toolbar-secondary-hover-bg, rgba(15, 23, 42, 0.1));
+  color: var(--admin-toolbar-secondary-hover-text, #334155);
+  border-color: var(--admin-toolbar-secondary-hover-border, rgba(15, 23, 42, 0.2));
+}
+
+/* Dark theme toolbar */
+:root[data-theme="dark"] .admin-content-toolbar,
+html[data-bs-theme="dark"] .admin-content-toolbar {
+  --admin-toolbar-border: rgba(255, 255, 255, 0.1);
+  --admin-toolbar-btn-bg: rgba(56, 189, 248, 0.15);
+  --admin-toolbar-btn-text: #67e8f9;
+  --admin-toolbar-btn-border: rgba(56, 189, 248, 0.4);
+  --admin-toolbar-btn-hover-bg: rgba(56, 189, 248, 0.25);
+  --admin-toolbar-btn-hover-text: #a5f3fc;
+  --admin-toolbar-secondary-bg: rgba(255, 255, 255, 0.06);
+  --admin-toolbar-secondary-text: #cbd5e1;
+  --admin-toolbar-secondary-border: rgba(255, 255, 255, 0.12);
+  --admin-toolbar-secondary-hover-bg: rgba(255, 255, 255, 0.1);
+  --admin-toolbar-secondary-hover-text: #e2e8f0;
+}
+
+/* ----- Main content area readability ----- */
+#content {
+  --admin-content-bg: #ffffff;
+  --admin-content-text: #0f172a;
+  --admin-content-text-muted: #475569;
+  --admin-content-border: rgba(15, 23, 42, 0.1);
+  --admin-content-card-bg: #ffffff;
+}
+
+#content .admin-content-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Ensure main content has readable contrast */
+#content,
+#content-main {
+  background: var(--admin-content-bg) !important;
+  color: var(--admin-content-text) !important;
+  padding: var(--spacing-md, 1rem) var(--spacing-lg, 1.5rem) !important;
+  line-height: 1.6;
+}
+
+#content h1,
+#content h2,
+#content h3,
+#content .module h2,
+#content .module caption {
+  color: var(--admin-content-text) !important;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 0.75em;
+}
+
+#content .breadcrumbs {
+  color: var(--admin-content-text-muted) !important;
+  margin-bottom: 12px;
+}
+
+#content .breadcrumbs a {
+  color: var(--admin-content-text-muted);
+}
+
+#content .breadcrumbs a:hover {
+  color: var(--admin-content-text);
+}
+
+/* Tables and lists */
+#content .module,
+#content #content-main .module,
+#content .results {
+  background: var(--admin-content-card-bg) !important;
+  border: 1px solid var(--admin-content-border) !important;
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+#content .module table,
+#content .results table {
+  background: var(--admin-content-card-bg) !important;
+}
+
+#content .module thead th,
+#content .results thead th {
+  background: var(--admin-content-text-muted);
+  color: #fff !important;
+  font-weight: 600;
+  padding: 12px 16px;
+}
+
+#content .module tbody td,
+#content .results tbody td {
+  color: var(--admin-content-text) !important;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--admin-content-border);
+}
+
+#content .module tbody tr:hover,
+#content .results tbody tr:hover {
+  background: rgba(15, 23, 42, 0.03) !important;
+}
+
+/* Forms */
+#content form label,
+#content .aligned label,
+#content .form-row label {
+  color: var(--admin-content-text) !important;
+  font-weight: 500;
+}
+
+#content input,
+#content select,
+#content textarea {
+  background: var(--admin-content-bg) !important;
+  color: var(--admin-content-text) !important;
+  border: 1px solid var(--admin-content-border) !important;
+}
+
+#content .submit-row {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-top: 1px solid var(--admin-content-border);
+  padding: 16px;
+  margin-top: 16px;
+}
+
+/* Dark theme content */
+:root[data-theme="dark"] #content,
+:root[data-theme="dark"] #content-main,
+html[data-bs-theme="dark"] #content,
+html[data-bs-theme="dark"] #content-main {
+  --admin-content-bg: #0f172a;
+  --admin-content-text: #f1f5f9;
+  --admin-content-text-muted: #94a3b8;
+  --admin-content-border: rgba(255, 255, 255, 0.1);
+  --admin-content-card-bg: #1e293b;
+}
+
+:root[data-theme="dark"] #content .module thead th,
+:root[data-theme="dark"] #content .results thead th,
+html[data-bs-theme="dark"] #content .module thead th,
+html[data-bs-theme="dark"] #content .results thead th {
+  background: #334155 !important;
+  color: #f8fafc !important;
+}
+
+:root[data-theme="dark"] #content .module tbody tr:hover,
+html[data-bs-theme="dark"] #content .module tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Changelist / add/edit spacing */
+#content #changelist,
+#content .changeform {
+  margin-top: 8px;
+}
+
+#content #changelist-filter {
+  background: var(--admin-content-card-bg) !important;
+  border: 1px solid var(--admin-content-border);
+  border-radius: var(--radius-lg);
+}
+
+#content #changelist-filter h2,
+#content #changelist-filter h3 {
+  color: var(--admin-content-text) !important;
+}
+
+/* Pagination and actions */
+#content .paginator {
+  color: var(--admin-content-text-muted);
+  padding: 12px 0;
+}
+
+#content .actions label {
+  color: var(--admin-content-text) !important;
+}
+
+/* Content title (change form / change list) */
+#content h1#content-title,
+#content > h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Ensure design-system dark respects content */
+html[data-theme="dark"] #content,
+html[data-theme="dark"] #content-main {
+  --admin-content-bg: #0f172a;
+  --admin-content-text: #f1f5f9;
+  --admin-content-text-muted: #94a3b8;
+  --admin-content-border: rgba(255, 255, 255, 0.1);
+  --admin-content-card-bg: #1e293b;
+}
