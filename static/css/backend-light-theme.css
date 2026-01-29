@@ -1,4 +1,5 @@
 /**
+<<<<<<< HEAD
  * Backend light theme: visible on dark, light, or classic.
  * Applied when body has class .portal-backend-light (e.g. Workflow Center, Entity Console).
  * Uses high specificity so backend pages stay light regardless of user theme.
@@ -75,4 +76,108 @@ body.portal-backend-light .nav-pill.active {
 
 body.portal-backend-light .badge.bg-primary {
   background: linear-gradient(135deg, #667eea, #764ba2) !important;
+=======
+ * Backend light (white / pink) theme for day-to-day admin pages.
+ * Applied when body has class .portal-backend-light (via backend_base.html).
+ * Keeps /backend visually distinct from /admin (config/setup).
+ */
+.portal-backend-light {
+  --backend-bg: #faf9fc;
+  --backend-surface: #ffffff;
+  --backend-border: #efe8f2;
+  --backend-primary: #8b5cf6;
+  --backend-primary-light: #a78bfa;
+  --backend-accent: #ec4899;
+  --backend-accent-light: #f472b6;
+  --backend-text: #1f2937;
+  --backend-muted: #6b7280;
+  --backend-success: #10b981;
+  --backend-warning: #f59e0b;
+  --backend-danger: #ef4444;
+}
+
+.portal-backend-light body,
+.portal-backend-light .portal-main-content {
+  background: var(--backend-bg) !important;
+  color: var(--backend-text);
+}
+
+.portal-backend-light .topbar {
+  background: linear-gradient(135deg, var(--backend-primary) 0%, var(--backend-accent) 100%) !important;
+}
+
+.portal-backend-light .card {
+  background: var(--backend-surface);
+  border: 1px solid var(--backend-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(139, 92, 246, 0.06);
+}
+
+.portal-backend-light .card-header {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.06) 0%, rgba(236, 72, 153, 0.04) 100%);
+  border-bottom: 1px solid var(--backend-border);
+  font-weight: 600;
+  color: var(--backend-text);
+}
+
+.portal-backend-light .btn-primary {
+  background: linear-gradient(135deg, var(--backend-primary) 0%, var(--backend-accent) 100%);
+  border: none;
+  color: #fff;
+}
+
+.portal-backend-light .btn-primary:hover {
+  background: linear-gradient(135deg, var(--backend-primary-light) 0%, var(--backend-accent-light) 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+
+.portal-backend-light .btn-outline-primary {
+  border-color: var(--backend-primary);
+  color: var(--backend-primary);
+}
+
+.portal-backend-light .btn-outline-primary:hover {
+  background: rgba(139, 92, 246, 0.08);
+  border-color: var(--backend-primary);
+  color: var(--backend-primary);
+}
+
+.portal-backend-light .nav-link.nav-pill.active,
+.portal-backend-light .sidebar-collapsible-header {
+  background: rgba(139, 92, 246, 0.1) !important;
+  color: var(--backend-primary) !important;
+}
+
+.portal-backend-light .nav-link.nav-pill:hover {
+  background: rgba(139, 92, 246, 0.08) !important;
+  color: var(--backend-primary) !important;
+}
+
+.portal-backend-light .sidebar-section-title {
+  color: var(--backend-muted);
+}
+
+.portal-backend-light .form-control:focus,
+.portal-backend-light .form-select:focus {
+  border-color: var(--backend-primary-light);
+  box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.2);
+}
+
+.portal-backend-light .border-bottom {
+  border-color: var(--backend-border) !important;
+}
+
+.portal-backend-light .text-muted {
+  color: var(--backend-muted) !important;
+}
+
+.portal-backend-light .portal-chathead {
+  background: linear-gradient(135deg, var(--backend-primary) 0%, var(--backend-accent) 100%) !important;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4) !important;
+}
+
+.portal-backend-light .portal-chathead:hover {
+  box-shadow: 0 6px 24px rgba(139, 92, 246, 0.5) !important;
+>>>>>>> 7d7130f (Admin & backend polish: theme visibility, toolbar, dashboard link, deploy checklist)
 }

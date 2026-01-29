@@ -1,10 +1,10 @@
-{% extends "portal_base.html" %}
+{% extends "backend_base.html" %}
 {% load admin_health static %}
 
-{% block title %}Backend Dashboard{% endblock %}
+{% block backend_title %}Backend Dashboard{% endblock %}
 
 {% block extrastyle %}
-<!-- Include navigation bridge styles -->
+{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
