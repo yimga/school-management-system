@@ -3,6 +3,7 @@ from django.urls import path
 app_name = "evals"
 from .views import (
     teacher_dashboard,
+    teacher_workflow_center,
     teacher_marks_entry,
     teacher_marks_list,
     class_ranking_view,
@@ -24,6 +25,7 @@ from .views import (
 
 urlpatterns = [
     path("teacher/", teacher_dashboard, name="teacher_dashboard"),
+    path("teacher/workflow/", teacher_workflow_center, name="teacher_workflow"),
     path("teacher/marks/entry/", teacher_marks_entry, name="teacher_marks_entry"),
     path("teacher/marks/", teacher_marks_list, name="teacher_marks_list"),
 

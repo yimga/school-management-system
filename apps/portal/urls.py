@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     parent_dashboard,
+    parent_workflow_center,
     parent_child_results,
     portal_feature_page,
     portal_stats,
@@ -10,6 +11,7 @@ from .views import (
     link_child_wizard,
     claim_invite,
     teacher_dashboard_alias,
+    teacher_workflow_alias,
     teacher_attendance_view,
     teacher_pay_history,
     teacher_leave,
@@ -53,6 +55,7 @@ urlpatterns = [
     
     # Parent portal
     path("parent/", parent_dashboard, name="parent_dashboard"),
+    path("parent/workflow/", parent_workflow_center, name="parent_workflow"),
     path("parent/results/<int:student_id>/", parent_child_results, name="parent_child_results"),
     path("parent/link-child/", link_child_wizard, name="link_child"),  # New wizard as default
     path("parent/link-child/legacy/", link_child, name="link_child_legacy"),  # Keep old view for compatibility
@@ -70,6 +73,7 @@ urlpatterns = [
     
     # Teacher dashboard
     path("teacher/", teacher_dashboard_alias, name="teacher_dashboard_alias"),
+    path("teacher/workflow/", teacher_workflow_alias, name="teacher_workflow"),
     path("teacher/onboarding/", teacher_onboarding_wizard, name="teacher_onboarding"),
     path("teacher/attendance/", teacher_attendance_view, name="teacher_attendance"),
     path("teacher/attendance/export/", teacher_attendance_export, name="teacher_attendance_export"),

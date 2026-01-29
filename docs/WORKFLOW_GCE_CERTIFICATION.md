@@ -1,4 +1,4 @@
-# GCE/Certification Registration Workflow
+# Certification & Exams Workflow (GCE, BAC, BEPC, CAP, etc.)
 ## Complete Guide to National Exam Registration
 
 **Target Audience:** Registrars, Academic Directors, Administrators  
@@ -11,7 +11,12 @@
 
 ## Overview
 
-This guide covers the complete workflow for registering students for national exams (GCE, CAP, Probatoire, etc.), including candidate creation, fee collection, CA marks export, and document management.
+This guide covers the complete workflow for registering students for national exams. The system is designed to support **Cameroon general and technical education** in a flexible way—not rigid to one subsystem. It accommodates:
+
+- **Anglophone:** GCE O-Level, A-Level (and equivalents)
+- **Francophone:** BEPC, BAC, CAP, Probatoire, etc.
+
+Use the steps and presets that match your subsystem; adapt sessions and rules to your calendar and board requirements.
 
 ---
 

@@ -302,6 +302,7 @@ def parent_dashboard(request: HttpRequest):
     dashboard_context = get_dashboard_context(request.user, "parent")
     available_sidebar_items = [
         {"id": "parent-home", "label": "Parent Home", "url": reverse("portal:parent_dashboard"), "icon": "bi-house"},
+        {"id": "parent-workflow", "label": "My Workflow", "url": reverse("portal:parent_workflow"), "icon": "bi-diagram-3"},
         {"id": "parent-finance", "label": "Finance", "url": reverse("portal:parent_finance"), "icon": "bi-cash-stack"},
         {"id": "parent-stats", "label": "Portal Stats", "url": reverse("portal:portal_stats"), "icon": "bi-graph-up"},
         {"id": "parent-links", "label": "Link a Child", "url": reverse("portal:link_child"), "icon": "bi-link-45deg"},
@@ -339,6 +340,123 @@ def parent_dashboard(request: HttpRequest):
         "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
         "signature_stats": signature_stats,
         "site": site,
+    })
+
+
+def _parent_workflow_link(label: str, url_name: str, *args, **kwargs) -> dict:
+    """Build a workflow link dict; return None if URL fails to resolve."""
+    try:
+        return {"label": label, "url": reverse(url_name, args=args, kwargs=kwargs)}
+    except Exception:
+        return None
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_workflow_center(request: HttpRequest):
+    """
+    Parent Workflow Center: steps with progress (what you've done → where you are → what's next).
+    RBAC: parent only; data scoped to linked children.
+    """
+    links = guardian_student_links(request.user, results_only=True)
+    finance_links = guardian_student_links(request.user, finance_only=True)
+    students = [link.student for link in links]
+    finance_students = [link.student for link in finance_links]
+    can_view_results = bool(students)
+    can_view_finance = bool(finance_students)
+
+    widget_data = parent_dashboard_widget_data(students)
+    if can_view_finance:
+        fw = parent_dashboard_widget_data(finance_students).get("finance", {})
+        widget_data["finance"] = fw or widget_data.get("finance", {})
+    else:
+        widget_data["finance"] = {"total_due": Decimal("0.00"), "paid": Decimal("0.00"), "balance": Decimal("0.00"), "overdue": 0}
+    attendance_pct = widget_data.get("attendance", {}).get("overall") or 0
+    finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
+    finance_overdue = widget_data.get("finance", {}).get("overdue", 0)
+
+    def _filter_links(link_list):
+        return [lnk for lnk in link_list if lnk is not None and lnk.get("url")]
+
+    steps = [
+        {
+            "title": "1) Link your children",
+            "subtitle": "Connect your account to your child's profile to see results and finance.",
+            "step_key": "link",
+            "icon": "bi-link-45deg",
+            "progress_label": f"{links.count()} child(ren) linked" if links.exists() else "No children linked yet",
+            "tip": "Use the link-a-child wizard or claim an invite from the school.",
+            "links": _filter_links([
+                _parent_workflow_link("Link a child", "portal:link_child"),
+                _parent_workflow_link("Parent home", "portal:parent_dashboard"),
+            ]),
+        },
+        {
+            "title": "2) Results & attendance",
+            "subtitle": "View report cards, term results, and attendance.",
+            "step_key": "results",
+            "icon": "bi-journal-check",
+            "progress_label": f"{links.count()} profile(s) · Attendance {attendance_pct}%" if can_view_results else "Link a child first",
+            "tip": "Open a child's card on the home page to view results, or go to Portal Stats.",
+            "links": _filter_links([
+                _parent_workflow_link("Parent home (results)", "portal:parent_dashboard"),
+                _parent_workflow_link("Portal stats", "portal:portal_stats"),
+            ]),
+        },
+        {
+            "title": "3) Finance",
+            "subtitle": "Invoices, payments, and balance.",
+            "step_key": "finance",
+            "icon": "bi-cash-stack",
+            "progress_label": f"Balance: {finance_balance}" if can_view_finance else "Finance access not granted",
+            "tip": "Pay fees and view payment history. Request access if you don't see finance.",
+            "links": _filter_links([
+                _parent_workflow_link("Finance", "portal:parent_finance"),
+            ]) if can_view_finance else [],
+        },
+        {
+            "title": "4) Communication",
+            "subtitle": "Contact the school and stay in touch.",
+            "step_key": "communication",
+            "icon": "bi-chat-dots",
+            "progress_label": None,
+            "tip": "Send a message or request a callback.",
+            "links": _filter_links([
+                _parent_workflow_link("Contact school", "portal:parent_contact_school"),
+            ]),
+        },
+        {
+            "title": "5) Documents",
+            "subtitle": "School handbooks, timetables, and forms.",
+            "step_key": "documents",
+            "icon": "bi-folder2-open",
+            "progress_label": None,
+            "tip": "Download documents published by the school.",
+            "links": _filter_links([
+                _parent_workflow_link("Document library", "portal:portal_feature", kwargs={"feature": "documents"}),
+            ]),
+        },
+    ]
+    total_steps = len(steps)
+    for i, s in enumerate(steps, start=1):
+        s["step_index"] = i
+        s["total_steps"] = total_steps
+
+    workflow_progress = {
+        "children_linked": links.count(),
+        "attendance_pct": attendance_pct,
+        "can_view_finance": can_view_finance,
+        "finance_balance": finance_balance,
+        "finance_overdue": finance_overdue,
+    }
+
+    year, term = get_active_year_and_term()
+
+    return render(request, "parent/workflow_center.html", {
+        "active_year": year,
+        "active_term": term,
+        "steps": steps,
+        "workflow_progress": workflow_progress,
     })
 
 
@@ -706,6 +824,11 @@ def admissions_application_status(request: HttpRequest) -> HttpResponseRedirect:
 def teacher_dashboard_alias(request: HttpRequest):
     """Render the teacher dashboard layout under the portal path."""
     return evals_teacher_dashboard(request)
+
+
+def teacher_workflow_alias(request: HttpRequest):
+    """Render the teacher workflow center under the portal path."""
+    return evals_teacher_workflow_center(request)
 
 
 @teacher_portal_required

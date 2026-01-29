@@ -485,3 +485,178 @@ def publish_term_results(request: HttpRequest):
         "school_published": bool(school_status),
         "classroom_states": classroom_states,
     })
+
+
+@staff_member_required
+def statistical_return(request: HttpRequest):
+    """
+    Annual statistical return for regional/Ministry submission: success rates, gender ratio, teacher-student ratio by class.
+    """
+    from apps.reports.services import get_promotion_status, _annual_average_for_student
+    from apps.people.models import TeacherProfile
+
+    years = list(AcademicYear.objects.all().order_by("-start_date"))
+    year_id = request.GET.get("year") or (years[0].id if years else None)
+    export = request.GET.get("export") == "csv"
+
+    if not year_id:
+        return render(request, "reports/statistical_return.html", {"years": years, "year": None, "rows": [], "totals": None})
+
+    year_obj = get_object_or_404(AcademicYear, id=year_id)
+    terms = list(Term.objects.filter(academic_year=year_obj).order_by("position", "start_date"))
+    classrooms = list(Classroom.objects.filter(academic_year=year_obj).order_by("name"))
+
+    rows = []
+    total_students = 0
+    total_male = 0
+    total_female = 0
+    total_promoted = 0
+
+    for classroom in classrooms:
+        students = list(
+            StudentProfile.objects.filter(
+                academic_year=year_obj, classroom=classroom, is_active=True
+            ).select_related("classroom")
+        )
+        male = sum(1 for s in students if getattr(s, "gender", None) == "MALE")
+        female = sum(1 for s in students if getattr(s, "gender", None) == "FEMALE")
+        promoted = 0
+        for s in students:
+            avg = _annual_average_for_student(s, terms) if terms else None
+            if get_promotion_status(s, year_obj, avg) == "PROMOTED":
+                promoted += 1
+        n = len(students)
+        total_students += n
+        total_male += male
+        total_female += female
+        total_promoted += promoted
+        success_rate = (promoted / n * 100) if n else 0
+        rows.append({
+            "classroom": classroom.name,
+            "students": n,
+            "male": male,
+            "female": female,
+            "promoted": promoted,
+            "success_rate": round(success_rate, 1),
+        })
+
+    teacher_count = TeacherProfile.objects.filter(is_active=True).count()
+    totals = {
+        "students": total_students,
+        "male": total_male,
+        "female": total_female,
+        "promoted": total_promoted,
+        "success_rate": round((total_promoted / total_students * 100), 1) if total_students else 0,
+        "teachers": teacher_count,
+        "teacher_student_ratio": round(teacher_count / total_students, 2) if total_students else None,
+    }
+
+    if export:
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="statistical_return_{year_obj.name.replace("/", "-")}.csv"'
+        writer = csv.writer(response)
+        writer.writerow(["Classroom", "Students", "Male", "Female", "Promoted", "Success %"])
+        for r in rows:
+            writer.writerow([r["classroom"], r["students"], r["male"], r["female"], r["promoted"], r["success_rate"]])
+        writer.writerow([])
+        writer.writerow(["Total", totals["students"], totals["male"], totals["female"], totals["promoted"], totals["success_rate"]])
+        writer.writerow(["Teachers", totals["teachers"], "", "", "", ""])
+        writer.writerow(["Teacher/student ratio", totals["teacher_student_ratio"] or "", "", "", "", ""])
+        return response
+
+    return render(request, "reports/statistical_return.html", {
+        "years": years,
+        "year": year_obj,
+        "rows": rows,
+        "totals": totals,
+    })
+
+
+@staff_member_required
+def promotion_preview(request: HttpRequest):
+    """
+    Promotion preview / borderline list: by academic year, list students with annual average,
+    promotion status (PROMOTED/REPEAT/DEMOTED/NO_DATA), and borderline flag for deliberation council.
+    Borderline = average >= demotion and < promotion threshold (e.g. 9.0–10.0 when threshold is 10).
+    """
+    from apps.reports.services import (
+        get_promotion_status,
+        get_promotion_thresholds,
+        _annual_average_for_student,
+        terms_for_student,
+    )
+
+    years = list(AcademicYear.objects.all().order_by("-start_date"))
+    year_id = request.GET.get("year") or (years[0].id if years else None)
+    export = request.GET.get("export") == "csv"
+
+    if not year_id:
+        return render(
+            request,
+            "reports/promotion_preview.html",
+            {"years": years, "year": None, "by_classroom": [], "borderline_count": 0},
+        )
+
+    year_obj = get_object_or_404(AcademicYear, id=year_id)
+    terms = list(Term.objects.filter(academic_year=year_obj).order_by("position", "start_date"))
+    classrooms = list(Classroom.objects.filter(academic_year=year_obj).order_by("name"))
+
+    by_classroom = []
+    borderline_count = 0
+
+    for classroom in classrooms:
+        students = list(
+            StudentProfile.objects.filter(
+                academic_year=year_obj, classroom=classroom, is_active=True
+            ).select_related("classroom")
+        )
+        student_rows = []
+        for s in students:
+            annual_avg = _annual_average_for_student(s, terms) if terms else None
+            promo = get_promotion_status(s, year_obj, annual_avg) if annual_avg is not None else "NO_DATA"
+            thresholds = get_promotion_thresholds(s, year_obj)
+            promo_avg = float(thresholds["promotion_average"]) if thresholds else 10.0
+            demotion_avg = float(thresholds["demotion_average"]) if thresholds else 0.0
+            is_borderline = False
+            if annual_avg is not None and thresholds:
+                is_borderline = demotion_avg <= annual_avg < promo_avg
+                if is_borderline:
+                    borderline_count += 1
+            student_rows.append({
+                "student": s,
+                "annual_average": round(annual_avg, 2) if annual_avg is not None else None,
+                "promotion_status": promo,
+                "is_borderline": is_borderline,
+            })
+        by_classroom.append({
+            "classroom": classroom,
+            "students": student_rows,
+        })
+
+    if export:
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="promotion_preview_{year_obj.name.replace("/", "-")}.csv"'
+        writer = csv.writer(response)
+        writer.writerow(["Classroom", "Student", "Annual average", "Promotion status", "Borderline"])
+        for group in by_classroom:
+            for row in group["students"]:
+                name = (row["student"].get_full_name() or row["student"].last_name or "").strip()
+                writer.writerow([
+                    group["classroom"].name,
+                    name,
+                    row["annual_average"] if row["annual_average"] is not None else "",
+                    row["promotion_status"],
+                    "Yes" if row["is_borderline"] else "No",
+                ])
+        return response
+
+    return render(
+        request,
+        "reports/promotion_preview.html",
+        {
+            "years": years,
+            "year": year_obj,
+            "by_classroom": by_classroom,
+            "borderline_count": borderline_count,
+        },
+    )

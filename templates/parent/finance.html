@@ -109,6 +109,7 @@
             <thead class="table-light">
             <tr>
               <th>Reference</th>
+              <th>Payment code (MoMo)</th>
               <th>Student</th>
               <th>Due</th>
               <th>Status</th>
@@ -124,6 +125,7 @@
                 {% with invoice=row.invoice link=row.payment_link %}
               <tr>
                 <td>{{ invoice.reference|default:invoice.id }}</td>
+                <td><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
                 <td>{{ invoice.student|default:"-" }}</td>
                 <td>{{ invoice.due_date|default:"TBD" }}</td>
                 <td>

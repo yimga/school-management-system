@@ -3,7 +3,7 @@ from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 from .models import (
-    AcademicYear, Term, Department, Specialty, Classroom, Subject, SubjectAssignment,
+    AcademicYear, Term, Department, Specialty, Classroom, ClassroomPromotionMapping, Subject, SubjectAssignment,
     CertificationExamSession, CertificationCandidate, CertificationAuditLog,
     CertificationExamPreset,
     CertificationFeeTemplate,
@@ -15,8 +15,8 @@ from .models import (
 
 
 class AcademicYearAdmin(ModelAdmin):
-    list_display = ("name", "start_date", "end_date", "is_active", "enable_gce_registration")
-    list_filter = ("is_active", "enable_gce_registration")
+    list_display = ("name", "start_date", "end_date", "is_active", "is_locked", "enable_gce_registration")
+    list_filter = ("is_active", "is_locked", "enable_gce_registration")
     search_fields = ("name",)
 
 
@@ -41,6 +41,13 @@ class ClassroomAdmin(ModelAdmin):
     list_display = ("name", "code", "department", "academic_year", "allows_third_term")
     list_filter = ("department", "academic_year", "allows_third_term")
     search_fields = ("name", "code", "department__name", "academic_year__name")
+
+
+class ClassroomPromotionMappingAdmin(ModelAdmin):
+    list_display = ("source_year", "source_classroom", "target_year", "target_classroom")
+    list_filter = ("source_year", "target_year")
+    search_fields = ("source_classroom__name", "target_classroom__name")
+    autocomplete_fields = ("source_classroom", "target_classroom")
 
 
 class SubjectAdmin(ModelAdmin):
@@ -188,6 +195,7 @@ admin_site.register(Term, TermAdmin)
 admin_site.register(Department, DepartmentAdmin)
 admin_site.register(Specialty, SpecialtyAdmin)
 admin_site.register(Classroom, ClassroomAdmin)
+admin_site.register(ClassroomPromotionMapping, ClassroomPromotionMappingAdmin)
 admin_site.register(Subject, SubjectAdmin)
 admin_site.register(SubjectAssignment, SubjectAssignmentAdmin)
 admin_site.register(CertificationExamSession, CertificationExamSessionAdmin)

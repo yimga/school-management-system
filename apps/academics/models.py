@@ -11,6 +11,10 @@ class AcademicYear(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=False)
+    is_locked = models.BooleanField(
+        default=False,
+        help_text="When set, no further grade edits or rollover from this year (year-end lock).",
+    )
     enable_gce_registration = models.BooleanField(
         default=False,
         help_text="Enable the GCE/certification registration workflow for this academic year.",
@@ -146,6 +150,33 @@ class Classroom(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ClassroomPromotionMapping(models.Model):
+    """
+    Maps a classroom in the source year to the suggested classroom in the target year
+    for rollover (e.g. Form 5A in 2024/25 → Lower Sixth A in 2025/26).
+    Used by the year-end rollover wizard to suggest "next class".
+    """
+    source_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="promotion_mappings_from"
+    )
+    source_classroom = models.ForeignKey(
+        Classroom, on_delete=models.CASCADE, related_name="promotion_mappings_from"
+    )
+    target_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="promotion_mappings_to"
+    )
+    target_classroom = models.ForeignKey(
+        Classroom, on_delete=models.CASCADE, related_name="promotion_mappings_to"
+    )
+
+    class Meta:
+        unique_together = ("source_year", "source_classroom", "target_year")
+        ordering = ["source_year", "source_classroom"]
+
+    def __str__(self):
+        return f"{self.source_classroom.name} ({self.source_year}) → {self.target_classroom.name} ({self.target_year})"
 
 
 class Subject(models.Model):
@@ -557,3 +588,42 @@ class CertificationCandidateDocumentStatus(models.Model):
 
     def __str__(self):
         return f"{self.candidate} - {self.item} ({self.get_status_display()})"
+
+
+class Attendance(models.Model):
+    """Per-day student attendance (present, absent, late, excused). Used for roll call and absence alerts to parents."""
+    class Status(models.TextChoices):
+        PRESENT = "present", "Present"
+        ABSENT = "absent", "Absent"
+        LATE = "late", "Late"
+        EXCUSED = "excused", "Excused"
+
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="attendance_records",
+    )
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.CASCADE,
+        related_name="attendance_records",
+    )
+    date = models.DateField()
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PRESENT,
+    )
+    remarks = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["-date", "student"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "classroom", "date"],
+                name="unique_student_classroom_date_attendance",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.student} – {self.date} – {self.get_status_display()}"

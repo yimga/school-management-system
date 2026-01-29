@@ -526,3 +526,38 @@ class NotificationPreference(models.Model):
     
     def __str__(self):
         return f"Prefs for {self.guardian.guardian_user.get_full_name()}"
+
+
+class StudentResourceReturn(models.Model):
+    """
+    Resource return checklist: items (e.g. textbook, laptop) issued to a student per academic year.
+    Mark returned_at when the item is returned; optional block on promotion if not returned.
+    """
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name="resource_returns",
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name="resource_returns",
+    )
+    item_label = models.CharField(
+        max_length=120,
+        help_text="e.g. Textbook, Laptop, Tablet, Lab coat",
+    )
+    returned_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["academic_year", "student", "item_label"]
+        unique_together = ("student", "academic_year", "item_label")
+        verbose_name = "Student resource return"
+        verbose_name_plural = "Student resource returns"
+
+    def __str__(self):
+        status = "Returned" if self.returned_at else "Outstanding"
+        return f"{self.student} – {self.item_label} ({self.academic_year.name}) – {status}"

@@ -12,6 +12,7 @@ from .models import (
     TeacherProfile,
     StudentProfile,
     StudentGuardian,
+    StudentResourceReturn,
     TeacherPayRecord,
     TeacherLeaveRequest,
     TeacherAttendance,
@@ -489,4 +490,15 @@ admin_site.register(StudentGuardian, StudentGuardianAdmin)
 admin_site.register(TeacherPayRecord, TeacherPayRecordAdmin)
 admin_site.register(TeacherLeaveRequest, TeacherLeaveRequestAdmin)
 admin_site.register(TeacherAttendance, TeacherAttendanceAdmin)
+
+
+class StudentResourceReturnAdmin(ModelAdmin):
+    list_display = ("student", "academic_year", "item_label", "returned_at", "updated_at")
+    list_filter = ("academic_year", "item_label")
+    search_fields = ("student__first_name", "student__last_name", "item_label")
+    raw_id_fields = ("student",)
+    date_hierarchy = "returned_at"
+
+
+admin_site.register(StudentResourceReturn, StudentResourceReturnAdmin)
 
