@@ -150,7 +150,7 @@ class TeacherCreateForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['department'].queryset = Department.objects.filter(is_active=True).order_by('name')
+        self.fields['department'].queryset = Department.objects.all().order_by('name')
         self.fields['department'].empty_label = "Select department"
         
         self.fields['reports_to'].queryset = TeacherProfile.objects.filter(is_active=True).order_by('staff_id')

@@ -12,11 +12,11 @@
   <!-- ADMIN-SPECIFIC CUSTOMIZATIONS -->
   <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
-  <link rel="stylesheet" href="{% static 'css/admin-content-readability.css' %}">
-  <link rel="stylesheet" href="{% static 'css/admin-flow.css' %}">
-  <link rel="stylesheet" href="{% static 'css/admin-polish.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
+  
+  <!-- DASHBOARD LAYOUT - Dashboard-specific styles and responsive design -->
+  <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
   
   <!-- Bootstrap 5 CSS (if not already loaded by Unfold) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -116,9 +116,6 @@
 
 {% block extrahead %}
   {{ block.super }}
-  <script>
-    window.ADMIN_INDEX_URL = "{% url 'admin:index' %}";
-  </script>
   {% get_all_model_counts as model_counts %}
   <script>
     // Model counts from Django (injected at render time)
@@ -133,23 +130,12 @@
       const sidebar = document.getElementById("nav-sidebar");
       if (!sidebar) return;
 
-      // Search box first (then Dashboard so Dashboard is at top)
+      // Inject a quick "jump to model" search
       const searchBox = document.createElement("input");
       searchBox.type = "search";
       searchBox.placeholder = "Jump to model…";
       searchBox.className = "nav-search";
       sidebar.prepend(searchBox);
-
-      // Dashboard link at very top of sidebar
-      const dashboardUrl = window.ADMIN_INDEX_URL || "/admin/";
-      const dashboardLink = document.createElement("a");
-      dashboardLink.href = dashboardUrl;
-      dashboardLink.className = "nav-dashboard-link";
-      dashboardLink.innerHTML = "&#8592; Dashboard";
-      const dashboardWrap = document.createElement("div");
-      dashboardWrap.className = "nav-dashboard-wrap";
-      dashboardWrap.appendChild(dashboardLink);
-      sidebar.prepend(dashboardWrap);
 
       // Add count badges to model links
       const addCountBadges = () => {
@@ -520,36 +506,6 @@
       margin-top: 1rem;
     }
   </style>
-  
-  <!-- Admin content toolbar: back to dashboard + back (subpages only) -->
-  <script>
-    (function() {
-      const indexUrl = (window.ADMIN_INDEX_URL || "/admin/").replace(/^https?:\/\/[^/]+/, "");
-      const indexNorm = (indexUrl || "/admin/").replace(/\/$/, "") || "/admin";
-      const pathname = (window.location.pathname || "/").replace(/\/$/, "") || "/admin";
-      const isIndex = pathname === indexNorm;
-      if (isIndex) return;
-      const run = function() {
-        const content = document.getElementById("content");
-        if (!content || content.querySelector(".admin-content-toolbar")) return;
-        const toolbar = document.createElement("div");
-        toolbar.className = "admin-content-toolbar";
-        const dashboardUrl = window.ADMIN_INDEX_URL || "/admin/";
-        toolbar.innerHTML =
-          "<a href=\"" + dashboardUrl + "\" class=\"admin-content-toolbar__back-dashboard\">&#8592; Back to dashboard</a>" +
-          "<button type=\"button\" class=\"admin-content-toolbar__back-browser\" onclick=\"history.back()\">&#8592; Back</button>";
-        content.insertBefore(toolbar, content.firstChild);
-      };
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", function cb() {
-          document.removeEventListener("DOMContentLoaded", cb);
-          setTimeout(run, 50);
-        });
-      } else {
-        setTimeout(run, 50);
-      }
-    })();
-  </script>
   
   {# Include AI Copilot on admin pages as well #}
   {% include 'components/ai_copilot.html' %}

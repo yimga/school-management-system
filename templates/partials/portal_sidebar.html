@@ -559,14 +559,6 @@
   </a>
 </div>
 
-<div class="d-grid gap-2 mt-3">
-  {% if request.user.is_authenticated and request.user.is_staff %}
-    <a class="btn btn-sm btn-primary" href="/admin/">
-      <i class="bi bi-shield-lock me-2"></i>Admin Panel
-    </a>
-  {% endif %}
-</div>
-
   {% if request.user.is_authenticated %}
     {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
       <hr class="my-3">
