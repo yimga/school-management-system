@@ -42,24 +42,25 @@ def user_notifications(request):
     """User notifications landing page (RBAC-safe)."""
     from apps.finance.models import Notification
     from django.db.models import Q
-    
-    # Get user's notifications
-    notifications = Notification.objects.filter(
+
+    base_qs = Notification.objects.filter(
         Q(recipient=request.user) | Q(created_by=request.user)
-    ).order_by("-created_at")[:50]
-    
-    # Filter by status if requested
+    ).order_by("-created_at")
+
+    # Stats from full queryset before slicing
+    total_count = base_qs.count()
+    unread_count = base_qs.filter(is_read=False).count()
+    read_count = base_qs.filter(is_read=True).count()
+
+    # Filter by status if requested, then slice for display
     status_filter = request.GET.get("status")
     if status_filter == "unread":
-        notifications = notifications.filter(is_read=False)
+        notifications = base_qs.filter(is_read=False)[:50]
     elif status_filter == "read":
-        notifications = notifications.filter(is_read=True)
-    
-    # Stats
-    total_count = notifications.count()
-    unread_count = notifications.filter(is_read=False).count()
-    read_count = notifications.filter(is_read=True).count()
-    
+        notifications = base_qs.filter(is_read=True)[:50]
+    else:
+        notifications = base_qs[:50]
+
     context = {
         "notifications": notifications,
         "total_count": total_count,
@@ -67,7 +68,7 @@ def user_notifications(request):
         "read_count": read_count,
         "status_filter": status_filter,
     }
-    
+
     return render(request, "accounts/notifications.html", context)
 
 
@@ -511,6 +512,12 @@ def backend_dashboard(request):
         finance_request_link = reverse("requests:dashboard")
     except NoReverseMatch:
         finance_request_link = f"{reverse('accounts:user_messages')}?subject=finance+access+request"
+
+    try:
+        from apps.people.views_backend import backend_student_create  # noqa: F401
+        use_backend_people_ui = True
+    except ImportError:
+        use_backend_people_ui = False
 
     # Workflow progress and recommended next steps for dashboard
     workflow_progress = _workflow_progress(year)
