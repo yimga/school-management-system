@@ -92,6 +92,41 @@ class GileadAdminSite(AdminSite):
             access_denials_24h = 0
 
         site = SiteSettings.get_solo()
+        # Build counts for admin_portal_stats_config (academics, accounts, finance)
+        admin_portal_stats_counts = {}
+        try:
+            from apps.academics.models import Classroom, Subject
+            from apps.people.models import StudentGuardian
+            from apps.finance.models import Invoice
+            admin_portal_stats_counts["Students"] = student_count
+            admin_portal_stats_counts["Classrooms"] = Classroom.objects.count()
+            admin_portal_stats_counts["Subjects"] = Subject.objects.count()
+            admin_portal_stats_counts["Users"] = total_users
+            admin_portal_stats_counts["Teachers"] = teacher_count
+            guardian_count = User.objects.filter(role="PARENT").count() if role_field else StudentGuardian.objects.count()
+            admin_portal_stats_counts["Guardians"] = guardian_count
+            admin_portal_stats_counts["Invoices"] = Invoice.objects.count()
+            from django.utils import timezone as tz
+            today = tz.now().date()
+            admin_portal_stats_counts["Overdue"] = Invoice.objects.filter(status__in=("SENT", "PARTIAL"), due_date__lt=today).count()
+            admin_portal_stats_counts["Draft"] = Invoice.objects.filter(status="DRAFT").count()
+        except Exception:
+            admin_portal_stats_counts = {}
+
+        # Config-driven portal stats: section_stats from counts, then resolve with config
+        section_stats = {
+            "academics": {k: admin_portal_stats_counts.get(k, 0) for k in ["Students", "Classrooms", "Subjects"]},
+            "accounts": {k: admin_portal_stats_counts.get(k, 0) for k in ["Users", "Teachers", "Guardians"]},
+            "finance": {k: admin_portal_stats_counts.get(k, 0) for k in ["Invoices", "Overdue", "Draft"]},
+        }
+        from apps.siteconfig.admin_portal_stats import resolve_admin_portal_stats
+        admin_portal_stats_config = getattr(site, "admin_portal_stats_config", None) or {}
+        admin_portal_stats = resolve_admin_portal_stats(section_stats, admin_portal_stats_config)
+        admin_portal_stats_display = [
+            {"label": label, "count": value}
+            for _section, stats in admin_portal_stats.items()
+            for label, value in stats.items()
+        ]
         finance_requests_qs = Notification.objects.filter(
             recipient=request.user,
             title__icontains="finance access request",
@@ -126,6 +161,10 @@ class GileadAdminSite(AdminSite):
             'finance_inbox': finance_inbox_preview,
             'finance_inbox_unread': finance_inbox_unread,
             'finance_request_link': reverse("requests:dashboard"),
+            'admin_portal_stats_config': getattr(site, 'admin_portal_stats_config', None),
+            'admin_portal_stats_counts': admin_portal_stats_counts,
+            'admin_portal_stats': admin_portal_stats,
+            'admin_portal_stats_display': admin_portal_stats_display,
         }
         if extra_context:
             context.update(extra_context)

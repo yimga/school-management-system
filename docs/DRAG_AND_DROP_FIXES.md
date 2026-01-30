@@ -100,6 +100,27 @@ const dragToggle = document.getElementById('toggleLayoutDrag') || document.getEl
    - Applies widget positions and sizes/variants
    - Restores user's custom arrangement
 
+## Sidebar entry (Customize layout)
+
+**Added:** A "Dashboard layout" section in the **left sidebar** (portal sidebar) so users can open customize mode without scrolling to the main content.
+
+- **Where:** In `portal_sidebar.html`, above "Settings", a section **Dashboard layout** with a button **Customize layout**.
+- **When visible:** Only on dashboard pages that support custom layout (backend, parent, teacher). Views pass `show_layout_customize_in_sidebar = True` when `allow_custom_layout` is True.
+- **Behavior:** Clicking the sidebar button has the same effect as clicking the "Customize layout" button above the dashboard (toggles edit mode; grip-only drag and ⋮ menu for size).
+- **JS:** `dashboard-layout.js` wires `#sidebar-customize-layout-trigger` to trigger the same toggle as `#btnCustomizeLayout`.
+
+## Implemented improvements
+
+1. **Reset to default** — In edit mode, a "Reset to default layout" control that restores the role’s default order and sizes (API + UI).
+2. **One-level undo** — After a reorder or size change, show "Undo" briefly and allow reverting the last action.
+3. **Column labels in edit mode** — When there are multiple columns, show labels (e.g. "Main", "Side") so users know where they’re dropping.
+4. **Mobile list reorder** — On small screens, optional list-style reorder (e.g. up/down) instead of drag if touch drag is awkward.
+5. **First-time hint** — One-time tooltip or short message on first visit: "You can reorder and resize cards from the sidebar or the Customize layout button."
+6. **Loading states** — Skeleton or spinner when layout is loading; disable drag until layout is applied.
+7. **Keyboard accessibility** — In edit mode, focus management and keyboard reorder (e.g. arrow keys + Enter to move).
+8. **Drag-to-resize (optional)** — Resize handles on card edges in edit mode for pixel-level width/height (more work; current Small/Medium/Large is enough for most users).
+9. **Dashboard settings in sidebar** — Move tile density, show sidebar, shortcuts, and custom links into a collapsible "Dashboard settings" block in the sidebar so all layout/config is in one place.
+
 ## Troubleshooting
 
 If drag-and-drop still doesn't work:

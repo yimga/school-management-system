@@ -1,5 +1,7 @@
 """
-Views for FAQ and Knowledge Base system
+Views for FAQ and Knowledge Base system.
+KB articles and categories can be targeted by role (target_roles): PARENT, TEACHER, etc.
+Empty target_roles = visible to all. Staff/superuser see everything.
 """
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -14,6 +16,46 @@ from .models_kb import (
     FAQCategory, FAQ, KBCategory, KBArticle,
     KBComment, UserContribution
 )
+
+
+def _kb_user_role(request):
+    """Role for KB visibility. Staff/superuser see all; otherwise user.role."""
+    if getattr(request.user, 'is_authenticated', False) and (
+        getattr(request.user, 'is_staff', False) or getattr(request.user, 'is_superuser', False)
+    ):
+        return None  # None = bypass role filter (see all)
+    return (getattr(request.user, 'role', '') or '').upper()
+
+
+def _kb_visible_articles_queryset(request):
+    """KBArticle queryset filtered by role: PUBLISHED and (no target_roles or role in target_roles)."""
+    role = _kb_user_role(request)
+    qs = KBArticle.objects.filter(status='PUBLISHED')
+    if role is None:
+        return qs
+    # Show articles where target_roles is empty (all) or contains this role
+    from django.db.models import Q as Q_
+    qs = qs.filter(Q_(target_roles=[]) | Q_(target_roles__contains=[role]))
+    return qs
+
+
+def _kb_visible_categories_queryset(request):
+    """KBCategory queryset: active, and (no target_roles or role in target_roles)."""
+    role = _kb_user_role(request)
+    qs = KBCategory.objects.filter(is_active=True)
+    if role is None:
+        return qs
+    from django.db.models import Q as Q_
+    qs = qs.filter(Q_(target_roles=[]) | Q_(target_roles__contains=[role]))
+    return qs
+
+
+def _article_visible_to_user(request, article):
+    """True if this article should be visible to request.user."""
+    role = _kb_user_role(request)
+    if role is None:
+        return True
+    return article.visible_to_role(role)
 
 
 def faq_list(request):
@@ -140,21 +182,15 @@ def faq_submit(request):
 
 
 def kb_home(request):
-    """Knowledge Base home page"""
-    featured_articles = KBArticle.objects.filter(
-        status='PUBLISHED', is_featured=True
-    )[:6]
-    
-    recent_articles = KBArticle.objects.filter(
-        status='PUBLISHED'
-    ).order_by('-published_at')[:10]
-    
-    popular_articles = KBArticle.objects.filter(
-        status='PUBLISHED'
-    ).order_by('-view_count')[:10]
-    
-    categories = KBCategory.objects.filter(is_active=True, parent=None)
-    
+    """Knowledge Base home page. Shows only articles/categories visible to user's role (PARENT, TEACHER, etc.)."""
+    articles_qs = _kb_visible_articles_queryset(request)
+    categories_qs = _kb_visible_categories_queryset(request)
+
+    featured_articles = articles_qs.filter(is_featured=True)[:6]
+    recent_articles = articles_qs.order_by('-published_at')[:10]
+    popular_articles = articles_qs.order_by('-view_count')[:10]
+    categories = categories_qs.filter(parent=None)
+
     context = {
         'featured_articles': featured_articles,
         'recent_articles': recent_articles,
@@ -165,14 +201,16 @@ def kb_home(request):
 
 
 def kb_category(request, category_slug):
-    """Display articles in a category"""
-    category = get_object_or_404(KBCategory, slug=category_slug, is_active=True)
-    
-    articles = KBArticle.objects.filter(
-        category=category, status='PUBLISHED'
+    """Display articles in a category. Category and articles filtered by user role."""
+    categories_qs = _kb_visible_categories_queryset(request)
+    category = get_object_or_404(categories_qs, slug=category_slug)
+
+    articles = _kb_visible_articles_queryset(request).filter(
+        category=category
     ).order_by('-is_featured', 'display_order', '-view_count')
-    
-    subcategories = category.subcategories.filter(is_active=True)
+
+    visible_category_ids = _kb_visible_categories_queryset(request).values_list('pk', flat=True)
+    subcategories = category.subcategories.filter(is_active=True, pk__in=visible_category_ids)
     
     paginator = Paginator(articles, 12)
     page_number = request.GET.get('page')
@@ -187,19 +225,20 @@ def kb_category(request, category_slug):
 
 
 def kb_article(request, article_slug):
-    """Display single KB article"""
+    """Display single KB article. 404 if not visible to user's role."""
     article = get_object_or_404(KBArticle, slug=article_slug, status='PUBLISHED')
+    if not _article_visible_to_user(request, article):
+        from django.http import Http404
+        raise Http404("Article not available for your role.")
     article.increment_view_count()
-    
-    # Get approved comments
+
     comments = article.comments.filter(is_approved=True, parent=None).prefetch_related('replies')
-    
-    # Related articles
-    related_articles = article.related_articles.filter(status='PUBLISHED')[:4]
+
+    visible_articles = _kb_visible_articles_queryset(request)
+    related_articles = article.related_articles.filter(pk__in=visible_articles.values_list('pk', flat=True))[:4]
     if not related_articles.exists():
-        # Fallback to same category
-        related_articles = KBArticle.objects.filter(
-            category=article.category, status='PUBLISHED'
+        related_articles = visible_articles.filter(
+            category=article.category
         ).exclude(id=article.id)[:4]
     
     context = {
@@ -316,22 +355,19 @@ def kb_article_submit(request):
         else:
             messages.error(request, 'Please fill in all required fields.')
     
-    categories = KBCategory.objects.filter(is_active=True)
+    categories = _kb_visible_categories_queryset(request)
     context = {'categories': categories}
     return render(request, 'portal/kb_article_submit.html', context)
 
 
 def kb_search(request):
-    """Search knowledge base"""
+    """Search knowledge base. Results filtered by user role."""
     query = request.GET.get('q', '')
-    
+
     if not query:
         return redirect('kb:kb_home')
-    
-    # Search articles
-    articles = KBArticle.objects.filter(
-        status='PUBLISHED'
-    ).filter(
+
+    articles = _kb_visible_articles_queryset(request).filter(
         Q(title__icontains=query) |
         Q(summary__icontains=query) |
         Q(content__icontains=query) |

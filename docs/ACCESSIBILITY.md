@@ -197,9 +197,13 @@ Priority pages for accessibility:
 - [x] HTML structure validation
 - [x] Color contrast utilities
 - [x] Accessibility report generation
-- [ ] Template accessibility audit
-- [ ] Form improvements
-- [ ] Navigation enhancements
+- [x] Skip link (portal_base: "Skip to main content" with aria-label, target #main-content)
+- [x] Main content region: `id="main-content"` and `role="main"` on portal main column
+- [x] Sidebar toggle: aria-label "Open sidebar menu", icon aria-hidden="true"
+- [x] Theme toggle: :focus-visible outline for keyboard focus
+- [x] Recent Activity collapsible: tabindex="0", aria-label, Enter/Space keyboard toggle
+- [ ] Form improvements (ongoing)
+- [ ] Navigation enhancements (ongoing)
 
 ### Planned Phase 7 Work
 - [ ] Breadcrumb implementation with proper ARIA

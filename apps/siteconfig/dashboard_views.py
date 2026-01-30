@@ -16,12 +16,12 @@ from apps.siteconfig.models_dashboard import (
 
 logger = logging.getLogger(__name__)
 
-# Only these roles (and staff/superuser) can use drag-and-drop layout customization.
-# Teacher and parent see a fixed dashboard layout; staff use drag-and-drop on the backend.
 ALLOWED_CUSTOM_ROLES = {
     "ADMIN",
     "LEADERSHIP",
     "IT_ADMIN",
+    "TEACHER",
+    "PARENT",
     "SUPERADMIN",
 }
 
@@ -89,13 +89,7 @@ def _create_layout_from_legacy(user, page: str) -> DashboardLayout | None:
         return None
 
     try:
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
-        preferences, _ = DashboardUserPreference.objects.get_or_create(
-            user=user,
-            defaults={"sidebar_collapsed": default_collapsed},
-        )
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=user)
     except DatabaseError:
         return None
 
@@ -122,16 +116,12 @@ def _create_layout_from_legacy(user, page: str) -> DashboardLayout | None:
     return layout_obj
 
 
-def get_layout_for_page(user, page: str):
+def get_layout_for_page(user, page: str) -> DashboardLayout | None:
     """
-    Return the effective DashboardLayout for (user, page).
-    Resolution order: user-specific, then role default, then legacy migration.
-    Used by load_dashboard_layout_settings and the dashboard layout API.
+    Single source for layout resolution: user override -> role default -> legacy migration.
+    Use from both the dashboard layout API (GET) and load_dashboard_layout_settings().
     """
     if not user or not user.is_authenticated:
-        return None
-    page = (page or "").strip().lower()
-    if not page:
         return None
     layout_obj = DashboardLayout.objects.filter(user=user, page=page).first()
     if not layout_obj:
@@ -144,7 +134,6 @@ def get_layout_for_page(user, page: str):
 
 def load_dashboard_layout_settings(user, page: str) -> dict:
     """Return the latest dashboard meta settings (user override -> role default)."""
-
     layout_obj = get_layout_for_page(user, page)
     raw_settings = {}
     if layout_obj and isinstance(layout_obj.layout, dict):
@@ -167,13 +156,7 @@ def update_theme(request):
         if theme not in allowed:
             return JsonResponse({"success": False, "error": "Invalid theme"}, status=400)
         
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
-        preferences, _ = DashboardUserPreference.objects.get_or_create(
-            user=request.user,
-            defaults={"sidebar_collapsed": default_collapsed},
-        )
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.theme_preference = theme
         preferences.save()
         logger.info("User %s set theme preference to %s", request.user.username, theme)
@@ -195,13 +178,7 @@ def update_accessibility_preferences(request):
     try:
         data = json.loads(request.body)
         
-        from apps.siteconfig.models import SiteSettings
-        site = SiteSettings.get_solo()
-        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
-        preferences, _ = DashboardUserPreference.objects.get_or_create(
-            user=request.user,
-            defaults={"sidebar_collapsed": default_collapsed},
-        )
+        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
         preferences.high_contrast = data.get('high_contrast', preferences.high_contrast)
         preferences.reduced_motion = data.get('reduced_motion', preferences.reduced_motion)
         preferences.font_size = data.get('font_size', preferences.font_size)

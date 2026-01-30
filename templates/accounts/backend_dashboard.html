@@ -916,6 +916,11 @@
     </div>
   </div>
   {% endif %}
+  {% if allow_custom_layout %}
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    {% include "components/dashboard_customize_ui.html" %}
+  </div>
+  {% endif %}
         <div id="dashboard-layout"
            data-save-url="{{ dashboard_layout_url }}"
            data-load-url="{{ dashboard_layout_url }}"

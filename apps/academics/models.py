@@ -11,10 +11,6 @@ class AcademicYear(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=False)
-    is_locked = models.BooleanField(
-        default=False,
-        help_text="When set, no further grade edits or rollover from this year (year-end lock).",
-    )
     enable_gce_registration = models.BooleanField(
         default=False,
         help_text="Enable the GCE/certification registration workflow for this academic year.",
@@ -152,33 +148,6 @@ class Classroom(models.Model):
         return self.name
 
 
-class ClassroomPromotionMapping(models.Model):
-    """
-    Maps a classroom in the source year to the suggested classroom in the target year
-    for rollover (e.g. Form 5A in 2024/25 → Lower Sixth A in 2025/26).
-    Used by the year-end rollover wizard to suggest "next class".
-    """
-    source_year = models.ForeignKey(
-        AcademicYear, on_delete=models.CASCADE, related_name="promotion_mappings_from"
-    )
-    source_classroom = models.ForeignKey(
-        Classroom, on_delete=models.CASCADE, related_name="promotion_mappings_from"
-    )
-    target_year = models.ForeignKey(
-        AcademicYear, on_delete=models.CASCADE, related_name="promotion_mappings_to"
-    )
-    target_classroom = models.ForeignKey(
-        Classroom, on_delete=models.CASCADE, related_name="promotion_mappings_to"
-    )
-
-    class Meta:
-        unique_together = ("source_year", "source_classroom", "target_year")
-        ordering = ["source_year", "source_classroom"]
-
-    def __str__(self):
-        return f"{self.source_classroom.name} ({self.source_year}) → {self.target_classroom.name} ({self.target_year})"
-
-
 class Subject(models.Model):
     class Category(models.TextChoices):
         GENERAL = "GENERAL", "General"
@@ -200,6 +169,7 @@ class SubjectAssignment(models.Model):
     Connects:
     AcademicYear + Term + Classroom + Specialty + Subject + Coefficient
     This is what teachers get assigned to, and what evaluations (marks) point to later.
+    deadline_at: optional grading deadline for this assignment (replaces legacy GradingDeadline).
     """
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="subject_assignments")
     term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="subject_assignments")
@@ -207,10 +177,10 @@ class SubjectAssignment(models.Model):
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="subject_assignments")
     subject = models.ForeignKey(Subject, on_delete=models.PROTECT, related_name="subject_assignments")
     coefficient = models.DecimalField(max_digits=5, decimal_places=2, default=1)
-    grading_deadline_at = models.DateTimeField(
+    deadline_at = models.DateTimeField(
         null=True,
         blank=True,
-        help_text="Optional deadline for completing grades for this assignment (term/class/subject).",
+        help_text="Optional grading deadline for this subject/term/classroom.",
     )
 
     class Meta:
@@ -593,42 +563,3 @@ class CertificationCandidateDocumentStatus(models.Model):
 
     def __str__(self):
         return f"{self.candidate} - {self.item} ({self.get_status_display()})"
-
-
-class Attendance(models.Model):
-    """Per-day student attendance (present, absent, late, excused). Used for roll call and absence alerts to parents."""
-    class Status(models.TextChoices):
-        PRESENT = "present", "Present"
-        ABSENT = "absent", "Absent"
-        LATE = "late", "Late"
-        EXCUSED = "excused", "Excused"
-
-    student = models.ForeignKey(
-        "people.StudentProfile",
-        on_delete=models.CASCADE,
-        related_name="attendance_records",
-    )
-    classroom = models.ForeignKey(
-        Classroom,
-        on_delete=models.CASCADE,
-        related_name="attendance_records",
-    )
-    date = models.DateField()
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PRESENT,
-    )
-    remarks = models.CharField(max_length=255, blank=True)
-
-    class Meta:
-        ordering = ["-date", "student"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["student", "classroom", "date"],
-                name="unique_student_classroom_date_attendance",
-            ),
-        ]
-
-    def __str__(self):
-        return f"{self.student} – {self.date} – {self.get_status_display()}"

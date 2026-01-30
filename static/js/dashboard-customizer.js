@@ -1,5 +1,6 @@
 /**
- * Shared dashboard customizer: drag/drop, sidebar, tile styles, custom links.
+ * Dashboard customizer: sidebar, tile styles, widget meta (size/variant), custom links.
+ * Reordering is handled by dashboard-layout.js (Sortable.js) only.
  * Requires a container with id "dashboard-layout" and cards with data-widget-id.
  */
 (function () {
@@ -17,7 +18,7 @@
   };
 
   let widgetConfig = safeParseJson(container.dataset.widgetConfig, {});
-  // Drag/reorder is handled only by dashboard-layout.js (Sortable.js). This script handles settings and widget meta.
+  const customDragEnabled = container.dataset.customDragEnabled !== "false";
   const state = {
     settings: {
       show_sidebar: container.dataset.showSidebar === "true",
@@ -277,6 +278,18 @@
     applyWidgetMeta();
   };
 
+  // Drag/reorder is handled only by dashboard-layout.js (Sortable.js). We only toggle
+  // "drag-mode" here to show/hide widget-meta controls (size, variant) and settings UI.
+  const enableCustomizeMode = () => {
+    if (!customDragEnabled) return;
+    container.classList.add("drag-mode");
+  };
+
+  const disableCustomizeMode = () => {
+    if (!customDragEnabled) return;
+    container.classList.remove("drag-mode");
+  };
+
   // Event wiring for controls (if present)
   const initControls = () => {
     const toggle = document.getElementById("toggleCustomize");
@@ -298,12 +311,22 @@
       shortcutsCard.classList.toggle("d-none", !show);
     };
 
-    // Drag/reorder is handled by dashboard-layout.js (Sortable.js). Toggle state is used there.
     if (toggle) {
-      toggle.addEventListener("change", () => {
-        container.classList.toggle("drag-mode", toggle.checked);
-      });
-      container.classList.toggle("drag-mode", !!toggle.checked);
+      if (!customDragEnabled) {
+        toggle.disabled = true;
+        toggle.closest(".form-check")?.classList.add("text-muted");
+      } else {
+        toggle.addEventListener("change", (e) => {
+          e.target.checked ? enableCustomizeMode() : disableCustomizeMode();
+        });
+      }
+      if (customDragEnabled && toggle.checked) {
+        enableCustomizeMode();
+      }
+    }
+
+    if (!toggle && customDragEnabled) {
+      enableCustomizeMode();
     }
 
     if (toggleSidebar) {

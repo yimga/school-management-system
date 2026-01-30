@@ -1,136 +1,180 @@
-# /admin Audit: What We’re Doing Well, Gaps, Improvements, Redundancy
+# /admin Area Audit
 
-**Scope:** Django admin at `/admin/` — templates, config (Site Settings, Region Config, Theme Pack), dashboard feel, sidebar, and theme.
+Focused audit of the Django Admin (`/admin`) area: what’s working, gaps, improvements, redundancy, and config/dashboard consistency.
 
 ---
 
 ## 1. What We’re Doing Well
 
-- **Single Site Settings:** `SiteSettings` is a singleton; one row, no add/delete. Permission gated (`_is_site_admin`: staff + Admin/Superadmin or superuser). Clear “one place” for global config.
-- **Structured fieldsets:** Site Settings admin uses logical groups: Branding, Preview & Draft, Company Details, Login/Header/Layout, Theme & Experience, **Admin Sidebar Theme** (collapse), Admin Portal, Portal Content, Footer, System Behavior, Feature Toggles, Backend Orchestration, Notifications, Compliance, Analytics Defaults, Metadata. Easy to find the right section.
-- **Admin theme from Site + ThemePack:** Context exposes `SITE`, `SITE_ADMIN_THEME` (from `admin_theme_pack` or fallback), `SITE_ADMIN_BACKGROUND_URL`, `SITE_ADMIN_LOGO_URL`. Admin can use either per-model sidebar colors (SiteSettings) or a Theme Pack for admin (logo, background). Good for branding.
-- **Sidebar colors in one place:** SiteSettings has a dedicated “Admin Sidebar Theme” fieldset (bg, surface, border, text, muted, hover, active, badge, child gradient, `admin_use_site_primary`). base_site.html injects these as CSS variables so the sidebar respects config.
-- **Custom admin site:** `GileadAdminSite` customizes index (dashboard), app list order, and adds URLs (dashboard, activity-logs, system-health). App grouping (Accounts, People, Academics, Evals, etc.) and “System Configuration” last is clear.
-- **Dashboard content:** The actual `/admin/` view uses `admin_dashboard.html` with preview status, finance inbox, security stats, login/access stats, and calendar. Useful for day-to-day ops.
-- **RegionConfig:** Separate model and admin for regions (timezone, currency, grading, terms, portals). Fieldsets and inlines (grading scales, holidays) keep region config in one screen. Clone/validate/export actions exist.
-- **Site Settings change form:** Uses a custom template that adds theme preview (small-screen preview, role selector, contrast hint). Helps admins see impact of theme/sidebar changes.
-- **Model count badges:** base_site injects `MODEL_COUNTS` and sidebar JS adds badges per model. “Jump to model” search in sidebar improves navigation on large app lists.
-- **Preview mode:** Preview & Draft fieldset and session-based preview let admins stage theme/settings without committing. Preview cue in base_site branding shows toggle/clear.
+### Design system and shell (`base_site.html`)
+
+- **Unified design system**: Admin shell loads `design-system-unified.css`, `admin-components.css`, `admin_theme.css`, `admin_sidebar_enhanced.css`, `admin-dark-readability.css`, `admin-dashboard.css`, and responsive CSS in a clear order.
+- **Config-driven sidebar**: Sidebar colors and states come from `SiteSettings` (e.g. `admin_sidebar_bg_color`, `admin_sidebar_active_border_color`) and are exposed as CSS variables in `base_site.html`. Changes in Site Settings → Admin Sidebar propagate to the sidebar.
+- **Model count badges**: `get_all_model_counts` and inline script add count badges to sidebar model links and a “Jump to model” search. Good for power users.
+- **Sidebar accordions**: App groups are collapsible; state is stored in `localStorage` (e.g. “People Management” open by default).
+- **Sidebar collapse**: Toggle to collapse/expand sidebar with state persisted.
+- **Back / Dashboard toolbar**: On non-index admin pages, a toolbar with “Back to dashboard” and “Dashboard” is injected so users can return to the admin index quickly.
+- **Preview and finance cues**: Preview mode and “Preview ready” banners, plus finance request alerts, are shown in the shell when relevant.
+- **Theme persistence**: Nav theme toggle (Light/Dark/System) calls `siteconfig:update_theme` and syncs with server; initial value uses `USER_THEME_PREFERENCE` from context.
+- **Admin nav bridge**: Link to Backend Console and consistent branding via `admin_nav_bridge.html`.
+- **AI Copilot**: Available in admin footer for power users.
+
+### Context and config
+
+- **Single source for admin theme**: `SiteSettings` + `ThemePack` (e.g. `get_admin_theme()`) drive `SITE_ADMIN_THEME`, `SITE_ADMIN_BACKGROUND_URL`, `SITE_ADMIN_LOGO_URL` in context.
+- **Preview and finance**: `PREVIEW_*`, `FINANCE_REQUEST_ALERT_COUNT`, `FINANCE_REQUEST_LINK` are provided globally so any admin template can use them.
+- **SiteSettings admin**: Admin sidebar colors, default dashboard view, refresh rate, and `admin_portal_stats_config` are editable in one place (Site Settings).
+
+### App organization
+
+- **Logical app order**: `GileadAdminSite.get_app_list()` groups and orders apps (Accounts, People, Auth, Academics, Evals, Reports, Finance, Payroll, Portal, Analytics, Compliance, Siteconfig) so the sidebar is scannable.
 
 ---
 
 ## 2. Gaps
 
-| Area | Gap | Impact |
-|------|-----|--------|
-| **Two admin “home” templates** | `/admin/` is rendered with `admin_dashboard.html` (config/admin.py). `admin/index.html` also exists (stats grid + app grid + theme toggle) and extends base_site. It’s unclear if index.html is ever used; if not, it’s dead code. If it is (e.g. alternate route), users could see two different “admin home” UIs. | Confusion; possible dead code or inconsistent entry experience. |
-| **Three sources of admin theme variables** | (1) base_site.html injects `--admin-sidebar-*` from `SITE`. (2) admin_sidebar_enhanced.css defines its own `:root` and `:root[data-theme="light"]` / `:root[data-theme="dark"]` with hardcoded fallbacks. (3) admin/index.html uses `ADMIN_THEME=SITE_ADMIN_THEME|default:SITE` and different var names (`--brand-primary`, `--surface-dark`, etc.). Overlap and naming differ. | Sidebar can ignore SiteSettings if CSS loads after base_site; light/dark toggle may not match “Admin Sidebar Theme” colors; index.html (if used) uses a different theme system. |
-| **Admin dashboard doesn’t use SITE for theme** | admin_dashboard.html defines its own `:root` (e.g. `--admin-dashboard-bg`, `--admin-surface`, `--admin-accent`) with hardcoded defaults. It does not use `SITE` or `SITE_ADMIN_THEME` for these. | Dashboard content area doesn’t reflect Site Settings or Admin Theme Pack; feels disconnected from the rest of admin theming. |
-| **Theme toggle in index.html only** | index.html has a theme toggle (Light/Dark) that writes to `localStorage` and body class. base_site.html has a nav-global theme toggle that uses `siteconfig:update_theme`. Admin dashboard (admin_dashboard.html) doesn’t expose a consistent theme toggle. | If user lands on admin_dashboard, they may not have the same theme control as on index or base_site nav. |
-| **admin_theme_pack vs SiteSettings sidebar** | Sidebar colors come from SiteSettings (admin_sidebar_*). Admin “look” (background, logo) can come from ThemePack (admin_theme_pack). There’s no single “admin theme” that clearly says “use this pack for everything” vs “use these sidebar colors.” | Admins may not know whether to change Theme Pack or Site Settings for a given visual. |
-| **RegionConfig and SiteSettings relationship** | SiteSettings has `region` (CharField) and possibly default_region; RegionConfig is separate. Default region / which region drives admin locale or formatting isn’t obvious from the admin UI. | Unclear how “region” in Site Settings relates to RegionConfig list; risk of duplicate or inconsistent region concept. |
-| **Admin Portal fieldset** | “Admin Portal” contains only `admin_portal_stats_config`. No explanation in the form of what this controls or where it’s used. | Admins may skip or misconfigure it. |
-| **No “Admin dashboard” section in Site Settings** | There’s “Admin Sidebar Theme” and “Admin Portal” (stats config) but no explicit “Admin dashboard layout” or “Admin index page” (e.g. which template, which widgets). | Customization of the admin home experience is implicit (code) not config. |
+### Dashboard at `/admin/` does not use the admin shell
+
+- **Current behavior**: `GileadAdminSite.index()` returns `TemplateResponse(request, 'admin/admin_dashboard.html', context)`.
+- **Template hierarchy**: `admin_dashboard.html` extends **`admin/base.html`** (Django’s core base), **not** `admin/base_site.html`.
+- **Effect**: The main admin dashboard at `/admin/` does **not** get:
+  - Design system and admin CSS from `base_site.html`
+  - Config-driven sidebar (CSS variables from `SITE`)
+  - Model count badges and “Jump to model” search
+  - Sidebar accordions/collapse
+  - Back/Dashboard toolbar (by design, since it’s the index)
+  - Nav theme toggle from the shell (dashboard has its own inline theme toggle)
+  - Logo watermark, weather header, preview/finance cues from the shell
+- **Result**: The first screen staff see after logging into admin looks and behaves differently from the rest of the admin (model list/changelist pages use `base_site.html`).
+
+### Two dashboard templates, one used
+
+- **`templates/admin/index.html`**: Extends `admin/base_site.html`, uses `SITE_ADMIN_THEME` and `SITE` for colors and background, has app cards, stats grid, preview/finance alerts, and its own theme toggle. **Not used** because `index()` renders `admin_dashboard.html`.
+- **`templates/admin/admin_dashboard.html`**: Extends `admin/base.html`, used for `/admin/`. Has its own layout (metrics, calendar, preview/finance cards, admin controls, system info), inline CSS variables, and a separate theme toggle.
+- **Gap**: Two different “admin dashboard” UIs; only one is live. Config and design in `index.html` (e.g. `SITE_ADMIN_THEME`, `SITE_ADMIN_BACKGROUND_URL`) never apply to the actual index page.
+
+### Config items not wired to the live dashboard
+
+- **`SITE_ADMIN_THEME` / ThemePack**: Used in `index.html` for `--brand-primary`, `--brand-accent`, background, etc. The live dashboard (`admin_dashboard.html`) does not use these; it defines its own `:root` and styles.
+- **`SITE_ADMIN_BACKGROUND_URL`**: Set in context; used in `index.html` for `body` background. Not used in `admin_dashboard.html`.
+- **`admin_portal_stats_config`**: Exists on `SiteSettings` and is documented for “admin portal” stats; no clear use in the current admin index or dashboard templates.
+- **Logo/opacity**: `base_site.html` uses `SITE_LOGO_URL` and `SITE_LOGO_OPACITY` for the subtle background logo. The dashboard at `/admin/` doesn’t use this (it uses a static logo in the content).
+
+### Hardcoded / duplicate content
+
+- **admin_dashboard.html**: Some copy is hardcoded (e.g. “Gilead School System Management”, “Last Backup: 16 hrs ago”, “Storage Used: ~450 MB”, “Total Tables: 28”). These could come from config or runtime data.
+- **admin/index.html**: Stats like “4 Active Students”, “4 Subjects”, “0 Overdue Invoices” are hardcoded; they could be driven by `admin_portal_stats_config` or real queries (when that template is used).
+
+### Theme toggle duplication
+
+- **base_site.html**: Theme toggle in `{% block nav-global %}` (Light/Dark/System), persisted via `siteconfig:update_theme` and `USER_THEME_PREFERENCE`.
+- **admin_dashboard.html**: Separate theme toggle and `toggleTheme()` using `adminTheme` in `localStorage` and different behavior.
+- **admin/index.html**: Another theme toggle and `toggleTheme()` using `body.light-mode` and `localStorage.getItem('theme')`.
+- **Effect**: Two different theme mechanisms for admin (shell vs dashboard). If a user sets theme on the dashboard, it may not match the shell when they navigate to a changelist, and vice versa.
 
 ---
 
 ## 3. Where We Can Improve
 
-- **Single source for admin theme variables:**  
-  - Decide: base_site is the only place that outputs `--admin-sidebar-*` (and any other admin vars) from `SITE` (and optionally `SITE_ADMIN_THEME`).  
-  - Change admin_sidebar_enhanced.css to **not** set `:root { --admin-sidebar-* }`; only use the variables (e.g. `background: var(--admin-sidebar-bg)`). If you need fallbacks for when context isn’t available, use a single small “admin-vars-defaults.css” that base_site can override, or use CSS custom property fallbacks in the same file (e.g. `var(--admin-sidebar-bg, #0b0f14)`).  
-  - Result: one place (base_site + optional defaults) drives sidebar and, if you extend, dashboard content area.
+### Unify the admin “frame” for the index
 
-- **Admin dashboard feel:**  
-  - Make admin_dashboard.html use the same tokens as the rest of admin (e.g. `var(--admin-sidebar-surface)` for cards, or a shared set like `--admin-surface`, `--admin-border`) and source them from base_site (from `SITE` / `SITE_ADMIN_THEME`).  
-  - Add a small “Admin dashboard” or “Admin content” block in base_site that sets e.g. `--admin-dashboard-bg`, `--admin-surface`, `--admin-accent` from SiteSettings or Theme Pack, so dashboard and sidebar feel like one theme.
+- Make the dashboard at `/admin/` use the same shell as the rest of the admin:
+  - Option A: Change `admin_dashboard.html` to extend **`admin/base_site.html`** and put the current dashboard content in the appropriate block (e.g. `content`). Then the index gets design system, sidebar, model counts, accordions, collapse, and nav theme toggle.
+  - Option B: Change `index()` to render **`admin/index.html`** instead of `admin_dashboard.html`, and gradually move any unique content from `admin_dashboard.html` (e.g. metrics, security, calendar) into `index.html` or shared includes, then deprecate `admin_dashboard.html`.
 
-- **Clarify index.html vs admin_dashboard.html:**  
-  - If index.html is unused: remove or redirect to admin_dashboard to avoid two “home” UIs.  
-  - If it’s intentional (e.g. “simple” vs “full” dashboard): document it and add a clear way to switch (e.g. link “Simple dashboard” / “Full dashboard” in nav or Site Settings).  
-  - Prefer one canonical admin home and one template.
+### Single theme system for admin
 
-- **Theme toggle consistency:**  
-  - Use the same theme toggle mechanism everywhere: e.g. the one in base_site nav (Light/Dark/System) that calls `siteconfig:update_theme`.  
-  - If index.html or admin_dashboard needs a toggle, reuse that component or the same localStorage/key and class so admin always has one predictable theme control.
+- Use one source of truth for admin theme (e.g. nav toggle in `base_site.html` + `USER_THEME_PREFERENCE`).
+- If the dashboard extends `base_site.html`, remove the duplicate theme toggle and inline script from the dashboard template so the shell’s toggle is the only one.
+- Align `localStorage` key and server preference so that “admin-theme” / `USER_THEME_PREFERENCE` are used everywhere in admin (index and changelist).
 
-- **Config items clarity:**  
-  - **Admin Sidebar Theme:** Add one sentence in the fieldset description: “Colors for the left sidebar on all /admin/ pages. Optional: check ‘Use site primary for active state’ to use the main site primary color.”  
-  - **Admin Portal:** Add help text or short description for `admin_portal_stats_config` (e.g. “JSON config for stats shown on the admin dashboard” or “Leave blank to use defaults”).  
-  - **admin_theme_pack:** In the form, add a line: “Used for admin background image and logo. Sidebar colors are set in ‘Admin Sidebar Theme’ below.”
+### Drive dashboard stats and copy from config/data
 
-- **Region vs RegionConfig:**  
-  - In Site Settings, if there’s a “default region” or “region” field, add help text: “Display/default region. For full region settings (timezone, currency, grading), use Region configuration in System Configuration.”  
-  - Optionally add a read-only link “Manage regions →” next to it pointing to RegionConfig changelist.
+- Replace hardcoded stats in the dashboard with:
+  - Real counts (students, subjects, overdue invoices) from the same context already passed by `index()` (e.g. `total_users`, `student_count`, etc.) or from `admin_portal_stats_config` if we define sections/items there.
+- Use `SiteSettings` (e.g. site name, tagline) for header/title instead of hardcoded “Gilead School System Management” where appropriate.
+- Consider using `SITE_ADMIN_BACKGROUND_URL` and `SITE_ADMIN_THEME` in the dashboard when it’s the index so background and palette are consistent with Site Settings.
 
-- **Admin dashboard layout:**  
-  - Consider making the admin home content (preview card, finance inbox, security, calendar) configurable (e.g. show/hide sections via SiteSettings or a simple JSON config) so schools can hide “Finance inbox” or “Preview” if not needed.  
-  - Keep the current layout as default so behavior doesn’t change until you add that config.
+### Clarify “admin dashboard” vs “admin index”
+
+- Today:
+  - **URL** `/admin/` → view `GileadAdminSite.index()` → template **admin_dashboard.html** (extends `base.html`).
+  - **URL** `/admin/dashboard/` → observability view → also **admin_dashboard.html** (if that’s what’s configured).
+- Recommendation: Have a single “admin index” template (either `index.html` or `admin_dashboard.html`) that extends `base_site.html`, and one view (e.g. `index()`) that renders it. Remove or redirect the other so there’s one canonical admin home and one dashboard feel.
 
 ---
 
-## 4. Redundancy and How to Close the Loop
+## 4. Redundancy and Closing the Loop
 
-| Redundancy | Where | How to close the loop |
-|------------|--------|------------------------|
-| **Admin sidebar variables defined twice** | base_site.html injects `--admin-sidebar-*` from `SITE`. admin_sidebar_enhanced.css defines the same names in `:root` and `:root[data-theme="light"]` / `dark`. | Remove `:root` / `:root[data-theme]` blocks from admin_sidebar_enhanced.css; keep only rules that *use* the variables. Let base_site (and one optional defaults file) define values. Use fallbacks in the CSS if needed, e.g. `var(--admin-sidebar-bg, #0b0f14)`. |
-| **Admin “brand” variables in two shapes** | base_site uses `SITE` and sidebar vars. index.html uses `SITE_ADMIN_THEME|default:SITE` and `--brand-primary`, `--surface-dark`, etc. | Pick one naming and one source. Prefer base_site as the single place that sets both sidebar and “admin content” vars (from SITE + SITE_ADMIN_THEME). If index.html stays, make it use the same variable names and don’t redefine them inline. |
-| **Dashboard content theme in its own bubble** | admin_dashboard.html defines its own `:root` for `--admin-dashboard-bg`, `--admin-surface`, etc. | Stop defining these in admin_dashboard. In base_site (or a shared admin layout), set “content” vars from SITE/SITE_ADMIN_THEME once. admin_dashboard extends base_site and only uses the variables. |
-| **Multiple “admin” CSS entry points** | base_site loads design-system-unified, admin-components, admin_theme, admin_sidebar_enhanced, admin-dark-readability, admin-dashboard, dashboard-responsive (and admin-dashboard twice). | Keep a single list in base_site; remove duplicate admin-dashboard link. Consider one “admin.css” that imports or concatenates the rest so load order and overrides are obvious. |
-| **Theme Pack for portal vs for admin** | ThemePack has `applies_to_admin`; SiteSettings has `theme_pack` (portal) and `admin_theme_pack` (admin). | Already separated; no change needed. Document in Site Settings: “Theme pack (portal)” vs “Admin theme pack (admin background/logo). Sidebar colors are below.” |
-| **Preview cue and preview fieldset** | Preview & Draft fieldset (preview_mode_enabled, preview_note) vs preview cue banner in base_site. | Keep both; they serve different purposes (config vs in-page banner). Optionally add in the fieldset: “When enabled, the preview banner appears at the top of admin and portal.” |
+### Redundant templates
 
----
+| Template                 | Extends          | Used by                    | Redundancy |
+|--------------------------|------------------|----------------------------|------------|
+| `admin/index.html`       | `base_site.html` | **Never** (index() uses admin_dashboard) | Duplicate dashboard UI; config here never applies. |
+| `admin/admin_dashboard.html` | `base.html`  | `GileadAdminSite.index()` and optionally `/admin/dashboard/` | Only dashboard that’s shown; doesn’t use shell. |
 
-## 5. Config Items Summary (Quick Reference)
+**Close the loop:**
 
-| Config | Where | Purpose |
-|--------|--------|--------|
-| **Site Settings (single row)** | Admin → System Configuration → Site Settings | Branding, company, login/header/layout, theme colors, **Admin Sidebar Theme**, Admin Portal (stats config), portal/footer, feature toggles, backend limits, analytics defaults. |
-| **Admin Sidebar Theme** | Site Settings → “Admin Sidebar Theme” (collapse) | 14 color fields + “Use site primary for active state.” Drives sidebar on all /admin/ pages (base_site injects as CSS vars). |
-| **Admin Theme Pack** | Site Settings → Branding (theme_pack area) or dedicated field | `admin_theme_pack` FK. Provides admin background image and logo; fallback logic in `get_admin_theme()`. |
-| **RegionConfig** | Admin → System Configuration → Region configuration | Per-region: timezone, currency, grading scale, terms, portals; inlines for grading scales and holidays. |
-| **Theme & Experience** | Site Settings → “Theme & Experience” | primary/accent/success/warning/danger, theme_brightness, use_dark_mode, **backend_console_theme** (Backend Console, not Django admin), fonts, base font size, default widgets, report defaults, default_dashboard_view, refresh_rate. |
-| **Preview & Draft** | Site Settings → “Preview & Draft” | preview_mode_enabled, preview_note. Session-based staging of theme/settings. |
-| **admin_portal_stats_config** | Site Settings → “Admin Portal” | JSON; used for admin dashboard stats/config. Not documented in UI. |
+1. **Pick one dashboard template** for `/admin/`:
+   - Either **A**: Use `admin_dashboard.html` as the only dashboard and make it extend `base_site.html`, and delete or repurpose `index.html`, or  
+   - **B**: Use `index.html` as the only dashboard (it already extends `base_site.html`), have `index()` render it, and merge in any unique content from `admin_dashboard.html` (metrics, calendar, security, etc.), then remove `admin_dashboard.html` or use it only for a different URL (e.g. “detailed dashboard”).
+2. **Single theme toggle**: One toggle in `base_site.html`; remove duplicate toggles from the chosen dashboard template and rely on the shell.
 
----
+### Redundant theme logic
 
-## 6. Dashboard Feel (Current vs Suggested)
+- **base_site.html**: `admin-theme` in localStorage, `USER_THEME_PREFERENCE`, `siteconfig:update_theme`.
+- **admin_dashboard.html**: `adminTheme` in localStorage, own `toggleTheme()`.
+- **admin/index.html**: `theme` in localStorage, `body.light-mode`, own `toggleTheme()`.
 
-- **Current:**  
-  - `/admin/` renders admin_dashboard.html (preview card, finance inbox, security stats, calendar, etc.) with its own `:root` and no use of SITE/SITE_ADMIN_THEME for that content.  
-  - Sidebar comes from base_site + admin_sidebar_enhanced and *does* use SiteSettings sidebar colors.  
-  - So: sidebar = configurable; main content area = hardcoded theme.
+**Close the loop:** Use one key and one API (e.g. `admin-theme` + `siteconfig:update_theme`) for all admin pages. Have the dashboard extend `base_site.html` and remove duplicate toggle scripts and classes.
 
-- **Suggested:**  
-  - **One theme for all of admin:** base_site (or one shared admin base) sets both sidebar and content variables from SITE + SITE_ADMIN_THEME.  
-  - **One admin home:** Either admin_dashboard.html only, or index.html only, with a clear note in docs/code.  
-  - **Same theme toggle:** Use the base_site nav theme toggle everywhere so Light/Dark/System is consistent.  
-  - **Optional:** “Admin dashboard” section in Site Settings (or a tiny JSON config) to show/hide sections (preview, finance inbox, security, calendar) so the dashboard feel is configurable without code.
+### Config not connected to the live page
+
+- **Close the loop:**
+  - Use `SITE_ADMIN_THEME` and `SITE_ADMIN_BACKGROUND_URL` in the template that actually renders at `/admin/` (after unifying on one dashboard).
+  - Optionally use `admin_portal_stats_config` to drive which stat sections/cards appear and what they’re called (and back them with real data where possible).
+  - Ensure the dashboard uses the same `SITE` sidebar variables (by extending `base_site.html`) so one set of Site Settings controls both sidebar and dashboard feel.
 
 ---
 
-## 7. Suggested Order of Work (Admin-Only)
+## 5. Config Items and Dashboard Feel
 
-1. **Single source for sidebar vars**  
-   Remove duplicate `:root` / `:root[data-theme]` from admin_sidebar_enhanced.css; keep only rules that use the variables. Rely on base_site (and optional fallbacks) so “Admin Sidebar Theme” is the only source of truth.
+### Config that already affects admin
 
-2. **Clarify index.html vs admin_dashboard.html**  
-   Decide which is the canonical admin home; remove or redirect the other, and document the choice.
+- **SiteSettings (admin shell, when `base_site.html` is used)**  
+  - Sidebar: `admin_sidebar_*` (bg, surface, border, text, muted, hover, active, badge, child gradient/border/hover/active).  
+  - Logo: `SITE_LOGO_URL`, `SITE_LOGO_OPACITY` (in base_site).  
+  - Preview: `preview_mode_enabled`, `preview_toggle_enabled`, `preview_banner_text`, `preview_note`, etc.  
+  - User theme: `USER_THEME_PREFERENCE` (from DashboardUserPreference / context).
+- **ThemePack (admin)**  
+  - `SITE_ADMIN_THEME`, `SITE_ADMIN_BACKGROUND_URL`, `SITE_ADMIN_LOGO_URL` (in context; used in `index.html` only).
 
-3. **Drive admin dashboard theme from config**  
-   In base_site (or shared admin base), set `--admin-dashboard-bg`, `--admin-surface`, `--admin-accent`, etc. from SITE / SITE_ADMIN_THEME. Update admin_dashboard.html to use these vars only (no local `:root`).
+### Config that doesn’t affect the current dashboard
 
-4. **Config copy and help**  
-   Add short descriptions for “Admin Sidebar Theme,” “Admin Portal” (`admin_portal_stats_config`), and `admin_theme_pack` so admins know what each controls.
+- **ThemePack / SITE_ADMIN_***: Not used in `admin_dashboard.html` (the live index).
+- **admin_portal_stats_config**: Not wired to any admin template.
+- **Default dashboard view / refresh**: Used for portal/backend dashboards, not for Django admin index.
 
-5. **Theme toggle**  
-   Ensure the same toggle (e.g. base_site nav) is used across admin; remove or align any duplicate toggle in index.html.
+### Recommendations for dashboard feel
 
-6. **Optional**  
-   Add a small “Admin dashboard” config (e.g. show/hide sections) in Site Settings and use it in admin_dashboard.html so dashboard feel is configurable.
+1. **One frame**: Make the admin index use `base_site.html` so the “dashboard feel” is the same as the rest of admin (sidebar, colors, typography, theme).
+2. **One palette**: In the chosen index template, use `SITE_ADMIN_THEME` (and related context) for primary/accent/success/warning/danger and, if desired, `SITE_ADMIN_BACKGROUND_URL` for the main area so the dashboard respects Site Settings.
+3. **Stats**: Either use the existing context from `index()` (e.g. `total_users`, `student_count`, `finance_inbox`) in the dashboard template, or define a small “admin dashboard stats” config (e.g. which cards to show and labels) and wire it so the dashboard is data-driven and consistent.
+4. **No duplicate toggles**: One theme control in the shell; dashboard content is just content.
 
 ---
 
-*This audit focuses only on `/admin/`. It aligns with the platform game plan (single source for theme, no redundancy, clear config) and can be merged into the main game plan as “Admin” subsection.*
+## 6. Summary
+
+| Area              | Status | Action |
+|-------------------|--------|--------|
+| Shell (base_site) | Good   | Keep; ensure index uses it. |
+| Sidebar / config  | Good   | Keep; unify so index uses same shell. |
+| Dashboard at /admin/ | Gap | Use one template; have it extend `base_site.html`. |
+| index.html vs admin_dashboard.html | Redundant | Choose one; merge or remove the other. |
+| Theme toggle     | Redundant | Single toggle in base_site; remove from dashboard. |
+| SITE_ADMIN_* / ThemePack | Not applied to index | Use in the template that renders at `/admin/`. |
+| admin_portal_stats_config | Unused | Wire to dashboard or remove. |
+| Hardcoded stats/copy | Improve | Prefer context/config and real data. |
+
+**Suggested next step:** Change `admin_dashboard.html` to extend `admin/base_site.html` (and adjust blocks as needed) so `/admin/` immediately gets the same shell, sidebar, and theme as the rest of admin; then remove the duplicate theme toggle from that template and, in a follow-up, either retire `index.html` or make it the single admin index and merge content from `admin_dashboard.html` into it.

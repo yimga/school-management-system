@@ -83,8 +83,8 @@ urlpatterns = [
     ),
     path('api/schema/ui/', api_schema_ui, name='api-schema-ui'),
     
-    # Frontend admin dashboard - separate from /admin/ (redirect to canonical URL)
-    path('backend/', lambda request: redirect('accounts:backend_dashboard', permanent=False)),
+    # Frontend admin dashboard - separate from /admin/
+    path('backend/', lambda request: redirect('/authentication/backend/', permanent=False)),
 
     # Health and metrics
     path('healthz/', obs_views.healthz, name='healthz'),
@@ -93,8 +93,8 @@ urlpatterns = [
     path('metrics/', obs_views.metrics, name='metrics'),
     path('api/observability/copilot-metrics/', obs_views.copilot_metrics_json, name='copilot_metrics_json'),
     
-    # Admin Dashboard (Backend-focused)
-    path('admin/dashboard/', obs_views.admin_dashboard, name='admin_dashboard'),
+    # Admin index and dashboard: same view (redirect /admin/dashboard/ to /admin/)
+    path('admin/dashboard/', lambda request: redirect('/admin/', permanent=False), name='admin_dashboard'),
     
     # API endpoints for admin dashboard
     path('api/health/', obs_views.api_health, name='api_health'),

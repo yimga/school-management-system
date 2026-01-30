@@ -4,68 +4,41 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script>
-      (function(){var s=localStorage.getItem('theme')||'light';var r=(s==='system')?(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):(s==='dark'?'dark':'light');document.documentElement.setAttribute('data-bs-theme',r);})();
-    </script>
     <title>{% block title %}Portal{% endblock %}</title>
-    <link rel="icon" href="{{ SITE_FAVICON_URL|default:'/static/favicon.ico' }}" type="image/x-icon">
-    <!-- Preconnect to CDNs for faster asset loading -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Inter with font-display=swap: show fallback immediately, swap when loaded (no invisible text) -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-tables-forms.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal_theme.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-theme-modes.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/responsive-performance.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui-alignment-improvements.css' %}">
     {% block extrastyle %}{% endblock %}
 
     <style>
-      {% with theme=SITE_THEME %}
+      {% with theme=SITE_THEME|default:None %}
       :root {
-        --school-primary: {{ theme.primary_color|default:"#0d6efd" }};
-        --school-accent: {{ theme.accent_color|default:"#198754" }};
-        --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
-        --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
-        {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+        --school-primary: {% if theme %}{{ theme.primary_color|default:"#0d6efd" }}{% else %}#0d6efd{% endif %};
+        --school-accent: {% if theme %}{{ theme.accent_color|default:"#198754" }}{% else %}#198754{% endif %};
+        --portal-bg: {% if theme %}{{ theme.background_color|default:"rgba(247,251,255,1)" }}{% else %}rgba(247,251,255,1){% endif %};
+        --portal-font: {% if theme %}{{ theme.font_family|default:"Inter, system-ui, sans-serif" }}{% else %}Inter, system-ui, sans-serif{% endif %};
       }
       {% endwith %}
-      {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
-      h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--portal-font), system-ui, sans-serif; }
-      {% endif %}
 
       body {
         font-family: var(--portal-font), system-ui, sans-serif;
-        {% if SITE_BASE_FONT_SIZE %}font-size: var(--base-font-size);{% endif %}
         {% if SITE_BACKGROUND_URL %}
         background: linear-gradient(135deg, rgba(247, 251, 255, 0.8), rgba(255, 255, 255, 0.9)), url('{{ SITE_BACKGROUND_URL }}') center/cover fixed;
         {% else %}
         background: linear-gradient(135deg, #f7fbff, #ffffff);
         {% endif %}
-        color: var(--portal-text, #111827);
+        color: {% if SITE and SITE.use_dark_mode %}#e5e7eb{% else %}#111827{% endif %};
         min-height: 100vh;
       }
 
       .topbar {
         background: linear-gradient(90deg, var(--school-primary), var(--school-accent));
-      }
-
-      /* Sticky header: compact height, always accessible (80px max) */
-      .topbar-sticky {
-        position: sticky;
-        top: 0;
-        z-index: 1030;
-        min-height: 56px;
-        max-height: 80px;
       }
 
       .brand-logo {
@@ -83,31 +56,18 @@
       }
 
       .search-bar-wrapper input::placeholder {
-        color: rgba(255,255,255,0.75);
-      }
-
-      .search-bar-wrapper input {
-        color: #fff !important;
+        color: rgba(255,255,255,0.6);
       }
 
       .search-bar-wrapper input:focus {
         background: rgba(255,255,255,0.25) !important;
-        border-color: rgba(255,255,255,0.5) !important;
-        box-shadow: 0 0 0 0.25rem rgba(255,255,255,0.15) !important;
-        outline: 2px solid rgba(255,255,255,0.6);
-        outline-offset: 2px;
+        border-color: rgba(255,255,255,0.4) !important;
+        box-shadow: 0 0 0 0.25rem rgba(255,255,255,0.1) !important;
       }
 
       .topbar-actions {
         flex-wrap: wrap;
         justify-content: flex-end;
-      }
-
-      /* Layout: boxed constrains main content width */
-      body.layout-boxed .container-fluid {
-        max-width: 1280px;
-        margin-left: auto;
-        margin-right: auto;
       }
 
       .topbar-controls {
@@ -127,10 +87,15 @@
         color: #ffc107 !important;
       }
 
-      /* Admin Dropdown Menu – theme-aware border/shadow */
+      #themeToggle:focus-visible {
+        outline: 2px solid var(--school-primary);
+        outline-offset: 2px;
+      }
+
+      /* Admin Dropdown Menu */
       .dropdown-menu {
-        border: 1px solid var(--portal-border-strong, rgba(0,0,0,0.1));
-        box-shadow: var(--portal-shadow-hover, 0 8px 24px rgba(0,0,0,0.15));
+        border: 1px solid rgba(0,0,0,0.1);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
         border-radius: 12px;
       }
 
@@ -140,7 +105,7 @@
       }
 
       .dropdown-item:hover {
-        background-color: var(--portal-nav-pill-bg-hover);
+        background-color: rgba(13,110,253,0.1);
         color: var(--school-primary);
       }
 
@@ -153,14 +118,22 @@
       .card {
         border: 0;
         border-radius: 18px;
-        box-shadow: var(--portal-shadow);
+        box-shadow: 0 8px 22px rgba(0,0,0,.08);
         background: rgba(255, 255, 255, 0.95);
         transition: transform 0.25s ease, box-shadow 0.25s ease;
       }
 
       .card:hover {
         transform: translateY(-4px);
-        box-shadow: var(--portal-shadow-hover);
+        box-shadow: 0 20px 40px rgba(15,23,42,0.2);
+      }
+
+      /* Optional boxed layout: add class portal-boxed to body to constrain main content width */
+      body.portal-boxed .main-content,
+      body.portal-boxed [data-portal-main] {
+        max-width: 1280px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       .widget-grid {
@@ -186,7 +159,7 @@
         font-size: 0.85rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: var(--portal-text-muted);
+        color: rgba(15,23,42,0.7);
       }
 
       .sidebar {
@@ -223,71 +196,13 @@
         background: rgba(15,23,42,0.3);
       }
 
-      /* Resizable sidebar: CSS variable + flex on desktop */
-      :root {
-        --portal-sidebar-width: 280px;
-        --portal-sidebar-min: 200px;
-        --portal-sidebar-max: 420px;
-      }
-      @media (min-width: 992px) {
-        .portal-layout-row {
-          display: flex;
-          flex-wrap: nowrap;
-          gap: 0;
-        }
-        .portal-sidebar-col {
-          flex: 0 0 var(--portal-sidebar-width);
-          width: var(--portal-sidebar-width);
-          min-width: var(--portal-sidebar-min);
-          max-width: var(--portal-sidebar-max);
-          transition: width 0.05s ease-out;
-        }
-        .portal-resize-handle {
-          flex: 0 0 8px;
-          width: 8px;
-          min-width: 8px;
-          cursor: col-resize;
-          background: transparent;
-          align-items: stretch;
-          justify-content: center;
-          position: relative;
-          user-select: none;
-        }
-        .portal-resize-handle::after {
-          content: '';
-          position: absolute;
-          left: 3px;
-          top: 20%;
-          bottom: 20%;
-          width: 2px;
-          border-radius: 1px;
-          background: rgba(15,23,42,0.15);
-          transition: background 0.15s ease;
-        }
-        .portal-resize-handle:hover::after,
-        .portal-resize-handle:active::after {
-          background: var(--school-primary, #0d6efd);
-        }
-        .portal-main-col {
-          flex: 1 1 0;
-          min-width: 0;
-          width: 0;
-        }
-        .portal-layout-row .offcanvas {
-          flex: 0 0 0;
-          width: 0;
-          min-width: 0;
-          overflow: visible;
-        }
-      }
-
       .nav-pill {
         border-radius: 14px;
       }
 
       .nav-pill.active,
       .nav-pill:hover {
-        background: var(--portal-nav-pill-bg-hover);
+        background: rgba(13,110,253,.10);
       }
 
       .page-wrap {
@@ -297,8 +212,8 @@
         border: 1px solid rgba(15,23,42,.08);
       }
 
-      /* Mobile-First Responsive Portal Design (breakpoints from design-tokens) */
-      @media (max-width: var(--bp-content-sm-max, 479px)) {
+      /* Mobile-First Responsive Portal Design */
+      @media (max-width: 479px) {
         .topbar {
           padding: 0.75rem 1rem;
         }
@@ -349,7 +264,7 @@
         }
       }
 
-      @media (max-width: var(--bp-mobile-max, 767px)) {
+      @media (max-width: 767px) {
         .topbar {
           padding: 0.75rem 0.75rem;
         }
@@ -416,7 +331,7 @@
         }
       }
 
-      @media (max-width: var(--bp-extra-narrow, 575px)) {
+      @media (max-width: 575px) {
         .topbar-weather {
           display: none;
         }
@@ -426,14 +341,14 @@
           padding: 0.2rem 0.4rem;
         }
       }
-      @media (max-width: var(--bp-below-wide, 1023px)) {
+      @media (max-width: 1023px) {
         .communication-link {
           min-width: 140px;
           font-size: 0.85rem;
         }
       }
 
-      @media (min-width: var(--bp-mobile, 768px)) {
+      @media (min-width: 768px) {
         .widget-grid {
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         }
@@ -560,9 +475,9 @@
     <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} {% block body_extra_class %}{% endblock %}">
-    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="Skip to main content">Skip to main content</a>
-    <nav class="navbar navbar-expand-lg navbar-dark topbar topbar-sticky" role="navigation" aria-label="Main navigation">
+  <body class="layout-{% if SITE %}{{ SITE.layout_style|default:'fluid' }}{% else %}fluid{% endif %}{% if SITE and SITE.layout_style == 'boxed' %} portal-boxed{% endif %} has-dashboard-footer {% block body_extra_class %}{% endblock %}">
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 bg-white rounded" href="#main-content" aria-label="Skip to main content">Skip to main content</a>
+    <nav class="navbar navbar-expand-lg navbar-dark topbar">
       <div class="container-fluid px-3">
         <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="Open sidebar menu">
           <i class="bi bi-list" aria-hidden="true"></i>
@@ -582,36 +497,36 @@
         {% if request.user.role == 'ADMIN' or request.user.is_staff %}
           <a class="navbar-brand d-flex align-items-center gap-2" href="{{ backend_url }}" title="Back to your home dashboard">
           {% if SITE_LOGO_URL %}
-            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
           {% else %}
-            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo">
           {% endif %}
           <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>
         {% elif request.user.role == 'TEACHER' %}
           <a class="navbar-brand d-flex align-items-center gap-2" href="{{ teacher_url }}" title="Back to your home dashboard">
           {% if SITE_LOGO_URL %}
-            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
           {% else %}
-            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo">
           {% endif %}
           <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>
         {% elif request.user.role == 'PARENT' %}
           <a class="navbar-brand d-flex align-items-center gap-2" href="{{ parent_url }}" title="Back to your home dashboard">
           {% if SITE_LOGO_URL %}
-            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
           {% else %}
-            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo">
           {% endif %}
           <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>
         {% else %}
           <a class="navbar-brand d-flex align-items-center gap-2" href="/" title="Back to home">
           {% if SITE_LOGO_URL %}
-            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{{ SITE_LOGO_URL }}" alt="Logo">
           {% else %}
-            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo" width="34" height="34" fetchpriority="high" decoding="async">
+            <img class="brand-logo" src="{% static 'images/logo.png' %}" alt="Logo">
           {% endif %}
           <span class="fw-semibold">{% if SITE and SITE.site_name %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>
@@ -636,31 +551,19 @@
               {% include 'components/header_weather_widget.html' %}
             </div>
 
-            {% if SHOW_HEADER_SEARCH %}
-            <!-- Search Bar (Ctrl+K) - placeholder and hint visible on gradient -->
+            <!-- Search Bar (Ctrl+K) -->
             <div class="topbar-search search-bar-wrapper" style="position: relative;">
               <input 
                 type="text" 
-                class="form-control form-control-sm topbar-search-input" 
+                class="form-control form-control-sm" 
                 placeholder="Search... (Ctrl+K)"
                 id="headerSearchInput"
-                aria-label="Search portal"
-                style="width: 200px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff;"
+                style="width: 200px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white;"
               />
-              <small class="topbar-search-hint" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: rgba(255,255,255,0.85); pointer-events: none;">⌘K</small>
+              <small class="text-muted position-absolute" style="right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem;">⌘K</small>
             </div>
-            {% endif %}
 
             <div class="topbar-controls">
-              {% if SHOW_HEADER_NOTIFICATIONS %}
-              <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_notifications' %}" title="Notifications" style="font-size: 1.2rem;">
-                <i class="bi bi-bell"></i>
-                {% if NOTIFICATIONS_UNREAD_COUNT %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
-                {% endif %}
-              </a>
-              {% endif %}
-              {% if SHOW_HEADER_THEME_TOGGLE %}
               <button 
                 class="btn btn-link text-white p-0" 
                 id="themeToggle" 
@@ -669,9 +572,8 @@
               >
                 <i class="bi bi-moon-stars"></i>
               </button>
-              {% endif %}
+              {% block topbar_theme_extra %}{% endblock %}
 
-              {% if SHOW_HEADER_PROFILE_MENU %}
               <div class="dropdown">
                 <button 
                   class="btn btn-link text-white p-0 dropdown-toggle" 
@@ -696,7 +598,6 @@
                 <i class="bi bi-box-arrow-right"></i>
                 <span class="d-none d-sm-inline">Logout</span>
               </a>
-              {% endif %}
             </div>
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
@@ -706,15 +607,13 @@
     </nav>
 
     <div class="container-fluid px-3 py-2">
-      <div class="row g-3 portal-layout-row">
-        <!-- Sidebar (desktop) - Resizable -->
-        <div class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block">
+      <div class="row g-3">
+        <!-- Sidebar (desktop) - Fixed Position -->
+        <div class="col-lg-3 col-xl-2 d-none d-lg-block">
           <div class="sidebar p-3">
             {% include "partials/portal_sidebar.html" %}
           </div>
         </div>
-        <!-- Resize handle (desktop only) -->
-        <div class="portal-resize-handle d-none d-lg-flex" aria-label="Resize sidebar" role="separator" title="Drag to resize sidebar"></div>
 
         <!-- Sidebar (mobile) -->
         <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel">
@@ -728,7 +627,7 @@
       </div>
 
       <!-- Content -->
-      <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main">
+      <div class="col-lg-9 col-xl-10" id="main-content" role="main">
         <div class="page-wrap">
           {% include "partials/breadcrumbs.html" %}
             {% if messages %}
@@ -753,7 +652,7 @@
                   <div class="col-6 col-xl-3">
                     <div style="{{ stat.card_style }} border-radius: 10px; padding: 0.75rem;">
                       <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <span class="dashboard-stat-label" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">{{ stat.label }}</span>
+                        <span style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 600;">{{ stat.label }}</span>
                         <span style="{{ stat.badge_style }} padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">{{ stat.value }}</span>
                       </div>
                     </div>
@@ -782,54 +681,33 @@
     {% endblock %}
     
     <script>
-      // Theme Toggle: light / dark / system (persisted in localStorage)
+      // Theme Toggle Functionality
       document.addEventListener('DOMContentLoaded', function() {
         const themeToggle = document.getElementById('themeToggle');
         const htmlElement = document.documentElement;
         
-        function getSystemTheme() {
-          return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        function resolveTheme(stored) {
-          if (stored === 'system') return getSystemTheme();
-          return stored === 'dark' ? 'dark' : 'light';
-        }
-        function applyTheme(stored) {
-          var resolved = resolveTheme(stored);
-          htmlElement.setAttribute('data-bs-theme', resolved);
-          updateThemeIcon(stored, resolved);
-        }
-        function updateThemeIcon(stored, resolved) {
-          if (!themeToggle) return;
-          var icon = themeToggle.querySelector('i');
-          if (!icon) return;
-          icon.classList.remove('bi-moon-stars', 'bi-sun-fill', 'bi-circle-half');
-          if (stored === 'system') {
-            icon.classList.add('bi-circle-half');
-            themeToggle.setAttribute('title', 'Theme: System (' + resolved + ')');
-          } else if (resolved === 'dark') {
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-bs-theme', currentTheme);
+        updateThemeIcon(currentTheme);
+        
+        themeToggle.addEventListener('click', function() {
+          const theme = htmlElement.getAttribute('data-bs-theme');
+          const newTheme = theme === 'light' ? 'dark' : 'light';
+          htmlElement.setAttribute('data-bs-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+          const icon = themeToggle.querySelector('i');
+          if (theme === 'dark') {
+            icon.classList.remove('bi-moon-stars');
             icon.classList.add('bi-sun-fill');
-            themeToggle.setAttribute('title', 'Switch to light');
           } else {
+            icon.classList.remove('bi-sun-fill');
             icon.classList.add('bi-moon-stars');
-            themeToggle.setAttribute('title', 'Switch to dark');
           }
-        }
-        function cycleTheme() {
-          var stored = localStorage.getItem('theme') || 'light';
-          var next = stored === 'light' ? 'dark' : (stored === 'dark' ? 'system' : 'light');
-          localStorage.setItem('theme', next);
-          applyTheme(next);
-        }
-        
-        var stored = localStorage.getItem('theme') || 'light';
-        applyTheme(stored);
-        if (themeToggle) themeToggle.addEventListener('click', cycleTheme);
-        
-        if (window.matchMedia) {
-          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
-            if ((localStorage.getItem('theme') || 'light') === 'system') applyTheme('system');
-          });
         }
       });
 
@@ -855,52 +733,6 @@
                 window.location.href = `/search/?q=${encodeURIComponent(query)}`;
               }
             }
-          });
-        }
-      });
-
-      // Resizable sidebar: drag handle updates --portal-sidebar-width and persists to localStorage
-      document.addEventListener('DOMContentLoaded', function() {
-        var handle = document.querySelector('.portal-resize-handle');
-        var root = document.documentElement;
-        var MIN = 200;
-        var MAX = 420;
-        var KEY = 'portal-sidebar-width';
-
-        function px(v) { return Math.round(v) + 'px'; }
-        function clamp(v) { return Math.max(MIN, Math.min(MAX, v)); }
-
-        function loadWidth() {
-          var w = parseInt(localStorage.getItem(KEY), 10);
-          if (w && w >= MIN && w <= MAX) root.style.setProperty('--portal-sidebar-width', px(w));
-        }
-        loadWidth();
-
-        if (handle) {
-          handle.addEventListener('mousedown', function(e) {
-            if (e.button !== 0) return;
-            e.preventDefault();
-            var startX = e.clientX;
-            var startW = parseInt(getComputedStyle(root).getPropertyValue('--portal-sidebar-width'), 10) || 280;
-
-            function move(e) {
-              var dx = e.clientX - startX;
-              var newW = clamp(startW + dx);
-              root.style.setProperty('--portal-sidebar-width', px(newW));
-            }
-            function up() {
-              var w = parseInt(getComputedStyle(root).getPropertyValue('--portal-sidebar-width'), 10);
-              localStorage.setItem(KEY, String(w));
-              document.removeEventListener('mousemove', move);
-              document.removeEventListener('mouseup', up);
-              document.body.style.cursor = '';
-              document.body.style.userSelect = '';
-            }
-
-            document.body.style.cursor = 'col-resize';
-            document.body.style.userSelect = 'none';
-            document.addEventListener('mousemove', move);
-            document.addEventListener('mouseup', up);
           });
         }
       });
@@ -947,5 +779,8 @@
 
     {# Main Footer with Accreditation and Support #}
     {% include 'components/footer.html' %}
+    <script>
+      if (document.getElementById('dashboardFooter')) document.body.classList.add('has-dashboard-footer');
+    </script>
   </body>
 </html>

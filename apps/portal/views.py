@@ -55,8 +55,6 @@ from apps.siteconfig.models import (
     default_backend_feature_flags,
 )
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
-from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
     student_improvements,
     specialty_pass_rates,
@@ -339,6 +337,7 @@ def parent_dashboard(request: HttpRequest):
         "finance_paid": finance_paid,
         "available_sidebar_items": available_sidebar_items,
         **dashboard_context,  # Unpack dashboard settings, layout URL, widget metadata, etc.
+        "show_layout_customize_in_sidebar": dashboard_context.get("allow_custom_layout", False),
         "finance_access_banner": finance_access_banner,
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],

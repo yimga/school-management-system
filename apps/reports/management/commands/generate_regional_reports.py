@@ -208,34 +208,35 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f'No guardians found for {student}'))
             return
 
-        # Get email template and branding from Site Settings
-        from apps.siteconfig.models import SiteSettings
-        from django.contrib.sites.models import Site as DjangoSite
-        from django.conf import settings as django_settings
-        site = SiteSettings.get_solo()
-        # Absolute logo URL for email (theme pack or site logo)
-        logo_file = site.get_theme_background("logo") if hasattr(site, 'get_theme_background') else None
-        if not logo_file or not getattr(logo_file, 'url', None):
-            logo_file = getattr(site, 'logo', None) if getattr(site, 'logo', None) and getattr(site.logo, 'name', None) else None
-        base_url = getattr(django_settings, 'SITE_BASE_URL', '') or (
-            'https://' + DjangoSite.objects.get_current().domain
-        )
-        logo_url = (base_url + logo_file.url) if logo_file and getattr(logo_file, 'url', None) else ''
+        # Get email template
         template_name = f'emails/report_ready_{language}.html'
+        
+        # Build absolute logo URL for email templates (one place for report emails)
+        logo_url = ''
+        try:
+            from django.conf import settings
+            from apps.siteconfig.models import SiteSettings
+            site = SiteSettings.get_solo()
+            if site and getattr(site, 'active_theme', None):
+                theme = site.active_theme
+                if theme and getattr(theme, 'logo', None):
+                    logo_url = theme.logo.url if theme.logo else ''
+            if logo_url and not logo_url.startswith(('http://', 'https://')):
+                logo_url = (getattr(settings, 'SITE_ROOT_URL', '') or '').rstrip('/') + logo_url
+        except Exception:
+            pass
         context = {
             'parent_name': guardians.first().guardian_user.get_full_name(),
-            'student_name': report_data.get('student_name', student.user.get_full_name()),
+            'student_name': student.user.get_full_name(),
             'class_name': report_data['class'],
             'academic_year': report_data['academic_year'],
             'term_name': report_data['term'],
             'average_score': report_data['average_score'],
-            'class_rank': report_data.get('class_rank', 'TBD'),
-            'report_url': report_data.get('report_url', 'https://schoolmanagement.local/reports/view/'),
-            'school_name': getattr(site, 'site_name', None) or 'School Management System',
-            'primary_color': getattr(site, 'primary_color', None) or '#0d6efd',
-            'logo_url': logo_url,
-            'branded_domain': getattr(site, 'branded_domain', '') or '',
+            'class_rank': 'TBD',  # Would calculate from ranking system
+            'report_url': 'https://schoolmanagement.local/reports/view/',
+            'school_name': 'School Management System',
             'current_year': datetime.now().year,
+            'logo_url': logo_url,
         }
 
         try:

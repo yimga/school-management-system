@@ -97,12 +97,17 @@ class FAQAdmin(admin.ModelAdmin):
 
 @admin.register(KBCategory)
 class KBCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'parent', 'slug', 'display_order', 'article_count', 'is_active', 'created_at']
+    list_display = ['name', 'parent', 'slug', 'display_order', 'target_roles_display', 'article_count', 'is_active', 'created_at']
     list_filter = ['is_active', 'parent', 'created_at']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
     ordering = ['display_order', 'name']
-    
+
+    def target_roles_display(self, obj):
+        roles = obj.target_roles if isinstance(obj.target_roles, list) else []
+        return ', '.join(roles) if roles else _('All')
+    target_roles_display.short_description = _('Target roles')
+
     def article_count(self, obj):
         return obj.articles.filter(status='PUBLISHED').count()
     article_count.short_description = _('Published Articles')
@@ -118,10 +123,15 @@ class KBArticleAttachmentInline(admin.TabularInline):
 @admin.register(KBArticle)
 class KBArticleAdmin(admin.ModelAdmin):
     list_display = [
-        'title_short', 'category', 'status', 'difficulty', 'author',
+        'title_short', 'category', 'status', 'difficulty', 'target_roles_display', 'author',
         'view_count', 'helpful_percentage_display', 'is_featured', 'published_at'
     ]
     list_filter = ['status', 'difficulty', 'category', 'is_featured', 'published_at', 'created_at']
+
+    def target_roles_display(self, obj):
+        roles = obj.target_roles if isinstance(obj.target_roles, list) else []
+        return ', '.join(roles) if roles else _('All')
+    target_roles_display.short_description = _('Target roles')
     search_fields = ['title', 'summary', 'content', 'tags']
     readonly_fields = [
         'slug', 'view_count', 'helpful_count', 'unhelpful_count',
@@ -144,6 +154,10 @@ class KBArticleAdmin(admin.ModelAdmin):
         }),
         (_('Status & Publishing'), {
             'fields': ('status', 'published_at', 'is_featured', 'display_order')
+        }),
+        (_('Visibility by role'), {
+            'fields': ('target_roles',),
+            'description': _('Leave target_roles empty to show to everyone. Use ["PARENT"], ["TEACHER"], or ["PARENT", "TEACHER"] to limit visibility.')
         }),
         (_('Engagement Metrics'), {
             'fields': ('view_count', 'helpful_count', 'unhelpful_count', 'comment_count'),

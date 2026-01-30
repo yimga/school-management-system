@@ -14,11 +14,33 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import User
-from apps.siteconfig.dashboard_views import _can_customize, _log_layout_audit, get_layout_for_page
+from apps.siteconfig.dashboard_views import _log_layout_audit, get_layout_for_page
 from apps.siteconfig.models_dashboard import DashboardWidget, DashboardLayout
 
 
+def _allowed_display_styles_for_widget(widget: DashboardWidget) -> list:
+    """Per-widget allowed visualization/display styles based on widget_type."""
+    wt = (widget.widget_type or "").lower()
+    if wt == "chart":
+        return ["bar", "line", "pie", "area", "doughnut"]
+    if wt == "list" or wt == "feed":
+        return ["card", "list", "table", "compact"]
+    if wt == "stats":
+        return ["card", "minimal", "inline"]
+    if wt == "alert" or wt == "action":
+        return ["card", "compact"]
+    return []
+
+
+def _default_display_style_for_widget(widget: DashboardWidget) -> str:
+    allowed = _allowed_display_styles_for_widget(widget)
+    return allowed[0] if allowed else "card"
+
+
 class DashboardWidgetSerializer(serializers.ModelSerializer):
+    allowed_display_styles = serializers.SerializerMethodField()
+    default_display_style = serializers.SerializerMethodField()
+
     class Meta:
         model = DashboardWidget
         fields = [
@@ -34,14 +56,20 @@ class DashboardWidgetSerializer(serializers.ModelSerializer):
             "refresh_interval",
             "required_role",
             "allowed_roles",
-            # Admin-configurable presentation controls (per-widget)
             "allowed_sizes",
             "default_size",
             "allowed_variants",
             "default_variant",
-            "chart_type",
+            "allowed_display_styles",
+            "default_display_style",
             "order",
         ]
+
+    def get_allowed_display_styles(self, obj: DashboardWidget) -> list:
+        return _allowed_display_styles_for_widget(obj)
+
+    def get_default_display_style(self, obj: DashboardWidget) -> str:
+        return _default_display_style_for_widget(obj)
 
 
 class DashboardLayoutSerializer(serializers.Serializer):
@@ -49,7 +77,7 @@ class DashboardLayoutSerializer(serializers.Serializer):
     Validates user-submitted layout payloads.
 
     Layout schema:
-      { "items": [ { "id": "...", "column": "...", "order": 0, "size": "md", "variant": "default" }, ... ], "__settings__": {...} }
+      { "items": [ { "id": "...", "column": "...", "order": 0, "size": "md", "variant": "default", "display_style": "bar" }, ... ], "__settings__": {...} }
 
     Security: ensures widget IDs are allowed for the current user/page and prevents invalid size/variant values.
     """
@@ -115,6 +143,19 @@ class DashboardLayoutSerializer(serializers.Serializer):
                         f"layout.items[{idx}].variant '{variant}' is not allowed for widget '{widget_id}'."
                     )
 
+            display_style = item.get("display_style")
+            if display_style is not None:
+                display_style = str(display_style).strip().lower()
+                allowed_ds = set(_allowed_display_styles_for_widget(widget))
+                if allowed_ds and display_style not in allowed_ds:
+                    raise serializers.ValidationError(
+                        f"layout.items[{idx}].display_style '{display_style}' is not allowed for widget '{widget_id}'."
+                    )
+                if not allowed_ds:
+                    display_style = None
+            else:
+                display_style = None
+
             normalized.append(
                 {
                     "id": widget_id,
@@ -122,6 +163,7 @@ class DashboardLayoutSerializer(serializers.Serializer):
                     "order": order,
                     "size": size,
                     "variant": variant,
+                    "display_style": display_style,
                 }
             )
 
@@ -264,13 +306,34 @@ class DashboardLayoutAPI(APIView):
         widgets = DashboardWidgetSerializer(widgets_qs, many=True).data
 
         layout_obj = get_layout_for_page(request.user, page)
-        layout_data = {"layout": layout_obj.layout if layout_obj else {}}
+        layout_data = layout_obj.layout if layout_obj else {}
+        if not isinstance(layout_data, dict):
+            layout_data = {}
+
+        # Enrich layout items with default display_style when missing (for visualization)
+        widgets_by_id = {w["id"]: w for w in widgets}
+        items = layout_data.get("items") or []
+        if isinstance(items, list):
+            enriched = []
+            for it in items:
+                if not isinstance(it, dict):
+                    enriched.append(it)
+                    continue
+                it = dict(it)  # copy so we don't mutate stored layout
+                wid = it.get("id")
+                if it.get("display_style") is None and wid and wid in widgets_by_id:
+                    default_ds = (widgets_by_id[wid].get("default_display_style") or "").strip().lower()
+                    allowed_ds = widgets_by_id[wid].get("allowed_display_styles") or []
+                    if default_ds and (not allowed_ds or default_ds in allowed_ds):
+                        it["display_style"] = default_ds
+                enriched.append(it)
+            layout_data = {**layout_data, "items": enriched}
 
         return Response(
             {
                 "page": page,
                 "role": role,
-                "layout": layout_data["layout"],
+                "layout": layout_data,
                 "widgets": widgets,
             }
         )
@@ -284,11 +347,6 @@ class DashboardLayoutAPI(APIView):
     def _save(self, request, page: str):
         page = page.lower()
         self._enforce_page_access(page, request.user)
-        if not _can_customize(request.user):
-            return Response(
-                {"detail": "Only staff and allowed roles can save dashboard layout."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
 
         role = self.get_user_role(request.user)
         widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by("order")
@@ -316,3 +374,10 @@ class DashboardLayoutAPI(APIView):
         new_settings = (new_layout.get("__settings__", {}) or {})
         _log_layout_audit(request.user, old_settings, new_settings)
         return Response({"status": "ok", "layout": layout_obj.layout}, status=status.HTTP_200_OK)
+
+    def delete(self, request, page: str):
+        """Reset to role default: remove user's layout so GET returns role default."""
+        page = page.lower()
+        self._enforce_page_access(page, request.user)
+        DashboardLayout.objects.filter(user=request.user, page=page).delete()
+        return Response({"status": "ok", "reset": True}, status=status.HTTP_200_OK)

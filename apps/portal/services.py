@@ -746,15 +746,33 @@ def _finance_summary(students):
 
 def _upcoming_deadlines(year):
     """
-    Get upcoming grading deadlines.
-    
-    NOTE: GradingDeadline model was removed. This function returns empty list.
-    TODO: Implement using SubjectAssignment.deadline_at if field is added.
+    Get upcoming grading deadlines from SubjectAssignment.deadline_at.
     """
     if not year:
         return []
-    # TODO: Query SubjectAssignment.deadline_at when field is added
-    return []
+    from django.utils import timezone
+    from apps.academics.models import SubjectAssignment
+
+    now = timezone.now()
+    qs = (
+        SubjectAssignment.objects.filter(
+            academic_year=year,
+            deadline_at__isnull=False,
+            deadline_at__gte=now,
+        )
+        .select_related("term", "classroom", "subject")
+        .order_by("deadline_at")[:20]
+    )
+    return [
+        {
+            "assignment": sa,
+            "deadline_at": sa.deadline_at,
+            "subject": sa.subject.name,
+            "classroom": sa.classroom.name,
+            "term": getattr(sa.term, "label", str(sa.term_id)),
+        }
+        for sa in qs
+    ]
 
 
 def _task_tracker(students, year, term):

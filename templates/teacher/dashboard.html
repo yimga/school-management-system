@@ -280,13 +280,10 @@
     </div>
     <div class="d-flex align-items-center gap-2">
       {% if request.user.profile_photo %}
-        <img src="{{ request.user.profile_photo.url }}" alt="Teacher profile photo" class="rounded-circle border" width="48" height="48" loading="lazy" decoding="async" style="object-fit:cover;">
+        <img src="{{ request.user.profile_photo.url }}" alt="Teacher profile photo" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;">
       {% endif %}
       <a class="btn btn-primary" href="{% url 'portal:teacher_workflow' %}">
         <i class="bi bi-diagram-3 me-1"></i>My Workflow
-      </a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:teacher_workflow' %}">
-        <i class="bi bi-pin-angle me-1"></i>Use Workflow as default view
       </a>
       <a class="btn btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter Marks</a>
       <a class="btn btn-outline-primary" href="{% url 'evals:teacher_marks_list' %}">View Marks</a>

@@ -17,7 +17,7 @@
                     <div class="alert alert-info">
                         <strong>{{ subject_assignment.subject.name }}</strong><br>
                         <small class="text-muted">
-                            Current deadline: <strong>{{ deadline.deadline_date|date:"F j, Y" }}</strong>
+                            Current deadline: <strong>{% if subject_assignment.deadline_at %}{{ subject_assignment.deadline_at|date:"F j, Y" }}{% else %}Not set{% endif %}</strong>
                         </small>
                     </div>
                     
@@ -62,18 +62,20 @@
 </div>
 
 <script>
-const currentDeadline = new Date('{{ deadline.deadline_date|date:"c" }}');
+{% if subject_assignment.deadline_at %}
+const currentDeadline = new Date('{{ subject_assignment.deadline_at|date:"c" }}');
 
 function updateNewDeadline() {
     const daysExtension = parseInt(document.getElementById('daysExtension').value) || 0;
     const newDate = new Date(currentDeadline);
     newDate.setDate(newDate.getDate() + daysExtension);
-    
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     document.getElementById('newDeadline').textContent = newDate.toLocaleDateString('en-US', options);
 }
-
 document.getElementById('daysExtension').addEventListener('input', updateNewDeadline);
 window.addEventListener('load', updateNewDeadline);
+{% else %}
+document.getElementById('newDeadline').textContent = 'Set a deadline in Admin first.';
+{% endif %}
 </script>
 {% endblock %}

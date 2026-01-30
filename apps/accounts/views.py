@@ -768,6 +768,7 @@ def backend_dashboard(request):
         "hero": hero,
         "app_list": app_context.get("available_apps", []),
         "allow_custom_layout": allow_custom_layout,
+        "show_layout_customize_in_sidebar": allow_custom_layout,
         "dashboard_settings": dashboard_settings,
         "dashboard_layout_url": dashboard_layout_url,
         "available_sidebar_items": available_sidebar_items,
