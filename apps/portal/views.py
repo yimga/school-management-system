@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from datetime import timedelta
 from django.http import JsonResponse, HttpResponseForbidden, HttpRequest, Http404, HttpResponse, HttpResponseRedirect
 from django.utils.safestring import mark_safe
+from django.contrib.auth.decorators import login_required
 from collections import Counter
 from django.contrib import messages
 from django.utils import timezone
@@ -483,23 +484,6 @@ def parent_finance(request: HttpRequest):
     finance_request_url = reverse("finance:finance_request_access")
     links = finance_links if (finance_access_granted or not require_finance_opt_in) else all_links
 
-    finance_summary = (
-        f"{finance_paid_pct}% paid ({finance_paid} settled of {finance_total})"
-        if finance_total
-        else "No invoices recorded yet."
-    )
-    finance_access_banner = {
-        "text": (
-            "Finance access is granted for your linked students."
-            if can_view_finance
-            else "Finance details are hidden until access is granted."
-        ),
-        "summary": finance_summary,
-        "level": "success" if can_view_finance else "warning",
-        "request_url": finance_request_url if can_request_finance_access else None,
-        "cta": "Request finance access" if can_request_finance_access else None,
-    }
-
     if require_finance_opt_in and not finance_access_granted:
         students = []
         invoices_qs = Invoice.objects.none()
@@ -523,6 +507,25 @@ def parent_finance(request: HttpRequest):
     total_due = aggregates.get("total_due") or Decimal("0.00")
     balance = aggregates.get("balance") or Decimal("0.00")
     paid = total_due - balance
+    finance_paid_pct = int((paid / total_due) * 100) if total_due else 0
+    can_view_finance = bool(students)
+
+    finance_summary = (
+        f"{finance_paid_pct}% paid ({paid} settled of {total_due})"
+        if total_due
+        else "No invoices recorded yet."
+    )
+    finance_access_banner = {
+        "text": (
+            "Finance access is granted for your linked students."
+            if can_view_finance
+            else "Finance details are hidden until access is granted."
+        ),
+        "summary": finance_summary,
+        "level": "success" if can_view_finance else "warning",
+        "request_url": finance_request_url if can_request_finance_access else None,
+        "cta": "Request finance access" if can_request_finance_access else None,
+    }
 
     payment_method_counts = Counter()
     invoice_rows = []
@@ -635,9 +638,17 @@ def claim_invite(request: HttpRequest, token: str | None = None):
     return render(request, "parent/claim_invite.html", {"form": form})
 
 
-@parent_portal_required
-@role_required(User.Role.PARENT)
+# Per-feature RBAC: permission required to access each portal tool (sidebar + direct URL).
+PORTAL_FEATURE_PERMISSIONS = {"forums": "portal.forums", "video": "portal.video", "documents": "portal.documents"}
+
+
+@login_required
 def portal_feature_page(request: HttpRequest, feature: str):
+    """Portal tools (Community, Video, Documents): require corresponding portal.* permission and feature enabled."""
+    perm_code = PORTAL_FEATURE_PERMISSIONS.get(feature)
+    if perm_code and not request.user.has_feature_permission(perm_code):
+        return HttpResponseForbidden("You do not have access to this portal feature.")
+
     available = _portal_features_status()
     entry = next((item for item in available if item["key"] == feature), None)
     if not entry:
@@ -762,6 +773,7 @@ def portal_stats(request: HttpRequest):
     weak_subjects = []
     improvement_rows = []
 
+    parent_student_ids = {s.id for s in students} if students else set()
     if students:
         classrooms = []
         specialty_ids = set()
@@ -776,7 +788,13 @@ def portal_stats(request: HttpRequest):
             if classroom.id in seen_classrooms:
                 continue
             seen_classrooms.add(classroom.id)
-            top_students.extend(classroom_term_rankings(classroom, term)[:3])
+            # Only show rankings for this parent's children (no other kids' personal info)
+            class_ranks = classroom_term_rankings(classroom, term)
+            for agg in class_ranks:
+                if agg.student.id in parent_student_ids:
+                    top_students.append(agg)
+        top_students.sort(key=lambda a: a.average, reverse=True)
+        top_students = top_students[:10]
 
         specialty_rows = specialty_pass_rates(
             academic_year=year,
@@ -803,6 +821,8 @@ def portal_stats(request: HttpRequest):
                 classroom=classroom_scope,
                 min_delta=improvement_delta,
             )
+            # Only show improvement for this parent's children
+            improvement_rows = [r for r in improvement_rows if r.student.id in parent_student_ids]
 
     return render(request, "portal/stats.html", {
         "year": year,

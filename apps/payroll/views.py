@@ -92,6 +92,7 @@ def generate_run(request: HttpRequest, run_id: int):
 
 @login_required
 def employee_payslips(request: HttpRequest):
+    """Payslips for the current user only (user-centric HR)."""
     employee = _employee_for_user(request.user)
     if not employee:
         return HttpResponseForbidden("No payroll profile configured.")
@@ -105,6 +106,7 @@ def employee_payslips(request: HttpRequest):
 
 @login_required
 def employee_leave(request: HttpRequest):
+    """Leave requests for the current user only (user-centric HR)."""
     employee = _employee_for_user(request.user)
     if not employee:
         return HttpResponseForbidden("No payroll profile configured.")
