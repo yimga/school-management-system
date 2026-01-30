@@ -182,6 +182,7 @@ def filter_portal_items(items, role: str | None) -> list[dict]:
 
 class DashboardView(models.TextChoices):
     OVERVIEW = "OVERVIEW", "Overview"
+    WORKFLOW = "WORKFLOW", "Workflow Center"
     FINANCE = "FINANCE", "Finances"
     ACADEMICS = "ACADEMICS", "Academics"
     ATTENDANCE = "ATTENDANCE", "Attendance"
@@ -250,6 +251,18 @@ ROLE_WIDGET_DEFAULTS = {
 
 def default_dashboard_widgets(role: str | None) -> list[str]:
     role_key = (role or "").upper()
+    try:
+        site = SiteSettings.get_solo()
+        per_role = getattr(site, "default_widgets_per_role", None) or {}
+        if isinstance(per_role, dict) and role_key in per_role:
+            role_list = per_role.get(role_key)
+            if isinstance(role_list, list) and role_list:
+                valid_ids = {key for key, _ in DASHBOARD_WIDGET_OPTIONS}
+                filtered = [w for w in role_list if str(w).strip() in valid_ids]
+                if filtered:
+                    return filtered
+    except Exception:
+        pass
     return list(ROLE_WIDGET_DEFAULTS.get(role_key, [key for key, _ in DASHBOARD_WIDGET_OPTIONS]))
 
 
@@ -359,6 +372,14 @@ class SiteSettings(models.Model):
             if optimized:
                 optimized._optimized = True
                 self.background_image.save(self.background_image.name, optimized, save=False)
+        # Optimize favicon and sidebar icon
+        for field_name in ("favicon", "sidebar_icon"):
+            field = getattr(self, field_name, None)
+            if field and hasattr(field, "file") and not getattr(field.file, "_optimized", False):
+                optimized = optimize_image(field)
+                if optimized:
+                    optimized._optimized = True
+                    field.save(field.name, optimized, save=False)
         try:
             super().save(*args, **kwargs)
         except DatabaseError as exc:
@@ -442,6 +463,16 @@ class SiteSettings(models.Model):
     warning_color = models.CharField(max_length=20, default="#fbbf24")
     danger_color = models.CharField(max_length=20, default="#ef4444")
     use_dark_mode = models.BooleanField(default=False)
+    BACKEND_CONSOLE_THEME_CHOICES = [
+        ("dark", "Dark (grey)"),
+        ("light", "Light"),
+    ]
+    backend_console_theme = models.CharField(
+        max_length=10,
+        choices=BACKEND_CONSOLE_THEME_CHOICES,
+        default="dark",
+        help_text="Theme for the Backend Console (Workflow Center, Entity Console). Dark = grey/dark sidebar and dashboard; Light = light background.",
+    )
     custom_css = models.TextField(blank=True)
     theme_pack = models.ForeignKey(
         "siteconfig.ThemePack",
@@ -534,6 +565,98 @@ class SiteSettings(models.Model):
         max_length=20,
         default="#0f172a",
         help_text="Active color for sidebar child cards."
+    )
+
+    # Theme Phase A–D: login, header, layout, sidebar, email, nav, typography
+    login_hero_heading = models.CharField(
+        max_length=160,
+        blank=True,
+        default="",
+        help_text="Optional heading for the login hero (e.g. 'Welcome to Our School'). Leave blank to use site name.",
+    )
+    login_hero_subtext = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Optional subtext for the login hero. Leave blank to use tagline.",
+    )
+    show_header_search = models.BooleanField(
+        default=True,
+        help_text="Show search in the portal/backend header.",
+    )
+    show_header_notifications = models.BooleanField(
+        default=True,
+        help_text="Show notifications bell in the header.",
+    )
+    show_header_profile_menu = models.BooleanField(
+        default=True,
+        help_text="Show user profile / quick links in the header.",
+    )
+    show_header_theme_toggle = models.BooleanField(
+        default=True,
+        help_text="Show theme (light/dark) toggle in the header when applicable.",
+    )
+    favicon = models.ImageField(
+        upload_to="branding/",
+        blank=True,
+        null=True,
+        help_text="Favicon for browser tabs. Shown across portal, backend, and admin.",
+    )
+    LAYOUT_STYLE_CHOICES = [
+        ("fluid", "Fluid (full width)"),
+        ("boxed", "Boxed (max-width container)"),
+    ]
+    layout_style = models.CharField(
+        max_length=10,
+        choices=LAYOUT_STYLE_CHOICES,
+        default="fluid",
+        help_text="Page layout: fluid (full width) or boxed (centered max-width).",
+    )
+    default_sidebar_collapsed = models.BooleanField(
+        default=False,
+        help_text="When True, new users see the nav sidebar collapsed by default.",
+    )
+    branded_domain = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Display-only domain for login and emails (e.g. portal.school.edu). No DNS logic.",
+    )
+    portal_sidebar_order = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Optional list of portal sidebar item IDs in display order. Empty = use template default.",
+    )
+    sidebar_icon = models.ImageField(
+        upload_to="branding/",
+        blank=True,
+        null=True,
+        help_text="Optional small icon shown when the nav sidebar is collapsed.",
+    )
+    secondary_font = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        help_text="Optional secondary font (e.g. for headings). Leave blank to use primary font.",
+    )
+    use_secondary_font_for_headings = models.BooleanField(
+        default=False,
+        help_text="When True, use secondary_font for headings (h1–h6).",
+    )
+    base_font_size = models.PositiveSmallIntegerField(
+        default=16,
+        blank=True,
+        null=True,
+        help_text="Base font size in pixels for rem-based typography. Null = use CSS default.",
+    )
+    default_widgets_per_role = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional: role code -> list of widget IDs for default dashboard (e.g. {\"TEACHER\": [\"widget-a\", \"widget-b\"]}).",
+    )
+    admin_use_site_primary = models.BooleanField(
+        default=False,
+        help_text="When True, admin sidebar active/accent uses SiteSettings.primary_color.",
     )
 
     # Behavior & personalization defaults

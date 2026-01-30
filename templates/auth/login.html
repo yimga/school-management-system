@@ -6,7 +6,8 @@
 {% block extrastyle %}
   <style>
     body {
-      background: #f5f7fb;
+      background: {% if SITE_BACKGROUND_URL %}url('{{ SITE_BACKGROUND_URL }}') center/cover no-repeat{% else %}#f5f7fb{% endif %};
+      {% if SITE_BACKGROUND_URL %}background-color: #f5f7fb;{% endif %}
     }
 
     .auth-landing {
@@ -20,10 +21,10 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      background: linear-gradient(135deg, {{ SITE.primary_color|default:"#0d6efd" }}, {{ SITE.accent_color|default:"#198754" }});
       color: white;
       margin-bottom: 0.5rem;
-      box-shadow: 0 8px 18px rgba(124, 58, 237, 0.25);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
     }
 
     .auth-hero .hero-brand {
@@ -167,11 +168,18 @@
       <div class="auth-hero">
         <div class="hero-brand">
           <div class="hero-logo">
-            <span>G</span>
+            {% if SITE_LOGO_URL %}
+              <img src="{{ SITE_LOGO_URL }}" alt="" style="width:100%;height:100%;object-fit:contain;">
+            {% else %}
+              <span>{% if SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}G{% endif %}</span>
+            {% endif %}
           </div>
           <div>
-            <strong>Gilead School System Management System</strong>
-            <small>Splash onboard for staff, families, and admins</small>
+            <strong>{% if SITE.login_hero_heading %}{{ SITE.login_hero_heading }}{% else %}{{ SITE.site_name|default:"School Management System" }}{% endif %}</strong>
+            <small>{% if SITE.login_hero_subtext %}{{ SITE.login_hero_subtext }}{% else %}{{ SITE.tagline|default:"Sign in for staff, families, and admins" }}{% endif %}</small>
+            {% if SITE_BRANDED_DOMAIN %}
+              <small class="d-block mt-1 opacity-75">{% trans "You're logging in to" %} {{ SITE_BRANDED_DOMAIN }}</small>
+            {% endif %}
           </div>
         </div>
         {% if request.user.is_authenticated %}

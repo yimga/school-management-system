@@ -1,12 +1,37 @@
 /**
  * Dashboard Charts - Chart.js Integration
- * Enrollment trends, fee gauges, grade heatmaps, performance analytics
+ * Enrollment trends, fee gauges, grade heatmaps, performance analytics.
+ * Chart type per widget: read from data-widget-chart-types on #dashboard-layout (widget_id -> type).
  */
+
+const CHART_TYPES_ALLOWED = new Set(['line', 'bar', 'radar', 'doughnut', 'pie', 'polarArea']);
 
 class DashboardCharts {
   constructor() {
     this.charts = {};
+    this.widgetChartTypes = this._readWidgetChartTypes();
     this.init();
+  }
+
+  _readWidgetChartTypes() {
+    try {
+      const el = document.getElementById('dashboard-layout');
+      if (el && el.dataset && el.dataset.widgetChartTypes) {
+        return JSON.parse(el.dataset.widgetChartTypes);
+      }
+    } catch (e) {
+      console.warn('Dashboard charts: could not parse data-widget-chart-types', e);
+    }
+    return {};
+  }
+
+  _chartTypeForCanvas(canvas, defaultType) {
+    const widgetEl = canvas.closest && canvas.closest('[data-widget-id]');
+    if (!widgetEl) return defaultType;
+    const widgetId = widgetEl.getAttribute('data-widget-id');
+    const configured = this.widgetChartTypes[widgetId];
+    if (configured && CHART_TYPES_ALLOWED.has(configured)) return configured;
+    return defaultType;
   }
 
   init() {
@@ -82,8 +107,9 @@ class DashboardCharts {
     const canvas = document.getElementById('enrollmentChart');
     if (!canvas) return;
 
+    const type = this._chartTypeForCanvas(canvas, 'line');
     this.charts.enrollment = new Chart(canvas, {
-      type: 'line',
+      type: type,
       data: this.data.enrollment,
       options: {
         responsive: true,
@@ -130,8 +156,9 @@ class DashboardCharts {
     const canvas = document.getElementById('feeCollectionChart');
     if (!canvas) return;
 
+    const type = this._chartTypeForCanvas(canvas, 'doughnut');
     this.charts.feeCollection = new Chart(canvas, {
-      type: 'doughnut',
+      type: type,
       data: this.data.feeCollection,
       options: {
         responsive: true,
@@ -159,8 +186,9 @@ class DashboardCharts {
     const canvas = document.getElementById('performanceChart');
     if (!canvas) return;
 
+    const type = this._chartTypeForCanvas(canvas, 'radar');
     this.charts.performance = new Chart(canvas, {
-      type: 'radar',
+      type: type,
       data: this.data.performance,
       options: {
         responsive: true,
@@ -199,8 +227,9 @@ class DashboardCharts {
     const canvas = document.getElementById('attendanceChart');
     if (!canvas) return;
 
+    const type = this._chartTypeForCanvas(canvas, 'bar');
     this.charts.attendance = new Chart(canvas, {
-      type: 'bar',
+      type: type,
       data: this.data.attendance,
       options: {
         responsive: true,

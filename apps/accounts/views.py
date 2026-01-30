@@ -25,7 +25,7 @@ from apps.portal.services import link_guardian_via_invite
 from apps.accounts.decorators import permission_required
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
-from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, DashboardWidget
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 
 from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
@@ -310,14 +310,12 @@ def redirect_view(request):
     """Central post-login redirect based on role.
 
     Keeping this logic in one place makes LOGIN_REDIRECT_URL reliable and
-    prevents hard-coded URLs from drifting.
+    prevents hard-coded URLs from drifting. Respects "Dashboard view" preference
+    (Overview, Workflow Center, Finance, etc.) for backend, teacher, and parent.
     """
     user = request.user
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
-
-    if user.has_feature_permission("settings.manage"):
-        return redirect("accounts:backend_dashboard")
 
     # Respect the user's "Dashboard view" preference (Portal Preferences) when possible.
     dash_view = None
@@ -330,11 +328,20 @@ def redirect_view(request):
         dash_view = None
 
     role = getattr(user, "role", None)
+
+    # Staff/backend: Dashboard or Workflow Center as default view
+    if user.has_feature_permission("settings.manage"):
+        if dash_view == "WORKFLOW":
+            return redirect("accounts:workflow_center")
+        return redirect("accounts:backend_dashboard")
+
     if role == "TEACHER":
-        # Teacher dashboard is the primary hub; we don't route away, but the preference can
-        # be used for in-page emphasis later.
+        if dash_view == "WORKFLOW":
+            return redirect("portal:teacher_workflow")
         return redirect("evals:teacher_dashboard")
     if role == "PARENT":
+        if dash_view == "WORKFLOW":
+            return redirect("portal:parent_workflow")
         if dash_view == "FINANCE":
             return redirect("portal:parent_finance")
         if dash_view == "ACADEMICS":
@@ -767,6 +774,17 @@ def backend_dashboard(request):
         "organized_sidebar": organized_sidebar,
         "sidebar_categories": sidebar_categories,
         "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
+        "widget_chart_types_json": mark_safe(
+            json.dumps(
+                {
+                    w.id: (w.chart_type or "").strip()
+                    for w in DashboardWidget.objects.filter(
+                        page="backend", widget_type="chart", is_active=True
+                    )
+                    if (w.chart_type or "").strip()
+                }
+            )
+        ),
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,

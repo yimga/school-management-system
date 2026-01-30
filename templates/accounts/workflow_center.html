@@ -89,9 +89,12 @@
         <p>Follow the year lifecycle: setup → onboarding → marks → reports → documents. Designed for non-technical school operators.</p>
         <p class="small text-muted mb-0 mt-1">Fits Cameroon general and technical education (GCE, BAC, BEPC, CAP, etc.); use the steps that match your subsystem—no rigid sequence.</p>
       </div>
-      <div class="d-flex flex-wrap gap-2">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}">
           <i class="bi bi-speedometer2 me-1"></i>Backend dashboard
+        </a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'accounts:backend_dashboard' %}">
+          <i class="bi bi-pin-angle me-1"></i>Use Dashboard as default view
         </a>
         <a class="btn btn-sm btn-primary" href="{% url 'kb:kb_home' %}">
           <i class="bi bi-journal-text me-1"></i>Help / KB

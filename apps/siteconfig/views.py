@@ -26,6 +26,7 @@ from .forms import (
     UserPreferenceForm,
 )
 from .models import (
+    DashboardView,
     ReportCardStyle,
     ReportCardStyleAssignment,
     ReportTemplate,
@@ -250,6 +251,24 @@ def clear_preview(request):
     request.session.pop(SESSION_KEY, None)
     messages.info(request, "Preview cleared.")
     return redirect("siteconfig:user_preferences")
+
+
+@login_required
+def set_default_dashboard_view(request):
+    """Set the user's default dashboard view (Overview, Workflow Center, etc.) and redirect."""
+    view_value = request.GET.get("view") or request.POST.get("view")
+    next_url = request.GET.get("next") or request.POST.get("next")
+    allowed = {c[0] for c in DashboardView.choices}
+    if view_value not in allowed:
+        messages.warning(request, "Invalid dashboard view.")
+        return redirect(next_url or "siteconfig:user_preferences")
+    preference, _ = UserPreference.objects.get_or_create(user=request.user)
+    preference.dashboard_view = view_value
+    preference.save()
+    messages.success(request, "Default view updated.")
+    if next_url:
+        return redirect(next_url)
+    return redirect("accounts:redirect")
 
 
 @login_required

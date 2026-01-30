@@ -16,12 +16,12 @@ from apps.siteconfig.models_dashboard import (
 
 logger = logging.getLogger(__name__)
 
+# Only these roles (and staff/superuser) can use drag-and-drop layout customization.
+# Teacher and parent see a fixed dashboard layout; staff use drag-and-drop on the backend.
 ALLOWED_CUSTOM_ROLES = {
     "ADMIN",
     "LEADERSHIP",
     "IT_ADMIN",
-    "TEACHER",
-    "PARENT",
     "SUPERADMIN",
 }
 
@@ -89,7 +89,13 @@ def _create_layout_from_legacy(user, page: str) -> DashboardLayout | None:
         return None
 
     try:
-        preferences, _ = DashboardUserPreference.objects.get_or_create(user=user)
+        from apps.siteconfig.models import SiteSettings
+        site = SiteSettings.get_solo()
+        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
+        preferences, _ = DashboardUserPreference.objects.get_or_create(
+            user=user,
+            defaults={"sidebar_collapsed": default_collapsed},
+        )
     except DatabaseError:
         return None
 
@@ -147,7 +153,13 @@ def update_theme(request):
         if theme not in allowed:
             return JsonResponse({"success": False, "error": "Invalid theme"}, status=400)
         
-        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
+        from apps.siteconfig.models import SiteSettings
+        site = SiteSettings.get_solo()
+        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
+        preferences, _ = DashboardUserPreference.objects.get_or_create(
+            user=request.user,
+            defaults={"sidebar_collapsed": default_collapsed},
+        )
         preferences.theme_preference = theme
         preferences.save()
         logger.info("User %s set theme preference to %s", request.user.username, theme)
@@ -169,7 +181,13 @@ def update_accessibility_preferences(request):
     try:
         data = json.loads(request.body)
         
-        preferences, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
+        from apps.siteconfig.models import SiteSettings
+        site = SiteSettings.get_solo()
+        default_collapsed = getattr(site, "default_sidebar_collapsed", False)
+        preferences, _ = DashboardUserPreference.objects.get_or_create(
+            user=request.user,
+            defaults={"sidebar_collapsed": default_collapsed},
+        )
         preferences.high_contrast = data.get('high_contrast', preferences.high_contrast)
         preferences.reduced_motion = data.get('reduced_motion', preferences.reduced_motion)
         preferences.font_size = data.get('font_size', preferences.font_size)

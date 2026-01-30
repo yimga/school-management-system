@@ -1,0 +1,36 @@
+{% comment %}Base email template with school branding (logo, primary color, site name). Use for report_ready and other system emails.{% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { color: white; padding: 20px; border-radius: 5px; }
+        .content { padding: 20px; background-color: #f8f9fa; margin: 20px 0; border-radius: 5px; }
+        .button { display: inline-block; color: white !important; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
+        .footer { text-align: center; font-size: 12px; color: #6c757d; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="background-color: {{ primary_color|default:'#0d6efd' }};">
+            {% if logo_url %}
+            <p style="margin:0 0 8px 0;"><img src="{{ logo_url }}" alt="{{ school_name|default:'School' }}" style="max-height: 48px; width: auto;" /></p>
+            {% endif %}
+            <h1 style="margin: 0; font-size: 1.25rem;">{{ school_name|default:"School Management System" }}</h1>
+            {% block email_header_subtitle %}{% endblock %}
+        </div>
+        <div class="content">
+            {% block email_content %}{% endblock %}
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>Contact the school administration for any questions.</p>
+            {% if branded_domain %}<p>You're receiving this from {{ branded_domain }}</p>{% endif %}
+            <p>&copy; {{ current_year|default:'' }} {{ school_name|default:"School" }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
