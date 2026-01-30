@@ -32,33 +32,26 @@ def dashboard(request: HttpRequest):
     latest_run = runs[0] if runs else None
     payslip_count = Payslip.objects.filter(payroll_run=latest_run).count() if latest_run else 0
 
-    from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
-    from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+    from apps.accounts.utils import get_dashboard_context
     from django.urls import reverse
-    from django.utils.safestring import mark_safe
-    import json
 
-    dashboard_settings = load_dashboard_layout_settings(request.user, "payroll")
-    allow_custom_layout = _can_customize(request.user)
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "payroll"})
+    dashboard_ctx = get_dashboard_context(request.user, "payroll")
     available_sidebar_items = [
         {"id": "payroll-home", "label": "Payroll Home", "url": reverse("payroll:dashboard"), "icon": "bi-cash-stack"},
         {"id": "payroll-create", "label": "New Payroll Run", "url": reverse("payroll:create_run"), "icon": "bi-plus-circle"},
         {"id": "payroll-employee", "label": "My Payslips", "url": reverse("payroll:employee_payslips"), "icon": "bi-wallet2"},
         {"id": "payroll-leave", "label": "Leave Requests", "url": reverse("payroll:employee_leave"), "icon": "bi-calendar-check"},
     ]
-    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
-
     return render(request, "payroll/dashboard.html", {
         "profile": profile,
         "runs": runs,
         "latest_run": latest_run,
         "payslip_count": payslip_count,
-        "allow_custom_layout": allow_custom_layout,
-        "dashboard_settings": dashboard_settings,
-        "dashboard_layout_url": dashboard_layout_url,
+        "allow_custom_layout": dashboard_ctx["allow_custom_layout"],
+        "dashboard_settings": dashboard_ctx["dashboard_settings"],
+        "dashboard_layout_url": dashboard_ctx["dashboard_layout_url"],
         "available_sidebar_items": available_sidebar_items,
-        "widget_meta_json": widget_meta_json,
+        "widget_meta_json": dashboard_ctx["widget_meta_json"],
     })
 
 

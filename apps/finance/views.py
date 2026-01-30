@@ -33,8 +33,6 @@ from django.template.loader import render_to_string
 from apps.academics.models import AcademicYear
 from apps.payroll.models import Payslip
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
-from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.evals.notifications import NotificationService
 
 from .forms import ReportRequestForm
@@ -163,9 +161,12 @@ def dashboard(request: HttpRequest):
             {"label": "Payments", "url": "/finance/payments/"},
         ],
     }
-    dashboard_settings = load_dashboard_layout_settings(request.user, "finance")
-    allow_custom_layout = _can_customize(request.user)
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "finance"})
+    from apps.accounts.utils import get_dashboard_context
+    dashboard_ctx = get_dashboard_context(request.user, "finance")
+    dashboard_settings = dashboard_ctx["dashboard_settings"]
+    allow_custom_layout = dashboard_ctx["allow_custom_layout"]
+    dashboard_layout_url = dashboard_ctx["dashboard_layout_url"]
+    widget_meta_json = dashboard_ctx["widget_meta_json"]
     available_sidebar_items = [
         {"id": "finance-home", "label": "Finance Home", "url": reverse("finance:dashboard"), "icon": "bi-cash-stack"},
         {"id": "finance-invoices", "label": "Invoices", "url": reverse("finance:invoices"), "icon": "bi-receipt"},
@@ -173,7 +174,6 @@ def dashboard(request: HttpRequest):
         {"id": "finance-trial", "label": "Trial Balance", "url": reverse("finance:trial_balance"), "icon": "bi-bank"},
         {"id": "finance-reports", "label": "Reports", "url": reverse("finance:reports"), "icon": "bi-graph-up-arrow"},
     ]
-    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
     finance_requests_qs = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",

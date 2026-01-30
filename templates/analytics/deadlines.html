@@ -77,7 +77,7 @@
         <tbody>
           {% for d in deadlines %}
             <tr>
-              <td>{{ d.classroom.name|default:"Whole school" }}</td>
+              <td>{{ d.classroom|default:"Whole school" }}</td>
               <td>{{ d.deadline_at|date:"Y-m-d H:i" }}</td>
               <td class="text-end">
                 <form method="post">

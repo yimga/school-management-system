@@ -3,12 +3,69 @@
 
 {% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
 
+{% block topbar_theme_extra %}
+<button type="button" class="btn btn-link text-white p-0 ms-1" id="backendThemeToggle" title="Toggle Backend Light/Dark" style="font-size: 1.1rem;" aria-label="Toggle backend theme">
+  <i class="bi bi-brightness-high" id="backendThemeIcon" aria-hidden="true"></i>
+</button>
+{% endblock %}
+
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">
+{# Backend theme: Site Settings (backend_console_theme) or localStorage backendTheme override. #}
+{% with backend_theme=SITE.backend_console_theme|default:'dark' %}
+{% if backend_theme == 'light' %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    document.body.classList.add('portal-backend-light');
+    var saved = localStorage.getItem('backendTheme');
+    document.body.setAttribute('data-backend-theme', saved || 'light');
+    document.body.classList.add('portal-backend');
+  });
+</script>
+{% elif backend_theme == 'system' %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var saved = localStorage.getItem('backendTheme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.body.setAttribute('data-backend-theme', theme);
+    document.body.classList.add('portal-backend');
+  });
+</script>
+{% else %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var saved = localStorage.getItem('backendTheme');
+    document.body.setAttribute('data-backend-theme', saved || 'dark');
+    document.body.classList.add('portal-backend');
+  });
+</script>
+{% endif %}
+{% endwith %}
+<link rel="stylesheet" href="{% static 'css/backend-visibility.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!document.body.getAttribute('data-backend-theme')) {
+      var theme = localStorage.getItem('backendTheme') || '{{ SITE.backend_console_theme|default:"dark" }}';
+      if (theme === 'system') theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.body.setAttribute('data-backend-theme', theme);
+    }
+    document.body.classList.add('portal-backend');
+    var btn = document.getElementById('backendThemeToggle');
+    var icon = document.getElementById('backendThemeIcon');
+    if (btn && icon) {
+      function updateIcon() {
+        var t = document.body.getAttribute('data-backend-theme') || 'dark';
+        icon.classList.toggle('bi-brightness-high', t === 'dark');
+        icon.classList.toggle('bi-moon-stars', t === 'light');
+      }
+      updateIcon();
+      btn.addEventListener('click', function () {
+        var t = document.body.getAttribute('data-backend-theme') || 'dark';
+        var next = t === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-backend-theme', next);
+        localStorage.setItem('backendTheme', next);
+        updateIcon();
+      });
+    }
   });
 </script>
 {% endblock %}

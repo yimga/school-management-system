@@ -162,3 +162,14 @@ canvas {
     height: 220px;
   }
 }
+
+/* FABs above footer when dashboard footer is present (avoid overlap) */
+body.has-dashboard-footer .ai-copilot-wrapper {
+  bottom: 140px !important;
+}
+body.has-dashboard-footer .floating-log-panel {
+  bottom: 140px !important;
+}
+body.has-dashboard-footer .portal-chathead {
+  bottom: 140px !important;
+}

@@ -902,10 +902,6 @@
             <input class="form-check-input" type="checkbox" role="switch" id="toggleSidebar" {% if dashboard_settings.show_sidebar %}checked{% endif %}>
             <label class="form-check-label" for="toggleSidebar">Show quick links</label>
           </div>
-          <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" role="switch" id="toggleCustomize" {% if allow_custom_layout %}checked{% endif %}>
-            <label class="form-check-label" for="toggleCustomize">Drag &amp; drop layout</label>
-          </div>
           <div>
             <label class="form-label small mb-1" for="tileVariantSelect">Tile density</label>
             <select class="form-select form-select-sm" id="tileVariantSelect">
@@ -1083,6 +1079,12 @@
         </div>
         <div class="dashboard-actions">
           <div class="d-flex flex-wrap align-items-center gap-2">
+            <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_workflow' %}">
+              <i class="bi bi-diagram-3 me-1"></i>My Workflow
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:parent_workflow' %}">
+              <i class="bi bi-pin-angle me-1"></i>Use Workflow as default view
+            </a>
             {% if links %}
             <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
               <option selected disabled>Switch child</option>
@@ -1100,6 +1102,21 @@
               {% endfor %}
             {% endif %}
           </div>
+        </div>
+      </div>
+
+      <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
+        <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-diagram-3 text-primary" style="font-size:1.5rem;"></i>
+            <div>
+              <strong>My Workflow</strong>
+              <span class="text-muted small d-block">Link children, view results, finance, and documents in one place.</span>
+            </div>
+          </div>
+          <a href="{% url 'portal:parent_workflow' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-arrow-right me-1"></i>Open workflow
+          </a>
         </div>
       </div>
       

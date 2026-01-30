@@ -50,9 +50,10 @@ class SubjectAdmin(ModelAdmin):
 
 
 class SubjectAssignmentAdmin(ModelAdmin):
-    list_display = ("academic_year", "term", "classroom", "specialty", "subject", "coefficient")
+    list_display = ("academic_year", "term", "classroom", "specialty", "subject", "coefficient", "deadline_at")
     list_filter = ("academic_year", "term", "classroom", "specialty", "subject")
     search_fields = ("classroom__name", "specialty__name", "subject__name", "academic_year__name")
+    list_editable = ("deadline_at",)
 
 
 class CertificationExamSessionAdmin(ModelAdmin):

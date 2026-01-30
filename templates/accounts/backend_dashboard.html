@@ -483,9 +483,12 @@
   <div class="mb-4">
     <h2 class="fw-bold mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h2>
     <p class="text-muted">Manage your school operations from this unified dashboard</p>
-    <div class="d-flex flex-wrap gap-2 mt-2">
+    <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
       <a class="btn btn-sm btn-primary" href="{% url 'accounts:workflow_center' %}">
         <i class="bi bi-diagram-3 me-1"></i>Workflow Center
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'accounts:workflow_center' %}">
+        <i class="bi bi-pin-angle me-1"></i>Use Workflow Center as default view
       </a>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">
         <i class="bi bi-chat-dots me-1"></i>Messages
@@ -590,30 +593,6 @@
       </div>
     </div>
 
-    <div class="card shadow-sm mb-3">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0">Recent activity</h6>
-          <a class="small text-muted" href="{% url 'admin:index' %}">Admin log</a>
-        </div>
-        <ul class="list-unstyled mb-0 small" id="recentActivityList">
-          {% if recent_activities %}
-            {% for activity in recent_activities|slice:":6" %}
-              <li class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                  <span class="fw-semibold">{{ activity.user.username }}</span>
-                  <div class="text-muted small">{{ activity.action }} {{ activity.model }}</div>
-                </div>
-                <span class="badge bg-light text-dark">{{ activity.time_ago }} ago</span>
-              </li>
-            {% endfor %}
-          {% else %}
-            <li class="text-muted">Loading activity…</li>
-          {% endif %}
-        </ul>
-      </div>
-    </div>
-
   </aside>
 
   <style>
@@ -631,40 +610,6 @@
 
   <script>
   (function() {
-    async function loadRecentActivity() {
-      const list = document.getElementById('recentActivityList');
-      if (!list) return;
-      try {
-        const res = await fetch('/api/activities/?limit=8');
-        const data = await res.json();
-        if (!data || !Array.isArray(data.activities) || data.activities.length === 0) {
-          list.innerHTML = '<li class="text-muted">No recent activity.</li>';
-          return;
-        }
-        list.innerHTML = '';
-        data.activities.slice(0,8).forEach(item => {
-          const li = document.createElement('li');
-          li.className = 'd-flex justify-content-between align-items-start mb-2';
-          li.innerHTML = `
-            <div>
-              <span class="fw-semibold">${escapeHtml(item.title || item.type || 'Event')}</span>
-              <div class="text-muted small">${escapeHtml(item.description || '')}</div>
-            </div>
-            <span class="badge bg-light text-dark">${escapeHtml(item.when || item.time || '')}</span>
-          `;
-          list.appendChild(li);
-        });
-      } catch (e) {
-        list.innerHTML = '<li class="text-danger">Failed to load activity.</li>';
-      }
-    }
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = String(text || '');
-      return div.innerHTML;
-    }
-    document.addEventListener('DOMContentLoaded', loadRecentActivity);
-
     async function loadCopilotMetrics() {
       const roleList = document.getElementById('copilotRoleList');
       const totalBadge = document.getElementById('copilotTotalBadge');
@@ -971,6 +916,11 @@
     </div>
   </div>
   {% endif %}
+  {% if allow_custom_layout %}
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    {% include "components/dashboard_customize_ui.html" %}
+  </div>
+  {% endif %}
         <div id="dashboard-layout"
            data-save-url="{{ dashboard_layout_url }}"
            data-load-url="{{ dashboard_layout_url }}"
@@ -980,7 +930,8 @@
        data-custom-links='{{ dashboard_settings.custom_links|default:"[]"|safe }}'
        data-custom-drag-enabled="true"
        data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
-       data-widget-config='{{ widget_meta_json }}'>
+       data-widget-config='{{ widget_meta_json }}'
+       data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
 
   <!-- Quick Actions Section - Moved to Top -->
   <div class="card shadow-sm mb-4" data-dashboard-column="main" data-widget-id="backend-quick-actions">

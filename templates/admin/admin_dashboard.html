@@ -1,4 +1,4 @@
-{% extends "admin/base.html" %}
+{% extends "admin/base_site.html" %}
 {% load static %}
 
 {% block title %}Admin Dashboard{% endblock %}
@@ -23,8 +23,8 @@
   --admin-text: #0f172a;
   --admin-muted: #64748b;
   --admin-subtle: #475569;
-  --admin-accent: #ff9500;
-  --admin-accent-light: #ffb84d;
+  --admin-accent: {% if SITE %}{{ SITE.accent_color|default:"#ff9500" }}{% else %}#ff9500{% endif %};
+  --admin-accent-light: {% if SITE %}{{ SITE.accent_color|default:"#ffb84d" }}{% else %}#ffb84d{% endif %};
   --admin-shadow: 0 1px 2px rgba(0,0,0,0.04);
   --admin-shadow-hover: 0 4px 12px rgba(0,0,0,0.08);
   --admin-border-hover: #94a3b8;
@@ -113,25 +113,7 @@
 /* Sidebar removed - using Django admin sidebar instead */
 
 
-.theme-toggle-btn {
-  background: var(--admin-accent);
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  margin-left: 8px;
-}
-
-.theme-toggle-btn:hover {
-  background: var(--admin-accent-light);
-}
-
-.sidebar-toggle-btn:focus-visible,
-.theme-toggle-btn:focus-visible {
+.sidebar-toggle-btn:focus-visible {
   outline: 2px solid var(--admin-accent);
   outline-offset: 2px;
 }
@@ -186,7 +168,7 @@
   }
 }
 </style>
-<div style="background: var(--admin-dashboard-bg); padding: 24px 16px; overflow-y: auto;">
+<div class="admin-dashboard-page" style="background: var(--admin-dashboard-bg); padding: 24px 16px; overflow-y: auto;{% if SITE_ADMIN_BACKGROUND_URL %} background-image: url('{{ SITE_ADMIN_BACKGROUND_URL }}'); background-size: cover; background-position: center; background-blend-mode: overlay;{% endif %}">
   <div style="max-width: 1280px; margin: 0 auto;">
         <div class="admin-layout">
           {% if preview_data %}
@@ -252,17 +234,13 @@
         <!-- HEADER SECTION WITH LOGO & CONTROLS -->
         <div style="margin-bottom: 32px; border-bottom: 1px solid var(--admin-border); padding-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
-            <!-- Logo & Title -->
+            <!-- Logo & Title (theme toggle is in base_site nav-global) -->
             <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 300px;">
               <img src="{% static 'images/gilead_logo_transparent.png' %}" alt="Gilead Logo" style="height: 60px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));" />
               <div>
                 <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: var(--admin-text); letter-spacing: -0.5px;">Administration Dashboard</h1>
-                <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--admin-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Gilead School System Management</p>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--admin-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{% if SITE %}{{ SITE.tagline|default:SITE.site_name|default:"School System Management" }}{% else %}School System Management{% endif %}</p>
               </div>
-            </div>
-            <!-- Controls -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark</button>
             </div>
           </div>
           <p style="margin: 8px 0 0 0; font-size: 14px; color: var(--admin-muted);">System monitoring and backend administration</p>
@@ -287,6 +265,21 @@
               <span style="display: flex; justify-content: space-between;"><span>Teachers:</span> <span style="color: #38a169; font-weight: 600;">{{ teacher_count|default:"0" }}</span></span>
             </div>
           </div>
+
+          {% if admin_portal_stats_display %}
+          <!-- Config-driven Portal Stats (admin_portal_stats_config) -->
+          <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;" data-widget-id="admin-portal-stats-config">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Portal Stats</span>
+              <span style="font-size: 20px;">📋</span>
+            </div>
+            <div style="font-size: 13px; color: var(--admin-subtle); line-height: 2; border-top: 1px solid var(--admin-border); padding-top: 12px;">
+              {% for row in admin_portal_stats_display %}
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>{{ row.label }}</span> <span style="color: var(--admin-text); font-weight: 600;">{{ row.count }}</span></div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
 
           <!-- Database & App Stats Card -->
           <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;" data-widget-id="admin-db-app-stats">
@@ -474,21 +467,8 @@
 <!-- /page background -->
 
 <script>
-  // Theme Toggle
-  function toggleTheme() {
-    const root = document.documentElement;
-    const isDark = root.getAttribute('data-theme') === 'dark';
-    const newTheme = isDark ? 'light' : 'dark';
-    root.setAttribute('data-theme', newTheme);
-    localStorage.setItem('adminTheme', newTheme);
-    document.getElementById('themeToggle').textContent = isDark ? '🌙 Dark' : '☀️ Light';
-  }
-
-  // Load saved theme on page load
+  // Theme is controlled by base_site.html nav-global (one toggle for all admin).
   window.addEventListener('DOMContentLoaded', function() {
-    const savedTheme = localStorage.getItem('adminTheme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
     generateCalendar();
     document.getElementById('timestamp').textContent = new Date().toLocaleString();
     loadWeather();

@@ -10,6 +10,7 @@ from .views import (
     link_child_wizard,
     claim_invite,
     teacher_dashboard_alias,
+    teacher_workflow_alias,
     teacher_attendance_view,
     teacher_pay_history,
     teacher_leave,

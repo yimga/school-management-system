@@ -211,6 +211,20 @@ class Command(BaseCommand):
         # Get email template
         template_name = f'emails/report_ready_{language}.html'
         
+        # Build absolute logo URL for email templates (one place for report emails)
+        logo_url = ''
+        try:
+            from django.conf import settings
+            from apps.siteconfig.models import SiteSettings
+            site = SiteSettings.get_solo()
+            if site and getattr(site, 'active_theme', None):
+                theme = site.active_theme
+                if theme and getattr(theme, 'logo', None):
+                    logo_url = theme.logo.url if theme.logo else ''
+            if logo_url and not logo_url.startswith(('http://', 'https://')):
+                logo_url = (getattr(settings, 'SITE_ROOT_URL', '') or '').rstrip('/') + logo_url
+        except Exception:
+            pass
         context = {
             'parent_name': guardians.first().guardian_user.get_full_name(),
             'student_name': student.user.get_full_name(),
@@ -222,6 +236,7 @@ class Command(BaseCommand):
             'report_url': 'https://schoolmanagement.local/reports/view/',
             'school_name': 'School Management System',
             'current_year': datetime.now().year,
+            'logo_url': logo_url,
         }
 
         try:

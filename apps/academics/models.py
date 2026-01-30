@@ -169,6 +169,7 @@ class SubjectAssignment(models.Model):
     Connects:
     AcademicYear + Term + Classroom + Specialty + Subject + Coefficient
     This is what teachers get assigned to, and what evaluations (marks) point to later.
+    deadline_at: optional grading deadline for this assignment (replaces legacy GradingDeadline).
     """
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="subject_assignments")
     term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="subject_assignments")
@@ -176,6 +177,11 @@ class SubjectAssignment(models.Model):
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="subject_assignments")
     subject = models.ForeignKey(Subject, on_delete=models.PROTECT, related_name="subject_assignments")
     coefficient = models.DecimalField(max_digits=5, decimal_places=2, default=1)
+    deadline_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Optional grading deadline for this subject/term/classroom.",
+    )
 
     class Meta:
         unique_together = ("academic_year", "term", "classroom", "specialty", "subject")

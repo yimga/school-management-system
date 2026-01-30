@@ -1,4 +1,5 @@
 {% load static %}
+{% load accounts_extras %}
 
 <style>
   .portal-sidebar-wrapper {
@@ -84,6 +85,11 @@
     font-weight: 500;
   }
 
+  .sidebar-backend-group { list-style: none; }
+  .sidebar-backend-group summary { list-style: none; cursor: pointer; }
+  .sidebar-backend-group summary::-webkit-details-marker { display: none; }
+  .sidebar-backend-summary { font-size: 0.9rem; }
+
   .sidebar-stat {
     background: rgba(13, 110, 253, 0.05);
     border-radius: 8px;
@@ -162,6 +168,9 @@
   .sidebar-collapsible-content.collapsed {
     max-height: 0;
     opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
   }
 
   .activity-item {
@@ -348,6 +357,9 @@
 <!-- User Header -->
 <div class="sidebar-header">
   <div class="sidebar-header-content">
+    {% if SITE_SIDEBAR_ICON_URL %}
+    <img src="{{ SITE_SIDEBAR_ICON_URL }}" alt="" class="sidebar-icon-small me-2" style="width: 40px; height: 40px; object-fit: contain; border-radius: 10px;">
+    {% endif %}
     <div class="sidebar-avatar">
       {% if request.user.first_name %}
         {{ request.user.first_name|slice:":1" }}
@@ -364,158 +376,173 @@
 
 <div class="nav flex-column gap-0">
   {% if request.user.is_authenticated %}
-    <div class="sidebar-section-title">Home</div>
-    <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}">
-      <i class="bi bi-speedometer2 me-2"></i>Dashboard
-    </a>
-
-    <div class="sidebar-section-title">Account</div>
-    <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}">
-      <i class="bi bi-person me-2"></i>My Profile
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}">
-      <i class="bi bi-sliders me-2"></i>Preferences
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}">
-      <i class="bi bi-bell me-2"></i>Notifications
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
-      <i class="bi bi-journal-text me-2"></i>Knowledge Base
-    </a>
-  {% endif %}
-
-  {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
-    <div class="sidebar-section-title">Communication</div>
-    <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
-      <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
-      {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}">
-      <i class="bi bi-people me-2"></i>Message Groups
-    </a>
-  {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
-    <div class="sidebar-section-title">Communication</div>
-    <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}">
-      <i class="bi bi-envelope-paper me-2"></i>Contact School
-    </a>
-  {% elif request.user.is_authenticated %}
-    {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
-      <div class="sidebar-section-title">Communication</div>
-      <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
-        <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
-        {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
+    {% comment %}Config-driven order from SiteSettings.portal_sidebar_order via PORTAL_SIDEBAR_ITEMS{% endcomment %}
+    {% if PORTAL_SIDEBAR_ITEMS %}
+      {% for item in PORTAL_SIDEBAR_ITEMS %}
+        {% if item.url %}
+          {% ifchanged item.section %}
+            <div class="sidebar-section-title">{{ item.section }}</div>
+          {% endifchanged %}
+          <a class="nav-link nav-pill{% if item.badge %} d-flex align-items-center justify-content-between{% endif %}" href="{{ item.url }}">
+            <span><i class="bi {{ item.icon|default:'bi-circle' }} me-2"></i>{{ item.label }}</span>
+            {% if item.badge %}<span class="badge bg-primary rounded-pill">{{ item.badge }}</span>{% endif %}
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <div class="sidebar-section-title">Home</div>
+      <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}">
+        <i class="bi bi-speedometer2 me-2"></i>Dashboard
       </a>
-      <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}">
-        <i class="bi bi-people me-2"></i>Message Groups
+      <div class="sidebar-section-title">Account</div>
+      <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}">
+        <i class="bi bi-person me-2"></i>My Profile
       </a>
-      <a class="nav-link nav-pill" href="{% url 'communication:announcement_create' %}">
-        <i class="bi bi-megaphone me-2"></i>Announcements
+      <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}">
+        <i class="bi bi-sliders me-2"></i>Preferences
       </a>
+      <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}">
+        <i class="bi bi-bell me-2"></i>Notifications
+      </a>
+      <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
+        <i class="bi bi-journal-text me-2"></i>Knowledge Base
+      </a>
+      {% if request.user.role == 'TEACHER' %}
+        <div class="sidebar-section-title">Communication</div>
+        <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
+          <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
+          {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
+        </a>
+        <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>Message Groups</a>
+      {% elif request.user.role == 'PARENT' %}
+        <div class="sidebar-section-title">Communication</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>Contact School</a>
+      {% elif request.user.is_staff or request.user.is_superuser or request.user|has_role:"ADMIN" or request.user|has_role:"LEADERSHIP" or request.user|has_role:"IT_ADMIN" %}
+        <div class="sidebar-section-title">Communication</div>
+        <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
+          <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
+          {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
+        </a>
+        {% if request.user|has_feature_permission:"communication.manage" or request.user.is_superuser %}
+        <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>Message Groups</a>
+        <a class="nav-link nav-pill" href="{% url 'communication:announcement_create' %}"><i class="bi bi-megaphone me-2"></i>Announcements</a>
+        {% endif %}
+      {% endif %}
+      {% if request.user.role == 'TEACHER' %}
+        <div class="sidebar-section-title">My Workflow</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
+        <div class="sidebar-section-title">Learning Management</div>
+        <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pencil-square me-2"></i>Enter Marks</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_list' %}"><i class="bi bi-table me-2"></i>Marks History</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-clipboard-check me-2"></i>Attendance</a>
+        <div class="sidebar-section-title">Human Resources</div>
+        <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}"><i class="bi bi-wallet2 me-2"></i>Payslips</a>
+        <a class="nav-link nav-pill" href="{% url 'payroll:employee_leave' %}"><i class="bi bi-calendar-check me-2"></i>Leave Requests</a>
+        <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}"><i class="bi bi-receipt me-2"></i>Pay History</a>
+      {% elif request.user.role == 'PARENT' %}
+        <div class="sidebar-section-title">My Workflow</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
+        <div class="sidebar-section-title">Children & Learning</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-people me-2"></i>My Children</a>
+        {% if request.user|has_feature_permission:"finance.view" or request.user|has_feature_permission:"finance.manage" %}
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}"><i class="bi bi-cash-coin me-2"></i>Finance & Fees</a>
+        {% endif %}
+        <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-person-plus me-2"></i>Link Child</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>Claim Invite</a>
+        <div class="sidebar-section-title">Performance Tracking</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Academic Stats</a>
+      {% elif request.user.is_staff or request.user.is_superuser or request.user|has_role:"ADMIN" or request.user|has_role:"LEADERSHIP" or request.user|has_role:"IT_ADMIN" or request.user|has_role:"BURSAR" or request.user|has_role:"SUPERADMIN" %}
+        {% comment %}RBAC: Admin Panel section – only show items the user has permission for (admin explicitly grants permissions).{% endcomment %}
+        <div class="sidebar-section-title">Admin Panel</div>
+        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+        <details class="sidebar-backend-group mb-1" open>
+          <summary class="nav-link nav-pill sidebar-backend-summary" role="button" aria-expanded="true"><i class="bi bi-gear-fill me-2"></i>Backend</summary>
+          <div class="nav flex-column gap-0 ms-3 mt-1">
+            <a class="nav-link nav-pill py-1" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-kanban me-2"></i>Backend Console</a>
+            <a class="nav-link nav-pill py-1" href="{% url 'accounts:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
+          </div>
+        </details>
+        {% endif %}
+        {% if request.user|has_feature_permission:"reports.manage" or request.user|has_feature_permission:"data.access" or request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+        <div class="sidebar-section-title">People & Access</div>
+        <a class="nav-link nav-pill" href="{% url 'admin:people_studentprofile_changelist' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>
+        <a class="nav-link nav-pill" href="{% url 'admin:people_studentguardian_changelist' %}"><i class="bi bi-people-fill me-2"></i>Student Guardians</a>
+        <a class="nav-link nav-pill" href="{% url 'admin:auth_group_changelist' %}"><i class="bi bi-unlock me-2"></i>Authentication Groups</a>
+        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+        <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control</a>
+        {% endif %}
+        {% endif %}
+        {% if request.user|has_feature_permission:"reports.manage" or request.user.is_superuser %}
+        <div class="sidebar-section-title">Academic Management</div>
+        <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-clipboard-data me-2"></i>Evaluation Admin</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}"><i class="bi bi-trophy me-2"></i>Class Ranking</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}"><i class="bi bi-bar-chart-line me-2"></i>School Ranking</a>
+        <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}"><i class="bi bi-megaphone me-2"></i>Publish Results</a>
+        {% endif %}
+        {% if request.user|has_feature_permission:"finance.view" or request.user|has_feature_permission:"finance.manage" or request.user.is_superuser %}
+        <div class="sidebar-section-title">Financial Management</div>
+        <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}"><i class="bi bi-currency-exchange me-2"></i>Finance Dashboard</a>
+        <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}"><i class="bi bi-cash-stack me-2"></i>Payroll</a>
+        {% endif %}
+        {% if request.user|has_feature_permission:"reports.manage" or request.user|has_feature_permission:"data.access" or request.user.is_superuser %}
+        <div class="sidebar-section-title">Analytics & Reports</div>
+        <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>Analytics</a>
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:report_library' %}"><i class="bi bi-journal-text me-2"></i>Report Library</a>
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder</a>
+        {% endif %}
+      {% endif %}
     {% endif %}
-  {% endif %}
-  {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
-    <!-- Teacher Navigation -->
-    <div class="sidebar-section-title">Learning Management</div>
-    <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_entry' %}">
-      <i class="bi bi-pencil-square me-2"></i>Enter Marks
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_list' %}">
-      <i class="bi bi-table me-2"></i>Marks History
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}">
-      <i class="bi bi-clipboard-check me-2"></i>Attendance
-    </a>
 
-    <div class="sidebar-section-title">Human Resources</div>
-    <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}">
-      <i class="bi bi-wallet2 me-2"></i>Payslips
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'payroll:employee_leave' %}">
-      <i class="bi bi-calendar-check me-2"></i>Leave Requests
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}">
-      <i class="bi bi-receipt me-2"></i>Pay History
-    </a>
-
-  {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
-    <!-- Parent Navigation -->
-    <div class="sidebar-section-title">Children & Learning</div>
-    <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}">
-      <i class="bi bi-people me-2"></i>My Children
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}">
-      <i class="bi bi-cash-coin me-2"></i>Finance & Fees
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}">
-      <i class="bi bi-person-plus me-2"></i>Link Child
-    </a>
-    <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}">
-      <i class="bi bi-ticket me-2"></i>Claim Invite
-    </a>
-
-    <div class="sidebar-section-title">Performance Tracking</div>
-    <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}">
-      <i class="bi bi-graph-up me-2"></i>Academic Stats
-    </a>
-
-  {% elif request.user.is_authenticated %}
-    {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
-      <!-- Admin Navigation -->
-      <div class="sidebar-section-title">Admin Panel</div>
-      <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}">
-        <i class="bi bi-gear-fill me-2"></i>Backend Console
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'accounts:workflow_center' %}">
-        <i class="bi bi-diagram-3 me-2"></i>Workflow Center
-      </a>
-
-      <div class="sidebar-section-title">People & Access</div>
-      <a class="nav-link nav-pill" href="{% url 'admin:people_studentprofile_changelist' %}">
-        <i class="bi bi-person-lines-fill me-2"></i>Student Profiles
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'admin:people_studentguardian_changelist' %}">
-        <i class="bi bi-people-fill me-2"></i>Student Guardians
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'admin:auth_group_changelist' %}">
-        <i class="bi bi-unlock me-2"></i>Authentication Groups
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}">
-        <i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control
-      </a>
-
-      <div class="sidebar-section-title">Academic Management</div>
-      <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}">
-        <i class="bi bi-clipboard-data me-2"></i>Evaluation Admin
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}">
-        <i class="bi bi-trophy me-2"></i>Class Ranking
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}">
-        <i class="bi bi-bar-chart-line me-2"></i>School Ranking
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}">
-        <i class="bi bi-megaphone me-2"></i>Publish Results
-      </a>
-
-      <div class="sidebar-section-title">Financial Management</div>
-      <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}">
-        <i class="bi bi-currency-exchange me-2"></i>Finance Dashboard
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}">
-        <i class="bi bi-cash-stack me-2"></i>Payroll
-      </a>
-
-      <div class="sidebar-section-title">Analytics & Reports</div>
-      <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}">
-        <i class="bi bi-graph-up-arrow me-2"></i>Analytics
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'siteconfig:report_library' %}">
-        <i class="bi bi-journal-text me-2"></i>Report Library
-      </a>
-      <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}">
-        <i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder
-      </a>
-    {% endif %}
+    <div class="sidebar-collapsible mt-3 recent-activity-block">
+      <div class="sidebar-collapsible-header recent-activity-toggle" role="button" aria-expanded="true" title="Click to expand or collapse">
+        <span>Recent Activity</span>
+        <i class="bi bi-chevron-down ms-1 recent-activity-chevron" aria-hidden="true"></i>
+      </div>
+      <div class="sidebar-collapsible-content recent-activity-content">
+      <ul class="list-unstyled mb-0 small mt-1 recent-activity-list">
+        {% if recent_activities %}
+          {% for activity in recent_activities|slice:":6" %}
+            <li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left: 3px solid rgba(99,102,241,0.5); padding-left: 0.6rem !important;">
+              <span class="fw-semibold d-block" style="font-size: 0.8rem;">{{ activity.user.username }}</span>
+              <span class="small text-muted">{{ activity.action }} {{ activity.model }}</span>
+              <span class="badge bg-secondary ms-1" style="font-size: 0.65rem;">{{ activity.time_ago }} ago</span>
+            </li>
+          {% endfor %}
+        {% else %}
+          <li class="text-muted small px-2">Loading activity…</li>
+        {% endif %}
+      </ul>
+      </div>
+    </div>
+    <script>
+      (function() {
+        var key = 'portal-sidebar-recent-activity-collapsed';
+        var collapsed = localStorage.getItem(key) === 'true';
+        function applyTo(header, content, chevron) {
+          content.classList.toggle('collapsed', collapsed);
+          header.setAttribute('aria-expanded', !collapsed);
+          if (chevron) chevron.classList.toggle('collapsed', collapsed);
+          localStorage.setItem(key, collapsed);
+        }
+        document.querySelectorAll('.recent-activity-block').forEach(function(block) {
+          var header = block.querySelector('.recent-activity-toggle');
+          var content = block.querySelector('.recent-activity-content');
+          var chevron = block.querySelector('.recent-activity-chevron');
+          if (!header || !content) return;
+          applyTo(header, content, chevron);
+          header.addEventListener('click', function() {
+            collapsed = !collapsed;
+            applyTo(header, content, chevron);
+            document.querySelectorAll('.recent-activity-block').forEach(function(b) {
+              var h = b.querySelector('.recent-activity-toggle');
+              var c = b.querySelector('.recent-activity-content');
+              var ch = b.querySelector('.recent-activity-chevron');
+              if (h && c) applyTo(h, c, ch);
+            });
+          });
+        });
+      })();
+    </script>
   {% endif %}
 </div>
 
@@ -543,6 +570,20 @@
   {% endif %}
 
 {% endwith %}
+{% endif %}
+
+<!-- Dashboard layout (only on dashboard pages with custom layout) -->
+{% if show_layout_customize_in_sidebar|default:False %}
+<div class="sidebar-section-title mt-4">Dashboard layout</div>
+<div class="nav flex-column gap-0">
+  <button type="button" class="nav-link nav-pill border-0 bg-transparent text-start w-100" id="sidebar-customize-layout-trigger" aria-label="Customize dashboard layout">
+    <i class="bi bi-grid-3x3-gap me-2"></i>Customize layout
+  </button>
+  <a class="nav-link nav-pill" href="#dashboard-settings-card">
+    <i class="bi bi-sliders me-2"></i>Dashboard settings
+  </a>
+</div>
+{% endif %}
 
 <!-- Additional Links -->
 <div class="sidebar-section-title mt-4">Settings</div>
@@ -553,8 +594,8 @@
 </div>
 
   {% if request.user.is_authenticated %}
-    {% comment %} RBAC: System Configuration only for admin/staff; not shown to teachers or parents {% endcomment %}
-    {% if request.user.is_staff and request.user.role != 'TEACHER' and request.user.role != 'PARENT' or request.user.is_superuser or request.user.role == 'ADMIN' %}
+    {% comment %}RBAC: System Configuration only for users with settings.manage (admin explicitly grants).{% endcomment %}
+    {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
       <hr class="my-3">
       <div class="sidebar-section-title mt-3">System Configuration</div>
       <div class="nav flex-column gap-0">

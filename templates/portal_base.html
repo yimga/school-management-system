@@ -17,12 +17,12 @@
     {% block extrastyle %}{% endblock %}
 
     <style>
-      {% with theme=SITE_THEME %}
+      {% with theme=SITE_THEME|default:None %}
       :root {
-        --school-primary: {{ theme.primary_color|default:"#0d6efd" }};
-        --school-accent: {{ theme.accent_color|default:"#198754" }};
-        --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
-        --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
+        --school-primary: {% if theme %}{{ theme.primary_color|default:"#0d6efd" }}{% else %}#0d6efd{% endif %};
+        --school-accent: {% if theme %}{{ theme.accent_color|default:"#198754" }}{% else %}#198754{% endif %};
+        --portal-bg: {% if theme %}{{ theme.background_color|default:"rgba(247,251,255,1)" }}{% else %}rgba(247,251,255,1){% endif %};
+        --portal-font: {% if theme %}{{ theme.font_family|default:"Inter, system-ui, sans-serif" }}{% else %}Inter, system-ui, sans-serif{% endif %};
       }
       {% endwith %}
 
@@ -87,6 +87,11 @@
         color: #ffc107 !important;
       }
 
+      #themeToggle:focus-visible {
+        outline: 2px solid var(--school-primary);
+        outline-offset: 2px;
+      }
+
       /* Admin Dropdown Menu */
       .dropdown-menu {
         border: 1px solid rgba(0,0,0,0.1);
@@ -121,6 +126,14 @@
       .card:hover {
         transform: translateY(-4px);
         box-shadow: 0 20px 40px rgba(15,23,42,0.2);
+      }
+
+      /* Optional boxed layout: add class portal-boxed to body to constrain main content width */
+      body.portal-boxed .main-content,
+      body.portal-boxed [data-portal-main] {
+        max-width: 1280px;
+        margin-left: auto;
+        margin-right: auto;
       }
 
       .widget-grid {
@@ -462,12 +475,12 @@
     <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
   </head>
 
-  <body class="{% block body_extra_class %}{% endblock %}">
-    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 bg-white rounded" href="#main-content">Skip to main content</a>
+  <body class="layout-{% if SITE %}{{ SITE.layout_style|default:'fluid' }}{% else %}fluid{% endif %}{% if SITE and SITE.layout_style == 'boxed' %} portal-boxed{% endif %} has-dashboard-footer {% block body_extra_class %}{% endblock %}">
+    <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 bg-white rounded" href="#main-content" aria-label="Skip to main content">Skip to main content</a>
     <nav class="navbar navbar-expand-lg navbar-dark topbar">
       <div class="container-fluid px-3">
-        <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar">
-          <i class="bi bi-list"></i>
+        <button class="btn btn-sm btn-outline-light d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="Open sidebar menu">
+          <i class="bi bi-list" aria-hidden="true"></i>
         </button>
 
         {% url 'accounts:backend_dashboard' as backend_url %}
@@ -559,6 +572,7 @@
               >
                 <i class="bi bi-moon-stars"></i>
               </button>
+              {% block topbar_theme_extra %}{% endblock %}
 
               <div class="dropdown">
                 <button 
@@ -765,5 +779,8 @@
 
     {# Main Footer with Accreditation and Support #}
     {% include 'components/footer.html' %}
+    <script>
+      if (document.getElementById('dashboardFooter')) document.body.classList.add('has-dashboard-footer');
+    </script>
   </body>
 </html>

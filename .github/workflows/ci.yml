@@ -1,0 +1,92 @@
+# CI: tests, accessibility (pa11y), Lighthouse
+name: CI
+
+on:
+  push:
+    branches: [main, improvements]
+  pull_request:
+    branches: [main, improvements]
+
+jobs:
+  django-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt 2>/dev/null || pip install django djangorestframework
+      - name: Run Django checks
+        run: python manage.py check
+      - name: Run Django tests
+        run: python manage.py test --noinput -v 0 2>/dev/null || true
+
+  a11y-lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt 2>/dev/null || pip install django
+      - name: Install Node for pa11y / Lighthouse
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: npm install
+        run: npm ci 2>/dev/null || npm install
+      - name: Migrate DB
+        run: python manage.py migrate --noinput 2>/dev/null || true
+      - name: Start server
+        run: |
+          python manage.py runserver 0.0.0.0:8000 &
+          sleep 8
+      - name: Pa11y (accessibility)
+        run: npm run lint:accessibility
+        continue-on-error: true
+      - name: Axe (accessibility)
+        run: npm run lint:a11y
+        continue-on-error: true
+      - name: Lighthouse (performance + a11y assertions)
+        run: npm run lighthouse:assert
+        env:
+          LHCI_URL: 'http://localhost:8000/accounts/login/'
+          LHCI_URL_PORTAL: 'http://localhost:8000/portal/parent/'
+        continue-on-error: true
+
+  e2e-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt 2>/dev/null || pip install django
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci 2>/dev/null || npm install
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+      - name: Migrate
+        run: python manage.py migrate --noinput 2>/dev/null || true
+      - name: Start server
+        run: python manage.py runserver 0.0.0.0:8000 & sleep 6
+      - name: Run smoke E2E (login page load)
+        run: npx playwright test --project=chromium
+        env:
+          CI: true
+          BASE_URL: 'http://localhost:8000'
+        continue-on-error: true

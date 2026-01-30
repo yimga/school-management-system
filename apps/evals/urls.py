@@ -3,6 +3,7 @@ from django.urls import path
 app_name = "evals"
 from .views import (
     teacher_dashboard,
+    teacher_workflow_center,
     teacher_marks_entry,
     teacher_marks_list,
     class_ranking_view,

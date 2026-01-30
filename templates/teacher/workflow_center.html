@@ -1,0 +1,106 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Workflow Center{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'workflow';
+  });
+</script>
+<style>
+  .workflow-hero {
+    background: linear-gradient(135deg, rgba(102,126,234,0.14), rgba(118,75,162,0.12));
+    border: 1px solid rgba(148,163,184,0.22);
+    border-radius: 18px;
+    padding: 1.25rem 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .workflow-hero h2 { margin: 0; font-weight: 800; color: var(--portal-heading-color, #0f2a42); }
+  .workflow-hero p { margin: 0.25rem 0 0; color: var(--portal-muted-color, #475569); }
+  .workflow-progress-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(148,163,184,0.2);
+  }
+  .workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .workflow-card {
+    border: 1px solid rgba(148,163,184,0.22);
+    border-radius: 18px;
+    background: var(--portal-card-bg, #fff);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+  }
+  .workflow-card .card-body { padding: 1.1rem 1.1rem; }
+  .workflow-title { font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem; color: var(--portal-heading-color, #0f2a42); }
+  .workflow-subtitle { margin: 0 0 0.5rem; color: var(--portal-muted-color, #64748b); font-size: 0.9rem; }
+  .workflow-progress-label {
+    font-size: 0.8rem;
+    color: var(--portal-primary, #0d6efd);
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+  }
+  .workflow-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .workflow-links a { border-radius: 999px; font-weight: 650; }
+  .workflow-links a.btn-primary { border-radius: 999px; }
+  @media (max-width: 575px) {
+    .workflow-hero { padding: 1rem; }
+    .workflow-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="workflow-hero">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
+      <div>
+        <h2>Workflow Center</h2>
+        <p>Marks entry, leave, attendance, pay history, and syllabus in one place.</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_dashboard_alias' %}">
+          <i class="bi bi-speedometer2 me-1"></i>Teacher hub
+        </a>
+      </div>
+    </div>
+    {% if active_year or active_term %}
+    <div class="mt-2 small text-muted">
+      Active year: <strong>{{ active_year.name|default:"—" }}</strong> · Active term: <strong>{{ active_term.label|default:active_term|default:"—" }}</strong>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="workflow-grid">
+    {% for step in steps %}
+      <div class="workflow-card">
+        <div class="card-body">
+          <div class="workflow-title">{{ step.title }}</div>
+          <div class="workflow-subtitle">{{ step.subtitle }}</div>
+          {% if step.progress_label %}
+          <div class="workflow-progress-label">{{ step.progress_label }}</div>
+          {% endif %}
+          <div class="workflow-links">
+            {% for link in step.links %}
+              {% if link.primary %}
+              <a class="btn btn-sm btn-primary" href="{{ link.url }}">{{ link.label }}</a>
+              {% else %}
+              <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

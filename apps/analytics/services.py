@@ -7,7 +7,7 @@ from typing import Iterable, Optional
 
 from django.utils import timezone
 
-from apps.academics.models import AcademicYear, Term, Classroom, Specialty, Subject
+from apps.academics.models import AcademicYear, Term, Classroom, Specialty, Subject, SubjectAssignment
 from apps.evals.models import AssessmentWeights, Evaluation, TeacherAssignment
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.reports.models import PromotionRule, TermPublishStatus
@@ -83,12 +83,23 @@ def _custom_deadline(
     classroom: Optional[Classroom],
 ) -> Optional[datetime]:
     """
-    Get custom deadline for grading.
-    
-    NOTE: GradingDeadline model was removed. Returns None.
-    TODO: Implement using SubjectAssignment.deadline_at when field is added.
+    Get custom deadline for grading from SubjectAssignment.deadline_at.
+    Returns the latest deadline_at for this year/term/classroom, or None.
     """
-    return None
+    if not classroom:
+        return None
+    sa = (
+        SubjectAssignment.objects.filter(
+            academic_year=academic_year,
+            term=term,
+            classroom=classroom,
+            deadline_at__isnull=False,
+        )
+        .order_by("-deadline_at")
+        .values_list("deadline_at", flat=True)
+        .first()
+    )
+    return sa
 
 
 def _publish_deadline(
@@ -447,38 +458,36 @@ def get_teacher_compliance(academic_year_id, term_id):
     from django.utils import timezone
     
     TeacherProfile = django_apps.get_model('people', 'TeacherProfile')
-    TeacherAssignment = django_apps.get_model('academics', 'TeacherAssignment')
     SubjectAssignment = django_apps.get_model('academics', 'SubjectAssignment')
     StudentProfile = django_apps.get_model('people', 'StudentProfile')
+    # TeacherAssignment is from evals (imported at top)
     
     today = timezone.now().date()
     compliance_data = []
     
-    # Get all teachers for academic year
+    # Get all teachers for academic year; group by (teacher, classroom) via subject_assignment
     teacher_assignments = TeacherAssignment.objects.filter(
         academic_year_id=academic_year_id
-    ).select_related('teacher', 'classroom')
+    ).select_related('teacher', 'teacher__user', 'subject_assignment', 'subject_assignment__classroom', 'subject_assignment__subject')
     
+    from collections import defaultdict
+    by_teacher_classroom = defaultdict(list)  # (teacher_id, classroom_id) -> [(ta, sa), ...]
     for ta in teacher_assignments:
-        teacher = ta.teacher
-        classroom = ta.classroom
-        
-        # Get all subject assignments this teacher teaches in this classroom
-        subject_assignments = SubjectAssignment.objects.filter(
-            teacher=teacher,
-            classroom=classroom,
-            academic_year_id=academic_year_id
-        ).select_related('subject')
+        sa = ta.subject_assignment
+        if sa.term_id != term_id:
+            continue
+        by_teacher_classroom[(ta.teacher_id, sa.classroom_id)].append((ta, sa))
+    
+    for (_teacher_id, _classroom_id), items in by_teacher_classroom.items():
+        teacher = items[0][0].teacher
+        classroom = items[0][1].classroom
+        subject_assignments = [sa for _ta, sa in items]
         
         # Get deadline info
         deadlines_info = []
         total_students = StudentProfile.objects.filter(classroom=classroom).count()
         
         for sa in subject_assignments:
-            # TODO: Implement deadline checking using SubjectAssignment.deadline_at
-            # when field is added. For now, skip deadline logic.
-            pass
-            
             # Count submissions
             submitted_count = Evaluation.objects.filter(
                 academic_year_id=academic_year_id,
@@ -486,22 +495,30 @@ def get_teacher_compliance(academic_year_id, term_id):
                 subject_assignment=sa,
                 teacher=teacher
             ).distinct('student').count()
-            
-            days_left = (deadline.deadline_date - today).days
-            
-            if days_left < 0:
-                submission_status = 'overdue'
-            elif days_left <= 3:
-                submission_status = 'at_risk'
-            else:
-                submission_status = 'on_track'
-            
+
             completion_rate = (submitted_count / total_students * 100) if total_students > 0 else 0
-            
+
+            # Deadline from SubjectAssignment.deadline_at
+            deadline_at = getattr(sa, 'deadline_at', None)
+            if deadline_at is not None:
+                deadline_date = deadline_at.date() if hasattr(deadline_at, 'date') else deadline_at
+                days_left = (deadline_date - today).days
+                if days_left < 0:
+                    submission_status = 'overdue'
+                elif days_left <= 3:
+                    submission_status = 'at_risk'
+                else:
+                    submission_status = 'on_track'
+                deadline_date_iso = deadline_date.isoformat() if hasattr(deadline_date, 'isoformat') else str(deadline_date)
+            else:
+                days_left = None
+                submission_status = 'on_track'
+                deadline_date_iso = ''
+
             deadlines_info.append({
                 'subject_assignment_id': sa.id,
                 'subject_name': sa.subject.name,
-                'deadline_date': deadline.deadline_date.isoformat(),
+                'deadline_date': deadline_date_iso,
                 'days_left': days_left,
                 'submission_status': submission_status,
                 'completion_rate': round(completion_rate, 1),

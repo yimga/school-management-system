@@ -1,5 +1,6 @@
 /**
- * Shared dashboard customizer: drag/drop, sidebar, tile styles, custom links.
+ * Dashboard customizer: sidebar, tile styles, widget meta (size/variant), custom links.
+ * Reordering is handled by dashboard-layout.js (Sortable.js) only.
  * Requires a container with id "dashboard-layout" and cards with data-widget-id.
  */
 (function () {
@@ -247,36 +248,26 @@
   };
 
   const persistLayout = async () => {
-    if (!state.endpoints.save) return;
-    const layoutItems = [];
-    container.querySelectorAll("[data-widget-id]").forEach((card, idx) => {
-      const column =
-        card.dataset.dashboardColumn ||
-        card.closest("[data-dashboard-column]")?.dataset.dashboardColumn ||
-        "main";
-      layoutItems.push({
-        id: card.dataset.widgetId,
-        column,
-        order: idx,
-        size: card.dataset.widgetSize,
-        variant: card.dataset.widgetVariant,
-      });
-    });
-    const layoutPayload = {
-      items: layoutItems,
-      __settings__: state.settings,
-    };
+    const saveUrl = state.endpoints.save;
+    const loadUrl = state.endpoints.load || saveUrl;
+    if (!saveUrl) return;
     try {
-      await fetch(state.endpoints.save, {
-        method: "POST",
+      const res = await fetch(loadUrl, { credentials: "same-origin" });
+      const data = await res.json();
+      const currentLayout = (data && data.layout) || {};
+      const currentItems = Array.isArray(currentLayout.items) ? currentLayout.items : [];
+      const layoutPayload = {
+        items: currentItems,
+        __settings__: state.settings,
+      };
+      await fetch(saveUrl, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrf(),
         },
         credentials: "same-origin",
-        body: JSON.stringify({
-          layout: layoutPayload,
-        }),
+        body: JSON.stringify({ layout: layoutPayload }),
       });
     } catch (_) {}
   };
@@ -287,62 +278,17 @@
     applyWidgetMeta();
   };
 
-  const enableDrag = () => {
+  // Drag/reorder is handled only by dashboard-layout.js (Sortable.js). We only toggle
+  // "drag-mode" here to show/hide widget-meta controls (size, variant) and settings UI.
+  const enableCustomizeMode = () => {
     if (!customDragEnabled) return;
-    // Check if dashboard-layout.js (Sortable.js) is already handling drag
-    if (container.classList.contains("drag-mode") && window.Sortable) {
-      // Sortable.js is active, don't interfere
-      return;
-    }
     container.classList.add("drag-mode");
-    cards.forEach((card) => {
-      card.setAttribute("draggable", "true");
-      card.addEventListener("dragstart", onDragStart);
-      card.addEventListener("dragover", onDragOver);
-      card.addEventListener("drop", onDrop);
-      card.addEventListener("dragend", onDragEnd);
-    });
   };
 
-  const disableDrag = () => {
+  const disableCustomizeMode = () => {
     if (!customDragEnabled) return;
     container.classList.remove("drag-mode");
-    cards.forEach((card) => {
-      card.removeAttribute("draggable");
-      card.classList.remove("dragging");
-      card.removeEventListener("dragstart", onDragStart);
-      card.removeEventListener("dragover", onDragOver);
-      card.removeEventListener("drop", onDrop);
-      card.removeEventListener("dragend", onDragEnd);
-    });
   };
-
-  let dragSrc = null;
-  function onDragStart(e) {
-    dragSrc = this;
-    this.classList.add("dragging");
-    e.dataTransfer.effectAllowed = "move";
-  }
-  function onDragOver(e) {
-    e.preventDefault();
-    const target = e.target.closest("[data-widget-id]");
-    if (!target || target === dragSrc) return;
-    const cardsArr = Array.from(container.querySelectorAll("[data-widget-id]"));
-    const srcIdx = cardsArr.indexOf(dragSrc);
-    const tgtIdx = cardsArr.indexOf(target);
-    if (srcIdx < tgtIdx) {
-      target.after(dragSrc);
-    } else {
-      target.before(dragSrc);
-    }
-  }
-  function onDrop(e) {
-    e.preventDefault();
-  }
-  function onDragEnd() {
-    this.classList.remove("dragging");
-    persistLayout();
-  }
 
   // Event wiring for controls (if present)
   const initControls = () => {
@@ -371,16 +317,16 @@
         toggle.closest(".form-check")?.classList.add("text-muted");
       } else {
         toggle.addEventListener("change", (e) => {
-          e.target.checked ? enableDrag() : disableDrag();
+          e.target.checked ? enableCustomizeMode() : disableCustomizeMode();
         });
       }
       if (customDragEnabled && toggle.checked) {
-        enableDrag();
+        enableCustomizeMode();
       }
     }
 
     if (!toggle && customDragEnabled) {
-      enableDrag();
+      enableCustomizeMode();
     }
 
     if (toggleSidebar) {

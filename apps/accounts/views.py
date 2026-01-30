@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden
 from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
@@ -20,11 +20,12 @@ from apps.academics.models import AcademicYear, Classroom
 from apps.reports.models import TermPublishStatus
 from apps.siteconfig.models import SiteSettings
 from apps.academics.services import get_active_year_and_term
+from apps.academics.services_year_setup import clone_academic_year
 from apps.portal.services import link_guardian_via_invite
 from apps.accounts.decorators import permission_required
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
-from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, DashboardWidget
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
 
 from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
@@ -309,14 +310,12 @@ def redirect_view(request):
     """Central post-login redirect based on role.
 
     Keeping this logic in one place makes LOGIN_REDIRECT_URL reliable and
-    prevents hard-coded URLs from drifting.
+    prevents hard-coded URLs from drifting. Respects "Dashboard view" preference
+    (Overview, Workflow Center, Finance, etc.) for backend, teacher, and parent.
     """
     user = request.user
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
-
-    if user.has_feature_permission("settings.manage"):
-        return redirect("accounts:backend_dashboard")
 
     # Respect the user's "Dashboard view" preference (Portal Preferences) when possible.
     dash_view = None
@@ -329,11 +328,20 @@ def redirect_view(request):
         dash_view = None
 
     role = getattr(user, "role", None)
+
+    # Staff/backend: Dashboard or Workflow Center as default view
+    if user.has_feature_permission("settings.manage"):
+        if dash_view == "WORKFLOW":
+            return redirect("accounts:workflow_center")
+        return redirect("accounts:backend_dashboard")
+
     if role == "TEACHER":
-        # Teacher dashboard is the primary hub; we don't route away, but the preference can
-        # be used for in-page emphasis later.
+        if dash_view == "WORKFLOW":
+            return redirect("portal:teacher_workflow")
         return redirect("evals:teacher_dashboard")
     if role == "PARENT":
+        if dash_view == "WORKFLOW":
+            return redirect("portal:parent_workflow")
         if dash_view == "FINANCE":
             return redirect("portal:parent_finance")
         if dash_view == "ACADEMICS":
@@ -760,12 +768,24 @@ def backend_dashboard(request):
         "hero": hero,
         "app_list": app_context.get("available_apps", []),
         "allow_custom_layout": allow_custom_layout,
+        "show_layout_customize_in_sidebar": allow_custom_layout,
         "dashboard_settings": dashboard_settings,
         "dashboard_layout_url": dashboard_layout_url,
         "available_sidebar_items": available_sidebar_items,
         "organized_sidebar": organized_sidebar,
         "sidebar_categories": sidebar_categories,
         "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
+        "widget_chart_types_json": mark_safe(
+            json.dumps(
+                {
+                    w.id: (w.chart_type or "").strip()
+                    for w in DashboardWidget.objects.filter(
+                        page="backend", widget_type="chart", is_active=True
+                    )
+                    if (w.chart_type or "").strip()
+                }
+            )
+        ),
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,
@@ -837,6 +857,8 @@ def workflow_center(request):
 
     # Build links defensively: only include links that resolve
     year_setup_links = [
+        _workflow_link("Clone previous year", "accounts:clone_year_setup"),
+        _workflow_link("Promotion mapping (next class)", "admin:academics_classroompromotionmapping_changelist"),
         _workflow_link("Academic years", "admin:academics_academicyear_changelist"),
         _workflow_link("Terms", "admin:academics_term_changelist"),
         _workflow_link("Classrooms", "admin:academics_classroom_changelist"),
@@ -860,6 +882,10 @@ def workflow_center(request):
     ]
     reports_links = [
         _workflow_link("Publish term results", "reports:publish_term_results"),
+        _workflow_link("Year-end rollover", "accounts:rollover_year"),
+        _workflow_link("Statistical return", "reports:statistical_return"),
+        _workflow_link("Promotion preview (borderline)", "reports:promotion_preview"),
+        _workflow_link("Resource return checklist", "admin:people_studentresourcereturn_changelist"),
         _workflow_link("Report card builder", "siteconfig:reportcard_builder"),
         _workflow_link("Report library", "siteconfig:report_library"),
     ]
@@ -867,6 +893,7 @@ def workflow_center(request):
         _workflow_link("Message groups", "communication:group_list"),
         _workflow_link("Create announcement", "communication:announcement_create"),
         _workflow_link("Parent contact requests", "portal:staff_contact_request_list"),
+        _workflow_link("Absence alert (Site settings)", "admin:siteconfig_sitesettings_change", args=(site.pk,)),
     ]
     documents_links = [
         _workflow_link("Document library", "portal:document_library_manage"),
@@ -885,6 +912,7 @@ def workflow_center(request):
         else [_workflow_link("Enable in Academic Year", "admin:academics_academicyear_changelist")]
     )
     settings_links = [
+        _workflow_link("Academic rules", "accounts:academic_rules"),
         _workflow_link("Site settings (admin)", "admin:siteconfig_sitesettings_change", args=(site.pk,)),
         _workflow_link("Preferences (operator UI)", "siteconfig:user_preferences"),
         _workflow_link("RBAC & access control", "accounts:rbac"),
@@ -894,69 +922,363 @@ def workflow_center(request):
     def _filter_links(links):
         return [lnk for lnk in links if lnk is not None and lnk.get("url")]
 
+    gce_enabled = year and getattr(year, "enable_gce_registration", False) if year else False
+
     steps = [
         {
             "title": "1) Year setup",
             "subtitle": "Academic year, terms, classrooms, departments, specialties.",
             "step_key": "year_setup",
+            "icon": "bi-calendar3",
             "progress_label": f"{progress.get('classrooms', 0)} classrooms" if year else "Set active year",
+            "tip": "Set the active academic year first; other steps use it for enrollment and reports.",
             "links": _filter_links(year_setup_links),
         },
         {
             "title": "2) Onboarding",
             "subtitle": "Enroll students/teachers and link parents.",
             "step_key": "onboarding",
+            "icon": "bi-people",
             "progress_label": f"{progress.get('students', 0)} students, {progress.get('teachers', 0)} teachers",
+            "tip": "Use the wizards for guided onboarding; invite guardians so parents can see reports.",
             "links": _filter_links(onboarding_links),
         },
         {
             "title": "3) Marks entry + OCR",
             "subtitle": "Enter marks, upload marksheets, review OCR, submit for approval.",
             "step_key": "marks",
+            "icon": "bi-pencil-square",
             "progress_label": None,
+            "tip": "Teachers enter marks; use approval requests for controlled release.",
             "links": _filter_links(marks_links),
         },
         {
             "title": "4) Publish reports",
             "subtitle": "Generate report cards and publish to parents safely.",
             "step_key": "reports",
+            "icon": "bi-file-earmark-text",
             "progress_label": None,
+            "tip": "Publish term results when marks are approved; parents see them in the portal.",
             "links": _filter_links(reports_links),
         },
         {
             "title": "5) Communication",
             "subtitle": "Groups, department chats, announcements, and parent contact requests.",
             "step_key": "communication",
+            "icon": "bi-chat-dots",
             "progress_label": None,
+            "tip": None,
             "links": _filter_links(communication_links),
         },
         {
             "title": "5b) Documents & forms",
             "subtitle": "Document library, upload forms, and electronic signature requests.",
             "step_key": "documents",
+            "icon": "bi-folder2-open",
             "progress_label": None,
+            "tip": None,
             "links": _filter_links(documents_links),
         },
         {
-            "title": "6) Certification & GCE (optional)",
-            "subtitle": "Enable per academic year. Manage candidates, deadlines, exports, and audit trail.",
+            "title": "6) Certification & exams (optional)",
+            "subtitle": "General & technical: GCE, BAC, BEPC, CAP, etc. Enable per year; manage candidates, deadlines, exports.",
             "step_key": "certification",
-            "progress_label": None,
+            "icon": "bi-award",
+            "progress_label": "Enabled" if gce_enabled else "Enable in Academic Year",
+            "tip": "Designed for Cameroon general and technical education; adapt sessions to your subsystem (GCE, BAC, BEPC, CAP).",
             "links": _filter_links(certification_links),
         },
         {
             "title": "7) Settings & theme",
             "subtitle": "Site settings, preferences, preview/sandbox, and role access.",
             "step_key": "settings",
+            "icon": "bi-gear",
             "progress_label": None,
+            "tip": "RBAC controls who sees which dashboards; set theme and branding here.",
             "links": _filter_links(settings_links),
         },
     ]
+    total_steps = len(steps)
+    for i, s in enumerate(steps, start=1):
+        s["step_index"] = i
+        s["total_steps"] = total_steps
 
     return render(
         request,
         "accounts/workflow_center.html",
         {"site": site, "active_year": year, "active_term": term, "steps": steps, "workflow_progress": progress},
+    )
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+def clone_year_setup(request):
+    """
+    Clone structure from a previous academic year to a target year (terms, classrooms, subject assignments, promotion rules).
+    Target year must already exist; create it in admin first if needed.
+    """
+    from apps.academics.models import AcademicYear
+
+    years = list(AcademicYear.objects.all().order_by("-start_date"))
+    if request.method == "POST":
+        from django.views.decorators.http import require_http_methods
+
+        source_id = request.POST.get("source_year")
+        target_id = request.POST.get("target_year")
+        if not source_id or not target_id:
+            messages.error(request, "Please select both source and target year.")
+            return render(request, "accounts/clone_year_setup.html", {"years": years})
+
+        if source_id == target_id:
+            messages.error(request, "Source and target year must be different.")
+            return render(request, "accounts/clone_year_setup.html", {"years": years})
+
+        source_year = get_object_or_404(AcademicYear, id=source_id)
+        target_year = get_object_or_404(AcademicYear, id=target_id)
+        try:
+            stats = clone_academic_year(source_year, target_year)
+            messages.success(
+                request,
+                f"Cloned {source_year.name} → {target_year.name}: "
+                f"{stats['terms_created']} terms, {stats['classrooms_created']} classrooms, "
+                f"{stats['subject_assignments_created']} subject assignments, {stats['promotion_rules_created']} promotion rules.",
+            )
+            return redirect("accounts:workflow_center")
+        except Exception as e:
+            messages.error(request, f"Clone failed: {e}")
+            return render(request, "accounts/clone_year_setup.html", {"years": years})
+
+    return render(request, "accounts/clone_year_setup.html", {"years": years})
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+def rollover_year(request):
+    """
+    Year-end rollover: move students from source year to target year and assign next classroom.
+    Uses promotion status to suggest next class; operator can override per student.
+    Optionally lock the source year after rollover.
+    """
+    from apps.academics.models import AcademicYear, Classroom
+    from apps.reports.services import (
+        get_promotion_status,
+        _annual_average_for_student,
+        terms_for_student,
+    )
+    from apps.academics.models import Term
+
+    years = list(AcademicYear.objects.all().order_by("-start_date"))
+    if request.method == "POST":
+        source_id = request.POST.get("source_year")
+        target_id = request.POST.get("target_year")
+        lock_source = request.POST.get("lock_source") == "on"
+        notify_parents = request.POST.get("notify_parents") == "on"
+        allow_outstanding_returns = request.POST.get("allow_outstanding_returns") == "on"
+        if not source_id or not target_id:
+            messages.error(request, "Please select both source and target year.")
+            return render(request, "accounts/rollover_year.html", {"years": years})
+
+        source_year = get_object_or_404(AcademicYear, id=source_id)
+        target_year = get_object_or_404(AcademicYear, id=target_id)
+        if getattr(source_year, "is_locked", False):
+            messages.error(request, f"{source_year.name} is locked; rollover from this year is not allowed.")
+            return render(request, "accounts/rollover_year.html", {"years": years})
+
+        target_classrooms = list(Classroom.objects.filter(academic_year=target_year).order_by("name"))
+        target_classrooms_by_id = {c.id: c for c in target_classrooms}
+
+        students = list(StudentProfile.objects.filter(
+            academic_year=source_year, is_active=True
+        ).select_related("classroom"))
+        site = SiteSettings.get_solo()
+        flags = getattr(site, "backend_feature_flags", None) or {}
+        block_if_outstanding = flags.get("block_promotion_if_outstanding_returns", False)
+        from django.db.models import Count
+        from apps.people.models import StudentResourceReturn
+        outstanding_by_student = dict(
+            StudentResourceReturn.objects.filter(
+                academic_year=source_year,
+                returned_at__isnull=True,
+            )
+            .values("student_id")
+            .annotate(count=Count("id"))
+            .values_list("student_id", "count")
+        )
+        updated = 0
+        graduated = 0
+        skipped_outstanding = 0
+        rolled_students = []  # (student, new_classroom) for notifications
+        GRADUATE_VALUE = "__graduate__"
+        for s in students:
+            key = f"classroom_{s.id}"
+            classroom_id = request.POST.get(key)
+            if not classroom_id:
+                continue
+            outstanding = outstanding_by_student.get(s.id, 0)
+            if block_if_outstanding and not allow_outstanding_returns and outstanding > 0:
+                skipped_outstanding += 1
+                continue
+            if classroom_id == GRADUATE_VALUE:
+                s.academic_year = target_year
+                s.classroom = None
+                s.status = StudentProfile.Status.ALUMNI
+                s.is_active = False
+                s.save(update_fields=["academic_year", "classroom", "status", "is_active"])
+                graduated += 1
+                continue
+            try:
+                new_class = target_classrooms_by_id.get(int(classroom_id))
+            except (ValueError, TypeError):
+                continue
+            if not new_class:
+                continue
+            s.academic_year = target_year
+            s.classroom = new_class
+            s.save(update_fields=["academic_year", "classroom"])
+            updated += 1
+            rolled_students.append((s, new_class))
+        if notify_parents and rolled_students:
+            from apps.people.models import StudentGuardian
+            from apps.finance.models import Notification as FinanceNotification
+            notifier = None
+            try:
+                from apps.evals.notifications import NotificationService
+                notifier = NotificationService()
+            except Exception:
+                pass
+            for student, new_classroom in rolled_students:
+                msg = f"Your child {student.get_full_name() or student.last_name} has been assigned to {new_classroom.name} for {target_year.name}."
+                for link in StudentGuardian.objects.filter(student=student).select_related("guardian_user"):
+                    if link.guardian_user_id:
+                        FinanceNotification.objects.create(
+                            title="Class assignment",
+                            message=msg,
+                            severity=FinanceNotification.Severity.INFO,
+                            recipient_id=link.guardian_user_id,
+                            created_by=request.user,
+                        )
+                    if notifier and getattr(link, "phone", None) and link.phone and getattr(link, "receives_sms", False):
+                        try:
+                            notifier.send_sms(link.phone, msg)
+                        except Exception:
+                            pass
+        if lock_source:
+            source_year.is_locked = True
+            source_year.save(update_fields=["is_locked"])
+            messages.success(request, f"Rolled over {updated} students to {target_year.name} and locked {source_year.name}.")
+        else:
+            messages.success(request, f"Rolled over {updated} students to {target_year.name}.")
+        if graduated:
+            messages.success(request, f"Marked {graduated} student(s) as Alumni.")
+        if skipped_outstanding:
+            messages.warning(
+                request,
+                f"Skipped {skipped_outstanding} student(s) due to outstanding resource returns. "
+                "Enable 'Allow rollover despite outstanding returns' to include them, or mark items returned in Resource return checklist.",
+            )
+        return redirect("accounts:rollover_year")
+
+    # GET: show form and optionally student list when source/target selected
+    source_id = request.GET.get("source_year")
+    target_id = request.GET.get("target_year")
+    context = {"years": years, "rows": [], "source_year": None, "target_year": None, "target_classrooms": [], "checklist": [], "block_promotion_if_outstanding_returns": False}
+    if source_id and target_id:
+        source_year = AcademicYear.objects.filter(id=source_id).first()
+        target_year = AcademicYear.objects.filter(id=target_id).first()
+        if source_year and target_year:
+            context["source_year"] = source_year
+            context["target_year"] = target_year
+            target_classrooms_list = list(
+                Classroom.objects.filter(academic_year=target_year).order_by("name")
+            )
+            context["target_classrooms"] = target_classrooms_list
+            # Pre-rollover checklist (informational)
+            source_locked = getattr(source_year, "is_locked", False)
+            context["checklist"] = [
+                {"label": "Source year is not locked", "ok": not source_locked},
+                {"label": "Target year has classrooms", "ok": len(target_classrooms_list) > 0},
+                {"label": "Final grades entered and reports finalized (manual check)", "ok": None},
+            ]
+            # Promotion mapping for suggested next class (if model exists)
+            promotion_map = {}
+            try:
+                from apps.academics.models import ClassroomPromotionMapping
+                for m in ClassroomPromotionMapping.objects.filter(
+                    source_year=source_year, target_year=target_year
+                ).select_related("source_classroom", "target_classroom"):
+                    if m.source_classroom_id:
+                        promotion_map[m.source_classroom_id] = m.target_classroom
+            except Exception:
+                pass
+            terms = list(Term.objects.filter(academic_year=source_year).order_by("position", "start_date"))
+            students = StudentProfile.objects.filter(
+                academic_year=source_year, is_active=True
+            ).select_related("classroom")
+            from django.db.models import Count
+            from apps.people.models import StudentResourceReturn
+            outstanding_counts = dict(
+                StudentResourceReturn.objects.filter(
+                    academic_year=source_year,
+                    returned_at__isnull=True,
+                )
+                .values("student_id")
+                .annotate(count=Count("id"))
+                .values_list("student_id", "count")
+            )
+            site = SiteSettings.get_solo()
+            context["block_promotion_if_outstanding_returns"] = (
+                (getattr(site, "backend_feature_flags", None) or {}).get("block_promotion_if_outstanding_returns", False)
+            )
+            for s in students:
+                annual_avg = _annual_average_for_student(s, terms) if terms else None
+                promo = get_promotion_status(s, source_year, annual_avg) if annual_avg is not None else "NO_DATA"
+                # Suggest: promotion mapping first, then same-name classroom in target year
+                suggested = None
+                if s.classroom_id and promotion_map:
+                    suggested = promotion_map.get(s.classroom_id)
+                if not suggested and s.classroom:
+                    suggested = Classroom.objects.filter(
+                        academic_year=target_year, name=s.classroom.name
+                    ).first()
+                if not suggested and context["target_classrooms"]:
+                    suggested = context["target_classrooms"][0]
+                context["rows"].append({
+                    "student": s,
+                    "annual_average": round(annual_avg, 2) if annual_avg is not None else None,
+                    "promotion_status": promo,
+                    "suggested_classroom": suggested,
+                    "outstanding_returns": outstanding_counts.get(s.id, 0),
+                })
+    return render(request, "accounts/rollover_year.html", context)
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+def academic_rules(request):
+    """
+    Single page showing promotion thresholds, grading scale, and who can edit grades (academic rules summary).
+    """
+    from apps.reports.models import PromotionRule
+
+    site = SiteSettings.get_solo()
+    year, _ = get_active_year_and_term()
+    rules = []
+    if year:
+        rules = list(
+            PromotionRule.objects.filter(academic_year=year)
+            .select_related("classroom")
+            .order_by("classroom__name")[:50]
+        )
+    return render(
+        request,
+        "accounts/academic_rules.html",
+        {
+            "site": site,
+            "active_year": year,
+            "rules": rules,
+            "pass_mark": getattr(site, "pass_mark", None),
+            "use_promotion_rule_for_pass": getattr(site, "use_promotion_rule_for_pass", False),
+        },
     )
 
 

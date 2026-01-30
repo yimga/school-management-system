@@ -52,8 +52,6 @@ from apps.portal.services import (
 from apps.communication.models import MessageThread
 from apps.siteconfig.models import resolve_dashboard_widgets, SiteSettings, default_backend_feature_flags
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
-from apps.siteconfig.dashboard_views import _can_customize
 from apps.finance.models import Notification
 from apps.compliance.models_audit import AuditLog
 
@@ -569,12 +567,72 @@ def teacher_dashboard(request: HttpRequest):
         "finance_access_banner": finance_access_banner,
         "available_sidebar_items": available_sidebar_items,
         **dashboard_context,  # Unpack dashboard settings, layout URL, widget metadata, etc.
+        "show_layout_customize_in_sidebar": dashboard_context.get("allow_custom_layout", False),
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,
         "certification_stats": certification_stats,
         "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
     })
+
+
+def _teacher_workflow_link(label: str, url_name: str, primary: bool = False, args=None, kwargs=None):
+    """Build a workflow step link; return None if URL resolution fails."""
+    try:
+        url = reverse(url_name, args=args or (), kwargs=kwargs or {})
+        return {"label": label, "url": url, "primary": primary}
+    except Exception:
+        return None
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_workflow_center(request: HttpRequest):
+    """
+    Teacher-focused workflow: marks entry, leave, attendance, pay, syllabus.
+    Rendered under portal path via portal.views.teacher_workflow_alias.
+    """
+    teacher, error = _get_teacher_or_forbid(request)
+    if error:
+        return error
+    year, term = get_active_year_and_term()
+    marks_links = [
+        _teacher_workflow_link("Enter marks", "evals:teacher_marks_entry", primary=True),
+        _teacher_workflow_link("Marks history", "evals:teacher_marks_list"),
+        _teacher_workflow_link("Grade import", "evals:grade_import_upload"),
+        _teacher_workflow_link("Download template", "evals:grade_import_template"),
+    ]
+    portal_links = [
+        _teacher_workflow_link("Leave requests", "portal:teacher_leave"),
+        _teacher_workflow_link("Attendance", "portal:teacher_attendance"),
+        _teacher_workflow_link("Pay history", "portal:teacher_pay_history"),
+        _teacher_workflow_link("Syllabus", "portal:portal_syllabus"),
+        _teacher_workflow_link("Teacher hub", "portal:teacher_dashboard_alias"),
+    ]
+    steps = [
+        {
+            "title": "Marks & grades",
+            "subtitle": "Enter and manage marks, upload sheets, download templates.",
+            "step_key": "marks",
+            "icon": "bi-pencil-square",
+            "progress_label": f"{year.name} · {term.label}" if year and term else "Set active year/term",
+            "links": [lnk for lnk in marks_links if lnk is not None],
+        },
+        {
+            "title": "Leave, attendance & pay",
+            "subtitle": "Leave requests, check-ins, and pay history.",
+            "step_key": "portal",
+            "icon": "bi-person-lines-fill",
+            "progress_label": None,
+            "links": [lnk for lnk in portal_links if lnk is not None],
+        },
+    ]
+    return render(request, "teacher/workflow_center.html", {
+        "steps": steps,
+        "active_year": year,
+        "active_term": term,
+    })
+
 
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
@@ -1674,50 +1732,41 @@ def compliance_dashboard_view(request):
 @role_required(User.Role.ADMIN, 'head_of_academics')
 def extend_deadline_view(request, subject_assignment_id):
     """
-    Extend grading deadline for a subject assignment.
-    
-    NOTE: GradingDeadline model was removed. This view needs to be updated
-    to use SubjectAssignment.deadline_at when that field is added.
+    Extend grading deadline for a subject assignment (SubjectAssignment.deadline_at).
     """
     from apps.academics.models import SubjectAssignment
-    
-    academic_year, term = get_active_year_and_term()
-    
+
     try:
         subject_assignment = SubjectAssignment.objects.get(id=subject_assignment_id)
     except SubjectAssignment.DoesNotExist:
         messages.error(request, "Subject assignment not found.")
         return redirect('compliance_dashboard')
-    
-    # TODO: Implement deadline extension using SubjectAssignment.deadline_at
-    messages.info(request, f"Deadline extension for {subject_assignment} is under development. "
-                          "This feature will be available once deadline_at field is added to SubjectAssignment.")
-    return redirect('compliance_dashboard')
-    
+
     if request.method == 'POST':
         days_extension = int(request.POST.get('days_extension', 0))
         reason = request.POST.get('reason', '')
-        
-        if days_extension > 0:
-            new_deadline = deadline.deadline_date + timezone.timedelta(days=days_extension)
-            deadline.deadline_date = new_deadline
-            deadline.save()
-            
-            # Log in audit trail
+
+        if days_extension > 0 and subject_assignment.deadline_at:
+            new_deadline = subject_assignment.deadline_at + timezone.timedelta(days=days_extension)
+            subject_assignment.deadline_at = new_deadline
+            subject_assignment.save(update_fields=['deadline_at'])
+
             from apps.evals.models import GradeAudit
             GradeAudit.objects.create(
-                evaluation=None,  # Not linked to specific evaluation
+                evaluation=None,
                 change_type='deadline_extended',
                 changed_by=request.user,
-                remarks_after=f"Deadline extended by {days_extension} days. Reason: {reason}"
+                remarks_after=f"Deadline extended by {days_extension} days. Reason: {reason}",
             )
-            
             messages.success(request, f"Deadline extended to {new_deadline.date()}")
+        elif not subject_assignment.deadline_at:
+            messages.warning(request, "This assignment has no deadline set; set one in Admin first.")
+        else:
+            messages.warning(request, "Enter a positive number of days to extend.")
         
         return redirect('compliance_dashboard')
-    
+
     return render(request, 'evals/extend_deadline.html', {
-        'deadline': deadline,
         'subject_assignment': subject_assignment,
     })
 

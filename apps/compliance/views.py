@@ -17,15 +17,10 @@ class ComplianceDashboardView(View):
         """Render compliance dashboard."""
         analytics = ComplianceAnalytics()
         
-        from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
-        from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+        from apps.accounts.utils import get_dashboard_context
         from django.urls import reverse
-        from django.utils.safestring import mark_safe
-        import json
-        
-        dashboard_settings = load_dashboard_layout_settings(request.user, "compliance")
-        allow_custom_layout = _can_customize(request.user)
-        dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "compliance"})
+
+        dashboard_ctx = get_dashboard_context(request.user, "compliance")
         available_sidebar_items = [
             {"id": "compliance-home", "label": "Compliance Home", "url": reverse("compliance:dashboard"), "icon": "bi-shield-check"},
             {"id": "compliance-audit", "label": "Audit Trail", "url": reverse("compliance:compliance_reporting:audit_trail"), "icon": "bi-file-text"},
@@ -34,8 +29,6 @@ class ComplianceDashboardView(View):
             {"id": "compliance-integrity", "label": "Integrity Check", "url": reverse("compliance:compliance_reporting:integrity_check"), "icon": "bi-check-circle"},
             {"id": "compliance-anomalies", "label": "Anomalies", "url": reverse("compliance:compliance_reporting:anomalies"), "icon": "bi-exclamation-triangle"},
         ]
-        widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
-        
         context = {
             'overview': analytics.get_compliance_overview(),
             'regional_metrics': analytics.get_regional_metrics(),
@@ -43,11 +36,11 @@ class ComplianceDashboardView(View):
             'document_status': analytics.get_document_status(),
             'critical_items': analytics.get_critical_items(),
             'regional_comparison': analytics.get_regional_comparison(),
-            'allow_custom_layout': allow_custom_layout,
-            'dashboard_settings': dashboard_settings,
-            'dashboard_layout_url': dashboard_layout_url,
+            'allow_custom_layout': dashboard_ctx["allow_custom_layout"],
+            'dashboard_settings': dashboard_ctx["dashboard_settings"],
+            'dashboard_layout_url': dashboard_ctx["dashboard_layout_url"],
             'available_sidebar_items': available_sidebar_items,
-            'widget_meta_json': widget_meta_json,
+            'widget_meta_json': dashboard_ctx["widget_meta_json"],
         }
         return render(request, 'compliance/dashboard.html', context)
 

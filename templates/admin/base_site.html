@@ -34,7 +34,7 @@
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
         z-index: 0;
-        background: url('{{ SITE_LOGO_URL }}') center center no-repeat;
+        background: url('{{ SITE_LOGO_URL|default:"" }}') center center no-repeat;
         background-size: contain;
         opacity: {{ SITE_LOGO_OPACITY|default:0.08 }};
         pointer-events: none;
@@ -48,26 +48,26 @@
     </style>
   <style>
     :root {
-      --admin-sidebar-bg: {{ SITE.admin_sidebar_bg_color|default:"#0b0f14" }};
-      --admin-sidebar-surface: {{ SITE.admin_sidebar_surface_color|default:"#111827" }};
-      --admin-sidebar-border: {{ SITE.admin_sidebar_border_color|default:"#1f2937" }};
-      --admin-sidebar-text: {{ SITE.admin_sidebar_text_color|default:"#e2e8f0" }};
-      --admin-sidebar-text-muted: {{ SITE.admin_sidebar_text_muted_color|default:"#94a3b8" }};
-      --admin-sidebar-hover-bg: {{ SITE.admin_sidebar_hover_color|default:"#0f172a" }};
-      --admin-sidebar-active-bg: {{ SITE.admin_sidebar_active_color|default:"#0f172a" }};
-      --admin-sidebar-active-border: {{ SITE.admin_sidebar_active_border_color|default:"#38bdf8" }};
-      --admin-sidebar-badge-bg: {{ SITE.admin_sidebar_badge_bg_color|default:"#1f2937" }};
-      --admin-sidebar-badge-text: {{ SITE.admin_sidebar_badge_text_color|default:"#e2e8f0" }};
-      --admin-sidebar-child-bg-start: {{ SITE.admin_sidebar_child_bg_start|default:"#0b1224" }};
-      --admin-sidebar-child-bg-end: {{ SITE.admin_sidebar_child_bg_end|default:"#131b33" }};
+      --admin-sidebar-bg: {% if SITE %}{{ SITE.admin_sidebar_bg_color|default:"#0b0f14" }}{% else %}#0b0f14{% endif %};
+      --admin-sidebar-surface: {% if SITE %}{{ SITE.admin_sidebar_surface_color|default:"#111827" }}{% else %}#111827{% endif %};
+      --admin-sidebar-border: {% if SITE %}{{ SITE.admin_sidebar_border_color|default:"#1f2937" }}{% else %}#1f2937{% endif %};
+      --admin-sidebar-text: {% if SITE %}{{ SITE.admin_sidebar_text_color|default:"#e2e8f0" }}{% else %}#e2e8f0{% endif %};
+      --admin-sidebar-text-muted: {% if SITE %}{{ SITE.admin_sidebar_text_muted_color|default:"#94a3b8" }}{% else %}#94a3b8{% endif %};
+      --admin-sidebar-hover-bg: {% if SITE %}{{ SITE.admin_sidebar_hover_color|default:"#0f172a" }}{% else %}#0f172a{% endif %};
+      --admin-sidebar-active-bg: {% if SITE %}{{ SITE.admin_sidebar_active_color|default:"#0f172a" }}{% else %}#0f172a{% endif %};
+      --admin-sidebar-active-border: {% if SITE %}{{ SITE.admin_sidebar_active_border_color|default:"#38bdf8" }}{% else %}#38bdf8{% endif %};
+      --admin-sidebar-badge-bg: {% if SITE %}{{ SITE.admin_sidebar_badge_bg_color|default:"#1f2937" }}{% else %}#1f2937{% endif %};
+      --admin-sidebar-badge-text: {% if SITE %}{{ SITE.admin_sidebar_badge_text_color|default:"#e2e8f0" }}{% else %}#e2e8f0{% endif %};
+      --admin-sidebar-child-bg-start: {% if SITE %}{{ SITE.admin_sidebar_child_bg_start|default:"#0b1224" }}{% else %}#0b1224{% endif %};
+      --admin-sidebar-child-bg-end: {% if SITE %}{{ SITE.admin_sidebar_child_bg_end|default:"#131b33" }}{% else %}#131b33{% endif %};
       --admin-sidebar-child-bg: linear-gradient(
         135deg,
         var(--admin-sidebar-child-bg-start),
         var(--admin-sidebar-child-bg-end)
       );
-      --admin-sidebar-child-border: {{ SITE.admin_sidebar_child_border_color|default:"#e2e8f0" }};
-      --admin-sidebar-child-hover: {{ SITE.admin_sidebar_child_hover_color|default:"#1d4ed8" }};
-      --admin-sidebar-child-active: {{ SITE.admin_sidebar_child_active_color|default:"#0f172a" }};
+      --admin-sidebar-child-border: {% if SITE %}{{ SITE.admin_sidebar_child_border_color|default:"#e2e8f0" }}{% else %}#e2e8f0{% endif %};
+      --admin-sidebar-child-hover: {% if SITE %}{{ SITE.admin_sidebar_child_hover_color|default:"#1d4ed8" }}{% else %}#1d4ed8{% endif %};
+      --admin-sidebar-child-active: {% if SITE %}{{ SITE.admin_sidebar_child_active_color|default:"#0f172a" }}{% else %}#0f172a{% endif %};
     }
   </style>
   <style>

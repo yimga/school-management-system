@@ -1,4 +1,3 @@
-{% load report_style_tags %}
 <!doctype html>
 <html>
 <head>
@@ -34,14 +33,14 @@
 <body>
   <div class="header-grid">
     <div class="header-left">
-      <div style="font-weight:800;">{% report_style_label report_style "ministry_name" "MINISTRY OF SECONDARY EDUCATION" %}</div>
-      <div class="muted">{% report_style_label report_style "delegation_line_1" "Regional Delegation of Secondary Education" %}</div>
-      <div class="muted">{% report_style_label report_style "delegation_line_2" "Divisional Delegation of Secondary Education" %}</div>
+      <div style="font-weight:800;">{{ report_style.label("ministry_name","MINISTRY OF SECONDARY EDUCATION") }}</div>
+      <div class="muted">{{ report_style.label("delegation_line_1","Regional Delegation of Secondary Education") }}</div>
+      <div class="muted">{{ report_style.label("delegation_line_2","Divisional Delegation of Secondary Education") }}</div>
       <div style="margin-top:6px; font-weight:900; color: var(--rc-accent);">
-        {% report_style_label report_style "school_name" SITE.site_name|default:"School" %}
+        {{ report_style.label("school_name", SITE.site_name|default:"School") }}
       </div>
-      <div class="muted">{% report_style_label report_style "school_address_line" SITE.company_address|default:"" %}</div>
-      <div class="muted">{% report_style_label report_style "school_email" SITE.company_email|default:"" %}</div>
+      <div class="muted">{{ report_style.label("school_address_line", SITE.company_address|default:"") }}</div>
+      <div class="muted">{{ report_style.label("school_email", SITE.company_email|default:"") }}</div>
     </div>
     <div class="header-center">
       {% if SITE_LOGO_URL %}
@@ -49,50 +48,50 @@
       {% endif %}
     </div>
     <div class="header-right" style="text-align:right;">
-      <div style="font-weight:800;">{% report_style_label report_style "republic_name" "REPUBLIC OF CAMEROON" %}</div>
-      <div class="muted">{% report_style_label report_style "motto" "Peace-Work-Fatherland" %}</div>
+      <div style="font-weight:800;">{{ report_style.label("republic_name","REPUBLIC OF CAMEROON") }}</div>
+      <div class="muted">{{ report_style.label("motto","Peace-Work-Fatherland") }}</div>
       <div style="margin-top:18px; font-weight:800; color: var(--rc-accent);">
-        {% report_style_label report_style "specialty_label" "SPECIALTY" %}: {{ student.specialty.name|default:"" }}
+        {{ report_style.label("specialty_label","SPECIALTY") }}: {{ student.specialty.name|default:"" }}
       </div>
     </div>
   </div>
 
-  <div class="rc-title">{% report_style_label report_style "annual_report_title" "ANNUAL REPORT / BULLETIN ANNUEL" %}</div>
+  <div class="rc-title">{{ report_style.label("annual_report_title","ANNUAL REPORT / BULLETIN ANNUEL") }}</div>
   <div class="meta-row">
-    <div class="cell"><b>{% report_style_label report_style "academic_year_label" "Academic Year / Année Scolaire" %}:</b> {{ year.name }}</div>
-    <div class="cell center"><b>{% report_style_label report_style "class_label" "Class / Classe" %}:</b> {{ student.classroom.name }}</div>
-    <div class="cell right"><b>{% report_style_label report_style "enrollment_label" "Enrollment / Effectif" %}:</b> {{ class_size|default:"-" }}</div>
+    <div class="cell"><b>{{ report_style.label("academic_year_label","Academic Year / Année Scolaire") }}:</b> {{ year.name }}</div>
+    <div class="cell center"><b>{{ report_style.label("class_label","Class / Classe") }}:</b> {{ student.classroom.name }}</div>
+    <div class="cell right"><b>{{ report_style.label("enrollment_label","Enrollment / Effectif") }}:</b> {{ class_size|default:"-" }}</div>
   </div>
 
   <div class="meta-row" style="margin-top:6px;">
-    <div class="cell"><b>{% report_style_label report_style "student_name_label" "Name & Surname / Nom & Prénom" %}:</b> {{ student_name }}</div>
-    <div class="cell center"><b>{% report_style_label report_style "sex_label" "Sex / Sexe" %}:</b> {{ student.gender|default:"" }}</div>
-    <div class="cell right"><b>{% report_style_label report_style "reg_no_label" "Reg. Num / Matricule" %}:</b> {{ student.student_code }}</div>
+    <div class="cell"><b>{{ report_style.label("student_name_label","Name & Surname / Nom & Prénom") }}:</b> {{ student_name }}</div>
+    <div class="cell center"><b>{{ report_style.label("sex_label","Sex / Sexe") }}:</b> {{ student.gender|default:"" }}</div>
+    <div class="cell right"><b>{{ report_style.label("reg_no_label","Reg. Num / Matricule") }}:</b> {{ student.student_code }}</div>
   </div>
 
   <div class="kpi-row">
     <div class="boxed center">
-      <div class="muted">{% report_style_label report_style "annual_average_label" "Annual Average" %}</div>
+      <div class="muted">{{ report_style.label("annual_average_label","Annual Average") }}</div>
       <div style="font-size:18px; font-weight:900;">{{ annual_average|floatformat:2|default:"-" }}</div>
     </div>
     <div class="boxed center">
-      <div class="muted">{% report_style_label report_style "class_rank_label" "Class Rank" %}</div>
-      <div style="font-size:16px; font-weight:900;">{{ class_position|default:"-" }} {% report_style_label report_style "of" "of" %} {{ class_size|default:"-" }}</div>
+      <div class="muted">{{ report_style.label("class_rank_label","Class Rank") }}</div>
+      <div style="font-size:16px; font-weight:900;">{{ class_position|default:"-" }} {{ report_style.label("of","of") }} {{ class_size|default:"-" }}</div>
     </div>
     <div class="boxed center">
-      <div class="muted">{% report_style_label report_style "specialty_rank_label" "Specialty Rank" %}</div>
-      <div style="font-size:16px; font-weight:900;">{{ specialty_position|default:"-" }} {% report_style_label report_style "of" "of" %} {{ specialty_size|default:"-" }}</div>
+      <div class="muted">{{ report_style.label("specialty_rank_label","Specialty Rank") }}</div>
+      <div style="font-size:16px; font-weight:900;">{{ specialty_position|default:"-" }} {{ report_style.label("of","of") }} {{ specialty_size|default:"-" }}</div>
     </div>
   </div>
 
   <div class="boxed" style="margin-top:10px;">
-    <div style="font-weight:800; margin-bottom:6px;">{% report_style_label report_style "term_summary_label" "Terminal Average / Moyenne Trimestre" %}</div>
+    <div style="font-weight:800; margin-bottom:6px;">{{ report_style.label("term_summary_label","Terminal Average / Moyenne Trimestre") }}</div>
     <table class="cam">
       <thead>
         <tr>
-          <th>{% report_style_label report_style "term_label" "Term" %}</th>
-          <th class="center">{% report_style_label report_style "avg_header" "Average" %}</th>
-          <th class="center">{% report_style_label report_style "rank_header" "Rank" %}</th>
+          <th>{{ report_style.label("term_label","Term") }}</th>
+          <th class="center">{{ report_style.label("avg_header","Average") }}</th>
+          <th class="center">{{ report_style.label("rank_header","Rank") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -103,7 +102,7 @@
             <td class="center">{{ row.pos|default:"-" }} / {{ row.class_size|default:"-" }}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="3" class="muted">{% report_style_label report_style "no_data" "No term data." %}</td></tr>
+          <tr><td colspan="3" class="muted">{{ report_style.label("no_data","No term data.") }}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -111,23 +110,23 @@
 
   <div class="kpi-row" style="margin-top:10px;">
     <div class="boxed">
-      <div><b>{% report_style_label report_style "remark_box" "Remark" %}</b></div>
+      <div><b>{{ report_style.label("remark_box","Remark") }}</b></div>
       <div style="min-height:48px;">{{ teacher_remark }}</div>
     </div>
     <div class="boxed">
-      <div><b>{% report_style_label report_style "discipline_label" "Discipline" %}</b></div>
+      <div><b>{{ report_style.label("discipline_label","Discipline") }}</b></div>
       <div class="line"></div>
       <div class="line"></div>
     </div>
     <div class="boxed">
-      <div><b>{% report_style_label report_style "principal_label" "The Principal" %}</b></div>
+      <div><b>{{ report_style.label("principal_label","The Principal") }}</b></div>
       <div class="line"></div>
       <div class="muted">{{ generated_at|date:"Y-m-d" }}</div>
     </div>
   </div>
 
   <div class="boxed" style="margin-top:8px; min-height:64px;">
-    <div class="center"><b>{% report_style_label report_style "class_council" "Class Council Decision" %}</b></div>
+    <div class="center"><b>{{ report_style.label("class_council","Class Council Decision") }}</b></div>
   </div>
 </body>
 </html>

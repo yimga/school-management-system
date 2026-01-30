@@ -104,6 +104,11 @@ class FAQ(models.Model):
         self.save(update_fields=['view_count'])
 
 
+def _default_target_roles():
+    """Empty list = visible to all roles (parent, teacher, staff, etc.)."""
+    return []
+
+
 class KBCategory(models.Model):
     """Categories for Knowledge Base articles"""
     name = models.CharField(_("Category Name"), max_length=100, unique=True)
@@ -113,6 +118,12 @@ class KBCategory(models.Model):
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories', verbose_name=_("Parent Category"))
     display_order = models.PositiveIntegerField(_("Display Order"), default=0)
     is_active = models.BooleanField(_("Is Active"), default=True)
+    target_roles = models.JSONField(
+        _("Target roles"),
+        default=_default_target_roles,
+        blank=True,
+        help_text=_("Leave empty to show to everyone. Or list roles e.g. ['PARENT', 'TEACHER'] to show only to those roles."),
+    )
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
 
@@ -138,6 +149,13 @@ class KBCategory(models.Model):
             return self.articles.filter(status="PUBLISHED").count()
         except Exception:
             return 0
+
+    def visible_to_role(self, role: str) -> bool:
+        """True if this category is visible to the given role. Empty target_roles = all."""
+        roles = self.target_roles if isinstance(self.target_roles, list) else []
+        if not roles:
+            return True
+        return (role or "").upper() in [r.upper() for r in roles]
 
 
 class KBArticle(models.Model):
@@ -186,7 +204,13 @@ class KBArticle(models.Model):
     # Display settings
     is_featured = models.BooleanField(_("Is Featured"), default=False)
     display_order = models.PositiveIntegerField(_("Display Order"), default=0)
-    
+    target_roles = models.JSONField(
+        _("Target roles"),
+        default=_default_target_roles,
+        blank=True,
+        help_text=_("Leave empty to show to everyone. Or list roles e.g. ['PARENT', 'TEACHER'] to show only to those roles."),
+    )
+
     # Timestamps
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
@@ -225,6 +249,13 @@ class KBArticle(models.Model):
         """Increment view counter"""
         self.view_count += 1
         self.save(update_fields=['view_count'])
+
+    def visible_to_role(self, role: str) -> bool:
+        """True if this article is visible to the given role. Empty target_roles = all."""
+        roles = self.target_roles if isinstance(self.target_roles, list) else []
+        if not roles:
+            return True
+        return (role or "").upper() in [r.upper() for r in roles]
 
 
 class KBArticleAttachment(models.Model):

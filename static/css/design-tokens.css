@@ -1,0 +1,73 @@
+/* ============================================
+   DESIGN TOKENS - Shared CSS variables
+   Used by Portal, Admin, and Backend.
+   Load this first; templates may override with SITE/theme values.
+   ============================================ */
+
+:root {
+  /* Brand (overridden by SITE.primary_color / accent_color in templates) */
+  --school-primary: #0d6efd;
+  --school-accent: #198754;
+  --school-primary-light: rgba(13, 110, 253, 0.15);
+  --school-accent-light: rgba(25, 135, 84, 0.1);
+
+  /* Admin surface (overridden by SITE.admin_sidebar_* in admin base_site) */
+  --admin-accent: #0d6efd;
+  --admin-accent-light: rgba(13, 110, 253, 0.12);
+  --admin-sidebar-bg: #0b0f14;
+  --admin-sidebar-surface: #111827;
+  --admin-sidebar-border: #1f2937;
+  --admin-sidebar-text: #e2e8f0;
+  --admin-sidebar-text-muted: #94a3b8;
+  --admin-sidebar-hover-bg: #0f172a;
+  --admin-sidebar-active-bg: #0f172a;
+  --admin-sidebar-active-border: #38bdf8;
+
+  /* Portal */
+  --portal-bg: rgba(247, 251, 255, 1);
+  --portal-font: Inter, system-ui, sans-serif;
+  --portal-text: #111827;
+  --portal-text-muted: #6c757d;
+
+  /* Backend console – dark theme (theme files override) */
+  --backend-surface: #1a1f2e;
+  --backend-surface-alt: #252b3b;
+  --backend-text: #e5e7eb;
+  --backend-border: rgba(255, 255, 255, 0.08);
+  /* Backend theme palette (use in backend-visibility.css) */
+  --backend-body-dark: #0f172a;
+  --backend-card-dark: #1e293b;
+  --backend-input-dark: #334155;
+  --backend-body-light: #f8fafc;
+  --backend-card-light: #ffffff;
+  --backend-sidebar-light: #f1f5f9;
+  --backend-text-dark: #e2e8f0;
+  --backend-text-light: #0f172a;
+  --backend-muted-light: #64748b;
+
+  /* Common spacing (align with design-system-unified if present) */
+  --token-space-xs: 0.25rem;
+  --token-space-sm: 0.5rem;
+  --token-space-md: 1rem;
+  --token-space-lg: 1.5rem;
+  --token-radius-sm: 8px;
+  --token-radius-md: 12px;
+
+  /* Fluid typography (clamp: min, preferred, max) – smooth scaling, no rigid breakpoint jumps */
+  --text-xs: clamp(0.7rem, 1.5vw, 0.75rem);
+  --text-sm: clamp(0.8rem, 1.8vw, 0.875rem);
+  --text-base: clamp(0.9rem, 2vw, 1rem);
+  --text-lg: clamp(1rem, 2.2vw, 1.125rem);
+  --text-xl: clamp(1.1rem, 2.5vw, 1.25rem);
+  --text-2xl: clamp(1.25rem, 3vw, 1.5rem);
+  --text-3xl: clamp(1.4rem, 4vw, 1.875rem);
+  --text-hero: clamp(1.2rem, 2.6vw, 1.8rem);
+
+  /* Content-based breakpoints (use in media queries) */
+  --bp-narrow: 360px;
+  --bp-content-sm: 480px;
+  --bp-content-md: 640px;
+  --bp-content-lg: 832px;
+  --bp-wide: 1024px;
+  --bp-max: 1280px;
+}
