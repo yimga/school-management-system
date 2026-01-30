@@ -6,6 +6,19 @@
 
 ---
 
+## Footer / backend dashboard not showing after Render deploy?
+
+If you deployed from the Render dashboard but **don’t see the footer** (accordion, compact layout) or **backend dashboard fixes** (Quick Actions, RBAC sections):
+
+1. **Push your branch to the one Render uses** (usually `main`):  
+   `git push origin main` (or push the branch your Render service is set to).
+2. In **Render Dashboard** → your service → **Deployments** → **Manual Deploy** → choose **“Clear build cache & deploy”** so Render rebuilds from the latest code (otherwise it may reuse an old build).
+3. In **Settings** → **Build & Deploy** → **Branch**: confirm it’s **`main`** (or the branch that has the footer/dashboard commits).
+
+Full checklist: **[docs/DEPLOYMENT_BACKEND_DASHBOARD.md](docs/DEPLOYMENT_BACKEND_DASHBOARD.md)** (section 6: Render).
+
+---
+
 ## 🔴 CRITICAL: You're 11 Commits Ahead of Production!
 
 Your local changes haven't been pushed to Render yet.
