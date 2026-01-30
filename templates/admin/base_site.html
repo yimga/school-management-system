@@ -1,11 +1,6 @@
 {% extends "admin/base.html" %}
 {% load i18n static admin_extras %}
 
-{% block extrahead %}
-  {{ block.super }}
-  {% if SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
-{% endblock %}
-
 {% block extrastyle %}
   {{ block.super }}
   <!-- UNIFIED DESIGN SYSTEM - Load first, defines all CSS variables -->
@@ -122,6 +117,7 @@
 
 {% block extrahead %}
   {{ block.super }}
+  {% if SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
   {% get_all_model_counts as model_counts %}
   <script>
     // Model counts from Django (injected at render time)

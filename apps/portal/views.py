@@ -18,7 +18,10 @@ from apps.accounts.decorators import (
     parent_portal_required,
     teacher_portal_required,
 )
-from apps.evals.views import teacher_dashboard as evals_teacher_dashboard
+from apps.evals.views import (
+    teacher_dashboard as evals_teacher_dashboard,
+    teacher_workflow_center as evals_teacher_workflow_center,
+)
 from apps.accounts.models import User
 from apps.people.models import (
     StudentGuardian,

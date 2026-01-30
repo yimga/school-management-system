@@ -162,6 +162,9 @@
   .sidebar-collapsible-content.collapsed {
     max-height: 0;
     opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
   }
 
   .activity-item {
@@ -367,20 +370,6 @@
 
 <div class="nav flex-column gap-0">
   {% if request.user.is_authenticated %}
-    {% if PORTAL_SIDEBAR_ITEMS %}
-      {% for item in PORTAL_SIDEBAR_ITEMS %}
-        {% if forloop.first or item.section != PORTAL_SIDEBAR_ITEMS|slice:":forloop.counter0"|last|dictsort:"section"|last %}
-          <div class="sidebar-section-title">{% if forloop.first %}{{ item.section }}{% else %}{{ item.section }}{% endif %}</div>
-        {% endif %}
-        {% if item.section != previous_section %}
-          <div class="sidebar-section-title">{{ item.section }}</div>
-        {% endif %}
-        <a class="nav-link nav-pill {% if item.badge %}d-flex align-items-center justify-content-between{% endif %}" href="{{ item.url }}">
-          <span><i class="bi {{ item.icon }} me-2"></i>{{ item.label }}</span>
-          {% if item.badge %}<span class="badge bg-primary rounded-pill">{{ item.badge }}</span>{% endif %}
-        </a>
-      {% endfor %}
-    {% else %}
     <div class="sidebar-section-title">Home</div>
     <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}">
       <i class="bi bi-speedometer2 me-2"></i>Dashboard
@@ -528,10 +517,14 @@
         <i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder
       </a>
     {% endif %}
-    {% endif %}
 
-      <div class="sidebar-section-title mt-3">Recent Activity</div>
-      <ul class="list-unstyled mb-0 small" id="recentActivityList">
+    <div class="sidebar-collapsible mt-3 recent-activity-block">
+      <div class="sidebar-collapsible-header recent-activity-toggle" role="button" aria-expanded="true" title="Click to expand or collapse">
+        <span>Recent Activity</span>
+        <i class="bi bi-chevron-down ms-1 recent-activity-chevron" aria-hidden="true"></i>
+      </div>
+      <div class="sidebar-collapsible-content recent-activity-content">
+      <ul class="list-unstyled mb-0 small mt-1 recent-activity-list">
         {% if recent_activities %}
           {% for activity in recent_activities|slice:":6" %}
             <li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left: 3px solid rgba(99,102,241,0.5); padding-left: 0.6rem !important;">
@@ -544,6 +537,37 @@
           <li class="text-muted small px-2">Loading activity…</li>
         {% endif %}
       </ul>
+      </div>
+    </div>
+    <script>
+      (function() {
+        var key = 'portal-sidebar-recent-activity-collapsed';
+        var collapsed = localStorage.getItem(key) === 'true';
+        function applyTo(header, content, chevron) {
+          content.classList.toggle('collapsed', collapsed);
+          header.setAttribute('aria-expanded', !collapsed);
+          if (chevron) chevron.classList.toggle('collapsed', collapsed);
+          localStorage.setItem(key, collapsed);
+        }
+        document.querySelectorAll('.recent-activity-block').forEach(function(block) {
+          var header = block.querySelector('.recent-activity-toggle');
+          var content = block.querySelector('.recent-activity-content');
+          var chevron = block.querySelector('.recent-activity-chevron');
+          if (!header || !content) return;
+          applyTo(header, content, chevron);
+          header.addEventListener('click', function() {
+            collapsed = !collapsed;
+            applyTo(header, content, chevron);
+            document.querySelectorAll('.recent-activity-block').forEach(function(b) {
+              var h = b.querySelector('.recent-activity-toggle');
+              var c = b.querySelector('.recent-activity-content');
+              var ch = b.querySelector('.recent-activity-chevron');
+              if (h && c) applyTo(h, c, ch);
+            });
+          });
+        });
+      })();
+    </script>
   {% endif %}
 </div>
 
