@@ -139,6 +139,8 @@
   {% admin_health as health %}
   {% with widgets=display_widgets %}
   <div class="teacher-shell">
+    <div class="row g-3 align-items-start">
+      <div class="col-12 col-lg-8 col-xl-9">
   {% if allow_custom_layout %}
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -862,6 +864,13 @@
 
   {% include "widgets/teacher_dashboard_widgets.html" %}
   </div> <!-- /dashboard-layout -->
+      </div>
+      {% if priorities_sidebar.show_sidebar|default:False %}
+      <div class="col-12 col-lg-4 col-xl-3">
+        {% include "components/portal_priorities_sidebar.html" %}
+      </div>
+      {% endif %}
+    </div>
   </div> {# teacher-shell #}
 
   {% endwith %}

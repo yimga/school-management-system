@@ -516,7 +516,13 @@ def teacher_dashboard(request: HttpRequest):
     finance_request_link = reverse("requests:dashboard")
 
     from apps.accounts.utils import get_dashboard_context
-    
+    from apps.portal.services import get_dashboard_priorities
+
+    # Right-sidebar priorities (configurable from Admin → Site Settings)
+    site = SiteSettings.get_solo()
+    priorities_config = getattr(site, "dashboard_priorities_sidebar", None) or {}
+    priorities_sidebar = get_dashboard_priorities(request.user, "TEACHER", config=priorities_config)
+
     dashboard_context = get_dashboard_context(request.user, "teacher")
     available_sidebar_items = [
         {"id": "teacher-home", "label": "Teacher hub", "url": reverse("portal:teacher_dashboard_alias"), "icon": "bi-person-lines-fill"},
@@ -555,6 +561,7 @@ def teacher_dashboard(request: HttpRequest):
         "widget_data": widget_data,
         "hero": hero,
         "missing_records_url": missing_records_url,
+        "priorities_sidebar": priorities_sidebar,
         "grade_import_upload_url": reverse("evals:grade_import_upload"),
         "grade_import_template_url": reverse("evals:grade_import_template"),
         "display_widgets": display_widgets,

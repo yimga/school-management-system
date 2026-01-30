@@ -118,6 +118,27 @@ def default_portal_upcoming_assessments():
     ]
 
 
+def default_dashboard_priorities_sidebar():
+    """Config for the right-side priorities sidebar on parent/teacher main dashboards.
+    Admin can enable/disable per role and choose which sections to show.
+    Optionals: show_empty_sections, collapsed_by_default; per-section optional (hide when no items).
+    """
+    return {
+        "enabled_parent": True,
+        "enabled_teacher": True,
+        "title": "My priorities",
+        "max_items_per_section": 5,
+        "show_empty_sections": True,
+        "collapsed_by_default": False,
+        "sections": {
+            "grading_deadlines": {"enabled": True, "label": "Grading deadlines", "roles": ["TEACHER"], "optional": False},
+            "upcoming_events": {"enabled": True, "label": "Upcoming events", "roles": ["PARENT", "TEACHER"], "optional": True},
+            "upcoming_meetings": {"enabled": True, "label": "Upcoming meetings", "roles": ["PARENT", "TEACHER"], "optional": True},
+            "fee_reminders": {"enabled": True, "label": "Fee reminders", "roles": ["PARENT"], "optional": False},
+        },
+    }
+
+
 def default_footer_badges():
     return [
         {"label": "Secure & Encrypted", "tone": "secure"},
@@ -698,6 +719,17 @@ class SiteSettings(models.Model):
         default=default_portal_upcoming_assessments,
         blank=True,
         help_text="Portal upcoming assessments list (JSON). Each item: title, when, detail, tone, roles, enabled.",
+    )
+    dashboard_priorities_sidebar = models.JSONField(
+        default=default_dashboard_priorities_sidebar,
+        blank=True,
+        help_text=(
+            "Right sidebar on parent/teacher main dashboards (My priorities). JSON: "
+            "enabled_parent, enabled_teacher (bool), title (string), max_items_per_section (int), "
+            "show_empty_sections (bool, default True), collapsed_by_default (bool, default False). "
+            "sections: grading_deadlines, upcoming_events, upcoming_meetings, fee_reminders — each with "
+            "enabled (bool), label (string), roles (list), optional (bool): when optional=true, section is hidden when it has no items."
+        ),
     )
     footer_accreditation_text = models.CharField(
         max_length=255,

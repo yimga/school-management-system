@@ -451,50 +451,13 @@
         <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>Claim Invite</a>
         <div class="sidebar-section-title">Performance Tracking</div>
         <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Academic Stats</a>
-      {% elif request.user.is_staff or request.user.is_superuser or request.user|has_role:"ADMIN" or request.user|has_role:"LEADERSHIP" or request.user|has_role:"IT_ADMIN" or request.user|has_role:"BURSAR" or request.user|has_role:"SUPERADMIN" %}
-        {% comment %}RBAC: Admin Panel section – only show items the user has permission for (admin explicitly grants permissions).{% endcomment %}
-        <div class="sidebar-section-title">Admin Panel</div>
-        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
-        <details class="sidebar-backend-group mb-1" open>
-          <summary class="nav-link nav-pill sidebar-backend-summary" role="button" aria-expanded="true"><i class="bi bi-gear-fill me-2"></i>Backend</summary>
-          <div class="nav flex-column gap-0 ms-3 mt-1">
-            <a class="nav-link nav-pill py-1" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-kanban me-2"></i>Backend Console</a>
-            <a class="nav-link nav-pill py-1" href="{% url 'accounts:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
-          </div>
-        </details>
-        {% endif %}
-        {% if request.user|has_feature_permission:"reports.manage" or request.user|has_feature_permission:"data.access" or request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
-        <div class="sidebar-section-title">People & Access</div>
-        <a class="nav-link nav-pill" href="{% url 'admin:people_studentprofile_changelist' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>
-        <a class="nav-link nav-pill" href="{% url 'admin:people_studentguardian_changelist' %}"><i class="bi bi-people-fill me-2"></i>Student Guardians</a>
-        <a class="nav-link nav-pill" href="{% url 'admin:auth_group_changelist' %}"><i class="bi bi-unlock me-2"></i>Authentication Groups</a>
-        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
-        <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control</a>
-        {% endif %}
-        {% endif %}
-        {% if request.user|has_feature_permission:"reports.manage" or request.user.is_superuser %}
-        <div class="sidebar-section-title">Academic Management</div>
-        <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-clipboard-data me-2"></i>Evaluation Admin</a>
-        <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}"><i class="bi bi-trophy me-2"></i>Class Ranking</a>
-        <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}"><i class="bi bi-bar-chart-line me-2"></i>School Ranking</a>
-        <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}"><i class="bi bi-megaphone me-2"></i>Publish Results</a>
-        {% endif %}
-        {% if request.user|has_feature_permission:"finance.view" or request.user|has_feature_permission:"finance.manage" or request.user.is_superuser %}
-        <div class="sidebar-section-title">Financial Management</div>
-        <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}"><i class="bi bi-currency-exchange me-2"></i>Finance Dashboard</a>
-        <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}"><i class="bi bi-cash-stack me-2"></i>Payroll</a>
-        {% endif %}
-        {% if request.user|has_feature_permission:"reports.manage" or request.user|has_feature_permission:"data.access" or request.user.is_superuser %}
-        <div class="sidebar-section-title">Analytics & Reports</div>
-        <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>Analytics</a>
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:report_library' %}"><i class="bi bi-journal-text me-2"></i>Report Library</a>
-        <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder</a>
-        {% endif %}
+      {% comment %}Admin Panel section moved to bottom of sidebar (see below) for staff/admin only.{% endcomment %}
       {% endif %}
     {% endif %}
 
+    {% comment %}Recent Activity: dropdown shows recent logs; RBAC – users see only their own (staff see all).{% endcomment %}
     <div class="sidebar-collapsible mt-3 recent-activity-block">
-      <div class="sidebar-collapsible-header recent-activity-toggle" role="button" aria-expanded="true" title="Click to expand or collapse">
+      <div class="sidebar-collapsible-header recent-activity-toggle" role="button" aria-expanded="true" title="Click to expand or collapse recent logs">
         <span>Recent Activity</span>
         <i class="bi bi-chevron-down ms-1 recent-activity-chevron" aria-hidden="true"></i>
       </div>
@@ -509,7 +472,7 @@
             </li>
           {% endfor %}
         {% else %}
-          <li class="text-muted small px-2">Loading activity…</li>
+          <li class="text-muted small px-2">No recent activity</li>
         {% endif %}
       </ul>
       </div>
@@ -546,10 +509,10 @@
   {% endif %}
 </div>
 
-<!-- Portal Features (Messages live under Communication in sidebar) -->
+<!-- Portal Tools (Community, Video Hub; Documents moved to Document Manager below) -->
 {% if SITE %}
 {% with portal_cfg=SITE.portal_features %}
-  {% if portal_cfg.forums or portal_cfg.video or portal_cfg.documents %}
+  {% if portal_cfg.forums or portal_cfg.video %}
     <div class="sidebar-section-title">Portal Tools</div>
     <div class="nav flex-column gap-0">
       {% if portal_cfg.forums %}
@@ -562,28 +525,27 @@
           <i class="bi bi-camera-video me-2"></i>Video Hub
         </a>
       {% endif %}
-      {% if portal_cfg.documents %}
-        <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'documents' %}">
-          <i class="bi bi-file-earmark-text me-2"></i>Documents
-        </a>
-      {% endif %}
     </div>
   {% endif %}
 
-{% endwith %}
-{% endif %}
+  <!-- Document Manager: all document links in one place -->
+  {% if portal_cfg.documents or request.user.is_authenticated and request.user.is_staff %}
+  <div class="sidebar-section-title mt-4">Document Manager</div>
+  <div class="nav flex-column gap-0">
+    {% if portal_cfg.documents %}
+    <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'documents' %}">
+      <i class="bi bi-file-earmark-text me-2"></i>Documents
+    </a>
+    {% endif %}
+    {% if request.user.is_authenticated and request.user.is_staff %}
+    <a class="nav-link nav-pill" href="{% url 'portal:document_library_manage' %}">
+      <i class="bi bi-folder2-open me-2"></i>Document Library
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
 
-<!-- Dashboard layout (only on dashboard pages with custom layout) -->
-{% if show_layout_customize_in_sidebar|default:False %}
-<div class="sidebar-section-title mt-4">Dashboard layout</div>
-<div class="nav flex-column gap-0">
-  <button type="button" class="nav-link nav-pill border-0 bg-transparent text-start w-100" id="sidebar-customize-layout-trigger" aria-label="Customize dashboard layout">
-    <i class="bi bi-grid-3x3-gap me-2"></i>Customize layout
-  </button>
-  <a class="nav-link nav-pill" href="#dashboard-settings-card">
-    <i class="bi bi-sliders me-2"></i>Dashboard settings
-  </a>
-</div>
+{% endwith %}
 {% endif %}
 
 <!-- Additional Links -->
@@ -593,6 +555,62 @@
     <i class="bi bi-info-circle me-2"></i>About Portal
   </a>
 </div>
+
+<!-- Admin Panel at bottom (RBAC: staff/admin only; stricter role checks) -->
+{% if request.user.is_authenticated and request.user.role != 'TEACHER' and request.user.role != 'PARENT' %}
+{% if request.user.is_staff or request.user.is_superuser or request.user|has_role:"ADMIN" or request.user|has_role:"LEADERSHIP" or request.user|has_role:"IT_ADMIN" or request.user|has_role:"BURSAR" or request.user|has_role:"SUPERADMIN" %}
+<div class="portal-sidebar-footer">
+  <div class="sidebar-section-title mt-4">Admin Panel</div>
+  <div class="nav flex-column gap-0">
+    {% if show_layout_customize_in_sidebar|default:False %}
+    <div class="sidebar-section-title mt-2">Dashboard layout</div>
+    <button type="button" class="nav-link nav-pill border-0 bg-transparent text-start w-100 py-1 js-btn-customize-layout" id="sidebar-customize-layout-trigger" aria-label="Customize dashboard layout">
+      <i class="bi bi-grid-3x3-gap me-2"></i>Customize layout
+    </button>
+    <a class="nav-link nav-pill py-1" href="#dashboard-settings-card">
+      <i class="bi bi-sliders me-2"></i>Dashboard settings
+    </a>
+    {% endif %}
+    {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+    <details class="sidebar-backend-group mb-1" open>
+      <summary class="nav-link nav-pill sidebar-backend-summary" role="button" aria-expanded="true"><i class="bi bi-gear-fill me-2"></i>Backend</summary>
+      <div class="nav flex-column gap-0 ms-3 mt-1">
+        <a class="nav-link nav-pill py-1" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-kanban me-2"></i>Backend Console</a>
+        <a class="nav-link nav-pill py-1" href="{% url 'accounts:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
+      </div>
+    </details>
+    {% endif %}
+    {% if request.user|has_feature_permission:"reports.manage" or request.user|has_feature_permission:"data.access" or request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+    <div class="sidebar-section-title mt-2">People & Access</div>
+    <a class="nav-link nav-pill" href="{% url 'admin:people_studentprofile_changelist' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>
+    <a class="nav-link nav-pill" href="{% url 'admin:people_studentguardian_changelist' %}"><i class="bi bi-people-fill me-2"></i>Student Guardians</a>
+    <a class="nav-link nav-pill" href="{% url 'admin:auth_group_changelist' %}"><i class="bi bi-unlock me-2"></i>Authentication Groups</a>
+    {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+    <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control</a>
+    {% endif %}
+    {% endif %}
+    {% if request.user|has_feature_permission:"reports.manage" or request.user.is_superuser %}
+    <div class="sidebar-section-title mt-2">Academic Management</div>
+    <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-clipboard-data me-2"></i>Evaluation Admin</a>
+    <a class="nav-link nav-pill" href="{% url 'evals:class_ranking' %}"><i class="bi bi-trophy me-2"></i>Class Ranking</a>
+    <a class="nav-link nav-pill" href="{% url 'evals:school_ranking' %}"><i class="bi bi-bar-chart-line me-2"></i>School Ranking</a>
+    <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}"><i class="bi bi-megaphone me-2"></i>Publish Results</a>
+    {% endif %}
+    {% if request.user|has_feature_permission:"finance.view" or request.user|has_feature_permission:"finance.manage" or request.user.is_superuser %}
+    <div class="sidebar-section-title mt-2">Financial Management</div>
+    <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}"><i class="bi bi-currency-exchange me-2"></i>Finance Dashboard</a>
+    <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}"><i class="bi bi-cash-stack me-2"></i>Payroll</a>
+    {% endif %}
+    {% if request.user|has_feature_permission:"reports.manage" or request.user|has_feature_permission:"data.access" or request.user.is_superuser %}
+    <div class="sidebar-section-title mt-2">Analytics & Reports</div>
+    <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up-arrow me-2"></i>Analytics</a>
+    <a class="nav-link nav-pill" href="{% url 'siteconfig:report_library' %}"><i class="bi bi-journal-text me-2"></i>Report Library</a>
+    <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}
 
   {% if request.user.is_authenticated %}
     {% comment %}RBAC: System Configuration only for users with settings.manage (admin explicitly grants).{% endcomment %}

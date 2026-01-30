@@ -512,8 +512,8 @@ def backend_dashboard(request):
             "sessions": active_sessions[:3],  # Recent sessions for quick access
         }
     
-    # Get recent activity
-    recent_activities = get_recent_activity(limit=10)
+    # Get recent activity (RBAC: staff see all, others see only own)
+    recent_activities = get_recent_activity(user=request.user, limit=10)
     
     finance_overview = {}
     finance_summary = {}

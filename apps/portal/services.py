@@ -775,6 +775,200 @@ def _upcoming_deadlines(year):
     ]
 
 
+def _upcoming_deadlines_for_teacher(teacher_profile, year, limit=10):
+    """Upcoming grading deadlines for this teacher's assignments (SubjectAssignment.deadline_at)."""
+    if not year or not teacher_profile:
+        return []
+    from django.utils import timezone
+    from apps.academics.models import SubjectAssignment
+
+    now = timezone.now()
+    sa_ids = TeacherAssignment.objects.filter(
+        teacher=teacher_profile,
+        subject_assignment__academic_year=year,
+        subject_assignment__deadline_at__isnull=False,
+        subject_assignment__deadline_at__gte=now,
+    ).values_list("subject_assignment_id", flat=True)
+    qs = (
+        SubjectAssignment.objects.filter(id__in=sa_ids)
+        .select_related("term", "classroom", "subject")
+        .order_by("deadline_at")[:limit]
+    )
+    marks_entry_url = reverse("evals:teacher_marks_entry")
+    return [
+        {
+            "deadline_at": sa.deadline_at,
+            "subject": sa.subject.name if sa.subject_id else "",
+            "classroom": sa.classroom.name if sa.classroom_id else "",
+            "term": getattr(sa.term, "label", str(sa.term_id)) if sa.term_id else "",
+            "url": f"{marks_entry_url}?sa={sa.id}" if sa.id else marks_entry_url,
+        }
+        for sa in qs
+    ]
+
+
+def _fee_reminders_for_parent(user, limit=5):
+    """Upcoming or overdue fee reminders for parent's linked students."""
+    links = guardian_student_links(user, finance_only=True)
+    students = [link.student for link in links]
+    if not students:
+        return []
+    today = timezone.now().date()
+    invoices = (
+        Invoice.objects.filter(
+            student__in=students,
+            status__in=[Invoice.Status.PENDING, Invoice.Status.PARTIAL, Invoice.Status.OVERDUE],
+        )
+        .filter(due_date__gte=today - timedelta(days=7))
+        .select_related("student")
+        .order_by("due_date")[:limit]
+    )
+    result = []
+    for inv in invoices:
+        balance = getattr(inv, "computed_balance", None) or getattr(inv, "balance_amount", Decimal("0"))
+        student_name = getattr(inv.student, "get_display_name", None) and inv.student.get_display_name() or str(inv.student)
+        label = f"{student_name}: {inv.reference or 'Invoice'}"
+        result.append({
+            "due_date": inv.due_date,
+            "label": label,
+            "balance": balance,
+            "overdue": inv.due_date < today if inv.due_date else False,
+            "url": reverse("portal:parent_finance"),
+        })
+    return result
+
+
+def get_dashboard_priorities(user, role, config=None):
+    """
+    Build priorities data for the right sidebar on parent/teacher dashboards.
+    config: from SiteSettings.dashboard_priorities_sidebar (enabled_parent, enabled_teacher, title, sections).
+    Returns dict: show_sidebar, title, sections { key: { label, items: [...] } }.
+    """
+    if config is None:
+        try:
+            config = SiteSettings.get_solo().dashboard_priorities_sidebar or {}
+        except Exception:
+            config = {}
+    role_upper = (role or "").upper()
+    enabled_parent = config.get("enabled_parent", True)
+    enabled_teacher = config.get("enabled_teacher", True)
+    if role_upper == "PARENT" and not enabled_parent:
+        return {"show_sidebar": False, "title": "", "sections": {}}
+    if role_upper == "TEACHER" and not enabled_teacher:
+        return {"show_sidebar": False, "title": "", "sections": {}}
+    title = config.get("title", "My priorities")
+    max_items = config.get("max_items_per_section", 5)
+    sections_config = config.get("sections") or {}
+    year, _term = get_active_year_and_term()
+    sections = {}
+
+    today = timezone.now().date()
+
+    if role_upper == "TEACHER":
+        teacher_profile = getattr(user, "teacher_profile", None)
+        for key, sec in sections_config.items():
+            if not sec.get("enabled", True):
+                continue
+            roles_allowed = sec.get("roles") or []
+            if roles_allowed and "TEACHER" not in [str(r).upper() for r in roles_allowed]:
+                continue
+            label = sec.get("label", key.replace("_", " ").title())
+            items = []
+            view_all_url = None
+            view_all_label = None
+            if key == "grading_deadlines":
+                raw = _upcoming_deadlines_for_teacher(teacher_profile, year, limit=max_items)
+                for i in raw:
+                    dl = i["deadline_at"]
+                    dl_date = dl.date() if hasattr(dl, "date") else dl
+                    delta = (dl_date - today).days if dl_date else 0
+                    if delta < 0:
+                        meta = "Overdue"
+                        overdue = True
+                    elif delta == 0:
+                        meta = "Today"
+                        overdue = False
+                    else:
+                        meta = f"In {delta} day{'s' if delta != 1 else ''}"
+                        overdue = False
+                    items.append({
+                        "type": "deadline", "date": dl, "text": f"{i['subject']} · {i['classroom']}",
+                        "meta": meta, "url": i.get("url"), "overdue": overdue,
+                    })
+                view_all_url = reverse("evals:teacher_marks_entry")
+                view_all_label = "Enter marks"
+            elif key in ("upcoming_events", "upcoming_meetings"):
+                # Optional: hook for future Event/Meeting models
+                items = []
+            sections[key] = {
+                "label": label,
+                "items": items,
+                "item_count": len(items),
+                "view_all_url": view_all_url,
+                "view_all_label": view_all_label,
+                "optional": sec.get("optional", False),
+            }
+
+    if role_upper == "PARENT":
+        for key, sec in sections_config.items():
+            if not sec.get("enabled", True):
+                continue
+            roles_allowed = sec.get("roles") or []
+            if roles_allowed and "PARENT" not in [str(r).upper() for r in roles_allowed]:
+                continue
+            label = sec.get("label", key.replace("_", " ").title())
+            items = []
+            view_all_url = None
+            view_all_label = None
+            if key == "fee_reminders":
+                raw = _fee_reminders_for_parent(user, limit=max_items)
+                for i in raw:
+                    d = i["due_date"]
+                    delta = (d - today).days if d else 0
+                    if i["overdue"]:
+                        meta = "Overdue"
+                        overdue = True
+                    elif delta == 0:
+                        meta = "Due today"
+                        overdue = False
+                    else:
+                        meta = f"Due in {delta} day{'s' if delta != 1 else ''}"
+                        overdue = False
+                    items.append({
+                        "type": "fee", "date": d, "text": i["label"],
+                        "meta": meta, "url": i.get("url"), "overdue": overdue,
+                    })
+                view_all_url = reverse("portal:parent_finance")
+                view_all_label = "View finance"
+            elif key in ("upcoming_events", "upcoming_meetings"):
+                items = []
+            sections[key] = {
+                "label": label,
+                "items": items,
+                "item_count": len(items),
+                "view_all_url": view_all_url,
+                "view_all_label": view_all_label,
+                "optional": sec.get("optional", False),
+            }
+
+    show_empty = config.get("show_empty_sections", True)
+    collapsed_by_default = config.get("collapsed_by_default", False)
+    filtered = {}
+    for key, sec in sections.items():
+        has_items = (sec.get("item_count") or 0) > 0
+        if sec.get("optional") and not has_items:
+            continue
+        if not show_empty and not has_items:
+            continue
+        filtered[key] = sec
+    return {
+        "show_sidebar": bool(filtered),
+        "title": title,
+        "sections": filtered,
+        "collapsed_by_default": collapsed_by_default,
+    }
+
+
 def _task_tracker(students, year, term):
     """
     Track pending tasks with optimized aggregation.

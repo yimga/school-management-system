@@ -217,19 +217,45 @@
     const dragToggle = document.getElementById('toggleLayoutDrag') || document.getElementById('toggleCustomize');
     let sortables = [];
 
-    function showToast(message) {
+    const TOAST_DURATION = 2500;
+    const PLACEHOLDER_CLASS = 'dashboard-column-placeholder';
+
+    function showToast(message, type) {
+      type = type || 'success';
       const container = document.getElementById('dashboard-layout-toast');
       if (!container) return;
       const toast = document.createElement('div');
-      toast.className = 'dashboard-layout-toast-item alert alert-success shadow-sm mb-0';
+      toast.className = 'dashboard-layout-toast-item alert shadow-sm mb-0 ' +
+        (type === 'error' ? 'alert-danger' : type === 'info' ? 'alert-info' : 'alert-success');
       toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
       toast.textContent = message;
       container.appendChild(toast);
-      setTimeout(() => toast.remove(), 2500);
+      setTimeout(() => toast.remove(), TOAST_DURATION);
+    }
+
+    function showSavingToast() {
+      const container = document.getElementById('dashboard-layout-toast');
+      if (!container) return null;
+      clearSavingToast();
+      const el = document.createElement('div');
+      el.className = 'dashboard-layout-toast-item dashboard-layout-toast-saving alert alert-secondary shadow-sm mb-0';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      el.textContent = 'Saving…';
+      container.appendChild(el);
+      return el;
+    }
+
+    function clearSavingToast() {
+      const container = document.getElementById('dashboard-layout-toast');
+      if (!container) return;
+      container.querySelectorAll('.dashboard-layout-toast-saving').forEach((t) => t.remove());
     }
 
     const saveLayout = () => {
       const itemsPayload = collectLayout(columns);
+      const savingEl = showSavingToast();
       fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
         .then((r) => (r.ok ? r.json() : null))
         .then((current) => {
@@ -250,10 +276,38 @@
           });
         })
         .then((r) => {
+          clearSavingToast();
           if (r && r.ok) showToast('Layout saved');
+          else showToast('Could not save layout', 'error');
         })
-        .catch(() => {});
+        .catch(() => {
+          clearSavingToast();
+          showToast('Could not save layout', 'error');
+        });
     };
+
+    function resetLayout() {
+      const savingEl = showSavingToast();
+      fetch(`/api/dashboard/layout/${page}/`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'X-CSRFToken': getCsrfToken() },
+      })
+        .then((r) => {
+          if (!r || !r.ok) throw new Error('Reset failed');
+          return fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' });
+        })
+        .then((r) => (r && r.ok ? r.json() : null))
+        .then((data) => {
+          clearSavingToast();
+          if (data && data.layout) applyLayout(columns, data.layout);
+          showToast('Layout reset to default');
+        })
+        .catch(() => {
+          clearSavingToast();
+          showToast('Could not reset layout', 'error');
+        });
+    }
 
     // Load current layout + widget metadata
     fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
@@ -289,13 +343,17 @@
 
     function setEditMode(active) {
       const instructions = document.getElementById('dashboard-customize-instructions');
-      const btn = document.getElementById('btnCustomizeLayout');
+      const allBtns = document.querySelectorAll('.js-btn-customize-layout');
       if (instructions) instructions.classList.toggle('d-none', !active);
-      if (btn) {
+      allBtns.forEach((btn) => {
         btn.classList.toggle('active', !!active);
         btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-        btn.innerHTML = (active ? '<i class="bi bi-check2 me-1"></i>Done' : '<i class="bi bi-grid-3x3-gap me-1"></i>Customize layout');
-      }
+        if (btn.id === 'btnCustomizeLayout') {
+          btn.innerHTML = (active ? '<i class="bi bi-check2 me-1"></i>Done' : '<i class="bi bi-grid-3x3-gap me-1"></i>Customize layout');
+        } else if (btn.id === 'sidebar-customize-layout-trigger') {
+          btn.innerHTML = (active ? '<i class="bi bi-check2 me-2"></i>Done' : '<i class="bi bi-grid-3x3-gap me-2"></i>Customize layout');
+        }
+      });
       if (dragToggle) dragToggle.checked = !!active;
       if (active) enableDrag(); else disableDrag();
     }
@@ -306,20 +364,33 @@
         return;
       }
 
+      function injectEmptyColumnPlaceholder(col) {
+        if (col.querySelector('.' + PLACEHOLDER_CLASS)) return;
+        const placeholder = document.createElement('div');
+        placeholder.className = PLACEHOLDER_CLASS;
+        placeholder.setAttribute('aria-hidden', 'true');
+        placeholder.textContent = 'Drop widgets here';
+        col.appendChild(placeholder);
+      }
+
+      function removeAllPlaceholders() {
+        layoutRoot.querySelectorAll('.' + PLACEHOLDER_CLASS).forEach((el) => el.remove());
+      }
+
       const enableDrag = () => {
         if (sortables.length) {
           return;
         }
-        
+
         columns.forEach((col) => {
           const widgets = Array.from(col.querySelectorAll('[data-widget-id]'));
-          if (widgets.length === 0) return; // Skip empty columns
-          
+          if (widgets.length === 0) injectEmptyColumnPlaceholder(col);
+
           try {
             const sortable = Sortable.create(col, {
               group: 'dashboard-widgets',
               handle: '.dashboard-widget-grip',
-              filter: '.dash-widget-controls, .dash-widget-controls *, .widget-meta-control, .widget-meta-control *, button, a, input, select, textarea',
+              filter: '.dash-widget-controls, .dash-widget-controls *, .widget-meta-control, .widget-meta-control *, button, a, input, select, textarea, .' + PLACEHOLDER_CLASS,
               preventOnFilter: true,
               animation: 150,
               forceFallback: false,
@@ -330,6 +401,12 @@
               dragClass: 'sortable-drag',
               onEnd: () => {
                 saveLayout();
+                columns.forEach((c) => {
+                  const count = c.querySelectorAll('[data-widget-id]').length;
+                  const ph = c.querySelector('.' + PLACEHOLDER_CLASS);
+                  if (count === 0 && !ph) injectEmptyColumnPlaceholder(c);
+                  if (count > 0 && ph) ph.remove();
+                });
               },
             });
             sortables.push(sortable);
@@ -337,7 +414,7 @@
             console.warn('Failed to initialize Sortable for column:', col, err);
           }
         });
-        
+
         if (sortables.length > 0) {
           layoutRoot.classList.add('drag-mode');
           console.log(`Drag-and-drop enabled for ${sortables.length} column(s)`);
@@ -357,17 +434,24 @@
           }
         });
         sortables = [];
+        removeAllPlaceholders();
         layoutRoot.classList.remove('drag-mode');
       };
 
       const customDragEnabled = layoutRoot.dataset.customDragEnabled !== "false";
-      const customizeBtn = document.getElementById('btnCustomizeLayout');
+      const customizeBtns = document.querySelectorAll('.js-btn-customize-layout');
 
-      if (customizeBtn) {
-        customizeBtn.addEventListener('click', () => {
-          const active = !layoutRoot.classList.contains('drag-mode');
-          setEditMode(active);
-        });
+      function onCustomizeClick() {
+        const active = !layoutRoot.classList.contains('drag-mode');
+        setEditMode(active);
+      }
+
+      document.querySelectorAll('.js-reset-dashboard-layout').forEach((btn) => {
+        btn.addEventListener('click', () => resetLayout());
+      });
+
+      if (customizeBtns.length) {
+        customizeBtns.forEach((btn) => btn.addEventListener('click', onCustomizeClick));
         const startActive = dragToggle ? !!dragToggle.checked : false;
         if (!startActive) setEditMode(false);
       } else {

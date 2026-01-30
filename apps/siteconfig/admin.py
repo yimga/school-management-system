@@ -333,6 +333,14 @@ class SiteSettingsAdmin(ModelAdmin):
         # Keep the model hidden for non-admin staff; other siteconfig models remain visible via their own admins.
         return self._is_site_admin(request.user)
 
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "dashboard_priorities_sidebar":
+            kwargs["widget"] = forms.Textarea(attrs={
+                "rows": 14,
+                "style": "font-family:monospace; width:100%; font-size:12px;",
+            })
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
     readonly_fields = ("updated_at", "logo_preview")
 
     fieldsets = (
@@ -440,6 +448,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "portal_announcements",
                 "portal_recent_grades",
                 "portal_upcoming_assessments",
+                "dashboard_priorities_sidebar",
             )
         }),
         ("Footer Content", {

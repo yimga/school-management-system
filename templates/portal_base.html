@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/portal_theme.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-theme-modes.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui-alignment-improvements.css' %}">
     {% block extrastyle %}{% endblock %}
 
@@ -608,12 +609,15 @@
 
     <div class="container-fluid px-3 py-2">
       <div class="row g-3">
-        <!-- Sidebar (desktop) - Fixed Position -->
-        <div class="col-lg-3 col-xl-2 d-none d-lg-block">
+        <!-- Sidebar (desktop) - resizable via drag handle -->
+        <div id="portal-sidebar-col" class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block">
           <div class="sidebar p-3">
             {% include "partials/portal_sidebar.html" %}
           </div>
         </div>
+
+        <!-- Resize handle (desktop only): drag to change sidebar width -->
+        <div class="portal-resize-handle d-none d-lg-block" id="portalResizeHandle" role="separator" aria-label="Drag to resize sidebar" title="Drag to resize sidebar"></div>
 
         <!-- Sidebar (mobile) -->
         <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel">
@@ -624,10 +628,9 @@
           <div class="offcanvas-body">
           {% include "partials/portal_sidebar.html" %}
         </div>
-      </div>
 
-      <!-- Content -->
-      <div class="col-lg-9 col-xl-10" id="main-content" role="main">
+        <!-- Content (desktop: fills remaining space; mobile: full width) -->
+        <div class="portal-main-col col-12 col-lg-9 col-xl-10" id="main-content" role="main">
         <div class="page-wrap">
           {% include "partials/breadcrumbs.html" %}
             {% if messages %}
@@ -667,6 +670,69 @@
         </div>
       </div>
     </div>
+
+    <!-- Portal sidebar resize: restore width and wire drag -->
+    <script>
+    (function() {
+      var STORAGE_KEY = 'portal-sidebar-width';
+      var MIN = 220;
+      var MAX = 420;
+      var DEFAULT = 280;
+
+      function px(n) { return n + 'px'; }
+      function getRoot() { return document.documentElement; }
+      function getStored() {
+        try {
+          var w = parseInt(localStorage.getItem(STORAGE_KEY), 10);
+          if (w >= MIN && w <= MAX) return w;
+        } catch (e) {}
+        return DEFAULT;
+      }
+      function setWidth(w) {
+        w = Math.max(MIN, Math.min(MAX, w));
+        getRoot().style.setProperty('--portal-sidebar-width', px(w));
+        return w;
+      }
+      function saveWidth(w) {
+        try { localStorage.setItem(STORAGE_KEY, String(w)); } catch (e) {}
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        setWidth(getStored());
+
+        var handle = document.getElementById('portalResizeHandle');
+        if (!handle) return;
+
+        var startX = 0, startW = 0;
+        function onMove(e) {
+          var dx = e.clientX - startX;
+          var newW = startW + dx;
+          newW = setWidth(newW);
+          saveWidth(newW);
+        }
+        function onUp() {
+          handle.classList.remove('portal-resize-active');
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+        }
+
+        handle.addEventListener('mousedown', function(e) {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          var w = getComputedStyle(getRoot()).getPropertyValue('--portal-sidebar-width').trim();
+          startW = parseInt(w, 10) || DEFAULT;
+          startX = e.clientX;
+          handle.classList.add('portal-resize-active');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+          document.addEventListener('mousemove', onMove);
+          document.addEventListener('mouseup', onUp);
+        });
+      });
+    })();
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     

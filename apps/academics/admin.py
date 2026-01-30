@@ -3,7 +3,7 @@ from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 from .models import (
-    AcademicYear, Term, Department, Specialty, Classroom, ClassroomPromotionMapping, Subject, SubjectAssignment,
+    AcademicYear, Term, Department, Specialty, Classroom, Subject, SubjectAssignment,
     CertificationExamSession, CertificationCandidate, CertificationAuditLog,
     CertificationExamPreset,
     CertificationFeeTemplate,

@@ -1,13 +1,16 @@
 {% comment %}
   Shared UI for dashboard layout customization: one "Customize layout" button,
-  instructions bar (shown in edit mode), and toast for save feedback.
+  optional "Reset to default", instructions bar (shown in edit mode), and toast for save feedback.
   Include once per dashboard; requires #dashboard-layout and dashboard-layout.js.
 {% endcomment %}
 <input type="checkbox" id="toggleCustomize" class="d-none" aria-hidden="true" tabindex="-1">
-<button type="button" class="btn btn-outline-primary btn-sm" id="btnCustomizeLayout" aria-pressed="false">
+<button type="button" class="btn btn-outline-primary btn-sm js-btn-customize-layout" id="btnCustomizeLayout" aria-pressed="false">
   <i class="bi bi-grid-3x3-gap me-1"></i>Customize layout
+</button>
+<button type="button" class="btn btn-outline-secondary btn-sm js-reset-dashboard-layout" id="btnResetLayout" aria-label="Reset dashboard layout to default">
+  <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to default
 </button>
 <div id="dashboard-customize-instructions" class="alert alert-info small mb-2 d-none" role="status">
   <i class="bi bi-info-circle me-2"></i>Drag cards by the grip to reorder. Use the ⋮ menu on each card for size (Small / Medium / Large). Layout saves automatically.
 </div>
-<div id="dashboard-layout-toast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;" aria-live="polite"></div>
+<div id="dashboard-layout-toast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;" aria-live="polite" aria-atomic="true"></div>

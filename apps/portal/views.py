@@ -293,6 +293,12 @@ def parent_dashboard(request: HttpRequest):
         hero["actions"].append({"label": "Pay Fees", "url": reverse("portal:parent_finance")})
 
     from apps.accounts.utils import get_dashboard_context
+    from apps.portal.services import get_dashboard_priorities
+
+    # Right-sidebar priorities (configurable from Admin → Site Settings)
+    site = SiteSettings.get_solo()
+    priorities_config = getattr(site, "dashboard_priorities_sidebar", None) or {}
+    priorities_sidebar = get_dashboard_priorities(request.user, "PARENT", config=priorities_config)
 
     # Signature stats for parent (forms awaiting signature)
     try:
@@ -336,6 +342,7 @@ def parent_dashboard(request: HttpRequest):
         "finance_total": finance_total,
         "finance_paid": finance_paid,
         "available_sidebar_items": available_sidebar_items,
+        "priorities_sidebar": priorities_sidebar,
         **dashboard_context,  # Unpack dashboard settings, layout URL, widget metadata, etc.
         "show_layout_customize_in_sidebar": dashboard_context.get("allow_custom_layout", False),
         "finance_access_banner": finance_access_banner,

@@ -170,6 +170,152 @@ body.has-dashboard-footer .ai-copilot-wrapper {
 body.has-dashboard-footer .floating-log-panel {
   bottom: 140px !important;
 }
+/* Chathead above AI Copilot when footer present (avoid overlap; copilot stays at 140px) */
 body.has-dashboard-footer .portal-chathead {
-  bottom: 140px !important;
+  bottom: 196px !important;
+}
+
+/* ============================================
+   Resizable portal sidebar (desktop only)
+   --portal-sidebar-width set by JS; persisted in localStorage
+   ============================================ */
+:root {
+  --portal-sidebar-width: 280px;
+  --portal-sidebar-min: 220px;
+  --portal-sidebar-max: 420px;
+}
+
+@media (min-width: 992px) {
+  .portal-sidebar-col {
+    flex: 0 0 var(--portal-sidebar-width) !important;
+    width: var(--portal-sidebar-width) !important;
+    min-width: var(--portal-sidebar-min) !important;
+    max-width: var(--portal-sidebar-max) !important;
+  }
+
+  .portal-resize-handle {
+    flex: 0 0 6px;
+    width: 6px;
+    min-width: 6px;
+    cursor: col-resize;
+    background: transparent;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .portal-resize-handle::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--portal-border, rgba(0, 0, 0, 0.1));
+    border-radius: 1px;
+  }
+  .portal-resize-handle:hover::before,
+  .portal-resize-handle.portal-resize-active::before {
+    background: var(--school-primary, #0d6efd);
+    width: 3px;
+    left: 1px;
+  }
+  .portal-resize-handle:focus {
+    outline: none;
+  }
+  .portal-resize-handle:focus-visible::before {
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.4);
+  }
+
+  .portal-main-col {
+    flex: 1 1 0% !important;
+    min-width: 0;
+    max-width: none !important;
+    width: auto !important;
+  }
+}
+
+/* ============================================
+   Dashboard right sidebar (priorities) – parent/teacher
+   Screen-optimized: sticky on desktop, below main on mobile
+   ============================================ */
+.portal-priorities-sidebar {
+  margin-top: 0.25rem;
+}
+.portal-priorities-sidebar .priorities-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+.portal-priorities-sidebar .priorities-section-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+.portal-priorities-sidebar .priorities-item:last-child {
+  border-bottom: none !important;
+}
+.portal-priorities-sidebar .very-small {
+  font-size: 0.7rem;
+}
+.portal-priorities-sidebar .priorities-item-overdue .priorities-text a,
+.portal-priorities-sidebar .priorities-item-overdue .priorities-text span {
+  color: var(--bs-danger, #dc3545) !important;
+}
+.portal-priorities-sidebar .priorities-section-details {
+  list-style: none;
+}
+.portal-priorities-sidebar .priorities-section-details summary {
+  list-style: none;
+}
+.portal-priorities-sidebar .priorities-section-details summary::-webkit-details-marker {
+  display: none;
+}
+.portal-priorities-sidebar .priorities-section-chevron {
+  transition: transform 0.2s ease;
+}
+.portal-priorities-sidebar .priorities-section-details[open] .priorities-section-chevron {
+  transform: rotate(180deg);
+}
+
+@media (min-width: 992px) {
+  .portal-priorities-sidebar {
+    position: sticky;
+    top: 1rem;
+  }
+}
+@media (max-width: 991px) {
+  .portal-priorities-sidebar {
+    margin-top: 1rem;
+  }
+}
+
+/* ============================================
+   Dashboard right sidebar (priorities) – screen-optimized
+   ============================================ */
+.portal-priorities-sidebar {
+  margin-top: 0.25rem;
+}
+.portal-priorities-sidebar .priorities-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+.portal-priorities-sidebar .priorities-section-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+.portal-priorities-sidebar .priorities-item:last-child {
+  border-bottom: none !important;
+}
+.portal-priorities-sidebar .priorities-date {
+  min-width: 3rem;
+}
+@media (min-width: 992px) {
+  .portal-priorities-sidebar.sticky-top {
+    position: sticky;
+    top: 1rem;
+  }
+}
+@media (max-width: 991px) {
+  .portal-priorities-sidebar {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
 }

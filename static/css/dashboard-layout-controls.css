@@ -272,6 +272,9 @@ html[data-theme="light"] .dash-widget-row select {
 .dashboard-layout-toast-item {
   animation: dashboard-toast-in 0.2s ease;
 }
+.dashboard-layout-toast-saving {
+  font-style: italic;
+}
 @keyframes dashboard-toast-in {
   from {
     opacity: 0;
@@ -281,6 +284,23 @@ html[data-theme="light"] .dash-widget-row select {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Empty column placeholder (visible only in drag mode) */
+#dashboard-layout.drag-mode .dashboard-column-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: 1rem;
+  border: 2px dashed rgba(148, 163, 184, 0.4);
+  border-radius: 12px;
+  color: rgba(148, 163, 184, 0.8);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+#dashboard-layout:not(.drag-mode) .dashboard-column-placeholder {
+  display: none !important;
 }
 
 /* Mobile touch support */

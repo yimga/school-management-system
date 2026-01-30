@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "lint:accessibility": "npx pa11y-ci http://localhost:8000/portal/parent/ http://localhost:8000/teacher/ http://localhost:8000/finance/ || true",
-    "lint:a11y": "npx @axe-core/cli http://localhost:8000/accounts/login/ --exit || true",
+    "lint:accessibility": "npx pa11y-ci http://localhost:8000/portal/parent/ http://localhost:8000/evals/teacher/ http://localhost:8000/finance/ || true",
+    "lint:a11y": "npx @axe-core/cli http://localhost:8000/authentication/login/ --exit || true",
     "check:images": "python scripts/check_image_dimensions.py",
     "perf": "npm run check:images -- && echo 'Lighthouse: run in Chrome DevTools (Lighthouse tab) or npm run lighthouse. See docs/PERFORMANCE_BUDGET.md'",
     "lighthouse": "npx @lhci/cli@0.13.x autorun --config=lighthouserc.js",

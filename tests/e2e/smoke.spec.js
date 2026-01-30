@@ -6,7 +6,7 @@
 const { test, expect } = require('@playwright/test');
 
 test('login page loads', async ({ page }) => {
-  await page.goto('/accounts/login/');
+  await page.goto('/authentication/login/');
   await expect(page).toHaveTitle(/login|sign in|portal/i);
   await expect(page.getByRole('heading', { name: /log in|sign in/i }).or(page.locator('input[name="username"]'))).toBeVisible({ timeout: 10000 });
 });
@@ -18,7 +18,7 @@ test('backend dashboard reachable after login', async ({ page }) => {
     test.skip();
     return;
   }
-  await page.goto('/accounts/login/');
+  await page.goto('/authentication/login/');
   await page.fill('input[name="username"]', username);
   await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"]');

@@ -6,7 +6,7 @@ module.exports = {
   ci: {
     collect: {
       url: [
-        process.env.LHCI_URL || 'http://localhost:8000/accounts/login/',
+        process.env.LHCI_URL || 'http://localhost:8000/authentication/login/',
         process.env.LHCI_URL_PORTAL || 'http://localhost:8000/portal/parent/',
       ],
       numberOfRuns: 1,

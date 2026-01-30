@@ -21,7 +21,7 @@ module.exports = defineConfig({
   ],
   webServer: process.env.CI ? undefined : {
     command: 'python manage.py runserver 8000',
-    url: 'http://localhost:8000/accounts/login/',
+    url: 'http://localhost:8000/authentication/login/',
     reuseExistingServer: !process.env.CI,
     timeout: 60000,
   },

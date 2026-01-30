@@ -116,7 +116,14 @@ def dashboard_context(request):
         messages_unread_count = 0
 
     context["messages_unread_count"] = messages_unread_count
-    
+
+    # Recent activity for sidebar (RBAC: staff see all, others see only own)
+    try:
+        from .activity_helper import get_recent_activity
+        context["recent_activities"] = get_recent_activity(user=user, limit=10)
+    except Exception:
+        context["recent_activities"] = []
+
     # Role-specific metrics
     try:
         if role_value in ['ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN']:

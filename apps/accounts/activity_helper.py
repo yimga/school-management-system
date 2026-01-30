@@ -1,19 +1,23 @@
 """
-View helper for recent admin activity tracking
+View helper for recent admin activity tracking.
+RBAC: staff/superuser see all logs; other users see only their own.
 """
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.utils.timesince import timesince
 
 
-def get_recent_activity(limit=10):
+def get_recent_activity(user=None, limit=10):
     """
-    Get recent admin actions for display in dashboard.
+    Get recent admin actions for display in sidebar/dashboard.
+    If user is staff or superuser, returns all recent actions; otherwise
+    returns only that user's actions (RBAC: users see only their own logs).
     Returns list of formatted activity entries.
     """
-    recent_actions = LogEntry.objects.select_related(
-        'user', 'content_type'
-    ).order_by('-action_time')[:limit]
+    qs = LogEntry.objects.select_related('user', 'content_type').order_by('-action_time')
+    if user and not (getattr(user, 'is_staff', False) or getattr(user, 'is_superuser', False)):
+        qs = qs.filter(user=user)
+    recent_actions = qs[:limit]
     
     activities = []
     for log in recent_actions:

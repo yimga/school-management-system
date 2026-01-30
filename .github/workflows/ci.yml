@@ -57,7 +57,7 @@ jobs:
       - name: Lighthouse (performance + a11y assertions)
         run: npm run lighthouse:assert
         env:
-          LHCI_URL: 'http://localhost:8000/accounts/login/'
+          LHCI_URL: 'http://localhost:8000/authentication/login/'
           LHCI_URL_PORTAL: 'http://localhost:8000/portal/parent/'
         continue-on-error: true
 

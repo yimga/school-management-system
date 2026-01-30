@@ -1,0 +1,65 @@
+{% comment %}
+  Right-side priorities sidebar on parent/teacher main dashboards.
+  Requires: priorities_sidebar = { show_sidebar, title, collapsed_by_default, sections: { key: { label, items, item_count, view_all_url, view_all_label } } }
+  Items: { type, date, text, meta, url, overdue }.
+  Optionals: collapsed_by_default; sections with no items may be hidden via config (show_empty_sections / optional).
+  Configurable from Admin → Site Settings → Dashboard priorities sidebar.
+{% endcomment %}
+{% load static %}
+<div class="portal-priorities-sidebar sticky-top" role="complementary" aria-label="{{ priorities_sidebar.title|default:'My priorities' }}">
+  <div class="priorities-card card shadow-sm border-0">
+    <div class="card-header bg-transparent border-0 pb-0">
+      <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+        <i class="bi bi-list-check text-primary" aria-hidden="true"></i>
+        {{ priorities_sidebar.title|default:"My priorities" }}
+      </h6>
+    </div>
+    <div class="card-body pt-2">
+      {% for key, section in priorities_sidebar.sections.items %}
+        <div class="priorities-section mb-3">
+          <details class="priorities-section-details" {% if not priorities_sidebar.collapsed_by_default %}open{% endif %} data-section-key="{{ key }}">
+            <summary class="priorities-section-title small text-uppercase text-muted fw-semibold mb-2 d-flex align-items-center justify-content-between list-unstyled" style="cursor:pointer;" aria-expanded="{% if priorities_sidebar.collapsed_by_default %}false{% else %}true{% endif %}">
+              <span>{{ section.label }}{% if section.item_count %}<span class="badge bg-primary rounded-pill ms-1">{{ section.item_count }}</span>{% endif %}</span>
+              <i class="bi bi-chevron-down priorities-section-chevron very-small" aria-hidden="true"></i>
+            </summary>
+            {% if section.items %}
+              <ul class="list-unstyled mb-0 priorities-list mt-1" role="list">
+                {% for item in section.items %}
+                  <li class="priorities-item d-flex align-items-start gap-2 py-2 border-bottom border-light{% if item.overdue %} priorities-item-overdue{% endif %}" role="listitem">
+                    {% if item.date %}
+                      <span class="priorities-date small text-nowrap{% if item.overdue %} text-danger{% else %} text-muted{% endif %}">
+                        {% now "Y-m-d" as today_str %}
+                        {% if item.date|date:"Y-m-d" == today_str %}Today{% else %}{{ item.date|date:"M j" }}{% endif %}
+                      </span>
+                    {% endif %}
+                    <span class="priorities-text small flex-grow-1">
+                      {% if item.url %}
+                        <a href="{{ item.url }}" class="text-decoration-none{% if item.overdue %} text-danger fw-medium{% endif %}">{{ item.text }}</a>
+                      {% else %}
+                        <span class="{% if item.overdue %}text-danger fw-medium{% endif %}">{{ item.text }}</span>
+                      {% endif %}
+                      {% if item.meta %}
+                        <span class="d-block very-small {% if item.overdue %}text-danger{% else %}text-muted{% endif %}">{{ item.meta }}</span>
+                      {% endif %}
+                    </span>
+                  </li>
+                {% endfor %}
+              </ul>
+              {% if section.view_all_url and section.view_all_label %}
+                <div class="mt-2">
+                  <a href="{{ section.view_all_url }}" class="small text-primary text-decoration-none d-inline-flex align-items-center gap-1">
+                    {{ section.view_all_label }} <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+              {% endif %}
+            {% else %}
+              <p class="small text-muted mb-0 mt-1">No upcoming items</p>
+            {% endif %}
+          </details>
+        </div>
+      {% empty %}
+        <p class="small text-muted mb-0">No sections configured. Admins can enable sections in <strong>Site Settings → Portal Content → Dashboard priorities sidebar</strong>.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
