@@ -132,6 +132,7 @@ class DashboardLayoutSerializer(serializers.Serializer):
 
 
 ALLOWED_TILE_VARIANTS = {"default", "compact", "flat"}
+ALLOWED_CHART_TYPES = {"line", "bar", "radar", "doughnut", "pie", "polarArea"}
 
 
 def _sanitize_custom_links(raw_links: Any) -> list[dict]:
@@ -166,7 +167,15 @@ def _sanitize_widget_meta(raw_meta: Any, allowed_widgets: Dict[str, DashboardWid
             size = widget.default_size or (allowed_sizes[0] if allowed_sizes else "md")
         if variant not in allowed_variants:
             variant = widget.default_variant or (allowed_variants[0] if allowed_variants else "default")
-        clean_meta[widget_id] = {"size": size, "variant": variant}
+        meta = {"size": size, "variant": variant}
+        # chart_type for data visualizer widgets (user override)
+        if getattr(widget, "widget_type", "") == "chart":
+            ct = str(config.get("chart_type") or "").strip().lower()
+            if ct and ct in ALLOWED_CHART_TYPES:
+                meta["chart_type"] = ct
+            elif str(getattr(widget, "chart_type", "") or "").strip():
+                meta["chart_type"] = str(widget.chart_type or "").strip().lower()
+        clean_meta[widget_id] = meta
     return clean_meta
 
 
@@ -226,6 +235,8 @@ def _allowed_roles_for_page(page: str) -> List[str]:
         # Additional dashboards
         "finance": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "FINANCE_STAFF"],
         "analytics": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "ACADEMICS_STAFF"],
+        "payroll": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "FINANCE_STAFF"],
+        "emis": role_backend,
         "entity-console": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "IT_ADMIN"],
         # Portal KB is safe to show to any authenticated role.
         "portal-kb": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "IT_ADMIN", "ACADEMICS_STAFF", "COMMS_STAFF", "TEACHER", "DEPT_LEAD", "HOD", "PARENT", "STUDENT"],
@@ -280,6 +291,18 @@ class DashboardLayoutAPI(APIView):
 
     def patch(self, request, page: str):
         return self._save(request, page)
+
+    def delete(self, request, page: str):
+        """Reset layout to default (RBAC: requires _can_customize)."""
+        page = page.lower()
+        self._enforce_page_access(page, request.user)
+        if not _can_customize(request.user):
+            return Response(
+                {"detail": "Only staff and allowed roles can reset dashboard layout."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        DashboardLayout.objects.filter(user=request.user, page=page).delete()
+        return Response({"status": "ok", "layout": {}}, status=status.HTTP_200_OK)
 
     def _save(self, request, page: str):
         page = page.lower()

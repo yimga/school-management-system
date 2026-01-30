@@ -653,7 +653,7 @@
 
             <div class="topbar-controls">
               {% if SHOW_HEADER_NOTIFICATIONS %}
-              <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_notifications' %}" title="Notifications" style="font-size: 1.2rem;">
+              <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications" style="font-size: 1.2rem;">
                 <i class="bi bi-bell"></i>
                 {% if NOTIFICATIONS_UNREAD_COUNT %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
@@ -665,9 +665,10 @@
                 class="btn btn-link text-white p-0" 
                 id="themeToggle" 
                 title="Toggle Dark/Light Theme"
+                aria-label="Toggle Dark/Light Theme"
                 style="font-size: 1.2rem;"
               >
-                <i class="bi bi-moon-stars"></i>
+                <i class="bi bi-moon-stars" aria-hidden="true"></i>
               </button>
               {% endif %}
 
@@ -680,9 +681,10 @@
                   data-bs-toggle="dropdown" 
                   aria-expanded="false"
                   title="Admin Menu"
+                  aria-label="Admin menu"
                   style="font-size: 1.2rem;"
                 >
-                  <i class="bi bi-gear"></i>
+                  <i class="bi bi-gear" aria-hidden="true"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
                   <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>

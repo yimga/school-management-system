@@ -35,16 +35,34 @@
     columns.forEach((col) => {
       const columnKey = col.dataset.dashboardColumnKey || col.dataset.dashboardColumn || 'main';
       Array.from(col.querySelectorAll('[data-widget-id]')).forEach((el, idx) => {
-        items.push({
+        const it = {
           id: el.dataset.widgetId,
           column: columnKey,
           order: idx,
           size: el.dataset.widgetSize || null,
           variant: el.dataset.widgetVariant || null,
-        });
+        };
+        if (el.dataset.widgetChartType) it.chart_type = el.dataset.widgetChartType;
+        items.push(it);
       });
     });
     return { items };
+  }
+
+  function collectWidgetMeta(columns) {
+    const meta = {};
+    columns.forEach((col) => {
+      Array.from(col.querySelectorAll('[data-widget-id]')).forEach((el) => {
+        const id = el.dataset.widgetId;
+        if (!id) return;
+        meta[id] = {
+          size: el.dataset.widgetSize || 'md',
+          variant: el.dataset.widgetVariant || 'default',
+        };
+        if (el.dataset.widgetChartType) meta[id].chart_type = el.dataset.widgetChartType;
+      });
+    });
+    return meta;
   }
 
   function applyLayout(columns, layout) {
@@ -90,6 +108,13 @@
 
     el.dataset.widgetSize = allowedSizes.includes(size) ? size : (allowedSizes[0] || 'md');
     el.dataset.widgetVariant = allowedVariants.includes(variant) ? variant : (allowedVariants[0] || 'default');
+
+    if ((meta && meta.widget_type) === 'chart' && (meta.chart_type || item.chart_type)) {
+      const ct = (meta.chart_type || item.chart_type || '').toLowerCase();
+      if (['line','bar','pie','doughnut','radar','polararea'].includes(ct)) {
+        el.dataset.widgetChartType = ct === 'polararea' ? 'polarArea' : ct;
+      }
+    }
   }
 
   function injectGrip(el) {
@@ -102,34 +127,55 @@
     el.insertBefore(grip, el.firstChild);
   }
 
+  const CHART_TYPES = [
+    { value: 'line', label: 'Line' },
+    { value: 'bar', label: 'Bar' },
+    { value: 'pie', label: 'Pie' },
+    { value: 'doughnut', label: 'Doughnut' },
+    { value: 'radar', label: 'Radar' },
+    { value: 'polarArea', label: 'Polar Area' },
+  ];
+
   function injectControls(el, meta, onChange) {
     if (el.dataset.widgetControlsInjected === '1') return;
     el.dataset.widgetControlsInjected = '1';
 
     const allowedSizes = (meta && meta.allowed_sizes) || ['sm', 'md', 'lg'];
     const allowedVariants = (meta && meta.allowed_variants) || ['default', 'compact', 'flat'];
+    const isChartWidget = (meta && meta.widget_type) === 'chart';
 
     el.classList.add('dash-widget');
     injectGrip(el);
+
+    let menuRows = `
+      <div class="dash-widget-row">
+        <label>Size</label>
+        <select class="dash-widget-size"></select>
+      </div>
+      <div class="dash-widget-row">
+        <label>Style</label>
+        <select class="dash-widget-variant"></select>
+      </div>
+    `;
+    if (isChartWidget) {
+      menuRows += `
+      <div class="dash-widget-row">
+        <label>Chart</label>
+        <select class="dash-widget-chart-type"></select>
+      </div>
+      `;
+    }
 
     const controls = document.createElement('div');
     controls.className = 'dash-widget-controls';
     controls.innerHTML = `
       <button type="button" class="dash-widget-gear" aria-label="Widget settings" title="Widget settings">⋯</button>
-      <div class="dash-widget-menu" aria-hidden="true">
-        <div class="dash-widget-row">
-          <label>Size</label>
-          <select class="dash-widget-size"></select>
-        </div>
-        <div class="dash-widget-row">
-          <label>Style</label>
-          <select class="dash-widget-variant"></select>
-        </div>
-      </div>
+      <div class="dash-widget-menu" aria-hidden="true">${menuRows}</div>
     `;
 
     const sizeSelect = controls.querySelector('.dash-widget-size');
     const variantSelect = controls.querySelector('.dash-widget-variant');
+    const chartTypeSelect = controls.querySelector('.dash-widget-chart-type');
     const gear = controls.querySelector('.dash-widget-gear');
     const menu = controls.querySelector('.dash-widget-menu');
 
@@ -145,9 +191,21 @@
       opt.textContent = v === 'flat' ? 'Flat' : v === 'compact' ? 'Compact' : 'Default';
       variantSelect.appendChild(opt);
     });
+    if (isChartWidget && chartTypeSelect) {
+      CHART_TYPES.forEach((ct) => {
+        const opt = document.createElement('option');
+        opt.value = ct.value;
+        opt.textContent = ct.label;
+        chartTypeSelect.appendChild(opt);
+      });
+    }
 
     sizeSelect.value = normalizeSize(el.dataset.widgetSize) || 'md';
     variantSelect.value = normalizeVariant(el.dataset.widgetVariant) || 'default';
+    if (isChartWidget && chartTypeSelect) {
+      const ct = (el.dataset.widgetChartType || meta.chart_type || '').toLowerCase();
+      chartTypeSelect.value = CHART_TYPES.some((c) => c.value === ct) ? ct : (meta.chart_type || 'line');
+    }
 
     const closeMenu = () => {
       menu.setAttribute('aria-hidden', 'true');
@@ -177,6 +235,15 @@
       el.dataset.widgetVariant = variantSelect.value;
       onChange();
     });
+    if (isChartWidget && chartTypeSelect) {
+      chartTypeSelect.addEventListener('change', () => {
+        el.dataset.widgetChartType = chartTypeSelect.value;
+        if (window.dashboardCharts && typeof window.dashboardCharts.refreshCharts === 'function') {
+          window.dashboardCharts.refreshCharts();
+        }
+        onChange();
+      });
+    }
 
     el.appendChild(controls);
   }
@@ -205,6 +272,8 @@
         else if (path.includes('/backend/')) page = 'backend';
         else if (path.includes('/finance/')) page = 'finance';
         else if (path.includes('/analytics/')) page = 'analytics';
+        else if (path.includes('/payroll/')) page = 'payroll';
+        else if (path.includes('/emis/')) page = 'emis';
         else page = 'backend'; // default
       }
     }
@@ -230,11 +299,13 @@
 
     const saveLayout = () => {
       const itemsPayload = collectLayout(columns);
+      const widgetMeta = collectWidgetMeta(columns);
       fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
         .then((r) => (r.ok ? r.json() : null))
         .then((current) => {
           const layout = (current && current.layout) || {};
-          const settings = layout.__settings__ || {};
+          const settings = Object.assign({}, layout.__settings__ || {});
+          settings.widget_meta = Object.assign({}, settings.widget_meta || {}, widgetMeta);
           const payload = {
             items: itemsPayload.items,
             __settings__: settings,
@@ -255,6 +326,29 @@
         .catch(() => {});
     };
 
+    const resetLayout = () => {
+      fetch(`/api/dashboard/layout/${page}/`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'X-CSRFToken': getCsrfToken() },
+      })
+        .then((r) => {
+          if (r && r.ok) return fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' });
+          throw new Error('Reset failed');
+        })
+        .then((r) => (r && r.ok ? r.json() : null))
+        .then((data) => {
+          if (data && data.layout) applyLayout(columns, data.layout);
+          showToast('Layout reset to default');
+          window.location.reload();
+        })
+        .catch(() => showToast('Could not reset layout'));
+    };
+
+    document.querySelectorAll('.js-reset-dashboard-layout').forEach((btn) => {
+      btn.addEventListener('click', () => resetLayout());
+    });
+
     // Load current layout + widget metadata
     fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
@@ -268,8 +362,9 @@
         }
         if (data.layout) applyLayout(columns, data.layout);
 
-        // Apply size/variant (defaults + saved) and wire controls.
+        // Apply size/variant/chart_type (defaults + saved) and wire controls.
         const layoutItemsById = {};
+        const settingsMeta = (data.layout && data.layout.__settings__ && data.layout.__settings__.widget_meta) || {};
         if (data.layout && Array.isArray(data.layout.items)) {
           data.layout.items.forEach((it) => {
             if (it && it.id) layoutItemsById[it.id] = it;
@@ -277,8 +372,9 @@
         }
         columns.forEach((col) => {
           Array.from(col.querySelectorAll('[data-widget-id]')).forEach((el) => {
-            const item = layoutItemsById[el.dataset.widgetId] || {};
-            const meta = widgetMetaById[el.dataset.widgetId] || {};
+            const wid = el.dataset.widgetId;
+            const item = Object.assign({}, layoutItemsById[wid] || {}, settingsMeta[wid] || {});
+            const meta = widgetMetaById[wid] || {};
             applyPresentation(el, item, meta);
             injectGrip(el);
             injectControls(el, meta, saveLayout);
@@ -368,8 +464,9 @@
           const active = !layoutRoot.classList.contains('drag-mode');
           setEditMode(active);
         });
-        const startActive = dragToggle ? !!dragToggle.checked : false;
-        if (!startActive) setEditMode(false);
+        const urlParams = new URLSearchParams(window.location.search);
+        const startActive = urlParams.get('customize') === '1' || (dragToggle && !!dragToggle.checked) || false;
+        if (startActive) setEditMode(true); else setEditMode(false);
       } else {
         const startEnabled = dragToggle ? !!dragToggle.checked : customDragEnabled;
         if (startEnabled) setTimeout(() => enableDrag(), 150);

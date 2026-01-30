@@ -152,6 +152,33 @@ def load_dashboard_layout_settings(user, page: str) -> dict:
     return _normalize_dashboard_settings(raw_settings)
 
 
+def effective_chart_types(user, page: str) -> dict:
+    """
+    Return widget_id -> chart_type for chart widgets.
+    Merges user's widget_meta.chart_type override with DashboardWidget default.
+    RBAC: respects _can_customize; uses layout for allowed users.
+    """
+    from apps.siteconfig.models_dashboard import DashboardWidget
+    page = (page or "").strip().lower()
+    chart_widgets = DashboardWidget.objects.filter(
+        page=page, widget_type="chart", is_active=True
+    )
+    result = {}
+    user_meta = {}
+    if user and user.is_authenticated:
+        layout_obj = get_layout_for_page(user, page)
+        if layout_obj and isinstance(layout_obj.layout, dict):
+            settings = layout_obj.layout.get("__settings__", {}) or {}
+            user_meta = settings.get("widget_meta") or {}
+    for w in chart_widgets:
+        override = (user_meta.get(w.id) or {}).get("chart_type")
+        default = (w.chart_type or "").strip()
+        ct = (override or default or "").strip().lower()
+        if ct:
+            result[w.id] = ct
+    return result
+
+
 @login_required
 @require_http_methods(["POST"])
 def update_theme(request):

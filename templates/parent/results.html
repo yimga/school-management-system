@@ -112,7 +112,7 @@
 {% else %}
   <div class="card">
     <div class="card-body table-responsive">
-      <table class="table table-sm table-striped align-middle">
+      <table class="table table-sm table-striped align-middle table-mobile-cards">
         <thead>
           <tr>
             <th>Subject</th>
@@ -129,15 +129,15 @@
         <tbody>
           {% for r in rows %}
             <tr>
-              <td>{{ r.subject }}</td>
-              <td>{{ r.coef }}</td>
-              <td>{{ r.seq1|default_if_none:"" }}</td>
-              <td>{{ r.seq2|default_if_none:"" }}</td>
-              <td>{{ r.exam|default_if_none:"" }}</td>
-              <td>{{ r.mock|default_if_none:"" }}</td>
-              <td>{{ r.practical|default_if_none:"" }}</td>
-              <td>{{ r.avg|default_if_none:"" }}</td>
-              <td>
+              <td data-label="Subject">{{ r.subject }}</td>
+              <td data-label="Coef">{{ r.coef }}</td>
+              <td data-label="Seq1">{{ r.seq1|default_if_none:"" }}</td>
+              <td data-label="Seq2">{{ r.seq2|default_if_none:"" }}</td>
+              <td data-label="Exam">{{ r.exam|default_if_none:"" }}</td>
+              <td data-label="Mock">{{ r.mock|default_if_none:"" }}</td>
+              <td data-label="Pract">{{ r.practical|default_if_none:"" }}</td>
+              <td data-label="Avg">{{ r.avg|default_if_none:"" }}</td>
+              <td data-label="Status">
                 {% if r.avg is None %}
                   <span class="badge bg-secondary">Pending</span>
                 {% elif r.avg >= 10 %}
