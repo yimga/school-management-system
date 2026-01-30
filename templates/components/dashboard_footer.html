@@ -115,13 +115,14 @@
 </footer>
 
 <style>
+/* Footer height reduced ~15%: padding, gaps, min-heights and font sizes scaled; width and layout unchanged */
 .dashboard-footer {
   width: 100%;
   background: linear-gradient(180deg, rgba(6, 12, 34, 0.92), rgba(4, 10, 28, 0.95));
   color: #e2e8f0;
-  padding: 0.5rem 1.4rem;
+  padding: 0.4rem 1.2rem;
   border-top: 1px solid rgba(148, 163, 184, 0.2);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 .footer-shell {
@@ -129,80 +130,83 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 .footer-top {
   display: grid;
   grid-template-columns: minmax(320px, 1fr) minmax(280px, 0.8fr);
-  gap: 0.7rem;
+  gap: 0.55rem;
   align-items: stretch;
 }
 .footer-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 18px;
-  padding: 0.65rem 0.85rem;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
-  min-height: 110px;
+  border-radius: 14px;
+  padding: 0.5rem 0.7rem;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+  min-height: 92px;
 }
 .brand-card {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.7rem 1rem;
+  gap: 0.55rem 0.85rem;
   align-items: center;
 }
 .brand-logo img {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
   border: 1px solid rgba(148, 163, 184, 0.35);
 }
 .brand-title {
   font-weight: 700;
   letter-spacing: 0.02em;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 .brand-pill {
   grid-column: span 2;
   display: inline-flex;
   align-items: center;
   background: radial-gradient(circle at 20% 20%, rgba(55, 99, 246, 0.7), rgba(37, 73, 180, 0.7));
-  padding: 0.34rem 0.7rem;
+  padding: 0.26rem 0.6rem;
   border-radius: 999px;
   font-weight: 600;
-  margin-top: 0.1rem;
+  margin-top: 0.06rem;
+  font-size: 0.78rem;
 }
 .brand-micro {
   grid-column: span 2;
-  margin: 0.06rem 0 0;
-  font-size: 0.8rem;
+  margin: 0.04rem 0 0;
+  font-size: 0.72rem;
   color: rgba(226, 232, 240, 0.78);
 }
 .help-card {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.18rem;
   justify-content: center;
 }
 .help-title {
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
   color: rgba(226, 232, 240, 0.82);
 }
 .help-hours {
   font-weight: 600;
+  font-size: 0.8rem;
 }
 .pill-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
+  padding: 0.38rem 0.82rem;
   border-radius: 999px;
   border: 1px solid rgba(74, 222, 128, 0.4);
   background: rgba(34, 197, 94, 0.15);
   color: #10b981;
   font-weight: 700;
+  font-size: 0.8rem;
   text-decoration: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -213,23 +217,24 @@
 .footer-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 .list-card .segment-title {
-  font-size: 0.76rem;
-  letter-spacing: 0.24em;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(226, 232, 240, 0.65);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.22rem;
 }
 .segment-links {
   display: flex;
   flex-direction: column;
-  gap: 0.28rem;
+  gap: 0.2rem;
 }
 .segment-links a {
   color: #e2e8f0;
   text-decoration: none;
+  font-size: 0.8rem;
   transition: color 0.2s ease;
 }
 .segment-links a:hover {
@@ -237,31 +242,33 @@
 }
 .muted-link {
   color: rgba(226, 232, 240, 0.65);
+  font-size: 0.78rem;
 }
 .status-chip {
   display: inline-flex;
   align-items: center;
-  padding: 0.38rem 0.78rem;
-  border-radius: 11px;
+  padding: 0.28rem 0.62rem;
+  border-radius: 9px;
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.35);
   font-weight: 700;
-  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  margin-top: 0.18rem;
 }
 .footer-status-row {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.28rem;
   flex-wrap: wrap;
   justify-content: flex-start;
   border-top: 1px solid rgba(148, 163, 184, 0.16);
-  padding-top: 0.35rem;
+  padding-top: 0.28rem;
 }
 .status-pill {
-  padding: 0.24rem 0.82rem;
+  padding: 0.18rem 0.68rem;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: rgba(255, 255, 255, 0.04);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
 }
 .status-pill.secure {
   background: rgba(16, 185, 129, 0.15);
@@ -277,12 +284,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   color: rgba(226, 232, 240, 0.7);
   border-top: 1px solid rgba(148, 163, 184, 0.16);
-  padding-top: 0.3rem;
+  padding-top: 0.24rem;
 }
 .meta-powered strong {
   color: #a5b4fc;
@@ -296,7 +303,7 @@
 /* Mobile: compact accordion for footer columns (expand only when needed) */
 @media (max-width: var(--bp-mobile, 768px)) {
   .dashboard-footer {
-    padding: 1.2rem 1.4rem;
+    padding: 0.95rem 1.2rem;
   }
   .footer-grid {
     grid-template-columns: 1fr;
@@ -310,35 +317,35 @@
   .footer-accordion-summary {
     list-style: none;
     cursor: pointer;
-    padding: 0.5rem 0;
-    font-size: 0.76rem;
-    letter-spacing: 0.24em;
+    padding: 0.4rem 0;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: rgba(226, 232, 240, 0.9);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 44px;
+    min-height: 38px;
   }
   .footer-accordion-summary::-webkit-details-marker {
     display: none;
   }
   .footer-accordion-summary::after {
     content: '';
-    width: 0.6rem;
-    height: 0.6rem;
+    width: 0.5rem;
+    height: 0.5rem;
     border-right: 2px solid currentColor;
     border-bottom: 2px solid currentColor;
     transform: rotate(45deg);
     transition: transform 0.2s ease;
     flex-shrink: 0;
-    margin-left: 0.5rem;
+    margin-left: 0.4rem;
   }
   .footer-details[open] .footer-accordion-summary::after {
     transform: rotate(-135deg);
   }
   .footer-grid-accordion .segment-links {
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.6rem;
   }
   .footer-status-row {
     justify-content: center;

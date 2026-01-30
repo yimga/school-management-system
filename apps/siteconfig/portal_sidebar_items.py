@@ -4,13 +4,15 @@ Build portal sidebar nav items for the current user, optionally sorted by SiteSe
 Section order (by role):
 - Home, Account (all)
 - Communication (role-dependent)
-- Teacher: My Workflow, Learning Management, Human Resources
+- Teacher: My Workflow, Learning Management, Human Resources, Settings (Portal Stats)
 - Parent: My Workflow, Children & Learning, Performance Tracking
-- Portal Tools: Community, Video, Documents (per-feature RBAC + site.portal_features)
-- Admin: Admin Panel, Content & Documents (Document Library Manager, Signature Requests), People & Access,
-  Academic Management, Financial Management, Analytics & Reports
+- Portal Tools: Community, Video; Documents under Content & Documents
+- Staff: Support, Content & Documents, People & Access, Academic Management, Financial Management,
+  Analytics & Reports, then Admin Panel last (Backend Console, Workflow Center, Customizer, Site Settings,
+  Region Configuration, Django Admin — no separate System Configuration section)
 
 Visibility is permission- and role-based; teachers never see Admin/People/Finance/Analytics.
+No duplicate sections or links: each item appears in one section only (same for staff, teachers, parents).
 """
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -71,6 +73,7 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "payslips", "label": "Payslips", "url": _safe_reverse("payroll:employee_payslips"), "icon": "bi-wallet2", "section": "Human Resources", "badge": None})
         items.append({"id": "leave", "label": "Leave Requests", "url": _safe_reverse("payroll:employee_leave"), "icon": "bi-calendar-check", "section": "Human Resources", "badge": None})
         items.append({"id": "pay_history", "label": "Pay History", "url": _safe_reverse("payroll:employee_payslips"), "icon": "bi-receipt", "section": "Human Resources", "badge": None})
+        items.append({"id": "portal_stats", "label": "Portal Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Settings", "badge": None})
 
     # --- Parent ---
     if role == "PARENT":
@@ -88,22 +91,13 @@ def build_portal_sidebar_items(request, site):
     if portal_cfg.get("video") and getattr(user, "has_feature_permission", lambda _: False)("portal.video"):
         items.append({"id": "portal_video", "label": "Video Hub", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "video"}), "icon": "bi-camera-video", "section": "Portal Tools", "badge": None})
     if portal_cfg.get("documents") and getattr(user, "has_feature_permission", lambda _: False)("portal.documents"):
-        items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Portal Tools", "badge": None})
+        items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
 
     # --- Admin / Staff (exclude teachers: they get only Academic Management + HR, no Admin Panel/People/Finance/Analytics) ---
     staff_like = is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN")
     can_manage_site = staff_like and (getattr(user, "has_feature_permission", lambda _: False)("settings.manage") or is_superuser)
     if staff_like and role != "TEACHER":
-        items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
-        items.append({"id": "workflow_center", "label": "Workflow Center", "url": _safe_reverse("accounts:workflow_center"), "icon": "bi-diagram-3", "section": "Admin Panel", "badge": None})
-        if can_manage_site:
-            items.append({"id": "customizer", "label": "Customizer", "url": _safe_reverse("siteconfig:customizer"), "icon": "bi-palette", "section": "Admin Panel", "badge": None})
-            site_pk = getattr(site, "pk", 1)
-            items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
-            items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:siteconfig_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})
-        if is_staff or is_superuser:
-            items.append({"id": "admin_panel", "label": "Django Admin", "url": _safe_reverse("admin:index"), "icon": "bi-grid", "section": "Admin Panel", "badge": None})
-        # Staff: triage parent contact requests (Support section)
+        # Support, Content & Documents, People & Access, Academic, Financial, Analytics first; Admin Panel last
         if staff_like:
             items.append({"id": "contact_requests", "label": "Contact Requests", "url": _safe_reverse("portal:staff_contact_request_list"), "icon": "bi-inbox", "section": "Support", "badge": None})
         # Content & Documents: upload/manage handbooks, forms, signatures (same permission as backend document library)
@@ -125,6 +119,17 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "analytics", "label": "Analytics", "url": _safe_reverse("analytics:dashboard"), "icon": "bi-graph-up-arrow", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "report_library", "label": "Report Library", "url": _safe_reverse("siteconfig:report_library"), "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "reportcard_builder", "label": "Report Card Builder", "url": _safe_reverse("siteconfig:reportcard_builder"), "icon": "bi-file-earmark-richtext", "section": "Analytics & Reports", "badge": None})
+        items.append({"id": "portal_stats", "label": "Portal Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Analytics & Reports", "badge": None})
+        # Admin Panel last: Backend Console, Workflow Center, Customizer, Site Settings, Region Configuration, Django Admin
+        items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
+        items.append({"id": "workflow_center", "label": "Workflow Center", "url": _safe_reverse("accounts:workflow_center"), "icon": "bi-diagram-3", "section": "Admin Panel", "badge": None})
+        if can_manage_site:
+            items.append({"id": "customizer", "label": "Customizer", "url": _safe_reverse("siteconfig:customizer"), "icon": "bi-palette", "section": "Admin Panel", "badge": None})
+            site_pk = getattr(site, "pk", 1)
+            items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
+            items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:siteconfig_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})
+        if is_staff or is_superuser:
+            items.append({"id": "admin_panel", "label": "Django Admin", "url": _safe_reverse("admin:index"), "icon": "bi-grid", "section": "Admin Panel", "badge": None})
 
     # Drop items with no URL
     items = [x for x in items if x.get("url")]
