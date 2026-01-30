@@ -3,10 +3,59 @@
  * Applied to portal_base (parent/teacher dashboards). Backend uses backend-light-theme.css.
  */
 
-/* ========== Dark mode (data-bs-theme="dark") ========== */
+/* ========== Skip link: visible in both themes (default = light) ========== */
+.skip-link-theme {
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 2px solid #cbd5e1;
+}
+.skip-link-theme:hover,
+.skip-link-theme:focus {
+  background: #f8fafc !important;
+  border-color: #0d6efd;
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+html[data-bs-theme="dark"] .skip-link-theme {
+  background: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+html[data-bs-theme="dark"] .skip-link-theme:hover,
+html[data-bs-theme="dark"] .skip-link-theme:focus {
+  background: #334155 !important;
+  border-color: #60a5fa;
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* ========== Focus visible: high-contrast in both themes ========== */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+html[data-bs-theme="dark"] :focus-visible {
+  outline-color: #60a5fa;
+  outline-offset: 2px;
+}
+
+/* ========== Dark mode: semantic variables (so one place controls text/overlays) ========== */
+html[data-bs-theme="dark"] {
+  --portal-text: #e2e8f0;
+  --portal-text-muted: #94a3b8;
+  --portal-border: rgba(148, 163, 184, 0.2);
+  --portal-border-strong: rgba(148, 163, 184, 0.35);
+  --portal-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  --portal-shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.35);
+  --portal-nav-pill: #cbd5e1;
+  --portal-nav-pill-hover: #e2e8f0;
+  --portal-nav-pill-bg-hover: rgba(102, 126, 234, 0.2);
+  --portal-nav-pill-bg-active: rgba(102, 126, 234, 0.25);
+}
+
 html[data-bs-theme="dark"] body {
   background: #0f172a !important;
-  color: #e2e8f0 !important;
+  color: var(--portal-text) !important;
 }
 
 html[data-bs-theme="dark"] .page-wrap {
@@ -29,8 +78,17 @@ html[data-bs-theme="dark"] .card .h3,
 html[data-bs-theme="dark"] .card h1,
 html[data-bs-theme="dark"] .card h2,
 html[data-bs-theme="dark"] .card h3,
-html[data-bs-theme="dark"] .widget-title {
+html[data-bs-theme="dark"] .widget-title,
+html[data-bs-theme="dark"] [class*="widget-title"],
+html[data-bs-theme="dark"] .section-title {
   color: #f1f5f9 !important;
+}
+
+/* Overlays / hover: ensure text remains readable in dark */
+html[data-bs-theme="dark"] .nav-link.nav-pill:hover,
+html[data-bs-theme="dark"] .nav-link.nav-pill.active,
+html[data-bs-theme="dark"] .btn-link:hover {
+  color: #e2e8f0 !important;
 }
 
 html[data-bs-theme="dark"] .card .text-muted,
@@ -40,21 +98,29 @@ html[data-bs-theme="dark"] .text-muted {
 
 html[data-bs-theme="dark"] .sidebar {
   background: #1e293b !important;
-  border-color: rgba(148, 163, 184, 0.2) !important;
+  border-color: var(--portal-border) !important;
+}
+
+html[data-bs-theme="dark"] .sidebar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 3px;
+}
+html[data-bs-theme="dark"] .sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
 }
 
 html[data-bs-theme="dark"] .sidebar .nav-link.nav-pill {
-  color: #cbd5e1 !important;
+  color: var(--portal-nav-pill) !important;
 }
 
 html[data-bs-theme="dark"] .sidebar .nav-link.nav-pill:hover,
 html[data-bs-theme="dark"] .sidebar .nav-link.nav-pill.active {
-  background: rgba(102, 126, 234, 0.2) !important;
-  color: #e2e8f0 !important;
+  background: var(--portal-nav-pill-bg-hover) !important;
+  color: var(--portal-nav-pill-hover) !important;
 }
 
 html[data-bs-theme="dark"] .sidebar .sidebar-section-title {
-  color: #94a3b8 !important;
+  color: var(--portal-text-muted) !important;
 }
 
 html[data-bs-theme="dark"] .sidebar-info h6 {
@@ -62,7 +128,26 @@ html[data-bs-theme="dark"] .sidebar-info h6 {
 }
 
 html[data-bs-theme="dark"] .sidebar-info p {
-  color: #94a3b8 !important;
+  color: var(--portal-text-muted) !important;
+}
+
+/* Sidebar borders: visible in dark (avoid black-on-dark) */
+html[data-bs-theme="dark"] .portal-sidebar-footer,
+html[data-bs-theme="dark"] .sidebar-header,
+html[data-bs-theme="dark"] .portal-sidebar-wrapper .sidebar-header {
+  border-color: var(--portal-border) !important;
+}
+
+/* Widget title and dashboard stat labels: use tokens so theme-aware */
+.widget-title,
+.dashboard-stat-label,
+[class*="summary-tile"] .text-muted {
+  color: var(--portal-text-muted);
+}
+html[data-bs-theme="dark"] .widget-title,
+html[data-bs-theme="dark"] .dashboard-stat-label,
+html[data-bs-theme="dark"] [class*="summary-tile"] .text-muted {
+  color: var(--portal-text-muted) !important;
 }
 
 html[data-bs-theme="dark"] .form-control,
@@ -92,15 +177,17 @@ html[data-bs-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
 
 html[data-bs-theme="dark"] .dropdown-menu {
   background: #1e293b !important;
-  border-color: rgba(148, 163, 184, 0.2) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4);
 }
 
 html[data-bs-theme="dark"] .dropdown-item {
   color: #e2e8f0 !important;
 }
 
-html[data-bs-theme="dark"] .dropdown-item:hover {
-  background: rgba(102, 126, 234, 0.2) !important;
+html[data-bs-theme="dark"] .dropdown-item:hover,
+html[data-bs-theme="dark"] .dropdown-item:focus {
+  background: rgba(102, 126, 234, 0.25) !important;
   color: #f1f5f9 !important;
 }
 
@@ -195,9 +282,66 @@ html[data-bs-theme="dark"] .btn-close {
   filter: invert(1);
 }
 
+/* Theme toggle in topbar: focus visible in both themes (topbar is always gradient) */
+#themeToggle:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+}
+/* Topbar controls: ensure icon buttons have visible focus */
+.topbar-controls .btn-link:focus-visible,
+.topbar-controls .btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+}
+
+/* ========== Overlays & badges: visible in both themes ========== */
+.badge.bg-primary,
+.badge.bg-secondary,
+.badge.bg-success,
+.badge.bg-danger,
+.badge.bg-warning,
+.badge.bg-info {
+  color: #fff !important;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+html[data-bs-theme="dark"] .badge.bg-light {
+  background: #334155 !important;
+  color: #e2e8f0 !important;
+}
+/* Tooltip / popover: theme-aware (Bootstrap handles data-bs-theme on body) */
+html[data-bs-theme="dark"] .tooltip-inner {
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+/* Hover overlays on cards: ensure text stays readable */
+.card .card-title a:hover,
+.card a:hover {
+  color: var(--portal-nav-pill-hover, #0d6efd);
+}
+html[data-bs-theme="dark"] .card .card-title a:hover,
+html[data-bs-theme="dark"] .card a:hover {
+  color: #93c5fd;
+}
+
 /* ========== Light mode – ensure contrast (no transparent text) ========== */
 html[data-bs-theme="light"] body {
   color: #111827 !important;
+}
+
+/* Dropdown in light: ensure text and hover visible */
+html[data-bs-theme="light"] .dropdown-menu {
+  background: #fff !important;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+}
+html[data-bs-theme="light"] .dropdown-item {
+  color: #0f172a !important;
+}
+html[data-bs-theme="light"] .dropdown-item:hover,
+html[data-bs-theme="light"] .dropdown-item:focus {
+  background: rgba(13, 110, 253, 0.08) !important;
+  color: #0d6efd !important;
 }
 
 html[data-bs-theme="light"] .card,

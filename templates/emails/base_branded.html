@@ -17,7 +17,7 @@
     <div class="container">
         <div class="header" style="background-color: {{ primary_color|default:'#0d6efd' }};">
             {% if logo_url %}
-            <p style="margin:0 0 8px 0;"><img src="{{ logo_url }}" alt="{{ school_name|default:'School' }}" style="max-height: 48px; width: auto;" /></p>
+            <p style="margin:0 0 8px 0;"><img src="{{ logo_url }}" alt="{{ school_name|default:'School' }}" width="48" height="48" style="max-height: 48px; width: auto; object-fit: contain;" /></p>
             {% endif %}
             <h1 style="margin: 0; font-size: 1.25rem;">{{ school_name|default:"School Management System" }}</h1>
             {% block email_header_subtitle %}{% endblock %}

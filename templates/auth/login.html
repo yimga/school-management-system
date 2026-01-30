@@ -169,7 +169,7 @@
         <div class="hero-brand">
           <div class="hero-logo">
             {% if SITE_LOGO_URL %}
-              <img src="{{ SITE_LOGO_URL }}" alt="" style="width:100%;height:100%;object-fit:contain;">
+              <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
             {% else %}
               <span>{% if SITE.site_name %}{{ SITE.site_name|slice:":1" }}{% else %}G{% endif %}</span>
             {% endif %}

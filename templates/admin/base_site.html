@@ -3,7 +3,9 @@
 
 {% block extrastyle %}
   {{ block.super }}
-  <!-- UNIFIED DESIGN SYSTEM - Load first, defines all CSS variables -->
+  <!-- DESIGN TOKENS - Shared variable names (Portal, Admin, Backend) -->
+  <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  <!-- UNIFIED DESIGN SYSTEM - Defines all CSS variables -->
   <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
   
   <!-- COMPONENT LIBRARY - Reusable components using design system variables -->

@@ -101,7 +101,7 @@
                             <div class="col-md-6 mb-3">
                                 <div class="card shadow-sm">
                                     {% if attachment.is_image %}
-                                    <img src="{{ attachment.file.url }}" class="card-img-top" alt="{{ attachment.caption }}">
+                                    <img src="{{ attachment.file.url }}" class="card-img-top" alt="{{ attachment.caption }}" loading="lazy" width="400" height="300" style="object-fit: cover;">
                                     {% else %}
                                     <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
                                          style="height: 200px;">

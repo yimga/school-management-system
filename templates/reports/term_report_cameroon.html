@@ -46,7 +46,7 @@
     </div>
     <div class="header-center">
       {% if SITE_LOGO_URL %}
-        <img src="{{ SITE_LOGO_URL }}" alt="logo" style="height:56px; width:auto;" />
+        <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="56" height="56" decoding="async" style="height:56px; width:auto; object-fit:contain;" />
       {% endif %}
     </div>
     <div class="header-right" style="text-align:right;">
@@ -278,7 +278,7 @@
       <!-- Logo -->
       {% if SITE.logo %}
         <div style="text-align:center; position: relative;">
-          <img src="{{ SITE.logo.url }}" alt="School Logo" style="height:80px; width: auto; opacity: 1;"/>
+          <img src="{{ SITE.logo.url }}" alt="School Logo" width="80" height="80" decoding="async" style="height:80px; width: auto; object-fit: contain; opacity: 1;"/>
           <div class="small text-muted" style="margin-top: 4px;">{{ SITE.ministry|default:"Ministry of Secondary Education" }}</div>
         </div>
       {% endif %}

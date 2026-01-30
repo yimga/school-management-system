@@ -46,7 +46,7 @@
 <!-- Logo Watermark Element -->
 <div class="logo-watermark" title="Gilead Tech High">
   {% if SITE.logo %}
-    <img src="{{ SITE.logo.url }}" alt="School Logo" loading="lazy">
+    <img src="{{ SITE.logo.url }}" alt="School Logo" width="120" height="120" loading="lazy" decoding="async" style="object-fit: contain;">
   {% else %}
     <div style="width: 120px; height: 120px; background: rgba(13, 110, 253, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 48px;">🎓</div>
   {% endif %}

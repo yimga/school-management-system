@@ -281,7 +281,7 @@
     </div>
     <div class="d-flex align-items-center gap-2">
       {% if request.user.profile_photo %}
-        <img src="{{ request.user.profile_photo.url }}" alt="Teacher profile photo" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;">
+        <img src="{{ request.user.profile_photo.url }}" alt="Teacher profile photo" class="rounded-circle border" width="48" height="48" loading="lazy" decoding="async" style="object-fit:cover;">
       {% endif %}
       <a class="btn btn-primary" href="{% url 'portal:teacher_workflow' %}">
         <i class="bi bi-diagram-3 me-1"></i>My Workflow

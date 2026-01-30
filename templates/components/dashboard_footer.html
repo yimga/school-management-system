@@ -7,9 +7,9 @@
       <div class="footer-card brand-card">
         <div class="brand-logo">
           {% if SITE_LOGO_URL %}
-            <img src="{{ SITE_LOGO_URL }}" alt="{{ SITE.company_name|default:'School Management System' }}">
+            <img src="{{ SITE_LOGO_URL }}" alt="{{ SITE.company_name|default:'School Management System' }}" width="48" height="48" loading="lazy">
           {% else %}
-            <img src="{% static 'images/logo.png' %}" alt="{{ SITE.company_name|default:'School Management System' }}">
+            <img src="{% static 'images/logo.png' %}" alt="{{ SITE.company_name|default:'School Management System' }}" width="48" height="48" loading="lazy">
           {% endif %}
         </div>
         <div class="brand-body">
@@ -29,62 +29,70 @@
       </div>
     </div>
 
-    <div class="footer-grid">
-      <div class="footer-card list-card">
-        <div class="segment-title">Support &amp; Help</div>
-        <div class="segment-links">
-          <a href="{% url 'kb:kb_home' %}"><i class="bi bi-book"></i> Knowledge Base</a>
-          <a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin Documentation</a>
-          <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
-          <a href="{% url 'kb:faq_list' %}"><i class="bi bi-patch-question"></i> FAQs</a>
-        </div>
+    <div class="footer-grid footer-grid-accordion">
+      <div class="footer-card list-card footer-accordion-card">
+        <details class="footer-details" open>
+          <summary class="segment-title footer-accordion-summary">Support &amp; Help</summary>
+          <div class="segment-links">
+            <a href="{% url 'kb:kb_home' %}"><i class="bi bi-book"></i> Knowledge Base</a>
+            <a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin Documentation</a>
+            <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
+            <a href="{% url 'kb:faq_list' %}"><i class="bi bi-patch-question"></i> FAQs</a>
+          </div>
+        </details>
       </div>
-      <div class="footer-card list-card">
-        <div class="segment-title">Quick Links</div>
-        <div class="segment-links">
-          {% if can_settings or can_data_access %}
-            <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-kanban"></i> Backend Dashboard</a>
-          {% endif %}
-          {% if request.user|has_role:"TEACHER" and can_reports %}
-            <a href="{% url 'evals:teacher_dashboard' %}"><i class="bi bi-mortarboard"></i> Teacher Portal</a>
-            <a href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pen"></i> Marks Entry</a>
-          {% endif %}
-          {% if request.user|has_role:"PARENT" %}
-            {% if can_finance_view or can_finance_manage %}
-              <a href="{% url 'finance:invoices' %}"><i class="bi bi-receipt"></i> Invoices</a>
+      <div class="footer-card list-card footer-accordion-card">
+        <details class="footer-details" open>
+          <summary class="segment-title footer-accordion-summary">Quick Links</summary>
+          <div class="segment-links">
+            {% if can_settings or can_data_access %}
+              <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-kanban"></i> Backend Dashboard</a>
             {% endif %}
-          {% endif %}
-          {% if can_reports and not request.user|has_role:"PARENT" %}
-            <a href="{% url 'accounts:backend_dashboard' %}#reports"><i class="bi bi-graph-up"></i> Reports</a>
-          {% endif %}
-        </div>
+            {% if request.user|has_role:"TEACHER" and can_reports %}
+              <a href="{% url 'evals:teacher_dashboard' %}"><i class="bi bi-mortarboard"></i> Teacher Portal</a>
+              <a href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pen"></i> Marks Entry</a>
+            {% endif %}
+            {% if request.user|has_role:"PARENT" %}
+              {% if can_finance_view or can_finance_manage %}
+                <a href="{% url 'finance:invoices' %}"><i class="bi bi-receipt"></i> Invoices</a>
+              {% endif %}
+            {% endif %}
+            {% if can_reports and not request.user|has_role:"PARENT" %}
+              <a href="{% url 'accounts:backend_dashboard' %}#reports"><i class="bi bi-graph-up"></i> Reports</a>
+            {% endif %}
+          </div>
+        </details>
       </div>
-      <div class="footer-card list-card">
-        <div class="segment-title">Contact &amp; Status</div>
-        <div class="segment-links">
-          <a href="mailto:{{ SITE.company_email|default:'support@school.com' }}"><i class="bi bi-envelope-open"></i> {{ SITE.company_email|default:"support@school.com" }}</a>
-          <a href="tel:{{ SITE.company_phone|default:'+15551234567' }}"><i class="bi bi-telephone"></i> {{ SITE.company_phone|default:"+1 (555) 123-4567" }}</a>
-          <span class="status-chip">All Systems Operational</span>
-        </div>
+      <div class="footer-card list-card footer-accordion-card">
+        <details class="footer-details" open>
+          <summary class="segment-title footer-accordion-summary">Contact &amp; Status</summary>
+          <div class="segment-links">
+            <a href="mailto:{{ SITE.company_email|default:'support@school.com' }}"><i class="bi bi-envelope-open"></i> {{ SITE.company_email|default:"support@school.com" }}</a>
+            <a href="tel:{{ SITE.company_phone|default:'+15551234567' }}"><i class="bi bi-telephone"></i> {{ SITE.company_phone|default:"+1 (555) 123-4567" }}</a>
+            <span class="status-chip">All Systems Operational</span>
+          </div>
+        </details>
       </div>
-      <div class="footer-card list-card">
-        <div class="segment-title">Legal &amp; Info</div>
-        <div class="segment-links">
-          {% if SITE.footer_links %}
-            {% for item in SITE.footer_links %}
-              {% if item.enabled|default:True %}
-                {% if not item.roles or request.user.role|default_if_none:''|upper in item.roles %}
-                  {% if item.url %}
-                    <a href="{{ item.url }}"><i class="bi bi-link-45deg"></i> {{ item.label }}</a>
-                  {% else %}
-                    <span class="muted-link"><i class="bi bi-dot"></i> {{ item.label }}</span>
+      <div class="footer-card list-card footer-accordion-card">
+        <details class="footer-details" open>
+          <summary class="segment-title footer-accordion-summary">Legal &amp; Info</summary>
+          <div class="segment-links">
+            {% if SITE.footer_links %}
+              {% for item in SITE.footer_links %}
+                {% if item.enabled|default:True %}
+                  {% if not item.roles or request.user.role|default_if_none:''|upper in item.roles %}
+                    {% if item.url %}
+                      <a href="{{ item.url }}"><i class="bi bi-link-45deg"></i> {{ item.label }}</a>
+                    {% else %}
+                      <span class="muted-link"><i class="bi bi-dot"></i> {{ item.label }}</span>
+                    {% endif %}
                   {% endif %}
                 {% endif %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
-          <span class="muted-link">Version {{ system_version|default:"3.2.1" }}</span>
-        </div>
+              {% endfor %}
+            {% endif %}
+            <span class="muted-link">Version {{ system_version|default:"3.2.1" }}</span>
+          </div>
+        </details>
       </div>
     </div>
 
@@ -283,12 +291,52 @@
     grid-template-columns: 1fr;
   }
 }
-@media (max-width: 768px) {
+/* Mobile: compact accordion for footer columns (expand only when needed) */
+@media (max-width: var(--bp-mobile, 768px)) {
   .dashboard-footer {
     padding: 1.2rem 1.4rem;
   }
   .footer-grid {
     grid-template-columns: 1fr;
+  }
+  .footer-grid-accordion .footer-details {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  }
+  .footer-grid-accordion .footer-details:last-child {
+    border-bottom: none;
+  }
+  .footer-accordion-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    font-size: 0.76rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(226, 232, 240, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+  }
+  .footer-accordion-summary::-webkit-details-marker {
+    display: none;
+  }
+  .footer-accordion-summary::after {
+    content: '';
+    width: 0.6rem;
+    height: 0.6rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+  }
+  .footer-details[open] .footer-accordion-summary::after {
+    transform: rotate(-135deg);
+  }
+  .footer-grid-accordion .segment-links {
+    padding-bottom: 0.75rem;
   }
   .footer-status-row {
     justify-content: center;
@@ -298,4 +346,32 @@
     text-align: center;
   }
 }
+
+/* Desktop: details always open, summary looks like section title (no arrow) */
+@media (min-width: var(--bp-mobile, 768px)) {
+  .footer-accordion-summary {
+    cursor: default;
+  }
+  .footer-accordion-summary::after {
+    display: none;
+  }
+}
 </style>
+<script>
+(function() {
+  var footer = document.getElementById('dashboardFooter');
+  if (!footer) return;
+  var details = footer.querySelectorAll('.footer-details');
+  function setMobileAccordion() {
+    var isNarrow = window.innerWidth <= 768;
+    details.forEach(function(d) {
+      if (isNarrow) d.removeAttribute('open');
+      else d.setAttribute('open', '');
+    });
+  }
+  if (window.innerWidth <= 768) {
+    details.forEach(function(d) { d.removeAttribute('open'); });
+  }
+  window.addEventListener('resize', setMobileAccordion);
+})();
+</script>

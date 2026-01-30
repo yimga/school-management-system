@@ -17,7 +17,7 @@
   };
 
   let widgetConfig = safeParseJson(container.dataset.widgetConfig, {});
-  const customDragEnabled = container.dataset.customDragEnabled !== "false";
+  // Drag/reorder is handled only by dashboard-layout.js (Sortable.js). This script handles settings and widget meta.
   const state = {
     settings: {
       show_sidebar: container.dataset.showSidebar === "true",
@@ -287,63 +287,6 @@
     applyWidgetMeta();
   };
 
-  const enableDrag = () => {
-    if (!customDragEnabled) return;
-    // Check if dashboard-layout.js (Sortable.js) is already handling drag
-    if (container.classList.contains("drag-mode") && window.Sortable) {
-      // Sortable.js is active, don't interfere
-      return;
-    }
-    container.classList.add("drag-mode");
-    cards.forEach((card) => {
-      card.setAttribute("draggable", "true");
-      card.addEventListener("dragstart", onDragStart);
-      card.addEventListener("dragover", onDragOver);
-      card.addEventListener("drop", onDrop);
-      card.addEventListener("dragend", onDragEnd);
-    });
-  };
-
-  const disableDrag = () => {
-    if (!customDragEnabled) return;
-    container.classList.remove("drag-mode");
-    cards.forEach((card) => {
-      card.removeAttribute("draggable");
-      card.classList.remove("dragging");
-      card.removeEventListener("dragstart", onDragStart);
-      card.removeEventListener("dragover", onDragOver);
-      card.removeEventListener("drop", onDrop);
-      card.removeEventListener("dragend", onDragEnd);
-    });
-  };
-
-  let dragSrc = null;
-  function onDragStart(e) {
-    dragSrc = this;
-    this.classList.add("dragging");
-    e.dataTransfer.effectAllowed = "move";
-  }
-  function onDragOver(e) {
-    e.preventDefault();
-    const target = e.target.closest("[data-widget-id]");
-    if (!target || target === dragSrc) return;
-    const cardsArr = Array.from(container.querySelectorAll("[data-widget-id]"));
-    const srcIdx = cardsArr.indexOf(dragSrc);
-    const tgtIdx = cardsArr.indexOf(target);
-    if (srcIdx < tgtIdx) {
-      target.after(dragSrc);
-    } else {
-      target.before(dragSrc);
-    }
-  }
-  function onDrop(e) {
-    e.preventDefault();
-  }
-  function onDragEnd() {
-    this.classList.remove("dragging");
-    persistLayout();
-  }
-
   // Event wiring for controls (if present)
   const initControls = () => {
     const toggle = document.getElementById("toggleCustomize");
@@ -365,22 +308,12 @@
       shortcutsCard.classList.toggle("d-none", !show);
     };
 
+    // Drag/reorder is handled by dashboard-layout.js (Sortable.js). Toggle state is used there.
     if (toggle) {
-      if (!customDragEnabled) {
-        toggle.disabled = true;
-        toggle.closest(".form-check")?.classList.add("text-muted");
-      } else {
-        toggle.addEventListener("change", (e) => {
-          e.target.checked ? enableDrag() : disableDrag();
-        });
-      }
-      if (customDragEnabled && toggle.checked) {
-        enableDrag();
-      }
-    }
-
-    if (!toggle && customDragEnabled) {
-      enableDrag();
+      toggle.addEventListener("change", () => {
+        container.classList.toggle("drag-mode", toggle.checked);
+      });
+      container.classList.toggle("drag-mode", !!toggle.checked);
     }
 
     if (toggleSidebar) {

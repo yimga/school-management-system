@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}My Profile - {{ SITE.site_name }}{% endblock %}
+{% block title %}My Profile - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
   <div class="container py-4">
@@ -23,7 +23,7 @@
             <div class="d-flex align-items-center gap-3">
               <div style="width:56px;height:56px;border-radius:16px;overflow:hidden;background:rgba(13,110,253,.12);display:flex;align-items:center;justify-content:center;">
                 {% if request.user.profile_photo %}
-                  <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" style="width:100%;height:100%;object-fit:cover;">
+                  <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="56" height="56" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
                 {% else %}
                   <strong style="font-size:18px;">
                     {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}

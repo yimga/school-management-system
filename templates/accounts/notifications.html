@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static %}
 
-{% block title %}Notifications - {{ SITE.site_name }}{% endblock %}
+{% block title %}Notifications - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
 <div class="container py-4">

@@ -7,7 +7,7 @@
 <body>
   <div class="letterhead">
     {% if SITE_LOGO_URL %}
-      <img src="{{ SITE_LOGO_URL }}" alt="logo" />
+      <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="80" height="80" decoding="async" style="max-height: 80px; width: auto; object-fit: contain;" />
     {% endif %}
     <div>
       <p class="title">{{ SITE.site_name|default:"School" }}</p>

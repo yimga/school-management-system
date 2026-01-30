@@ -5,7 +5,7 @@
     <button class="user-dropdown-trigger" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
       <div class="user-avatar">
         {% if request.user.profile_photo %}
-          <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}">
+          <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="40" height="40" decoding="async" loading="lazy">
         {% else %}
           <div class="avatar-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
             {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}

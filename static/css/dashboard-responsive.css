@@ -94,8 +94,8 @@ canvas {
   min-width: 0;
 }
 
-/* Small screens */
-@media (max-width: 991px) {
+/* Small screens – use design-token breakpoints (var() in media: modern browsers) */
+@media (max-width: var(--bp-tablet, 991px)) {
   .widget-grid,
   .kpi-grid,
   .card-grid,
@@ -116,7 +116,7 @@ canvas {
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: var(--bp-mobile-max, 767px)) {
   .widget-grid,
   .kpi-grid,
   .card-grid,
@@ -148,7 +148,7 @@ canvas {
   }
 }
 
-@media (max-width: 575px) {
+@media (max-width: var(--bp-extra-narrow, 575px)) {
   .dashboard-quick-panel,
   .classes-glance-card,
   .metric-card,

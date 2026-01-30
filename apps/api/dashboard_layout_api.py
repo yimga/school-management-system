@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import User
-from apps.siteconfig.dashboard_views import _can_customize, _log_layout_audit
+from apps.siteconfig.dashboard_views import _can_customize, _log_layout_audit, get_layout_for_page
 from apps.siteconfig.models_dashboard import DashboardWidget, DashboardLayout
 
 
@@ -263,10 +263,7 @@ class DashboardLayoutAPI(APIView):
         )
         widgets = DashboardWidgetSerializer(widgets_qs, many=True).data
 
-        layout_obj = (
-            DashboardLayout.objects.filter(user=request.user, page=page).first()
-            or DashboardLayout.objects.filter(page=page, role=role, is_default=True).first()
-        )
+        layout_obj = get_layout_for_page(request.user, page)
         layout_data = {"layout": layout_obj.layout if layout_obj else {}}
 
         return Response(

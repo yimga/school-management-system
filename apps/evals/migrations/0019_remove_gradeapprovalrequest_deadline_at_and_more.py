@@ -3,31 +3,36 @@
 from django.db import migrations, models, connection
 
 
+def _column_exists(cursor, db_table, column_name):
+    """Return True if column exists; works on SQLite and PostgreSQL."""
+    if connection.vendor == 'sqlite':
+        cursor.execute('PRAGMA table_info(%s)' % db_table)
+        return any(row[1] == column_name for row in cursor.fetchall())
+    # PostgreSQL / MySQL
+    cursor.execute("""
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name=%s AND column_name=%s
+    """, [db_table, column_name])
+    return cursor.fetchone() is not None
+
+
 def remove_fields_if_exist(apps, schema_editor):
     """Remove deadline_at and validation_flags only if they exist in the database."""
     db_table = 'evals_gradeapprovalrequest'
     with connection.cursor() as cursor:
-        # Check if deadline_at column exists
-        cursor.execute("""
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name=%s AND column_name='deadline_at'
-        """, [db_table])
-        deadline_exists = cursor.fetchone() is not None
-        
-        # Check if validation_flags column exists
-        cursor.execute("""
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name=%s AND column_name='validation_flags'
-        """, [db_table])
-        validation_flags_exists = cursor.fetchone() is not None
-        
-        # Remove columns if they exist
-        if deadline_exists:
-            cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS deadline_at')
-        if validation_flags_exists:
-            cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS validation_flags')
+        deadline_exists = _column_exists(cursor, db_table, 'deadline_at')
+        validation_flags_exists = _column_exists(cursor, db_table, 'validation_flags')
+        if connection.vendor == 'sqlite':
+            if deadline_exists:
+                cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN deadline_at')
+            if validation_flags_exists:
+                cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN validation_flags')
+        else:
+            if deadline_exists:
+                cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS deadline_at')
+            if validation_flags_exists:
+                cursor.execute('ALTER TABLE evals_gradeapprovalrequest DROP COLUMN IF EXISTS validation_flags')
 
 
 def reverse_remove_fields(apps, schema_editor):

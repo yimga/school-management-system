@@ -238,7 +238,7 @@
       <div class="container d-flex align-items-center base-topbar">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
           {% if SITE_LOGO_URL %}
-            <img src="{{ SITE_LOGO_URL }}" alt="Logo">
+            <img src="{{ SITE_LOGO_URL }}" alt="Logo" width="34" height="34" decoding="async" style="object-fit: contain;">
           {% endif %}
           <span>{% if SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}</span>
         </a>

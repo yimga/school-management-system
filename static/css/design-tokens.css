@@ -1,0 +1,92 @@
+/* ============================================
+   DESIGN TOKENS - Shared CSS variables
+   Used by Portal, Admin, and Backend.
+   Load this first; templates may override with SITE/theme values.
+   ============================================ */
+
+:root {
+  /* Brand (overridden by SITE.primary_color / accent_color in templates) */
+  --school-primary: #0d6efd;
+  --school-accent: #198754;
+  --school-primary-light: rgba(13, 110, 253, 0.15);
+  --school-accent-light: rgba(25, 135, 84, 0.1);
+
+  /* Admin surface (overridden by SITE.admin_sidebar_* in admin base_site) */
+  --admin-accent: #0d6efd;
+  --admin-accent-light: rgba(13, 110, 253, 0.12);
+  --admin-sidebar-bg: #0b0f14;
+  --admin-sidebar-surface: #111827;
+  --admin-sidebar-border: #1f2937;
+  --admin-sidebar-text: #e2e8f0;
+  --admin-sidebar-text-muted: #94a3b8;
+  --admin-sidebar-hover-bg: #0f172a;
+  --admin-sidebar-active-bg: #0f172a;
+  --admin-sidebar-active-border: #38bdf8;
+
+  /* Portal (light defaults; dark overrides in portal-theme-modes.css) */
+  --portal-bg: rgba(247, 251, 255, 1);
+  --portal-font: Inter, system-ui, sans-serif;
+  --portal-text: #111827;
+  --portal-text-muted: #6c757d;
+  --portal-border: rgba(15, 23, 42, 0.08);
+  --portal-border-strong: rgba(15, 23, 42, 0.15);
+  --portal-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  --portal-shadow-hover: 0 20px 40px rgba(15, 23, 42, 0.2);
+  --portal-nav-pill: #495057;
+  --portal-nav-pill-hover: #0d6efd;
+  --portal-nav-pill-bg-hover: rgba(13, 110, 253, 0.1);
+  --portal-nav-pill-bg-active: rgba(13, 110, 253, 0.15);
+
+  /* Backend console (theme files override) */
+  --backend-surface: #1a1f2e;
+  --backend-surface-alt: #252b3b;
+  --backend-text: #e5e7eb;
+  --backend-border: rgba(255, 255, 255, 0.08);
+
+  /* Common spacing (align with design-system-unified if present) */
+  --token-space-xs: 0.25rem;
+  --token-space-sm: 0.5rem;
+  --token-space-md: 1rem;
+  --token-space-lg: 1.5rem;
+  --token-radius-sm: 8px;
+  --token-radius-md: 12px;
+
+  /* Fluid typography (clamp: min, preferred, max) – smooth scaling, no rigid breakpoint jumps */
+  --text-xs: clamp(0.7rem, 1.5vw, 0.75rem);
+  --text-sm: clamp(0.8rem, 1.8vw, 0.875rem);
+  --text-base: clamp(0.9rem, 2vw, 1rem);
+  --text-lg: clamp(1rem, 2.2vw, 1.125rem);
+  --text-xl: clamp(1.1rem, 2.5vw, 1.25rem);
+  --text-2xl: clamp(1.25rem, 3vw, 1.5rem);
+  --text-3xl: clamp(1.4rem, 4vw, 1.875rem);
+  --text-hero: clamp(1.2rem, 2.6vw, 1.8rem);
+
+  /* Content-based breakpoints (use in media queries: max-width: var(--bp-mobile) etc.) */
+  --bp-narrow: 360px;
+  --bp-content-sm: 480px;
+  --bp-content-sm-max: 479px;   /* below 480 */
+  --bp-content-md: 640px;
+  --bp-extra-narrow: 575px;     /* e.g. hide secondary nav */
+  --bp-mobile: 768px;           /* common mobile/tablet split */
+  --bp-mobile-max: 767px;       /* below 768 */
+  --bp-content-lg: 832px;
+  --bp-tablet: 991px;           /* common tablet/desktop split */
+  --bp-below-wide: 1023px;      /* below 1024 */
+  --bp-wide: 1024px;
+  --bp-max: 1280px;
+
+  /* Focus ring: high-contrast in both themes (override in theme files if needed) */
+  --focus-ring-color: #0d6efd;
+  --focus-ring-offset: 2px;
+
+  /* Overlay / surface text: ensure readable on both themes when used in modals, dropdowns */
+  --overlay-bg: rgba(255, 255, 255, 0.98);
+  --overlay-text: #0f172a;
+  --overlay-text-muted: #64748b;
+}
+
+html[data-bs-theme="dark"] {
+  --overlay-bg: #1e293b;
+  --overlay-text: #e2e8f0;
+  --overlay-text-muted: #94a3b8;
+}

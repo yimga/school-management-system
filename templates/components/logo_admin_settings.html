@@ -48,7 +48,7 @@
           <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; text-align: center;">
             <div id="logoPreview" style="display: inline-block; max-width: 100%; height: 80px;">
               {% if SITE.logo %}
-                <img src="{{ SITE.logo.url }}" alt="School Logo" style="height: 100%; object-fit: contain; filter: grayscale(100%);">
+                <img src="{{ SITE.logo.url }}" alt="School Logo" width="80" height="80" loading="lazy" decoding="async" style="height: 100%; object-fit: contain; filter: grayscale(100%);">
               {% else %}
                 <div style="font-size: 48px;">🎓</div>
               {% endif %}

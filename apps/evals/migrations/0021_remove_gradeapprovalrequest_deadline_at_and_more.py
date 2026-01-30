@@ -4,18 +4,28 @@ from django.db import migrations, connection
 from django.db.migrations.operations.special import SeparateDatabaseAndState
 
 
+def _column_exists(cursor, db_table, column_name):
+    if connection.vendor == 'sqlite':
+        cursor.execute('PRAGMA table_info(%s)' % db_table)
+        return any(row[1] == column_name for row in cursor.fetchall())
+    cursor.execute("""
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name=%s AND column_name=%s
+    """, [db_table, column_name])
+    return cursor.fetchone() is not None
+
+
 def remove_fields_if_exist(apps, schema_editor):
     """Remove fields only if they exist."""
     db_table = 'evals_gradeapprovalrequest'
     with connection.cursor() as cursor:
         for field_name in ['deadline_at', 'validation_flags']:
-            cursor.execute("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name=%s AND column_name=%s
-            """, [db_table, field_name])
-            if cursor.fetchone():
-                cursor.execute(f'ALTER TABLE {db_table} DROP COLUMN IF EXISTS {field_name}')
+            if not _column_exists(cursor, db_table, field_name):
+                continue
+            if connection.vendor == 'sqlite':
+                cursor.execute('ALTER TABLE %s DROP COLUMN %s' % (db_table, field_name))
+            else:
+                cursor.execute('ALTER TABLE %s DROP COLUMN IF EXISTS %s' % (db_table, field_name))
 
 
 def reverse_remove_fields(apps, schema_editor):

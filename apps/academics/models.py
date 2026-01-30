@@ -207,6 +207,11 @@ class SubjectAssignment(models.Model):
     specialty = models.ForeignKey(Specialty, on_delete=models.PROTECT, related_name="subject_assignments")
     subject = models.ForeignKey(Subject, on_delete=models.PROTECT, related_name="subject_assignments")
     coefficient = models.DecimalField(max_digits=5, decimal_places=2, default=1)
+    grading_deadline_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Optional deadline for completing grades for this assignment (term/class/subject).",
+    )
 
     class Meta:
         unique_together = ("academic_year", "term", "classroom", "specialty", "subject")

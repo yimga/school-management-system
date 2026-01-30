@@ -122,16 +122,30 @@ def _create_layout_from_legacy(user, page: str) -> DashboardLayout | None:
     return layout_obj
 
 
-def load_dashboard_layout_settings(user, page: str) -> dict:
-    """Return the latest dashboard meta settings (user override -> role default)."""
-
+def get_layout_for_page(user, page: str):
+    """
+    Return the effective DashboardLayout for (user, page).
+    Resolution order: user-specific, then role default, then legacy migration.
+    Used by load_dashboard_layout_settings and the dashboard layout API.
+    """
+    if not user or not user.is_authenticated:
+        return None
+    page = (page or "").strip().lower()
+    if not page:
+        return None
     layout_obj = DashboardLayout.objects.filter(user=user, page=page).first()
     if not layout_obj:
-        role = (getattr(user, "role", "") or "").upper() if user else ""
+        role = (getattr(user, "role", "") or "").upper()
         layout_obj = DashboardLayout.objects.filter(page=page, role=role, is_default=True).first()
     if not layout_obj:
         layout_obj = _create_layout_from_legacy(user, page)
+    return layout_obj
 
+
+def load_dashboard_layout_settings(user, page: str) -> dict:
+    """Return the latest dashboard meta settings (user override -> role default)."""
+
+    layout_obj = get_layout_for_page(user, page)
     raw_settings = {}
     if layout_obj and isinstance(layout_obj.layout, dict):
         raw_settings = layout_obj.layout.get("__settings__", {}) or {}

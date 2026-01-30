@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}New message - {{ SITE.site_name }}{% endblock %}
+{% block title %}New message - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
   <div class="container py-4">
