@@ -1,5 +1,16 @@
 """
 Build portal sidebar nav items for the current user, optionally sorted by SiteSettings.portal_sidebar_order.
+
+Section order (by role):
+- Home, Account (all)
+- Communication (role-dependent)
+- Teacher: My Workflow, Learning Management, Human Resources
+- Parent: My Workflow, Children & Learning, Performance Tracking
+- Portal Tools: Community, Video, Documents (per-feature RBAC + site.portal_features)
+- Admin: Admin Panel, Content & Documents (Document Library Manager, Signature Requests), People & Access,
+  Academic Management, Financial Management, Analytics & Reports
+
+Visibility is permission- and role-based; teachers never see Admin/People/Finance/Analytics.
 """
 from django.urls import reverse
 from django.contrib.auth import get_user_model
@@ -7,8 +18,10 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-def _safe_reverse(url_name, kwargs=None, default=None):
+def _safe_reverse(url_name, kwargs=None, args=None, default=None):
     try:
+        if args is not None:
+            return reverse(url_name, args=args)
         return reverse(url_name, kwargs=kwargs or {})
     except Exception:
         return default
@@ -68,10 +81,37 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "claim_invite", "label": "Claim Invite", "url": _safe_reverse("portal:claim_invite"), "icon": "bi-ticket", "section": "Children & Learning", "badge": None})
         items.append({"id": "academic_stats", "label": "Academic Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Performance Tracking", "badge": None})
 
-    # --- Admin / Staff ---
-    if is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN"):
+    # --- Portal Tools (per-feature RBAC: only if feature enabled and user has permission) ---
+    portal_cfg = getattr(site, "portal_features", None) or {}
+    if portal_cfg.get("forums") and getattr(user, "has_feature_permission", lambda _: False)("portal.forums"):
+        items.append({"id": "portal_forums", "label": "Community", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "forums"}), "icon": "bi-people", "section": "Portal Tools", "badge": None})
+    if portal_cfg.get("video") and getattr(user, "has_feature_permission", lambda _: False)("portal.video"):
+        items.append({"id": "portal_video", "label": "Video Hub", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "video"}), "icon": "bi-camera-video", "section": "Portal Tools", "badge": None})
+    if portal_cfg.get("documents") and getattr(user, "has_feature_permission", lambda _: False)("portal.documents"):
+        items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Portal Tools", "badge": None})
+
+    # --- Admin / Staff (exclude teachers: they get only Academic Management + HR, no Admin Panel/People/Finance/Analytics) ---
+    staff_like = is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN")
+    can_manage_site = staff_like and (getattr(user, "has_feature_permission", lambda _: False)("settings.manage") or is_superuser)
+    if staff_like and role != "TEACHER":
         items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
         items.append({"id": "workflow_center", "label": "Workflow Center", "url": _safe_reverse("accounts:workflow_center"), "icon": "bi-diagram-3", "section": "Admin Panel", "badge": None})
+        if can_manage_site:
+            items.append({"id": "customizer", "label": "Customizer", "url": _safe_reverse("siteconfig:customizer"), "icon": "bi-palette", "section": "Admin Panel", "badge": None})
+            site_pk = getattr(site, "pk", 1)
+            items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
+            items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:siteconfig_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})
+        if is_staff or is_superuser:
+            items.append({"id": "admin_panel", "label": "Django Admin", "url": _safe_reverse("admin:index"), "icon": "bi-grid", "section": "Admin Panel", "badge": None})
+        # Staff: triage parent contact requests (Support section)
+        if staff_like:
+            items.append({"id": "contact_requests", "label": "Contact Requests", "url": _safe_reverse("portal:staff_contact_request_list"), "icon": "bi-inbox", "section": "Support", "badge": None})
+        # Content & Documents: upload/manage handbooks, forms, signatures (same permission as backend document library)
+        if can_manage_site:
+            items.append({"id": "document_library_manage", "label": "Document Library Manager", "url": _safe_reverse("portal:document_library_manage"), "icon": "bi-folder2-open", "section": "Content & Documents", "badge": None})
+            items.append({"id": "signature_requests", "label": "Signature Requests", "url": _safe_reverse("portal:signature_requests_manage"), "icon": "bi-pen", "section": "Content & Documents", "badge": None})
+        # Certification & Exams (GCE) – admins get quick access; certification home handles “not enabled”
+        items.append({"id": "certification", "label": "Certification & Exams", "url": _safe_reverse("accounts:certification_home"), "icon": "bi-award", "section": "Academic Management", "badge": None})
         items.append({"id": "students", "label": "Student Profiles", "url": _safe_reverse("admin:people_studentprofile_changelist"), "icon": "bi-person-lines-fill", "section": "People & Access", "badge": None})
         items.append({"id": "guardians", "label": "Student Guardians", "url": _safe_reverse("admin:people_studentguardian_changelist"), "icon": "bi-people-fill", "section": "People & Access", "badge": None})
         items.append({"id": "groups", "label": "Authentication Groups", "url": _safe_reverse("admin:auth_group_changelist"), "icon": "bi-unlock", "section": "People & Access", "badge": None})

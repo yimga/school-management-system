@@ -1,13 +1,26 @@
 {% extends "portal_base.html" %}
+{% load accounts_extras %}
 {% block title %}{{ feature.label }}{% endblock %}
 
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
       <h2 class="mb-1">{{ feature.label }}</h2>
       <p class="text-muted mb-0">{{ feature.description }}</p>
     </div>
-    <a class="btn btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">Back to dashboard</a>
+    <div class="d-flex gap-2">
+      {% if feature.key == 'documents' %}
+        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_staff or request.user.is_superuser %}
+          <a class="btn btn-primary" href="{% url 'portal:document_upload' %}">
+            <i class="bi bi-upload me-1"></i>Upload document
+          </a>
+          <a class="btn btn-outline-primary" href="{% url 'portal:document_library_manage' %}">
+            <i class="bi bi-folder2-open me-1"></i>Manage library
+          </a>
+        {% endif %}
+      {% endif %}
+      <a class="btn btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">Back to dashboard</a>
+    </div>
   </div>
 
   <div class="card">
@@ -60,7 +73,16 @@
         </div>
       {% else %}
         <div class="alert alert-secondary mb-0">
-          No content has been added yet. Admins can add items via the portal feature manager in the admin panel.
+          No content has been added yet.
+          {% if feature.key == 'documents' %}
+            {% if request.user|has_feature_permission:"settings.manage" or request.user.is_staff or request.user.is_superuser %}
+              <strong>Upload handbooks, forms, and policies</strong> using the <a href="{% url 'portal:document_upload' %}" class="alert-link">Upload document</a> or <a href="{% url 'portal:document_library_manage' %}" class="alert-link">Manage library</a> button above.
+            {% else %}
+              Admins can add items via <strong>Backend → Document Library</strong>.
+            {% endif %}
+          {% else %}
+            Admins can add content via the admin panel.
+          {% endif %}
         </div>
       {% endif %}
     </div>

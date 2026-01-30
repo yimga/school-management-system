@@ -2,6 +2,8 @@
 
 If you deployed but don’t see the backend dashboard fixes (RBAC-gated sections, theme, cards, Quick Actions, etc.) on `/backend/`, use this checklist.
 
+**Recommended deploy process:** Deploy from **`main`** (or the branch that has your latest code). On **Render**, use **Manual Deploy → “Clear build cache & deploy”** so templates and static files (sidebar, footer, Document Library Manager, etc.) are fresh. Then run **collectstatic** and **restart** the app if your pipeline doesn’t do it.
+
 ---
 
 ## 1. Deploy from the right branch
