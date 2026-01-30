@@ -244,6 +244,7 @@ class DashboardWidgetAdmin(ModelAdmin):
                     "default_column",
                     "default_order",
                     "refresh_interval",
+                    "chart_type",
                     "allowed_sizes",
                     "default_size",
                     "allowed_variants",
@@ -370,6 +371,22 @@ class SiteSettingsAdmin(ModelAdmin):
                 "social_links",
             )
         }),
+        ("Login, Header & Layout", {
+            "fields": (
+                "login_hero_heading",
+                "login_hero_subtext",
+                "show_header_search",
+                "show_header_notifications",
+                "show_header_profile_menu",
+                "show_header_theme_toggle",
+                "favicon",
+                "layout_style",
+                "default_sidebar_collapsed",
+                "branded_domain",
+                "portal_sidebar_order",
+                "sidebar_icon",
+            )
+        }),
         ("Theme & Experience", {
             "fields": (
                 "primary_color",
@@ -379,6 +396,11 @@ class SiteSettingsAdmin(ModelAdmin):
                 "danger_color",
                 "theme_brightness",
                 "use_dark_mode",
+                "backend_console_theme",
+                "secondary_font",
+                "use_secondary_font_for_headings",
+                "base_font_size",
+                "default_widgets_per_role",
                 "report_downloads_enabled",
                 "default_dashboard_view",
                 "default_refresh_rate",
@@ -404,6 +426,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "admin_sidebar_child_border_color",
                 "admin_sidebar_child_hover_color",
                 "admin_sidebar_child_active_color",
+                "admin_use_site_primary",
             )
         }),
         ("Admin Portal", {

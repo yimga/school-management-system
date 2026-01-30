@@ -79,9 +79,12 @@
         <p>What you've done → where you are → what's next. Follow the steps below to stay on top of your children's progress and school tasks.</p>
         <p class="small text-muted mb-0 mt-1">Link children · Results & attendance · Finance · Communication · Documents.</p>
       </div>
-      <div class="d-flex flex-wrap gap-2">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">
           <i class="bi bi-house me-1"></i>Parent Home
+        </a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'portal:parent_dashboard' %}">
+          <i class="bi bi-pin-angle me-1"></i>Use Dashboard as default view
         </a>
         <a class="btn btn-sm btn-primary" href="{% url 'portal:link_child' %}">
           <i class="bi bi-link-45deg me-1"></i>Link a child

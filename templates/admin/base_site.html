@@ -1,6 +1,11 @@
 {% extends "admin/base.html" %}
 {% load i18n static admin_extras %}
 
+{% block extrahead %}
+  {{ block.super }}
+  {% if SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
+{% endblock %}
+
 {% block extrastyle %}
   {{ block.super }}
   <!-- UNIFIED DESIGN SYSTEM - Load first, defines all CSS variables -->
@@ -55,7 +60,7 @@
       --admin-sidebar-text-muted: {{ SITE.admin_sidebar_text_muted_color|default:"#94a3b8" }};
       --admin-sidebar-hover-bg: {{ SITE.admin_sidebar_hover_color|default:"#0f172a" }};
       --admin-sidebar-active-bg: {{ SITE.admin_sidebar_active_color|default:"#0f172a" }};
-      --admin-sidebar-active-border: {{ SITE.admin_sidebar_active_border_color|default:"#38bdf8" }};
+      --admin-sidebar-active-border: {% if SITE.admin_use_site_primary %}{{ SITE.primary_color|default:"#0d6efd" }}{% else %}{{ SITE.admin_sidebar_active_border_color|default:"#38bdf8" }}{% endif %};
       --admin-sidebar-badge-bg: {{ SITE.admin_sidebar_badge_bg_color|default:"#1f2937" }};
       --admin-sidebar-badge-text: {{ SITE.admin_sidebar_badge_text_color|default:"#e2e8f0" }};
       --admin-sidebar-child-bg-start: {{ SITE.admin_sidebar_child_bg_start|default:"#0b1224" }};

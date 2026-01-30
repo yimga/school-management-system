@@ -348,6 +348,9 @@
 <!-- User Header -->
 <div class="sidebar-header">
   <div class="sidebar-header-content">
+    {% if SITE_SIDEBAR_ICON_URL %}
+    <img src="{{ SITE_SIDEBAR_ICON_URL }}" alt="" class="sidebar-icon-small me-2" style="width: 40px; height: 40px; object-fit: contain; border-radius: 10px;">
+    {% endif %}
     <div class="sidebar-avatar">
       {% if request.user.first_name %}
         {{ request.user.first_name|slice:":1" }}
@@ -364,6 +367,20 @@
 
 <div class="nav flex-column gap-0">
   {% if request.user.is_authenticated %}
+    {% if PORTAL_SIDEBAR_ITEMS %}
+      {% for item in PORTAL_SIDEBAR_ITEMS %}
+        {% if forloop.first or item.section != PORTAL_SIDEBAR_ITEMS|slice:":forloop.counter0"|last|dictsort:"section"|last %}
+          <div class="sidebar-section-title">{% if forloop.first %}{{ item.section }}{% else %}{{ item.section }}{% endif %}</div>
+        {% endif %}
+        {% if item.section != previous_section %}
+          <div class="sidebar-section-title">{{ item.section }}</div>
+        {% endif %}
+        <a class="nav-link nav-pill {% if item.badge %}d-flex align-items-center justify-content-between{% endif %}" href="{{ item.url }}">
+          <span><i class="bi {{ item.icon }} me-2"></i>{{ item.label }}</span>
+          {% if item.badge %}<span class="badge bg-primary rounded-pill">{{ item.badge }}</span>{% endif %}
+        </a>
+      {% endfor %}
+    {% else %}
     <div class="sidebar-section-title">Home</div>
     <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}">
       <i class="bi bi-speedometer2 me-2"></i>Dashboard
@@ -382,9 +399,8 @@
     <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
       <i class="bi bi-journal-text me-2"></i>Knowledge Base
     </a>
-  {% endif %}
 
-  {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
+  {% if request.user.role == 'TEACHER' %}
     <div class="sidebar-section-title">Communication</div>
     <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
       <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
@@ -393,13 +409,12 @@
     <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}">
       <i class="bi bi-people me-2"></i>Message Groups
     </a>
-  {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
+  {% elif request.user.role == 'PARENT' %}
     <div class="sidebar-section-title">Communication</div>
     <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}">
       <i class="bi bi-envelope-paper me-2"></i>Contact School
     </a>
-  {% elif request.user.is_authenticated %}
-    {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
+  {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
       <div class="sidebar-section-title">Communication</div>
       <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
         <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
@@ -411,10 +426,12 @@
       <a class="nav-link nav-pill" href="{% url 'communication:announcement_create' %}">
         <i class="bi bi-megaphone me-2"></i>Announcements
       </a>
-    {% endif %}
   {% endif %}
-  {% if request.user.is_authenticated and request.user.role == 'TEACHER' %}
-    <!-- Teacher Navigation -->
+  {% if request.user.role == 'TEACHER' %}
+    <div class="sidebar-section-title">My Workflow</div>
+    <a class="nav-link nav-pill" href="{% url 'portal:teacher_workflow' %}">
+      <i class="bi bi-diagram-3 me-2"></i>My Workflow
+    </a>
     <div class="sidebar-section-title">Learning Management</div>
     <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_entry' %}">
       <i class="bi bi-pencil-square me-2"></i>Enter Marks
@@ -425,7 +442,6 @@
     <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}">
       <i class="bi bi-clipboard-check me-2"></i>Attendance
     </a>
-
     <div class="sidebar-section-title">Human Resources</div>
     <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}">
       <i class="bi bi-wallet2 me-2"></i>Payslips
@@ -437,8 +453,11 @@
       <i class="bi bi-receipt me-2"></i>Pay History
     </a>
 
-  {% elif request.user.is_authenticated and request.user.role == 'PARENT' %}
-    <!-- Parent Navigation -->
+  {% elif request.user.role == 'PARENT' %}
+    <div class="sidebar-section-title">My Workflow</div>
+    <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}">
+      <i class="bi bi-diagram-3 me-2"></i>My Workflow
+    </a>
     <div class="sidebar-section-title">Children & Learning</div>
     <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}">
       <i class="bi bi-people me-2"></i>My Children
@@ -452,15 +471,12 @@
     <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}">
       <i class="bi bi-ticket me-2"></i>Claim Invite
     </a>
-
     <div class="sidebar-section-title">Performance Tracking</div>
     <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}">
       <i class="bi bi-graph-up me-2"></i>Academic Stats
     </a>
 
-  {% elif request.user.is_authenticated %}
-    {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
-      <!-- Admin Navigation -->
+  {% elif request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
       <div class="sidebar-section-title">Admin Panel</div>
       <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}">
         <i class="bi bi-gear-fill me-2"></i>Backend Console
@@ -468,7 +484,6 @@
       <a class="nav-link nav-pill" href="{% url 'accounts:workflow_center' %}">
         <i class="bi bi-diagram-3 me-2"></i>Workflow Center
       </a>
-
       <div class="sidebar-section-title">People & Access</div>
       <a class="nav-link nav-pill" href="{% url 'admin:people_studentprofile_changelist' %}">
         <i class="bi bi-person-lines-fill me-2"></i>Student Profiles
@@ -482,7 +497,6 @@
       <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}">
         <i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control
       </a>
-
       <div class="sidebar-section-title">Academic Management</div>
       <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}">
         <i class="bi bi-clipboard-data me-2"></i>Evaluation Admin
@@ -496,7 +510,6 @@
       <a class="nav-link nav-pill" href="{% url 'reports:publish_term_results' %}">
         <i class="bi bi-megaphone me-2"></i>Publish Results
       </a>
-
       <div class="sidebar-section-title">Financial Management</div>
       <a class="nav-link nav-pill" href="{% url 'finance:dashboard' %}">
         <i class="bi bi-currency-exchange me-2"></i>Finance Dashboard
@@ -504,7 +517,6 @@
       <a class="nav-link nav-pill" href="{% url 'payroll:dashboard' %}">
         <i class="bi bi-cash-stack me-2"></i>Payroll
       </a>
-
       <div class="sidebar-section-title">Analytics & Reports</div>
       <a class="nav-link nav-pill" href="{% url 'analytics:dashboard' %}">
         <i class="bi bi-graph-up-arrow me-2"></i>Analytics
@@ -515,6 +527,23 @@
       <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}">
         <i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder
       </a>
+    {% endif %}
+    {% endif %}
+
+      <div class="sidebar-section-title mt-3">Recent Activity</div>
+      <ul class="list-unstyled mb-0 small" id="recentActivityList">
+        {% if recent_activities %}
+          {% for activity in recent_activities|slice:":6" %}
+            <li class="sidebar-activity-item px-2 py-1 rounded mb-1" style="border-left: 3px solid rgba(99,102,241,0.5); padding-left: 0.6rem !important;">
+              <span class="fw-semibold d-block" style="font-size: 0.8rem;">{{ activity.user.username }}</span>
+              <span class="small text-muted">{{ activity.action }} {{ activity.model }}</span>
+              <span class="badge bg-secondary ms-1" style="font-size: 0.65rem;">{{ activity.time_ago }} ago</span>
+            </li>
+          {% endfor %}
+        {% else %}
+          <li class="text-muted small px-2">Loading activity…</li>
+        {% endif %}
+      </ul>
     {% endif %}
   {% endif %}
 </div>

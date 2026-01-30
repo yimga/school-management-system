@@ -10,6 +10,15 @@ from django.utils import translation
 from apps.accounts.models import User
 from apps.finance.models import Notification
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
+from .portal_sidebar_items import build_portal_sidebar_items
+
+
+def _get_portal_sidebar_items(request, site):
+    """Return portal sidebar items (optionally sorted by portal_sidebar_order)."""
+    try:
+        return build_portal_sidebar_items(request, site)
+    except Exception:
+        return []
 
 SESSION_KEY = "site_preview_settings"
 
@@ -132,6 +141,7 @@ def site_settings(request):
     high_contrast_mode = False
     reduced_motion = False
     theme_pref = "system"
+    sidebar_collapsed = False
     if request.user.is_authenticated:
         try:
             if hasattr(request.user, "preference"):
@@ -145,10 +155,15 @@ def site_settings(request):
             _reset_db_state()
             pass
         try:
-            dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user)
+            default_collapsed = getattr(site, "default_sidebar_collapsed", False)
+            dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
+                user=request.user,
+                defaults={"sidebar_collapsed": default_collapsed},
+            )
             theme_pref = (dashboard_pref.theme_preference or "system").lower()
             high_contrast_mode = high_contrast_mode or bool(getattr(dashboard_pref, "high_contrast", False))
             reduced_motion = reduced_motion or bool(getattr(dashboard_pref, "reduced_motion", False))
+            sidebar_collapsed = bool(getattr(dashboard_pref, "sidebar_collapsed", False))
         except DatabaseError:
             _reset_db_state()
             theme_pref = "system"
@@ -160,15 +175,22 @@ def site_settings(request):
     except NoReverseMatch:
         finance_request_url = "/requests/"
     finance_request_alerts = 0
+    notifications_unread_count = 0
     if request.user.is_authenticated:
         finance_request_alerts = Notification.objects.filter(
             recipient=request.user,
             title__icontains="finance access request",
             is_read=False,
         ).count()
+        notifications_unread_count = Notification.objects.filter(
+            recipient=request.user,
+            is_read=False,
+        ).count()
     admin_theme = site.get_admin_theme()
     admin_background_url = _resolve_media_url(admin_theme.background_image if admin_theme else None)
     admin_logo = _resolve_media_url(admin_theme.logo if admin_theme else None, "images/logo.png")
+    favicon_url = _resolve_media_url(getattr(site, "favicon", None), "favicon.ico")
+    sidebar_icon_url = _resolve_media_url(getattr(site, "sidebar_icon", None))
     return {
         "SITE": site,
         "SITE_SETTINGS": site,
@@ -176,6 +198,17 @@ def site_settings(request):
         "SITE_ADMIN_THEME": admin_theme,
         "SITE_ADMIN_BACKGROUND_URL": admin_background_url,
         "SITE_ADMIN_LOGO_URL": admin_logo,
+        "SITE_FAVICON_URL": favicon_url,
+        "SITE_SIDEBAR_ICON_URL": sidebar_icon_url,
+        "LAYOUT_STYLE": getattr(site, "layout_style", "fluid") or "fluid",
+        "SHOW_HEADER_SEARCH": getattr(site, "show_header_search", True),
+        "SHOW_HEADER_NOTIFICATIONS": getattr(site, "show_header_notifications", True),
+        "SHOW_HEADER_PROFILE_MENU": getattr(site, "show_header_profile_menu", True),
+        "SHOW_HEADER_THEME_TOGGLE": getattr(site, "show_header_theme_toggle", True),
+        "SITE_BRANDED_DOMAIN": getattr(site, "branded_domain", "") or "",
+        "SITE_SECONDARY_FONT": getattr(site, "secondary_font", "") or "",
+        "SITE_USE_SECONDARY_FONT_HEADINGS": getattr(site, "use_secondary_font_for_headings", False),
+        "SITE_BASE_FONT_SIZE": getattr(site, "base_font_size", None),
         "REPORT_DOWNLOADS_ENABLED": site.report_downloads_enabled,
         "BREADCRUMBS": breadcrumbs,
         "SITE_LOGO_URL": logo_url,
@@ -198,6 +231,9 @@ def site_settings(request):
         "PREVIEW_BANNER_TEXT": getattr(site, "preview_banner_text", ""),
         "FINANCE_REQUEST_ALERT_COUNT": finance_request_alerts,
         "FINANCE_REQUEST_LINK": finance_request_url,
+        "NOTIFICATIONS_UNREAD_COUNT": notifications_unread_count,
+        "SIDEBAR_COLLAPSED": sidebar_collapsed,
+        "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
     }
 
 

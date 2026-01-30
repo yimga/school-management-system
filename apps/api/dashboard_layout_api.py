@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import User
-from apps.siteconfig.dashboard_views import _log_layout_audit
+from apps.siteconfig.dashboard_views import _can_customize, _log_layout_audit
 from apps.siteconfig.models_dashboard import DashboardWidget, DashboardLayout
 
 
@@ -39,6 +39,7 @@ class DashboardWidgetSerializer(serializers.ModelSerializer):
             "default_size",
             "allowed_variants",
             "default_variant",
+            "chart_type",
             "order",
         ]
 
@@ -286,6 +287,11 @@ class DashboardLayoutAPI(APIView):
     def _save(self, request, page: str):
         page = page.lower()
         self._enforce_page_access(page, request.user)
+        if not _can_customize(request.user):
+            return Response(
+                {"detail": "Only staff and allowed roles can save dashboard layout."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         role = self.get_user_role(request.user)
         widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by("order")

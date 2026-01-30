@@ -11,6 +11,7 @@ from .views import (
     reportcard_style_preview,
     reportcard_style_pdf,
     user_preferences,
+    set_default_dashboard_view,
     toggle_preview_mode,
     set_act_as_role,
 )
@@ -26,6 +27,7 @@ urlpatterns = [
     path("customizer/", customizer, name="customizer"),
     path("customizer/clear-preview/", clear_preview, name="clear_preview"),
     path("preferences/", user_preferences, name="user_preferences"),
+    path("preferences/set-default-view/", set_default_dashboard_view, name="set_default_dashboard_view"),
     path("preferences/theme/", update_theme, name="update_theme"),
     path("reports/", report_library, name="report_library"),
     path("reports/download/<slug:slug>/", download_report, name="report_download"),

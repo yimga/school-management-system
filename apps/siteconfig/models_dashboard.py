@@ -200,6 +200,14 @@ class DashboardWidget(models.Model):
         help_text="Default style variant to apply when user has not customized.",
     )
 
+    # Chart type (for widget_type=chart): bar, pie, line, etc.
+    chart_type = models.CharField(
+        max_length=16,
+        blank=True,
+        default="",
+        help_text="For chart widgets: preferred chart type (bar, pie, line). Empty = use template default.",
+    )
+
     # Metadata
     order = models.IntegerField(default=0, help_text="Display order")
     is_active = models.BooleanField(default=True)

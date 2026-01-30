@@ -1,0 +1,312 @@
+/**
+ * Backend dark/grey theme for /backend (dashboard + sidebar).
+ * Applied when body has class .portal-backend-dark.
+ * All text colors tuned for clear readability on dark backgrounds.
+ */
+body.portal-backend-dark,
+body.portal-backend-dark[data-bs-theme="dark"],
+body.portal-backend-dark[data-bs-theme="light"] {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+/* Base text: ensure body and all inherited text is readable */
+body.portal-backend-dark p,
+body.portal-backend-dark span,
+body.portal-backend-dark div,
+body.portal-backend-dark li,
+body.portal-backend-dark td,
+body.portal-backend-dark th,
+body.portal-backend-dark label {
+  color: inherit;
+}
+
+/* Muted / secondary text: brighter so still clear on dark */
+body.portal-backend-dark .text-muted,
+body.portal-backend-dark .workflow-hero p,
+body.portal-backend-dark .workflow-subtitle {
+  color: #b8c4d0 !important;
+}
+
+body.portal-backend-dark .small,
+body.portal-backend-dark small {
+  color: #b8c4d0 !important;
+}
+
+/* Top bar: dark grey to match */
+body.portal-backend-dark .topbar,
+body.portal-backend-dark .navbar.topbar {
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+body.portal-backend-dark .page-wrap,
+body.portal-backend-dark #main-content {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+body.portal-backend-dark .card,
+body.portal-backend-dark .workflow-card,
+body.portal-backend-dark .workflow-hero {
+  background: #334155 !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  color: #e2e8f0 !important;
+}
+
+body.portal-backend-dark .workflow-hero h2,
+body.portal-backend-dark .workflow-title,
+body.portal-backend-dark .card-title,
+body.portal-backend-dark h1,
+body.portal-backend-dark h2,
+body.portal-backend-dark h3,
+body.portal-backend-dark h4,
+body.portal-backend-dark h5,
+body.portal-backend-dark h6 {
+  color: #f8fafc !important;
+}
+
+/* Form labels and section labels */
+body.portal-backend-dark .form-label,
+body.portal-backend-dark label:not(.form-check-label),
+body.portal-backend-dark .section-title,
+body.portal-backend-dark .trend-label,
+body.portal-backend-dark .metric-title,
+body.portal-backend-dark .metric-desc {
+  color: #cbd5e1 !important;
+}
+
+/* Links: visible and readable */
+body.portal-backend-dark a:not(.nav-link):not(.dropdown-item):not(.btn) {
+  color: #93c5fd !important;
+}
+
+body.portal-backend-dark a:not(.nav-link):not(.dropdown-item):not(.btn):hover {
+  color: #bfdbfe !important;
+}
+
+/* Sidebar: dark grey to match */
+body.portal-backend-dark .sidebar,
+body.portal-backend-dark .portal-sidebar-wrapper {
+  background: #0f172a !important;
+  border-color: rgba(148, 163, 184, 0.15) !important;
+}
+
+body.portal-backend-dark .sidebar .nav-link.nav-pill,
+body.portal-backend-dark .sidebar .sidebar-section-title,
+body.portal-backend-dark .sidebar .sidebar-info h6 {
+  color: #cbd5e1 !important;
+}
+
+body.portal-backend-dark .sidebar .sidebar-info p {
+  color: #94a3b8 !important;
+}
+
+body.portal-backend-dark .sidebar .nav-link.nav-pill:hover {
+  background: rgba(148, 163, 184, 0.12) !important;
+  color: #f1f5f9 !important;
+}
+
+body.portal-backend-dark .sidebar .nav-link.nav-pill.active {
+  background: rgba(99, 102, 241, 0.25) !important;
+  color: #a5b4fc !important;
+}
+
+body.portal-backend-dark .sidebar .sidebar-header {
+  border-bottom-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+body.portal-backend-dark .breadcrumb,
+body.portal-backend-dark .breadcrumb-item a {
+  color: #b8c4d0 !important;
+}
+
+body.portal-backend-dark .breadcrumb-item a:hover {
+  color: #e2e8f0 !important;
+}
+
+body.portal-backend-dark .breadcrumb-item.active {
+  color: #f8fafc !important;
+}
+
+body.portal-backend-dark .btn-outline-primary,
+body.portal-backend-dark .btn-outline-secondary {
+  border-color: rgba(148, 163, 184, 0.5);
+  color: #cbd5e1;
+}
+
+body.portal-backend-dark .btn-outline-primary:hover,
+body.portal-backend-dark .btn-outline-secondary:hover {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: #94a3b8;
+  color: #f1f5f9;
+}
+
+body.portal-backend-dark .btn-primary {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  border-color: #4f46e5;
+  color: #fff;
+}
+
+body.portal-backend-dark .btn-primary:hover {
+  background: linear-gradient(135deg, #4338ca, #4f46e5);
+  border-color: #4338ca;
+  color: #fff;
+}
+
+body.portal-backend-dark .nav-pill:hover,
+body.portal-backend-dark .nav-pill.active {
+  background: rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Badges: all readable on dark; never dark text on dark bg */
+body.portal-backend-dark .badge.bg-primary {
+  background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+  color: #fff !important;
+}
+
+body.portal-backend-dark .badge.bg-light,
+body.portal-backend-dark .badge.bg-secondary {
+  background: #475569 !important;
+  color: #f1f5f9 !important;
+}
+
+body.portal-backend-dark .badge.bg-success {
+  background: #059669 !important;
+  color: #fff !important;
+}
+
+body.portal-backend-dark .badge.bg-warning,
+body.portal-backend-dark .badge.bg-warning.text-dark {
+  background: #d97706 !important;
+  color: #fff !important;
+}
+
+body.portal-backend-dark .badge.bg-danger {
+  background: #dc2626 !important;
+  color: #fff !important;
+}
+
+body.portal-backend-dark .badge.bg-info {
+  background: #0891b2 !important;
+  color: #fff !important;
+}
+
+body.portal-backend-dark .badge.bg-dark {
+  background: #64748b !important;
+  color: #f1f5f9 !important;
+}
+
+/* btn-link and small links */
+body.portal-backend-dark .btn-link {
+  color: #93c5fd !important;
+}
+
+body.portal-backend-dark .btn-link:hover {
+  color: #bfdbfe !important;
+}
+
+/* Forms, inputs, tables */
+body.portal-backend-dark .alert,
+body.portal-backend-dark .list-group-item,
+body.portal-backend-dark .form-control,
+body.portal-backend-dark .form-select,
+body.portal-backend-dark input,
+body.portal-backend-dark select,
+body.portal-backend-dark textarea {
+  background-color: #334155 !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+body.portal-backend-dark .form-control::placeholder,
+body.portal-backend-dark input::placeholder,
+body.portal-backend-dark textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1;
+}
+
+/* Override any .text-dark so it stays readable */
+body.portal-backend-dark .text-dark {
+  color: #f1f5f9 !important;
+}
+
+body.portal-backend-dark .list-group-item {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+body.portal-backend-dark .table,
+body.portal-backend-dark .table th,
+body.portal-backend-dark .table td {
+  color: #e2e8f0 !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+body.portal-backend-dark .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(51, 65, 85, 0.5) !important;
+}
+
+body.portal-backend-dark .table-light {
+  background: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+/* Dropdowns and page-wrap in dark mode */
+html[data-bs-theme="dark"] body.portal-backend-dark .page-wrap,
+html[data-bs-theme="dark"] body.portal-backend-dark .dropdown-menu,
+html[data-bs-theme="light"] body.portal-backend-dark .page-wrap,
+html[data-bs-theme="light"] body.portal-backend-dark .dropdown-menu {
+  background: #334155 !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  color: #e2e8f0 !important;
+}
+
+body.portal-backend-dark .dropdown-item {
+  color: #e2e8f0 !important;
+}
+
+body.portal-backend-dark .dropdown-item:hover {
+  background: rgba(99, 102, 241, 0.2) !important;
+  color: #f1f5f9 !important;
+}
+
+/* Sidebar Recent Activity block (same dark sidebar surface) */
+body.portal-backend-dark .sidebar-activity-item {
+  background: rgba(51, 65, 85, 0.5);
+  border-left-color: rgba(99, 102, 241, 0.6);
+  color: #e2e8f0;
+}
+
+body.portal-backend-dark .sidebar-activity-item .small {
+  color: #b8c4d0 !important;
+}
+
+body.portal-backend-dark .sidebar-activity-item .badge {
+  color: #f1f5f9 !important;
+}
+
+/* Right sidebar (Copilot, etc.): card text readable */
+body.portal-backend-dark .backend-right-sidebar .card,
+body.portal-backend-dark .backend-right-sidebar .card-body {
+  background: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+body.portal-backend-dark .backend-right-sidebar .card h6,
+body.portal-backend-dark .backend-right-sidebar .card .small,
+body.portal-backend-dark .backend-right-sidebar .card .text-muted {
+  color: #cbd5e1 !important;
+}
+
+body.portal-backend-dark .backend-right-sidebar .badge.bg-light,
+body.portal-backend-dark .backend-right-sidebar .badge.text-dark {
+  background: #475569 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Alerts: keep message and description text visible on dark */
+body.portal-backend-dark .alert,
+body.portal-backend-dark .alert strong,
+body.portal-backend-dark .alert .text-muted {
+  color: #e2e8f0 !important;
+}

@@ -76,6 +76,24 @@ SITESETTINGS_FIELD_ORDER = [
     "primary_color",
     "accent_color",
     "use_dark_mode",
+    "backend_console_theme",
+    "login_hero_heading",
+    "login_hero_subtext",
+    "show_header_search",
+    "show_header_notifications",
+    "show_header_profile_menu",
+    "show_header_theme_toggle",
+    "favicon",
+    "layout_style",
+    "default_sidebar_collapsed",
+    "branded_domain",
+    "portal_sidebar_order",
+    "sidebar_icon",
+    "secondary_font",
+    "use_secondary_font_for_headings",
+    "base_font_size",
+    "default_widgets_per_role",
+    "admin_use_site_primary",
     "admin_sidebar_bg_color",
     "admin_sidebar_surface_color",
     "admin_sidebar_border_color",
@@ -162,6 +180,15 @@ class SiteSettingsForm(forms.ModelForm):
         "admin_sidebar_child_border_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
         "admin_sidebar_child_hover_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
         "admin_sidebar_child_active_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
+        "login_hero_heading": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Welcome to Our School"}),
+        "login_hero_subtext": forms.TextInput(attrs={"class": "form-control"}),
+        "branded_domain": forms.TextInput(attrs={"class": "form-control", "placeholder": "portal.school.edu"}),
+        "secondary_font": forms.TextInput(attrs={"class": "form-control", "placeholder": "Georgia, serif"}),
+        "portal_sidebar_order": forms.Textarea(attrs={"class": "form-control", "rows": 2, "placeholder": '["parent-home", "parent-workflow"]'}),
+        "default_widgets_per_role": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": '{"TEACHER": ["widget-a"], "PARENT": ["widget-b"]}'}),
+        "layout_style": forms.Select(attrs={"class": "form-select"}),
+        "favicon": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        "sidebar_icon": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "background_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "brand_font": forms.TextInput(attrs={"class": "form-control"}),
             "company_name": forms.TextInput(attrs={"class": "form-control"}),
@@ -335,7 +362,13 @@ class UserPreferenceForm(forms.ModelForm):
             selected = default_dashboard_widgets(role)
         self.initial["dashboard_widgets"] = selected
         if self.user:
-            dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=self.user)
+            from .models import SiteSettings
+            site = SiteSettings.get_solo()
+            default_collapsed = getattr(site, "default_sidebar_collapsed", False)
+            dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
+                user=self.user,
+                defaults={"sidebar_collapsed": default_collapsed},
+            )
             self.fields["theme_preference"].initial = dashboard_pref.theme_preference
             self.fields["high_contrast"].initial = dashboard_pref.high_contrast
 
@@ -368,7 +401,13 @@ class UserPreferenceForm(forms.ModelForm):
         if commit:
             preference.save()
             try:
-                dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(user=preference.user)
+                from .models import SiteSettings
+                site = SiteSettings.get_solo()
+                default_collapsed = getattr(site, "default_sidebar_collapsed", False)
+                dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
+                    user=preference.user,
+                    defaults={"sidebar_collapsed": default_collapsed},
+                )
                 dashboard_pref.visible_widgets = preference.dashboard_widgets or []
                 if theme:
                     dashboard_pref.theme_preference = theme

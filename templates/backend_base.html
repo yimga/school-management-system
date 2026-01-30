@@ -5,10 +5,46 @@
 
 {% block extrastyle %}
 {{ block.super }}
+{% with backend_theme=SITE.backend_console_theme|default:'dark' %}
+{% if backend_theme == 'light' %}
 <link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">
+{% else %}
+<link rel="stylesheet" href="{% static 'css/backend-dark-theme.css' %}">
+{% endif %}
+{% endwith %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    document.body.classList.add('portal-backend-light');
+    var theme = '{{ SITE.backend_console_theme|default:"dark" }}';
+    document.body.classList.add(theme === 'light' ? 'portal-backend-light' : 'portal-backend-dark');
+    // Load recent activity into left sidebar when present (any backend page)
+    (function() {
+      var list = document.getElementById('recentActivityList');
+      if (!list) return;
+      function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = String(text || '');
+        return div.innerHTML;
+      }
+      fetch('/api/activities/?limit=8').then(function(r) { return r.json(); }).then(function(data) {
+        if (!data || !Array.isArray(data.activities) || data.activities.length === 0) {
+          list.innerHTML = '<li class="text-muted small px-2">No recent activity.</li>';
+          return;
+        }
+        list.innerHTML = '';
+        data.activities.slice(0, 8).forEach(function(item) {
+          var li = document.createElement('li');
+          li.className = 'sidebar-activity-item px-2 py-1 rounded mb-1';
+          li.style.borderLeft = '3px solid rgba(99,102,241,0.5)';
+          li.style.paddingLeft = '0.6rem';
+          li.innerHTML = '<span class="fw-semibold d-block" style="font-size:0.8rem">' + escapeHtml(item.title || item.type || 'Event') + '</span>' +
+            '<span class="small text-muted">' + escapeHtml(item.description || '') + '</span>' +
+            '<span class="badge bg-secondary ms-1" style="font-size:0.65rem">' + escapeHtml(item.when || item.time || '') + '</span>';
+          list.appendChild(li);
+        });
+      }).catch(function() {
+        list.innerHTML = '<li class="text-muted small px-2">No recent activity.</li>';
+      });
+    })();
   });
 </script>
 {% endblock %}

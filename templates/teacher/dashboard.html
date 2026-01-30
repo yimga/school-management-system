@@ -283,12 +283,33 @@
       {% if request.user.profile_photo %}
         <img src="{{ request.user.profile_photo.url }}" alt="Teacher profile photo" class="rounded-circle border" style="width:48px;height:48px;object-fit:cover;">
       {% endif %}
+      <a class="btn btn-primary" href="{% url 'portal:teacher_workflow' %}">
+        <i class="bi bi-diagram-3 me-1"></i>My Workflow
+      </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:teacher_workflow' %}">
+        <i class="bi bi-pin-angle me-1"></i>Use Workflow as default view
+      </a>
       <a class="btn btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter Marks</a>
       <a class="btn btn-outline-primary" href="{% url 'evals:teacher_marks_list' %}">View Marks</a>
     </div>
   </div>
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
+    <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-diagram-3 text-primary" style="font-size:1.5rem;"></i>
+        <div>
+          <strong>My Workflow</strong>
+          <span class="text-muted small d-block">Profile, timetable, marks, reports &amp; attendance in one place.</span>
+        </div>
+      </div>
+      <a href="{% url 'portal:teacher_workflow' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-arrow-right me-1"></i>Open workflow
+      </a>
+    </div>
+  </div>
 
   <div class="row g-3 mb-3" data-dashboard-column="main">
     <div class="col-md-4">

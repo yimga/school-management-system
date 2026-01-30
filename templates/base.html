@@ -28,6 +28,7 @@
         {% if SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}
       {% endblock %}
     </title>
+    <link rel="icon" href="{{ SITE_FAVICON_URL|default:'/static/favicon.ico' }}" type="image/x-icon">
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -91,6 +92,12 @@
         min-height: 100vh;
         z-index: 1;
       }
+      body.layout-boxed .app-container {
+        max-width: 1280px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 0 24px rgba(0,0,0,0.08);
+      }
       .app-container::before {
         content: "";
         position: absolute;
@@ -131,11 +138,16 @@
         --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#198754" }};
         --school-bg: {{ theme.background_color|default:"transparent" }};
         --school-font: {{ theme.font_family|default:SITE.brand_font|default:"Inter, system-ui, sans-serif" }};
+        {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
       }
       {% endwith %}
+      {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
+      h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--school-font), system-ui, sans-serif; }
+      {% endif %}
 
       body {
         font-family: var(--school-font), system-ui, sans-serif;
+        {% if SITE_BASE_FONT_SIZE %}font-size: var(--base-font-size);{% endif %}
         background: {% if SITE_BACKGROUND_URL %}linear-gradient(135deg, rgba(255,255,255,.9), rgba(255,255,255,.6)), url('{{ SITE_BACKGROUND_URL }}') center/cover{% else %}linear-gradient(135deg, rgba(13,110,253,.08), rgba(25,135,84,.05)){% endif %};
         color: {% if SITE and SITE.use_dark_mode %}#f5f5f5{% else %}#111{% endif %};
       }
@@ -208,7 +220,7 @@
     {% block extrastyle %}{% endblock %}
   </head>
 
-  <body>
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }}">
     <!--
       .app-container wraps all content for background logo/video/svg effect.
       If you need to support users with reduced motion or contrast, consider a toggle in user preferences.
