@@ -28,6 +28,8 @@ class DashboardCharts {
   _chartTypeForCanvas(canvas, defaultType) {
     const widgetEl = canvas.closest && canvas.closest('[data-widget-id]');
     if (!widgetEl) return defaultType;
+    const userOverride = widgetEl.dataset && widgetEl.dataset.widgetChartType;
+    if (userOverride && CHART_TYPES_ALLOWED.has(userOverride)) return userOverride;
     const widgetId = widgetEl.getAttribute('data-widget-id');
     const configured = this.widgetChartTypes[widgetId];
     if (configured && CHART_TYPES_ALLOWED.has(configured)) return configured;

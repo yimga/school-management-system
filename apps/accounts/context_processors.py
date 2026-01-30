@@ -32,8 +32,9 @@ def dashboard_context(request):
     context = {
         'current_time': timezone.now(),
         'system_version': getattr(settings, 'APP_VERSION', '3.2.1'),
+        'can_customize_dashboard': False,
     }
-    
+
     if not request.user.is_authenticated:
         return context
 
@@ -116,7 +117,32 @@ def dashboard_context(request):
         messages_unread_count = 0
 
     context["messages_unread_count"] = messages_unread_count
-    
+
+    # RBAC: can user customize dashboard layout? (staff, ADMIN, LEADERSHIP, IT_ADMIN, SUPERADMIN only)
+    try:
+        from django.urls import reverse
+        from apps.siteconfig.dashboard_views import _can_customize
+        context["can_customize_dashboard"] = _can_customize(user)
+        # Contextual link: current dashboard + ?customize=1, or backend as default
+        path = (request.path or "").lower()
+        if "/finance/" in path:
+            context["dashboard_layout_link"] = reverse("finance:dashboard") + "?customize=1"
+        elif "/analytics/" in path:
+            context["dashboard_layout_link"] = reverse("analytics:dashboard") + "?customize=1"
+        elif "/payroll/" in path:
+            context["dashboard_layout_link"] = reverse("payroll:dashboard") + "?customize=1"
+        elif "/emis/" in path:
+            context["dashboard_layout_link"] = reverse("emis:dashboard") + "?customize=1"
+        else:
+            context["dashboard_layout_link"] = reverse("accounts:backend_dashboard") + "?customize=1"
+    except Exception:
+        context["can_customize_dashboard"] = False
+        try:
+            from django.urls import reverse as _reverse
+            context["dashboard_layout_link"] = _reverse("accounts:backend_dashboard") + "?customize=1"
+        except Exception:
+            context["dashboard_layout_link"] = "/authentication/backend/?customize=1"
+
     # Role-specific metrics
     try:
         if role_value in ['ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN']:

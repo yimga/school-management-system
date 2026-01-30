@@ -105,7 +105,7 @@
       </div>
       {% if invoice_rows %}
         <div class="table-responsive">
-          <table class="table align-middle">
+          <table class="table align-middle table-mobile-cards">
             <thead class="table-light">
             <tr>
               <th>Reference</th>
@@ -124,24 +124,24 @@
               {% for row in invoice_rows %}
                 {% with invoice=row.invoice link=row.payment_link %}
               <tr>
-                <td>{{ invoice.reference|default:invoice.id }}</td>
-                <td><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
-                <td>{{ invoice.student|default:"-" }}</td>
-                <td>{{ invoice.due_date|default:"TBD" }}</td>
-                <td>
+                <td data-label="Reference">{{ invoice.reference|default:invoice.id }}</td>
+                <td data-label="Payment code"><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
+                <td data-label="Student">{{ invoice.student|default:"-" }}</td>
+                <td data-label="Due">{{ invoice.due_date|default:"TBD" }}</td>
+                <td data-label="Status">
                   <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
                 </td>
-                <td>{{ row.preferred_method }}</td>
-                <td class="text-end">{{ invoice.total_amount }}</td>
-                <td class="text-end">{{ invoice.balance_amount }}</td>
-                <td class="text-center">
+                <td data-label="Method">{{ row.preferred_method }}</td>
+                <td class="text-end" data-label="Total">{{ invoice.total_amount }}</td>
+                <td class="text-end" data-label="Balance">{{ invoice.balance_amount }}</td>
+                <td class="text-center" data-label="Attachment">
                   {% if row.attachment_url %}
                     <a href="{{ row.attachment_url }}" target="_blank">View</a>
                   {% else %}
                     <span class="text-muted small">N/A</span>
                   {% endif %}
                 </td>
-                <td class="text-end">
+                <td class="text-end" data-label="Action">
                   {% if link %}
                     <a class="btn btn-primary btn-sm" href="{{ link.url }}" target="_blank">Pay now</a>
                   {% else %}

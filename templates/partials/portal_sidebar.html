@@ -443,7 +443,7 @@
         <div class="sidebar-section-title">Performance Tracking</div>
         <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Academic Stats</a>
       {% elif request.user.role != 'TEACHER' %}
-        {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
+        {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' or request.user.role == 'IT_ADMIN' %}
         {% comment %}RBAC: staff sections; Admin Panel last (includes Site Settings, Region Configuration). No duplicate sections.{% endcomment %}
         <div class="sidebar-section-title">Support</div>
         <a class="nav-link nav-pill" href="{% url 'portal:staff_contact_request_list' %}"><i class="bi bi-inbox me-2"></i>Contact Requests</a>
@@ -477,6 +477,11 @@
         <a class="nav-link nav-pill" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-file-earmark-richtext me-2"></i>Report Card Builder</a>
         <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Portal Stats</a>
         <div class="sidebar-section-title">Admin Panel</div>
+        {% if can_customize_dashboard %}
+        <a class="nav-link nav-pill js-dashboard-layout-sidebar-link" href="{{ dashboard_layout_link }}" title="Arrange widgets, resize, and set chart styles">
+          <i class="bi bi-grid-3x3-gap me-2"></i>Dashboard Layout
+        </a>
+        {% endif %}
         <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-gear-fill me-2"></i>Backend Console</a>
         <a class="nav-link nav-pill" href="{% url 'accounts:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}

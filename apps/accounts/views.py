@@ -26,7 +26,7 @@ from apps.accounts.decorators import permission_required
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, DashboardWidget
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
+from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, effective_chart_types
 
 from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
 from .models import AccessRole, Permission, User
@@ -622,14 +622,8 @@ def backend_dashboard(request):
             {"label": "Published terms", "value": stats["published_terms"], "meta": "published"},
         ],
     }
-    allow_custom_layout = bool(
-        request.user.is_authenticated
-        and (
-            request.user.is_staff
-            or request.user.is_superuser
-            or role_upper in {"ADMIN", "LEADERSHIP", "IT_ADMIN", "TEACHER", "PARENT"}
-        )
-    )
+    from apps.siteconfig.dashboard_views import _can_customize
+    allow_custom_layout = _can_customize(request.user)
     dashboard_settings = load_dashboard_layout_settings(request.user, "backend")
     def _safe_reverse(name, default="#", kwargs=None):
         try:
@@ -775,15 +769,7 @@ def backend_dashboard(request):
         "sidebar_categories": sidebar_categories,
         "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
         "widget_chart_types_json": mark_safe(
-            json.dumps(
-                {
-                    w.id: (w.chart_type or "").strip()
-                    for w in DashboardWidget.objects.filter(
-                        page="backend", widget_type="chart", is_active=True
-                    )
-                    if (w.chart_type or "").strip()
-                }
-            )
+            json.dumps(effective_chart_types(request.user, "backend"))
         ),
         "finance_requests_count": finance_requests_qs.count(),
         "finance_request_notifications": finance_requests_qs[:5],

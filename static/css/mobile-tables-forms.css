@@ -256,32 +256,33 @@ tbody tr:hover {
   background: var(--color-bg-lighter);
 }
 
-/* Mobile Table Design - Card Layout */
+/* Mobile Table Design - Card Layout (opt-in via .table-mobile-cards) */
 @media (max-width: 767px) {
-  table {
+  .table-mobile-cards {
     display: block;
     width: 100%;
     border: none;
     margin-bottom: 1.5rem;
   }
 
-  thead {
+  .table-mobile-cards thead {
     display: none;
   }
 
-  tbody {
+  .table-mobile-cards tbody {
     display: block;
   }
 
-  tbody tr {
+  .table-mobile-cards tbody tr {
     display: block;
     margin-bottom: 1.5rem;
     border: 1px solid var(--color-border);
     border-radius: 8px;
+    overflow: hidden;
     padding: 0;
   }
 
-  tbody td {
+  .table-mobile-cards tbody td {
     display: block;
     padding: 0.75rem;
     border: none;
@@ -289,12 +290,11 @@ tbody tr:hover {
     text-align: right;
   }
 
-  tbody td:last-child {
+  .table-mobile-cards tbody td:last-child {
     border-bottom: none;
   }
 
-  /* Add data labels before each cell */
-  tbody td::before {
+  .table-mobile-cards tbody td::before {
     content: attr(data-label);
     display: block;
     font-weight: 600;
@@ -305,23 +305,23 @@ tbody tr:hover {
     margin-bottom: 0.25rem;
   }
 
-  tbody td::after {
+  .table-mobile-cards tbody td::after {
     content: "";
     display: table;
     clear: both;
   }
 
-  /* First cell in row */
-  tbody tr > td:first-child {
+  .table-mobile-cards tbody tr > td:first-child {
     background: var(--color-bg-light);
     font-weight: 600;
     font-size: 1.05rem;
   }
 
-  tbody tr > td:first-child::before {
+  .table-mobile-cards tbody tr > td:first-child::before {
     display: none;
   }
 }
+
 
 /* Horizontal scroll table - Alternative for mobile */
 .table-responsive {
