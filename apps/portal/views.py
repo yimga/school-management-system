@@ -168,6 +168,8 @@ def parent_dashboard(request: HttpRequest):
             "label": "Finance access not granted",
         }
     attendance_pct = widget_data["attendance"].get("overall") or 0
+    # Align top-bar Dashboard Stats with this view: pass to context processor so Attendance card uses same value
+    request.parent_dashboard_attendance_pct = attendance_pct
     finance_total = widget_data["finance"].get("total_due") or Decimal("0.00")
     finance_paid = widget_data["finance"].get("paid") or Decimal("0.00")
     finance_paid_pct = int((finance_paid / finance_total) * 100) if finance_total else 0

@@ -84,13 +84,15 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "claim_invite", "label": "Claim Invite", "url": _safe_reverse("portal:claim_invite"), "icon": "bi-ticket", "section": "Children & Learning", "badge": None})
         items.append({"id": "academic_stats", "label": "Academic Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Performance Tracking", "badge": None})
 
-    # --- Portal Tools (per-feature RBAC: only if feature enabled and user has permission) ---
+    # --- Portal Tools (per-feature RBAC). Documents goes under Content & Documents; for staff it's added in staff block to avoid duplicate section. ---
     portal_cfg = getattr(site, "portal_features", None) or {}
     if portal_cfg.get("forums") and getattr(user, "has_feature_permission", lambda _: False)("portal.forums"):
         items.append({"id": "portal_forums", "label": "Community", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "forums"}), "icon": "bi-people", "section": "Portal Tools", "badge": None})
     if portal_cfg.get("video") and getattr(user, "has_feature_permission", lambda _: False)("portal.video"):
         items.append({"id": "portal_video", "label": "Video Hub", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "video"}), "icon": "bi-camera-video", "section": "Portal Tools", "badge": None})
-    if portal_cfg.get("documents") and getattr(user, "has_feature_permission", lambda _: False)("portal.documents"):
+    # Documents: for teachers/parents add here (one Content & Documents section); for staff add in staff block below
+    staff_gets_content_docs = (is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN")) and role != "TEACHER"
+    if portal_cfg.get("documents") and getattr(user, "has_feature_permission", lambda _: False)("portal.documents") and not staff_gets_content_docs:
         items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
 
     # --- Admin / Staff (exclude teachers: they get only Academic Management + HR, no Admin Panel/People/Finance/Analytics) ---
@@ -100,10 +102,12 @@ def build_portal_sidebar_items(request, site):
         # Support, Content & Documents, People & Access, Academic, Financial, Analytics first; Admin Panel last
         if staff_like:
             items.append({"id": "contact_requests", "label": "Contact Requests", "url": _safe_reverse("portal:staff_contact_request_list"), "icon": "bi-inbox", "section": "Support", "badge": None})
-        # Content & Documents: upload/manage handbooks, forms, signatures (same permission as backend document library)
+        # Content & Documents: Document Library Manager, Signature Requests, and portal Documents (single section)
         if can_manage_site:
             items.append({"id": "document_library_manage", "label": "Document Library Manager", "url": _safe_reverse("portal:document_library_manage"), "icon": "bi-folder2-open", "section": "Content & Documents", "badge": None})
             items.append({"id": "signature_requests", "label": "Signature Requests", "url": _safe_reverse("portal:signature_requests_manage"), "icon": "bi-pen", "section": "Content & Documents", "badge": None})
+        if portal_cfg.get("documents") and getattr(user, "has_feature_permission", lambda _: False)("portal.documents"):
+            items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
         # Certification & Exams (GCE) – admins get quick access; certification home handles “not enabled”
         items.append({"id": "certification", "label": "Certification & Exams", "url": _safe_reverse("accounts:certification_home"), "icon": "bi-award", "section": "Academic Management", "badge": None})
         items.append({"id": "students", "label": "Student Profiles", "url": _safe_reverse("admin:people_studentprofile_changelist"), "icon": "bi-person-lines-fill", "section": "People & Access", "badge": None})

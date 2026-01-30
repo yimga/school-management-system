@@ -196,9 +196,8 @@ html[data-theme="light"] .dash-widget-row select {
   color: rgba(15, 23, 42, 0.95);
 }
 
-/* Drag-and-drop visual feedback */
+/* Drag-and-drop visual feedback (cursor on grip only) */
 #dashboard-layout.drag-mode [data-widget-id] {
-  cursor: move;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -224,19 +223,64 @@ html[data-theme="light"] .dash-widget-row select {
   opacity: 0.8;
 }
 
-/* Drag mode indicator */
-#dashboard-layout.drag-mode::before {
-  content: "Drag mode active — Move widgets to reorder";
-  display: block;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  text-align: center;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: 8px 8px 0 0;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+/* Grip: only drag handle in edit mode */
+.dashboard-widget-grip {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.75rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: rgba(148, 163, 184, 0.7);
+  border-radius: 6px;
+  z-index: 4;
+  user-select: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.dashboard-widget-grip:hover {
+  color: var(--bs-primary, #0d6efd);
+  background: rgba(102, 126, 234, 0.08);
+}
+.dashboard-widget-grip:active {
+  cursor: grabbing;
+}
+.dashboard-widget-grip-dots {
+  font-size: 1rem;
+  letter-spacing: -0.2em;
+  line-height: 1;
+}
+#dashboard-layout:not(.drag-mode) .dashboard-widget-grip {
+  display: none;
+}
+#dashboard-layout.drag-mode [data-widget-id] {
+  cursor: default;
+}
+#dashboard-layout.drag-mode [data-widget-id] .dashboard-widget-grip {
+  display: flex;
+}
+
+/* Toast for save feedback */
+#dashboard-layout-toast {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.dashboard-layout-toast-item {
+  animation: dashboard-toast-in 0.2s ease;
+}
+@keyframes dashboard-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Mobile touch support */
@@ -257,8 +301,9 @@ html[data-theme="light"] .dash-widget-row select {
     font-size: 1.1rem;
   }
   
-  #dashboard-layout.drag-mode::before {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.75rem;
-  }
+}
+
+/* Instructions bar (shown in edit mode via JS) */
+#dashboard-customize-instructions.d-none {
+  display: none !important;
 }

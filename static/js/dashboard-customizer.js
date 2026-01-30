@@ -247,36 +247,26 @@
   };
 
   const persistLayout = async () => {
-    if (!state.endpoints.save) return;
-    const layoutItems = [];
-    container.querySelectorAll("[data-widget-id]").forEach((card, idx) => {
-      const column =
-        card.dataset.dashboardColumn ||
-        card.closest("[data-dashboard-column]")?.dataset.dashboardColumn ||
-        "main";
-      layoutItems.push({
-        id: card.dataset.widgetId,
-        column,
-        order: idx,
-        size: card.dataset.widgetSize,
-        variant: card.dataset.widgetVariant,
-      });
-    });
-    const layoutPayload = {
-      items: layoutItems,
-      __settings__: state.settings,
-    };
+    const saveUrl = state.endpoints.save;
+    const loadUrl = state.endpoints.load || saveUrl;
+    if (!saveUrl) return;
     try {
-      await fetch(state.endpoints.save, {
-        method: "POST",
+      const res = await fetch(loadUrl, { credentials: "same-origin" });
+      const data = await res.json();
+      const currentLayout = (data && data.layout) || {};
+      const currentItems = Array.isArray(currentLayout.items) ? currentLayout.items : [];
+      const layoutPayload = {
+        items: currentItems,
+        __settings__: state.settings,
+      };
+      await fetch(saveUrl, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrf(),
         },
         credentials: "same-origin",
-        body: JSON.stringify({
-          layout: layoutPayload,
-        }),
+        body: JSON.stringify({ layout: layoutPayload }),
       });
     } catch (_) {}
   };

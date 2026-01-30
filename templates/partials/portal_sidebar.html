@@ -447,14 +447,15 @@
         {% comment %}RBAC: staff sections; Admin Panel last (includes Site Settings, Region Configuration). No duplicate sections.{% endcomment %}
         <div class="sidebar-section-title">Support</div>
         <a class="nav-link nav-pill" href="{% url 'portal:staff_contact_request_list' %}"><i class="bi bi-inbox me-2"></i>Contact Requests</a>
-        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
+        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser or SITE and SITE.portal_features and SITE.portal_features.documents and request.user|has_feature_permission:"portal.documents" %}
         <div class="sidebar-section-title">Content &amp; Documents</div>
+        {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
         <a class="nav-link nav-pill" href="{% url 'portal:document_library_manage' %}"><i class="bi bi-folder2-open me-2"></i>Document Library Manager</a>
         <a class="nav-link nav-pill" href="{% url 'portal:signature_requests_manage' %}"><i class="bi bi-pen me-2"></i>Signature Requests</a>
         {% endif %}
         {% if SITE and SITE.portal_features and SITE.portal_features.documents and request.user|has_feature_permission:"portal.documents" %}
-        {% if not request.user|has_feature_permission:"settings.manage" and not request.user.is_superuser %}<div class="sidebar-section-title">Content &amp; Documents</div>{% endif %}
         <a class="nav-link nav-pill" href="{% url 'portal:portal_feature' 'documents' %}"><i class="bi bi-file-earmark-text me-2"></i>Documents</a>
+        {% endif %}
         {% endif %}
         <div class="sidebar-section-title">People & Access</div>
         <a class="nav-link nav-pill" href="{% url 'admin:people_studentprofile_changelist' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>

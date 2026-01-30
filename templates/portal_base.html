@@ -223,6 +223,64 @@
         background: rgba(15,23,42,0.3);
       }
 
+      /* Resizable sidebar: CSS variable + flex on desktop */
+      :root {
+        --portal-sidebar-width: 280px;
+        --portal-sidebar-min: 200px;
+        --portal-sidebar-max: 420px;
+      }
+      @media (min-width: 992px) {
+        .portal-layout-row {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 0;
+        }
+        .portal-sidebar-col {
+          flex: 0 0 var(--portal-sidebar-width);
+          width: var(--portal-sidebar-width);
+          min-width: var(--portal-sidebar-min);
+          max-width: var(--portal-sidebar-max);
+          transition: width 0.05s ease-out;
+        }
+        .portal-resize-handle {
+          flex: 0 0 8px;
+          width: 8px;
+          min-width: 8px;
+          cursor: col-resize;
+          background: transparent;
+          align-items: stretch;
+          justify-content: center;
+          position: relative;
+          user-select: none;
+        }
+        .portal-resize-handle::after {
+          content: '';
+          position: absolute;
+          left: 3px;
+          top: 20%;
+          bottom: 20%;
+          width: 2px;
+          border-radius: 1px;
+          background: rgba(15,23,42,0.15);
+          transition: background 0.15s ease;
+        }
+        .portal-resize-handle:hover::after,
+        .portal-resize-handle:active::after {
+          background: var(--school-primary, #0d6efd);
+        }
+        .portal-main-col {
+          flex: 1 1 0;
+          min-width: 0;
+          width: 0;
+        }
+        .portal-layout-row .offcanvas {
+          flex: 0 0 0;
+          width: 0;
+          min-width: 0;
+          overflow: visible;
+        }
+      }
+
       .nav-pill {
         border-radius: 14px;
       }
@@ -648,13 +706,15 @@
     </nav>
 
     <div class="container-fluid px-3 py-2">
-      <div class="row g-3">
-        <!-- Sidebar (desktop) - Fixed Position -->
-        <div class="col-lg-3 col-xl-2 d-none d-lg-block">
+      <div class="row g-3 portal-layout-row">
+        <!-- Sidebar (desktop) - Resizable -->
+        <div class="portal-sidebar-col col-lg-3 col-xl-2 d-none d-lg-block">
           <div class="sidebar p-3">
             {% include "partials/portal_sidebar.html" %}
           </div>
         </div>
+        <!-- Resize handle (desktop only) -->
+        <div class="portal-resize-handle d-none d-lg-flex" aria-label="Resize sidebar" role="separator" title="Drag to resize sidebar"></div>
 
         <!-- Sidebar (mobile) -->
         <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel">
@@ -668,7 +728,7 @@
       </div>
 
       <!-- Content -->
-      <div class="col-lg-9 col-xl-10" id="main-content" role="main">
+      <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main">
         <div class="page-wrap">
           {% include "partials/breadcrumbs.html" %}
             {% if messages %}
@@ -795,6 +855,52 @@
                 window.location.href = `/search/?q=${encodeURIComponent(query)}`;
               }
             }
+          });
+        }
+      });
+
+      // Resizable sidebar: drag handle updates --portal-sidebar-width and persists to localStorage
+      document.addEventListener('DOMContentLoaded', function() {
+        var handle = document.querySelector('.portal-resize-handle');
+        var root = document.documentElement;
+        var MIN = 200;
+        var MAX = 420;
+        var KEY = 'portal-sidebar-width';
+
+        function px(v) { return Math.round(v) + 'px'; }
+        function clamp(v) { return Math.max(MIN, Math.min(MAX, v)); }
+
+        function loadWidth() {
+          var w = parseInt(localStorage.getItem(KEY), 10);
+          if (w && w >= MIN && w <= MAX) root.style.setProperty('--portal-sidebar-width', px(w));
+        }
+        loadWidth();
+
+        if (handle) {
+          handle.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            var startX = e.clientX;
+            var startW = parseInt(getComputedStyle(root).getPropertyValue('--portal-sidebar-width'), 10) || 280;
+
+            function move(e) {
+              var dx = e.clientX - startX;
+              var newW = clamp(startW + dx);
+              root.style.setProperty('--portal-sidebar-width', px(newW));
+            }
+            function up() {
+              var w = parseInt(getComputedStyle(root).getPropertyValue('--portal-sidebar-width'), 10);
+              localStorage.setItem(KEY, String(w));
+              document.removeEventListener('mousemove', move);
+              document.removeEventListener('mouseup', up);
+              document.body.style.cursor = '';
+              document.body.style.userSelect = '';
+            }
+
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
           });
         }
       });

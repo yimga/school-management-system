@@ -92,6 +92,16 @@
     el.dataset.widgetVariant = allowedVariants.includes(variant) ? variant : (allowedVariants[0] || 'default');
   }
 
+  function injectGrip(el) {
+    if (el.querySelector('.dashboard-widget-grip')) return;
+    const grip = document.createElement('div');
+    grip.className = 'dashboard-widget-grip';
+    grip.setAttribute('aria-label', 'Drag to reorder');
+    grip.setAttribute('title', 'Drag to reorder');
+    grip.innerHTML = '<span class="dashboard-widget-grip-dots" aria-hidden="true">⋮⋮</span>';
+    el.insertBefore(grip, el.firstChild);
+  }
+
   function injectControls(el, meta, onChange) {
     if (el.dataset.widgetControlsInjected === '1') return;
     el.dataset.widgetControlsInjected = '1';
@@ -99,8 +109,8 @@
     const allowedSizes = (meta && meta.allowed_sizes) || ['sm', 'md', 'lg'];
     const allowedVariants = (meta && meta.allowed_variants) || ['default', 'compact', 'flat'];
 
-    // Make sure the widget can anchor the control button.
     el.classList.add('dash-widget');
+    injectGrip(el);
 
     const controls = document.createElement('div');
     controls.className = 'dash-widget-controls';
@@ -207,17 +217,42 @@
     const dragToggle = document.getElementById('toggleLayoutDrag') || document.getElementById('toggleCustomize');
     let sortables = [];
 
+    function showToast(message) {
+      const container = document.getElementById('dashboard-layout-toast');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'dashboard-layout-toast-item alert alert-success shadow-sm mb-0';
+      toast.setAttribute('role', 'status');
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 2500);
+    }
+
     const saveLayout = () => {
-      const payload = collectLayout(columns);
-      fetch(`/api/dashboard/layout/${page}/`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCsrfToken(),
-        },
-        body: JSON.stringify({ layout: payload }),
-      }).catch(() => {});
+      const itemsPayload = collectLayout(columns);
+      fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((current) => {
+          const layout = (current && current.layout) || {};
+          const settings = layout.__settings__ || {};
+          const payload = {
+            items: itemsPayload.items,
+            __settings__: settings,
+          };
+          return fetch(`/api/dashboard/layout/${page}/`, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCsrfToken(),
+            },
+            body: JSON.stringify({ layout: payload }),
+          });
+        })
+        .then((r) => {
+          if (r && r.ok) showToast('Layout saved');
+        })
+        .catch(() => {});
     };
 
     // Load current layout + widget metadata
@@ -245,11 +280,25 @@
             const item = layoutItemsById[el.dataset.widgetId] || {};
             const meta = widgetMetaById[el.dataset.widgetId] || {};
             applyPresentation(el, item, meta);
+            injectGrip(el);
             injectControls(el, meta, saveLayout);
           });
         });
       })
       .catch(() => {});
+
+    function setEditMode(active) {
+      const instructions = document.getElementById('dashboard-customize-instructions');
+      const btn = document.getElementById('btnCustomizeLayout');
+      if (instructions) instructions.classList.toggle('d-none', !active);
+      if (btn) {
+        btn.classList.toggle('active', !!active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        btn.innerHTML = (active ? '<i class="bi bi-check2 me-1"></i>Done' : '<i class="bi bi-grid-3x3-gap me-1"></i>Customize layout');
+      }
+      if (dragToggle) dragToggle.checked = !!active;
+      if (active) enableDrag(); else disableDrag();
+    }
 
     loadSortable().then((Sortable) => {
       if (!Sortable) {
@@ -259,7 +308,6 @@
 
       const enableDrag = () => {
         if (sortables.length) {
-          // Already enabled
           return;
         }
         
@@ -270,7 +318,7 @@
           try {
             const sortable = Sortable.create(col, {
               group: 'dashboard-widgets',
-              handle: '[data-widget-id]',
+              handle: '.dashboard-widget-grip',
               filter: '.dash-widget-controls, .dash-widget-controls *, .widget-meta-control, .widget-meta-control *, button, a, input, select, textarea',
               preventOnFilter: true,
               animation: 150,
@@ -280,7 +328,7 @@
               ghostClass: 'sortable-ghost',
               chosenClass: 'sortable-chosen',
               dragClass: 'sortable-drag',
-              onEnd: (evt) => {
+              onEnd: () => {
                 saveLayout();
               },
             });
@@ -312,26 +360,27 @@
         layoutRoot.classList.remove('drag-mode');
       };
 
-      // Check if customDragEnabled is set (from dashboard-customizer.js)
       const customDragEnabled = layoutRoot.dataset.customDragEnabled !== "false";
-      const startEnabled = dragToggle ? !!dragToggle.checked : customDragEnabled;
-      
-      if (startEnabled) {
-        // Small delay to ensure DOM is ready and other scripts have run
-        setTimeout(() => enableDrag(), 150);
-      }
+      const customizeBtn = document.getElementById('btnCustomizeLayout');
 
-      if (dragToggle) {
-        dragToggle.addEventListener('change', () => {
-          if (dragToggle.checked) {
-            setTimeout(() => enableDrag(), 50);
-          } else {
-            disableDrag();
-          }
+      if (customizeBtn) {
+        customizeBtn.addEventListener('click', () => {
+          const active = !layoutRoot.classList.contains('drag-mode');
+          setEditMode(active);
         });
-      } else if (customDragEnabled) {
-        // No toggle but drag is enabled: auto-enable after a short delay
-        setTimeout(() => enableDrag(), 250);
+        const startActive = dragToggle ? !!dragToggle.checked : false;
+        if (!startActive) setEditMode(false);
+      } else {
+        const startEnabled = dragToggle ? !!dragToggle.checked : customDragEnabled;
+        if (startEnabled) setTimeout(() => enableDrag(), 150);
+        if (dragToggle) {
+          dragToggle.addEventListener('change', () => {
+            if (dragToggle.checked) setTimeout(() => enableDrag(), 50);
+            else disableDrag();
+          });
+        } else if (customDragEnabled) {
+          setTimeout(() => enableDrag(), 250);
+        }
       }
     });
   }

@@ -798,10 +798,6 @@
     <div class="card-body">
       <div class="d-flex flex-wrap align-items-center gap-3">
         <div class="form-check form-switch mb-0">
-          <input class="form-check-input" type="checkbox" role="switch" id="toggleCustomize">
-          <label class="form-check-label fw-semibold" for="toggleCustomize">Drag & drop layout</label>
-        </div>
-        <div class="form-check form-switch mb-0">
           <input class="form-check-input" type="checkbox" role="switch" id="toggleSidebar" {% if dashboard_settings.show_sidebar %}checked{% endif %}>
           <label class="form-check-label" for="toggleSidebar">Show custom sidebar</label>
         </div>
@@ -905,7 +901,11 @@
     </div>
   </div>
   {% endif %}
-
+  {% if allow_custom_layout %}
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    {% include "components/dashboard_customize_ui.html" %}
+  </div>
+  {% endif %}
   {% if finance_access_banner %}
   <div class="alert alert-{{ finance_access_banner.level }} d-flex justify-content-between align-items-center shadow-sm rounded-4 mb-3">
     <div>

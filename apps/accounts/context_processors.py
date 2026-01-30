@@ -272,9 +272,13 @@ def dashboard_context(request):
             except Exception:
                 pass
 
+            # Use view-provided attendance when on parent dashboard so top bar matches dashboard cards
+            attendance_for_stat = getattr(request, 'parent_dashboard_attendance_pct', None)
+            if attendance_for_stat is None:
+                attendance_for_stat = context.get('parent_avg_attendance', 0)
             context['dashboard_stats_cards'] = [
                 stat_card("Children", context.get('parent_children_count', 0), "blue"),
-                stat_card("Attendance", context.get('parent_avg_attendance', 0), "green", suffix="%"),
+                stat_card("Attendance", attendance_for_stat, "green", suffix="%"),
                 stat_card("Balance", context.get('parent_balance', 0), "pink", prefix="$"),
                 stat_card("Notifications", notifications_unread, "red"),
             ]
