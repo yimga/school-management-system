@@ -15,6 +15,10 @@ class AcademicYear(models.Model):
         default=False,
         help_text="Enable the GCE/certification registration workflow for this academic year.",
     )
+    is_locked = models.BooleanField(
+        default=False,
+        help_text="When set, no further grade edits or rollover from this year (year-end lock).",
+    )
 
     def __init__(self, *args, **kwargs):
         # Backwards-compatibility: accept `starts_on`/`ends_on` kwargs used by older code/tests
@@ -194,6 +198,70 @@ class SubjectAssignment(models.Model):
         if self.term and self.classroom:
             if (self.term.position == 3) and not self.classroom.allows_third_term:
                 raise ValidationError("Third term is not allowed for this classroom.")
+
+
+class ClassroomPromotionMapping(models.Model):
+    """
+    Maps source classroom (in source year) to target classroom (in target year) for rollover/promotion.
+    """
+    source_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="promotion_mappings_from"
+    )
+    source_classroom = models.ForeignKey(
+        Classroom, on_delete=models.CASCADE, related_name="promotion_mappings_from"
+    )
+    target_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="promotion_mappings_to"
+    )
+    target_classroom = models.ForeignKey(
+        Classroom, on_delete=models.CASCADE, related_name="promotion_mappings_to"
+    )
+
+    class Meta:
+        ordering = ["source_year", "source_classroom"]
+        unique_together = ("source_year", "source_classroom", "target_year")
+
+    def __str__(self):
+        return f"{self.source_classroom} ({self.source_year}) → {self.target_classroom} ({self.target_year})"
+
+
+class Attendance(models.Model):
+    """Per-day attendance record for a student in a classroom (roll call, absence alerts)."""
+    class Status(models.TextChoices):
+        PRESENT = "present", "Present"
+        ABSENT = "absent", "Absent"
+        LATE = "late", "Late"
+        EXCUSED = "excused", "Excused"
+
+    date = models.DateField()
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PRESENT,
+    )
+    remarks = models.CharField(max_length=255, blank=True)
+    classroom = models.ForeignKey(
+        Classroom,
+        on_delete=models.CASCADE,
+        related_name="attendance_records",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="attendance_records",
+    )
+
+    class Meta:
+        ordering = ["-date", "student"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("student", "classroom", "date"),
+                name="unique_student_classroom_date_attendance",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.student} {self.date} {self.status}"
 
 
 class CertificationExamSession(models.Model):
