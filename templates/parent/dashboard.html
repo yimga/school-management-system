@@ -902,10 +902,6 @@
             <input class="form-check-input" type="checkbox" role="switch" id="toggleSidebar" {% if dashboard_settings.show_sidebar %}checked{% endif %}>
             <label class="form-check-label" for="toggleSidebar">Show quick links</label>
           </div>
-          <div class="form-check form-switch mb-0">
-            <input class="form-check-input" type="checkbox" role="switch" id="toggleCustomize" {% if allow_custom_layout %}checked{% endif %}>
-            <label class="form-check-label" for="toggleCustomize">Drag &amp; drop layout</label>
-          </div>
           <div>
             <label class="form-label small mb-1" for="tileVariantSelect">Tile density</label>
             <select class="form-select form-select-sm" id="tileVariantSelect">
@@ -984,6 +980,9 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+      {% include "components/dashboard_customize_ui.html" %}
     </div>
     {% endif %}
 
