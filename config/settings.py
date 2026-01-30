@@ -253,8 +253,11 @@ UNFOLD = {
     # Titles
     "ENVIRONMENT": "Development" if DEBUG else "Production",
 
-    # You can expand this later into a full sidebar definition,
-    # but keeping defaults is safest during the migration.
+    # Sidebar: ensure navigation is shown (Unfold default; explicit so it is not hidden)
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+    },
 }
 
 # --- Logging (configured below in "Logging Configuration" section) ---

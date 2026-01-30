@@ -547,6 +547,7 @@
 </div>
 
 <!-- Portal Features (Messages live under Communication in sidebar) -->
+{% if SITE %}
 {% with portal_cfg=SITE.portal_features %}
   {% if portal_cfg.forums or portal_cfg.video or portal_cfg.documents %}
     <div class="sidebar-section-title">Portal Tools</div>
@@ -570,6 +571,7 @@
   {% endif %}
 
 {% endwith %}
+{% endif %}
 
 <!-- Dashboard layout (only on dashboard pages with custom layout) -->
 {% if show_layout_customize_in_sidebar|default:False %}
