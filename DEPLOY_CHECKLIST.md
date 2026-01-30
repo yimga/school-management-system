@@ -65,7 +65,13 @@ python manage.py runserver
 
 ---
 
-## 4. Sign-off
+## 4. After deployment: backend dashboard not updated?
+
+If you deployed but don’t see the backend dashboard fixes (Quick Actions, RBAC-gated sections, theme) on `/backend/`, see **[docs/DEPLOYMENT_BACKEND_DASHBOARD.md](docs/DEPLOYMENT_BACKEND_DASHBOARD.md)**. Common causes: deploying from a branch that doesn’t include `main`/`improvements`, static files not collected, or RBAC hiding sections for your role.
+
+---
+
+## 5. Sign-off
 
 - [ ] All items above checked.
 - [ ] No console errors on admin index, one changelist, one change form, backend dashboard, Workflow Center.

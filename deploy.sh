@@ -7,8 +7,9 @@ Automated deployment to staging and production environments
 set -e
 
 # Configuration
+# Use DEPLOY_BRANCH=main to get backend dashboard/RBAC fixes (improvements merged into main)
 ENVIRONMENT=${1:-staging}
-BRANCH="production-phase8"
+BRANCH="${DEPLOY_BRANCH:-main}"
 PROJECT_PATH="/app"
 BACKUP_PATH="/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -86,7 +87,7 @@ verify_branch() {
         exit 1
     fi
     
-    log_info "Branch verified: $BRANCH"
+    log_info "Branch verified: $BRANCH (override with DEPLOY_BRANCH=production-phase8 etc.)"
 }
 
 deploy_code() {
