@@ -260,31 +260,74 @@
   </div>
 
   <div class="span-8 compact-card classes-glance-card" data-widget-id="teacher-assignments">
-    <h6 class="mb-2">Assignments <span class="text-uppercase small text-muted">({{ assignments|length }} classes)</span></h6>
-    {% for assign in assignments|slice:":3" %}
-    <div class="d-flex justify-content-between align-items-center mb-1">
-      <div class="small">
-        <span class="fw-semibold">{{ assign.classroom }}</span> · {{ assign.subject }}
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">Your Classes at a Glance</h5>
+      <span class="text-uppercase small text-muted">{{ assignments|length }} classes</span>
+    </div>
+    <div class="row g-2 mb-3">
+      {% for assign in assignments|slice:":3" %}
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold">{{ assign.classroom }}</div>
+            <div class="small text-muted">{{ assign.subject }}</div>
+          </div>
+          {% with prog=progress|get_item:assign.id %}
+            {% if prog %}
+            <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
+            {% else %}
+            <span class="badge bg-secondary">0/0</span>
+            {% endif %}
+          {% endwith %}
+        </div>
+        <div class="progress mt-1" style="height:6px;">
+          {% with prog=progress|get_item:assign.id %}
+            <div class="progress-bar" role="progressbar" style="width: {% if prog %}{{ prog.width }}{% else %}0{% endif %}%;" aria-valuenow="{% if prog %}{{ prog.filled }}{% else %}0{% endif %}" aria-valuemin="0" aria-valuemax="{% if prog %}{{ prog.total }}{% else %}0{% endif %}"></div>
+          {% endwith %}
+        </div>
       </div>
-      {% with prog=progress|get_item:assign.id %}
-        {% if prog %}
-        <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
-        {% else %}
-        <span class="badge bg-secondary">0/0</span>
-        {% endif %}
-      {% endwith %}
+      {% endfor %}
     </div>
-    <div class="progress mb-2" style="height:4px;">
-      {% with prog=progress|get_item:assign.id %}
-        <div class="progress-bar" role="progressbar" style="width: {% if prog %}{{ prog.width }}{% else %}0{% endif %}%;"></div>
-      {% endwith %}
+    <div class="mt-2">
+      {% if assignments %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Class</th>
+              <th>Subject</th>
+              <th class="text-end">Marks</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in assignments|slice:':5' %}
+            <tr>
+              <td>{{ a.classroom }}</td>
+              <td>{{ a.subject }}</td>
+              <td class="text-end">
+                {% with p=progress|get_item:a.id %}
+                  {% if p %}
+                  <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ p.filled }}/{{ p.total }}</span>
+                  {% else %}
+                  <span class="badge bg-secondary">0/0</span>
+                  {% endif %}
+                {% endwith %}
+              </td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}">Enter</a>
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">View</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
+      {% else %}
+      <div class="small text-muted">No teaching assignments found yet.</div>
+      {% endif %}
     </div>
-    {% empty %}
-    <div class="small text-muted">No assignments yet.</div>
-    {% endfor %}
-    {% if assignments %}
-    <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
-    {% endif %}
   </div>
   <div class="span-4 compact-card" data-widget-id="teacher-schedule">
     <div class="text-uppercase small text-muted">Schedule</div>

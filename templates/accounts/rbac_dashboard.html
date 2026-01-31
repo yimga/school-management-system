@@ -8,8 +8,25 @@
   #rbac-page { min-width: 0; overflow-x: hidden; }
   #rbac-page .rbac-badge { white-space: nowrap; }
 
-  /* Wrapper: horizontal flex, wrap within tile, no horizontal scroll */
-  #rbac-page .rbac-form-check-wrapper {
+  /* Roles wrapper: CSS grid - clean columns, no spill */
+  #rbac-page .rbac-form-check-wrapper.rbac-roles-wrapper {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.4rem 1rem;
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,.125));
+    border-radius: 0.375rem;
+    background: var(--bs-body-bg, #fff);
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+
+  /* General form-check wrapper (permissions, etc.) */
+  #rbac-page .rbac-form-check-wrapper:not(.rbac-roles-wrapper) {
     display: flex !important;
     flex-wrap: wrap !important;
     flex-direction: row !important;
@@ -26,8 +43,24 @@
     min-width: 0;
   }
 
-  /* Django 4.x CheckboxSelectMultiple: outer div contains choice divs */
-  #rbac-page .rbac-form-check-wrapper > div {
+  /* Django CheckboxSelectMultiple: flatten wrapper so choice divs are grid items */
+  #rbac-page .rbac-roles-wrapper > div {
+    display: contents !important;
+  }
+  #rbac-page .rbac-roles-wrapper .form-check,
+  #rbac-page .rbac-roles-wrapper > div > div {
+    display: flex !important;
+    align-items: center;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  #rbac-page .rbac-roles-wrapper .form-check-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Django 4.x CheckboxSelectMultiple: outer div for non-roles */
+  #rbac-page .rbac-form-check-wrapper:not(.rbac-roles-wrapper) > div {
     display: flex !important;
     flex-wrap: wrap !important;
     flex-direction: row !important;
@@ -38,8 +71,8 @@
     padding: 0;
   }
 
-  /* Each choice: horizontal block, do NOT shrink (prevents character stacking) */
-  #rbac-page .rbac-form-check-wrapper > div > div,
+  /* Each choice: horizontal block */
+  #rbac-page .rbac-form-check-wrapper:not(.rbac-roles-wrapper) > div > div,
   #rbac-page .rbac-form-check-wrapper li {
     display: inline-flex !important;
     flex-direction: row !important;
@@ -99,16 +132,16 @@
             {% csrf_token %}
             <input type="hidden" name="form_type" value="user_roles">
             {{ user_role_form.non_field_errors }}
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
               <label class="form-label">User</label>
               {{ user_role_form.user }}
             </div>
-            <div class="col-12">
+            <div class="col-12 col-md-9">
               <label class="form-label">Roles</label>
               <div class="rbac-form-check-wrapper rbac-roles-wrapper" id="rbac-roles-container">
                 {{ user_role_form.roles }}
               </div>
-              <small class="form-text text-muted">Select one or more roles. Roles wrap within the tile—no horizontal scroll.</small>
+              <small class="form-text text-muted">Select one or more roles.</small>
             </div>
             <div class="col-12">
               <button class="btn btn-primary" type="submit">Save Roles</button>
