@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-compact-grid.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'parent';
@@ -283,9 +284,14 @@
   }
 
   .child-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
+  .dashboard-compact-grid .child-card .card-body {
+    padding: 0.75rem 0.9rem;
+  }
+  .dashboard-compact-grid .child-card h5 { font-size: 0.95rem; }
+  .dashboard-compact-grid .child-metrics-grid { padding: 0.5rem 0; margin-bottom: 0.5rem; }
 
   .child-header {
     display: flex;
@@ -1045,82 +1051,71 @@
           </div>
         </div>
       </div>
-      
-      <div class="summary-tiles" data-dashboard-column="hero">
-        {# Onboarding tile #}
-        {% if onboarding %}
-        <div class="summary-tile tile-green" data-widget-id="parent-summary-onboarding">
-          <div class="summary-meta">
-            <span class="summary-label">Setup</span>
-            <span class="summary-value">{{ onboarding.score|default:0 }}%</span>
-            <small class="text-muted d-block" style="font-size:0.75rem;">{{ onboarding.label }}</small>
-          </div>
-          <span class="summary-icon"><i class="bi bi-rocket-takeoff"></i></span>
-        </div>
-        {% endif %}
-        <div class="summary-tile tile-blue" data-dashboard-column="hero" data-widget-id="parent-summary-children">
-          <div class="summary-meta">
-            <span class="summary-label">Children</span>
-            <span class="summary-value">{{ links|length|default:0 }}</span>
-          </div>
-          <span class="summary-icon"><i class="bi bi-people"></i></span>
-        </div>
-        {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
-        <div class="summary-tile tile-green" data-widget-id="parent-summary-attendance">
-          <div class="summary-meta">
-            <span class="summary-label">Attendance</span>
-            <span class="summary-value">{{ widget_data.attendance.overall|default:0 }}%</span>
-          </div>
-          <span class="summary-icon"><i class="bi bi-graph-up-arrow"></i></span>
-        </div>
-        {% endif %}
-        {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
-        <div class="summary-tile tile-yellow" data-dashboard-column="hero" data-widget-id="parent-summary-balance">
-          <div class="summary-meta">
-            <span class="summary-label">Balance</span>
-            <span class="summary-value">${{ widget_data.finance.balance|default:"0.00" }}</span>
-          </div>
-          <span class="summary-icon"><i class="bi bi-hourglass-split"></i></span>
-        </div>
-        {% endif %}
-        <div class="summary-tile tile-red" data-widget-id="parent-summary-notifications">
-          <div class="summary-meta">
-            <span class="summary-label">Notifications</span>
-            <span class="summary-value">{{ notifications_unread|default:0 }}</span>
-          </div>
-          <span class="summary-icon"><i class="bi bi-bell"></i></span>
-        </div>
-      </div>
-    </div>
 
-    {% if chart_finance_donut_json or chart_attendance_trend_json %}
-    <div class="row g-3 mb-4" data-dashboard-column="charts">
+      <!-- Compact grid: all below My Workflow row -->
+      <div id="dashboard-layout" class="dashboard-compact-grid" data-dashboard-column="main">
+      {% if onboarding %}
+      <div class="span-3 compact-card summary-tile tile-green" data-widget-id="parent-summary-onboarding">
+        <div class="summary-meta">
+          <span class="summary-label">Setup</span>
+          <span class="summary-value">{{ onboarding.score|default:0 }}%</span>
+          <small class="text-muted d-block" style="font-size:0.7rem;">{{ onboarding.label }}</small>
+        </div>
+        <span class="summary-icon"><i class="bi bi-rocket-takeoff"></i></span>
+      </div>
+      {% endif %}
+      <div class="span-3 compact-card summary-tile tile-blue" data-widget-id="parent-summary-children">
+        <div class="summary-meta">
+          <span class="summary-label">Children</span>
+          <span class="summary-value">{{ links|length|default:0 }}</span>
+        </div>
+        <span class="summary-icon"><i class="bi bi-people"></i></span>
+      </div>
+      {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
+      <div class="span-3 compact-card summary-tile tile-green" data-widget-id="parent-summary-attendance">
+        <div class="summary-meta">
+          <span class="summary-label">Attendance</span>
+          <span class="summary-value">{{ widget_data.attendance.overall|default:0 }}%</span>
+        </div>
+        <span class="summary-icon"><i class="bi bi-graph-up-arrow"></i></span>
+      </div>
+      {% endif %}
+      {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
+      <div class="span-3 compact-card summary-tile tile-yellow" data-widget-id="parent-summary-balance">
+        <div class="summary-meta">
+          <span class="summary-label">Balance</span>
+          <span class="summary-value">${{ widget_data.finance.balance|default:"0.00" }}</span>
+        </div>
+        <span class="summary-icon"><i class="bi bi-hourglass-split"></i></span>
+      </div>
+      {% endif %}
+      <div class="span-3 compact-card summary-tile tile-red" data-widget-id="parent-summary-notifications">
+        <div class="summary-meta">
+          <span class="summary-label">Notifications</span>
+          <span class="summary-value">{{ notifications_unread|default:0 }}</span>
+        </div>
+        <span class="summary-icon"><i class="bi bi-bell"></i></span>
+      </div>
+
       {% if chart_finance_donut_json %}
-      <div class="col-lg-6" data-widget-id="parent-finance-chart">
+      <div class="span-6 compact-card" data-widget-id="parent-finance-chart">
         {% include "components/dashboard_chart.html" with chart_id="parentFinanceChart" chart_type="doughnut" chart_title="Paid vs balance" chart_data=chart_finance_donut_json aria_label="Finance paid versus balance due" %}
       </div>
       {% endif %}
       {% if chart_attendance_trend_json %}
-      <div class="col-lg-6 parent-chart-compact" data-widget-id="parent-trend-chart">
+      <div class="span-6 compact-card parent-chart-compact" data-widget-id="parent-trend-chart">
         {% include "components/dashboard_chart.html" with chart_id="parentTrendChart" chart_type="line" chart_title="5-day completion trend" chart_data=chart_attendance_trend_json aria_label="Completion trend over last 5 days" %}
       </div>
       {% endif %}
-    </div>
-    {% endif %}
 
-    <!-- Main Content Grid -->
-    <div class="row g-3">
-      <!-- Left Column - Main Content -->
-      <div class="col-lg-8" data-dashboard-column="main">
-        
-        <!-- My Children (merged with Family Overview) -->
-        <div class="metrics-section dashboard-clear">
-          <div class="section-title">
+      <!-- My Children -->
+      <div class="span-8 compact-card" data-dashboard-column="main" style="padding: 0.9rem 1rem;">
+        <div class="section-title" style="margin-bottom: 0.75rem; font-size: 1rem;">
             <i class="bi bi-people-fill"></i>
             <span>My Children</span>
           </div>
           {% if child_cards %}
-          <div class="family-summary-bar card border-0 shadow-sm mb-3">
+          <div class="family-summary-bar card border-0 shadow-sm mb-2">
             <div class="card-body py-2 px-3">
               <div class="row g-2 align-items-center text-center">
                 <div class="col-4 col-md-2">
@@ -1422,10 +1417,8 @@
 
       </div>
 
-      <!-- Right Column - Sidebar -->
-      <div class="col-lg-4">
-        <div class="sidebar-sticky">
-
+      <!-- Sidebar -->
+      <div class="span-4 compact-card" style="align-self: start;">
           <!-- Quick Actions -->
           {% if not widgets or "links" in widgets %}
           <div class="quick-tools-box">

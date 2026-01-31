@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-clear.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-compact-grid.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'teacher';
@@ -204,8 +205,6 @@
     </div>
   </div>
 
-  {% include "widgets/dashboard_hero.html" with hero=hero %}
-
   <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
     <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
@@ -221,616 +220,221 @@
     </div>
   </div>
 
-  <div id="dashboard-layout" data-dashboard-column="main"
+  <!-- Compact grid: all below My Workflow row -->
+  <div id="dashboard-layout" class="dashboard-compact-grid" data-dashboard-column="main"
        data-save-url="{{ dashboard_layout_url }}" data-load-url="{{ dashboard_layout_url }}"
        data-custom-drag-enabled="true"
        data-widget-config="{{ widget_meta_json|default:'{}' }}">
-  {% if chart_completion_bar_json or chart_marks_donut_json %}
-  <div class="row g-3 mb-3" data-dashboard-column="charts">
-    {% if chart_completion_bar_json %}
-    <div class="col-lg-6" data-widget-id="teacher-completion-chart">
-      {% include "components/dashboard_chart.html" with chart_id="teacherCompletionChart" chart_type="bar" chart_title="Marks completion by class" chart_data=chart_completion_bar_json aria_label="Marks completion percentage per assignment" %}
+  {% if chart_completion_bar_json %}
+  <div class="span-4" data-widget-id="teacher-completion-chart">
+    {% include "components/dashboard_chart.html" with chart_id="teacherCompletionChart" chart_type="bar" chart_title="Marks completion" chart_data=chart_completion_bar_json aria_label="Marks completion by class" %}
+  </div>
+  {% endif %}
+  {% if chart_marks_donut_json %}
+  <div class="span-4" data-widget-id="teacher-marks-donut">
+    {% include "components/dashboard_chart.html" with chart_id="teacherMarksDonutChart" chart_type="doughnut" chart_title="Marks entered vs pending" chart_data=chart_marks_donut_json aria_label="Marks entered versus pending" %}
+  </div>
+  {% endif %}
+  <div class="span-4 compact-card" data-widget-id="teacher-attendance">
+    <div class="d-flex align-items-center gap-2">
+      <div class="donut" style="--value: {{ widget_data.attendance.overall|default:'0' }}; --accent: #22c55e;">
+        <span>{{ widget_data.attendance.overall|default:"0" }}%</span>
+      </div>
+      <div>
+        <div class="text-uppercase small text-muted mb-0">Attendance</div>
+        <div class="fw-semibold small">Late: {{ widget_data.attendance.late|default:"0" }} | Missing: {{ widget_data.attendance.missing|default:"0" }}</div>
+      </div>
     </div>
-    {% endif %}
-    {% if chart_marks_donut_json %}
-    <div class="col-lg-6" data-widget-id="teacher-marks-donut">
-      {% include "components/dashboard_chart.html" with chart_id="teacherMarksDonutChart" chart_type="doughnut" chart_title="Marks entered vs pending" chart_data=chart_marks_donut_json aria_label="Marks entered versus pending slots" %}
+  </div>
+  <div class="span-4 compact-card" data-widget-id="teacher-completion">
+    <div class="d-flex align-items-center gap-2">
+      <div class="donut" style="--value: {{ widget_data.completion_pct|default:'0' }}; --accent: #6d28d9;">
+        <span>{{ widget_data.completion_pct|default:"0" }}%</span>
+      </div>
+      <div>
+        <div class="text-uppercase small text-muted mb-0">Marks completion</div>
+        <div class="fw-semibold small">{{ assignments|length }} classes</div>
+        <a class="btn btn-sm btn-outline-primary mt-1" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
+      </div>
     </div>
+  </div>
+
+  <div class="span-8 compact-card classes-glance-card" data-widget-id="teacher-assignments">
+    <h6 class="mb-2">Assignments <span class="text-uppercase small text-muted">({{ assignments|length }} classes)</span></h6>
+    {% for assign in assignments|slice:":3" %}
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <div class="small">
+        <span class="fw-semibold">{{ assign.classroom }}</span> · {{ assign.subject }}
+      </div>
+      {% with prog=progress|get_item:assign.id %}
+        {% if prog %}
+        <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
+        {% else %}
+        <span class="badge bg-secondary">0/0</span>
+        {% endif %}
+      {% endwith %}
+    </div>
+    <div class="progress mb-2" style="height:4px;">
+      {% with prog=progress|get_item:assign.id %}
+        <div class="progress-bar" role="progressbar" style="width: {% if prog %}{{ prog.width }}{% else %}0{% endif %}%;"></div>
+      {% endwith %}
+    </div>
+    {% empty %}
+    <div class="small text-muted">No assignments yet.</div>
+    {% endfor %}
+    {% if assignments %}
+    <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
     {% endif %}
+  </div>
+  <div class="span-4 compact-card" data-widget-id="teacher-schedule">
+    <div class="text-uppercase small text-muted">Schedule</div>
+    <h6 class="mb-1">Today</h6>
+    <p class="small text-muted mb-2">Upcoming classes and tasks.</p>
+  </div>
+  {% if widget_data.finance %}
+  <div class="span-4 compact-card">
+    <div class="text-uppercase small text-muted">Finance & leave</div>
+    {% if widget_data.finance.net_pay %}
+    <div class="fw-semibold small">{{ widget_data.finance.net_pay }}</div>
+    <div class="small text-muted">{{ widget_data.finance.period }}</div>
+    {% else %}
+    <p class="small text-muted mb-1">No paystub yet.</p>
+    {% endif %}
+    <div class="d-flex gap-1 mt-2">
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:teacher_pay_history' %}">Pay history</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_leave' %}">Leave</a>
+    </div>
+  </div>
+  {% endif %}
+  {% if gce_enabled and certification_stats %}
+  <div class="span-4 compact-card" data-widget-id="teacher-certification">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <h6 class="mb-0"><i class="bi bi-award text-danger me-1"></i>Exam Candidates</h6>
+      <span class="badge text-bg-danger">{{ certification_stats.total_candidates }}</span>
+    </div>
+    <div class="small text-muted d-flex justify-content-between">
+      <span>Draft {{ certification_stats.draft_candidates }}</span>
+      <span>Verified {{ certification_stats.verified_candidates }}</span>
+    </div>
+    <a class="btn btn-sm btn-outline-danger mt-2" href="{% url 'accounts:certification_home' %}">View</a>
+  </div>
+  {% endif %}
+  <div class="span-4 compact-card" data-widget-id="teacher-org-tree">
+    <div class="text-uppercase small text-muted">Org</div>
+    <h6 class="mb-1">{{ team_department.name|default:"Your department" }}</h6>
+    <div class="small text-muted">Lead: {{ team_department.lead|default:"Not set" }}</div>
+  </div>
+  {% if class_threads or department_thread %}
+  <div class="span-4 compact-card" data-widget-id="teacher-threads">
+    <h6 class="mb-1">Class / Dept chats</h6>
+    {% for thread in class_threads|slice:":2" %}
+    <div class="d-flex justify-content-between align-items-center small mb-1">
+      <span>{{ thread.title|truncatechars:20 }}</span>
+      {% if thread.unread_count %}<span class="badge bg-primary">{{ thread.unread_count }}</span>{% endif %}
+    </div>
+    {% endfor %}
+    <a class="btn btn-sm btn-outline-primary mt-1" href="{% url 'communication:group_list' %}">Open</a>
   </div>
   {% endif %}
 
-  <div class="row g-3 mb-3" data-dashboard-column="main">
-    <div class="col-md-6">
-      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-attendance">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="donut" style="--value: {{ widget_data.attendance.overall|default:'0' }}; --accent: #22c55e;">
-            <span>{{ widget_data.attendance.overall|default:"0" }}%</span>
-          </div>
-          <div>
-            <div class="text-uppercase small text-muted mb-1">Attendance</div>
-            <div class="fw-semibold">Today vs. week</div>
-            <div class="small text-muted">Late: {{ widget_data.attendance.late|default:"0" }} | Missing: {{ widget_data.attendance.missing|default:"0" }}</div>
-          </div>
-        </div>
-      </div>
+  {% if not widgets or "links" in widgets or "communications" in widgets %}
+  <div class="span-3 compact-card" data-widget-id="teacher-quick-links">
+    <h6 class="text-uppercase small mb-2 text-muted">Quick links</h6>
+    <div class="d-flex flex-column gap-1">
+      <a class="btn btn-sm btn-primary w-100" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
+      <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'evals:teacher_marks_list' %}">View marks</a>
+      <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'portal:teacher_attendance' %}">Attendance</a>
+      <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'portal:teacher_leave' %}">Leave</a>
     </div>
-    <div class="col-md-6">
-      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-completion">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="donut" style="--value: {{ widget_data.completion_pct|default:'0' }}; --accent: #6d28d9;">
-            <span>{{ widget_data.completion_pct|default:"0" }}%</span>
-          </div>
-          <div class="flex-grow-1">
-            <div class="text-uppercase small text-muted mb-1">Marks completion</div>
-            <div class="fw-semibold">{{ assignments|length }} classes · {{ progress|length }} students</div>
-            <div class="small text-muted">Pending evals: {{ widget_data.tasks.pending_evaluations|default:"0" }}</div>
-            <div class="d-flex gap-2 mt-2">
-              <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-3 mb-3" data-dashboard-column="secondary">
-    <div class="col-xl-8">
-      <div class="card h-100 border-0 shadow-sm classes-glance-card" data-widget-id="teacher-assignments">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <div>
-            <h5 class="mb-0">Assignments</h5>
-            <div class="text-uppercase small text-muted">{{ assignments|length }} classes</div>
-          </div>
-        </div>
-        <div class="row g-2 mb-3">
-          {% for assign in assignments|slice:":3" %}
-            <div class="col-12">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="fw-semibold">{{ assign.classroom }}</div>
-                  <div class="small text-muted">{{ assign.subject }}</div>
-                </div>
-                {% with prog=progress|get_item:assign.id %}
-                  {% if prog %}
-                    <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
-                  {% else %}
-                    <span class="badge bg-secondary">0/0</span>
-                  {% endif %}
-                {% endwith %}
-              </div>
-              <div class="progress mt-1" style="height:6px;">
-                {% with prog=progress|get_item:assign.id %}
-                  {% if prog %}
-                    <div class="progress-bar" role="progressbar" style="width: {{ prog.width }}%;" aria-valuenow="{{ prog.filled }}" aria-valuemin="0" aria-valuemax="{{ prog.total }}"></div>
-                  {% else %}
-                    <div class="progress-bar" role="progressbar" style="width:0%;"></div>
-                  {% endif %}
-                {% endwith %}
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-        <div class="mt-2">
-          {% if assignments %}
-          <div class="table-responsive">
-            <table class="table align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Class</th>
-                  <th>Subject</th>
-                  <th class="text-end">Marks</th>
-                  <th class="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for a in assignments|slice:':5' %}
-                <tr>
-                  <td>{{ a.classroom }}</td>
-                  <td>{{ a.subject }}</td>
-                  <td class="text-end">
-                    {% with p=progress|get_item:a.id %}
-                      {% if p %}
-                        <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ p.filled }}/{{ p.total }}</span>
-                      {% else %}
-                        <span class="badge bg-secondary">0/0</span>
-                      {% endif %}
-                    {% endwith %}
-                  </td>
-                  <td class="text-end">
-                    <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}">Enter</a>
-                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">View</a>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          {% else %}
-            <div class="small text-muted">No teaching assignments found yet.</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-4">
-      <div class="card h-100 border-0 shadow-sm mb-3" data-dashboard-column="secondary" data-widget-id="teacher-schedule">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <div class="text-uppercase small text-muted">Schedule</div>
-              <h6 class="mb-0">Today</h6>
-            </div>
-          </div>
-          <p class="small text-muted mb-2">Upcoming classes and tasks.</p>
-        </div>
-      </div>
-      {% if widget_data.finance %}
-      <div class="card h-100 border-0 shadow-sm mb-3" data-dashboard-column="secondary">
-        <div class="card-body">
-          <div class="text-uppercase small text-muted mb-2">Finance & leave</div>
-          {% if widget_data.finance.net_pay %}
-            <div class="fw-semibold">{{ widget_data.finance.net_pay }}</div>
-            <div class="small text-muted">{{ widget_data.finance.period }}</div>
-          {% else %}
-            <p class="small text-muted mb-1">No paystub yet.</p>
-          {% endif %}
-          <div class="d-flex gap-2 mt-2">
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:teacher_pay_history' %}">Pay history</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_leave' %}">Leave</a>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-      {% if gce_enabled and certification_stats %}
-      <div class="card h-100 border-0 shadow-sm mb-3" data-dashboard-column="secondary" data-widget-id="teacher-certification">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <div class="text-uppercase small text-muted">Certification</div>
-              <h6 class="mb-0"><i class="bi bi-award text-danger me-1"></i>Exam Candidates</h6>
-            </div>
-            <span class="badge text-bg-danger">{{ certification_stats.total_candidates }}</span>
-          </div>
-          <p class="small text-muted mb-2">Students in your classes registered for exams.</p>
-          <div class="small text-muted mt-2">
-            <div class="d-flex justify-content-between">
-              <span>Draft</span>
-              <span class="fw-semibold text-warning">{{ certification_stats.draft_candidates }}</span>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span>Verified</span>
-              <span class="fw-semibold text-success">{{ certification_stats.verified_candidates }}</span>
-            </div>
-          </div>
-          {% if certification_stats.sessions %}
-          <div class="mt-3">
-            <div class="small text-muted mb-1">Active Sessions:</div>
-            <div class="d-flex flex-wrap gap-1">
-              {% for session in certification_stats.sessions %}
-              <a href="{% url 'accounts:certification_session_detail' session.id %}" class="btn btn-sm btn-outline-danger">
-                {{ session.name|truncatewords:3 }}
-              </a>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-      <div class="card h-100 border-0 shadow-sm" data-dashboard-column="secondary" data-widget-id="teacher-org-tree">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <div class="text-uppercase small text-muted">Org tree</div>
-              <h6 class="mb-0">{{ team_department.name|default:"Your department" }}</h6>
-            </div>
-            <span class="badge text-bg-light">Hierarchy</span>
-          </div>
-          <p class="small text-muted mb-2">Leadership and peers in your department.</p>
-          <ul class="list-unstyled small mb-0">
-            <li class="fw-semibold mb-1">Department lead</li>
-            <li class="mb-2">{{ team_department.lead|default:"Not set" }}</li>
-            <li class="fw-semibold mb-1">Department</li>
-            <li class="mb-2">{{ team_department.name|default:"Unassigned" }}</li>
-            <li class="fw-semibold mb-1">Peers</li>
-            {% if team_peers %}
-              {% for peer in team_peers %}
-              <li class="d-flex justify-content-between py-1 border-bottom {% if forloop.last %}border-0{% endif %}">
-                <span>{{ peer.name }}</span>
-                <span class="text-muted">{{ peer.role }}</span>
-              </li>
-              {% endfor %}
-            {% else %}
-              <li class="text-muted">No peers listed yet.</li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-      {% if class_threads or department_thread %}
-      <div class="card border-0 shadow-sm mt-3" data-dashboard-column="secondary" data-widget-id="teacher-threads">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <div class="text-uppercase small text-muted">Threads</div>
-              <h6 class="mb-0">Class / Dept chats</h6>
-            </div>
-            <div class="d-flex gap-2">
-              <a href="{% url 'communication:group_list' %}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-plus-circle me-1"></i>Create Group
-              </a>
-              <span class="badge text-bg-light">Scoped</span>
-            </div>
-          </div>
-          {% if department_thread %}
-          <div class="mb-3 p-2 bg-light rounded">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong class="small">{{ department_thread.title }}</strong>
-                <div class="text-muted small">Department group</div>
-              </div>
-              <a href="{% url 'communication:group_detail' thread_id=department_thread.id %}" class="btn btn-sm btn-primary">
-                <i class="bi bi-chat-dots me-1"></i>Open
-              </a>
-            </div>
-          </div>
-          {% endif %}
-          <div class="bar-list">
-            {% for thread in class_threads|slice:":3" %}
-              <div class="bar-item">
-                <div class="bar-track">
-                  <div class="bar-fill" style="width: {{ thread.activity_pct|default:'40' }}%;"></div>
-                </div>
-                <div class="small text-muted">{{ thread.title|truncatechars:32 }}</div>
-                {% if thread.unread_count %}<span class="badge bg-primary text-light">{{ thread.unread_count }}</span>{% endif %}
-              </div>
-            {% endfor %}
-          </div>
-          {% if not class_threads and not department_thread %}
-          <div class="text-center text-muted small py-3">
-            <i class="bi bi-chat-dots d-block mb-2" style="font-size: 2rem;"></i>
-            No active threads. <a href="{% url 'communication:group_create' %}">Create a group</a> to get started.
-          </div>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-
-  {% if chart_completion_bar_json or chart_marks_donut_json %}
-  <div class="row g-3 mb-3" data-dashboard-column="charts">
-    {% if chart_completion_bar_json %}
-    <div class="col-lg-6" data-widget-id="teacher-completion-chart">
-      {% include "components/dashboard_chart.html" with chart_id="teacherCompletionChart" chart_type="bar" chart_title="Marks completion by class" chart_data=chart_completion_bar_json aria_label="Marks completion percentage per assignment" %}
-    </div>
-    {% endif %}
-    {% if chart_marks_donut_json %}
-    <div class="col-lg-6" data-widget-id="teacher-marks-donut">
-      {% include "components/dashboard_chart.html" with chart_id="teacherMarksDonutChart" chart_type="doughnut" chart_title="Marks entered vs pending" chart_data=chart_marks_donut_json aria_label="Marks entered versus pending slots" %}
-    </div>
-    {% endif %}
   </div>
   {% endif %}
-
-  <div class="row g-3 mb-3" data-dashboard-column="main">
-    <div class="col-md-6">
-      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-attendance">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="donut" style="--value: {{ widget_data.attendance.overall|default:'0' }}; --accent: #22c55e;">
-            <span>{{ widget_data.attendance.overall|default:"0" }}%</span>
-          </div>
-          <div>
-            <div class="text-uppercase small text-muted mb-1">Attendance</div>
-            <div class="fw-semibold">Today vs. week</div>
-            <div class="small text-muted">Late: {{ widget_data.attendance.late|default:"0" }} | Missing: {{ widget_data.attendance.missing|default:"0" }}</div>
-          </div>
-        </div>
-      </div>
+  {% if not widgets or "attendance" in widgets %}
+  <div class="span-4 compact-card" data-widget-id="teacher-attendance-detail">
+    <div class="text-uppercase small text-muted">Attendance</div>
+    <h6 class="mb-1">{{ widget_data.attendance.overall|default:"0" }}% <span class="text-muted small">today</span></h6>
+    <div class="small text-muted">Missing: {{ widget_data.attendance.missing|default:"0" }} · Late: {{ widget_data.attendance.late|default:"0" }}</div>
+    <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'portal:teacher_attendance' %}">Open</a>
+  </div>
+  {% endif %}
+  {% if not widgets or "completion" in widgets %}
+  <div class="span-4 compact-card" data-widget-id="teacher-completion-detail">
+    <div class="text-uppercase small text-muted">Completion</div>
+    <div class="progress mb-1" style="height:6px;">
+      <div class="progress-bar" role="progressbar" style="width: {{ widget_data.completion_pct|default:0 }}%;"></div>
     </div>
-    <div class="col-md-6">
-      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-completion">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="donut" style="--value: {{ widget_data.completion_pct|default:'0' }}; --accent: #6d28d9;">
-            <span>{{ widget_data.completion_pct|default:"0" }}%</span>
-          </div>
-          <div class="flex-grow-1">
-            <div class="text-uppercase small text-muted mb-1">Marks completion</div>
-            <div class="fw-semibold">{{ assignments|length }} classes · {{ progress|length }} students</div>
-            <div class="small text-muted">Pending evals: {{ widget_data.tasks.pending_evaluations|default:"0" }}</div>
-            <div class="d-flex gap-2 mt-2">
-              <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="small">{{ widget_data.completion_pct|default:0 }}% done</div>
+    <a class="btn btn-sm btn-outline-primary mt-2" href="{{ missing_records_url }}">Finish missing</a>
+  </div>
+  {% endif %}
+  {% if not widgets or "tasks" in widgets %}
+  <div class="span-4 compact-card" data-widget-id="teacher-bulk-import">
+    <div class="text-uppercase small text-muted">Grade import</div>
+    <h6 class="mb-1">Bulk uploads</h6>
+    <div class="d-flex gap-1 mt-2">
+      <a class="btn btn-sm btn-primary" href="{{ grade_import_upload_url }}">Upload</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ grade_import_template_url }}">Template</a>
     </div>
   </div>
-
-  <div class="row g-3 mb-4">
-    {% if not widgets or "links" in widgets or "communications" in widgets %}
-    <div class="col-xl-3 col-lg-4 order-lg-1 order-2" data-dashboard-column="tertiary">
-      <div class="dashboard-quick-panel h-100" data-widget-id="teacher-quick-links">
-        <h6 class="text-uppercase small mb-2 text-muted">Quick links</h6>
-        <div class="d-flex flex-column gap-2 mb-3">
-          <a class="btn btn-sm btn-primary w-100" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
-          <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'evals:teacher_marks_list' %}">View marks</a>
-          <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'portal:teacher_attendance' %}">Attendance</a>
-          <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'portal:teacher_leave' %}">Leave requests</a>
-        </div>
-        <div class="mb-2">
-          <div class="text-uppercase small text-muted mb-1">Contact</div>
-          {% if SITE.company_phone %}<div class="small text-dark">Phone: {{ SITE.company_phone }}</div>{% endif %}
-          {% if SITE.company_email %}<div class="small text-dark">Email: {{ SITE.company_email }}</div>{% endif %}
-        </div>
-        <div>
-          <div class="text-uppercase small text-muted mb-2">Socials</div>
-          {% for link in SITE.active_social_links %}
-            <span class="social-chip">
-              <i class="{{ link.icon }}"></i> {{ link.platform }}
-            </span>
-          {% empty %}
-            <div class="small text-muted">No social links available.</div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-    {% endif %}
-    {% if not widgets or "attendance" in widgets or "completion" in widgets or "tasks" in widgets %}
-    <div class="col-xl-9 col-lg-8 order-lg-2 order-1">
-      <div class="row g-3">
-        {% if not widgets or "attendance" in widgets %}
-        <div class="col-md-6 col-lg-4" data-dashboard-column="tertiary">
-          <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-attendance-detail">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                  <p class="text-uppercase small text-muted mb-1">Attendance</p>
-                  <h5 class="mb-0">Completion</h5>
-                </div>
-                {% if widget_data.attendance.overall is not None %}
-                  <span class="badge text-bg-light">{{ widget_data.attendance.overall|default:"0" }}%</span>
-                {% else %}
-                  <span class="badge text-bg-light">No data available</span>
-                {% endif %}
-              </div>
-              {% if widget_data.attendance.overall is not None %}
-                <ul class="list-unstyled small mb-0">
-                  <li>Today: {{ widget_data.attendance.today|default:"0" }}%</li>
-                  <li>Missing: {{ widget_data.attendance.missing|default:"0" }}</li>
-                  <li>Late: {{ widget_data.attendance.late|default:"0" }}</li>
-                </ul>
-                <p class="mt-3 small text-muted">
-                  Attendance data refreshes after evaluations and grade completion.
-                </p>
-              {% else %}
-                <p class="mt-3 small text-muted">No attendance data available.</p>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-        {% endif %}
-        {% if not widgets or "completion" in widgets %}
-        <div class="col-md-6 col-lg-4" data-dashboard-column="tertiary">
-          <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-completion-detail">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                  <p class="text-uppercase small text-muted mb-1">Marks</p>
-                  <h5 class="mb-0">Completion tracker</h5>
-                </div>
-                {% if widget_data.completion_pct is not None %}
-                  <span class="badge text-bg-light">{{ widget_data.completion_pct }}%</span>
-                {% else %}
-                  <span class="badge text-bg-light">No data available</span>
-                {% endif %}
-              </div>
-              <div class="progress mb-2" style="height:8px;">
-                <div class="progress-bar" role="progressbar" style="width: {{ widget_data.completion_pct }}%;" aria-valuenow="{{ widget_data.completion_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
-              </div>
-              {% if widget_data.completion.spotlight %}
-                <div class="small text-muted mb-2">Assignments needing attention</div>
-                <ul class="list-unstyled small mb-0">
-                  {% for item in widget_data.completion.spotlight|slice:":3" %}
-                    <li class="d-flex justify-content-between">
-                      <span>{{ item.label }}</span>
-                      <span class="text-primary">{{ item.pct }}%</span>
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% else %}
-                <p class="small text-muted mb-0">All assignments are up to date.</p>
-              {% endif %}
-              <a class="btn btn-sm btn-outline-primary mt-3" href="{{ missing_records_url }}">Finish missing records</a>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-        {% if not widgets or "tasks" in widgets %}
-        <div class="col-md-12 col-lg-4" data-dashboard-column="tertiary">
-          <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-bulk-import">
-            <div class="card-body d-flex flex-column">
-              <div>
-                <p class="text-uppercase small text-muted mb-1">Grade import</p>
-                <h5 class="mb-0">Bulk uploads</h5>
-                <p class="small text-muted mb-3">
-                  Use the template and preview before applying to keep marks consistent.
-                </p>
-              </div>
-              <div class="d-flex flex-wrap gap-2 mt-auto">
-                <a class="btn btn-sm btn-primary" href="{{ grade_import_upload_url }}">Upload grades</a>
-                <a class="btn btn-sm btn-outline-secondary" href="{{ grade_import_template_url }}">Download template</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-    {% endif %}
-  </div>
+  {% endif %}
 
   {% if class_announcements %}
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-lg-8">
-      <div class="announcements-card">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <div>
-            <div class="text-uppercase small text-muted">Class / Dept Updates</div>
-            <h6 class="mb-0">Latest announcements</h6>
-          </div>
-        </div>
-        {% for ann in class_announcements %}
-        <div class="announcement-item">
-          <div class="d-flex justify-content-between align-items-start gap-2">
-            <div>
-              <div class="fw-semibold">{{ ann.title }}</div>
-              <div class="small text-muted">
-                {% if ann.classroom %}Class: {{ ann.classroom.name }}{% elif ann.department %}Dept: {{ ann.department.name }}{% else %}General{% endif %}
-                · {{ ann.created_at|date:"M d, Y" }}
-              </div>
-            </div>
-            {% if ann.is_pinned %}
-            <span class="badge text-bg-primary">Pinned</span>
-            {% endif %}
-          </div>
-          <div class="small text-muted mt-1">{{ ann.body|truncatechars:220 }}</div>
-        </div>
-        {% endfor %}
-      </div>
+  <div class="span-8 compact-card announcements-card">
+    <div class="text-uppercase small text-muted">Announcements</div>
+    <h6 class="mb-2">Latest updates</h6>
+    {% for ann in class_announcements|slice:":3" %}
+    <div class="small mb-2 {% if not forloop.last %}border-bottom pb-2{% endif %}">
+      <span class="fw-semibold">{{ ann.title }}</span>
+      <span class="text-muted">· {{ ann.created_at|date:"M d" }}</span>
+      <div class="text-muted">{{ ann.body|truncatechars:100 }}</div>
     </div>
+    {% endfor %}
   </div>
   {% endif %}
 
-  {% if not widgets or "analytics" in widgets or "links" in widgets %}
-  <div class="row g-3 mb-4">
-    {% if not widgets or "analytics" in widgets %}
-    <div class="col-md-6">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <div class="text-uppercase small text-muted mb-1">Analytics</div>
-              <h5 class="mb-0">Top/bottom subjects</h5>
-            </div>
-            <span class="badge text-bg-light">{{ widget_data.analytics.label }}</span>
-          </div>
-          <ul class="list-unstyled small mb-0">
-            {% for subject in widget_data.analytics.highlights|slice:":2" %}
-              <li class="d-flex justify-content-between">
-                <span>{{ subject.subject }}</span>
-                <span class="text-primary">{{ subject.average }}</span>
-              </li>
-            {% endfor %}
-          </ul>
-          {% if widget_data.analytics.lowlights %}
-            <div class="mt-3 small text-muted">Watch these:</div>
-            <div class="bar-list">
-              {% for subject in widget_data.analytics.lowlights|slice:":3" %}
-                <div class="bar-item">
-                  <div class="bar-track">
-                    <div class="bar-fill" style="width: {{ subject.average|floatformat:0 }}%;"></div>
-                  </div>
-                  <div class="small text-muted">{{ subject.subject }}</div>
-                  <span class="badge bg-danger-subtle text-danger">{{ subject.average }}</span>
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        </div>
-      </div>
+  {% if not widgets or "analytics" in widgets %}
+  <div class="span-4 compact-card">
+    <div class="text-uppercase small text-muted">Analytics</div>
+    <h6 class="mb-1">Top subjects</h6>
+    {% for subject in widget_data.analytics.highlights|slice:":2" %}
+    <div class="d-flex justify-content-between small">
+      <span>{{ subject.subject }}</span>
+      <span class="text-primary">{{ subject.average }}</span>
     </div>
-    {% endif %}
-    {% if not widgets or "links" in widgets %}
-    <div class="col-md-6">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <div class="text-uppercase small text-muted mb-1">Class Syllabus</div>
-              <h5 class="mb-0">Lesson planners</h5>
-            </div>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:portal_syllabus' %}">Open syllabus</a>
-          </div>
-          <p class="small text-muted mb-3">Download subject outlines, timetables, and curriculum notes shared by leadership.</p>
-          <div class="small text-muted">Progress updates appear automatically once evaluations are saved.</div>
-        </div>
-      </div>
-    </div>
-    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if not widgets or "links" in widgets %}
+  <div class="span-4 compact-card">
+    <div class="text-uppercase small text-muted">Syllabus</div>
+    <h6 class="mb-1">Lesson planners</h6>
+    <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'portal:portal_syllabus' %}">Open syllabus</a>
   </div>
   {% endif %}
 
-  <div class="row g-3 mb-4">
     {% if not widgets or "finance" in widgets %}
-    <div class="col-lg-6">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <div class="text-muted small">Finance</div>
-              <h5 class="mb-0">Pay overview</h5>
-            </div>
-            <span class="badge text-bg-light">{{ teacher_profile.pay_grade|default:"N/A" }}</span>
-          </div>
-          {% if finance_access_message %}
-          <div class="alert alert-light border d-flex align-items-center gap-2 py-2 px-3 mb-3 small">
-            <i class="bi bi-shield-check"></i>
-            <div>{{ finance_access_message }}</div>
-          </div>
-          {% endif %}
-          <ul class="list-unstyled small mb-3">
-            <li><strong>Next pay date:</strong> {{ teacher_profile.next_pay_date|default:"-" }}</li>
-            <li><strong>Method:</strong> {{ teacher_profile.get_payment_method_display|default:"-" }}</li>
-          </ul>
-          <div class="d-flex gap-2">
-            <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_pay_history' %}">Pay history</a>
-            <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_attendance' %}">Attendance</a>
-          </div>
-        </div>
-      </div>
+  <div class="span-4 compact-card">
+    <div class="text-uppercase small text-muted">Finance</div>
+    <h6 class="mb-1">Pay overview</h6>
+    <div class="small text-muted">Next: {{ teacher_profile.next_pay_date|default:"-" }}</div>
+    <div class="d-flex gap-1 mt-2">
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:teacher_pay_history' %}">Pay history</a>
     </div>
-    {% endif %}
-    {% if not widgets or "attendance" in widgets %}
-    <div class="col-lg-4 col-md-6">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <div class="text-muted small">Attendance</div>
-              <h5 class="mb-0">Snapshot</h5>
-            </div>
-            <span class="badge text-bg-light">Teacher</span>
-          </div>
-          <p class="small text-muted mb-2">Check in/out is available from the attendance panel.</p>
-          <div class="d-flex gap-2">
-            <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_attendance' %}">Open attendance</a>
-            <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_attendance' %}#history">History</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endif %}
-    {% if not widgets or "tasks" in widgets %}
-    <div class="col-lg-4 col-md-6">
-      <div class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <div>
-              <div class="text-muted small">Leave</div>
-              <h5 class="mb-0">Requests</h5>
-            </div>
-            <span class="badge text-bg-light">Workflow</span>
-          </div>
-          <p class="small text-muted mb-2">Submit leave and track approvals based on your position.</p>
-          <div class="d-flex gap-2">
-            <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_leave' %}">Request leave</a>
-            <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_leave' %}#approvals">Approvals</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endif %}
   </div>
+  {% endif %}
+  {% if not widgets or "attendance" in widgets %}
+  <div class="span-4 compact-card">
+    <div class="text-uppercase small text-muted">Attendance</div>
+    <h6 class="mb-1">Snapshot</h6>
+    <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'portal:teacher_attendance' %}">Open</a>
+  </div>
+  {% endif %}
+  {% if not widgets or "tasks" in widgets %}
+  <div class="span-4 compact-card">
+    <div class="text-uppercase small text-muted">Leave</div>
+    <h6 class="mb-1">Requests</h6>
+    <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'portal:teacher_leave' %}">Request leave</a>
+  </div>
+  {% endif %}
 
   {% include "widgets/teacher_dashboard_widgets.html" %}
   </div> <!-- /teacher-dashboard-widgets -->
