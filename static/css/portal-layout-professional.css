@@ -19,6 +19,12 @@
 .card {
   overflow: visible;
 }
+/* Dashboard tiles: contain content, no spill */
+#dashboard-layout .card,
+.teacher-dashboard-widgets .card,
+.parent-dashboard-widgets .card {
+  overflow: hidden;
+}
 
 .card-body {
   overflow-wrap: break-word;

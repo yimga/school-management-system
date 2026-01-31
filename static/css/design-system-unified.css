@@ -462,10 +462,10 @@ textarea {
   }
 
   /* Stack elements vertically on very small screens only - exclude critical layouts */
-  .flex-row:not(.flex-nowrap):not(.rbac-form-check-wrapper):not(.form-check-wrapper) {
+  .flex-row:not(.flex-nowrap):not(.rbac-form-check-wrapper):not(.form-check-wrapper):not(.backend-quick-actions-grid) {
     flex-direction: column;
   }
-  .d-flex:not(.flex-wrap):not(.flex-nowrap):not(.rbac-form-check-wrapper):not(.form-check):not(.form-check-wrapper):not(.justify-content-between) {
+  .d-flex:not(.flex-wrap):not(.flex-nowrap):not(.rbac-form-check-wrapper):not(.form-check):not(.form-check-wrapper):not(.justify-content-between):not(.backend-quick-actions-grid) {
     flex-direction: column;
   }
 
