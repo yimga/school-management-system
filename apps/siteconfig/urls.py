@@ -15,6 +15,7 @@ from .views import (
     toggle_preview_mode,
     set_act_as_role,
 )
+from .views_feature_control import feature_control_panel
 from .dashboard_views import (
     update_theme,
 )
@@ -36,4 +37,5 @@ urlpatterns = [
     path("reports/preview/<slug:slug>/<str:report_type>/pdf/", reportcard_style_pdf, name="reportcard_style_pdf"),
     path("preview/toggle/", toggle_preview_mode, name="toggle_preview_mode"),
     path("act-as/", set_act_as_role, name="set_act_as_role"),
+    path("feature-control/", feature_control_panel, name="feature_control_panel"),
 ]

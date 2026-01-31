@@ -8,8 +8,8 @@ Section order (by role):
 - Parent: My Workflow, Children & Learning, Performance Tracking
 - Portal Tools: Community, Video; Documents under Content & Documents
 - Staff: Support, Content & Documents, People & Access, Academic Management, Financial Management,
-  Analytics & Reports, then Admin Panel last (Backend Console, Workflow Center, Customizer, Site Settings,
-  Region Configuration, Django Admin — no separate System Configuration section)
+  Analytics & Reports, then Admin Panel last (Dashboard Layout, Feature Control, Backend Console,
+  Workflow Center, Customizer, Site Settings, Region Configuration, Django Admin)
 
 Visibility is permission- and role-based; teachers never see Admin/People/Finance/Analytics.
 No duplicate sections or links: each item appears in one section only (same for staff, teachers, parents).
@@ -18,6 +18,26 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+
+def _dashboard_layout_url(request, user):
+    """Contextual link to current dashboard + ?customize=1 for users who can customize."""
+    try:
+        from apps.siteconfig.dashboard_views import _can_customize
+        if not _can_customize(user):
+            return None
+        path = (request.path or "").lower()
+        if "/finance/" in path:
+            return _safe_reverse("finance:dashboard") + "?customize=1"
+        if "/analytics/" in path:
+            return _safe_reverse("analytics:dashboard") + "?customize=1"
+        if "/payroll/" in path:
+            return _safe_reverse("payroll:dashboard") + "?customize=1"
+        if "/emis/" in path:
+            return _safe_reverse("emis:dashboard") + "?customize=1"
+        return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
+    except Exception:
+        return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
 
 
 def _safe_reverse(url_name, kwargs=None, args=None, default=None):
@@ -124,7 +144,12 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "report_library", "label": "Report Library", "url": _safe_reverse("siteconfig:report_library"), "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "reportcard_builder", "label": "Report Card Builder", "url": _safe_reverse("siteconfig:reportcard_builder"), "icon": "bi-file-earmark-richtext", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "portal_stats", "label": "Portal Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Analytics & Reports", "badge": None})
-        # Admin Panel last: Backend Console, Workflow Center, Customizer, Site Settings, Region Configuration, Django Admin
+        # Admin Panel last: Dashboard Layout, Feature Control, Backend Console, Workflow Center, Customizer, Site Settings, Region Configuration, Django Admin
+        dashboard_layout_url = _dashboard_layout_url(request, user)
+        if dashboard_layout_url:
+            items.append({"id": "dashboard_layout", "label": "Dashboard Layout", "url": dashboard_layout_url, "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
+        if is_superuser:
+            items.append({"id": "feature_control", "label": "Feature Control", "url": _safe_reverse("siteconfig:feature_control_panel"), "icon": "bi-toggle-on", "section": "Admin Panel", "badge": None})
         items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
         items.append({"id": "workflow_center", "label": "Workflow Center", "url": _safe_reverse("accounts:workflow_center"), "icon": "bi-diagram-3", "section": "Admin Panel", "badge": None})
         if can_manage_site:

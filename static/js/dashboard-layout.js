@@ -383,17 +383,24 @@
       })
       .catch(() => {});
 
-    function setEditMode(active) {
-      const instructions = document.getElementById('dashboard-customize-instructions');
-      const btn = document.getElementById('btnCustomizeLayout');
-      if (instructions) instructions.classList.toggle('d-none', !active);
-      if (btn) {
-        btn.classList.toggle('active', !!active);
-        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-        btn.innerHTML = (active ? '<i class="bi bi-check2 me-1"></i>Done' : '<i class="bi bi-grid-3x3-gap me-1"></i>Customize layout');
-      }
-      if (dragToggle) dragToggle.checked = !!active;
-      if (active) enableDrag(); else disableDrag();
+    let setEditModeFn = null;
+    const customizeBtn = document.getElementById('btnCustomizeLayout');
+    if (customizeBtn) {
+      customizeBtn.addEventListener('click', function () {
+        if (setEditModeFn) {
+          const active = !layoutRoot.classList.contains('drag-mode');
+          setEditModeFn(active);
+        } else {
+          const toast = document.getElementById('dashboard-layout-toast');
+          if (toast) {
+            const msg = document.createElement('div');
+            msg.className = 'dashboard-layout-toast-item alert alert-warning shadow-sm mb-0';
+            msg.textContent = 'Loading…';
+            toast.appendChild(msg);
+            setTimeout(function () { msg.remove(); }, 1500);
+          }
+        }
+      });
     }
 
     loadSortable().then((Sortable) => {
@@ -457,13 +464,23 @@
       };
 
       const customDragEnabled = layoutRoot.dataset.customDragEnabled !== "false";
-      const customizeBtn = document.getElementById('btnCustomizeLayout');
+      const customizeBtnRef = document.getElementById('btnCustomizeLayout');
 
-      if (customizeBtn) {
-        customizeBtn.addEventListener('click', () => {
-          const active = !layoutRoot.classList.contains('drag-mode');
-          setEditMode(active);
-        });
+      function setEditMode(active) {
+        const instructions = document.getElementById('dashboard-customize-instructions');
+        const btn = document.getElementById('btnCustomizeLayout');
+        if (instructions) instructions.classList.toggle('d-none', !active);
+        if (btn) {
+          btn.classList.toggle('active', !!active);
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+          btn.innerHTML = (active ? '<i class="bi bi-check2 me-1"></i>Done' : '<i class="bi bi-grid-3x3-gap me-1"></i>Customize layout');
+        }
+        if (dragToggle) dragToggle.checked = !!active;
+        if (active) enableDrag(); else disableDrag();
+      }
+      setEditModeFn = setEditMode;
+
+      if (customizeBtnRef) {
         const urlParams = new URLSearchParams(window.location.search);
         const startActive = urlParams.get('customize') === '1' || (dragToggle && !!dragToggle.checked) || false;
         if (startActive) setEditMode(true); else setEditMode(false);
