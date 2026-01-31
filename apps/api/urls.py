@@ -56,7 +56,6 @@ urlpatterns = [
     path('dashboard/financial/', FinancialDashboardAPI.as_view(), name='financial-dashboard'),
     path('dashboard/academic/', AcademicDashboardAPI.as_view(), name='academic-dashboard'),
     path('dashboard/layout/<str:page>/', DashboardLayoutAPI.as_view(), name='dashboard-layout'),
-    path('dashboard/available-widgets/', AvailableWidgetsAPI.as_view(), name='dashboard-available-widgets'),
     
     # Search APIs
     path('search/', GlobalSearchAPI.as_view(), name='global-search'),

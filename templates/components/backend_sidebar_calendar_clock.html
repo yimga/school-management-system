@@ -2,6 +2,27 @@
   Backend sidebar: local calendar + clock (uses browser timezone / location).
   Uses Intl API for locale-aware date/time.
 {% endcomment %}
+<style>
+  .backend-calendar-dow, .backend-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1.4rem);
+    gap: 2px;
+    justify-content: center;
+  }
+  .backend-cal-dow-cell {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--bs-secondary, #6c757d);
+    font-weight: 600;
+  }
+  .backend-cal-cell {
+    text-align: center;
+    font-size: 0.7rem;
+    min-width: 1.4rem;
+  }
+  .backend-cal-empty { opacity: 0.3; }
+  .backend-cal-today { border-radius: 4px; background: var(--bs-primary); color: #fff; }
+</style>
 <div class="card shadow-sm mb-3 backend-sidebar-calendar-clock">
   <div class="card-body py-2 px-3">
     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
@@ -12,7 +33,8 @@
       <div class="backend-clock-date small text-muted" id="backendClockDate">Loading...</div>
     </div>
     <div class="backend-calendar-mini small" id="backendCalendarMini">
-      <div class="d-flex flex-wrap justify-content-center gap-1" id="backendCalendarGrid"></div>
+      <div class="backend-calendar-dow" id="backendCalendarDOW"></div>
+      <div class="backend-calendar-grid" id="backendCalendarGrid"></div>
     </div>
   </div>
 </div>
@@ -27,8 +49,9 @@
     if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   }
   function renderMiniCalendar() {
+    var dowEl = document.getElementById('backendCalendarDOW');
     var grid = document.getElementById('backendCalendarGrid');
-    if (!grid) return;
+    if (!dowEl || !grid) return;
     var now = new Date();
     var year = now.getFullYear();
     var month = now.getMonth();
@@ -37,14 +60,16 @@
     var startPad = first.getDay();
     var days = last.getDate();
     var labels = ['S','M','T','W','T','F','S'];
-    var html = '';
-    labels.forEach(function(l) { html += '<span class="text-muted" style="width:1.5rem;text-align:center;font-size:0.65rem;">' + l + '</span>'; });
-    for (var i = 0; i < startPad; i++) html += '<span style="width:1.5rem;text-align:center;opacity:0.3;">—</span>';
+    var dowHtml = '';
+    labels.forEach(function(l) { dowHtml += '<span class="backend-cal-dow-cell">' + l + '</span>'; });
+    dowEl.innerHTML = dowHtml;
+    var gridHtml = '';
+    for (var i = 0; i < startPad; i++) gridHtml += '<span class="backend-cal-cell backend-cal-empty">—</span>';
     for (var d = 1; d <= days; d++) {
-      var cls = d === now.getDate() ? 'rounded bg-primary text-white' : '';
-      html += '<span class="' + cls + '" style="width:1.5rem;text-align:center;font-size:0.7rem;">' + d + '</span>';
+      var cls = 'backend-cal-cell' + (d === now.getDate() ? ' backend-cal-today' : '');
+      gridHtml += '<span class="' + cls + '">' + d + '</span>';
     }
-    grid.innerHTML = html;
+    grid.innerHTML = gridHtml;
   }
   function init() {
     updateClock();

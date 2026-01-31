@@ -38,8 +38,7 @@
 
 /* Checkbox/radio groups - horizontal wrap, contained */
 .form-check-wrapper,
-.checkbox-group,
-[class*="form-check-wrapper"] {
+.checkbox-group {
   display: flex !important;
   flex-wrap: wrap !important;
   flex-direction: row !important;
@@ -51,10 +50,19 @@
   border-radius: 0.375rem;
 }
 
-/* Django CheckboxSelectMultiple - ul/li structure */
+/* rbac-form-check-wrapper: RBAC template has its own scoped CSS - don't override */
+[class*="form-check-wrapper"]:not(.rbac-form-check-wrapper) {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  flex-direction: row !important;
+  gap: 0.5rem 1rem;
+}
+
+/* Django CheckboxSelectMultiple - div (4.x) or ul/li (3.x) structure */
 .form-check-wrapper ul,
 .checkbox-group ul,
-[class*="form-check-wrapper"] ul {
+.form-check-wrapper > div,
+.checkbox-group > div {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -66,11 +74,14 @@
 
 .form-check-wrapper li,
 .checkbox-group li,
-[class*="form-check-wrapper"] li {
+.form-check-wrapper > div > div,
+.checkbox-group > div > div {
   display: inline-flex !important;
   flex-direction: row !important;
   align-items: center;
   white-space: nowrap;
+  flex: 0 0 auto;
+  min-width: min-content;
 }
 
 /* ===== Row/col - preserve Bootstrap grid ===== */
@@ -113,6 +124,18 @@ h2.mb-1,
 .feature-control-card {
   max-width: 100%;
   min-width: 0;
+}
+
+/* Dashboard grids: Bootstrap row/col - cards side by side, no vertical stacking */
+#dashboard-layout .row,
+.teacher-dashboard-widgets .row,
+.parent-dashboard-widgets .row,
+.parent-dashboard .row,
+#teacher-dashboard-widgets .row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 /* Content pages - consistent padding and max-width */
