@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-compact-grid.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'parent';
@@ -283,9 +284,14 @@
   }
 
   .child-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
+  .dashboard-compact-grid .child-card .card-body {
+    padding: 0.75rem 0.9rem;
+  }
+  .dashboard-compact-grid .child-card h5 { font-size: 0.95rem; }
+  .dashboard-compact-grid .child-metrics-grid { padding: 0.5rem 0; margin-bottom: 0.5rem; }
 
   .child-header {
     display: flex;
@@ -959,10 +965,24 @@
     {% endif %}
     <div id="parent-dashboard-widgets" class="parent-dashboard-widgets">
 
-    <!-- Welcome Section -->
+    <!-- MY WORKFLOW ROW: first, same as Teacher. All content below. -->
+    <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
+      <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-diagram-3 text-primary" style="font-size:1.5rem;"></i>
+          <div>
+            <strong>My Workflow</strong>
+            <span class="text-muted small d-block">Link children, view results, finance, and documents in one place.</span>
+          </div>
+        </div>
+        <a href="{% url 'portal:parent_workflow' %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-arrow-right me-1"></i>Open workflow
+        </a>
+      </div>
+    </div>
+
     <div class="dashboard-hero">
       {% if not links %}
-      <!-- Onboarding Entry Point -->
       <div class="card border-primary shadow-sm mb-4">
         <div class="card-body text-center py-4">
           <div class="mb-3">
@@ -994,22 +1014,23 @@
         </div>
       </div>
       {% endif %}
-      <div class="dashboard-header">
-        <div class="dashboard-title">
-          <span class="dashboard-eyebrow">Parent Portal</span>
-          <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
-          <p>Stay updated on your children's progress, attendance, and school activities.</p>
-        </div>
-        <div class="dashboard-actions">
+      <!-- Welcome Parent section - full-width, always visible (outside grid) -->
+      <div id="parent-welcome-section" class="card shadow-sm mb-3 parent-welcome-glance-card" style="border-radius:14px; padding:1rem 1.2rem; border:1px solid rgba(15,23,42,0.08); background:rgba(255,255,255,0.95); display:block;">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div>
+            <span class="dashboard-eyebrow d-block mb-1">Parent Portal</span>
+            <h2 class="mb-1" style="font-size:1.45rem;">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h2>
+            <p class="text-muted mb-0 small">Stay updated on your children's progress, attendance, and school activities.</p>
+          </div>
           <div class="d-flex flex-wrap align-items-center gap-2">
             <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_workflow' %}">
               <i class="bi bi-diagram-3 me-1"></i>My Workflow
             </a>
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:parent_workflow' %}">
-              <i class="bi bi-pin-angle me-1"></i>Use Workflow as default view
+              <i class="bi bi-pin-angle me-1"></i>Use Workflow as default
             </a>
             {% if links %}
-            <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
+            <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child" style="max-width:180px;">
               <option selected disabled>Switch child</option>
               {% for child in links %}
                 <option value="{{ child.url|default:'#' }}">{{ child.label|default:'Child' }}</option>
@@ -1019,105 +1040,77 @@
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_notifications' %}">Manage notifications</a>
             {% if hero.actions %}
               {% for action in hero.actions %}
-              <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                {{ action.label }}
-              </a>
+              <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ action.label }}</a>
               {% endfor %}
             {% endif %}
           </div>
         </div>
       </div>
 
-      <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
-        <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-diagram-3 text-primary" style="font-size:1.5rem;"></i>
-            <div>
-              <strong>My Workflow</strong>
-              <span class="text-muted small d-block">Link children, view results, finance, and documents in one place.</span>
-            </div>
-          </div>
-          <a href="{% url 'portal:parent_workflow' %}" class="btn btn-primary btn-sm">
-            <i class="bi bi-arrow-right me-1"></i>Open workflow
-          </a>
+      <!-- Compact grid: all below My Workflow row -->
+      <div id="dashboard-layout" class="dashboard-compact-grid" data-dashboard-column="main">
+      {% if onboarding %}
+      <div class="span-3 compact-card summary-tile tile-green" data-widget-id="parent-summary-onboarding">
+        <div class="summary-meta">
+          <span class="summary-label">Setup</span>
+          <span class="summary-value">{{ onboarding.score|default:0 }}%</span>
+          <small class="text-muted d-block" style="font-size:0.7rem;">{{ onboarding.label }}</small>
         </div>
+        <span class="summary-icon"><i class="bi bi-rocket-takeoff"></i></span>
       </div>
-      
-      <div class="summary-tiles" data-dashboard-column="hero">
-        {# Onboarding tile #}
-        {% if onboarding %}
-        <div class="summary-tile tile-green" data-widget-id="parent-summary-onboarding">
-          <div class="summary-meta">
-            <span class="summary-label">Setup</span>
-            <span class="summary-value">{{ onboarding.score|default:0 }}%</span>
-            <small class="text-muted d-block" style="font-size:0.75rem;">{{ onboarding.label }}</small>
-          </div>
-          <span class="summary-icon"><i class="bi bi-rocket-takeoff"></i></span>
+      {% endif %}
+      <div class="span-3 compact-card summary-tile tile-blue" data-widget-id="parent-summary-children">
+        <div class="summary-meta">
+          <span class="summary-label">Children</span>
+          <span class="summary-value">{{ links|length|default:0 }}</span>
         </div>
-        {% endif %}
-        <div class="summary-tile tile-blue" data-dashboard-column="hero" data-widget-id="parent-summary-children">
-          <div class="summary-meta">
-            <span class="summary-label">Children</span>
-            <span class="summary-value">{{ links|length|default:0 }}</span>
-          </div>
-          <span class="summary-icon"><i class="bi bi-people"></i></span>
-        </div>
-        {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
-        <div class="summary-tile tile-green" data-widget-id="parent-summary-attendance">
-          <div class="summary-meta">
-            <span class="summary-label">Attendance</span>
-            <span class="summary-value">{{ widget_data.attendance.overall|default:0 }}%</span>
-          </div>
-          <span class="summary-icon"><i class="bi bi-graph-up-arrow"></i></span>
-        </div>
-        {% endif %}
-        {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
-        <div class="summary-tile tile-yellow" data-dashboard-column="hero" data-widget-id="parent-summary-balance">
-          <div class="summary-meta">
-            <span class="summary-label">Balance</span>
-            <span class="summary-value">${{ widget_data.finance.balance|default:"0.00" }}</span>
-          </div>
-          <span class="summary-icon"><i class="bi bi-hourglass-split"></i></span>
-        </div>
-        {% endif %}
-        <div class="summary-tile tile-red" data-widget-id="parent-summary-notifications">
-          <div class="summary-meta">
-            <span class="summary-label">Notifications</span>
-            <span class="summary-value">{{ notifications_unread|default:0 }}</span>
-          </div>
-          <span class="summary-icon"><i class="bi bi-bell"></i></span>
-        </div>
+        <span class="summary-icon"><i class="bi bi-people"></i></span>
       </div>
-    </div>
+      {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
+      <div class="span-3 compact-card summary-tile tile-green" data-widget-id="parent-summary-attendance">
+        <div class="summary-meta">
+          <span class="summary-label">Attendance</span>
+          <span class="summary-value">{{ widget_data.attendance.overall|default:0 }}%</span>
+        </div>
+        <span class="summary-icon"><i class="bi bi-graph-up-arrow"></i></span>
+      </div>
+      {% endif %}
+      {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
+      <div class="span-3 compact-card summary-tile tile-yellow" data-widget-id="parent-summary-balance">
+        <div class="summary-meta">
+          <span class="summary-label">Balance</span>
+          <span class="summary-value">${{ widget_data.finance.balance|default:"0.00" }}</span>
+        </div>
+        <span class="summary-icon"><i class="bi bi-hourglass-split"></i></span>
+      </div>
+      {% endif %}
+      <div class="span-3 compact-card summary-tile tile-red" data-widget-id="parent-summary-notifications">
+        <div class="summary-meta">
+          <span class="summary-label">Notifications</span>
+          <span class="summary-value">{{ notifications_unread|default:0 }}</span>
+        </div>
+        <span class="summary-icon"><i class="bi bi-bell"></i></span>
+      </div>
 
-    {% if chart_finance_donut_json or chart_attendance_trend_json %}
-    <div class="row g-3 mb-4" data-dashboard-column="charts">
       {% if chart_finance_donut_json %}
-      <div class="col-lg-6" data-widget-id="parent-finance-chart">
+      <div class="span-6 compact-card" data-widget-id="parent-finance-chart">
         {% include "components/dashboard_chart.html" with chart_id="parentFinanceChart" chart_type="doughnut" chart_title="Paid vs balance" chart_data=chart_finance_donut_json aria_label="Finance paid versus balance due" %}
       </div>
       {% endif %}
       {% if chart_attendance_trend_json %}
-      <div class="col-lg-6 parent-chart-compact" data-widget-id="parent-trend-chart">
+      <div class="span-6 compact-card parent-chart-compact" data-widget-id="parent-trend-chart">
         {% include "components/dashboard_chart.html" with chart_id="parentTrendChart" chart_type="line" chart_title="5-day completion trend" chart_data=chart_attendance_trend_json aria_label="Completion trend over last 5 days" %}
       </div>
       {% endif %}
-    </div>
-    {% endif %}
 
-    <!-- Main Content Grid -->
-    <div class="row g-3">
-      <!-- Left Column - Main Content -->
-      <div class="col-lg-8" data-dashboard-column="main">
-        
-        <!-- My Children (merged with Family Overview) -->
-        <div class="metrics-section dashboard-clear">
-          <div class="section-title">
+      <!-- My Children -->
+      <div class="span-8 compact-card" data-dashboard-column="main" style="padding: 0.9rem 1rem;">
+        <div class="section-title" style="margin-bottom: 0.75rem; font-size: 1rem;">
             <i class="bi bi-people-fill"></i>
             <span>My Children</span>
           </div>
           {% if child_cards %}
-          <div class="family-summary-bar card border-0 shadow-sm mb-3">
+          <div class="family-summary-bar card border-0 shadow-sm mb-2">
             <div class="card-body py-2 px-3">
               <div class="row g-2 align-items-center text-center">
                 <div class="col-4 col-md-2">
@@ -1419,10 +1412,8 @@
 
       </div>
 
-      <!-- Right Column - Sidebar -->
-      <div class="col-lg-4">
-        <div class="sidebar-sticky">
-
+      <!-- Sidebar -->
+      <div class="span-4 compact-card" style="align-self: start;">
           <!-- Quick Actions -->
           {% if not widgets or "links" in widgets %}
           <div class="quick-tools-box">
