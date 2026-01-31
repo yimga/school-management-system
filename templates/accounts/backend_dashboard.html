@@ -505,31 +505,36 @@
   #dashboard-layout .row > [class*="col-"] {
     display: block;
   }
-  /* Quick Actions: full width, 2in min height, buttons fill space, no spill */
+  /* Quick Actions: next after Workflow Center, 2 rows x 7 per row, buttons 10% larger */
   .backend-quick-actions-card {
     width: 100%;
-    min-height: 2in;
     overflow: hidden;
   }
   .backend-quick-actions-card .card-body {
-    min-height: calc(2in - 1px);
     overflow: hidden;
   }
   .backend-quick-actions-grid {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
     gap: 0.5rem 0.75rem;
-    align-items: center;
-    align-content: flex-start;
-    font-size: 0.875rem;
+  }
+  @media (max-width: 1199px) {
+    .backend-quick-actions-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (max-width: 767px) {
+    .backend-quick-actions-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
   .backend-quick-action-btn {
     white-space: nowrap;
-    padding: 0.4rem 0.7rem;
-    font-size: 0.8rem;
+    padding: 0.44rem 0.77rem;  /* 10% larger than 0.4rem 0.7rem */
+    font-size: 0.88rem;        /* 10% larger than 0.8rem */
   }
   .backend-quick-action-btn i {
-    font-size: 0.9rem;
+    font-size: 0.99rem;        /* 10% larger than 0.9rem */
   }
 </style>
 {% endblock %}
@@ -558,6 +563,91 @@
       </a>
       {% if allow_custom_layout %}
       {% include "components/dashboard_customize_ui.html" %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick Actions: next section after Workflow Center ROW, 2 rows x 7 buttons, 10% larger -->
+  <div class="card shadow-sm mb-3 backend-quick-actions-card" data-widget-id="backend-quick-actions">
+    <div class="card-body py-2 px-3">
+      <h6 class="fw-bold mb-2 d-flex align-items-center gap-2">
+        <i class="bi bi-lightning-charge text-primary" style="font-size:1rem;"></i>
+        Quick Actions
+      </h6>
+      <div class="backend-quick-actions-grid">
+        {% if action_perms.people %}
+        {% if use_backend_people_ui %}
+        <a href="{% url 'accounts:backend_student_create' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+          <i class="bi bi-person-plus me-1"></i>Add Student
+        </a>
+        {% else %}
+        <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+          <i class="bi bi-person-plus me-1"></i>Add Student
+        </a>
+        {% endif %}
+        {% if use_backend_people_ui %}
+        <a href="{% url 'accounts:backend_teacher_create' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
+          <i class="bi bi-person-badge me-1"></i>Add Teacher
+        </a>
+        {% else %}
+        <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
+          <i class="bi bi-person-badge me-1"></i>Add Teacher
+        </a>
+        {% endif %}
+        <a href="{% url 'portal:student_onboarding' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
+          <i class="bi bi-mortarboard me-1"></i>Onboard Student
+        </a>
+        <a href="{% url 'portal:teacher_onboarding' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
+          <i class="bi bi-person-workspace me-1"></i>Onboard Teacher
+        </a>
+        {% endif %}
+        {% if action_perms.finance %}
+        <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn">
+          <i class="bi bi-receipt me-1"></i>Create Invoice
+        </a>
+        <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
+          <i class="bi bi-cash-stack me-1"></i>Finance Console
+        </a>
+        {% endif %}
+        {% if action_perms.site_settings %}
+        <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-outline-dark backend-quick-action-btn">
+          <i class="bi bi-palette me-1"></i>Site Settings
+        </a>
+        {% endif %}
+        <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+          <i class="bi bi-eye me-1"></i>Preview Portal
+        </a>
+        <a href="{% url 'communication:announcement_create' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
+          <i class="bi bi-megaphone me-1"></i>Announcement
+        </a>
+        {% if request.user.is_superuser %}
+        <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn" title="Configuration Engine">
+          <i class="bi bi-gear-wide-connected me-1"></i>Configuration
+        </a>
+        {% endif %}
+        {% if gce_enabled %}
+        <a href="{% url 'accounts:certification_home' %}" class="btn btn-sm btn-outline-danger backend-quick-action-btn">
+          <i class="bi bi-award me-1"></i>Certification & Exams
+        </a>
+        {% endif %}
+        {% for step in recommended_next_steps %}
+        <a href="{{ step.url }}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+          {% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}
+        </a>
+        {% endfor %}
+        <a href="{% url 'accounts:workflow_center' %}" class="btn btn-sm btn-link text-muted backend-quick-action-btn">
+          View all workflow <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+      {% if show_request_settings_access %}
+      <div class="alert alert-warning mt-3 mb-0">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <strong>Need higher access?</strong> Request Site Settings or admin privileges from your school admins.
+          </div>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">Request access</a>
+        </div>
+      </div>
       {% endif %}
     </div>
   </div>
@@ -871,91 +961,6 @@
        data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
        data-widget-config='{{ widget_meta_json }}'
        data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
-
-  <!-- Quick Actions Section: full width, 2in min height, no spill -->
-  <div class="card shadow-sm mb-3 backend-quick-actions-card" data-widget-id="backend-quick-actions">
-    <div class="card-body py-2 px-3">
-      <h6 class="fw-bold mb-2 d-flex align-items-center gap-2">
-        <i class="bi bi-lightning-charge text-primary" style="font-size:1rem;"></i>
-        Quick Actions
-      </h6>
-      <div class="backend-quick-actions-grid d-flex flex-wrap gap-2 align-items-center">
-        {% if action_perms.people %}
-        {% if use_backend_people_ui %}
-        <a href="{% url 'accounts:backend_student_create' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-          <i class="bi bi-person-plus me-1"></i>Add Student
-        </a>
-        {% else %}
-        <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-          <i class="bi bi-person-plus me-1"></i>Add Student
-        </a>
-        {% endif %}
-        {% if use_backend_people_ui %}
-        <a href="{% url 'accounts:backend_teacher_create' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
-          <i class="bi bi-person-badge me-1"></i>Add Teacher
-        </a>
-        {% else %}
-        <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
-          <i class="bi bi-person-badge me-1"></i>Add Teacher
-        </a>
-        {% endif %}
-        <a href="{% url 'portal:student_onboarding' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
-          <i class="bi bi-mortarboard me-1"></i>Onboard Student
-        </a>
-        <a href="{% url 'portal:teacher_onboarding' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
-          <i class="bi bi-person-workspace me-1"></i>Onboard Teacher
-        </a>
-        {% endif %}
-        {% if action_perms.finance %}
-        <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn">
-          <i class="bi bi-receipt me-1"></i>Create Invoice
-        </a>
-        <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
-          <i class="bi bi-cash-stack me-1"></i>Finance Console
-        </a>
-        {% endif %}
-        {% if action_perms.site_settings %}
-        <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-outline-dark backend-quick-action-btn">
-          <i class="bi bi-palette me-1"></i>Site Settings
-        </a>
-        {% endif %}
-        <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-          <i class="bi bi-eye me-1"></i>Preview Portal
-        </a>
-        <a href="{% url 'communication:announcement_create' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
-          <i class="bi bi-megaphone me-1"></i>Announcement
-        </a>
-        {% if request.user.is_superuser %}
-        <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn" title="Configuration Engine">
-          <i class="bi bi-gear-wide-connected me-1"></i>Configuration
-        </a>
-        {% endif %}
-        {% if gce_enabled %}
-        <a href="{% url 'accounts:certification_home' %}" class="btn btn-sm btn-outline-danger backend-quick-action-btn">
-          <i class="bi bi-award me-1"></i>Certification & Exams
-        </a>
-        {% endif %}
-        {% for step in recommended_next_steps %}
-        <a href="{{ step.url }}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-          {% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}
-        </a>
-        {% endfor %}
-        <a href="{% url 'accounts:workflow_center' %}" class="btn btn-sm btn-link text-muted backend-quick-action-btn">
-          View all workflow <i class="bi bi-arrow-right ms-1"></i>
-        </a>
-      </div>
-      {% if show_request_settings_access %}
-      <div class="alert alert-warning mt-3 mb-0">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <strong>Need higher access?</strong> Request Site Settings or admin privileges from your school admins.
-          </div>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">Request access</a>
-        </div>
-      </div>
-      {% endif %}
-    </div>
-  </div>
 
   <div class="row g-3 mb-4">
     {% if chart_finance_status_json %}

@@ -217,7 +217,9 @@ class ClassroomSerializer(serializers.ModelSerializer):
         fields = ["id", "academic_year", "department", "name", "code", "allows_third_term", "student_count"]
 
     def get_student_count(self, obj):
-        return getattr(obj, "students", obj.student_set).filter(is_active=True).count()
+        # Classroom uses related_name="students"; avoid evaluating obj.student_set as default
+        rel = getattr(obj, "students", None) or getattr(obj, "student_set", None)
+        return rel.filter(is_active=True).count() if rel else 0
 
 
 # ==================== COMMUNICATION SERIALIZERS ====================
