@@ -472,9 +472,12 @@
   #dashboard-layout.tile-variant-flat .card .card-body {
     padding: 1.1rem;
   }
-  /* Backend: single-column flow; do not apply two-column flex row layout */
+  /* Backend: single-column flow; ensure main content visible */
   #dashboard-layout {
+    display: block;
     flex-direction: column !important;
+    min-height: 200px;
+    overflow: visible;
   }
   /* Preserve Bootstrap row/col grid for cards */
   #dashboard-layout .row {
@@ -628,9 +631,9 @@
       width: 320px;
       margin-left: 12px;
     }
-    /* Align local time clock with Workflow Center button row (2in up) */
+    /* Align clock/calendar top with Workflow Center row – moved down ~3in */
     .backend-sidebar-calendar-clock {
-      margin-top: -2in;
+      margin-top: 4.5rem;
     }
     @media (min-width: 992px) {
       .container, .container-fluid {

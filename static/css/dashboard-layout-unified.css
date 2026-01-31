@@ -38,24 +38,23 @@
 .parent-dashboard-widgets .row.g-3,
 .teacher-dashboard-widgets .row.g-3,
 #dashboard-layout .row.g-3 {
-  --bs-gutter-x: 1rem;
-  --bs-gutter-y: 1rem;
+  --bs-gutter-x: 0.75rem;
+  --bs-gutter-y: 0.75rem;
   margin-bottom: 0;
 }
 
 .dashboard-layout-unified .row.mb-3,
-.dashboard-layout-unified .row.mb-4,
 .parent-dashboard-widgets .row.mb-3,
-.parent-dashboard-widgets .row.mb-4,
 .teacher-dashboard-widgets .row.mb-3,
-.teacher-dashboard-widgets .row.mb-4 {
-  margin-bottom: 1rem;
+#dashboard-layout .row.mb-3 {
+  margin-bottom: 0.75rem;
 }
 
 .dashboard-layout-unified .row.mb-4,
 .parent-dashboard-widgets .row.mb-4,
-.teacher-dashboard-widgets .row.mb-4 {
-  margin-bottom: 1.5rem;
+.teacher-dashboard-widgets .row.mb-4,
+#dashboard-layout .row.mb-4 {
+  margin-bottom: 1rem;
 }
 
 /* ===== Standard card padding ===== */
@@ -89,17 +88,19 @@
   margin-bottom: 0;
 }
 
-/* ===== Section margins ===== */
+/* ===== Section margins - tight ===== */
 .dashboard-layout-unified .mb-3,
 .parent-dashboard-widgets .mb-3,
-.teacher-dashboard-widgets .mb-3 {
-  margin-bottom: 1rem !important;
+.teacher-dashboard-widgets .mb-3,
+#dashboard-layout .mb-3 {
+  margin-bottom: 0.75rem !important;
 }
 
 .dashboard-layout-unified .mb-4,
 .parent-dashboard-widgets .mb-4,
-.teacher-dashboard-widgets .mb-4 {
-  margin-bottom: 1.5rem !important;
+.teacher-dashboard-widgets .mb-4,
+#dashboard-layout .mb-4 {
+  margin-bottom: 1rem !important;
 }
 
 /* ===== Responsive: stack on mobile ===== */
