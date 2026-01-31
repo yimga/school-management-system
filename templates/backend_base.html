@@ -5,7 +5,6 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
 {% with backend_theme=SITE.backend_console_theme|default:'dark' %}
 {% if backend_theme == 'light' %}
 <link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">
