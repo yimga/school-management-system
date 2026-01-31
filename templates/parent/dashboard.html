@@ -880,12 +880,28 @@
       margin-top: 2rem;
     }
   }
+
+  /* Completion status & 5-day trend charts: 30% smaller, same size */
+  .parent-chart-compact .dashboard-chart-card .card-body {
+    min-height: 154px;
+    padding: 0.7rem 0.9rem;
+  }
+  .parent-chart-compact .dashboard-chart-wrapper {
+    min-height: 126px;
+    max-height: 224px;
+  }
+  .parent-chart-compact .dashboard-chart-wrapper canvas {
+    max-height: 140px;
+  }
+  .parent-chart-compact .dashboard-chart-header .card-title {
+    font-size: 0.95rem;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 {% with widgets=display_widgets %}
-<div class="parent-dashboard">
+<div class="parent-dashboard dashboard-clear">
   <div class="container-lg py-4">
     {% if PREVIEW_MODE_ENABLED %}
     <div class="alert alert-warning rounded-3 mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -1074,137 +1090,67 @@
       </div>
     </div>
 
-    {% if chart_attendance_donut_json or chart_finance_donut_json or chart_attendance_trend_json %}
+    {% if chart_finance_donut_json or chart_attendance_trend_json %}
     <div class="row g-3 mb-4" data-dashboard-column="charts">
-      {% if chart_attendance_donut_json %}
-      <div class="col-lg-4" data-widget-id="parent-attendance-chart">
-        {% include "components/dashboard_chart.html" with chart_id="parentAttendanceChart" chart_type="doughnut" chart_title="Completion status" chart_data=chart_attendance_donut_json aria_label="Attendance completion percentage" %}
-      </div>
-      {% endif %}
       {% if chart_finance_donut_json %}
-      <div class="col-lg-4" data-widget-id="parent-finance-chart">
+      <div class="col-lg-6" data-widget-id="parent-finance-chart">
         {% include "components/dashboard_chart.html" with chart_id="parentFinanceChart" chart_type="doughnut" chart_title="Paid vs balance" chart_data=chart_finance_donut_json aria_label="Finance paid versus balance due" %}
       </div>
       {% endif %}
       {% if chart_attendance_trend_json %}
-      <div class="col-lg-4" data-widget-id="parent-trend-chart">
+      <div class="col-lg-6 parent-chart-compact" data-widget-id="parent-trend-chart">
         {% include "components/dashboard_chart.html" with chart_id="parentTrendChart" chart_type="line" chart_title="5-day completion trend" chart_data=chart_attendance_trend_json aria_label="Completion trend over last 5 days" %}
       </div>
       {% endif %}
     </div>
     {% endif %}
 
-    <div class="row g-3 mb-4" data-dashboard-column="main">
-      {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
-      <div class="col-md-4" data-widget-id="parent-attendance-donut">
-        <div class="card h-100 border-0 shadow-sm">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="donut" style="--value: {{ attendance_pct|default:'0' }}; --accent: #22c55e;">
-              <span>{{ attendance_pct|default:0 }}%</span>
-            </div>
-            <div>
-              <div class="text-uppercase small text-muted mb-1">Attendance</div>
-              <div class="fw-semibold">Today vs. term</div>
-              <div class="small text-muted">Late: {{ widget_data.attendance.late|default:"0" }} | Missing: {{ widget_data.attendance.missing|default:"0" }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-      {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
-      <div class="col-md-4" data-dashboard-column="main" data-widget-id="parent-finance-donut">
-        <div class="card h-100 border-0 shadow-sm">
-          <div class="card-body d-flex align-items-center gap-3">
-            <div class="donut" style="--value: {{ finance_paid_pct|default:'0' }}; --accent: #0d6efd;">
-              <span>{{ finance_paid_pct|default:0 }}%</span>
-            </div>
-            <div>
-              <div class="text-uppercase small text-muted mb-1">Fees paid</div>
-              <div class="fw-semibold">${{ finance_paid|default:"0.00" }} of ${{ finance_total|default:"0.00" }}</div>
-              <div class="small text-muted">Balance: ${{ widget_data.finance.balance|default:"0.00" }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-      <div class="col-md-4" data-widget-id="parent-glance">
-        <div class="card h-100 border-0 shadow-sm">
-          <div class="card-body">
-            <div class="text-uppercase small text-muted mb-2">At a glance</div>
-            <div class="d-flex flex-column gap-2">
-              <span class="stat-chip"><i class="bi bi-people"></i> {{ links|length|default:0 }} children</span>
-              <span class="stat-chip"><i class="bi bi-bell"></i> {{ notifications_unread|default:0 }} unread</span>
-              {% if class_threads %}<span class="stat-chip"><i class="bi bi-chat-dots"></i> {{ class_threads|length }} threads</span>{% endif %}
-              {% if class_announcements %}<span class="stat-chip"><i class="bi bi-megaphone"></i> {{ class_announcements|length }} updates</span>{% endif %}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {% if can_view_results or can_view_finance %}
-    {% if not widgets or "attendance" in widgets or "performance" in widgets or "finance" in widgets %}
-    <div class="family-overview" data-dashboard-column="main" data-widget-id="parent-family-overview">
-      <div class="section-title">
-        <i class="bi bi-house-heart"></i>
-        <span>Family Overview</span>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <div class="row g-3 text-center">
-            <div class="col-6 col-md-3">
-              <div class="fw-bold text-primary" style="font-size:1.3rem;">{{ links|length|default:0 }}</div>
-              <div class="small text-muted">Children</div>
-            </div>
-            {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
-            <div class="col-6 col-md-3">
-              <div class="fw-bold text-success" style="font-size:1.3rem;">{{ widget_data.attendance.overall|default:0 }}%</div>
-              <div class="small text-muted">Attendance</div>
-            </div>
-            {% endif %}
-            {% if can_view_results and not widgets or can_view_results and "performance" in widgets %}
-            <div class="col-6 col-md-3">
-              <div class="fw-bold text-info" style="font-size:1.3rem;">{{ widget_data.performance.average|default:"--" }}</div>
-              <div class="small text-muted">Avg. Grade</div>
-            </div>
-            {% endif %}
-            {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
-            <div class="col-6 col-md-3">
-              <div class="fw-bold text-danger" style="font-size:1.3rem;">${{ widget_data.finance.balance|default:"0.00" }}</div>
-              <div class="small text-muted">Outstanding Fees</div>
-            </div>
-            {% endif %}
-          </div>
-          {% if can_view_finance or can_view_results %}
-          {% if not widgets or "finance" in widgets or "performance" in widgets %}
-          <div class="d-flex flex-wrap gap-2 justify-content-center mt-3">
-            {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
-            <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Finance Details</a>
-            {% endif %}
-            {% if can_view_results and not widgets or can_view_results and "performance" in widgets %}
-            <a href="#" class="btn btn-sm btn-outline-success disabled" title="Performance view unavailable">Performance</a>
-            {% endif %}
-          </div>
-          {% endif %}
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    {% endif %}
-    {% endif %}
-
     <!-- Main Content Grid -->
-    <div class="row g-4">
+    <div class="row g-3">
       <!-- Left Column - Main Content -->
       <div class="col-lg-8" data-dashboard-column="main">
         
-        <!-- Children Overview Section -->
-
-        <div class="metrics-section">
+        <!-- My Children (merged with Family Overview) -->
+        <div class="metrics-section dashboard-clear">
           <div class="section-title">
             <i class="bi bi-people-fill"></i>
             <span>My Children</span>
           </div>
+          {% if child_cards %}
+          <div class="family-summary-bar card border-0 shadow-sm mb-3">
+            <div class="card-body py-2 px-3">
+              <div class="row g-2 align-items-center text-center">
+                <div class="col-4 col-md-2">
+                  <div class="fw-bold text-primary" style="font-size:1.1rem;">{{ links|length|default:0 }}</div>
+                  <div class="small text-muted">Children</div>
+                </div>
+                {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
+                <div class="col-4 col-md-2">
+                  <div class="fw-bold text-success" style="font-size:1.1rem;">{{ widget_data.attendance.overall|default:0 }}%</div>
+                  <div class="small text-muted">Attendance</div>
+                </div>
+                {% endif %}
+                {% if can_view_results and not widgets or can_view_results and "performance" in widgets %}
+                <div class="col-4 col-md-2">
+                  <div class="fw-bold text-info" style="font-size:1.1rem;">{{ widget_data.performance.average|default:"--" }}</div>
+                  <div class="small text-muted">Avg. Grade</div>
+                </div>
+                {% endif %}
+                {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
+                <div class="col-4 col-md-2">
+                  <div class="fw-bold text-danger" style="font-size:1.1rem;">${{ widget_data.finance.balance|default:"0.00" }}</div>
+                  <div class="small text-muted">Outstanding</div>
+                </div>
+                {% endif %}
+                <div class="col-12 col-md-auto ms-md-auto">
+                  {% if can_view_finance and not widgets or can_view_finance and "finance" in widgets %}
+                  <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Finance Details</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
           <div class="row g-3">
             {% for card in child_cards %}
             <div class="col-md-6" data-dashboard-column="main">
@@ -1392,31 +1338,6 @@
         </div>
         {% endif %}
 
-        {% if class_announcements %}
-        <!-- Activity Timeline -->
-        <div class="metrics-section mt-4" data-dashboard-column="secondary" data-widget-id="parent-activity-timeline">
-          <div class="section-title">
-            <i class="bi bi-clock-history"></i>
-            <span>Activity Timeline</span>
-          </div>
-          <div class="card">
-            <div class="card-body timeline">
-              {% for ann in class_announcements|slice:":5" %}
-              <div class="timeline-item">
-                <div class="fw-semibold">{{ ann.title }}</div>
-                <div class="text-muted small">
-                  {% if ann.classroom %}Class: {{ ann.classroom.name }}{% elif ann.department %}Dept: {{ ann.department.name }}{% else %}General{% endif %}
-                  · {{ ann.created_at|date:"M d, Y" }}
-                </div>
-              </div>
-              {% empty %}
-              <div class="text-muted small">No recent updates.</div>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-        {% endif %}
-
         <!-- Academic Performance Section -->
         {% if can_view_results and not widgets or can_view_results and "performance" in widgets %}
         <div class="metrics-section mt-4">
@@ -1476,116 +1397,20 @@
         </div>
         {% endif %}
 
-        <!-- Insights Section -->
-        {% if can_view_results or can_view_finance %}
+        <!-- Assignment Completion (trimmed insight) -->
+        {% if can_view_results and widget_data.assignment_completion and widget_data.assignment_completion.total %}
         <div class="insights-section mt-4">
           <div class="section-title">
-            <i class="bi bi-bar-chart"></i>
-            <span>Insights</span>
+            <i class="bi bi-journal-check"></i>
+            <span>Assignment Completion</span>
           </div>
-          <div class="insights-grid">
-            <div class="insight-card">
-              <div class="insight-title">Attendance Trend</div>
-              <div class="insight-bar-row">
-                {% for point in widget_data.attendance_trend %}
-                <div class="bar-group">
-                  <div class="bar-fill" style="height: {{ point.value }}%;"></div>
-                  <small>{{ point.label }}</small>
+          <div class="card border-0 shadow-sm">
+            <div class="card-body py-2 px-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="progress flex-grow-1" style="height: 8px;">
+                  <div class="progress-bar bg-success" role="progressbar" style="width: {{ widget_data.assignment_completion.percent }}%;" aria-valuenow="{{ widget_data.assignment_completion.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-                {% endfor %}
-              </div>
-              <small class="insight-note">Completion last 5 days.</small>
-            </div>
-            <div class="insight-card">
-              <div class="insight-title">Grade Trend</div>
-              <div class="insight-bar-row">
-                {% for point in widget_data.grade_trend %}
-                <div class="bar-group">
-                  <div class="bar-fill grade" style="height: {{ point.value }}%;"></div>
-                  <small>{{ point.label }}</small>
-                </div>
-                {% endfor %}
-              </div>
-              <small class="insight-note">Last published grade snapshots.</small>
-            </div>
-            <div class="insight-card">
-              <div class="insight-title">Subject Performance</div>
-              <ul class="subject-list list-unstyled mb-0">
-                {% for subject in widget_data.subject_performance %}
-                <li>
-                  <span class="subject-name">{{ subject.subject }}</span>
-                  <span class="subject-value">{{ subject.average }}</span>
-                </li>
-                {% empty %}
-                <li class="text-muted">No subject data yet.</li>
-                {% endfor %}
-              </ul>
-            </div>
-            <div class="insight-card">
-              <div class="insight-title">Fees Snapshot</div>
-              <div class="pill-bar">
-                <div class="pill-fill" style="width: {{ widget_data.fees_breakdown.percent }}%;"></div>
-              </div>
-              <div class="insight-pill-row">
-                <span>Paid ${{ widget_data.fees_breakdown.paid }}</span>
-                <span>Due ${{ widget_data.fees_breakdown.due }}</span>
-              </div>
-              <div class="insight-footnote">Overdue {{ widget_data.fees_breakdown.overdue }} invoices</div>
-            </div>
-            <div class="insight-card">
-              <div class="insight-title">Assignment Completion</div>
-              <div class="pill-bar">
-                <div class="pill-fill complete" style="width: {{ widget_data.assignment_completion.percent }}%;"></div>
-              </div>
-              <div class="insight-pill-row">
-                <span>Complete {{ widget_data.assignment_completion.complete }}</span>
-                <span>Pending {{ widget_data.assignment_completion.pending }}</span>
-              </div>
-              <small class="insight-note">{{ widget_data.assignment_completion.total }} evaluated items</small>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Attendance Tracking Section -->
-        {% if can_view_results and not widgets or can_view_results and "attendance" in widgets %}
-        <div class="metrics-section mt-4">
-          <div class="section-title">
-            <i class="bi bi-calendar-check"></i>
-            <span>Attendance Summary</span>
-          </div>
-          <div class="card">
-            <div class="card-body">
-              <div class="row g-3 text-center">
-                <div class="col-md-3 col-6">
-                  <div class="metric-item">
-                    <div class="metric-value text-success">{{ widget_data.attendance.present|default:0 }}</div>
-                    <div class="metric-label">Present Days</div>
-                  </div>
-                </div>
-                <div class="col-md-3 col-6">
-                  <div class="metric-item">
-                    <div class="metric-value text-danger">{{ widget_data.attendance.absent|default:0 }}</div>
-                    <div class="metric-label">Absent Days</div>
-                  </div>
-                </div>
-                <div class="col-md-3 col-6">
-                  <div class="metric-item">
-                    <div class="metric-value text-warning">{{ widget_data.attendance.late|default:0 }}</div>
-                    <div class="metric-label">Late Arrivals</div>
-                  </div>
-                </div>
-                <div class="col-md-3 col-6">
-                  <div class="metric-item">
-                    <div class="metric-value text-primary">{{ widget_data.attendance.overall|default:0 }}%</div>
-                    <div class="metric-label">Overall Rate</div>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-3">
-                <div class="progress" style="height: 8px;">
-                  <div class="progress-bar bg-success" role="progressbar" style="width: {{ widget_data.attendance.overall|default:0 }}%" aria-valuenow="{{ widget_data.attendance.overall|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
+                <div class="small text-muted text-nowrap">Complete {{ widget_data.assignment_completion.complete }} of {{ widget_data.assignment_completion.total }}</div>
               </div>
             </div>
           </div>
