@@ -83,7 +83,8 @@ class DashboardLayoutSerializer(serializers.Serializer):
                 raise serializers.ValidationError(f"Duplicate widget id '{widget_id}' in layout.")
             seen_ids.add(widget_id)
 
-            if widget_id not in allowed_widgets:
+            widget = allowed_widgets.get(widget_id) if allowed_widgets else None
+            if allowed_widgets and widget_id not in allowed_widgets:
                 raise serializers.ValidationError(f"Widget '{widget_id}' is not allowed for this page/user.")
 
             column = str(item.get("column") or "").strip()
@@ -96,9 +97,8 @@ class DashboardLayoutSerializer(serializers.Serializer):
             except (TypeError, ValueError):
                 raise serializers.ValidationError(f"layout.items[{idx}].order must be an integer.")
 
-            widget = allowed_widgets[widget_id]
             size = item.get("size")
-            if size is not None:
+            if widget and size is not None:
                 size = str(size).strip().lower()
                 allowed_sizes = set(widget.resolved_allowed_sizes())
                 if size not in allowed_sizes:
@@ -107,7 +107,7 @@ class DashboardLayoutSerializer(serializers.Serializer):
                     )
 
             variant = item.get("variant")
-            if variant is not None:
+            if widget and variant is not None:
                 variant = str(variant).strip().lower()
                 allowed_variants = set(widget.resolved_allowed_variants())
                 if variant not in allowed_variants:
@@ -188,12 +188,35 @@ def _sanitize_layout_settings(raw_settings: Any, allowed_widgets: Dict[str, Dash
     if tile_variant not in ALLOWED_TILE_VARIANTS:
         tile_variant = "default"
     widget_meta = _sanitize_widget_meta(settings.get("widget_meta"), allowed_widgets)
+    raw_hidden = settings.get("hidden_widget_ids") or []
+    hidden_widget_ids = []
+    if isinstance(raw_hidden, list):
+        for w in raw_hidden:
+            w = str(w).strip()
+            if w and (not allowed_widgets or w in allowed_widgets):
+                hidden_widget_ids.append(w)
+
+    raw_pinned = settings.get("pinned_widgets") or []
+    pinned_widgets = []
+    if isinstance(raw_pinned, list):
+        for p in raw_pinned:
+            wid = p.get("widget_id") if isinstance(p, dict) else None
+            if isinstance(p, dict) and wid and (not allowed_widgets or wid in allowed_widgets):
+                pages = p.get("pages") or []
+                if isinstance(pages, list):
+                    pinned_widgets.append({
+                        "widget_id": str(wid),
+                        "pages": [str(x) for x in pages if x],
+                    })
+
     return {
         "show_sidebar": bool(settings.get("show_sidebar")),
         "sidebar_items": sidebar_items,
         "tile_variant": tile_variant,
         "custom_links": _sanitize_custom_links(settings.get("custom_links")),
         "widget_meta": widget_meta,
+        "hidden_widget_ids": hidden_widget_ids,
+        "pinned_widgets": pinned_widgets,
     }
 
 
@@ -241,6 +264,32 @@ def _allowed_roles_for_page(page: str) -> List[str]:
         # Portal KB is safe to show to any authenticated role.
         "portal-kb": ["SUPERADMIN", "ADMIN", "LEADERSHIP", "IT_ADMIN", "ACADEMICS_STAFF", "COMMS_STAFF", "TEACHER", "DEPT_LEAD", "HOD", "PARENT", "STUDENT"],
     }.get(page, [])
+
+
+class AvailableWidgetsAPI(APIView):
+    """
+    GET: return available widgets for a dashboard page (role-scoped).
+    Used by palette UI and AI Copilot for widget discovery.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_user_role(self, user: User) -> str:
+        return (getattr(user, "role", "") or "").upper()
+
+    def get(self, request):
+        page = (request.GET.get("page") or "backend").strip().lower()
+        allowed = _allowed_roles_for_page(page)
+        role = self.get_user_role(request.user)
+        if not allowed or role not in allowed:
+            raise Http404()
+        widgets_qs = DashboardWidget.objects.filter(page=page, is_active=True).order_by("order")
+        widgets_qs = widgets_qs.filter(
+            models.Q(required_role="ANY")
+            | models.Q(required_role=role)
+            | models.Q(allowed_roles__contains=[role])
+        )
+        widgets = DashboardWidgetSerializer(widgets_qs, many=True).data
+        return Response({"page": page, "widgets": widgets})
 
 
 class DashboardLayoutAPI(APIView):

@@ -1,0 +1,60 @@
+{% comment %}
+  Backend sidebar: local calendar + clock (uses browser timezone / location).
+  Uses Intl API for locale-aware date/time.
+{% endcomment %}
+<div class="card shadow-sm mb-3 backend-sidebar-calendar-clock">
+  <div class="card-body py-2 px-3">
+    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+      <span class="small text-muted fw-semibold text-uppercase"><i class="bi bi-calendar3 me-1"></i>Local time</span>
+    </div>
+    <div class="text-center mb-2">
+      <div class="backend-clock-time fs-4 fw-bold lh-1" id="backendClockTime">--:--:--</div>
+      <div class="backend-clock-date small text-muted" id="backendClockDate">Loading...</div>
+    </div>
+    <div class="backend-calendar-mini small" id="backendCalendarMini">
+      <div class="d-flex flex-wrap justify-content-center gap-1" id="backendCalendarGrid"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function updateClock() {
+    var now = new Date();
+    var timeEl = document.getElementById('backendClockTime');
+    var dateEl = document.getElementById('backendClockDate');
+    if (timeEl) timeEl.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    if (dateEl) dateEl.textContent = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function renderMiniCalendar() {
+    var grid = document.getElementById('backendCalendarGrid');
+    if (!grid) return;
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = now.getMonth();
+    var first = new Date(year, month, 1);
+    var last = new Date(year, month + 1, 0);
+    var startPad = first.getDay();
+    var days = last.getDate();
+    var labels = ['S','M','T','W','T','F','S'];
+    var html = '';
+    labels.forEach(function(l) { html += '<span class="text-muted" style="width:1.5rem;text-align:center;font-size:0.65rem;">' + l + '</span>'; });
+    for (var i = 0; i < startPad; i++) html += '<span style="width:1.5rem;text-align:center;opacity:0.3;">—</span>';
+    for (var d = 1; d <= days; d++) {
+      var cls = d === now.getDate() ? 'rounded bg-primary text-white' : '';
+      html += '<span class="' + cls + '" style="width:1.5rem;text-align:center;font-size:0.7rem;">' + d + '</span>';
+    }
+    grid.innerHTML = html;
+  }
+  function init() {
+    updateClock();
+    renderMiniCalendar();
+    setInterval(updateClock, 1000);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>

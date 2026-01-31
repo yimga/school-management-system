@@ -37,41 +37,9 @@
 
 <div class="row g-3 mb-4">
   <div class="col-lg-6" data-widget-id="finance-status-counts">
-    <div class="card h-100 border-0 shadow-sm">
-      <div class="card-body">
-        <h5 class="mb-3">Invoice status</h5>
-        <div class="d-flex flex-column gap-2">
-          {% if status_counts %}
-            {% for status in status_counts %}
-              <div class="d-flex justify-content-between">
-                <span class="text-muted small">{{ status.status }}</span>
-                <strong>{{ status.count }}</strong>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="text-muted small">No invoice status data available.</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
+    {% include "components/dashboard_chart.html" with chart_id="financeInvoiceStatusChart" chart_type="doughnut" chart_title="Invoice status" chart_data=chart_status_donut_json aria_label="Invoice status distribution" %}
   </div>
   <div class="col-lg-6" data-widget-id="finance-invoice-trend">
-    <div class="card h-100 border-0 shadow-sm">
-      <div class="card-body">
-        <h5 class="mb-3">Recent invoice trend</h5>
-        <div class="list-group list-group-flush">
-          {% if trend %}
-            {% for point in trend %}
-              <div class="list-group-item px-0 border-0 d-flex justify-content-between">
-                <span class="text-muted small">{{ point.label }}</span>
-                <strong>{{ point.total|floatformat:2 }}</strong>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="text-muted small">No invoice trend data available.</div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
+    {% include "components/dashboard_chart.html" with chart_id="financeInvoiceTrendChart" chart_type="line" chart_title="Invoice trend (4 months)" chart_data=chart_trend_area_json aria_label="Invoice total amount over the last 4 months" %}
   </div>
 </div>

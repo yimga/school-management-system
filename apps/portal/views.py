@@ -296,6 +296,56 @@ def parent_dashboard(request: HttpRequest):
 
     from apps.accounts.utils import get_dashboard_context
 
+    # Chart JSON for parent dashboard
+    chart_attendance_donut_json = ""
+    chart_finance_donut_json = ""
+    chart_attendance_trend_json = ""
+    att = widget_data.get("attendance") or {}
+    if att.get("overall") is not None and can_view_results:
+        overall = int(att.get("overall", 0) or 0)
+        other = max(0, 100 - overall)
+        chart_attendance_donut_json = json.dumps({
+            "type": "doughnut",
+            "data": {
+                "labels": ["Completion", "Pending"],
+                "datasets": [{
+                    "data": [overall, other],
+                    "backgroundColor": ["#198754", "#e2e8f0"],
+                }],
+            },
+        })
+    fin = widget_data.get("finance") or {}
+    if can_view_finance and (fin.get("paid") or fin.get("balance")):
+        paid = float(fin.get("paid") or 0)
+        balance = float(fin.get("balance") or 0)
+        if paid or balance:
+            chart_finance_donut_json = json.dumps({
+                "type": "doughnut",
+                "data": {
+                    "labels": ["Paid", "Balance due"],
+                    "datasets": [{
+                        "data": [paid, balance],
+                        "backgroundColor": ["#198754", "#ffc107"],
+                    }],
+                },
+            })
+    trend = widget_data.get("attendance_trend") or []
+    if trend and can_view_results:
+        chart_attendance_trend_json = json.dumps({
+            "type": "line",
+            "data": {
+                "labels": [t.get("label", "") for t in trend],
+                "datasets": [{
+                    "label": "Completion %",
+                    "data": [t.get("value", 0) for t in trend],
+                    "fill": True,
+                    "borderColor": "#0d6efd",
+                    "backgroundColor": "rgba(13, 110, 253, 0.15)",
+                    "tension": 0.3,
+                }],
+            },
+        })
+
     # Signature stats for parent (forms awaiting signature)
     try:
         from apps.portal.models import FormSignature
@@ -320,6 +370,9 @@ def parent_dashboard(request: HttpRequest):
         "links": links,
         "can_view_results": can_view_results,
         "can_view_finance": can_view_finance,
+        "chart_attendance_donut_json": chart_attendance_donut_json,
+        "chart_finance_donut_json": chart_finance_donut_json,
+        "chart_attendance_trend_json": chart_attendance_trend_json,
         "portal_features": portal_features,
         "widget_data": widget_data,
         "onboarding": onboarding,

@@ -1,5 +1,11 @@
 {% extends "portal_base.html" %}
+{% load static %}
 {% block title %}Access Requests{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">

@@ -181,9 +181,42 @@ def dashboard(request: HttpRequest):
     ).order_by("-created_at")
     finance_request_link = reverse("requests:dashboard")
 
+    # Chart data for dashboard visualizations
+    status_counts = list(dashboard_data.get("status_counts") or [])
+    trend = dashboard_data.get("trend") or []
+    status_labels = dict(Invoice.Status.choices)
+    chart_status_donut = {
+        "type": "doughnut",
+        "data": {
+            "labels": [status_labels.get(sc["status"], sc["status"]) for sc in status_counts],
+            "datasets": [{
+                "data": [sc["count"] for sc in status_counts],
+                "backgroundColor": [
+                    "#6c757d", "#0d6efd", "#ffc107", "#198754", "#dc3545", "#adb5bd"
+                ][: len(status_counts)],
+            }],
+        },
+    }
+    chart_trend_area = {
+        "type": "line",
+        "data": {
+            "labels": [t["label"] for t in trend],
+            "datasets": [{
+                "label": "Invoice total",
+                "data": [float(t["total"]) for t in trend],
+                "fill": True,
+                "borderColor": "#0d6efd",
+                "backgroundColor": "rgba(13, 110, 253, 0.15)",
+                "tension": 0.3,
+            }],
+        },
+    }
+
     context = {
         "profile": profile,
         "hero": hero,
+        "chart_status_donut_json": json.dumps(chart_status_donut),
+        "chart_trend_area_json": json.dumps(chart_trend_area),
         **dashboard_data,
     }
     context.update({
