@@ -461,9 +461,11 @@ textarea {
     padding: 0;
   }
 
-  /* Stack elements vertically */
-  .flex-row,
-  .d-flex {
+  /* Stack elements vertically on very small screens only - exclude critical layouts */
+  .flex-row:not(.flex-nowrap):not(.rbac-form-check-wrapper):not(.form-check-wrapper) {
+    flex-direction: column;
+  }
+  .d-flex:not(.flex-wrap):not(.flex-nowrap):not(.rbac-form-check-wrapper):not(.form-check):not(.form-check-wrapper):not(.justify-content-between) {
     flex-direction: column;
   }
 

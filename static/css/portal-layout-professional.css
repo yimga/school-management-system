@@ -1,0 +1,147 @@
+/**
+ * Portal Layout - Professional Structure
+ * Ensures all pages and dashboards are well-structured, contained, and professional.
+ * Applied globally via portal_base.html.
+ */
+
+/* ===== Page & content containment ===== */
+.page-wrap {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.portal-main-col {
+  min-width: 0;
+}
+
+/* ===== Consistent card structure ===== */
+.card {
+  overflow: visible;
+}
+
+.card-body {
+  overflow-wrap: break-word;
+}
+
+/* ===== Form layout - prevent vertical text & overflow ===== */
+.form-check,
+.form-check-inline,
+.form-switch {
+  flex-direction: row !important;
+  align-items: center;
+}
+
+.form-check-label {
+  white-space: nowrap;
+}
+
+/* Checkbox/radio groups - horizontal wrap, contained */
+.form-check-wrapper,
+.checkbox-group,
+[class*="form-check-wrapper"] {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  flex-direction: row !important;
+  gap: 0.5rem 1rem;
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+}
+
+/* Django CheckboxSelectMultiple - ul/li structure */
+.form-check-wrapper ul,
+.checkbox-group ul,
+[class*="form-check-wrapper"] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row !important;
+  gap: 0.5rem 1rem;
+}
+
+.form-check-wrapper li,
+.checkbox-group li,
+[class*="form-check-wrapper"] li {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* ===== Row/col - preserve Bootstrap grid ===== */
+.row {
+  flex-wrap: wrap;
+}
+
+.row > [class*="col-"] {
+  min-width: 0;
+}
+
+/* ===== Table containment ===== */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* ===== Section headers - consistent spacing ===== */
+.section-title,
+h2.mb-1,
+.page-header h1,
+.page-header h2 {
+  margin-bottom: 0.5rem;
+}
+
+/* ===== Action rows - horizontal, wrap when needed ===== */
+.d-flex.flex-wrap,
+.d-flex.justify-content-between,
+.d-flex.align-items-center {
+  flex-direction: row !important;
+}
+
+/* ===== Dashboard/page container consistency ===== */
+.dashboard-hero,
+.welcome-hero,
+.metrics-section,
+.dashboard-section,
+.workflow-hero,
+.feature-control-card {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Content pages - consistent padding and max-width */
+.professional-page,
+.page-content {
+  max-width: 100%;
+  min-width: 0;
+  padding-bottom: 2rem;
+}
+
+/* ===== Prevent content spilling past viewport ===== */
+.container-fluid,
+.container {
+  max-width: 100%;
+}
+
+/* ===== Professional scrollbars for contained areas ===== */
+.scrollable-choices::-webkit-scrollbar,
+.rbac-form-check-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-choices::-webkit-scrollbar-track,
+.rbac-form-check-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollable-choices::-webkit-scrollbar-thumb,
+.rbac-form-check-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
