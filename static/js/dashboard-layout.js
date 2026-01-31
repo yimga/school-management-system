@@ -542,6 +542,9 @@
 
     document.getElementById('btnAddWidget')?.addEventListener('click', openAddWidgetPalette);
 
+    // Skip layout load/apply for backend (complex nested row/col structure would break)
+    if (page === 'backend') return;
+
     // Loading state
     const loader = document.createElement('div');
     loader.className = 'small text-muted mb-2';

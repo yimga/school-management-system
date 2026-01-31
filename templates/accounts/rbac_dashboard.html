@@ -6,15 +6,64 @@
 <style>
   #rbac-page { min-width: 0; overflow-x: hidden; }
   #rbac-page .rbac-badge { white-space: nowrap; }
-  #rbac-page .rbac-form-check-wrapper { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; flex-direction: row; }
-  #rbac-page .rbac-form-check-wrapper .form-check { flex-direction: row; white-space: nowrap; }
+  #rbac-page .rbac-form-check-wrapper {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    flex-direction: row !important;
+    gap: 0.5rem 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem 0;
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,.125));
+    border-radius: 0.375rem;
+    background: var(--bs-body-bg, #fff);
+  }
+  #rbac-page .rbac-form-check-wrapper .form-check,
+  #rbac-page .rbac-form-check-wrapper li {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+    align-items: center;
+    min-width: 0;
+  }
+  #rbac-page .rbac-form-check-wrapper label,
+  #rbac-page .rbac-form-check-wrapper .form-check-label {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  #rbac-page .rbac-form-check-wrapper ul {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    flex-direction: row !important;
+    min-height: 0;
+  }
+  #rbac-page .rbac-form-check-wrapper input[type="checkbox"] {
+    flex-shrink: 0;
+    margin-right: 0.35rem;
+  }
   #rbac-page .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   #rbac-page .card { min-width: 0; }
+  #rbac-page .rbac-assign-roles-card .card-body { overflow: visible; }
+  /* Assign Permissions - same scrollable containment */
+  #rbac-page .rbac-form-check-wrapper.rbac-permissions-wrapper {
+    max-height: 180px;
+  }
+  /* Override design-system's aggressive .d-flex { flex-direction: column } on mobile */
+  #rbac-page .d-flex.flex-wrap { flex-direction: row !important; }
+  #rbac-page .d-flex.justify-content-between { flex-direction: row !important; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div id="rbac-page" class="rbac-page">
+<div id="rbac-page" class="rbac-page professional-page">
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
       <h2 class="mb-1">Access Control</h2>
@@ -25,7 +74,7 @@
   <!-- Assign Roles to User - PRIMARY ACTION FIRST -->
   <div class="row g-4 mb-4">
     <div class="col-12">
-      <div class="card border-primary">
+      <div class="card border-primary rbac-assign-roles-card">
         <div class="card-body">
           <h5 class="mb-3"><i class="bi bi-person-badge me-2"></i>Assign Roles to User</h5>
           <form method="post" class="row g-3">
@@ -38,9 +87,10 @@
             </div>
             <div class="col-md-8">
               <label class="form-label">Roles</label>
-              <div class="rbac-form-check-wrapper">
+              <div class="rbac-form-check-wrapper" id="rbac-roles-container">
                 {{ user_role_form.roles }}
               </div>
+              <small class="form-text text-muted">Scroll if many roles. Select one or more.</small>
             </div>
             <div class="col-12">
               <button class="btn btn-primary" type="submit">Save Roles</button>
@@ -126,7 +176,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">Permissions</label>
-              <div class="rbac-form-check-wrapper">
+              <div class="rbac-form-check-wrapper rbac-permissions-wrapper">
                 {{ user_permission_form.permissions }}
               </div>
             </div>

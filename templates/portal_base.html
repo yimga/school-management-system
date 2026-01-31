@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/responsive-performance.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui-alignment-improvements.css' %}">
+    <link rel="stylesheet" href="{% static 'css/portal-layout-professional.css' %}">
     {% block extrastyle %}{% endblock %}
 
     <style>
@@ -537,11 +538,11 @@
         letter-spacing: -0.3px;
       }
 
-      /* Messages chathead: fixed bottom-right above AI copilot (1 inch gap) */
+      /* Messages chathead: fixed bottom-right above AI copilot (1.5 inch gap) */
       .portal-chathead {
         position: fixed;
         right: max(16px, env(safe-area-inset-right));
-        bottom: calc(16px + 60px + 1in);
+        bottom: calc(16px + 60px + 1.5in);
         width: 44px;
         height: 44px;
         border-radius: 50%;

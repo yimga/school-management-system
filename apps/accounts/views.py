@@ -792,6 +792,7 @@ def backend_dashboard(request):
     context = {
         "site": site,
         "stats": stats,
+        "dashboard_stats_cards": [],  # Suppress portal_base stats block; backend has its own
         "workflow_progress": workflow_progress,
         "recommended_next_steps": recommended_next_steps,
         "use_backend_people_ui": use_backend_people_ui,

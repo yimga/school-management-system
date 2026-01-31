@@ -11,6 +11,11 @@
   flex-direction: column;
   gap: 1rem;
 }
+/* Rows keep horizontal flow for col-* children (don't stack cards vertically) */
+.row[data-dashboard-column] {
+  flex-direction: row !important;
+  flex-wrap: wrap;
+}
 
 [data-dashboard-column="main"] {
   flex: 1;
