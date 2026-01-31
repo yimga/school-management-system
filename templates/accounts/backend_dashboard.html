@@ -479,6 +479,29 @@
   
   {% admin_health as health %}
 
+  <!-- Global Search + Quick Actions -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+      <div class="row align-items-center g-2">
+        <div class="col-md-6">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="search" id="globalSearchInput" class="form-control" placeholder="Search students, teachers, invoices..." aria-label="Global search">
+          </div>
+        </div>
+        <div class="col-md-6 d-flex flex-wrap gap-2 justify-content-md-end">
+          <a class="btn btn-sm btn-outline-primary" href="{{ quick_student_create_url|default:'#' }}"><i class="bi bi-person-plus me-1"></i>Add Student</a>
+          <a class="btn btn-sm btn-outline-primary" href="{{ quick_teacher_create_url|default:'#' }}"><i class="bi bi-person-badge me-1"></i>Add Teacher</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'communication:announcement_create' %}"><i class="bi bi-megaphone me-1"></i>Announcement</a>
+          {% if request.user.is_superuser %}
+          <a class="btn btn-sm btn-outline-warning" href="{% url 'admin:index' %}" title="Configuration Engine"><i class="bi bi-gear-wide-connected me-1"></i>Configuration</a>
+          {% endif %}
+        </div>
+      </div>
+      <div id="globalSearchResults" class="mt-2 d-none"></div>
+    </div>
+  </div>
+
   <!-- Welcome Header -->
   <div class="mb-4">
     <h2 class="fw-bold mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h2>
@@ -793,114 +816,6 @@
   })();
   </script>
 
-  {% if allow_custom_layout %}
-  <div class="card shadow-sm mb-4 {% if not dashboard_settings.show_sidebar %}d-none{% endif %}" id="customShortcuts">
-    <div class="card-body">
-      <div class="d-flex flex-wrap align-items-center gap-3">
-        <div class="form-check form-switch mb-0">
-          <input class="form-check-input" type="checkbox" role="switch" id="toggleSidebar" {% if dashboard_settings.show_sidebar %}checked{% endif %}>
-          <label class="form-check-label" for="toggleSidebar">Show custom sidebar</label>
-        </div>
-        <div>
-          <label class="form-label small mb-1" for="tileVariantSelect">Tile density</label>
-          <select class="form-select form-select-sm" id="tileVariantSelect">
-            <option value="default" {% if dashboard_settings.tile_variant == 'default' %}selected{% endif %}>Default</option>
-            <option value="compact" {% if dashboard_settings.tile_variant == 'compact' %}selected{% endif %}>Compact</option>
-            <option value="flat" {% if dashboard_settings.tile_variant == 'flat' %}selected{% endif %}>Flat</option>
-          </select>
-        </div>
-        <div class="flex-grow-1">
-          <label class="form-label small mb-1 d-block">Sidebar items</label>
-          <div id="sidebarItemsPicker" class="d-flex flex-wrap align-items-center gap-2">
-            {% if organized_sidebar %}
-              {% for category, items in organized_sidebar.items %}
-                <div class="border rounded p-2 mb-2" style="width: 100%;">
-                  <div class="fw-semibold small text-muted mb-1">{{ sidebar_categories|get_item:category }}</div>
-                  <div class="d-flex flex-wrap gap-2">
-                    {% for item in items %}
-                      <div class="form-check form-check-inline mb-0">
-                        <input class="form-check-input" type="checkbox" value="{{ item.id }}" id="sidebarItem-{{ item.id }}" {% if item.id in dashboard_settings.sidebar_items %}checked{% endif %}>
-                        <label class="form-check-label small" for="sidebarItem-{{ item.id }}">
-                          <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
-                        </label>
-                      </div>
-                    {% endfor %}
-                  </div>
-                </div>
-              {% endfor %}
-            {% else %}
-              {% for item in available_sidebar_items %}
-                <div class="form-check form-check-inline mb-0">
-                  <input class="form-check-input" type="checkbox" value="{{ item.id }}" id="sidebarItem-{{ item.id }}" {% if item.id in dashboard_settings.sidebar_items %}checked{% endif %}>
-                  <label class="form-check-label small" for="sidebarItem-{{ item.id }}">
-                    <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
-                  </label>
-                </div>
-              {% endfor %}
-            {% endif %}
-          </div>
-        </div>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#customLinksModal">
-          Manage links
-        </button>
-      </div>
-      <p class="text-muted small mb-0 mt-2">Changes save to your profile automatically (RBAC-gated).</p>
-    </div>
-  </div>
-
-  <div class="modal fade" id="customLinksModal" tabindex="-1" aria-labelledby="customLinksLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="customLinksLabel">Custom quick links</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row g-2">
-            <div class="col-md-6">
-              <label class="form-label small" for="customLinkLabel">Label</label>
-              <input type="text" class="form-control form-control-sm" id="customLinkLabel" placeholder="Ex: Finance">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label small" for="customLinkUrl">URL</label>
-              <input type="url" class="form-control form-control-sm" id="customLinkUrl" placeholder="/finance/">
-            </div>
-            <div class="col-12 d-flex justify-content-between align-items-center mt-2">
-              <div class="small text-muted">Visible only to you. Links respect RBAC when opened.</div>
-              <button type="button" class="btn btn-sm btn-primary" id="addCustomLink">Add link</button>
-            </div>
-          </div>
-          <hr class="my-3">
-          <ul class="list-unstyled mb-0" id="customLinkList">
-            <li class="text-muted small">No custom links yet.</li>
-          </ul>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if allow_custom_layout %}
-  <div class="card shadow-sm mb-4">
-    <div class="card-body d-flex flex-wrap align-items-center gap-2">
-      <span class="badge bg-light text-dark text-uppercase small">Your shortcuts</span>
-      {% if not dashboard_settings.sidebar_items and not dashboard_settings.custom_links %}
-        <span class="text-muted small">No shortcuts selected yet.</span>
-      {% endif %}
-      {% for item in available_sidebar_items %}
-        {% if item.id in dashboard_settings.sidebar_items %}
-          <a class="btn btn-sm btn-outline-secondary" href="{{ item.url }}"><i class="bi {{ item.icon }} me-1"></i>{{ item.label }}</a>
-        {% endif %}
-      {% endfor %}
-      {% for link in dashboard_settings.custom_links %}
-        <a class="btn btn-sm btn-outline-primary" href="{{ link.url|default:'#' }}" rel="noopener">{{ link.label }}</a>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
   {% if allow_custom_layout %}
   <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
     {% include "components/dashboard_customize_ui.html" %}
@@ -1420,6 +1335,37 @@
 {% endblock %}
 
 {% block extra_js %}
+  <script>
+  (function() {
+    const input = document.getElementById('globalSearchInput');
+    const results = document.getElementById('globalSearchResults');
+    if (!input || !results) return;
+    let timeout;
+    input.addEventListener('input', function() {
+      clearTimeout(timeout);
+      const q = (this.value || '').trim();
+      if (q.length < 2) { results.classList.add('d-none'); results.innerHTML = ''; return; }
+      timeout = setTimeout(function() {
+        fetch('/api/search/?q=' + encodeURIComponent(q) + '&limit=8')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            const items = data.results || [];
+            if (items.length === 0) {
+              results.innerHTML = '<p class="small text-muted mb-0">No results</p>';
+            } else {
+              results.innerHTML = items.map(function(item) {
+                return '<a class="d-block py-1 px-2 rounded text-decoration-none" href="' + (item.url || '#') + '">' +
+                  '<i class="bi ' + (item.icon || 'bi-circle') + ' me-2"></i>' + (item.title || item.label || '') +
+                  (item.description ? ' <span class="text-muted small">' + item.description + '</span>' : '') + '</a>';
+              }).join('');
+            }
+            results.classList.remove('d-none');
+          })
+          .catch(function() { results.innerHTML = '<p class="small text-danger mb-0">Search failed</p>'; results.classList.remove('d-none'); });
+      }, 250);
+    });
+  })();
+  </script>
   {{ block.super }}
   <script src="{% static 'js/entity-orchestrator.js' %}"></script>
   <script src="{% static 'js/react-components-integrated.js' %}"></script>
@@ -1498,9 +1444,6 @@
       }
     })();
   </script>
-  {% if allow_custom_layout %}
-  <script src="{% static 'js/dashboard-customizer.js' %}"></script>
-  {% endif %}
   <script>
     (function() {
       const form = document.getElementById('bulkAssignForm');

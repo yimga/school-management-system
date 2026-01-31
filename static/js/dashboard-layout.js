@@ -8,13 +8,18 @@
 
   async function loadSortable() {
     if (window.Sortable) return window.Sortable;
+    const localSrc = '/static/js/sortable.min.js';
+    const cdnSrc = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js';
     return new Promise((resolve) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js';
-      s.async = true;
-      s.onload = () => resolve(window.Sortable);
-      s.onerror = () => resolve(null);
-      document.head.appendChild(s);
+      function tryLoad(url) {
+        const s = document.createElement('script');
+        s.src = url;
+        s.async = true;
+        s.onload = () => resolve(window.Sortable);
+        s.onerror = () => (url === cdnSrc ? resolve(null) : tryLoad(cdnSrc));
+        document.head.appendChild(s);
+      }
+      tryLoad(localSrc);
     });
   }
 
@@ -117,13 +122,35 @@
     }
   }
 
-  function injectGrip(el) {
+  function injectGrip(el, onMoveUpDown) {
     if (el.querySelector('.dashboard-widget-grip')) return;
     const grip = document.createElement('div');
     grip.className = 'dashboard-widget-grip';
     grip.setAttribute('aria-label', 'Drag to reorder');
-    grip.setAttribute('title', 'Drag to reorder');
+    grip.setAttribute('title', 'Drag to reorder. Arrow keys or buttons: move up/down.');
+    grip.setAttribute('tabindex', '0');
+    grip.setAttribute('role', 'button');
     grip.innerHTML = '<span class="dashboard-widget-grip-dots" aria-hidden="true">⋮⋮</span>';
+    if (typeof onMoveUpDown === 'function') {
+      grip.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowUp') { e.preventDefault(); onMoveUpDown(el, -1); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); onMoveUpDown(el, 1); }
+      });
+      var upBtn = document.createElement('button');
+      upBtn.type = 'button';
+      upBtn.className = 'dash-widget-move-btn d-block d-md-none';
+      upBtn.setAttribute('aria-label', 'Move up');
+      upBtn.innerHTML = '<i class="bi bi-chevron-up"></i>';
+      upBtn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onMoveUpDown(el, -1); });
+      var downBtn = document.createElement('button');
+      downBtn.type = 'button';
+      downBtn.className = 'dash-widget-move-btn d-block d-md-none';
+      downBtn.setAttribute('aria-label', 'Move down');
+      downBtn.innerHTML = '<i class="bi bi-chevron-down"></i>';
+      downBtn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onMoveUpDown(el, 1); });
+      grip.appendChild(upBtn);
+      grip.appendChild(downBtn);
+    }
     el.insertBefore(grip, el.firstChild);
   }
 
@@ -286,15 +313,36 @@
     const dragToggle = document.getElementById('toggleLayoutDrag') || document.getElementById('toggleCustomize');
     let sortables = [];
 
-    function showToast(message) {
+    function showToast(message, tone, withRetry) {
       const container = document.getElementById('dashboard-layout-toast');
       if (!container) return;
       const toast = document.createElement('div');
-      toast.className = 'dashboard-layout-toast-item alert alert-success shadow-sm mb-0';
+      toast.className = 'dashboard-layout-toast-item alert shadow-sm mb-0 d-flex align-items-center justify-content-between gap-2';
+      toast.classList.add(tone === 'error' ? 'alert-danger' : tone === 'warning' ? 'alert-warning' : 'alert-success');
       toast.setAttribute('role', 'status');
-      toast.textContent = message;
+      const span = document.createElement('span');
+      span.textContent = message;
+      toast.appendChild(span);
+      if (withRetry) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-outline-dark';
+        btn.textContent = 'Retry';
+        btn.addEventListener('click', () => { toast.remove(); saveLayout(); });
+        toast.appendChild(btn);
+      }
       container.appendChild(toast);
-      setTimeout(() => toast.remove(), 2500);
+      setTimeout(() => toast.remove(), withRetry ? 8000 : 2500);
+    }
+
+    function moveWidgetInColumn(col, el, delta, doSave) {
+      const widgets = Array.from(col.querySelectorAll('[data-widget-id]'));
+      const idx = widgets.indexOf(el);
+      if (idx < 0) return;
+      const newIdx = Math.max(0, Math.min(widgets.length - 1, idx + delta));
+      if (newIdx === idx) return;
+      if (delta < 0) col.insertBefore(el, widgets[newIdx]);
+      else col.insertBefore(el, widgets[newIdx].nextSibling);
+      if (doSave) saveLayout();
     }
 
     const saveLayout = () => {
@@ -322,8 +370,9 @@
         })
         .then((r) => {
           if (r && r.ok) showToast('Layout saved');
+          else showToast('Could not save layout.', 'error', true);
         })
-        .catch(() => {});
+        .catch(() => showToast('Could not save layout.', 'error', true));
     };
 
     const resetLayout = () => {
@@ -349,10 +398,19 @@
       btn.addEventListener('click', () => resetLayout());
     });
 
+    // Loading state
+    const loader = document.createElement('div');
+    loader.className = 'small text-muted mb-2';
+    loader.id = 'dashboard-layout-loading';
+    loader.textContent = 'Loading your layout…';
+    layoutRoot.parentNode.insertBefore(loader, layoutRoot);
+
     // Load current layout + widget metadata
     fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
+        const loader = document.getElementById('dashboard-layout-loading');
+        if (loader) loader.remove();
         if (!data) return;
         if (Array.isArray(data.widgets)) {
           widgetMetaById = {};
@@ -371,17 +429,21 @@
           });
         }
         columns.forEach((col) => {
+          const moveUpDown = (targetEl, delta) => moveWidgetInColumn(col, targetEl, delta, true);
           Array.from(col.querySelectorAll('[data-widget-id]')).forEach((el) => {
             const wid = el.dataset.widgetId;
             const item = Object.assign({}, layoutItemsById[wid] || {}, settingsMeta[wid] || {});
             const meta = widgetMetaById[wid] || {};
             applyPresentation(el, item, meta);
-            injectGrip(el);
+            injectGrip(el, moveUpDown);
             injectControls(el, meta, saveLayout);
           });
         });
       })
-      .catch(() => {});
+      .catch(() => {
+        const loader = document.getElementById('dashboard-layout-loading');
+        if (loader) loader.remove();
+      });
 
     let setEditModeFn = null;
     const customizeBtn = document.getElementById('btnCustomizeLayout');
@@ -474,6 +536,20 @@
           btn.classList.toggle('active', !!active);
           btn.setAttribute('aria-pressed', active ? 'true' : 'false');
           btn.innerHTML = (active ? '<i class="bi bi-check2 me-1"></i>Done' : '<i class="bi bi-grid-3x3-gap me-1"></i>Customize layout');
+          if (active) {
+            try {
+              if (localStorage.getItem('dashboard-customize-hint-seen') !== '1') {
+                var hint = document.createElement('div');
+                hint.className = 'alert alert-light border small mt-2';
+                hint.innerHTML = 'Drag cards by the grip (⋮⋮) to reorder. Use ▲▼ on mobile. <button type="button" class="btn-close btn-sm float-end" aria-label="Dismiss"></button>';
+                hint.querySelector('.btn-close').addEventListener('click', function () {
+                  try { localStorage.setItem('dashboard-customize-hint-seen', '1'); } catch (e) {}
+                  hint.remove();
+                });
+                if (instructions && instructions.parentNode) instructions.parentNode.insertBefore(hint, instructions.nextSibling);
+              }
+            } catch (e) {}
+          }
         }
         if (dragToggle) dragToggle.checked = !!active;
         if (active) enableDrag(); else disableDrag();

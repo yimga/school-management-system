@@ -4,23 +4,28 @@ from django.db import migrations, connection
 
 
 def remove_preview_fields_if_exist(apps, schema_editor):
-    """Remove fields only if they exist (already handled conditionally in 0045, but Django state needs update)."""
+    """Remove fields only if they exist (idempotent with 0045)."""
     db_table = 'siteconfig_sitesettings'
     fields_to_remove = [
         'preview_banner_text',
         'preview_toggle_enabled',
         'preview_toggle_label',
     ]
-    
+    vendor = connection.vendor
     with connection.cursor() as cursor:
         for field_name in fields_to_remove:
-            cursor.execute("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name=%s AND column_name=%s
-            """, [db_table, field_name])
-            if cursor.fetchone():
-                cursor.execute(f'ALTER TABLE siteconfig_sitesettings DROP COLUMN IF EXISTS {field_name}')
+            col_exists = False
+            if vendor == 'sqlite':
+                cursor.execute("PRAGMA table_info(%s)" % db_table)
+                col_exists = any(row[1] == field_name for row in cursor.fetchall())
+            else:
+                cursor.execute("""
+                    SELECT column_name FROM information_schema.columns
+                    WHERE table_name=%s AND column_name=%s
+                """, [db_table, field_name])
+                col_exists = cursor.fetchone() is not None
+            if col_exists:
+                cursor.execute('ALTER TABLE %s DROP COLUMN %s' % (db_table, field_name))
 
 
 def reverse_remove_preview_fields(apps, schema_editor):

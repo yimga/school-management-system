@@ -5,91 +5,356 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
-    <div>
-      <h1 class="h4 mb-1">Feature Control Panel</h1>
-      <p class="text-muted mb-0">
-        Toggle modules and features system-wide. Changes take effect immediately. Save updates all toggles at once.
-      </p>
-    </div>
-    <div class="d-flex align-items-center gap-2">
-      <div class="badge bg-light text-dark border px-3 py-2">
-        <span class="text-success fw-semibold">{{ active_count }}</span> / {{ total_count }} active
+  <div class="card shadow-sm border-0 overflow-hidden feature-control-card">
+    <div class="card-header feature-control-header bg-light border-bottom py-3 px-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+        <div>
+          <h1 class="h5 mb-1 fw-semibold">Feature Control Panel</h1>
+          <p class="text-muted small mb-0">Toggle modules system-wide. Changes apply immediately after save.</p>
+        </div>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <span class="badge bg-light text-dark border px-3 py-2">
+            <span class="text-success fw-semibold">{{ active_count }}</span><span class="text-muted">/{{ total_count }}</span> active
+          </span>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-1"></i>Audit Log</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_export' %}"><i class="bi bi-download me-1"></i>Export</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:customizer' %}">Customizer</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'admin:siteconfig_sitesettings_change' site_settings_id %}">Site Settings</a>
+        </div>
       </div>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:customizer' %}">Customizer</a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'admin:siteconfig_sitesettings_change' site_settings_id %}">Site Settings</a>
+      {% if last_saved %}
+      <p class="text-muted small mb-0 mt-2">
+        <i class="bi bi-clock-history"></i> Last saved by {{ last_saved.by }} — {{ last_saved.at }}
+      </p>
+      {% endif %}
     </div>
-  </div>
 
-  <form method="post" action="{% url 'siteconfig:feature_control_panel' %}" id="featureControlForm">
-    {% csrf_token %}
-    <div class="row g-4">
-      {% for cat in categories %}
-      <div class="col-lg-6">
-        <div class="card shadow-sm h-100">
-          <div class="card-header bg-transparent border-bottom d-flex align-items-center gap-2">
-            <i class="bi {{ cat.icon }} text-primary"></i>
-            <span class="fw-semibold">{{ cat.label }}</span>
-          </div>
-          <div class="card-body">
-            <ul class="list-unstyled mb-0">
-              {% for item in cat.items %}
-              <li class="d-flex align-items-center justify-content-between py-2 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                  <label class="form-check form-switch mb-0" for="feature_{{ item.key }}">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      role="switch"
-                      name="feature_{{ item.key }}"
-                      id="feature_{{ item.key }}"
-                      {% if item.enabled %}checked{% endif %}
-                      {% if item.critical %}data-critical="true"{% endif %}
-                    >
-                    <span class="form-check-label">{{ item.label }}</span>
-                  </label>
-                  {% if item.critical %}
-                  <span class="badge bg-warning text-dark" title="Disabling may hide data for users">Critical</span>
-                  {% endif %}
-                </div>
-                <span class="badge {% if item.enabled %}bg-success{% else %}bg-secondary{% endif %}">
-                  {% if item.enabled %}On{% else %}Off{% endif %}
-                </span>
-              </li>
-              {% endfor %}
-            </ul>
+    <div class="card-body p-4">
+      <div class="row mb-4 g-2">
+        <div class="col-12 col-md-6">
+          <label for="featureSearch" class="form-label small text-muted">Search features</label>
+          <input type="text" id="featureSearch" class="form-control form-control-sm" placeholder="Filter by name or description..." aria-label="Search features">
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label small text-muted d-block">Quick presets</label>
+          <div class="d-flex flex-wrap gap-1">
+            {% for preset_id, preset in bulk_presets.items %}
+            <button type="button" class="btn btn-outline-secondary btn-sm preset-btn" data-preset="{{ preset_id }}" title="{{ preset.description }}">
+              {{ preset.label }}
+            </button>
+            {% endfor %}
           </div>
         </div>
       </div>
-      {% endfor %}
+      <div id="noSearchResults" class="alert alert-secondary py-3 d-none" role="status">
+        <i class="bi bi-search me-2"></i>No features match your search. Try different keywords.
+      </div>
+
+      <form method="post" action="{% url 'siteconfig:feature_control_panel' %}" id="featureControlForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save">
+
+        <div class="row g-4" id="featureCategories">
+          {% for cat in categories %}
+          <div class="col-12 col-lg-6 col-xl-4 feature-category" data-category="{{ cat.id }}">
+            <div class="border rounded-3 p-3 h-100 feature-category-card" style="background: var(--bs-tertiary-bg, #f8f9fa);">
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi {{ cat.icon }} text-primary"></i>
+                  <span class="fw-semibold small text-uppercase">{{ cat.label }}</span>
+                </div>
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-outline-success btn-sm py-0 px-2 enable-all-cat" data-cat="{{ cat.id }}" title="Enable all">On</button>
+                  <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 disable-all-cat" data-cat="{{ cat.id }}" title="Disable all">Off</button>
+                </div>
+              </div>
+              <ul class="list-unstyled mb-0">
+                {% for item in cat.items %}
+                <li class="feature-toggle-row d-flex align-items-start justify-content-between gap-2 py-2 px-0" data-label="{{ item.label|lower }}" data-desc="{{ item.description|lower }}" data-key="{{ item.key }}" data-depends="{{ item.depends_on|join:',' }}">
+                  <div class="d-flex align-items-start gap-2 flex-grow-1 min-w-0">
+                    <label class="form-check form-switch mb-0 flex-shrink-0 feature-switch mt-1" for="feature_{{ item.key }}" title="{{ item.description }}">
+                      <input
+                        class="form-check-input feature-checkbox"
+                        type="checkbox"
+                        role="switch"
+                        name="feature_{{ item.key }}"
+                        id="feature_{{ item.key }}"
+                        data-cat="{{ cat.id }}"
+                        data-when-disabled="{{ item.when_disabled }}"
+                        {% if item.enabled %}checked{% endif %}
+                        {% if item.critical %}data-critical="true"{% endif %}
+                      >
+                    </label>
+                    <div class="min-w-0 flex-grow-1">
+                      <span class="form-check-label text-break feature-label d-block">{{ item.label }}</span>
+                      {% if item.description %}
+                      <span class="text-muted small d-block feature-desc">{{ item.description }}</span>
+                      {% endif %}
+                      {% if item.when_disabled %}
+                      <span class="text-muted small d-block mt-1" title="When disabled"><i class="bi bi-info-circle me-1"></i><em>{{ item.when_disabled }}</em></span>
+                      {% endif %}
+                    </div>
+                    {% if item.critical %}
+                    <span class="badge bg-warning text-dark flex-shrink-0 mt-1" style="font-size: 0.65rem;" title="Disabling may affect user access">!</span>
+                    {% endif %}
+                  </div>
+                  <span class="badge flex-shrink-0 status-badge align-self-center {% if item.enabled %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: 0.7rem;">
+                    {% if item.enabled %}On{% else %}Off{% endif %}
+                  </span>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-4 pt-4 border-top d-flex flex-wrap gap-2 align-items-center flex-sm-row">
+          <button type="submit" class="btn btn-primary" id="btnSave">
+            <i class="bi bi-check2-circle me-1"></i>Save changes
+          </button>
+          <button type="button" class="btn btn-outline-info btn-sm" id="btnPreviewDiff" title="See what would change">
+            <i class="bi bi-eye me-1"></i>Preview changes
+          </button>
+          {% if can_revert %}
+          <button type="submit" name="action" value="revert" class="btn btn-outline-warning" formnovalidate>
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Revert last change
+          </button>
+          {% endif %}
+          <div class="d-inline-flex align-items-center gap-1">
+            <input type="file" id="importFile" name="import_file" accept=".json" class="d-none">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="importTrigger"><i class="bi bi-upload me-1"></i>Import</button>
+          </div>
+          <a class="btn btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}">Cancel</a>
+          <span class="text-muted small ms-sm-auto mt-2 mt-sm-0">
+            <kbd class="bg-light border rounded px-1">Ctrl+S</kbd> Save · <kbd class="bg-light border rounded px-1">Esc</kbd> Cancel
+          </span>
+        </div>
+      </form>
     </div>
 
-    <div class="mt-4 d-flex flex-wrap gap-2">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-check2-circle me-1"></i>Save changes
-      </button>
-      <a class="btn btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}">Cancel</a>
+    <div class="card-footer bg-light border-top py-2 px-4">
+      <p class="small text-muted mb-0">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        Critical features affect user access. Disabling shows a confirmation. Batch save: toggle multiple, then Save once.
+      </p>
     </div>
-  </form>
-
-  <div class="alert alert-info mt-4 small" role="status">
-    <i class="bi bi-info-circle me-2"></i>
-    <strong>Batch save:</strong> Toggle multiple features, then click "Save changes" once. Disabling critical features (Parent Portal, Teacher Portal) will hide those dashboards for all users.
   </div>
 </div>
+
+<!-- Diff preview modal -->
+<div class="modal fade" id="diffModal" tabindex="-1" aria-labelledby="diffModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="diffModalLabel"><i class="bi bi-git me-2"></i>Preview changes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="diffModalBody">
+        <p class="text-muted">No changes to preview.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="diffModalSave">Save these changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.feature-toggle-row { border-bottom: 1px solid rgba(0,0,0,0.06); }
+.feature-toggle-row:last-child { border-bottom: none; }
+.feature-category-card.hidden-by-search { display: none !important; }
+.feature-toggle-row.hidden-by-search { display: none !important; }
+.feature-switch .form-check-input { min-width: 2.5rem; min-height: 1.25rem; }
+.feature-control-card { max-width: 1400px; margin: 0 auto; }
+@media (max-width: 575.98px) {
+  .feature-control-header { position: sticky; top: 0; z-index: 10; }
+  .feature-toggle-row .status-badge { align-self: flex-start !important; }
+  .feature-switch .form-check-input { min-width: 2.75rem; min-height: 1.4rem; }
+}
+</style>
 
 <script>
 (function() {
   const form = document.getElementById('featureControlForm');
+  const search = document.getElementById('featureSearch');
+  const noResults = document.getElementById('noSearchResults');
   const criticalInputs = form.querySelectorAll('[data-critical="true"]');
-  form.addEventListener('submit', function(e) {
-    let warn = false;
-    criticalInputs.forEach(function(inp) {
-      if (inp.checked === false) {
-        warn = true;
+  const maintenanceInp = form.querySelector('[name="feature_maintenance_mode"]');
+  const currentState = {{ current_json|safe }};
+  let searchTimeout = null;
+
+  function updateStatusBadges() {
+    form.querySelectorAll('.feature-toggle-row').forEach(function(row) {
+      const cb = row.querySelector('.feature-checkbox');
+      const badge = row.querySelector('.status-badge');
+      if (cb && badge) {
+        badge.textContent = cb.checked ? 'On' : 'Off';
+        badge.classList.toggle('bg-success', cb.checked);
+        badge.classList.toggle('bg-secondary', !cb.checked);
       }
     });
-    if (warn && !confirm('You are turning off critical features. Affected users will lose access to their dashboards. Continue?')) {
+  }
+
+  form.querySelectorAll('.feature-checkbox').forEach(function(cb) {
+    cb.addEventListener('change', function() {
+      updateStatusBadges();
+      formDirty = true;
+    });
+  });
+
+  form.querySelectorAll('.enable-all-cat').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const cat = this.dataset.cat;
+      form.querySelectorAll('.feature-checkbox[data-cat="' + cat + '"]').forEach(function(c) { c.checked = true; });
+      updateStatusBadges();
+      formDirty = true;
+    });
+  });
+  form.querySelectorAll('.disable-all-cat').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const cat = this.dataset.cat;
+      form.querySelectorAll('.feature-checkbox[data-cat="' + cat + '"]').forEach(function(c) { c.checked = false; });
+      updateStatusBadges();
+      formDirty = true;
+    });
+  });
+
+  document.querySelectorAll('.preset-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const presetId = this.dataset.preset;
+      const presets = {{ bulk_presets_json|safe }};
+      const preset = presets[presetId];
+      if (!preset || !confirm('Apply preset "' + preset.label + '"? This will update toggles; click Save to apply.')) return;
+      const setOn = preset.set_on || [];
+      const setOff = preset.set_off || [];
+      form.querySelectorAll('.feature-checkbox').forEach(function(cb) {
+        const name = cb.name.replace('feature_', '');
+        if (setOn.indexOf(name) >= 0) cb.checked = true;
+        else if (setOff.indexOf(name) >= 0) cb.checked = false;
+      });
+      updateStatusBadges();
+      formDirty = true;
+    });
+  });
+
+  if (search) {
+    search.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(function() {
+        const q = (search.value || '').toLowerCase().trim();
+        let anyVisible = false;
+        form.querySelectorAll('.feature-category').forEach(function(cat) {
+          let visibleCount = 0;
+          cat.querySelectorAll('.feature-toggle-row').forEach(function(row) {
+            const label = (row.dataset.label || '');
+            const desc = (row.dataset.desc || '');
+            const match = !q || label.indexOf(q) >= 0 || desc.indexOf(q) >= 0;
+            row.classList.toggle('hidden-by-search', !match);
+            if (match) visibleCount++;
+          });
+          cat.classList.toggle('hidden-by-search', visibleCount === 0);
+          if (visibleCount > 0) anyVisible = true;
+        });
+        noResults.classList.toggle('d-none', !!q && !anyVisible);
+      }, 200);
+    });
+  }
+
+  let formDirty = false;
+  form.querySelectorAll('input, select').forEach(function(el) {
+    el.addEventListener('change', function() { formDirty = true; });
+  });
+  form.addEventListener('submit', function() {
+    formDirty = false;
+    const btn = document.getElementById('btnSave');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...'; }
+  });
+  window.addEventListener('beforeunload', function(e) {
+    if (formDirty) e.preventDefault();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 's') { e.preventDefault(); form.querySelector('[type="submit"]').click(); }
+    if (e.key === 'Escape') { window.location.href = '{% url "accounts:backend_dashboard" %}'; }
+  });
+
+  const importFile = document.getElementById('importFile');
+  const importTrigger = document.getElementById('importTrigger');
+  if (importFile && importTrigger) {
+    importTrigger.addEventListener('click', function() { importFile.click(); });
+    importFile.addEventListener('change', function() {
+      if (this.files && this.files[0] && confirm('Import will overwrite current feature settings and save immediately. Continue?')) {
+        formDirty = false;
+        form.submit();
+      }
+    });
+  }
+
+  function getFormState() {
+    const state = {};
+    form.querySelectorAll('.feature-checkbox').forEach(function(cb) {
+      state[cb.name.replace('feature_', '')] = cb.checked;
+    });
+    return state;
+  }
+
+  function buildDiffHtml() {
+    const next = getFormState();
+    const changes = [];
+    for (const k in currentState) {
+      if (currentState[k] !== next[k]) {
+        changes.push({ key: k, from: currentState[k], to: next[k] });
+      }
+    }
+    if (changes.length === 0) return '<p class="text-muted mb-0">No changes to preview.</p>';
+    let html = '<ul class="list-unstyled mb-0">';
+    changes.forEach(function(c) {
+      html += '<li class="py-1 border-bottom"><code>' + c.key + '</code>: ' + (c.from ? 'On' : 'Off') + ' → ' + (c.to ? 'On' : 'Off') + '</li>';
+    });
+    html += '</ul>';
+    return html;
+  }
+
+  const diffModal = document.getElementById('diffModal');
+  const diffModalBody = document.getElementById('diffModalBody');
+  const diffModalSave = document.getElementById('diffModalSave');
+  document.getElementById('btnPreviewDiff').addEventListener('click', function() {
+    diffModalBody.innerHTML = buildDiffHtml();
+    var modal = new bootstrap.Modal(diffModal);
+    modal.show();
+  });
+  if (diffModalSave) {
+    diffModalSave.addEventListener('click', function() {
+      bootstrap.Modal.getInstance(diffModal).hide();
+      form.submit();
+    });
+  }
+
+  form.addEventListener('submit', function(e) {
+    if (e.submitter && e.submitter.getAttribute('name') === 'action' && e.submitter.value === 'revert') return;
+    let warn = false;
+    criticalInputs.forEach(function(inp) { if (inp.checked === false) warn = true; });
+    const depWarns = [];
+    form.querySelectorAll('.feature-toggle-row[data-depends]').forEach(function(row) {
+      const cb = row.querySelector('.feature-checkbox');
+      if (!cb || !cb.checked) return;
+      const deps = (row.dataset.depends || '').split(',').filter(Boolean);
+      deps.forEach(function(dep) {
+        const depEl = form.querySelector('[name="feature_' + dep.trim() + '"]');
+        if (depEl && !depEl.checked) depWarns.push(cb.name.replace('feature_', '') + ' requires ' + dep.trim());
+      });
+    });
+    if (depWarns.length && !confirm('Some enabled features depend on disabled ones: ' + depWarns.join('; ') + '. Continue?')) {
+      e.preventDefault();
+      return;
+    }
+    if (maintenanceInp && maintenanceInp.checked && !confirm('Enabling Maintenance Mode will redirect all users to a maintenance page. Continue?')) {
+      e.preventDefault();
+      return;
+    }
+    if (warn && !confirm('You are turning off critical features. Affected users may lose access. Continue?')) {
       e.preventDefault();
     }
   });

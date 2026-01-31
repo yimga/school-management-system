@@ -458,9 +458,11 @@
         {% endif %}
         {% endif %}
         <div class="sidebar-section-title">People & Access</div>
-        <a class="nav-link nav-pill" href="{% url 'admin:people_studentprofile_changelist' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>
+        <a class="nav-link nav-pill" href="{% url 'accounts:backend_student_list' %}"><i class="bi bi-person-lines-fill me-2"></i>Student Profiles</a>
+        {% if request.user.is_superuser %}
         <a class="nav-link nav-pill" href="{% url 'admin:people_studentguardian_changelist' %}"><i class="bi bi-people-fill me-2"></i>Student Guardians</a>
         <a class="nav-link nav-pill" href="{% url 'admin:auth_group_changelist' %}"><i class="bi bi-unlock me-2"></i>Authentication Groups</a>
+        {% endif %}
         <a class="nav-link nav-pill" href="{% url 'accounts:rbac' %}"><i class="bi bi-diagram-3 me-2"></i>RBAC & Access Control</a>
         <div class="sidebar-section-title">Academic Management</div>
         <a class="nav-link nav-pill" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-clipboard-data me-2"></i>Evaluation Admin</a>
@@ -484,16 +486,21 @@
         {% endif %}
         <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-gear-fill me-2"></i>Backend Console</a>
         <a class="nav-link nav-pill" href="{% url 'accounts:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
-        {% if request.user.is_superuser %}
+        <a class="nav-link nav-pill" href="{% url 'accounts:approval_workflow_hub' %}"><i class="bi bi-clipboard-check me-2"></i>Approval Hub</a>
+        <a class="nav-link nav-pill" href="{% url 'accounts:import_hub' %}"><i class="bi bi-upload me-2"></i>Import Hub</a>
+        {% if request.user.is_superuser or request.user|has_feature_permission:"settings.feature_control" %}
         <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_panel' %}"><i class="bi bi-toggle-on me-2"></i>Feature Control</a>
+        <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_audit' %}"><i class="bi bi-clock-history me-2"></i>Feature Control Audit</a>
         {% endif %}
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_superuser %}
         <a class="nav-link nav-pill" href="{% url 'siteconfig:customizer' %}"><i class="bi bi-palette me-2"></i>Customizer</a>
+        {% endif %}
+        {% if request.user.is_superuser %}
         <a class="nav-link nav-pill" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}"><i class="bi bi-gear-wide me-2"></i>Site Settings</a>
         <a class="nav-link nav-pill" href="{% url 'admin:siteconfig_regionconfig_changelist' %}"><i class="bi bi-geo-alt me-2"></i>Region Configuration</a>
         {% endif %}
-        {% if request.user.is_staff or request.user.is_superuser %}
-        <a class="nav-link nav-pill" href="{% url 'admin:index' %}"><i class="bi bi-grid me-2"></i>Django Admin</a>
+        {% if request.user.is_superuser %}
+        <a class="nav-link nav-pill" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected me-2"></i>Configuration Engine</a>
         {% endif %}
         {% endif %}
       {% endif %}

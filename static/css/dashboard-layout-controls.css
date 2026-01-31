@@ -283,6 +283,37 @@ html[data-theme="light"] .dash-widget-row select {
   }
 }
 
+/* Mobile: up/down reorder buttons (alternative to drag on touch) */
+.dash-widget-move-btn {
+  padding: 0.15rem 0.3rem;
+  font-size: 0.85rem;
+  min-width: 1.5rem;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.9);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--bs-primary, #0d6efd);
+}
+.dash-widget-move-btn:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+#dashboard-layout.drag-mode .dashboard-widget-grip {
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  width: auto;
+  min-width: 1.75rem;
+}
+#dashboard-layout.drag-mode .dash-widget-move-btn.d-block {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+@media (min-width: 768px) {
+  .dash-widget-move-btn.d-block.d-md-none {
+    display: none !important;
+  }
+}
+
 /* Mobile touch support */
 @media (max-width: 768px) {
   #dashboard-layout.drag-mode [data-widget-id] {

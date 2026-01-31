@@ -21,20 +21,11 @@ User = get_user_model()
 
 
 def _dashboard_layout_url(request, user):
-    """Contextual link to current dashboard + ?customize=1 for users who can customize."""
+    """Link to Backend dashboard + ?customize=1 (only backend supports layout customization)."""
     try:
         from apps.siteconfig.dashboard_views import _can_customize
         if not _can_customize(user):
             return None
-        path = (request.path or "").lower()
-        if "/finance/" in path:
-            return _safe_reverse("finance:dashboard") + "?customize=1"
-        if "/analytics/" in path:
-            return _safe_reverse("analytics:dashboard") + "?customize=1"
-        if "/payroll/" in path:
-            return _safe_reverse("payroll:dashboard") + "?customize=1"
-        if "/emis/" in path:
-            return _safe_reverse("emis:dashboard") + "?customize=1"
         return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
     except Exception:
         return _safe_reverse("accounts:backend_dashboard") + "?customize=1"
@@ -130,9 +121,14 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
         # Certification & Exams (GCE) – admins get quick access; certification home handles “not enabled”
         items.append({"id": "certification", "label": "Certification & Exams", "url": _safe_reverse("accounts:certification_home"), "icon": "bi-award", "section": "Academic Management", "badge": None})
-        items.append({"id": "students", "label": "Student Profiles", "url": _safe_reverse("admin:people_studentprofile_changelist"), "icon": "bi-person-lines-fill", "section": "People & Access", "badge": None})
-        items.append({"id": "guardians", "label": "Student Guardians", "url": _safe_reverse("admin:people_studentguardian_changelist"), "icon": "bi-people-fill", "section": "People & Access", "badge": None})
-        items.append({"id": "groups", "label": "Authentication Groups", "url": _safe_reverse("admin:auth_group_changelist"), "icon": "bi-unlock", "section": "People & Access", "badge": None})
+        student_list_url = _safe_reverse("accounts:backend_student_list")
+        if not student_list_url and is_superuser:
+            student_list_url = _safe_reverse("admin:people_studentprofile_changelist")
+        if student_list_url:
+            items.append({"id": "students", "label": "Student Profiles", "url": student_list_url, "icon": "bi-person-lines-fill", "section": "People & Access", "badge": None})
+        if is_superuser:
+            items.append({"id": "guardians", "label": "Student Guardians", "url": _safe_reverse("admin:people_studentguardian_changelist"), "icon": "bi-people-fill", "section": "People & Access", "badge": None})
+            items.append({"id": "groups", "label": "Authentication Groups", "url": _safe_reverse("admin:auth_group_changelist"), "icon": "bi-unlock", "section": "People & Access", "badge": None})
         items.append({"id": "rbac", "label": "RBAC & Access Control", "url": _safe_reverse("accounts:rbac"), "icon": "bi-diagram-3", "section": "People & Access", "badge": None})
         items.append({"id": "eval_admin", "label": "Evaluation Admin", "url": _safe_reverse("evals:evaluation_admin"), "icon": "bi-clipboard-data", "section": "Academic Management", "badge": None})
         items.append({"id": "class_ranking", "label": "Class Ranking", "url": _safe_reverse("evals:class_ranking"), "icon": "bi-trophy", "section": "Academic Management", "badge": None})
@@ -148,17 +144,25 @@ def build_portal_sidebar_items(request, site):
         dashboard_layout_url = _dashboard_layout_url(request, user)
         if dashboard_layout_url:
             items.append({"id": "dashboard_layout", "label": "Dashboard Layout", "url": dashboard_layout_url, "icon": "bi-grid-3x3-gap", "section": "Admin Panel", "badge": None})
-        if is_superuser:
+        if is_superuser or getattr(user, "has_feature_permission", lambda _: False)("settings.feature_control"):
             items.append({"id": "feature_control", "label": "Feature Control", "url": _safe_reverse("siteconfig:feature_control_panel"), "icon": "bi-toggle-on", "section": "Admin Panel", "badge": None})
+            items.append({"id": "feature_control_audit", "label": "Feature Control Audit", "url": _safe_reverse("siteconfig:feature_control_audit"), "icon": "bi-clock-history", "section": "Admin Panel", "badge": None})
         items.append({"id": "backend", "label": "Backend Console", "url": _safe_reverse("accounts:backend_dashboard"), "icon": "bi-gear-fill", "section": "Admin Panel", "badge": None})
         items.append({"id": "workflow_center", "label": "Workflow Center", "url": _safe_reverse("accounts:workflow_center"), "icon": "bi-diagram-3", "section": "Admin Panel", "badge": None})
+        approval_hub_url = _safe_reverse("accounts:approval_workflow_hub")
+        if approval_hub_url:
+            items.append({"id": "approval_hub", "label": "Approval Hub", "url": approval_hub_url, "icon": "bi-clipboard-check", "section": "Admin Panel", "badge": None})
+        import_hub_url = _safe_reverse("accounts:import_hub")
+        if import_hub_url:
+            items.append({"id": "import_hub", "label": "Import Hub", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
         if can_manage_site:
             items.append({"id": "customizer", "label": "Customizer", "url": _safe_reverse("siteconfig:customizer"), "icon": "bi-palette", "section": "Admin Panel", "badge": None})
+        if is_superuser:
             site_pk = getattr(site, "pk", 1)
             items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
             items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:siteconfig_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})
-        if is_staff or is_superuser:
-            items.append({"id": "admin_panel", "label": "Django Admin", "url": _safe_reverse("admin:index"), "icon": "bi-grid", "section": "Admin Panel", "badge": None})
+        if is_superuser:
+            items.append({"id": "admin_panel", "label": "Configuration Engine", "url": _safe_reverse("admin:index"), "icon": "bi-gear-wide-connected", "section": "Admin Panel", "badge": None})
 
     # Drop items with no URL
     items = [x for x in items if x.get("url")]

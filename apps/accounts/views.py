@@ -777,6 +777,8 @@ def backend_dashboard(request):
         "finance_access_banner": finance_access_banner,
         "certification_stats": certification_stats,
         "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
+        "quick_student_create_url": _safe_reverse("accounts:backend_student_create") if _safe_reverse("accounts:backend_student_create") != "#" else _safe_reverse("admin:people_studentprofile_add"),
+        "quick_teacher_create_url": _safe_reverse("accounts:backend_teacher_create") if _safe_reverse("accounts:backend_teacher_create") != "#" else _safe_reverse("admin:people_teacherprofile_add"),
         "breadcrumbs": [{"title": "Backend", "url": reverse("accounts:backend_dashboard"), "icon": "bi-speedometer2"}],
         "BREADCRUMBS": [
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
@@ -814,6 +816,43 @@ def _workflow_link(label, url_name, primary=False, args=None, kwargs=None):
         return {"label": label, "url": url, "primary": primary} if primary else {"label": label, "url": url}
     except NoReverseMatch:
         return None
+
+
+def _can_access_approval_hub(user):
+    """Staff roles that can access approval workflows."""
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    role = (getattr(user, "role", "") or "").upper()
+    return role in {
+        "ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL",
+        "DEAN", "BURSAR", "FINANCE_STAFF", "ACADEMICS_STAFF", "COMMS_STAFF",
+    }
+
+
+@login_required
+@user_passes_test(_can_access_approval_hub)
+def approval_workflow_hub(request):
+    """Hub linking to Grade Approvals, Access Requests, Contact Requests."""
+    return render(request, "accounts/approval_workflow_hub.html", {
+        "BREADCRUMBS": [
+            {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+            {"label": "Approval Hub", "url": "", "active": True},
+        ],
+    })
+
+
+@login_required
+@user_passes_test(_is_admin_user)
+def import_hub(request):
+    """Hub linking to Entity Import, Grade Import, templates."""
+    return render(request, "accounts/import_hub.html", {
+        "BREADCRUMBS": [
+            {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+            {"label": "Import Hub", "url": "", "active": True},
+        ],
+    })
 
 
 @permission_required("settings.manage")

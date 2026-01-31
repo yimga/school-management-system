@@ -56,9 +56,11 @@
                     </span>
                   </td>
                   <td>
-                    <a href="/admin/people/studentprofile/{{ student.id }}/change/" class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-pencil"></i>
+                    {% if request.user.is_superuser %}
+                    <a href="{% url 'admin:people_studentprofile_change' student.id %}" class="btn btn-sm btn-outline-warning" title="Edit in Configuration Engine">
+                      <i class="bi bi-gear"></i>
                     </a>
+                    {% endif %}
                   </td>
                 </tr>
                 {% empty %}
