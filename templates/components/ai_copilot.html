@@ -80,7 +80,16 @@
     <!-- Quick Actions -->
     <div class="ai-quick-actions" id="aiQuickActions">
       <div class="small text-muted mb-2 px-3">Quick Actions:</div>
-      <div class="d-flex flex-wrap gap-2 px-3 pb-2">
+      <div class="d-flex flex-wrap gap-2 px-3 pb-2" id="aiQuickActionsContainer">
+        <div class="ai-dashboard-actions d-none w-100 mb-2" id="aiDashboardActions">
+          <span class="small text-muted d-block mb-1">Dashboard:</span>
+          <button class="btn btn-sm btn-outline-secondary ai-dashboard-btn" id="aiBtnAddWidget" type="button" title="Open Add widget palette">
+            <i class="bi bi-plus-square"></i> Add widget
+          </button>
+          <button class="btn btn-sm btn-outline-secondary ai-dashboard-btn" id="aiBtnCustomizeLayout" type="button" title="Enter layout customize mode">
+            <i class="bi bi-grid-3x3-gap"></i> Customize layout
+          </button>
+        </div>
         {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
           <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show me today's attendance summary">
             <i class="bi bi-calendar-check"></i> Today's Attendance
@@ -548,6 +557,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (panel) {
       forcePanelPosition(panel);
+    }
+
+    const dashboardPage = document.body.dataset.dashboardPage || '';
+    const dashboardActions = wrapper.querySelector('#aiDashboardActions');
+    if (dashboardActions && (dashboardPage === 'backend' || dashboardPage === 'teacher' || dashboardPage === 'parent')) {
+      dashboardActions.classList.remove('d-none');
+      const addWidgetBtn = wrapper.querySelector('#aiBtnAddWidget');
+      const customizeBtn = wrapper.querySelector('#aiBtnCustomizeLayout');
+      if (addWidgetBtn) {
+        addWidgetBtn.addEventListener('click', function() {
+          document.getElementById('btnAddWidget')?.click();
+        });
+      }
+      if (customizeBtn) {
+        customizeBtn.addEventListener('click', function() {
+          document.getElementById('btnCustomizeLayout')?.click();
+        });
+      }
     }
 
     if (!trigger || !panel || !closeBtn || !input || !sendBtn || !body) {

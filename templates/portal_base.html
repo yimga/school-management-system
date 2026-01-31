@@ -98,6 +98,39 @@
         outline-offset: 2px;
       }
 
+      .header-search-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 4px;
+        max-height: 320px;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        border: 1px solid #e2e8f0;
+        z-index: 1050;
+      }
+      .header-search-dropdown .search-result-item {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        color: #1e293b;
+        text-decoration: none;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s;
+      }
+      .header-search-dropdown .search-result-item:hover,
+      .header-search-dropdown .search-result-item:focus {
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      .header-search-dropdown .search-result-item:last-child { border-bottom: none; }
+      .header-search-dropdown .search-result-muted { font-size: 0.8rem; color: #64748b; }
+      .header-search-dropdown .search-result-empty,
+      .header-search-dropdown .search-result-error { padding: 0.75rem; color: #64748b; font-size: 0.9rem; }
+
       .topbar-actions {
         flex-wrap: wrap;
         justify-content: flex-end;
@@ -637,17 +670,21 @@
             </div>
 
             {% if SHOW_HEADER_SEARCH %}
-            <!-- Search Bar (Ctrl+K) - placeholder and hint visible on gradient -->
-            <div class="topbar-search search-bar-wrapper" style="position: relative;">
+            <!-- Global Search Bar (Ctrl+K) - searches students, teachers, invoices, etc. -->
+            <div class="topbar-search search-bar-wrapper header-search-container" style="position: relative;">
               <input 
                 type="text" 
-                class="form-control form-control-sm topbar-search-input" 
-                placeholder="Search... (Ctrl+K)"
+                class="form-control form-control-sm topbar-search-input nav-search" 
+                placeholder="Search students, teachers, invoices... (Ctrl+K)"
                 id="headerSearchInput"
-                aria-label="Search portal"
-                style="width: 200px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff;"
+                aria-label="Global search"
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="headerSearchResults"
+                style="width: 220px; min-width: 180px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff;"
               />
-              <small class="topbar-search-hint" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: rgba(255,255,255,0.85); pointer-events: none;">⌘K</small>
+              <small class="topbar-search-hint" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: rgba(255,255,255,0.85); pointer-events: none;">Ctrl+K</small>
+              <div id="headerSearchResults" class="header-search-dropdown" role="listbox" aria-label="Search results" style="display: none;"></div>
             </div>
             {% endif %}
 
@@ -782,7 +819,10 @@
     <script src="{% static 'js/react-integration.js' %}"></script>
     <script src="{% static 'js/react-hooks.js' %}"></script>
     {% endblock %}
-    
+
+    {% block extra_js %}{% endblock %}
+    {% block extrajs %}{% endblock %}
+
     <script>
       // Theme Toggle: light / dark / system (persisted in localStorage)
       document.addEventListener('DOMContentLoaded', function() {
@@ -835,30 +875,84 @@
         }
       });
 
-      // Search Bar Functionality (Ctrl+K)
+      // Global Search Bar (Ctrl+K) - fetches /api/search/ and shows results
       document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('headerSearchInput');
-        
-        if (searchInput) {
-          // Focus on Ctrl+K or Cmd+K
-          document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-              e.preventDefault();
-              searchInput.focus();
-            }
-          });
-          
-          // Handle search on Enter
-          searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-              const query = this.value.trim();
-              if (query) {
-                // Perform search - redirect to search results or filter
-                window.location.href = `/search/?q=${encodeURIComponent(query)}`;
-              }
-            }
-          });
+        const resultsEl = document.getElementById('headerSearchResults');
+        if (!searchInput || !resultsEl) return;
+
+        var searchTimeout;
+        var lastQuery = '';
+
+        function showResults(html) {
+          resultsEl.innerHTML = html;
+          resultsEl.style.display = html ? 'block' : 'none';
+          searchInput.setAttribute('aria-expanded', html ? 'true' : 'false');
         }
+
+        function hideResults() {
+          setTimeout(function() { showResults(''); }, 150);
+        }
+
+        document.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+          }
+        });
+
+        searchInput.addEventListener('input', function() {
+          var q = (this.value || '').trim();
+          clearTimeout(searchTimeout);
+          if (q.length < 2) {
+            showResults('');
+            return;
+          }
+          searchTimeout = setTimeout(function() {
+            fetch('/api/search/?q=' + encodeURIComponent(q) + '&limit=8', { credentials: 'same-origin' })
+              .then(function(r) {
+                if (!r.ok) throw new Error('Search failed');
+                return r.json();
+              })
+              .then(function(data) {
+                var esc = function(t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; };
+                var items = data.results || [];
+                if (items.length === 0) {
+                  showResults('<div class="search-result-empty">No results for "' + esc(q.length > 20 ? q.slice(0,20) + '...' : q) + '"</div>');
+                } else {
+                  showResults(items.map(function(item) {
+                    var title = esc(item.title || item.label || '');
+                    var desc = item.description ? ' <span class="search-result-muted">' + esc(item.description) + '</span>' : '';
+                    var url = (item.url || '#').replace(/"/g, '&quot;');
+                    return '<a class="search-result-item" href="' + url + '" role="option"><i class="bi ' + (item.icon || 'bi-circle') + ' me-2"></i>' + title + desc + '</a>';
+                  }).join(''));
+                }
+              })
+              .catch(function() {
+                showResults('<div class="search-result-error">Search failed. Try again.</div>');
+              });
+          }, 250);
+        });
+
+        searchInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            showResults('');
+            this.blur();
+          } else if (e.key === 'Enter') {
+            var first = resultsEl.querySelector('.search-result-item');
+            if (first) {
+              first.click();
+              showResults('');
+            }
+          }
+        });
+
+        searchInput.addEventListener('blur', function(e) {
+          var rel = e.relatedTarget;
+          if (rel && resultsEl.contains(rel)) return;
+          hideResults();
+        });
       });
 
       // Resizable sidebar: drag handle updates --portal-sidebar-width and persists to localStorage

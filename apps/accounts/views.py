@@ -702,6 +702,70 @@ def backend_dashboard(request):
     except ImportError:
         use_backend_people_ui = False
 
+    # Chart JSON for dashboard visualizations
+    chart_finance_status_json = ""
+    chart_finance_trend_json = ""
+    chart_attendance_donut_json = ""
+    chart_rbac_roles_json = ""
+    if compliance_profile and finance_status_counts:
+        from apps.finance.models import Invoice
+        status_labels = dict(Invoice.Status.choices)
+        chart_finance_status_json = json.dumps({
+            "type": "doughnut",
+            "data": {
+                "labels": [status_labels.get(sc["status"], sc["status"]) for sc in finance_status_counts],
+                "datasets": [{
+                    "data": [sc["count"] for sc in finance_status_counts],
+                    "backgroundColor": ["#6c757d", "#0d6efd", "#ffc107", "#198754", "#dc3545", "#adb5bd"][: len(finance_status_counts)],
+                }],
+            },
+        })
+    if finance_trend:
+        chart_finance_trend_json = json.dumps({
+            "type": "line",
+            "data": {
+                "labels": [t["label"] for t in finance_trend],
+                "datasets": [{
+                    "label": "Invoice total",
+                    "data": [float(t.get("total", 0)) for t in finance_trend],
+                    "fill": True,
+                    "borderColor": "#0d6efd",
+                    "backgroundColor": "rgba(13, 110, 253, 0.15)",
+                    "tension": 0.3,
+                }],
+            },
+        })
+    if attendance_counts:
+        labels = list(attendance_counts.keys())
+        counts = list(attendance_counts.values())
+        chart_attendance_donut_json = json.dumps({
+            "type": "doughnut",
+            "data": {
+                "labels": labels,
+                "datasets": [{
+                    "data": counts,
+                    "backgroundColor": ["#198754", "#ffc107", "#dc3545", "#6c757d", "#0d6efd"][: len(labels)],
+                }],
+            },
+        })
+    roles_qs = AccessRole.objects.prefetch_related("permissions", "users").order_by("code")
+    role_user_counts = {r.code: r.users.count() for r in roles_qs}
+    if role_user_counts:
+        chart_rbac_roles_json = json.dumps({
+            "type": "bar",
+            "data": {
+                "labels": list(role_user_counts.keys()),
+                "datasets": [{
+                    "label": "Users",
+                    "data": list(role_user_counts.values()),
+                    "backgroundColor": "rgba(13, 110, 253, 0.8)",
+                    "borderColor": "#0d6efd",
+                    "borderWidth": 1,
+                }],
+            },
+            "options": {"indexAxis": "y"},
+        })
+
     # Workflow progress and recommended next steps for dashboard
     workflow_progress = _workflow_progress(year)
     recommended_next_steps = []
@@ -777,6 +841,10 @@ def backend_dashboard(request):
         "finance_access_banner": finance_access_banner,
         "certification_stats": certification_stats,
         "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
+        "chart_finance_status_json": chart_finance_status_json,
+        "chart_finance_trend_json": chart_finance_trend_json,
+        "chart_attendance_donut_json": chart_attendance_donut_json,
+        "chart_rbac_roles_json": chart_rbac_roles_json,
         "quick_student_create_url": _safe_reverse("accounts:backend_student_create") if _safe_reverse("accounts:backend_student_create") != "#" else _safe_reverse("admin:people_studentprofile_add"),
         "quick_teacher_create_url": _safe_reverse("accounts:backend_teacher_create") if _safe_reverse("accounts:backend_teacher_create") != "#" else _safe_reverse("admin:people_teacherprofile_add"),
         "breadcrumbs": [{"title": "Backend", "url": reverse("accounts:backend_dashboard"), "icon": "bi-speedometer2"}],

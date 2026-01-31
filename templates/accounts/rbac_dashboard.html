@@ -1,11 +1,53 @@
 {% extends "portal_base.html" %}
 {% block title %}Access Control{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  #rbac-page { min-width: 0; overflow-x: hidden; }
+  #rbac-page .rbac-badge { white-space: nowrap; }
+  #rbac-page .rbac-form-check-wrapper { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; flex-direction: row; }
+  #rbac-page .rbac-form-check-wrapper .form-check { flex-direction: row; white-space: nowrap; }
+  #rbac-page .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #rbac-page .card { min-width: 0; }
+</style>
+{% endblock %}
+
 {% block content %}
+<div id="rbac-page" class="rbac-page">
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
       <h2 class="mb-1">Access Control</h2>
       <div class="text-muted">Manage roles, permissions, and assignments without the admin panel.</div>
+    </div>
+  </div>
+
+  <!-- Assign Roles to User - PRIMARY ACTION FIRST -->
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="card border-primary">
+        <div class="card-body">
+          <h5 class="mb-3"><i class="bi bi-person-badge me-2"></i>Assign Roles to User</h5>
+          <form method="post" class="row g-3">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="user_roles">
+            {{ user_role_form.non_field_errors }}
+            <div class="col-md-4">
+              <label class="form-label">User</label>
+              {{ user_role_form.user }}
+            </div>
+            <div class="col-md-8">
+              <label class="form-label">Roles</label>
+              <div class="rbac-form-check-wrapper">
+                {{ user_role_form.roles }}
+              </div>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary" type="submit">Save Roles</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -69,31 +111,7 @@
     </div>
   </div>
 
-  <div class="row g-4 mt-2">
-    <div class="col-lg-6">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="mb-3">Assign Roles to User</h5>
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="user_roles">
-            {{ user_role_form.non_field_errors }}
-            <div class="mb-3">
-              <label class="form-label">User</label>
-              {{ user_role_form.user }}
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Roles</label>
-              <div class="d-flex flex-column gap-1">
-                {{ user_role_form.roles }}
-              </div>
-            </div>
-            <button class="btn btn-primary" type="submit">Save Roles</button>
-          </form>
-        </div>
-      </div>
-    </div>
-
+  <div class="row g-4">
     <div class="col-lg-6">
       <div class="card h-100">
         <div class="card-body">
@@ -108,7 +126,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">Permissions</label>
-              <div class="d-flex flex-column gap-1">
+              <div class="rbac-form-check-wrapper">
                 {{ user_permission_form.permissions }}
               </div>
             </div>
@@ -143,7 +161,7 @@
                     {% if role.permissions.all %}
                       <div class="d-flex flex-wrap gap-1">
                         {% for perm in role.permissions.all %}
-                          <span class="badge text-bg-light">{{ perm.code }}</span>
+                          <span class="badge text-bg-light rbac-badge">{{ perm.code }}</span>
                         {% endfor %}
                       </div>
                     {% else %}
@@ -190,4 +208,5 @@
       {% endif %}
     </div>
   </div>
+</div>
 {% endblock %}

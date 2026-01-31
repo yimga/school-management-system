@@ -1,16 +1,33 @@
 {% comment %}
   Shared UI for dashboard layout customization: one "Customize layout" button,
-  instructions bar (shown in edit mode), and toast for save feedback.
+  Add widget palette, instructions bar (shown in edit mode), and toast for save feedback.
   Include once per dashboard; requires #dashboard-layout and dashboard-layout.js.
 {% endcomment %}
 <input type="checkbox" id="toggleCustomize" class="d-none" aria-hidden="true" tabindex="-1">
 <button type="button" class="btn btn-outline-primary btn-sm" id="btnCustomizeLayout" aria-pressed="false" title="Arrange widgets: click to enter edit mode, then drag by the grip (⋮⋮) to reorder. Layout saves automatically.">
   <i class="bi bi-grid-3x3-gap me-1"></i>Customize layout
 </button>
+<button type="button" class="btn btn-outline-secondary btn-sm" id="btnAddWidget" aria-label="Add widget to dashboard" title="Restore a hidden widget">
+  <i class="bi bi-plus-square me-1"></i>Add widget
+</button>
 <button type="button" class="btn btn-outline-secondary btn-sm js-reset-dashboard-layout" id="btnResetLayout" aria-label="Reset dashboard layout to default" title="Restore default widget order">
   <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to default
 </button>
 <div id="dashboard-customize-instructions" class="alert alert-info small mb-2 d-none" role="status">
-  <i class="bi bi-info-circle me-2"></i>Drag cards by the grip (⋮⋮) to reorder. Use the ⋮ menu on each card for size, style, and chart type. Layout saves automatically.
+  <i class="bi bi-info-circle me-2"></i>Drag cards by the grip (⋮⋮) to reorder. Use the ⋮ menu on each card for size, style, and hide. Add widget restores hidden widgets. Layout saves automatically.
+</div>
+<div class="modal fade" id="addWidgetModal" tabindex="-1" aria-labelledby="addWidgetModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addWidgetModalLabel"><i class="bi bi-plus-square me-2"></i>Add widget</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="addWidgetModalBody">
+        <p class="text-muted small mb-0">Restore a widget you previously hid.</p>
+        <div id="addWidgetList" class="mt-3"></div>
+      </div>
+    </div>
+  </div>
 </div>
 <div id="dashboard-layout-toast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;" aria-live="polite"></div>

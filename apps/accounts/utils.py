@@ -36,12 +36,13 @@ def get_dashboard_context(user, page: str) -> dict:
     from django.urls import reverse
     from django.utils.safestring import mark_safe
     import json
-    from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
+    from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize, _can_light_customize
     from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
-    
+
     return {
         "dashboard_settings": load_dashboard_layout_settings(user, page),
         "allow_custom_layout": _can_customize(user),
+        "allow_light_customize": _can_light_customize(user),
         "dashboard_layout_url": reverse("api:dashboard-layout", kwargs={"page": page}),
         "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
     }

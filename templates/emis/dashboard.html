@@ -4,6 +4,11 @@
 {% block title %}EMIS Export Dashboard{% endblock %}
 
 {% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+{% endblock %}
+
+{% block extrastyle %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'emis';
@@ -114,6 +119,11 @@
       </div>
     </div>
 
+    <!-- Entity Distribution Chart -->
+    <div class="mt-3">
+      {% include "components/dashboard_chart.html" with chart_id="emisEntityChart" chart_type="doughnut" chart_title="Entity distribution" chart_data=chart_entity_donut_json aria_label="Students, teachers, subjects, and classes count" %}
+    </div>
+
     <!-- Quick Stats -->
     <div class="card mt-3">
       <div class="card-header">
@@ -183,7 +193,36 @@
 {% endblock %}
 
 {% block extra_js %}
-  {{ block.super }}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
+<script>
+(function() {
+  function initEmisChart() {
+    if (typeof Chart === 'undefined' || !window.DashboardChartsShared) return;
+    var configEl = document.querySelector('[data-chart-config="emisEntityChart"]');
+    if (!configEl) return;
+    try {
+      var config = JSON.parse(configEl.textContent);
+      if (config.data && config.data.labels && config.data.labels.length > 0) {
+        var ch = window.DashboardChartsShared.createChart('emisEntityChart', config);
+        if (ch) {
+          document.querySelectorAll('[data-chart-export="emisEntityChart"]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              window.DashboardChartsShared.exportChartToPng(ch, 'emis-entities.png');
+            });
+          });
+        }
+      } else {
+        document.querySelector('[data-chart-empty="emisEntityChart"]')?.classList.remove('d-none');
+        var c = document.getElementById('emisEntityChart');
+        if (c) c.style.display = 'none';
+      }
+    } catch (e) { console.warn('EMIS chart init:', e); }
+  }
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initEmisChart) : initEmisChart();
+})();
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Load initial data

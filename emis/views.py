@@ -3,6 +3,7 @@ from io import StringIO
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -11,8 +12,10 @@ from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Term
+from apps.academics.models import AcademicYear, Classroom, Subject, Term
+from apps.people.models import StudentProfile, TeacherProfile
 from apps.siteconfig.models import SiteSettings
+
 from .models import EMISExport, EMISCompliance
 from .services import EMISExportService
 
@@ -48,6 +51,33 @@ def emis_dashboard(request):
     ]
     widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
 
+    # Entity counts for chart
+    year_for_counts = current_year or academic_years.first()
+    if year_for_counts:
+        students_count = StudentProfile.objects.filter(academic_year=year_for_counts, is_active=True).count()
+        teachers_count = TeacherProfile.objects.filter(is_active=True).count()
+        subjects_count = Subject.objects.filter(academic_year=year_for_counts).count()
+        classes_count = Classroom.objects.filter(academic_year=year_for_counts).count()
+    else:
+        students_count = teachers_count = subjects_count = classes_count = 0
+
+    entity_data = [
+        ("Students", students_count),
+        ("Teachers", teachers_count),
+        ("Subjects", subjects_count),
+        ("Classes", classes_count),
+    ]
+    chart_entity_donut = {
+        "type": "doughnut",
+        "data": {
+            "labels": [e[0] for e in entity_data],
+            "datasets": [{
+                "data": [e[1] for e in entity_data],
+                "backgroundColor": ["#0d6efd", "#198754", "#ffc107", "#6c757d"],
+            }],
+        },
+    }
+
     context = {
         'academic_years': academic_years,
         'current_year': current_year,
@@ -60,6 +90,7 @@ def emis_dashboard(request):
         'dashboard_layout_url': dashboard_layout_url,
         'available_sidebar_items': available_sidebar_items,
         'widget_meta_json': widget_meta_json,
+        'chart_entity_donut_json': json.dumps(chart_entity_donut),
     }
 
     return render(request, 'emis/dashboard.html', context)

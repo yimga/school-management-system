@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count
@@ -69,6 +71,19 @@ def requests_dashboard(request: HttpRequest):
         for key, label in AccessRequest.Status.choices
     ]
 
+    status_with_data = [o for o in status_options if o["count"] > 0]
+    colors = ["#ffc107", "#198754", "#dc3545", "#6c757d", "#0d6efd"]
+    chart_status_donut = {
+        "type": "doughnut",
+        "data": {
+            "labels": [o["label"] for o in status_with_data],
+            "datasets": [{
+                "data": [o["count"] for o in status_with_data],
+                "backgroundColor": [colors[i % len(colors)] for i in range(len(status_with_data))],
+            }],
+        },
+    }
+
     return render(request, "requests/dashboard.html", {
         "requests": qs[:250],
         "type_filter": request_type,
@@ -76,6 +91,7 @@ def requests_dashboard(request: HttpRequest):
         "search": search,
         "type_options": type_options,
         "status_options": status_options,
+        "chart_status_donut_json": json.dumps(chart_status_donut),
     })
 
 

@@ -16,13 +16,18 @@ from apps.siteconfig.models_dashboard import (
 
 logger = logging.getLogger(__name__)
 
-# Only these roles (and staff/superuser) can use drag-and-drop layout customization.
-# Teacher and parent see a fixed dashboard layout; staff use drag-and-drop on the backend.
+# Roles that can use full drag-and-drop layout customization.
 ALLOWED_CUSTOM_ROLES = {
     "ADMIN",
     "LEADERSHIP",
     "IT_ADMIN",
     "SUPERADMIN",
+    "TEACHER",
+}
+
+# Roles that can use light customization (hide widgets only, no drag).
+ALLOWED_LIGHT_CUSTOM_ROLES = {
+    "PARENT",
 }
 
 
@@ -31,6 +36,14 @@ def _can_customize(user) -> bool:
         return False
     role = (getattr(user, "role", "") or "").upper()
     return bool(user.is_staff or user.is_superuser or role in ALLOWED_CUSTOM_ROLES)
+
+
+def _can_light_customize(user) -> bool:
+    """Light mode: hide/restore widgets only (no drag). Used for parent dashboard."""
+    if not user or not user.is_authenticated:
+        return False
+    role = (getattr(user, "role", "") or "").upper()
+    return bool(role in ALLOWED_LIGHT_CUSTOM_ROLES or _can_customize(user))
 
 
 def _log_layout_audit(user, old_settings, new_settings):
@@ -75,12 +88,29 @@ def _normalize_dashboard_settings(settings: dict) -> dict:
         value = str(item).strip()
         if value:
             sidebar_items.append(value)
+    hidden = settings.get("hidden_widget_ids") or []
+    if not isinstance(hidden, list):
+        hidden = []
+    hidden_widget_ids = [str(x).strip() for x in hidden if str(x).strip()]
+
+    pinned = settings.get("pinned_widgets") or []
+    if not isinstance(pinned, list):
+        pinned = []
+    pinned_widgets = []
+    for p in pinned:
+        if isinstance(p, dict) and p.get("widget_id"):
+            pages = p.get("pages") or []
+            if isinstance(pages, list):
+                pinned_widgets.append({"widget_id": str(p["widget_id"]), "pages": [str(x) for x in pages]})
+
     return {
         "show_sidebar": bool(settings.get("show_sidebar")),
         "sidebar_items": sidebar_items,
         "tile_variant": str(settings.get("tile_variant") or "default"),
         "custom_links": settings.get("custom_links") or [],
         "widget_meta": settings.get("widget_meta") or {},
+        "hidden_widget_ids": hidden_widget_ids,
+        "pinned_widgets": pinned_widgets,
     }
 
 

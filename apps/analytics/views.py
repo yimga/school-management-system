@@ -168,9 +168,49 @@ def dashboard(request: HttpRequest):
     ).order_by("-created_at")
     finance_request_link = reverse("requests:dashboard")
 
+    # Chart data: weak subjects (horizontal bar)
+    weak_for_chart = weak_subject_rows[:10]
+    chart_weak_subjects = {
+        "type": "bar",
+        "data": {
+            "labels": [str(row.subject) for row in weak_for_chart],
+            "datasets": [{
+                "label": "Average",
+                "data": [float(row.average) for row in weak_for_chart],
+                "backgroundColor": "rgba(255, 193, 7, 0.7)",
+                "borderColor": "#ffc107",
+                "borderWidth": 1,
+            }],
+        },
+        "options": {
+            "indexAxis": "y",
+            "scales": {
+                "x": {"max": 100, "beginAtZero": True},
+            },
+        },
+    }
+
+    # Chart data: specialty pass rates (donut)
+    chart_specialty_donut = {
+        "type": "doughnut",
+        "data": {
+            "labels": [str(row.specialty) for row in specialty_rows],
+            "datasets": [{
+                "data": [row.passed for row in specialty_rows],
+                "backgroundColor": [
+                    "rgba(13, 110, 253, 0.8)", "rgba(25, 135, 84, 0.8)",
+                    "rgba(255, 193, 7, 0.8)", "rgba(220, 53, 69, 0.8)",
+                    "rgba(111, 66, 193, 0.8)", "rgba(13, 202, 240, 0.8)",
+                ][: len(specialty_rows)],
+            }],
+        },
+    }
+
     context = {
         "year": year_obj,
         "term": term_obj,
+        "chart_weak_subjects_json": json.dumps(chart_weak_subjects),
+        "chart_specialty_donut_json": json.dumps(chart_specialty_donut),
         "years": AcademicYear.objects.order_by("-start_date"),
         "terms": terms,
         "classrooms": Classroom.objects.filter(academic_year=year_obj).order_by("name"),

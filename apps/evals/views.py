@@ -532,6 +532,55 @@ def teacher_dashboard(request: HttpRequest):
         {"id": "teacher-syllabus", "label": "Syllabus", "url": reverse("portal:portal_syllabus"), "icon": "bi-journal-text"},
     ]
 
+    # Chart JSON for teacher dashboard
+    chart_completion_bar_json = ""
+    if assignments and progress:
+        labels = []
+        values = []
+        for a in assignments[:8]:
+            p = progress.get(a.id, {})
+            sa = getattr(a, "subject_assignment", None)
+            subj = "?"
+            cls = ""
+            if sa:
+                subj = getattr(getattr(sa, "subject", None), "name", str(getattr(sa, "subject", "?")))[:16]
+                cls_obj = getattr(sa, "classroom", None)
+                cls = getattr(cls_obj, "name", str(cls_obj))[:10] if cls_obj else ""
+            label = (cls + " - " + subj) if cls else subj
+            labels.append(label[:24])
+            values.append(p.get("width", 0))
+        if labels:
+            chart_completion_bar_json = json.dumps({
+                "type": "bar",
+                "data": {
+                    "labels": labels,
+                    "datasets": [{
+                        "label": "Completion %",
+                        "data": values,
+                        "backgroundColor": "rgba(13, 110, 253, 0.8)",
+                        "borderColor": "#0d6efd",
+                        "borderWidth": 1,
+                    }],
+                },
+                "options": {"indexAxis": "y"},
+            })
+    # Marks completion donut: entered vs pending
+    chart_marks_donut_json = ""
+    total_slots = sum((p.get("total", 0) for p in progress.values()), 0) or 1
+    filled_slots = sum((p.get("filled", 0) for p in progress.values()), 0)
+    pending_slots = max(0, total_slots - filled_slots)
+    if total_slots > 0 and (filled_slots or pending_slots):
+        chart_marks_donut_json = json.dumps({
+            "type": "doughnut",
+            "data": {
+                "labels": ["Marks entered", "Pending"],
+                "datasets": [{
+                    "data": [filled_slots, pending_slots],
+                    "backgroundColor": ["#198754", "#ffc107"],
+                }],
+            },
+        })
+
     # Certification stats (if GCE enabled and teacher teaches exam classes)
     certification_stats = {}
     if year and getattr(year, "enable_gce_registration", False):
@@ -579,6 +628,8 @@ def teacher_dashboard(request: HttpRequest):
         "finance_request_link": finance_request_link,
         "certification_stats": certification_stats,
         "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
+        "chart_completion_bar_json": chart_completion_bar_json,
+        "chart_marks_donut_json": chart_marks_donut_json,
     })
 
 

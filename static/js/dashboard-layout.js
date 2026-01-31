@@ -163,7 +163,7 @@
     { value: 'polarArea', label: 'Polar Area' },
   ];
 
-  function injectControls(el, meta, onChange) {
+  function injectControls(el, meta, onChange, isLightMode) {
     if (el.dataset.widgetControlsInjected === '1') return;
     el.dataset.widgetControlsInjected = '1';
 
@@ -172,9 +172,11 @@
     const isChartWidget = (meta && meta.widget_type) === 'chart';
 
     el.classList.add('dash-widget');
-    injectGrip(el);
+    if (!isLightMode) injectGrip(el);
 
-    let menuRows = `
+    let menuRows = '';
+    if (!isLightMode) {
+      menuRows = `
       <div class="dash-widget-row">
         <label>Size</label>
         <select class="dash-widget-size"></select>
@@ -184,7 +186,8 @@
         <select class="dash-widget-variant"></select>
       </div>
     `;
-    if (isChartWidget) {
+    }
+    if (!isLightMode && isChartWidget) {
       menuRows += `
       <div class="dash-widget-row">
         <label>Chart</label>
@@ -192,6 +195,11 @@
       </div>
       `;
     }
+    menuRows += `
+      <div class="dash-widget-row">
+        <button type="button" class="dash-widget-hide-btn btn btn-sm btn-outline-secondary w-100">Hide widget</button>
+      </div>
+    `;
 
     const controls = document.createElement('div');
     controls.className = 'dash-widget-controls';
@@ -227,8 +235,8 @@
       });
     }
 
-    sizeSelect.value = normalizeSize(el.dataset.widgetSize) || 'md';
-    variantSelect.value = normalizeVariant(el.dataset.widgetVariant) || 'default';
+    if (sizeSelect) sizeSelect.value = normalizeSize(el.dataset.widgetSize) || 'md';
+    if (variantSelect) variantSelect.value = normalizeVariant(el.dataset.widgetVariant) || 'default';
     if (isChartWidget && chartTypeSelect) {
       const ct = (el.dataset.widgetChartType || meta.chart_type || '').toLowerCase();
       chartTypeSelect.value = CHART_TYPES.some((c) => c.value === ct) ? ct : (meta.chart_type || 'line');
@@ -254,14 +262,18 @@
       if (!controls.contains(evt.target)) closeMenu();
     });
 
-    sizeSelect.addEventListener('change', () => {
-      el.dataset.widgetSize = sizeSelect.value;
-      onChange();
-    });
-    variantSelect.addEventListener('change', () => {
-      el.dataset.widgetVariant = variantSelect.value;
-      onChange();
-    });
+    if (sizeSelect) {
+      sizeSelect.addEventListener('change', () => {
+        el.dataset.widgetSize = sizeSelect.value;
+        onChange();
+      });
+    }
+    if (variantSelect) {
+      variantSelect.addEventListener('change', () => {
+        el.dataset.widgetVariant = variantSelect.value;
+        onChange();
+      });
+    }
     if (isChartWidget && chartTypeSelect) {
       chartTypeSelect.addEventListener('change', () => {
         el.dataset.widgetChartType = chartTypeSelect.value;
@@ -269,6 +281,55 @@
           window.dashboardCharts.refreshCharts();
         }
         onChange();
+      });
+    }
+    const pinBtn = isLightMode ? null : controls.querySelector('.dash-widget-pin-btn');
+    if (pinBtn) {
+      pinBtn.addEventListener('click', function () {
+        const wid = el.dataset.widgetId;
+        if (!wid) return;
+        const pages = ['backend', 'teacher', 'parent'].filter((p) => p !== page);
+        if (pages.length === 0) return;
+        const existing = pinnedWidgets.find((x) => x.widget_id === wid);
+        const targetPage = pages[0];
+        if (existing) {
+          if (!existing.pages.includes(targetPage)) {
+            existing.pages.push(targetPage);
+          } else {
+            existing.pages = existing.pages.filter((p) => p !== targetPage);
+            if (existing.pages.length === 0) {
+              pinnedWidgets = pinnedWidgets.filter((x) => x.widget_id !== wid);
+            }
+          }
+        } else {
+          pinnedWidgets.push({ widget_id: wid, pages: [targetPage] });
+        }
+        if (typeof onChange === 'function') onChange();
+        closeMenu();
+        showToast('Widget pinned. Cross-page display coming soon.');
+      });
+    }
+
+    const hideBtn = controls.querySelector('.dash-widget-hide-btn');
+    if (hideBtn) {
+      const isHidden = el.classList.contains('dash-widget-hidden') || el.style.display === 'none';
+      hideBtn.textContent = isHidden ? 'Show widget' : 'Hide widget';
+      hideBtn.addEventListener('click', () => {
+        const wid = el.dataset.widgetId;
+        if (!wid) return;
+        const idx = hiddenWidgetIds.indexOf(wid);
+        if (idx >= 0) {
+          hiddenWidgetIds.splice(idx, 1);
+          el.classList.remove('dash-widget-hidden');
+          el.style.display = '';
+          hideBtn.textContent = 'Hide widget';
+        } else {
+          hiddenWidgetIds.push(wid);
+          el.classList.add('dash-widget-hidden');
+          el.style.display = 'none';
+          hideBtn.textContent = 'Show widget';
+        }
+        if (typeof onChange === 'function') onChange();
       });
     }
 
@@ -345,6 +406,8 @@
       if (doSave) saveLayout();
     }
 
+    let hiddenWidgetIds = [];
+    let pinnedWidgets = [];
     const saveLayout = () => {
       const itemsPayload = collectLayout(columns);
       const widgetMeta = collectWidgetMeta(columns);
@@ -354,6 +417,8 @@
           const layout = (current && current.layout) || {};
           const settings = Object.assign({}, layout.__settings__ || {});
           settings.widget_meta = Object.assign({}, settings.widget_meta || {}, widgetMeta);
+          settings.hidden_widget_ids = hiddenWidgetIds;
+          settings.pinned_widgets = pinnedWidgets;
           const payload = {
             items: itemsPayload.items,
             __settings__: settings,
@@ -398,6 +463,85 @@
       btn.addEventListener('click', () => resetLayout());
     });
 
+    function openAddWidgetPalette() {
+      const listEl = document.getElementById('addWidgetList');
+      const modalEl = document.getElementById('addWidgetModal');
+      if (!listEl || !modalEl) return;
+      listEl.innerHTML = '<div class="text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>';
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+      } else {
+        modalEl.classList.add('show');
+        modalEl.style.display = 'block';
+      }
+      fetch(`/api/dashboard/available-widgets/?page=${page}`, { credentials: 'include' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          const widgets = (data && data.widgets) || [];
+          const widgetById = {};
+          widgets.forEach((w) => { if (w.id) widgetById[w.id] = w; });
+          const hidden = hiddenWidgetIds.filter((id) => id);
+          if (hidden.length === 0) {
+            listEl.innerHTML = '<p class="text-muted small mb-0">No hidden widgets. Hide a widget from the ⋮ menu on any card to restore it here.</p>';
+            return;
+          }
+          function formatLabel(id) {
+            return (id || '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+          }
+          let html = '<div class="list-group list-group-flush">';
+          hidden.forEach((wid) => {
+            const w = widgetById[wid];
+            const name = (w && w.name) ? w.name.replace(/</g, '&lt;') : formatLabel(wid);
+            const desc = (w && w.description) ? (w.description.replace(/</g, '&lt;') || '').substring(0, 80) : '';
+            html += `
+              <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <div>
+                  <strong>${name}</strong>
+                  ${desc ? `<div class="small text-muted">${desc}</div>` : ''}
+                </div>
+                <button type="button" class="btn btn-sm btn-primary add-widget-restore" data-widget-id="${(wid || '').replace(/"/g, '&quot;')}">
+                  Add
+                </button>
+              </div>
+            `;
+          });
+          html += '</div>';
+          listEl.innerHTML = html;
+          listEl.querySelectorAll('.add-widget-restore').forEach((btn) => {
+            btn.addEventListener('click', function () {
+              const wid = this.getAttribute('data-widget-id');
+              if (!wid) return;
+              const idx = hiddenWidgetIds.indexOf(wid);
+              if (idx >= 0) {
+                hiddenWidgetIds.splice(idx, 1);
+                columns.forEach((col) => {
+                  const el = col.querySelector(`[data-widget-id="${wid}"]`);
+                  if (el) {
+                    el.classList.remove('dash-widget-hidden');
+                    el.style.display = '';
+                  }
+                });
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                  const modal = bootstrap.Modal.getInstance(modalEl);
+                  if (modal) modal.hide();
+                } else {
+                  modalEl.classList.remove('show');
+                  modalEl.style.display = 'none';
+                }
+                saveLayout();
+                showToast('Widget added');
+              }
+            });
+          });
+        })
+        .catch(() => {
+          listEl.innerHTML = '<p class="text-danger small mb-0">Could not load widgets.</p>';
+        });
+    }
+
+    document.getElementById('btnAddWidget')?.addEventListener('click', openAddWidgetPalette);
+
     // Loading state
     const loader = document.createElement('div');
     loader.className = 'small text-muted mb-2';
@@ -419,6 +563,19 @@
           });
         }
         if (data.layout) applyLayout(columns, data.layout);
+
+        hiddenWidgetIds = (data.layout && data.layout.__settings__ && data.layout.__settings__.hidden_widget_ids) || [];
+        if (!Array.isArray(hiddenWidgetIds)) hiddenWidgetIds = [];
+        columns.forEach((col) => {
+          col.querySelectorAll('[data-widget-id]').forEach((el) => {
+            if (hiddenWidgetIds.indexOf(el.dataset.widgetId) >= 0) {
+              el.classList.add('dash-widget-hidden');
+              el.style.display = 'none';
+            }
+          });
+        });
+        pinnedWidgets = (data.layout && data.layout.__settings__ && data.layout.__settings__.pinned_widgets) || [];
+        if (!Array.isArray(pinnedWidgets)) pinnedWidgets = [];
 
         // Apply size/variant/chart_type (defaults + saved) and wire controls.
         const layoutItemsById = {};
@@ -465,11 +622,14 @@
       });
     }
 
+    const isLightMode = page === 'parent';
+
     loadSortable().then((Sortable) => {
-      if (!Sortable) {
+      if (!Sortable && !isLightMode) {
         console.warn('Sortable.js failed to load. Drag-and-drop will not work.');
         return;
       }
+      if (isLightMode) return;
 
       const enableDrag = () => {
         if (sortables.length) {

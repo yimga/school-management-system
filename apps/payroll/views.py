@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from datetime import date
+from collections import defaultdict
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -8,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.db.models import Count
 from django.utils import timezone
 
 from .forms import LeaveRequestForm
@@ -32,11 +35,61 @@ def dashboard(request: HttpRequest):
     latest_run = runs[0] if runs else None
     payslip_count = Payslip.objects.filter(payroll_run=latest_run).count() if latest_run else 0
 
+    # Chart data: run status distribution
+    status_counts = list(
+        PayrollRun.objects.filter(profile=profile)
+        .values("status")
+        .annotate(count=Count("id"))
+        .order_by("status")
+    )
+    status_labels = dict(PayrollRun.Status.choices)
+    chart_status_donut = {
+        "type": "doughnut",
+        "data": {
+            "labels": [status_labels.get(sc["status"], sc["status"]) for sc in status_counts],
+            "datasets": [{
+                "data": [sc["count"] for sc in status_counts],
+                "backgroundColor": ["#6c757d", "#0d6efd", "#ffc107", "#198754", "#20c997"][: len(status_counts)],
+            }],
+        },
+    }
+
+    # Chart data: payroll volume over last 6 months
+    all_runs = PayrollRun.objects.filter(profile=profile).values_list("period_start", flat=True)
+    monthly_map = defaultdict(int)
+    for d in all_runs:
+        if d:
+            monthly_map[(d.year, d.month)] += 1
+    now = timezone.now().date()
+    month_series = []
+    for i in range(5, -1, -1):
+        y, m = now.year, now.month
+        m -= i
+        while m < 1:
+            m += 12
+            y -= 1
+        key = (y, m)
+        label = date(y, m, 1).strftime("%b %Y")
+        count = monthly_map.get(key, 0)
+        month_series.append({"label": label, "count": count})
+    chart_volume_column = {
+        "type": "bar",
+        "data": {
+            "labels": [m["label"] for m in month_series],
+            "datasets": [{
+                "label": "Payroll runs",
+                "data": [m["count"] for m in month_series],
+                "backgroundColor": "rgba(13, 110, 253, 0.7)",
+                "borderColor": "#0d6efd",
+                "borderWidth": 1,
+            }],
+        },
+    }
+
     from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
     from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
     from django.urls import reverse
     from django.utils.safestring import mark_safe
-    import json
 
     dashboard_settings = load_dashboard_layout_settings(request.user, "payroll")
     allow_custom_layout = _can_customize(request.user)
@@ -54,6 +107,8 @@ def dashboard(request: HttpRequest):
         "runs": runs,
         "latest_run": latest_run,
         "payslip_count": payslip_count,
+        "chart_status_donut_json": json.dumps(chart_status_donut),
+        "chart_volume_column_json": json.dumps(chart_volume_column),
         "allow_custom_layout": allow_custom_layout,
         "dashboard_settings": dashboard_settings,
         "dashboard_layout_url": dashboard_layout_url,
