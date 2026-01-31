@@ -1,0 +1,70 @@
+/**
+ * Dashboard Clear - Calm, simple, senior-friendly
+ * Consistent spacing, readable typography, soft accents.
+ */
+
+.dashboard-clear .section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--bs-body-color, #212529);
+}
+
+.dashboard-clear .metrics-section {
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-clear .metrics-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Family summary bar - compact, readable */
+.dashboard-clear .family-summary-bar .card-body {
+  font-size: 0.95rem;
+}
+
+.dashboard-clear .family-summary-bar .fw-bold {
+  font-size: 1.15rem !important;
+}
+
+.dashboard-clear .family-summary-bar .small {
+  font-size: 0.8rem;
+}
+
+/* Child cards - clear hierarchy */
+.dashboard-clear .child-card .card-body {
+  padding: 1rem 1.1rem;
+}
+
+.dashboard-clear .child-card h5 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.dashboard-clear .child-metrics-grid {
+  font-size: 0.9rem;
+}
+
+/* Readable touch targets (senior-friendly) */
+.dashboard-clear .btn-sm {
+  min-height: 38px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.dashboard-clear a.btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Calm spacing */
+.dashboard-clear .row.g-3 {
+  --bs-gutter-x: 0.75rem;
+  --bs-gutter-y: 0.75rem;
+}
+
+.dashboard-clear .row.g-4 {
+  --bs-gutter-x: 1rem;
+  --bs-gutter-y: 1rem;
+}

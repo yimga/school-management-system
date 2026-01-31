@@ -537,11 +537,11 @@
         letter-spacing: -0.3px;
       }
 
-      /* Messages chathead: fixed bottom-right above AI copilot (~1 inch spacing); staff/teacher only */
+      /* Messages chathead: fixed bottom-right above AI copilot (1 inch gap) */
       .portal-chathead {
         position: fixed;
-        right: 16px;
-        bottom: 96px;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: calc(16px + 60px + 1in);
         width: 44px;
         height: 44px;
         border-radius: 50%;
@@ -689,6 +689,14 @@
             {% endif %}
 
             <div class="topbar-controls">
+              {% if request.user.is_authenticated and request.user.role != 'PARENT' %}
+              <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_messages' %}" title="Messages" aria-label="Open Messages" style="font-size: 1.2rem;">
+                <i class="bi bi-chat-dots-fill"></i>
+                {% if messages_unread_count %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ messages_unread_count }}</span>
+                {% endif %}
+              </a>
+              {% endif %}
               {% if SHOW_HEADER_NOTIFICATIONS %}
               <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications" style="font-size: 1.2rem;">
                 <i class="bi bi-bell"></i>

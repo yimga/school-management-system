@@ -708,7 +708,6 @@ def backend_dashboard(request):
     chart_attendance_donut_json = ""
     chart_rbac_roles_json = ""
     if compliance_profile and finance_status_counts:
-        from apps.finance.models import Invoice
         status_labels = dict(Invoice.Status.choices)
         chart_finance_status_json = json.dumps({
             "type": "doughnut",

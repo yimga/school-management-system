@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-clear.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'teacher';
@@ -142,7 +143,7 @@
 {% block content %}
   {% admin_health as health %}
   {% with widgets=display_widgets %}
-  <div class="teacher-shell">
+  <div class="teacher-shell dashboard-clear">
     <div id="teacher-dashboard-widgets" class="teacher-dashboard-widgets">
   {% if finance_access_banner %}
   <div class="alert alert-{{ finance_access_banner.level }} d-flex align-items-start gap-2 mb-3 shadow-sm rounded-4">
@@ -239,7 +240,7 @@
   {% endif %}
 
   <div class="row g-3 mb-3" data-dashboard-column="main">
-    <div class="col-md-4">
+    <div class="col-md-6">
       <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-attendance">
         <div class="card-body d-flex align-items-center gap-3">
           <div class="donut" style="--value: {{ widget_data.attendance.overall|default:'0' }}; --accent: #22c55e;">
@@ -253,29 +254,19 @@
         </div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
       <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-completion">
         <div class="card-body d-flex align-items-center gap-3">
           <div class="donut" style="--value: {{ widget_data.completion_pct|default:'0' }}; --accent: #6d28d9;">
             <span>{{ widget_data.completion_pct|default:"0" }}%</span>
           </div>
-          <div>
+          <div class="flex-grow-1">
             <div class="text-uppercase small text-muted mb-1">Marks completion</div>
-            <div class="fw-semibold">Across assignments</div>
-            <div class="small text-muted">Spotlight: {{ widget_data.completion.spotlight|length|default:"0" }} items</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-at-a-glance">
-        <div class="card-body">
-          <div class="text-uppercase small text-muted mb-2">At a glance</div>
-          <div class="d-flex flex-column gap-2">
-            <span class="stat-chip"><i class="bi bi-collection"></i> {{ assignments|length }} classes</span>
-            <span class="stat-chip"><i class="bi bi-people"></i> {{ progress|length }} students</span>
-            <span class="stat-chip"><i class="bi bi-journal-check"></i> Pending evals: {{ widget_data.tasks.pending_evaluations|default:"0" }}</span>
-            <span class="stat-chip"><i class="bi bi-cash-coin"></i> Pending payments: {{ widget_data.tasks.pending_payments|default:"0" }}</span>
+            <div class="fw-semibold">{{ assignments|length }} classes · {{ progress|length }} students</div>
+            <div class="small text-muted">Pending evals: {{ widget_data.tasks.pending_evaluations|default:"0" }}</div>
+            <div class="d-flex gap-2 mt-2">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
+            </div>
           </div>
         </div>
       </div>
@@ -287,10 +278,9 @@
       <div class="card h-100 border-0 shadow-sm classes-glance-card" data-widget-id="teacher-assignments">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <div>
-            <div class="text-uppercase small text-muted mb-1">Your class at a glance</div>
-            <h5 class="mb-0">Progress & assignments</h5>
+            <h5 class="mb-0">Assignments</h5>
+            <div class="text-uppercase small text-muted">{{ assignments|length }} classes</div>
           </div>
-          <span class="badge text-bg-light">{{ assignments|length }} classes</span>
         </div>
         <div class="row g-2 mb-3">
           {% for assign in assignments|slice:":3" %}
@@ -321,7 +311,6 @@
           {% endfor %}
         </div>
         <div class="mt-2">
-          <h6 class="mb-2">Teaching assignments</h6>
           {% if assignments %}
           <div class="table-responsive">
             <table class="table align-middle mb-0">
@@ -370,25 +359,27 @@
               <div class="text-uppercase small text-muted">Schedule</div>
               <h6 class="mb-0">Today</h6>
             </div>
-            <span class="badge text-bg-light">At a glance</span>
           </div>
           <p class="small text-muted mb-2">Upcoming classes and tasks.</p>
-          <div class="mini-sparkline mb-2">
-            <span style="height:32%"></span><span style="height:64%"></span><span style="height:48%"></span><span style="height:72%"></span><span style="height:40%"></span>
-          </div>
-          <div class="small text-muted">Keep attendance and grading on track.</div>
-          <div class="small text-muted mt-2">
-            <div class="d-flex justify-content-between">
-              <span>Pending evals</span>
-              <span class="fw-semibold">{{ widget_data.tasks.pending_evaluations|default:"0" }}</span>
-            </div>
-            <div class="d-flex justify-content-between">
-              <span>Pending payments</span>
-              <span class="fw-semibold">{{ widget_data.tasks.pending_payments|default:"0" }}</span>
-            </div>
+        </div>
+      </div>
+      {% if widget_data.finance %}
+      <div class="card h-100 border-0 shadow-sm mb-3" data-dashboard-column="secondary">
+        <div class="card-body">
+          <div class="text-uppercase small text-muted mb-2">Finance & leave</div>
+          {% if widget_data.finance.net_pay %}
+            <div class="fw-semibold">{{ widget_data.finance.net_pay }}</div>
+            <div class="small text-muted">{{ widget_data.finance.period }}</div>
+          {% else %}
+            <p class="small text-muted mb-1">No paystub yet.</p>
+          {% endif %}
+          <div class="d-flex gap-2 mt-2">
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:teacher_pay_history' %}">Pay history</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:teacher_leave' %}">Leave</a>
           </div>
         </div>
       </div>
+      {% endif %}
       {% if gce_enabled and certification_stats %}
       <div class="card h-100 border-0 shadow-sm mb-3" data-dashboard-column="secondary" data-widget-id="teacher-certification">
         <div class="card-body">
