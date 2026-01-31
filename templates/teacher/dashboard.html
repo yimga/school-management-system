@@ -497,6 +497,55 @@
     </div>
   </div>
 
+  {% if chart_completion_bar_json or chart_marks_donut_json %}
+  <div class="row g-3 mb-3" data-dashboard-column="charts">
+    {% if chart_completion_bar_json %}
+    <div class="col-lg-6" data-widget-id="teacher-completion-chart">
+      {% include "components/dashboard_chart.html" with chart_id="teacherCompletionChart" chart_type="bar" chart_title="Marks completion by class" chart_data=chart_completion_bar_json aria_label="Marks completion percentage per assignment" %}
+    </div>
+    {% endif %}
+    {% if chart_marks_donut_json %}
+    <div class="col-lg-6" data-widget-id="teacher-marks-donut">
+      {% include "components/dashboard_chart.html" with chart_id="teacherMarksDonutChart" chart_type="doughnut" chart_title="Marks entered vs pending" chart_data=chart_marks_donut_json aria_label="Marks entered versus pending slots" %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="row g-3 mb-3" data-dashboard-column="main">
+    <div class="col-md-6">
+      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-attendance">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="donut" style="--value: {{ widget_data.attendance.overall|default:'0' }}; --accent: #22c55e;">
+            <span>{{ widget_data.attendance.overall|default:"0" }}%</span>
+          </div>
+          <div>
+            <div class="text-uppercase small text-muted mb-1">Attendance</div>
+            <div class="fw-semibold">Today vs. week</div>
+            <div class="small text-muted">Late: {{ widget_data.attendance.late|default:"0" }} | Missing: {{ widget_data.attendance.missing|default:"0" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-completion">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="donut" style="--value: {{ widget_data.completion_pct|default:'0' }}; --accent: #6d28d9;">
+            <span>{{ widget_data.completion_pct|default:"0" }}%</span>
+          </div>
+          <div class="flex-grow-1">
+            <div class="text-uppercase small text-muted mb-1">Marks completion</div>
+            <div class="fw-semibold">{{ assignments|length }} classes · {{ progress|length }} students</div>
+            <div class="small text-muted">Pending evals: {{ widget_data.tasks.pending_evaluations|default:"0" }}</div>
+            <div class="d-flex gap-2 mt-2">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-3 mb-4">
     {% if not widgets or "links" in widgets or "communications" in widgets %}
     <div class="col-xl-3 col-lg-4 order-lg-1 order-2" data-dashboard-column="tertiary">

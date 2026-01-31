@@ -959,10 +959,24 @@
     {% endif %}
     <div id="parent-dashboard-widgets" class="parent-dashboard-widgets">
 
-    <!-- Welcome Section -->
+    <!-- MY WORKFLOW ROW: first, same as Teacher. All content below. -->
+    <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
+      <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-diagram-3 text-primary" style="font-size:1.5rem;"></i>
+          <div>
+            <strong>My Workflow</strong>
+            <span class="text-muted small d-block">Link children, view results, finance, and documents in one place.</span>
+          </div>
+        </div>
+        <a href="{% url 'portal:parent_workflow' %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-arrow-right me-1"></i>Open workflow
+        </a>
+      </div>
+    </div>
+
     <div class="dashboard-hero">
       {% if not links %}
-      <!-- Onboarding Entry Point -->
       <div class="card border-primary shadow-sm mb-4">
         <div class="card-body text-center py-4">
           <div class="mb-3">
@@ -994,52 +1008,41 @@
         </div>
       </div>
       {% endif %}
-      <div class="dashboard-header">
-        <div class="dashboard-title">
-          <span class="dashboard-eyebrow">Parent Portal</span>
-          <h1>Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h1>
-          <p>Stay updated on your children's progress, attendance, and school activities.</p>
-        </div>
-        <div class="dashboard-actions">
-          <div class="d-flex flex-wrap align-items-center gap-2">
-            <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_workflow' %}">
-              <i class="bi bi-diagram-3 me-1"></i>My Workflow
-            </a>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:parent_workflow' %}">
-              <i class="bi bi-pin-angle me-1"></i>Use Workflow as default view
-            </a>
-            {% if links %}
-            <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
-              <option selected disabled>Switch child</option>
-              {% for child in links %}
-                <option value="{{ child.url|default:'#' }}">{{ child.label|default:'Child' }}</option>
-              {% endfor %}
-            </select>
-            {% endif %}
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_notifications' %}">Manage notifications</a>
-            {% if hero.actions %}
-              {% for action in hero.actions %}
-              <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                {{ action.label }}
-              </a>
-              {% endfor %}
-            {% endif %}
-          </div>
-        </div>
-      </div>
 
-      <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
-        <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-diagram-3 text-primary" style="font-size:1.5rem;"></i>
+      <!-- Welcome card: classes-glance style (like Your Classes at a Glance on Teacher) -->
+      <div class="card border-0 shadow-sm parent-welcome-glance-card mb-3">
+        <div class="card-body py-2 px-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
-              <strong>My Workflow</strong>
-              <span class="text-muted small d-block">Link children, view results, finance, and documents in one place.</span>
+              <div class="text-uppercase small text-muted mb-1">Parent Portal</div>
+              <h5 class="mb-0">Welcome back, {{ request.user.get_full_name|default:request.user.username }}!</h5>
+              <p class="small text-muted mb-0 mt-1">Stay updated on your children's progress, attendance, and school activities.</p>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_workflow' %}">
+                <i class="bi bi-diagram-3 me-1"></i>My Workflow
+              </a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:parent_workflow' %}">
+                <i class="bi bi-pin-angle me-1"></i>Use Workflow as default view
+              </a>
+              {% if links %}
+              <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
+                <option selected disabled>Switch child</option>
+                {% for child in links %}
+                  <option value="{{ child.url|default:'#' }}">{{ child.label|default:'Child' }}</option>
+                {% endfor %}
+              </select>
+              {% endif %}
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_notifications' %}">Manage notifications</a>
+              {% if hero.actions %}
+                {% for action in hero.actions %}
+                <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                  {{ action.label }}
+                </a>
+                {% endfor %}
+              {% endif %}
             </div>
           </div>
-          <a href="{% url 'portal:parent_workflow' %}" class="btn btn-primary btn-sm">
-            <i class="bi bi-arrow-right me-1"></i>Open workflow
-          </a>
         </div>
       </div>
       
