@@ -20,11 +20,19 @@ from django.utils import timezone
 
 
 class GileadAdminSite(AdminSite):
-    """Custom admin site with enhanced organization and features."""
-    
-    site_header = "Gilead Tech High - Admin"
-    site_title = "Gilead Admin"
-    index_title = "Administration Dashboard"
+    """
+    Configuration engine: full model CRUD, raw settings, system config.
+    Access: superuser only.
+    """
+
+    site_header = "Gilead Tech High - Configuration"
+    site_title = "Gilead Configuration"
+
+    index_title = "Configuration Dashboard"
+
+    def has_permission(self, request):
+        """Restrict admin to superusers only (configuration engine)."""
+        return request.user.is_active and request.user.is_staff and request.user.is_superuser
 
     def index(self, request, extra_context=None):
         """Render the custom admin dashboard at /admin/."""

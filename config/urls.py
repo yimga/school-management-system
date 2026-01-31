@@ -65,6 +65,19 @@ def admin_siteconfig_customizer_redirect(request):
     return redirect('/siteconfig/customizer/')
 
 
+def permission_denied(request, exception):
+    """Custom 403: friendly message when staff hit Admin without superuser."""
+    is_admin_forbidden = (
+        request.path.startswith('/admin') and
+        request.user.is_authenticated and
+        request.user.is_staff and
+        not request.user.is_superuser
+    )
+    return render(request, 'errors/403.html', {'is_admin_forbidden': is_admin_forbidden}, status=403)
+
+
+handler403 = permission_denied
+
 urlpatterns = [
     path('', home, name='home'),
 

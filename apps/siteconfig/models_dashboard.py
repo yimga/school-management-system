@@ -331,3 +331,26 @@ class DashboardLayoutAudit(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username} {self.action} {self.widget_id or 'layout'}"
+
+
+class FeatureControlAudit(models.Model):
+    """Tracks Feature Control Panel changes for auditing."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="feature_control_audits",
+    )
+    action = models.CharField(max_length=32)  # save, revert, import
+    changes = models.JSONField(default=dict, help_text="Keys that changed with before/after.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Feature Control Audit"
+        verbose_name_plural = "Feature Control Audits"
+
+    def __str__(self) -> str:
+        return f"{self.user.username if self.user else 'system'} {self.action} @ {self.created_at}"

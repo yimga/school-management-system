@@ -15,7 +15,12 @@ from .views import (
     toggle_preview_mode,
     set_act_as_role,
 )
-from .views_feature_control import feature_control_panel
+from .views_feature_control import (
+    feature_control_panel,
+    feature_control_export,
+    feature_control_audit_log,
+    feature_control_api,
+)
 from .dashboard_views import (
     update_theme,
 )
@@ -38,4 +43,7 @@ urlpatterns = [
     path("preview/toggle/", toggle_preview_mode, name="toggle_preview_mode"),
     path("act-as/", set_act_as_role, name="set_act_as_role"),
     path("feature-control/", feature_control_panel, name="feature_control_panel"),
+    path("feature-control/export/", feature_control_export, name="feature_control_export"),
+    path("feature-control/audit/", feature_control_audit_log, name="feature_control_audit"),
+    path("feature-control/api/", feature_control_api, name="feature_control_api"),
 ]

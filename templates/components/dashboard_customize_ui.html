@@ -4,13 +4,13 @@
   Include once per dashboard; requires #dashboard-layout and dashboard-layout.js.
 {% endcomment %}
 <input type="checkbox" id="toggleCustomize" class="d-none" aria-hidden="true" tabindex="-1">
-<button type="button" class="btn btn-outline-primary btn-sm" id="btnCustomizeLayout" aria-pressed="false">
+<button type="button" class="btn btn-outline-primary btn-sm" id="btnCustomizeLayout" aria-pressed="false" title="Arrange widgets: click to enter edit mode, then drag by the grip (⋮⋮) to reorder. Layout saves automatically.">
   <i class="bi bi-grid-3x3-gap me-1"></i>Customize layout
 </button>
-<button type="button" class="btn btn-outline-secondary btn-sm js-reset-dashboard-layout" id="btnResetLayout" aria-label="Reset dashboard layout to default">
+<button type="button" class="btn btn-outline-secondary btn-sm js-reset-dashboard-layout" id="btnResetLayout" aria-label="Reset dashboard layout to default" title="Restore default widget order">
   <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to default
 </button>
 <div id="dashboard-customize-instructions" class="alert alert-info small mb-2 d-none" role="status">
-  <i class="bi bi-info-circle me-2"></i>Drag cards by the grip (⋮⋮) to reorder. Use the ⋮ menu on each card for size, style, and chart type (for data visualizers). Layout saves automatically.
+  <i class="bi bi-info-circle me-2"></i>Drag cards by the grip (⋮⋮) to reorder. Use the ⋮ menu on each card for size, style, and chart type. Layout saves automatically.
 </div>
 <div id="dashboard-layout-toast" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;" aria-live="polite"></div>

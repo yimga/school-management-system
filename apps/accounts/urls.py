@@ -2,7 +2,9 @@ from django.urls import path
 
 from .views import (
     academic_rules,
+    approval_workflow_hub,
     backend_dashboard,
+    import_hub,
     backend_entity_import,
     backend_entity_console,
     claim_invite,
@@ -59,8 +61,10 @@ urlpatterns = [
     path("backend/", backend_dashboard, name="backend_dashboard"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),
+    path("backend/import-hub/", import_hub, name="import_hub"),
     path("backend/entities/", backend_entity_console, name="backend_entity_console"),
     path("workflow/", workflow_center, name="workflow_center"),
+    path("workflow/approvals/", approval_workflow_hub, name="approval_workflow_hub"),
     path("workflow/clone-year/", clone_year_setup, name="clone_year_setup"),
     path("workflow/rollover/", rollover_year, name="rollover_year"),
     path("workflow/academic-rules/", academic_rules, name="academic_rules"),

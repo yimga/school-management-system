@@ -123,18 +123,8 @@ def dashboard_context(request):
         from django.urls import reverse
         from apps.siteconfig.dashboard_views import _can_customize
         context["can_customize_dashboard"] = _can_customize(user)
-        # Contextual link: current dashboard + ?customize=1, or backend as default
-        path = (request.path or "").lower()
-        if "/finance/" in path:
-            context["dashboard_layout_link"] = reverse("finance:dashboard") + "?customize=1"
-        elif "/analytics/" in path:
-            context["dashboard_layout_link"] = reverse("analytics:dashboard") + "?customize=1"
-        elif "/payroll/" in path:
-            context["dashboard_layout_link"] = reverse("payroll:dashboard") + "?customize=1"
-        elif "/emis/" in path:
-            context["dashboard_layout_link"] = reverse("emis:dashboard") + "?customize=1"
-        else:
-            context["dashboard_layout_link"] = reverse("accounts:backend_dashboard") + "?customize=1"
+        # Dashboard Layout: only Backend supports customization; always link there
+        context["dashboard_layout_link"] = reverse("accounts:backend_dashboard") + "?customize=1"
     except Exception:
         context["can_customize_dashboard"] = False
         try:

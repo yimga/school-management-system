@@ -23,7 +23,7 @@ from .models import (
     GradingScaleConfig,
     HolidayCalendar,
 )
-from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout
+from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout, FeatureControlAudit
 from apps.academics.models import AcademicYear
 from .models import default_backend_feature_flags
 from apps.accounts.models import User
@@ -1372,3 +1372,20 @@ admin_site.register(HolidayCalendar, HolidayCalendarAdmin)
 admin_site.register(DashboardUserPreference, DashboardUserPreferenceAdmin)
 admin_site.register(DashboardWidget, DashboardWidgetAdmin)
 admin_site.register(DashboardLayout, DashboardLayoutAdmin)
+
+
+class FeatureControlAuditAdmin(ModelAdmin):
+    list_display = ("created_at", "user", "action", "changes_summary")
+    list_filter = ("action",)
+    readonly_fields = ("user", "action", "changes", "created_at")
+    date_hierarchy = "created_at"
+
+    def changes_summary(self, obj):
+        if not obj.changes:
+            return "—"
+        parts = [f"{k}: {v.get('from', '?')}→{v.get('to', '?')}" for k, v in list(obj.changes.items())[:3]]
+        return ", ".join(parts) + ("…" if len(obj.changes) > 3 else "")
+    changes_summary.short_description = "Changes"
+
+
+admin_site.register(FeatureControlAudit, FeatureControlAuditAdmin)

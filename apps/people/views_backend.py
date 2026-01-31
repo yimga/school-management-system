@@ -60,7 +60,7 @@ def backend_student_create(request):
                         )
                     
                     messages.success(request, f"Student '{student.first_name} {student.last_name}' created successfully!")
-                    return redirect('people:backend_student_list')
+                    return redirect('accounts:backend_student_list')
             except Exception as e:
                 messages.error(request, f"Error creating student: {str(e)}")
     else:
@@ -102,7 +102,7 @@ def backend_teacher_create(request):
                     
                     messages.success(request, f"Teacher '{teacher.user.get_full_name()}' created successfully!")
                     messages.info(request, f"Login credentials: Username: {username}, Password: [as set]")
-                    return redirect('people:backend_teacher_list')
+                    return redirect('accounts:backend_teacher_list')
             except Exception as e:
                 messages.error(request, f"Error creating teacher: {str(e)}")
     else:
