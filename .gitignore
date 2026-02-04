@@ -13,6 +13,8 @@ venv/
 local_settings.py
 staticfiles/
 media/
+celerybeat-schedule
+celerybeat.pid
 
 # DB
 *.sqlite3
