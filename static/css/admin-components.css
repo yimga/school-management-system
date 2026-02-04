@@ -677,6 +677,23 @@
   justify-content: center;
 }
 
+/* Dark theme: neutral alert text (no saturated red/amber on dark) */
+:root[data-theme="dark"] .alert-danger,
+html[data-bs-theme="dark"] .alert-danger,
+:root[data-theme="dark"] .alert-warning,
+html[data-bs-theme="dark"] .alert-warning,
+:root[data-theme="dark"] .alert-info,
+html[data-bs-theme="dark"] .alert-info,
+:root[data-theme="dark"] .alert-success,
+html[data-bs-theme="dark"] .alert-success {
+  color: #e2e8f0 !important;
+}
+
+:root[data-theme="dark"] .badge,
+html[data-bs-theme="dark"] .badge {
+  color: #f1f5f9 !important;
+}
+
 /* ============================================
    TABLES
    ============================================ */

@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load accounts_extras %}
+{% load accounts_extras region_format %}
 {% block title %}{{ feature.label }}{% endblock %}
 
 {% block content %}
@@ -19,7 +19,7 @@
           </a>
         {% endif %}
       {% endif %}
-      <a class="btn btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">Back to dashboard</a>
+      <a class="btn btn-outline-secondary btn-back-primary" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
     </div>
   </div>
 
@@ -48,6 +48,11 @@
                       <a href="{% url 'portal:document_download' item.id %}" class="btn btn-sm btn-primary">
                         <i class="bi bi-download me-1"></i>Download
                       </a>
+                      {% if item.file.name|slice:"-4:"|lower == ".odt" or item.file.name|slice:"-5:"|lower == ".docx" %}
+                      <a href="{% url 'portal:document_download_pdf' item.id %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                      </a>
+                      {% endif %}
                       {% if item.requires_signature %}
                         <span class="badge bg-warning text-dark">
                           <i class="bi bi-pen me-1"></i>Requires Signature
@@ -64,7 +69,7 @@
                   </div>
                 </div>
                 <div class="text-end text-muted small">
-                  {{ item.created_at|date:"Y-m-d" }}<br/>
+                  {{ item.created_at|format_date }}<br/>
                   {% if item.created_by %}by {{ item.created_by.get_full_name|default:item.created_by.username }}{% endif %}
                 </div>
               </div>

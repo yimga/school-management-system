@@ -200,7 +200,7 @@ def dashboard_context(request):
 
                 # Pending tasks (grades not entered, attendance not marked, etc.)
                 try:
-                    from apps.attendance.models import TeacherAttendance
+                    from apps.people.models import TeacherAttendance
 
                     eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
                     if active_year:
@@ -218,7 +218,7 @@ def dashboard_context(request):
                     ).exists()
 
                     context['teacher_pending_tasks'] = pending_assessments + (0 if attendance_today else 1)
-                except ImportError:
+                except Exception:
                     eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
                     if active_year:
                         eval_qs = eval_qs.filter(academic_year=active_year)
@@ -305,17 +305,17 @@ def dashboard_context(request):
                 student_profile = user.student_profile
                 from apps.evals.models import MarkEntry
                 
-                # Attendance percentage
+                # Attendance percentage (apps.academics.models.Attendance)
                 try:
-                    from apps.attendance.models import StudentAttendance
-                    attendance_records = StudentAttendance.objects.filter(student=student_profile)
+                    from apps.academics.models import Attendance
+                    attendance_records = Attendance.objects.filter(student=student_profile)
                     if attendance_records.exists():
-                        present_count = attendance_records.filter(status='PRESENT').count()
+                        present_count = attendance_records.filter(status=Attendance.Status.PRESENT).count()
                         total_count = attendance_records.count()
                         context['student_attendance'] = round((present_count / total_count) * 100) if total_count > 0 else 0
                     else:
                         context['student_attendance'] = 0
-                except ImportError:
+                except Exception:
                     context['student_attendance'] = 0
                 
                 # Average grade

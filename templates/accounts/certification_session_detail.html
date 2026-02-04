@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}Exam Session{% endblock %}
 
@@ -51,7 +51,7 @@
           <li><strong>Editing candidates:</strong> {{ edit_lock_reason }}</li>
           {% endif %}
           {% if ca_deadline_passed and not has_ca_override %}
-          <li><strong>CA submission:</strong> Deadline passed on {{ session.ca_submission_deadline_at|date:"M j, Y H:i" }}</li>
+          <li><strong>CA submission:</strong> Deadline passed on {{ session.ca_submission_deadline_at|format_date }} {{ session.ca_submission_deadline_at|time:"H:i" }}</li>
           {% endif %}
         </ul>
       </div>

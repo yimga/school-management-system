@@ -2,18 +2,48 @@
  * Backend light theme: visible on dark, light, or classic.
  * Applied when body has class .portal-backend-light (e.g. Workflow Center, Entity Console).
  * Uses high specificity so backend pages stay light regardless of user theme.
+ *
+ * Semantic variables (used by dashboard and shared JS):
+ * --backend-text, --backend-text-muted, --backend-surface, --admin-muted, --admin-text,
+ * --chart-color-1..6 (data visualization palette).
  */
 body.portal-backend-light,
 body.portal-backend-light[data-bs-theme="dark"],
 body.portal-backend-light[data-bs-theme="light"] {
-  background: linear-gradient(135deg, #f8f4fc 0%, #fff 50%, #faf5ff 100%) !important;
+  background: linear-gradient(135deg, #f8f4fc 0%, var(--color-bg-primary, #fff) 50%, #faf5ff 100%) !important;
   color: #1a1a2e !important;
+  /* Semantic variables for templates and JS */
+  --backend-text: #0f172a;
+  --backend-text-muted: #475569;
+  --backend-surface: #ffffff;
+  --backend-surface-alt: #f8fafc;
+  --backend-border: rgba(148, 163, 184, 0.3);
+  --admin-text: #0f172a;
+  --admin-muted: #475569;
+  --admin-dashboard-bg: #f8fafc;
+  --admin-surface: #ffffff;
+  --admin-surface-alt: #f1f5f9;
+  --admin-border: rgba(148, 163, 184, 0.25);
+  --brand-primary: #667eea;
+  --brand-success: #22c55e;
+  --brand-danger: #ef4444;
+  --focus-ring-color: #6366f1;
+  /* Chart palette (soft, readable on light) */
+  --chart-color-1: rgba(99, 102, 241, 0.85);
+  --chart-color-2: rgba(34, 197, 94, 0.85);
+  --chart-color-3: rgba(251, 191, 36, 0.85);
+  --chart-color-4: rgba(239, 68, 68, 0.85);
+  --chart-color-5: rgba(168, 85, 247, 0.85);
+  --chart-color-6: rgba(6, 182, 212, 0.85);
+  --chart-bg: #ffffff;
+  --chart-grid: rgba(15, 23, 42, 0.1);
+  --chart-text: #475569;
 }
 
 body.portal-backend-light .card,
 body.portal-backend-light .workflow-card,
 body.portal-backend-light .workflow-hero {
-  background: #fff !important;
+  background: var(--color-bg-primary, #fff) !important;
   border-color: rgba(148, 163, 184, 0.25) !important;
   color: #1a1a2e !important;
 }
@@ -89,6 +119,12 @@ body.portal-backend-light .badge.bg-primary {
   background: linear-gradient(135deg, #667eea, #764ba2) !important;
 }
 
+/* Main content area: consistent light background */
+body.portal-backend-light #main {
+  background: var(--admin-dashboard-bg) !important;
+  color: var(--admin-text) !important;
+}
+
 /* Ensure visibility in any mode (light, dark, classic) */
 body.portal-backend-light .alert,
 body.portal-backend-light .list-group-item,
@@ -97,7 +133,7 @@ body.portal-backend-light .form-select,
 body.portal-backend-light input,
 body.portal-backend-light select,
 body.portal-backend-light textarea {
-  background-color: #fff !important;
+  background-color: var(--color-bg-primary, #fff) !important;
   color: #1a1a2e !important;
   border-color: rgba(148, 163, 184, 0.35) !important;
 }
@@ -120,7 +156,7 @@ body.portal-backend-light .table-striped tbody tr:nth-of-type(odd) {
 /* Backend: ensure page-wrap and dropdowns visible in any mode */
 html[data-bs-theme="dark"] body.portal-backend-light .page-wrap,
 html[data-bs-theme="dark"] body.portal-backend-light .dropdown-menu {
-  background: #fff !important;
+  background: var(--color-bg-primary, #fff) !important;
   border-color: rgba(148, 163, 184, 0.25) !important;
   color: #1a1a2e !important;
 }
@@ -132,4 +168,32 @@ html[data-bs-theme="dark"] body.portal-backend-light .dropdown-item {
 html[data-bs-theme="dark"] body.portal-backend-light .dropdown-item:hover {
   background: rgba(102, 126, 234, 0.1) !important;
   color: #0f172a !important;
+}
+
+/* Admin nav bridge: theme-aware for light backend (softer bar) */
+body.portal-backend-light .admin-nav-bridge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.2) !important;
+}
+body.portal-backend-light .admin-nav-bridge__brand,
+body.portal-backend-light .admin-nav-bridge__location {
+  color: #fff !important;
+}
+body.portal-backend-light .admin-nav-bridge__switch-btn {
+  background: #fff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+body.portal-backend-light .admin-nav-bridge__switch-btn:hover {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+body.portal-backend-light .admin-nav-bridge__home-btn {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: #fff !important;
+}
+body.portal-backend-light .admin-nav-bridge__home-btn:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
 }

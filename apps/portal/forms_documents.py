@@ -38,7 +38,7 @@ class DocumentUploadForm(forms.ModelForm):
             "document_type": forms.Select(attrs={"class": "form-select"}),
             "file": forms.FileInput(attrs={
                 "class": "form-control",
-                "accept": ".pdf,.doc,.docx,.xls,.xlsx"
+                "accept": ".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods"
             }),
             "link": forms.URLInput(attrs={
                 "class": "form-control",

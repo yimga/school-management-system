@@ -316,6 +316,11 @@ class Invoice(models.Model):
         help_text="Unique code for parent to quote when paying (e.g. MoMo). Auto-generated if blank.",
     )
     notes = models.TextField(blank=True)
+    void_reason = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Required when voiding: reason for voiding this invoice (audited).",
+    )
     attachment = models.FileField(
         upload_to="finance/invoices/",
         blank=True,
@@ -490,10 +495,18 @@ class Payment(models.Model):
     purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, default="tuition")
     description = models.TextField(blank=True)
     method = models.CharField(max_length=20, choices=PaymentMethodCode.choices, blank=True, default="")
-    reference = models.CharField(max_length=80, blank=True)
+    reference = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="Human-readable or internal reference; may mirror external_reference. See docs/DATA_PAYMENT_REFERENCE.md.",
+    )
     paid_at = models.DateTimeField(default=timezone.now)
     receipt_number = models.CharField(max_length=64, blank=True)
-    external_reference = models.CharField(max_length=128, blank=True)
+    external_reference = models.CharField(
+        max_length=128,
+        blank=True,
+        help_text="External transaction ID (provider, bank, receipt). Use for matching and idempotency. See docs/DATA_PAYMENT_REFERENCE.md.",
+    )
     gateway_transaction_id = models.CharField(max_length=100, blank=True, null=True, unique=True, default=None)
     gateway_response = models.JSONField(blank=True, default=dict)
     compliance_checked = models.BooleanField(default=False)
@@ -594,11 +607,29 @@ class Payment(models.Model):
             return f"{self.invoice} {self.amount}"
         return f"Payment {self.pk} {self.amount}"
 
+    def _get_audit_region(self):
+        """Region for audit log: payment.region or payment_method.region."""
+        if self.region_id:
+            return self.region
+        if self.payment_method_id and hasattr(self.payment_method, "region"):
+            return getattr(self.payment_method, "region", None)
+        return None
+
     def mark_processing(self) -> None:
         """Mark payment as processing."""
         self.status = "processing"
         self.initiated_at = timezone.now()
         self.save(update_fields=["status", "initiated_at"])
+        region = self._get_audit_region()
+        if region:
+            PaymentAuditLog.objects.create(
+                payment=self,
+                region=region,
+                action_type="payment_initiated",
+                description="Payment marked as processing.",
+                details={"status": "processing"},
+                severity="medium",
+            )
 
     def mark_completed(self, gateway_tx_id: str | None = None, response: dict | None = None) -> None:
         """Mark payment as completed."""
@@ -612,6 +643,16 @@ class Payment(models.Model):
             self.gateway_response = response
             update_fields.append("gateway_response")
         self.save(update_fields=update_fields)
+        region = self._get_audit_region()
+        if region:
+            PaymentAuditLog.objects.create(
+                payment=self,
+                region=region,
+                action_type="payment_completed",
+                description="Payment completed.",
+                details={"gateway_transaction_id": gateway_tx_id} if gateway_tx_id else {},
+                severity="low",
+            )
 
     def mark_failed(self, reason: str = "", response: dict | None = None) -> None:
         """Mark payment as failed."""
@@ -623,6 +664,16 @@ class Payment(models.Model):
             self.gateway_response = response
             update_fields.append("gateway_response")
         self.save(update_fields=update_fields)
+        region = self._get_audit_region()
+        if region:
+            PaymentAuditLog.objects.create(
+                payment=self,
+                region=region,
+                action_type="payment_failed",
+                description="Payment failed.",
+                details={"reason": reason},
+                severity="high",
+            )
 
 
 class Transaction(models.Model):
@@ -800,12 +851,30 @@ class PaymentAuditLog(models.Model):
 
 class PaymentReminder(models.Model):
     invoice = models.OneToOneField(Invoice, on_delete=models.CASCADE, related_name="reminder")
-    reminder_days_before = models.PositiveSmallIntegerField(default=3)
+    reminder_days_before = models.JSONField(
+        default=list,
+        help_text="List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty."
+    )
+    reminder_channels = models.JSONField(
+        default=list,
+        help_text="Channels to use: ['email'], ['whatsapp'], ['email', 'sms'], etc. Falls back to SiteSettings default if empty."
+    )
     next_send_at = models.DateTimeField(null=True, blank=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    message_template = models.TextField(
+    message_template_email = models.TextField(
         default="Dear {guardian}, please pay {amount} for {invoice} by {due_date}.",
+        help_text="Email message template"
+    )
+    message_template_sms = models.TextField(
+        default="Reminder: Pay {amount} for {invoice} by {due_date}.",
+        blank=True,
+        help_text="SMS message template"
+    )
+    message_template_whatsapp = models.TextField(
+        default="Hi {guardian}! 👋 Please pay *{amount}* for invoice *{invoice}* by *{due_date}*.",
+        blank=True,
+        help_text="WhatsApp message template"
     )
 
     class Meta:
@@ -814,11 +883,45 @@ class PaymentReminder(models.Model):
     def __str__(self) -> str:
         return f"Reminder for {self.invoice}"
 
+    def get_reminder_days(self):
+        """Get reminder days, falling back to SiteSettings if empty."""
+        if self.reminder_days_before:
+            return self.reminder_days_before
+        from apps.siteconfig.models import SiteSettings
+        site = SiteSettings.get_solo()
+        return getattr(site, "finance_payment_reminder_default_days", None) or [7, 3, 1]
+    
+    def get_reminder_channels(self):
+        """Get reminder channels, falling back to SiteSettings if empty."""
+        if self.reminder_channels:
+            return self.reminder_channels
+        from apps.siteconfig.models import SiteSettings
+        site = SiteSettings.get_solo()
+        return getattr(site, "finance_payment_reminder_default_channels", None) or ["email"]
+    
+    def get_message_template(self, channel: str) -> str:
+        """Get message template for a specific channel."""
+        if channel == "email":
+            return self.message_template_email
+        elif channel == "sms":
+            return self.message_template_sms or self.message_template_email
+        elif channel == "whatsapp":
+            return self.message_template_whatsapp or self.message_template_email
+        return self.message_template_email
+
     def schedule_next(self):
+        """Schedule next reminder based on earliest day in reminder_days_before."""
         if not self.invoice.due_date:
             return
+        days = self.get_reminder_days()
+        if not days:
+            return
+        # Schedule for the earliest reminder day (max days before = earliest)
+        earliest_day = max(days) if isinstance(days, list) else days
+        if isinstance(earliest_day, list):
+            earliest_day = max(earliest_day)
         target = datetime.combine(self.invoice.due_date, datetime.min.time())
-        remind_at = target - timedelta(days=self.reminder_days_before)
+        remind_at = target - timedelta(days=int(earliest_day))
         self.next_send_at = timezone.make_aware(remind_at, timezone=timezone.get_current_timezone())
         self.save(update_fields=["next_send_at"])
 
@@ -1106,3 +1209,428 @@ class WebhookLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.provider} {self.reference_id} {self.status}"
+
+
+class PaymentProofUpload(models.Model):
+    """
+    Tracks payment receipt uploads from parents/guardians.
+    Supports automated verification and payment application.
+    """
+    
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending Verification"
+        VERIFYING = "VERIFYING", "Verifying"
+        VERIFIED = "VERIFIED", "Verified - Payment Applied"
+        DISCREPANCY = "DISCREPANCY", "Discrepancy - Needs Review"
+        REJECTED = "REJECTED", "Rejected"
+    
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name="payment_proof_uploads"
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="payment_proof_uploads",
+        help_text="Parent/guardian who uploaded the receipt"
+    )
+    receipt_file = models.FileField(
+        upload_to="finance/payment_proofs/",
+        validators=[validate_receipt_file, validate_file_size_2mb],
+        help_text="Uploaded receipt file (PDF/image, max 2MB)"
+    )
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethodCode.choices,
+        help_text="Payment method used (CASH, BANK, etc.)"
+    )
+    transaction_reference = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Transaction reference/ID from receipt (optional, can be extracted)"
+    )
+    uploaded_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Amount from receipt (optional, can be extracted via OCR)"
+    )
+    verification_data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Extracted data from receipt (amount, reference, date, confidence)"
+    )
+    verification_confidence = models.FloatField(
+        default=0.0,
+        help_text="Confidence score (0.0-1.0) for verification"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="proof_uploads",
+        help_text="Created payment record (if verified and applied)"
+    )
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="verified_payment_proofs",
+        help_text="Admin who verified (if manual verification)"
+    )
+    verification_notes = models.TextField(
+        blank=True,
+        help_text="Notes about verification (discrepancies, reasons for rejection, etc.)"
+    )
+    verification_reason = models.TextField(
+        blank=True,
+        help_text="Reason for manual approve/reject (required when overriding auto-verification)."
+    )
+    idempotency_key = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+        help_text="Client key to prevent duplicate uploads on retry."
+    )
+    reassign_to_invoice = models.ForeignKey(
+        "finance.Invoice",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        help_text="Set to another invoice (e.g. same student) and save to reassign this receipt."
+    )
+    # Fraud detection fields
+    fraud_risk_score = models.IntegerField(
+        default=0,
+        help_text="Fraud risk score (0-100). Higher = more suspicious."
+    )
+    fraud_flags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of fraud flags: ['old_receipt', 'duplicate_reference', 'date_mismatch', etc.]"
+    )
+    file_hash = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text="SHA-256 hash of receipt file for duplicate detection"
+    )
+    receipt_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date extracted from receipt (for date validation)"
+    )
+    is_suspicious = models.BooleanField(
+        default=False,
+        help_text="Flagged as suspicious - requires manual review"
+    )
+    flagged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this receipt was flagged as suspicious"
+    )
+    flagged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="flagged_receipts",
+        help_text="Admin who flagged this receipt (if manual flag)"
+    )
+    # Bank deposit verification fields
+    bank_verified = models.BooleanField(
+        default=False,
+        help_text="Whether deposit was verified in bank statements"
+    )
+    bank_verification_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When bank verification was performed"
+    )
+    bank_verification_method = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="How deposit was verified: 'transaction_reference', 'amount_and_date', 'manual', etc."
+    )
+    bank_statement_entry = models.ForeignKey(
+        "finance.BankStatementEntry",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="receipt_uploads",
+        help_text="Matched bank statement entry"
+    )
+    bank_verification_notes = models.TextField(
+        blank=True,
+        help_text="Notes about bank verification"
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of uploader (for fraud detection)"
+    )
+    user_agent = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="User agent/browser info (for fraud detection)"
+    )
+    device_fingerprint = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Device fingerprint hash (for fraud detection)"
+    )
+    # Delayed verification tracking
+    verification_retry_count = models.IntegerField(
+        default=0,
+        help_text="Number of times bank verification has been retried"
+    )
+    last_verification_attempt = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last time bank verification was attempted"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.reassign_to_invoice_id and self.reassign_to_invoice_id != self.invoice_id:
+            old_invoice_id = self.invoice_id
+            self.invoice_id = self.reassign_to_invoice_id
+            self.status = PaymentProofUpload.Status.PENDING
+            self.verification_notes = (self.verification_notes or "") + f" [Reassigned from invoice {old_invoice_id}.] "
+            self.reassign_to_invoice_id = None
+            self.payment_id = None
+            self.verified_by_id = None
+            self.verified_at = None
+            self.verification_reason = ""
+        super().save(*args, **kwargs)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Payment Proof Upload"
+        verbose_name_plural = "Payment Proof Uploads"
+        indexes = [
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["invoice", "-created_at"]),
+            models.Index(fields=["uploaded_by", "-created_at"]),
+            models.Index(fields=["is_suspicious", "-created_at"]),
+            models.Index(fields=["file_hash"]),
+            models.Index(fields=["transaction_reference"]),
+        ]
+    
+    def __str__(self) -> str:
+        return f"Receipt upload for Invoice {self.invoice.id} - {self.get_status_display()}"
+
+
+class BankAccount(models.Model):
+    """
+    School bank accounts for deposit verification.
+    Supports Cameroon banks, MTN MoMo, Orange Money.
+    """
+    
+    class AccountType(models.TextChoices):
+        BANK = "BANK", "Bank Account"
+        MTN_MOMO = "MTN_MOMO", "MTN Mobile Money"
+        ORANGE_MONEY = "ORANGE_MONEY", "Orange Money"
+        OTHER = "OTHER", "Other"
+    
+    name = models.CharField(
+        max_length=200,
+        help_text="Account name/nickname (e.g., 'Main School Account', 'MTN MoMo Merchant')"
+    )
+    account_type = models.CharField(
+        max_length=20,
+        choices=AccountType.choices,
+        default=AccountType.BANK
+    )
+    account_number = models.CharField(
+        max_length=50,
+        help_text="Account number (bank account, MoMo merchant number, etc.)"
+    )
+    bank_name = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Bank name (for bank accounts)"
+    )
+    branch = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Branch name/location"
+    )
+    currency = models.CharField(
+        max_length=3,
+        default="XAF",
+        help_text="Currency code (XAF for Cameroon)"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this account is currently active"
+    )
+    region = models.ForeignKey(
+        "siteconfig.RegionConfig",
+        on_delete=models.CASCADE,
+        related_name="bank_accounts"
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text="Additional notes about this account"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Bank Account"
+        verbose_name_plural = "Bank Accounts"
+    
+    def __str__(self) -> str:
+        return f"{self.name} ({self.get_account_type_display()})"
+
+
+class BankStatementEntry(models.Model):
+    """
+    Bank statement transactions for deposit verification.
+    Can be imported from bank statements or entered manually.
+    """
+    
+    class TransactionType(models.TextChoices):
+        DEPOSIT = "DEPOSIT", "Deposit"
+        WITHDRAWAL = "WITHDRAWAL", "Withdrawal"
+        TRANSFER_IN = "TRANSFER_IN", "Transfer In"
+        TRANSFER_OUT = "TRANSFER_OUT", "Transfer Out"
+        FEE = "FEE", "Fee"
+        OTHER = "OTHER", "Other"
+    
+    bank_account = models.ForeignKey(
+        BankAccount,
+        on_delete=models.CASCADE,
+        related_name="statement_entries"
+    )
+    transaction_date = models.DateField(
+        help_text="Date of transaction"
+    )
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Transaction amount (positive for deposits, negative for withdrawals)"
+    )
+    transaction_type = models.CharField(
+        max_length=20,
+        choices=TransactionType.choices,
+        default=TransactionType.DEPOSIT
+    )
+    transaction_reference = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Transaction reference/ID from bank"
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Transaction description/details"
+    )
+    balance_after = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Account balance after this transaction"
+    )
+    is_verified = models.BooleanField(
+        default=False,
+        help_text="Whether this entry has been verified/matched"
+    )
+    matched_receipt_upload = models.ForeignKey(
+        PaymentProofUpload,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="matched_statements",
+        help_text="Receipt upload that matches this statement entry"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    imported_from = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Source of this entry (e.g., 'Bank Statement Upload', 'Manual Entry')"
+    )
+    
+    class Meta:
+        ordering = ["-transaction_date", "-id"]
+        verbose_name = "Bank Statement Entry"
+        verbose_name_plural = "Bank Statement Entries"
+        indexes = [
+            models.Index(fields=["bank_account", "transaction_date"]),
+            models.Index(fields=["transaction_reference"]),
+            models.Index(fields=["is_verified"]),
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.bank_account.name} - {self.transaction_date} - {self.amount}"
+
+
+class BankStatementUpload(models.Model):
+    """
+    Tracks bank statement file uploads for import.
+    """
+    
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending Import"
+        PROCESSING = "PROCESSING", "Processing"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+    
+    bank_account = models.ForeignKey(
+        BankAccount,
+        on_delete=models.CASCADE,
+        related_name="statement_uploads"
+    )
+    statement_file = models.FileField(
+        upload_to="finance/bank_statements/",
+        help_text="Bank statement file (CSV, PDF, Excel)"
+    )
+    statement_period_start = models.DateField(
+        help_text="Start date of statement period"
+    )
+    statement_period_end = models.DateField(
+        help_text="End date of statement period"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    entries_imported = models.IntegerField(
+        default=0,
+        help_text="Number of entries imported"
+    )
+    errors = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Import errors (if any)"
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="bank_statement_uploads"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Bank Statement Upload"
+        verbose_name_plural = "Bank Statement Uploads"
+    
+    def __str__(self) -> str:
+        return f"{self.bank_account.name} - {self.statement_period_start} to {self.statement_period_end}"

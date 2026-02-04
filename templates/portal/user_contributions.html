@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}My Contributions - Knowledge Base{% endblock %}
 
@@ -131,7 +131,7 @@
                                             {{ faq.helpful_count }}
                                             <small class="text-muted">/{{ faq.helpful_count|add:faq.unhelpful_count }}</small>
                                         </td>
-                                        <td><small>{{ faq.created_at|date:"M d, Y" }}</small></td>
+                                        <td><small>{{ faq.created_at|format_date }}</small></td>
                                         <td>
                                             <a href="{% url 'kb:faq_detail' faq.id %}" 
                                                class="btn btn-sm btn-outline-primary">
@@ -196,7 +196,7 @@
                                         </td>
                                         <td>{{ article.views }}</td>
                                         <td>{{ article.read_time }} min</td>
-                                        <td><small>{{ article.created_at|date:"M d, Y" }}</small></td>
+                                        <td><small>{{ article.created_at|format_date }}</small></td>
                                         <td>
                                             <a href="{% url 'kb:kb_article' article.slug %}" 
                                                class="btn btn-sm btn-outline-primary">
@@ -284,7 +284,7 @@
                                             <p class="mb-0">
                                                 <strong>{{ activity.message }}</strong>
                                                 <br>
-                                                <small class="text-muted">{{ activity.date|date:"M d, Y H:i" }}</small>
+                                                <small class="text-muted">{{ activity.date|format_date }} {{ activity.date|time:"H:i" }}</small>
                                             </p>
                                         </div>
                                     </div>

@@ -2,12 +2,43 @@
  * Backend dark/grey theme for /backend (dashboard + sidebar).
  * Applied when body has class .portal-backend-dark.
  * All text colors tuned for clear readability on dark backgrounds.
+ *
+ * Semantic variables (used by dashboard and shared JS):
+ * --backend-text, --backend-text-muted, --backend-surface, --backend-surface-alt,
+ * --backend-border, --admin-muted, --admin-text, --admin-dashboard-bg, --admin-surface,
+ * --chart-color-1..6 (data visualization palette).
  */
 body.portal-backend-dark,
 body.portal-backend-dark[data-bs-theme="dark"],
 body.portal-backend-dark[data-bs-theme="light"] {
   background: #1e293b !important;
   color: #e2e8f0 !important;
+  /* Semantic variables for templates and JS */
+  --backend-text: #e2e8f0;
+  --backend-text-muted: #b8c4d0;
+  --backend-surface: #334155;
+  --backend-surface-alt: #475569;
+  --backend-border: rgba(148, 163, 184, 0.25);
+  --admin-text: #f8fafc;
+  --admin-muted: #b8c4d0;
+  --admin-dashboard-bg: #1e293b;
+  --admin-surface: #334155;
+  --admin-surface-alt: #475569;
+  --admin-border: rgba(148, 163, 184, 0.25);
+  --brand-primary: #6366f1;
+  --brand-success: #34d399;
+  --brand-danger: #f87171;
+  --focus-ring-color: #a5b4fc;
+  /* Chart palette (soft, readable on dark) */
+  --chart-color-1: rgba(99, 102, 241, 0.85);
+  --chart-color-2: rgba(34, 197, 94, 0.85);
+  --chart-color-3: rgba(251, 191, 36, 0.85);
+  --chart-color-4: rgba(239, 68, 68, 0.85);
+  --chart-color-5: rgba(168, 85, 247, 0.85);
+  --chart-color-6: rgba(6, 182, 212, 0.85);
+  --chart-bg: #334155;
+  --chart-grid: rgba(148, 163, 184, 0.4);
+  --chart-text: #cbd5e1;
 }
 
 /* Base text: ensure body and all inherited text is readable */
@@ -33,11 +64,193 @@ body.portal-backend-dark small {
   color: #b8c4d0 !important;
 }
 
-/* Top bar: dark grey to match */
+/* Top bar: dark grey to match – use tokens for consistency */
+body.portal-backend-dark {
+  --header-brand-bg: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  --header-brand-fg: #f1f5f9;
+}
 body.portal-backend-dark .topbar,
 body.portal-backend-dark .navbar.topbar {
-  background: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+  background: var(--header-brand-bg) !important;
+  color: var(--header-brand-fg) !important;
   border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+/* Admin top header (theme toggle, profile, logout): same surface as rest of admin – visible, high contrast, clean */
+body.portal-backend-dark #header.admin-top-header,
+body.portal-backend-dark .admin-top-header {
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+body.portal-backend-dark #header.admin-top-header a,
+body.portal-backend-dark .admin-top-header a {
+  color: #93c5fd !important;
+}
+body.portal-backend-dark #header.admin-top-header a:hover,
+body.portal-backend-dark .admin-top-header a:hover {
+  color: #bfdbfe !important;
+}
+body.portal-backend-dark #header.admin-top-header .nav-global-actions .button.ghost,
+body.portal-backend-dark #header.admin-top-header .nav-global-actions a.button.ghost,
+body.portal-backend-dark .admin-top-header .nav-global-actions .button.ghost,
+body.portal-backend-dark .admin-top-header .nav-global-actions a.button.ghost {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+body.portal-backend-dark .admin-top-header .nav-global-actions .button.ghost:hover,
+body.portal-backend-dark .admin-top-header .nav-global-actions a.button.ghost:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #f8fafc !important;
+}
+body.portal-backend-dark .admin-top-header .theme-toggle button {
+  color: var(--admin-muted) !important;
+}
+body.portal-backend-dark .admin-top-header .theme-toggle button:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark .admin-top-header .theme-toggle button.active {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0f172a !important;
+}
+
+/* Main content area: same dark background so no white “half” */
+body.portal-backend-dark #main {
+  background: var(--admin-dashboard-bg) !important;
+  color: var(--admin-text) !important;
+}
+
+/* App index cards (e.g. /admin/evals/): same surface as dashboard – visible, high contrast */
+body.portal-backend-dark .admin-app-index__card,
+body.portal-backend-dark .admin-app-index__back a {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark .admin-app-index__card-link,
+body.portal-backend-dark .admin-app-index__title {
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark .admin-app-index__card-link:hover {
+  color: #93c5fd !important;
+}
+body.portal-backend-dark .admin-app-index__subtitle,
+body.portal-backend-dark .admin-app-index__empty {
+  color: var(--admin-muted) !important;
+}
+body.portal-backend-dark .admin-app-index__card-actions a {
+  color: var(--admin-muted) !important;
+  border-color: var(--admin-border) !important;
+}
+body.portal-backend-dark .admin-app-index__card-actions a:hover,
+body.portal-backend-dark .admin-app-index__card-actions a.addlink {
+  color: #93c5fd !important;
+  border-color: #93c5fd !important;
+}
+body.portal-backend-dark .admin-app-index__card-actions a.addlink:hover {
+  background: #93c5fd !important;
+  color: #0f172a !important;
+}
+body.portal-backend-dark .admin-app-index__back a:hover {
+  color: #93c5fd !important;
+  border-color: #93c5fd !important;
+}
+
+/* ----- Changelist (list views): full theme – no white body ----- */
+body.portal-backend-dark #content-main,
+body.portal-backend-dark #changelist,
+body.portal-backend-dark .result-list-wrapper,
+body.portal-backend-dark .changelist-form-container {
+  background: var(--admin-dashboard-bg) !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark #toolbar,
+body.portal-backend-dark #changelist-search,
+body.portal-backend-dark #changelist-search form,
+body.portal-backend-dark #changelist-form {
+  background: transparent !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark #toolbar .rounded-default,
+body.portal-backend-dark #changelist-search .rounded-default,
+body.portal-backend-dark .module .lg\:border {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark #changelist-search input,
+body.portal-backend-dark #toolbar input {
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+body.portal-backend-dark .result-list-wrapper .overflow-x-auto,
+body.portal-backend-dark #result_list {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark .result-list-wrapper table thead th,
+body.portal-backend-dark .result-list-wrapper table tbody td,
+body.portal-backend-dark #result_list th,
+body.portal-backend-dark #result_list td {
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+body.portal-backend-dark .admin-empty-results {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark .admin-empty-results h2 { color: var(--admin-text) !important; }
+body.portal-backend-dark .admin-empty-results p { color: var(--admin-muted) !important; }
+body.portal-backend-dark .admin-empty-results a[href="?"] {
+  color: var(--admin-muted) !important;
+  border-color: var(--admin-border) !important;
+}
+body.portal-backend-dark .admin-empty-results a[href="?"]:hover {
+  color: #93c5fd !important;
+  border-color: #93c5fd !important;
+}
+
+/* Theme/actions bar: stay in frame, readable */
+body.portal-backend-dark .admin-tab-actions-list,
+body.portal-backend-dark .admin-tab-actions-list a {
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+body.portal-backend-dark .admin-tab-actions-list a:hover {
+  color: #93c5fd !important;
+}
+
+/* Changelist pagination and footer bar */
+body.portal-backend-dark #changelist-actions-wrapper,
+body.portal-backend-dark .changelist-actions,
+body.portal-backend-dark .pagination,
+body.portal-backend-dark .pagination a,
+body.portal-backend-dark .pagination span {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark .pagination a:hover {
+  color: #93c5fd !important;
+}
+
+/* Sidebar search box and user dropdown – theme surface */
+body.portal-backend-dark #nav-sidebar .rounded-default.border,
+body.portal-backend-dark #nav-sidebar nav.absolute.bg-white,
+body.portal-backend-dark #nav-sidebar nav.absolute[class*="bg-white"] {
+  background: var(--admin-surface) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+body.portal-backend-dark #nav-sidebar input {
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
 }
 
 body.portal-backend-dark .page-wrap,
@@ -145,13 +358,13 @@ body.portal-backend-dark .btn-outline-secondary:hover {
 body.portal-backend-dark .btn-primary {
   background: linear-gradient(135deg, #4f46e5, #6366f1);
   border-color: #4f46e5;
-  color: #fff;
+  color: #f1f5f9;
 }
 
 body.portal-backend-dark .btn-primary:hover {
   background: linear-gradient(135deg, #4338ca, #4f46e5);
   border-color: #4338ca;
-  color: #fff;
+  color: #f1f5f9;
 }
 
 body.portal-backend-dark .nav-pill:hover,
@@ -162,7 +375,7 @@ body.portal-backend-dark .nav-pill.active {
 /* Badges: all readable on dark; never dark text on dark bg */
 body.portal-backend-dark .badge.bg-primary {
   background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
-  color: #fff !important;
+  color: #f1f5f9 !important;
 }
 
 body.portal-backend-dark .badge.bg-light,
@@ -173,23 +386,23 @@ body.portal-backend-dark .badge.bg-secondary {
 
 body.portal-backend-dark .badge.bg-success {
   background: #059669 !important;
-  color: #fff !important;
+  color: #f1f5f9 !important;
 }
 
 body.portal-backend-dark .badge.bg-warning,
 body.portal-backend-dark .badge.bg-warning.text-dark {
   background: #d97706 !important;
-  color: #fff !important;
+  color: #f1f5f9 !important;
 }
 
 body.portal-backend-dark .badge.bg-danger {
   background: #dc2626 !important;
-  color: #fff !important;
+  color: #f1f5f9 !important;
 }
 
 body.portal-backend-dark .badge.bg-info {
   background: #0891b2 !important;
-  color: #fff !important;
+  color: #f1f5f9 !important;
 }
 
 body.portal-backend-dark .badge.bg-dark {
@@ -309,4 +522,32 @@ body.portal-backend-dark .alert,
 body.portal-backend-dark .alert strong,
 body.portal-backend-dark .alert .text-muted {
   color: #e2e8f0 !important;
+}
+
+/* Admin nav bridge: theme-aware so it doesn't clash with dark backend */
+body.portal-backend-dark .admin-nav-bridge {
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+  border-bottom-color: rgba(148, 163, 184, 0.2) !important;
+}
+body.portal-backend-dark .admin-nav-bridge__brand,
+body.portal-backend-dark .admin-nav-bridge__location {
+  color: #e2e8f0 !important;
+}
+body.portal-backend-dark .admin-nav-bridge__switch-btn {
+  background: #475569 !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+}
+body.portal-backend-dark .admin-nav-bridge__switch-btn:hover {
+  background: #64748b !important;
+  color: #f1f5f9 !important;
+}
+body.portal-backend-dark .admin-nav-bridge__home-btn {
+  background: rgba(148, 163, 184, 0.15) !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+  color: #e2e8f0 !important;
+}
+body.portal-backend-dark .admin-nav-bridge__home-btn:hover {
+  background: rgba(148, 163, 184, 0.25) !important;
+  color: #f1f5f9 !important;
 }

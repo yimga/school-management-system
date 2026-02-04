@@ -12,6 +12,37 @@ This means your SQLite database file (`db.sqlite3`) has become corrupted, likely
 
 ## Solutions
 
+### Option 0: Use a Different DB File (No Replace, No Data Loss)
+
+If you already have a working SQLite file (e.g. `db_fresh.sqlite3`) and don't want to touch the corrupted `db.sqlite3` (e.g. it's locked or you'll fix it later):
+
+**Windows (cmd):**
+```cmd
+set DB_FILE=db_fresh.sqlite3
+python manage.py runserver
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:DB_FILE="db_fresh.sqlite3"; python manage.py runserver
+```
+
+**Bash / Git Bash:**
+```bash
+export DB_FILE=db_fresh.sqlite3
+python manage.py runserver
+```
+
+Or add to your `.env` or `.env.local`:
+```
+DB_FILE=db_fresh.sqlite3
+```
+(Requires that your settings load env from that file for `DB_FILE`; `config/settings.py` uses `os.getenv("DB_FILE", "db.sqlite3")`.)
+
+This uses the alternate file only for this process; nothing is overwritten.
+
+---
+
 ### Option 1: Recreate Database (Recommended for Development)
 
 **⚠️ WARNING: This will delete all data in the database!**

@@ -61,12 +61,12 @@
   cursor: pointer;
   border-radius: 50%;
   transition: all 0.2s ease;
-  color: #64748b;
+  color: var(--admin-content-text-muted, #64748b);
 }
 
 .notification-bell:hover {
-  background: rgba(13, 110, 253, 0.1);
-  color: #0d6efd;
+  background: var(--admin-accent-light, rgba(13, 110, 253, 0.1));
+  color: var(--focus-ring-color, var(--school-primary, #0d6efd));
 }
 
 .notification-bell i {
@@ -77,8 +77,8 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: linear-gradient(135deg, #dc3545, #c82333);
-  color: #fff;
+  background: linear-gradient(135deg, var(--admin-content-danger, #dc3545), var(--color-danger, #c82333));
+  color: var(--header-brand-fg, #fff);
   font-size: 0.65rem;
   font-weight: 700;
   min-width: 18px;
@@ -151,8 +151,8 @@
 
 .notification-tabs {
   display: flex;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  background: var(--admin-content-surface, #f8f9fa);
+  border-bottom: 1px solid var(--admin-content-border, #e9ecef);
 }
 
 .notification-tab {
@@ -175,7 +175,7 @@
 
 .notification-tab.active {
   color: #0d6efd;
-  background: #fff;
+  background: var(--admin-content-bg);
 }
 
 .notification-tab.active::after {
@@ -191,7 +191,7 @@
 .notification-body {
   max-height: 400px;
   overflow-y: auto;
-  background: #fff;
+  background: var(--admin-content-bg);
 }
 
 .notification-loading {
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
   position: fixed;
   top: 80px;
   right: 20px;
-  background: #fff;
+  background: var(--admin-content-bg);
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   padding: 1rem;

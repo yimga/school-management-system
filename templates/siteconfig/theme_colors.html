@@ -1,0 +1,254 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Theme & Experience" %} – {{ SITE.site_name|default:"Site" }}{% endblock %}
+
+{% block body_extra_class %}theme-experience-full-width{% endblock %}
+
+{% block content %}
+<div class="theme-experience-page container-fluid py-2">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+    <h1 class="h4 mb-0">{% trans "Theme & Experience" %}</h1>
+    {% if back_url %}
+    <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm">
+      <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">arrow_back</span>
+      {% trans "Back to Site Settings" %}
+    </a>
+    {% endif %}
+  </div>
+
+  <form method="post" id="theme-colors-form">
+    {% csrf_token %}
+
+    <div class="theme-experience-grid">
+      {# Left: Color & harmony tools #}
+      <div class="theme-experience-left">
+        <div class="theme-revert-row mb-2">
+          <button type="button" id="theme-revert-to-saved" class="btn btn-outline-secondary btn-sm">
+            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">undo</span>
+            {% trans "Revert to saved" %}
+          </button>
+          <span class="text-muted small ms-2">{% trans "Restore colors to their saved values." %}</span>
+        </div>
+        {% include "admin/components/color_palette_studio.html" %}
+        {% include "admin/components/admin_dashboard_palette_selector.html" %}
+        {% include "admin/components/admin_theme_preset.html" %}
+        {% include "admin/components/color_combinations_reference.html" %}
+      </div>
+
+      {# Right: Theme & Experience form (no spill) + preview + actions at end #}
+      <div class="theme-experience-right">
+        <div class="card border theme-experience-form-card">
+          <div class="card-body py-1 theme-experience-form-body">
+            <h2 class="h6 mb-1">{% trans "Theme & Experience settings" %}</h2>
+
+            {# Color fields #}
+            <div class="row g-1 mb-1">
+              <div class="col-6 col-md-4"><div class="mb-0">{{ form.primary_color.label_tag }}{{ form.primary_color }}{% if form.primary_color.errors %}<div class="invalid-feedback d-block">{{ form.primary_color.errors.0 }}</div>{% endif %}</div></div>
+              <div class="col-6 col-md-4"><div class="mb-0">{{ form.accent_color.label_tag }}{{ form.accent_color }}{% if form.accent_color.errors %}<div class="invalid-feedback d-block">{{ form.accent_color.errors.0 }}</div>{% endif %}</div></div>
+              <div class="col-6 col-md-4"><div class="mb-0">{{ form.header_bg_color.label_tag }}{{ form.header_bg_color }}{% if form.header_bg_color.errors %}<div class="invalid-feedback d-block">{{ form.header_bg_color.errors.0 }}</div>{% endif %}</div></div>
+              <div class="col-6 col-md-4"><div class="mb-0">{{ form.footer_bg_color.label_tag }}{{ form.footer_bg_color }}{% if form.footer_bg_color.errors %}<div class="invalid-feedback d-block">{{ form.footer_bg_color.errors.0 }}</div>{% endif %}</div></div>
+              <div class="col-4"><div class="mb-0">{{ form.success_color.label_tag }}{{ form.success_color }}{% if form.success_color.errors %}<div class="invalid-feedback d-block">{{ form.success_color.errors.0 }}</div>{% endif %}</div></div>
+              <div class="col-4"><div class="mb-0">{{ form.warning_color.label_tag }}{{ form.warning_color }}{% if form.warning_color.errors %}<div class="invalid-feedback d-block">{{ form.warning_color.errors.0 }}</div>{% endif %}</div></div>
+              <div class="col-4"><div class="mb-0">{{ form.danger_color.label_tag }}{{ form.danger_color }}{% if form.danger_color.errors %}<div class="invalid-feedback d-block">{{ form.danger_color.errors.0 }}</div>{% endif %}</div></div>
+            </div>
+
+            {# Theme + checkboxes in one row #}
+            <div class="row g-1 mb-1">
+              <div class="col-md-4"><div class="mb-0">{{ form.theme_brightness.label_tag }}{{ form.theme_brightness }}</div></div>
+              <div class="col-md-4"><div class="mb-0">{{ form.backend_console_theme.label_tag }}{{ form.backend_console_theme }}</div></div>
+              <div class="col-md-4"><div class="mb-0">{{ form.admin_theme_pack.label_tag }}{{ form.admin_theme_pack }}</div></div>
+              <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+                <div class="form-check mb-0">{{ form.use_dark_mode }}<label class="form-check-label" for="id_use_dark_mode">{{ form.use_dark_mode.label }}</label></div>
+                <div class="form-check mb-0">{{ form.admin_use_site_primary }}<label class="form-check-label" for="id_admin_use_site_primary">{{ form.admin_use_site_primary.label }}</label></div>
+              </div>
+            </div>
+
+            {# Typography #}
+            <div class="row g-1 mb-1">
+              <div class="col-6"><div class="mb-0">{{ form.secondary_font.label_tag }}{{ form.secondary_font }}</div></div>
+              <div class="col-6"><div class="mb-0">{{ form.base_font_size.label_tag }}{{ form.base_font_size }}</div></div>
+              <div class="col-12"><div class="form-check mb-0">{{ form.use_secondary_font_for_headings }}<label class="form-check-label" for="id_use_secondary_font_for_headings">{{ form.use_secondary_font_for_headings.label }}</label></div></div>
+            </div>
+
+            {# Dashboard & reports #}
+            <div class="row g-1 mb-1">
+              <div class="col-6"><div class="mb-0">{{ form.default_dashboard_view.label_tag }}{{ form.default_dashboard_view }}</div></div>
+              <div class="col-6"><div class="mb-0">{{ form.default_refresh_rate.label_tag }}{{ form.default_refresh_rate }}</div></div>
+              <div class="col-6"><div class="mb-0">{{ form.default_term_report_style.label_tag }}{{ form.default_term_report_style }}</div></div>
+              <div class="col-6"><div class="mb-0">{{ form.default_annual_report_style.label_tag }}{{ form.default_annual_report_style }}</div></div>
+              <div class="col-12"><div class="form-check mb-0">{{ form.report_downloads_enabled }}<label class="form-check-label" for="id_report_downloads_enabled">{{ form.report_downloads_enabled.label }}</label></div></div>
+            </div>
+
+            <div class="mb-0">{{ form.default_widgets_per_role.label_tag }}{{ form.default_widgets_per_role }}</div>
+          </div>
+        </div>
+        {# Small screen preview: centered, fits column, no spill #}
+        <div class="theme-experience-preview-wrap mt-1">
+          {% include "admin/components/theme_preview_section.html" %}
+        </div>
+        {# Page ends here: Back, Live preview, Save (right after Ephemeral note) #}
+        <div class="theme-experience-actions mt-1 pt-1 border-top">
+          {% if back_url %}
+          <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm">
+            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">arrow_back</span>
+            {% trans "Back to Site Settings" %}
+          </a>
+          {% endif %}
+          <label class="d-inline-flex align-items-center gap-1 mb-0"><input type="checkbox" id="theme-colors-preview-keep" class="me-1"> <span class="small">{% trans "Keep highlights until dismissed" %}</span></label>
+          <button type="button" id="theme-colors-live-preview" class="btn btn-outline-primary btn-sm">
+            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">visibility</span>
+            {% trans "Live preview" %}
+          </button>
+          <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<style>
+  /* Full-width: no sidebar on this page */
+  .theme-experience-full-width .portal-sidebar-col,
+  .theme-experience-full-width .portal-resize-handle,
+  .theme-experience-full-width [data-bs-target="#portalSidebar"] { display: none !important; }
+  .theme-experience-full-width .portal-main-col { flex: 1 1 100%; max-width: 100%; }
+
+  /* Grid: prevent spill; columns align start */
+  .theme-experience-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  .theme-experience-left,
+  .theme-experience-right {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .theme-experience-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  /* Form: no spill — everything stays inside card */
+  .theme-experience-form-card .card-body { border-radius: 0.25rem; padding-left: 0.75rem; padding-right: 0.5rem; }
+  .theme-experience-form-body .form-label,
+  .theme-experience-form-body label { font-size: 0.8125rem; margin-bottom: 0.15rem; }
+  .theme-experience-form-body .form-control,
+  .theme-experience-form-body .form-select {
+    font-size: 0.8125rem;
+    padding: 0.2rem 0.4rem;
+    min-height: 1.75rem;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .theme-experience-form-body .form-check-label { font-size: 0.8125rem; }
+  .theme-experience-form-body .row { margin-left: 0; margin-right: 0; }
+  .theme-experience-form-body [class^="col-"] { max-width: 100%; padding-left: 0.5rem; }
+  .theme-experience-form-body .form-check { padding-left: 0.5rem; }
+  /* Small screen preview: same space, but zoomed in so window + text are readable */
+  .theme-experience-preview-wrap {
+    width: 55%;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .theme-experience-preview-wrap .theme-preview-section { margin-top: 0; margin-bottom: 0; }
+  .theme-experience-preview-wrap .theme-preview-card { max-width: none; }
+  /* Scale up so preview window and text are larger in same viewport (no extra page space) */
+  .theme-experience-preview-wrap .theme-preview-section,
+  .theme-experience-preview-wrap .theme-preview-card {
+    transform: scale(0.78);
+    transform-origin: top center;
+    width: 128.2%;
+    margin-left: -14.1%;
+    box-sizing: border-box;
+  }
+  /* Larger base font so title, labels, and device text are readable */
+  .theme-experience-preview-wrap .theme-preview-section,
+  .theme-experience-preview-wrap .theme-preview-card { font-size: 1.35rem; }
+  .theme-experience-preview-wrap .theme-preview-card header h2 { font-size: 1.05em; }
+  .theme-experience-preview-wrap .theme-preview-card header p { font-size: 0.9em; }
+  .theme-experience-preview-wrap .preview-note,
+  .theme-experience-preview-wrap .theme-preview-end-note { font-size: 0.95em; }
+  .theme-experience-preview-wrap .preview-role-selector label,
+  .theme-experience-preview-wrap .preview-role-selector .preview-role-note { font-size: 0.9em; }
+  .theme-experience-preview-wrap .preview-layer .layer-label,
+  .theme-experience-preview-wrap .contrast-hint { font-size: 0.85em; }
+  .theme-experience-preview-wrap .preview-device,
+  .theme-experience-preview-wrap .preview-sidebar,
+  .theme-experience-preview-wrap .preview-content { font-size: 0.9em; }
+  /* Last content before buttons = Ephemeral note; page ends at actions */
+  .theme-experience-preview-wrap .theme-preview-end-note { margin-bottom: 0; }
+  .theme-experience-page { padding-bottom: 0.5rem; }
+  @media (max-width: 991px) {
+    .theme-experience-grid { grid-template-columns: 1fr; }
+    .theme-experience-preview-wrap { width: 100%; max-width: none; margin-left: 0; margin-right: 0; }
+    .theme-experience-preview-wrap .theme-preview-section,
+    .theme-experience-preview-wrap .theme-preview-card { transform: none; width: 100%; margin-left: 0; }
+    .theme-experience-preview-wrap .theme-preview-section *,
+    .theme-experience-preview-wrap .theme-preview-card * { font-size: inherit !important; }
+  }
+</style>
+<script>
+(function() {
+  var colorFieldNames = ['primary_color', 'accent_color', 'header_bg_color', 'footer_bg_color', 'success_color', 'warning_color', 'danger_color'];
+  var savedSnapshot = {};
+  function snapshot() {
+    colorFieldNames.forEach(function(name) {
+      var input = document.querySelector('#theme-colors-form [name="' + name + '"]');
+      if (input) savedSnapshot[name] = input.value || '';
+    });
+  }
+  function revert() {
+    var reverted = 0;
+    colorFieldNames.forEach(function(name) {
+      if (savedSnapshot[name] === undefined) return;
+      var input = document.querySelector('#theme-colors-form [name="' + name + '"]');
+      if (input && input.value !== savedSnapshot[name]) {
+        input.value = savedSnapshot[name];
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        reverted++;
+      }
+    });
+    if (reverted > 0 && typeof window.showToast === 'function') window.showToast('Colors reverted to saved values', 'success', 2500);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    snapshot();
+    var btn = document.getElementById('theme-revert-to-saved');
+    if (btn) btn.addEventListener('click', function() { revert(); });
+    var previewBtn = document.getElementById('theme-colors-live-preview');
+    var form = document.getElementById('theme-colors-form');
+    if (previewBtn && form) {
+      previewBtn.addEventListener('click', function() {
+        var fd = new FormData(form);
+        fd.append('preview_section', 'theme-experience');
+        var keepEl = document.getElementById('theme-colors-preview-keep');
+        if (keepEl && keepEl.checked) fd.append('preview_keep', '1');
+        var csrf = form.querySelector('input[name="csrfmiddlewaretoken"]');
+        var url = '{% url "siteconfig:preview_from_form" %}';
+        fetch(url, { method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf ? csrf.value : '', 'Accept': 'application/json' }, credentials: 'same-origin' })
+          .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+          .then(function(res) {
+            if (!res.ok) {
+              var msg = (res.data.errors && res.data.errors.length) ? res.data.errors.join(' ') : '{% trans "Preview failed" %}';
+              if (typeof window.showToast === 'function') window.showToast(msg, 'error', 4000);
+              return;
+            }
+            if (res.data.redirect_url) window.open(res.data.redirect_url, '_blank', 'noopener');
+            if (typeof window.showToast === 'function') window.showToast('{% trans "Preview opened in new tab" %}', 'success', 2000);
+          })
+          .catch(function() {
+            if (typeof window.showToast === 'function') window.showToast('{% trans "Preview failed" %}', 'error', 3000);
+          });
+      });
+    }
+  });
+})();
+</script>
+{% endblock %}

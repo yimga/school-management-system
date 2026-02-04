@@ -6,8 +6,7 @@
 {% block extrastyle %}
   <style>
     body {
-      background: {% if SITE_BACKGROUND_URL %}url('{{ SITE_BACKGROUND_URL }}') center/cover no-repeat{% else %}#f5f7fb{% endif %};
-      {% if SITE_BACKGROUND_URL %}background-color: #f5f7fb;{% endif %}
+      background: #f5f7fb;
     }
 
     .auth-landing {
@@ -59,7 +58,7 @@
     }
 
     .auth-breadcrumb {
-      background: white;
+      background: var(--admin-content-bg);
       padding: 0.8rem 1.2rem;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
@@ -74,7 +73,7 @@
     .info-card {
       border-radius: 18px;
       border: 1px solid rgba(15, 23, 42, 0.08);
-      background: white;
+      background: var(--admin-content-bg);
     }
 
     .login-card .form-control {
@@ -107,7 +106,7 @@
 
     .quick-link:hover {
       background: #0d6efd;
-      color: #fff;
+      color: var(--admin-content-accent-fg);
       border-color: #0d6efd;
     }
 
@@ -163,10 +162,10 @@
 {% endblock %}
 
 {% block content %}
-  <section class="auth-landing py-5">
+  <section class="auth-landing py-5" id="preview-login-page">
     <div class="container">
-      <div class="auth-hero">
-        <div class="hero-brand">
+      <div class="auth-hero" id="preview-login-hero" data-preview-label="{% trans 'Login hero (colors & branding)' %}" data-preview-changes="{% trans 'Primary/accent colors, logo, heading' %}">
+        <div class="hero-brand" id="preview-login-brand" data-preview-label="{% trans 'Logo & site name' %}" data-preview-changes="{% trans 'Site name, tagline, hero heading' %}">
           <div class="hero-logo">
             {% if SITE_LOGO_URL %}
               <img src="{{ SITE_LOGO_URL }}" alt="" width="80" height="80" decoding="async" loading="eager" style="width:100%;height:100%;object-fit:contain;">
@@ -196,7 +195,7 @@
 
       <div class="row justify-content-center g-4 align-items-stretch">
         <div class="col-lg-5">
-          <div class="card shadow-sm login-card">
+          <div class="card shadow-sm login-card" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}" data-preview-changes="{% trans 'Form layout and styling' %}">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
                 <div>

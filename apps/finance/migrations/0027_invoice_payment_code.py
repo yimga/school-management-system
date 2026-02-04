@@ -8,65 +8,132 @@ from django.db import migrations, models
 def apply_payment_code_idempotent(apps, schema_editor):
     """Add column and indexes only if they do not exist; then backfill."""
     connection = schema_editor.connection
+    # Normalize: Django uses 'sqlite'; ensure we never run PG-only syntax on SQLite
+    raw_vendor = (connection.vendor or "").strip().lower()
+    is_pg = raw_vendor == "postgresql"
+    is_sqlite = "sqlite" in raw_vendor
+
     with connection.cursor() as cursor:
-        # 1. Add column if not exists (PostgreSQL 9.5+)
-        cursor.execute("""
-            ALTER TABLE finance_invoice
-            ADD COLUMN IF NOT EXISTS payment_code VARCHAR(32) NULL;
-        """)
-        # 2. Create btree index only if not exists (avoid duplicate index error)
+        # 1. Add column if not exists (SQLite does NOT support ADD COLUMN IF NOT EXISTS)
+        if is_pg:
+            cursor.execute(
+                "ALTER TABLE finance_invoice ADD COLUMN IF NOT EXISTS payment_code VARCHAR(32) NULL;"
+            )
+        elif is_sqlite:
+            cursor.execute("PRAGMA table_info(finance_invoice)")
+            columns = [row[1] for row in cursor.fetchall()]
+            if "payment_code" not in columns:
+                cursor.execute(
+                    "ALTER TABLE finance_invoice ADD COLUMN payment_code VARCHAR(32) NULL;"
+                )
+        else:
+            try:
+                cursor.execute(
+                    "ALTER TABLE finance_invoice ADD COLUMN payment_code VARCHAR(32) NULL;"
+                )
+            except Exception:
+                pass
+
+        # 2. Create btree index (IF NOT EXISTS is supported for CREATE INDEX on SQLite and PostgreSQL)
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS finance_invoice_payment_code_btree_idx
             ON finance_invoice (payment_code);
         """)
-        # 3. Create varchar_pattern_ops index only if not exists (Django's _like index)
-        cursor.execute("""
-            CREATE INDEX IF NOT EXISTS finance_invoice_payment_code_df7a7e77_like
-            ON finance_invoice (payment_code varchar_pattern_ops);
-        """)
+        
+        # 3. Create varchar_pattern_ops index (PostgreSQL only)
+        if is_pg:
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS finance_invoice_payment_code_df7a7e77_like
+                ON finance_invoice (payment_code varchar_pattern_ops);
+            """)
 
     # 4. Backfill using raw SQL (historical model has no payment_code field yet)
     with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT id FROM finance_invoice
-            WHERE payment_code IS NULL OR payment_code = ''
-        """)
-        for (row_id,) in cursor.fetchall():
-            short = uuid.uuid4().hex[:8].upper()
-            cursor.execute(
-                "UPDATE finance_invoice SET payment_code = %s WHERE id = %s",
-                [f"INV-{row_id}-{short}", row_id],
-            )
+        if is_pg:
+            cursor.execute("""
+                SELECT id FROM finance_invoice
+                WHERE payment_code IS NULL OR payment_code = ''
+            """)
+            for (row_id,) in cursor.fetchall():
+                short = uuid.uuid4().hex[:8].upper()
+                cursor.execute(
+                    "UPDATE finance_invoice SET payment_code = %s WHERE id = %s",
+                    [f"INV-{row_id}-{short}", row_id],
+                )
+        else:
+            # SQLite and others use ? placeholders
+            cursor.execute("""
+                SELECT id FROM finance_invoice
+                WHERE payment_code IS NULL OR payment_code = ''
+            """)
+            for (row_id,) in cursor.fetchall():
+                short = uuid.uuid4().hex[:8].upper()
+                cursor.execute(
+                    "UPDATE finance_invoice SET payment_code = ? WHERE id = ?",
+                    [f"INV-{row_id}-{short}", row_id],
+                )
 
+    # 5. Set NOT NULL and add unique constraint (database-specific)
     with connection.cursor() as cursor:
-        # 5. Set NOT NULL only if column is still nullable
-        cursor.execute("""
-            DO $$
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.columns
-                    WHERE table_name = 'finance_invoice'
-                      AND column_name = 'payment_code'
-                      AND is_nullable = 'YES'
-                ) THEN
+        if is_pg:
+            # PostgreSQL: Set NOT NULL only if column is still nullable
+            cursor.execute("""
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'finance_invoice'
+                          AND column_name = 'payment_code'
+                          AND is_nullable = 'YES'
+                    ) THEN
+                        ALTER TABLE finance_invoice
+                        ALTER COLUMN payment_code SET NOT NULL;
+                    END IF;
+                END $$;
+            """)
+            # Add unique constraint only if not exists
+            cursor.execute("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint
+                        WHERE conname = 'finance_invoice_payment_code_key'
+                    ) THEN
+                        ALTER TABLE finance_invoice
+                        ADD CONSTRAINT finance_invoice_payment_code_key UNIQUE (payment_code);
+                    END IF;
+                END $$;
+            """)
+        elif is_sqlite:
+            # SQLite: Check if column is nullable and set NOT NULL if needed
+            # SQLite doesn't support ALTER COLUMN SET NOT NULL directly
+            # We'll need to recreate the table or use a workaround
+            # For now, just add the unique constraint
+            try:
+                cursor.execute("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS finance_invoice_payment_code_key
+                    ON finance_invoice (payment_code);
+                """)
+            except Exception:
+                # Constraint/index already exists - ignore
+                pass
+        else:
+            # For other databases, try to add constraints
+            try:
+                cursor.execute("""
                     ALTER TABLE finance_invoice
                     ALTER COLUMN payment_code SET NOT NULL;
-                END IF;
-            END $$;
-        """)
-        # 6. Add unique constraint only if not exists
-        cursor.execute("""
-            DO $$
-            BEGIN
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_constraint
-                    WHERE conname = 'finance_invoice_payment_code_key'
-                ) THEN
+                """)
+            except Exception:
+                pass
+            try:
+                cursor.execute("""
                     ALTER TABLE finance_invoice
                     ADD CONSTRAINT finance_invoice_payment_code_key UNIQUE (payment_code);
-                END IF;
-            END $$;
-        """)
+                """)
+            except Exception:
+                # Constraint already exists - ignore
+                pass
 
 
 def noop_reverse(apps, schema_editor):

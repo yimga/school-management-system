@@ -34,7 +34,7 @@ def organize_sidebar_items(items: List[Dict], user: User) -> Dict[str, List[Dict
     quick_action_ids = {"backend", "workflow", "portal"}
     people_ids = {"students", "teachers", "parents", "guardians"}
     academic_ids = {"classrooms", "subjects", "years", "terms", "certification"}
-    reports_ids = {"reports", "report_builder", "report_library", "analytics"}
+    reports_ids = {"reports", "report_builder", "report_library", "bulk_letters", "analytics"}
     communication_ids = {"messages", "notifications", "groups", "announcements"}
     settings_ids = {"preferences", "admin", "kb", "documents", "signatures"}
     

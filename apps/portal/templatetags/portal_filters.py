@@ -48,14 +48,8 @@ def status_icon(value, threshold="80"):
         return "bi-dash-circle"
 
 
-@register.filter
-def format_currency(value):
-    """Format currency with thousands separator."""
-    try:
-        return f"{float(value):,.2f}"
-    except (ValueError, TypeError):
-        return value
-
+# Currency display: use {% load region_format %} and |format_currency in templates
+# (region-aware; no duplicate filter here).
 
 @register.filter
 def is_positive(value):

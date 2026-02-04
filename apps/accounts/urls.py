@@ -1,8 +1,10 @@
-from django.urls import path
+from django.urls import path, reverse_lazy
+from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView
 
 from .views import (
     academic_rules,
     approval_workflow_hub,
+    automation_hub,
     backend_dashboard,
     import_hub,
     backend_entity_import,
@@ -13,6 +15,7 @@ from .views import (
     direct_thread,
     login_view,
     logout_view,
+    profile_edit,
     redirect_view,
     rbac_dashboard,
     rollover_year,
@@ -52,6 +55,14 @@ urlpatterns = [
     path("logout/", logout_view, name="logout"),
     path("redirect/", redirect_view, name="redirect"),
     path("profile/", user_profile, name="user_profile"),
+    path("profile/edit/", profile_edit, name="profile_edit"),
+    path("profile/password/", PasswordChangeView.as_view(
+        template_name="accounts/password_change_form.html",
+        success_url=reverse_lazy("accounts:password_change_done"),
+    ), name="password_change"),
+    path("profile/password/done/", PasswordChangeDoneView.as_view(
+        template_name="accounts/password_change_done.html",
+    ), name="password_change_done"),
     path("notifications/", user_notifications, name="user_notifications"),
     path("messages/", user_messages, name="user_messages"),
     path("messages/direct/compose/", direct_compose, name="direct_compose"),
@@ -65,6 +76,7 @@ urlpatterns = [
     path("backend/entities/", backend_entity_console, name="backend_entity_console"),
     path("workflow/", workflow_center, name="workflow_center"),
     path("workflow/approvals/", approval_workflow_hub, name="approval_workflow_hub"),
+    path("workflow/automation/", automation_hub, name="automation_hub"),
     path("workflow/clone-year/", clone_year_setup, name="clone_year_setup"),
     path("workflow/rollover/", rollover_year, name="rollover_year"),
     path("workflow/academic-rules/", academic_rules, name="academic_rules"),

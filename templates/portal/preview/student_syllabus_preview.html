@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Student Syllabus Preview{% endblock %}
 
@@ -26,7 +27,7 @@
             <p class="card-text small text-muted">{{ item.description }}</p>
           </div>
           <div class="card-footer bg-transparent border-0 pt-0">
-            <div class="small text-muted">Updated {{ item.created_at|date:"Y-m-d" }}</div>
+            <div class="small text-muted">Updated {{ item.created_at|format_date }}</div>
           </div>
         </div>
       </div>

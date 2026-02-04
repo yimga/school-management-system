@@ -1,13 +1,13 @@
 from pathlib import Path
 import os
-
 from dotenv import load_dotenv
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
+# Load .env.local so DB_FILE etc. can be set (override=True so local wins over .env)
+load_dotenv(BASE_DIR / ".env.local", override=True)
 
 from django.core.exceptions import ImproperlyConfigured
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "1") == "1"
@@ -64,7 +64,11 @@ INSTALLED_APPS = [
     "apps.requests",
     "apps.observability",  # Observability/monitoring
     "apps.api",
+    "apps.automation",  # Automation and background tasks
     "emis",
+    # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
+    "django_celery_results",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -77,6 +81,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
     "apps.accounts.middleware.ModuleAccessMiddleware",
+    "apps.accounts.middleware.RequireMFAMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
@@ -159,10 +164,18 @@ if DATABASE_URL:
     }
 else:
     # ✅ Local fallback (no DATABASE_URL) = sqlite
+    # Use DB_FILE to point at a different file when db.sqlite3 is corrupted/locked.
+    # Use an absolute path (e.g. %TEMP%\gilead_db.sqlite3 on Windows) to avoid cloud-sync/antivirus corruption.
+    raw_db_file = os.getenv("DB_FILE", "db.sqlite3")
+    if raw_db_file == "db.sqlite3":
+        db_path = BASE_DIR / "db_working.sqlite3"
+    else:
+        sqlite_name = os.path.expanduser(os.path.expandvars(raw_db_file))
+        db_path = Path(sqlite_name) if os.path.isabs(sqlite_name) else (BASE_DIR / sqlite_name)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": str(db_path),
         }
     }
 
@@ -216,7 +229,14 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
-SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", "14400"))  # 4 hours
+# Session expiry: use SESSION_INACTIVITY_TIMEOUT_MINUTES for shared computers (e.g. 15–30),
+# or SESSION_COOKIE_AGE (seconds) for max session length. With SESSION_SAVE_EVERY_REQUEST=True,
+# session expires after this many seconds of *inactivity* (no requests).
+_session_inactivity_minutes = os.getenv("SESSION_INACTIVITY_TIMEOUT_MINUTES", "")
+if _session_inactivity_minutes.strip():
+    SESSION_COOKIE_AGE = int(_session_inactivity_minutes) * 60
+else:
+    SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", "14400"))  # 4 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv("SESSION_EXPIRE_AT_BROWSER_CLOSE", "1") == "1"
 SESSION_SAVE_EVERY_REQUEST = os.getenv("SESSION_SAVE_EVERY_REQUEST", "1") == "1"
 
@@ -249,12 +269,18 @@ UNFOLD = {
     # Small UX improvements
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
+    "SHOW_BACK_BUTTON": True,
 
     # Titles
     "ENVIRONMENT": "Development" if DEBUG else "Production",
 
-    # You can expand this later into a full sidebar definition,
-    # but keeping defaults is safest during the migration.
+    # Sidebar: search, all-apps dropdown
+    "SIDEBAR": {
+        "show_search": True,
+        "command_search": False,
+        "show_all_applications": True,
+        "navigation": [],
+    },
 }
 
 # --- Logging (configured below in "Logging Configuration" section) ---
@@ -298,15 +324,68 @@ CACHES = {
 }
 
 # Redis caching (if REDIS_URL is set)
-if os.getenv("REDIS_URL"):
+REDIS_URL = os.getenv("REDIS_URL")
+if REDIS_URL:
     CACHES["default"] = {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.getenv("REDIS_URL"),
+        "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "IGNORE_EXCEPTIONS": True,
         },
     }
+
+# Optional: Redis-backed sessions when Redis is available (shared across workers)
+if REDIS_URL:
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
+
+# --- Celery (background tasks; broker uses REDIS_URL when set) ---
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or REDIS_URL or ""
+CELERY_RESULT_BACKEND = "django-db"  # Store task results in Postgres; no Redis required for results
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = os.getenv("TIME_ZONE", "UTC")
+CELERY_TASK_TRACK_STARTED = True
+# Optional: run celery beat with: celery -A config beat -l info
+# Add periodic tasks in Django admin (django_celery_beat) or define CELERY_BEAT_SCHEDULE (see Celery docs).
+
+# Celery Beat schedule for periodic tasks
+# Optional tasks (requests reminder, deadline reminder) respect Site Settings: 0 = no-op
+CELERY_BEAT_SCHEDULE = {
+    "send-payment-reminders": {
+        "task": "finance.send_payment_reminders",
+        "schedule": 3600.0,  # Every hour
+        "options": {"expires": 300},  # Expire after 5 minutes if not picked up
+    },
+    "retry-failed-payment-reminders": {
+        "task": "finance.retry_failed_payment_reminders",
+        "schedule": 86400.0,  # Daily (24 hours)
+        "options": {"expires": 3600},  # Expire after 1 hour
+    },
+    "retry-bank-verification": {
+        "task": "finance.retry_bank_verification",
+        "schedule": 86400.0,  # Daily (24 hours) - retry bank verification for pending receipts
+        "options": {"expires": 3600},
+        "kwargs": {"days_old": 30},  # Only retry receipts older than 30 days
+    },
+    "send-deadline-reminders": {
+        "task": "analytics.send_deadline_reminders",
+        "schedule": 86400.0,  # Daily; uses SiteSettings.teacher_deadline_reminder_days
+        "options": {"expires": 600},
+    },
+    "remind-pending-access-request-assignees": {
+        "task": "requests.remind_pending_assignees",
+        "schedule": 86400.0,  # Daily; no-op when SiteSettings.requests_reminder_interval_hours == 0
+        "options": {"expires": 600},
+    },
+    "update-invoice-statuses": {
+        "task": "finance.update_invoice_statuses",
+        "schedule": 86400.0,  # Daily
+        "options": {"expires": 600},
+    },
+}
 
 # --- Logging Configuration ---
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
@@ -476,7 +555,22 @@ LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', 'en')
 LANGUAGES = [
     ('en', 'English'),
     ('fr', 'Français (French)'),
+    ('pid', 'Pidgin English'),
+    ('sw', 'Kiswahili'),
+    ('ha', 'Hausa'),
+    ('yo', 'Yoruba'),
 ]
+
+# Register custom language codes in Django's LANG_INFO so get_language_info() (e.g. admin/unfold language switch) does not raise KeyError.
+import django.conf.locale
+
+EXTRA_LANG_INFO = {
+    "pid": {"bidi": False, "code": "pid", "name": "Pidgin English", "name_local": "Pidgin"},
+    "sw": {"bidi": False, "code": "sw", "name": "Kiswahili", "name_local": "Kiswahili"},
+    "ha": {"bidi": False, "code": "ha", "name": "Hausa", "name_local": "Hausa"},
+    "yo": {"bidi": False, "code": "yo", "name": "Yoruba", "name_local": "Yorùbá"},
+}
+django.conf.locale.LANG_INFO = {**django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO}
 
 TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
 LOCALE_PATHS = [
@@ -487,6 +581,8 @@ LOCALE_PATHS = [
 REGION_CODE = os.getenv('REGION_CODE', 'CMR')  # Default to Cameroon
 DEFAULT_GRADING_SCALE = os.getenv('DEFAULT_GRADING_SCALE', '0-20')
 DEFAULT_CURRENCY = os.getenv('DEFAULT_CURRENCY', 'XAF')
+# When True: region switcher can be shown in UI and users can switch region in session.
+# When False: single region per deployment (use REGION_CODE). Used in context as enable_multi_region.
 ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true'
 
 # Global grading scales (imported from apps.evals.grading module at runtime)

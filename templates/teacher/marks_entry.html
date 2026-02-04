@@ -1,10 +1,13 @@
 {% extends "portal_base.html" %}
-{% load evals_extras %}
+{% load evals_extras static region_format %}
 {% block title %}Enter Marks{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="mb-0">Enter Marks (Bulk)</h2>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div class="d-flex align-items-center gap-2">
+    <h2 class="mb-0">Enter Marks (Bulk)</h2>
+    {% include "components/pin_to_quick_access.html" with sidebar_item_id="marks_entry" %}
+  </div>
   <div>
     <a class="btn btn-outline-primary btn-sm" href="/evals/teacher/">Dashboard</a>
     <a class="btn btn-outline-primary btn-sm" href="/evals/teacher/marks/">My Marks</a>
@@ -103,7 +106,7 @@
       {% endif %}
       {% if upload_summary.processed %}
         <p class="small text-muted mb-3">
-          Processed {{ upload_summary.processed }} row{{ upload_summary.processed|pluralize }} at {{ upload_confidence|floatformat:0 }}% confidence.
+          Processed {{ upload_summary.processed }} row{{ upload_summary.processed|pluralize }} at {{ upload_confidence|format_number:0 }}% confidence.
           {% if upload_summary.applied %}
             Auto-applied {{ upload_summary.applied }} row{{ upload_summary.applied|pluralize }}.
           {% endif %}
@@ -118,7 +121,7 @@
           {% if upload_summary.field_confidences %}
             <br><small>Field confidence: 
               {% for field, conf in upload_summary.field_confidences.items %}
-                {{ field|title }}: {{ conf|floatformat:0 }}%{% if not forloop.last %}, {% endif %}
+                {{ field|title }}: {{ conf|format_number:0 }}%{% if not forloop.last %}, {% endif %}
               {% endfor %}
             </small>
           {% endif %}
@@ -172,8 +175,8 @@
                   <td>
                     {% if row.field_confidences %}
                       {% for field, conf in row.field_confidences.items %}
-                        <span class="badge {% if conf < 50 %}bg-danger{% elif conf < 70 %}bg-warning{% else %}bg-success{% endif %} me-1" title="Confidence: {{ conf|floatformat:0 }}%">
-                          {{ field|title }}: {{ conf|floatformat:0 }}%
+                        <span class="badge {% if conf < 50 %}bg-danger{% elif conf < 70 %}bg-warning{% else %}bg-success{% endif %} me-1" title="Confidence: {{ conf|format_number:0 }}%">
+                          {{ field|title }}: {{ conf|format_number:0 }}%
                         </span>
                       {% endfor %}
                     {% else %}
@@ -208,7 +211,7 @@
         <ul class="mb-0 small">
           {% for req in grade_approval_requests %}
             <li>
-              {{ req.get_status_display }} · {{ req.requested_at|date:"M d, Y H:i" }}
+              {{ req.get_status_display }} · {{ req.requested_at|format_date }} {{ req.requested_at|time:"H:i" }}
               <a href="{% url 'evals:grade_approval_detail' req.id %}">View</a>
             </li>
           {% endfor %}
@@ -229,7 +232,7 @@
       <b>{{ sa.subject.name }}</b> — {{ sa.classroom.name }} / {{ sa.specialty.name }} — coef {{ sa.coefficient }}
     </div>
     <div class="card-body table-responsive">
-      <form method="post">
+      <form method="post" id="marks-entry-form" data-draft-key="marks_{{ sa.id }}" data-draft-max-age-hours="24">
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
 
@@ -268,9 +271,18 @@
             Submit for Review
           </button>
         {% endif %}
+        <p class="small text-muted mt-2 mb-0">Draft is saved automatically in your browser. If the power or tab closes, return here and choose &quot;Restore draft&quot; when prompted.</p>
       </form>
     </div>
   </div>
+  <script src="{% static 'js/form-draft-save.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var form = document.getElementById('marks-entry-form');
+      if (form && window.FormDraftSave) FormDraftSave.init(form);
+    });
+  </script>
 {% endif %}
+{% include "components/was_this_helpful.html" with feedback_id="teacher-marks-entry" %}
 {% endblock %}
 

@@ -8,27 +8,41 @@ from apps.finance.models import Notification
 from apps.siteconfig.models import SiteSettings
 
 from django.contrib import admin
-from django.contrib.admin import AdminSite
+from unfold.sites import UnfoldAdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
 from django.db.models import Count, Q, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
+from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
-from django.urls import path, reverse
+from django.urls import path
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 
 
-class GileadAdminSite(AdminSite):
+class GileadAdminSite(UnfoldAdminSite):
     """
     Configuration engine: full model CRUD, raw settings, system config.
     Access: superuser only.
+    Extends UnfoldAdminSite for sidebar/app list.
     """
 
+    enable_nav_sidebar = True
     site_header = "Gilead Tech High - Configuration"
     site_title = "Gilead Configuration"
 
     index_title = "Configuration Dashboard"
+
+    def each_context(self, request):
+        context = super().each_context(request)
+        try:
+            context["extra_userlinks"] = mark_safe(
+                render_to_string("admin/extra_user_links.html", {"request": request})
+            )
+        except Exception:
+            context["extra_userlinks"] = ""
+        return context
 
     def has_permission(self, request):
         """Restrict admin to superusers only (configuration engine)."""
@@ -49,9 +63,11 @@ class GileadAdminSite(AdminSite):
         if role_field:
             student_count = User.objects.filter(role="STUDENT").count()
             teacher_count = User.objects.filter(role="TEACHER").count()
+            parent_count = User.objects.filter(role="PARENT").count()
         else:
             student_count = 0
             teacher_count = 0
+            parent_count = 0
 
         now = timezone.now()
         active_sessions = Session.objects.filter(expire_date__gte=now).count()
@@ -100,6 +116,10 @@ class GileadAdminSite(AdminSite):
             access_denials_24h = 0
 
         site = SiteSettings.get_solo()
+        admin_theme = site.get_admin_theme()
+        admin_palette = {}
+        if admin_theme and getattr(admin_theme, "palette", None) and isinstance(admin_theme.palette, dict):
+            admin_palette = admin_theme.palette.get("admin_dashboard") or {}
         finance_requests_qs = Notification.objects.filter(
             recipient=request.user,
             title__icontains="finance access request",
@@ -116,25 +136,46 @@ class GileadAdminSite(AdminSite):
                 "accent": getattr(site, "accent_color", "#198754"),
             },
         }
+        # RBAC: only expose KPIs the user has permission to see (superuser sees all)
+        user = request.user
+        can_see_user_stats = user.is_superuser or user.has_perm('auth.view_user')
+        can_see_sessions = user.is_superuser or user.has_perm('sessions.view_session')
+        can_see_compliance = user.is_superuser or user.has_perm('compliance.view_auditlog') or user.has_perm('compliance.view_accesslog')
+        can_see_finance_inbox = user.is_superuser or getattr(user, 'has_feature_permission', lambda _: False)('finance.view_invoice')
+
         context = {
             **self.each_context(request),
             'title': self.index_title,
-            'total_users': total_users,
-            'admin_count': admin_count,
-            'student_count': student_count,
-            'teacher_count': teacher_count,
-            'active_sessions': active_sessions,
-            'sessions_24h': sessions_24h,
-            'new_logins_24h': new_logins_24h,
-            'failed_logins_24h': failed_logins_24h,
-            'failed_logins_by_role': failed_logins_by_role,
-            'security_alerts_24h': security_alerts_24h,
-            'access_denials_24h': access_denials_24h,
             'preview_data': preview_data,
-            'finance_inbox': finance_inbox_preview,
-            'finance_inbox_unread': finance_inbox_unread,
-            'finance_request_link': reverse("requests:dashboard"),
+            'admin_theme': admin_theme,
+            'admin_palette': admin_palette,
         }
+        if can_see_user_stats:
+            context.update({
+                'total_users': total_users,
+                'admin_count': admin_count,
+                'student_count': student_count,
+                'teacher_count': teacher_count,
+                'parent_count': parent_count,
+            })
+        if can_see_sessions:
+            context.update({
+                'active_sessions': active_sessions,
+                'sessions_24h': sessions_24h,
+            })
+        if can_see_compliance:
+            context.update({
+                'new_logins_24h': new_logins_24h,
+                'failed_logins_24h': failed_logins_24h,
+                'failed_logins_by_role': failed_logins_by_role,
+                'security_alerts_24h': security_alerts_24h,
+                'access_denials_24h': access_denials_24h,
+            })
+        if can_see_finance_inbox:
+            context.update({
+                'finance_inbox_preview': finance_inbox_preview,
+                'finance_inbox_unread': finance_inbox_unread,
+            })
         if extra_context:
             context.update(extra_context)
 
@@ -147,21 +188,12 @@ class GileadAdminSite(AdminSite):
         custom_urls = [
             path('dashboard/', self.admin_view(self.index), name='dashboard'),
             path('home/', lambda request: redirect('/'), name='home'),
-            path('search/', self.admin_view(self.search_view), name='search'),
+            # search/ is provided by UnfoldAdminSite for sidebar "Jump to model" – do not override
             # Placeholder URLs for missing admin routes (prevent template errors)
             path('activity-logs/', lambda request: redirect('/compliance/access-logs/'), name='activity_logs'),
             path('system-health/', lambda request: redirect('/healthz/'), name='system_health'),
         ]
         return custom_urls + urls
-    
-    def search_view(self, request):
-        """Global admin search across all registered models."""
-        from django.shortcuts import render
-        query = request.GET.get('q', '')
-        # Redirect to default admin index with search applied
-        if query:
-            return redirect(f'{self.name}:index?q={query}')
-        return redirect(f'{self.name}:index')
     
     def get_app_list(self, request, app_label=None):
         """
@@ -213,10 +245,13 @@ class GileadAdminSite(AdminSite):
                 app_info['app_label'] = app_name
             
             app_list.append(app_info)
-        
+
+        # RBAC: hide app groups with zero models (after permission filtering)
+        app_list = [app_info for app_info in app_list if (app_info.get('models') or [])]
+
         # Sort by custom order
         app_list.sort(key=lambda x: (x.get('app_order', 999), x['name'].lower()))
-        
+
         return app_list
 
 

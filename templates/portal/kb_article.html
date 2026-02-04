@@ -1,10 +1,81 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}{{ article.title }} - Knowledge Base{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  /* KB article: clean layout, avoid jammed text */
+  .kb-article-page .article-content {
+    max-width: 72ch;
+    line-height: 1.65;
+    margin-left: 0;
+  }
+  .kb-article-page .article-content p { margin-bottom: 1rem; }
+  .kb-article-page .article-content h2 { margin-top: 1.75rem; margin-bottom: 0.75rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--bs-border-color, #dee2e6); }
+  .kb-article-page .article-content h3 { margin-top: 1.35rem; margin-bottom: 0.5rem; }
+  .kb-article-page .article-content h4 { margin-top: 1rem; margin-bottom: 0.4rem; }
+  .kb-article-page .article-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    overflow-x: auto;
+    display: block;
+  }
+  .kb-article-page .article-content table th,
+  .kb-article-page .article-content table td {
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .kb-article-page .article-content table th { background: var(--bs-light, #f8f9fa); font-weight: 600; }
+  .kb-article-page .article-content pre,
+  .kb-article-page .article-content .code-block {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.375rem;
+    overflow-x: auto;
+  }
+  .kb-article-page .article-content pre code { background: none; padding: 0; }
+  .kb-article-page .article-content .mermaid { margin: 1.5rem 0; text-align: center; }
+  .kb-toc-list .kb-toc-h3 { padding-left: 1rem; }
+  .kb-toc-list .kb-toc-h4 { padding-left: 1.5rem; }
+  .kb-toc-list a.active { font-weight: 600; color: var(--bs-primary, #0d6efd); }
+  .article-content .kb-heading-wrap { display: flex; align-items: baseline; gap: 0.35rem; }
+  .article-content .kb-heading-wrap .kb-copy-link { opacity: 0.5; font-size: 0.75rem; text-decoration: none; }
+  .article-content .kb-heading-wrap:hover .kb-copy-link { opacity: 1; }
+  /* Print: focus on article content, hide chrome */
+  @media print {
+    .kb-article-page .kb-copy-link { display: none !important; }
+    .kb-article-page .breadcrumb,
+    .kb-article-page .btn,
+    .kb-article-page .card-header,
+    .kb-article-page .modal,
+    .kb-article-page .article-toc,
+    .kb-article-page .col-lg-3 .card,
+    nav.navbar,
+    header,
+    footer,
+    .portal-sidebar,
+    .social-share { display: none !important; }
+    .kb-article-page .card { border: none; box-shadow: none; }
+    .kb-article-page .card-body { padding: 0; }
+    .kb-article-page .article-content {
+      max-width: none;
+      font-size: 11pt;
+      line-height: 1.5;
+    }
+    .kb-article-page a[href]::after { content: none; }
+    body { background: #fff; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid mt-3 mb-5">
+<div class="container-fluid mt-3 mb-5 kb-article-page">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -44,18 +115,28 @@
                             </span>
                             {% endif %}
                         </div>
+                        <div class="d-flex gap-2">
+                        {% if article.odt_file %}
+                        <a href="{% url 'kb:kb_article_download_odt' article.slug %}" class="btn btn-outline-success btn-sm" download>
+                            <i class="bi bi-file-earmark-word"></i> Download as Word (ODT)
+                        </a>
+                        <a href="{% url 'kb:kb_article_download_pdf' article.slug %}" class="btn btn-outline-danger btn-sm" download>
+                            <i class="bi bi-file-earmark-pdf"></i> Download as PDF
+                        </a>
+                        {% endif %}
                         {% if user.is_authenticated %}
-                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal">
+                        <button id="shareArticleBtn" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal" aria-label="Share this article">
                             <i class="bi bi-share"></i> Share
                         </button>
                         {% endif %}
+                        </div>
                     </div>
 
                     <!-- Meta Info -->
                     <div class="row small text-muted py-2 border-top border-bottom">
                         <div class="col-md-6">
                             <i class="fas fa-calendar"></i> 
-                            {{ article.updated_at|date:"F d, Y" }}
+                            {{ article.updated_at|format_date }}
                         </div>
                         <div class="col-md-6 text-right">
                             <i class="fas fa-clock"></i> {{ article.read_time }} min read
@@ -73,19 +154,22 @@
             <!-- Article Content -->
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
-                    <!-- Table of Contents (if article has sections) -->
-                    <div class="article-toc mb-4 p-3 bg-light rounded">
+                    <!-- Table of Contents (dynamic from headings) -->
+                    <div class="article-toc mb-4 p-3 bg-light rounded" id="article-toc" aria-label="On this page">
                         <h6>On this page</h6>
-                        <ul class="small mb-0">
-                            <li><a href="#content">Overview</a></li>
-                            {% if article.attachments.count %}
-                            <li><a href="#attachments">Visuals & Screenshots</a></li>
-                            {% endif %}
-                            <li><a href="#comments">Comments</a></li>
-                        </ul>
+                        <ul class="kb-toc-list small mb-0 list-unstyled"></ul>
+                        <noscript>
+                            <ul class="small mb-0">
+                                <li><a href="#content">Overview</a></li>
+                                {% if article.attachments.count %}
+                                <li><a href="#attachments">Visuals & Screenshots</a></li>
+                                {% endif %}
+                                <li><a href="#comments">Comments</a></li>
+                            </ul>
+                        </noscript>
                     </div>
 
-                    <!-- Main Content -->
+                    <!-- Main Content (Mermaid diagrams rendered by script below) -->
                     <div id="content" class="article-content mb-4">
                         {{ article.content_html|safe }}
                     </div>
@@ -196,7 +280,7 @@
                                 <div>
                                     <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
                                     <small class="text-muted ml-2">
-                                        <i class="fas fa-calendar"></i> {{ comment.created_at|date:"M d, Y H:i" }}
+                                        <i class="fas fa-calendar"></i> {{ comment.created_at|format_date }} {{ comment.created_at|time:"H:i" }}
                                     </small>
                                 </div>
                                 {% if comment.is_helpful %}
@@ -311,37 +395,33 @@
     </div>
 </div>
 
-<!-- Share Modal -->
-<div class="modal fade" id="shareModal" tabindex="-1" role="dialog">
+<!-- Share Modal (Bootstrap 5: focus management, Escape to close) -->
+<div class="modal fade" id="shareModal" tabindex="-1" role="dialog" aria-labelledby="shareModalTitle" aria-modal="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Share Article</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+                <h5 class="modal-title" id="shareModalTitle">Share Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close share dialog"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label>Article URL</label>
+                <div class="mb-3">
+                    <label for="articleUrl" class="form-label">Article URL</label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="articleUrl" 
-                               value="{{ request.build_absolute_uri }}" readonly>
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" onclick="copyUrl()">
-                                <i class="fas fa-copy"></i> Copy
-                            </button>
-                        </div>
+                               value="{{ request.build_absolute_uri }}" readonly aria-describedby="copyUrlBtn">
+                        <button type="button" class="btn btn-outline-secondary" id="copyUrlBtn" onclick="copyUrl()" aria-label="Copy URL to clipboard">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
                     </div>
                 </div>
                 <div class="social-share">
-                    <button onclick="shareOn('twitter')" class="btn btn-info btn-sm">
+                    <button type="button" onclick="shareOn('twitter')" class="btn btn-info btn-sm">
                         <i class="fab fa-twitter"></i> Twitter
                     </button>
-                    <button onclick="shareOn('facebook')" class="btn btn-primary btn-sm">
+                    <button type="button" onclick="shareOn('facebook')" class="btn btn-primary btn-sm">
                         <i class="fab fa-facebook"></i> Facebook
                     </button>
-                    <button onclick="shareOn('linkedin')" class="btn btn-info btn-sm">
+                    <button type="button" onclick="shareOn('linkedin')" class="btn btn-info btn-sm">
                         <i class="fab fa-linkedin"></i> LinkedIn
                     </button>
                 </div>
@@ -385,11 +465,40 @@
 </style>
 
 <script>
+(function() {
+  var shareModal = document.getElementById('shareModal');
+  var shareBtn = document.getElementById('shareArticleBtn');
+  var articleUrlInput = document.getElementById('articleUrl');
+  if (shareModal && shareBtn) {
+    shareModal.addEventListener('shown.bs.modal', function() {
+      if (articleUrlInput) {
+        articleUrlInput.focus();
+        articleUrlInput.select();
+      }
+    });
+    shareModal.addEventListener('hidden.bs.modal', function() {
+      shareBtn.focus();
+    });
+    shareModal.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        var bsModal = bootstrap.Modal.getInstance(shareModal);
+        if (bsModal) bsModal.hide();
+      }
+    });
+  }
+})();
 function copyUrl() {
-    const url = document.getElementById('articleUrl');
-    url.select();
+  var urlEl = document.getElementById('articleUrl');
+  if (!urlEl) return;
+  urlEl.select();
+  urlEl.setSelectionRange(0, 99999);
+  try {
+    navigator.clipboard.writeText(urlEl.value);
+    alert('URL copied to clipboard!');
+  } catch (err) {
     document.execCommand('copy');
     alert('URL copied to clipboard!');
+  }
 }
 
 function shareOn(platform) {
@@ -411,5 +520,147 @@ function shareOn(platform) {
     
     window.open(shareUrl, '_blank', 'width=600,height=400');
 }
+</script>
+<!-- Dynamic TOC from article headings -->
+<script>
+(function() {
+  function slugify(text) {
+    return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+  }
+  function buildToc() {
+    var content = document.getElementById('content');
+    var listEl = document.querySelector('.kb-toc-list');
+    if (!content || !listEl) return;
+    var headings = content.querySelectorAll('h2, h3, h4');
+    var fragment = document.createDocumentFragment();
+    if (headings.length > 0) {
+      headings.forEach(function(h) {
+        var id = h.id || slugify(h.textContent) || ('h-' + Math.random().toString(36).slice(2, 10));
+        if (!h.id) h.id = id;
+        var li = document.createElement('li');
+        li.className = 'kb-toc-' + h.tagName.toLowerCase();
+        var a = document.createElement('a');
+        a.href = '#' + id;
+        a.textContent = h.textContent.trim();
+        li.appendChild(a);
+        fragment.appendChild(li);
+      });
+    } else {
+      var links = [{ href: '#content', text: 'Overview' }];
+      if (document.getElementById('attachments')) links.push({ href: '#attachments', text: 'Visuals & Screenshots' });
+      links.push({ href: '#comments', text: 'Comments' });
+      links.forEach(function(link) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = link.href;
+        a.textContent = link.text;
+        li.appendChild(a);
+        fragment.appendChild(li);
+      });
+    }
+    listEl.appendChild(fragment);
+    initTocScrollHighlight(listEl);
+    addCopyLinksToHeadings(content);
+  }
+  function addCopyLinksToHeadings(content) {
+    var headings = content.querySelectorAll('h2, h3, h4');
+    headings.forEach(function(h) {
+      if (!h.id) return;
+      var wrap = document.createElement('span');
+      wrap.className = 'kb-heading-wrap';
+      h.parentNode.insertBefore(wrap, h);
+      wrap.appendChild(h);
+      var a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.className = 'kb-copy-link';
+      a.setAttribute('title', 'Copy link to this section');
+      a.setAttribute('aria-label', 'Copy link to this section');
+      a.textContent = 'Copy link';
+      a.addEventListener('click', function(e) {
+        e.preventDefault();
+        var url = window.location.origin + window.location.pathname + '#' + h.id;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function() { a.textContent = 'Copied!'; setTimeout(function() { a.textContent = 'Copy link'; }, 1200); });
+        } else {
+          var inp = document.createElement('input');
+          inp.value = url;
+          document.body.appendChild(inp);
+          inp.select();
+          document.execCommand('copy');
+          document.body.removeChild(inp);
+          a.textContent = 'Copied!';
+          setTimeout(function() { a.textContent = 'Copy link'; }, 1200);
+        }
+      });
+      wrap.appendChild(a);
+    });
+  }
+  function initTocScrollHighlight(listEl) {
+    var links = listEl.querySelectorAll('a[href^="#"]');
+    if (links.length === 0) return;
+    var targets = [];
+    links.forEach(function(a) {
+      var id = a.getAttribute('href').slice(1);
+      var el = document.getElementById(id);
+      if (el) targets.push({ id: id, el: el, link: a });
+    });
+    if (targets.length === 0) return;
+    function setActive(id) {
+      links.forEach(function(a) { a.classList.remove('active'); });
+      var link = listEl.querySelector('a[href="#' + id + '"]');
+      if (link) link.classList.add('active');
+    }
+    function updateActiveFromScroll() {
+      var topOffset = 100;
+      var current = null;
+      targets.forEach(function(t) {
+        var rect = t.el.getBoundingClientRect();
+        if (rect.top <= topOffset) current = t;
+      });
+      if (current) setActive(current.id);
+    }
+    var ticking = false;
+    window.addEventListener('scroll', function() {
+      if (!ticking) {
+        requestAnimationFrame(function() { updateActiveFromScroll(); ticking = false; });
+        ticking = true;
+      }
+    }, { passive: true });
+    updateActiveFromScroll();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildToc);
+  } else {
+    buildToc();
+  }
+})();
+</script>
+<!-- Mermaid.js: render diagrams from code blocks with class language-mermaid -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" crossorigin="anonymous"></script>
+<script>
+(function() {
+  function initMermaid() {
+    if (typeof mermaid === 'undefined') return;
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+    var blocks = document.querySelectorAll('#content pre code.language-mermaid');
+    blocks.forEach(function(code) {
+      var pre = code.closest('pre');
+      var text = (code.textContent || '').trim();
+      if (!text) return;
+      var id = 'mermaid-' + Math.random().toString(36).slice(2, 10);
+      var div = document.createElement('div');
+      div.className = 'mermaid';
+      div.id = id;
+      div.textContent = text;
+      pre.parentNode.replaceChild(div, pre);
+    });
+    if (blocks.length) mermaid.run({ nodes: document.querySelectorAll('#content .mermaid') });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMermaid);
+  } else {
+    initMermaid();
+  }
+})();
 </script>
 {% endblock %}

@@ -1,0 +1,35 @@
+/* ============================================
+   BOOTSTRAP THEME COMPATIBILITY BRIDGE
+   Syncs data-theme and data-bs-theme attributes.
+   Aligns Bootstrap semantic vars with design system in dark mode.
+   ============================================ */
+
+/* When data-theme is set, sync data-bs-theme for Bootstrap compatibility */
+html[data-theme="light"] {
+  /* Bootstrap 5 will read data-bs-theme="light" */
+}
+
+html[data-theme="dark"] {
+  /* Bootstrap 5 will read data-bs-theme="dark" */
+}
+
+/* Support both attributes for maximum compatibility */
+html[data-theme="light"],
+html[data-bs-theme="light"] {
+  /* Unified light theme styles */
+}
+
+/* Dark: align Bootstrap semantic vars with design system (desaturated accents) */
+html[data-theme="dark"],
+html[data-bs-theme="dark"] {
+  --bs-primary: var(--color-primary, #e87995);
+  --bs-secondary: var(--color-secondary, #a78bfa);
+  --bs-success: var(--color-success, #34d399);
+  --bs-danger: var(--color-danger, #f87171);
+  --bs-warning: var(--color-warning, #fbbf24);
+  --bs-info: var(--color-info, #60a5fa);
+  --bs-body-color: var(--color-text-primary, #f1f5f9);
+  --bs-body-bg: var(--color-bg-primary, #0f172a);
+}
+
+/* Ensure both attributes stay in sync via JavaScript */

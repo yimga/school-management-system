@@ -5,13 +5,35 @@ from typing import Iterable, Optional
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.urls import reverse
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, RegionConfig
 
 from apps.academics.models import Term
 from apps.evals.models import AssessmentWeights, Evaluation
 from apps.evals.services import classroom_term_rankings, school_term_rankings
 from apps.people.models import StudentProfile
 from apps.reports.models import PromotionRule, TermPublishStatus
+
+
+def _approved_or_unrequested_subject_assignment_filter(academic_year_id: int, term_id: int):
+    """
+    When reports_use_approved_grades_only is True: return (approved_sa_ids, any_request_sa_ids).
+    Include Evaluation if subject_assignment_id in approved_sa_ids OR subject_assignment_id not in any_request_sa_ids.
+    """
+    from apps.evals.models import GradeApprovalRequest
+    approved_ids = set(
+        GradeApprovalRequest.objects.filter(
+            academic_year_id=academic_year_id,
+            term_id=term_id,
+            status=GradeApprovalRequest.Status.APPROVED,
+        ).values_list("subject_assignment_id", flat=True).distinct()
+    )
+    any_request_ids = set(
+        GradeApprovalRequest.objects.filter(
+            academic_year_id=academic_year_id,
+            term_id=term_id,
+        ).values_list("subject_assignment_id", flat=True).distinct()
+    )
+    return approved_ids, any_request_ids
 
 def is_term_published(academic_year_id: int, term_id: int, classroom_id: int) -> bool:
     """
@@ -121,16 +143,42 @@ def _school_report_metadata() -> dict:
     }
 
 
+def _region_display_context() -> dict:
+    """Return region-based display settings for report templates (date_format, currency, etc.)."""
+    from apps.siteconfig.currency import get_currency_symbol
+    try:
+        region_code = getattr(settings, "REGION_CODE", "CMR")
+        region = RegionConfig.objects.get(code=region_code)
+    except Exception:
+        region = RegionConfig.get_default()
+    cur_code = getattr(region, "default_currency", "XAF")
+    return {
+        "region": region,
+        "date_format": getattr(region, "date_format", "DD/MM/YYYY"),
+        "currency_symbol": get_currency_symbol(cur_code),
+        "decimal_separator": getattr(region, "decimal_separator", "."),
+        "thousands_separator": getattr(region, "thousands_separator", ","),
+        "grading_scale": getattr(region, "grading_scale", "0-20"),
+    }
+
+
 def term_report_context(student: StudentProfile, academic_year, term: Term) -> dict:
-    evaluations = (
-        Evaluation.objects.filter(student=student, term=term, academic_year=academic_year)
-        .select_related(
-            "subject_assignment__subject",
-            "subject_assignment__classroom",
-            "subject_assignment__specialty",
+    from django.db.models import Q
+    qs = Evaluation.objects.filter(student=student, term=term, academic_year=academic_year)
+    site = SiteSettings.get_solo()
+    if getattr(site, "reports_use_approved_grades_only", False):
+        approved_ids, any_request_ids = _approved_or_unrequested_subject_assignment_filter(
+            academic_year.id, term.id
         )
-        .order_by("subject_assignment__subject__name")
-    )
+        # Include evaluations whose subject has been approved or has no approval request
+        qs = qs.filter(
+            Q(subject_assignment_id__in=approved_ids) | ~Q(subject_assignment_id__in=any_request_ids)
+        )
+    evaluations = qs.select_related(
+        "subject_assignment__subject",
+        "subject_assignment__classroom",
+        "subject_assignment__specialty",
+    ).order_by("subject_assignment__subject__name")
 
     weights = AssessmentWeights.get_for(
         academic_year=academic_year,
@@ -188,15 +236,20 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "teacher_remark": _auto_teacher_remark(overall_average),
     }
 
-    return {
+    ctx = {
         "rows": rows,
         "summary": summary,
         "weights": weights,
         "metadata": _school_report_metadata(),
     }
+    ctx.update(_region_display_context())
+    return ctx
 
 
 def _annual_average_for_student(student: StudentProfile, terms: Iterable[Term]) -> Optional[float]:
+    from django.db.models import Q
+    site = SiteSettings.get_solo()
+    use_approved_only = getattr(site, "reports_use_approved_grades_only", False)
     term_avgs = []
     for term in terms:
         avg = 0.0
@@ -205,6 +258,13 @@ def _annual_average_for_student(student: StudentProfile, terms: Iterable[Term]) 
             term=term,
             academic_year=term.academic_year,
         )
+        if use_approved_only:
+            approved_ids, any_request_ids = _approved_or_unrequested_subject_assignment_filter(
+                term.academic_year_id, term.id
+            )
+            evals = evals.filter(
+                Q(subject_assignment_id__in=approved_ids) | ~Q(subject_assignment_id__in=any_request_ids)
+            )
         if evals.exists():
             total_weighted = 0.0
             total_coef = 0.0
@@ -286,7 +346,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
     promotion_status = get_promotion_status(student, academic_year, annual_average)
     thresholds = get_promotion_thresholds(student, academic_year) or {}
 
-    return {
+    ctx = {
         "terms": terms,
         "term_rows": term_rows,
         "annual_average": annual_average,
@@ -302,6 +362,8 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "teacher_remark": _auto_teacher_remark(annual_average),
         "metadata": _school_report_metadata(),
     }
+    ctx.update(_region_display_context())
+    return ctx
 
 
 REPORT_SHARE_DAYS = getattr(settings, "REPORT_SHARE_DAYS", 7)

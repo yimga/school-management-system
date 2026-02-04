@@ -20,6 +20,30 @@ def _get_portal_sidebar_items(request, site):
     except Exception:
         return []
 
+
+def _get_pinned_sidebar_items(request, all_items):
+    """
+    Return list of sidebar items that the user pinned (Quick access), and set of pinned ids.
+    all_items: list of dicts with id, label, url, icon, section, badge.
+    """
+    if not request or not getattr(request, "user", None) or not request.user.is_authenticated or not all_items:
+        return [], set()
+    try:
+        prefs = getattr(request.user, "dashboard_preferences", None)
+        if not prefs:
+            return [], set()
+        pinned_ids = list(prefs.pinned_sidebar_items or [])
+        if not pinned_ids:
+            return [], set()
+        by_id = {str(item.get("id")): item for item in all_items if item.get("id")}
+        ordered = []
+        for pid in pinned_ids:
+            if pid in by_id and by_id[pid].get("url"):
+                ordered.append(by_id[pid])
+        return ordered, set(str(item.get("id")) for item in ordered)
+    except Exception:
+        return [], set()
+
 SESSION_KEY = "site_preview_settings"
 
 BREADCRUMB_LABELS = {
@@ -118,7 +142,13 @@ def site_settings(request):
 
     if preview_settings:
         for key, value in preview_settings.items():
-            if hasattr(site, key):
+            if key == "admin_theme_pack" and value is not None:
+                if hasattr(site, "admin_theme_pack_id"):
+                    try:
+                        site.admin_theme_pack_id = int(value)
+                    except (TypeError, ValueError):
+                        pass
+            elif hasattr(site, key):
                 setattr(site, key, value)
 
     act_as_role = request.session.get(ACT_AS_ROLE_SESSION_KEY)
@@ -191,11 +221,25 @@ def site_settings(request):
     admin_logo = _resolve_media_url(admin_theme.logo if admin_theme else None, "images/logo.png")
     favicon_url = _resolve_media_url(getattr(site, "favicon", None), "favicon.ico")
     sidebar_icon_url = _resolve_media_url(getattr(site, "sidebar_icon", None))
+    # Resolved admin theme: brand from ThemePack or SITE; semantic colors always from SITE (no conflict).
+    admin_primary = (admin_theme.primary_color if admin_theme else getattr(site, "primary_color", None)) or "#0d6efd"
+    admin_accent = (admin_theme.accent_color if admin_theme else getattr(site, "accent_color", None)) or "#198754"
+    admin_background = getattr(admin_theme, "background_color", None) if admin_theme else None
+    admin_background = admin_background or "#1a1a1a"
+    admin_success = getattr(site, "success_color", None) or "#22c55e"
+    admin_warning = getattr(site, "warning_color", None) or "#fbbf24"
+    admin_danger = getattr(site, "danger_color", None) or "#ef4444"
     return {
         "SITE": site,
         "SITE_SETTINGS": site,
         "SITE_THEME": site.active_theme,
         "SITE_ADMIN_THEME": admin_theme,
+        "ADMIN_RESOLVED_PRIMARY": admin_primary,
+        "ADMIN_RESOLVED_ACCENT": admin_accent,
+        "ADMIN_RESOLVED_BACKGROUND": admin_background,
+        "ADMIN_RESOLVED_SUCCESS": admin_success,
+        "ADMIN_RESOLVED_WARNING": admin_warning,
+        "ADMIN_RESOLVED_DANGER": admin_danger,
         "SITE_ADMIN_BACKGROUND_URL": admin_background_url,
         "SITE_ADMIN_LOGO_URL": admin_logo,
         "SITE_FAVICON_URL": favicon_url,
@@ -235,6 +279,10 @@ def site_settings(request):
         "SIDEBAR_COLLAPSED": sidebar_collapsed,
         "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
     }
+    portal_items = ctx["PORTAL_SIDEBAR_ITEMS"]
+    pinned_list, pinned_ids = _get_pinned_sidebar_items(request, portal_items)
+    ctx["PINNED_SIDEBAR_ITEMS"] = pinned_list
+    ctx["PINNED_SIDEBAR_IDS"] = pinned_ids
 
 
 def region_settings(request):
@@ -245,35 +293,40 @@ def region_settings(request):
     from types import SimpleNamespace
     from django.conf import settings
     from .models import RegionConfig
-    from apps.evals.grading import CURRENCY_SYMBOLS
+    from apps.siteconfig.currency import get_currency_symbol
     
     try:
         # Try to get region from user preferences, session, or use default
-        region_code = getattr(request.user, 'profile', {}).get('region', None) if request.user.is_authenticated else None
-        region_code = region_code or request.session.get('region_code', settings.REGION_CODE)
-        
+        region_code = request.session.get('region_code', settings.REGION_CODE)
+        if request.user.is_authenticated:
+            try:
+                pref = getattr(request.user, 'preferences', None)
+                if pref and getattr(pref, 'preferred_region', ''):
+                    region_code = pref.preferred_region
+            except Exception:
+                pass
         region = RegionConfig.objects.get(code=region_code)
     except RegionConfig.DoesNotExist:
         # Fallback to default region (Cameroon)
         region = RegionConfig.get_default()
     except DatabaseError:
         _reset_db_state()
-        region = SimpleNamespace(
-            code=getattr(settings, "REGION_CODE", "CMR"),
-            name="Default",
-            default_currency="XAF",
-            date_format="YYYY-MM-DD",
-            timezone=getattr(settings, "TIME_ZONE", "UTC"),
-            default_language="en",
-            grading_scale="default",
-            decimal_separator=".",
-            thousands_separator=",",
-        )
-    except DatabaseError:
-        _reset_db_state()
-        region = RegionConfig.get_default()
+        try:
+            region = RegionConfig.get_default()
+        except Exception:
+            region = SimpleNamespace(
+                code=getattr(settings, "REGION_CODE", "CMR"),
+                name="Default",
+                default_currency="XAF",
+                date_format="YYYY-MM-DD",
+                timezone=getattr(settings, "TIME_ZONE", "UTC"),
+                default_language="en",
+                grading_scale="default",
+                decimal_separator=".",
+                thousands_separator=",",
+            )
     
-    currency_symbol = CURRENCY_SYMBOLS.get(region.default_currency, region.default_currency)
+    currency_symbol = get_currency_symbol(getattr(region, "default_currency", None) or "XAF")
     
     return {
         'region': region,
@@ -286,6 +339,7 @@ def region_settings(request):
         'grading_scale': region.grading_scale,
         'decimal_separator': region.decimal_separator,
         'thousands_separator': region.thousands_separator,
+        'enable_multi_region': getattr(settings, 'ENABLE_MULTI_REGION', False),
     }
 
 
@@ -309,32 +363,40 @@ def language_context(request):
         if cookie_language in SUPPORTED_LANGUAGES:
             current_language = cookie_language
     else:
-        # Try region-based auto-detection
-        try:
-            region = RegionConfig.get_default()
-            if request.user and request.user.is_authenticated:
-                # Check user region preference
-                region_code = getattr(request.user, 'preferred_region', region.code)
-                region = RegionConfig.objects.get(code=region_code)
-            
-            # Map region to language
-            region_language_map = {
-                'CMR': 'fr',  # Cameroon -> French
-                'FRA': 'fr',  # France -> French
-                'USA': 'en',  # USA -> English
-                'GBR': 'en',  # UK -> English
-                'KEN': 'sw',  # Kenya -> Swahili
-                'NGA': 'yo',  # Nigeria -> Yoruba
-                'DEU': 'en',  # Germany -> English (fallback)
-            }
-            
-            default_language = region_language_map.get(region.code, 'en')
-            if default_language in SUPPORTED_LANGUAGES:
-                current_language = default_language
-        except DatabaseError:
-            _reset_db_state()
-        except Exception:
-            pass
+        # Prefer persisted user language, then region-based default
+        if request.user and request.user.is_authenticated:
+            try:
+                pref = getattr(request.user, 'preferences', None)
+                if pref and getattr(pref, 'preferred_language', ''):
+                    lang = pref.preferred_language
+                    if lang in SUPPORTED_LANGUAGES:
+                        current_language = lang
+            except Exception:
+                pass
+        if current_language == translation.get_language():
+            # Not set from preference: try region-based auto-detection
+            try:
+                region = RegionConfig.get_default()
+                if request.user and request.user.is_authenticated:
+                    try:
+                        pref = getattr(request.user, 'preferences', None)
+                        if pref and getattr(pref, 'preferred_region', ''):
+                            region = RegionConfig.objects.get(code=pref.preferred_region)
+                        else:
+                            region = RegionConfig.objects.get(code=region.code)
+                    except (RegionConfig.DoesNotExist, Exception):
+                        pass
+                region_language_map = {
+                    'CMR': 'fr', 'FRA': 'fr', 'USA': 'en', 'GBR': 'en',
+                    'KEN': 'sw', 'NGA': 'yo', 'DEU': 'en',
+                }
+                default_language = region_language_map.get(region.code, 'en')
+                if default_language in SUPPORTED_LANGUAGES:
+                    current_language = default_language
+            except DatabaseError:
+                _reset_db_state()
+            except Exception:
+                pass
     
     # Get available languages
     available_languages = [(code, name) for code, name in SUPPORTED_LANGUAGES.items()]

@@ -1,11 +1,13 @@
 """
 Admin Extras Template Tags
-Provides template tags for admin interface enhancements like item counts
+Provides template tags for admin interface enhancements like item counts.
+RBAC: get_all_model_counts is request-aware and only returns counts for models
+the user has view permission for.
 """
 from django import template
 from django.apps import apps
 from django.core.cache import cache
-from django.contrib.admin.sites import site as admin_site
+from django.contrib.admin.sites import site as default_admin_site
 
 register = template.Library()
 
@@ -33,21 +35,32 @@ def get_model_count(app_label, model_name):
     return count
 
 
-@register.simple_tag
-def get_all_model_counts():
+@register.simple_tag(takes_context=True)
+def get_all_model_counts(context):
     """
-    Get counts for all registered admin models.
+    Get counts for registered admin models the current user has view permission for.
     Returns a dictionary mapping 'app_label.model_name' to count.
-    Cached for 5 minutes.
-    
+    Cached per user for 5 minutes (RBAC-compliant).
+
     Usage: {% get_all_model_counts as model_counts %}
     """
-    cache_key = "admin_all_model_counts"
+    request = context.get('request')
+    if not request or not getattr(request, 'user', None):
+        return {}
+
+    user = request.user
+    # Use admin site from context if available (e.g. custom GileadAdminSite), else default
+    admin_site_obj = context.get('site', default_admin_site)
+    registry = getattr(admin_site_obj, '_registry', default_admin_site._registry)
+
+    cache_key = f"admin_all_model_counts_{getattr(user, 'pk', id(user))}"
     counts = cache.get(cache_key)
-    
+
     if counts is None:
         counts = {}
-        for model, model_admin in admin_site._registry.items():
+        for model, model_admin in registry.items():
+            if not getattr(model_admin, 'has_view_permission', lambda r: True)(request):
+                continue
             app_label = model._meta.app_label
             model_name = model._meta.model_name
             key = f"{app_label}.{model_name}"
@@ -55,10 +68,8 @@ def get_all_model_counts():
                 counts[key] = model.objects.count()
             except Exception:
                 counts[key] = 0
-        
-        # Cache for 5 minutes
         cache.set(cache_key, counts, 300)
-    
+
     return counts
 
 

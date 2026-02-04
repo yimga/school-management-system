@@ -1,12 +1,13 @@
 /**
  * Dashboard Charts Shared - Chart.js config, colors, helpers.
  * Lazy-load Chart.js; provide consistent styling, empty-state, export.
+ * On backend (body.portal-backend-dark / portal-backend-light), uses CSS vars for palette and axis/legend colors.
  */
 
 (function () {
   'use strict';
 
-  // Semantic colors - matches Bootstrap + school branding
+  // Semantic colors - matches Bootstrap + school branding (fallback when not on backend)
   const CHART_COLORS = {
     primary: 'rgba(13, 110, 253, 0.8)',
     primaryLight: 'rgba(13, 110, 253, 0.15)',
@@ -28,6 +29,67 @@
       'rgba(253, 126, 20, 0.85)',
     ]
   };
+
+  function isBackendPage() {
+    if (typeof document === 'undefined' || !document.body) return false;
+    return document.body.classList.contains('portal-backend-dark') || document.body.classList.contains('portal-backend-light');
+  }
+
+  function getComputedVar(name) {
+    if (typeof document === 'undefined' || !document.documentElement) return null;
+    return getComputedStyle(document.body).getPropertyValue(name).trim() || null;
+  }
+
+  /** When on backend, returns array of --chart-color-1..6 from CSS; otherwise null. */
+  function getBackendChartPalette() {
+    if (!isBackendPage()) return null;
+    const out = [];
+    for (let i = 1; i <= 6; i++) {
+      const v = getComputedVar('--chart-color-' + i);
+      if (v) out.push(v);
+    }
+    return out.length >= 3 ? out : null;
+  }
+
+  /** When on backend, returns Chart.js options for scales and legend (grid/tick/legend color from theme). */
+  function getBackendChartOptions() {
+    if (!isBackendPage()) return {};
+    const chartText = getComputedVar('--chart-text') || getComputedVar('--backend-text-muted') || '#94a3b8';
+    const chartGrid = getComputedVar('--chart-grid') || getComputedVar('--backend-border') || 'rgba(148, 163, 184, 0.2)';
+    return {
+      scales: {
+        x: {
+          ticks: { color: chartText },
+          grid: { color: chartGrid }
+        },
+        y: {
+          ticks: { color: chartText },
+          grid: { color: chartGrid }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: chartText }
+        },
+        tooltip: {
+          titleColor: chartText,
+          bodyColor: chartText
+        }
+      }
+    };
+  }
+
+  function applyPaletteToDatasets(data, palette) {
+    if (!data || !data.datasets || !Array.isArray(palette) || palette.length === 0) return data;
+    const datasets = data.datasets.map(function (ds, i) {
+      const c = palette[i % palette.length];
+      const out = { ...ds };
+      if (out.backgroundColor === undefined) out.backgroundColor = c;
+      if (out.borderColor === undefined) out.borderColor = c;
+      return out;
+    });
+    return { ...data, datasets };
+  }
 
   // Status -> color mapping for finance/requests
   const STATUS_COLORS = {
@@ -79,7 +141,7 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    const mergedOptions = {
+    let mergedOptions = {
       ...defaultOptions,
       ...(config.options || {}),
       plugins: {
@@ -88,9 +150,42 @@
       }
     };
 
+    if (isBackendPage()) {
+      const backendOpts = getBackendChartOptions();
+      if (backendOpts.scales) {
+        mergedOptions.scales = mergedOptions.scales || {};
+        if (backendOpts.scales.x) {
+          mergedOptions.scales.x = { ...mergedOptions.scales.x, ...backendOpts.scales.x };
+        }
+        if (backendOpts.scales.y) {
+          mergedOptions.scales.y = { ...mergedOptions.scales.y, ...backendOpts.scales.y };
+        }
+      }
+      if (backendOpts.plugins) {
+        mergedOptions.plugins = mergedOptions.plugins || {};
+        if (backendOpts.plugins.legend) {
+          mergedOptions.plugins.legend = { ...mergedOptions.plugins.legend, ...backendOpts.plugins.legend };
+          if (backendOpts.plugins.legend.labels) {
+            mergedOptions.plugins.legend.labels = { ...mergedOptions.plugins.legend.labels, ...backendOpts.plugins.legend.labels };
+          }
+        }
+        if (backendOpts.plugins.tooltip) {
+          mergedOptions.plugins.tooltip = { ...mergedOptions.plugins.tooltip, ...backendOpts.plugins.tooltip };
+        }
+      }
+    }
+
+    let chartData = config.data;
+    if (isBackendPage() && chartData) {
+      const palette = getBackendChartPalette();
+      if (palette && palette.length) {
+        chartData = applyPaletteToDatasets(chartData, palette);
+      }
+    }
+
     return new Chart(ctx, {
       type: config.type || 'bar',
-      data: config.data,
+      data: chartData,
       options: mergedOptions,
     });
   }
@@ -132,5 +227,7 @@
     hasData,
     fillGapsInTimeSeries,
     defaultOptions,
+    getBackendChartPalette,
+    getBackendChartOptions,
   };
 })();

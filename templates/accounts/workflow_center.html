@@ -18,8 +18,8 @@
     padding: 1.25rem 1.25rem;
     margin-bottom: 1rem;
   }
-  .workflow-hero h2 { margin: 0; font-weight: 800; color: #0f172a; }
-  .workflow-hero p { margin: 0.25rem 0 0; color: #475569; }
+  .workflow-hero h2 { margin: 0; font-weight: 800; color: var(--admin-text); }
+  .workflow-hero p { margin: 0.25rem 0 0; color: var(--admin-muted); }
   .workflow-progress-summary {
     display: flex;
     flex-wrap: wrap;
@@ -38,33 +38,33 @@
     gap: 1rem;
   }
   .workflow-card {
-    border: 1px solid rgba(148,163,184,0.22);
+    border: 1px solid var(--admin-border);
     border-radius: 18px;
-    background: #fff;
+    background: var(--admin-surface);
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
     overflow: hidden;
   }
   .workflow-card .card-body { padding: 1.1rem 1.1rem; }
-  .workflow-title { font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem; color: #0f172a; }
-  .workflow-subtitle { margin: 0 0 0.5rem; color: #64748b; font-size: 0.9rem; }
+  .workflow-title { font-weight: 800; font-size: 1rem; margin: 0 0 0.25rem; color: var(--admin-text); }
+  .workflow-subtitle { margin: 0 0 0.5rem; color: var(--admin-muted); font-size: 0.9rem; }
   .workflow-progress-label {
     font-size: 0.8rem;
-    color: #0d6efd;
+    color: var(--brand-primary);
     font-weight: 600;
     margin-bottom: 0.6rem;
   }
   .workflow-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .workflow-links a { border-radius: 999px; font-weight: 650; }
   .workflow-links a.btn-primary { border-radius: 999px; }
-  .workflow-step-icon { font-size: 1.25rem; color: #6366f1; margin-right: 0.5rem; }
-  .workflow-step-meta { font-size: 0.8rem; color: #64748b; margin-bottom: 0.35rem; }
+  .workflow-step-icon { font-size: 1.25rem; color: var(--brand-primary); margin-right: 0.5rem; }
+  .workflow-step-meta { font-size: 0.8rem; color: var(--admin-muted); margin-bottom: 0.35rem; }
   .workflow-tip {
-    font-size: 0.85rem; color: #475569; background: rgba(99, 102, 241, 0.08);
-    border-left: 3px solid #6366f1; padding: 0.4rem 0.6rem; border-radius: 0 8px 8px 0; margin-top: 0.5rem;
+    font-size: 0.85rem; color: var(--admin-muted); background: rgba(99, 102, 241, 0.08);
+    border-left: 3px solid var(--brand-primary); padding: 0.4rem 0.6rem; border-radius: 0 8px 8px 0; margin-top: 0.5rem;
   }
   .workflow-quick-jump { font-size: 0.9rem; }
-  .workflow-quick-jump a { text-decoration: none; color: #475569; }
-  .workflow-quick-jump a:hover { color: #6366f1; }
+  .workflow-quick-jump a { text-decoration: none; color: var(--admin-muted); }
+  .workflow-quick-jump a:hover { color: var(--brand-primary); }
   .workflow-progress-bar { height: 6px; border-radius: 3px; background: rgba(148, 163, 184, 0.25); }
   @media (max-width: 575px) {
     .workflow-hero { padding: 1rem; }

@@ -204,7 +204,7 @@
     const controls = document.createElement('div');
     controls.className = 'dash-widget-controls';
     controls.innerHTML = `
-      <button type="button" class="dash-widget-gear" aria-label="Widget settings" title="Widget settings">⋯</button>
+      <button type="button" class="dash-widget-gear" aria-label="Widget settings" title="Widget settings"><span class="dash-widget-gear-dots" aria-hidden="true">⋯</span><span class="dash-widget-gear-label d-none d-md-inline ms-1">Settings</span></button>
       <div class="dash-widget-menu" aria-hidden="true">${menuRows}</div>
     `;
 

@@ -8,7 +8,7 @@
     <h2 class="mb-0">Contact Request</h2>
     <p class="text-muted small mb-0">{{ ticket.subject }}</p>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{{ back_url }}">Back to list</a>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{{ back_url }}"><i class="bi bi-arrow-left me-1"></i>Back to list</a>
 </div>
 
 <div class="row g-3">
@@ -22,8 +22,24 @@
         <p class="mb-1"><strong>Desired staff:</strong> {{ ticket.desired_staff.get_full_name|default:ticket.desired_staff.username|default:"—" }}</p>
         <hr>
         <p class="mb-1"><strong>Parent contact:</strong> {{ ticket.contact_name }}</p>
-        <p class="mb-1"><strong>Phone:</strong> {{ ticket.contact_phone|default:"—" }}</p>
-        <p class="mb-1"><strong>WhatsApp:</strong> {{ ticket.contact_whatsapp|default:"—" }}</p>
+        <p class="mb-1">
+          <strong>Phone:</strong>
+          {% if ticket.contact_phone %}
+            <a href="tel:{{ ticket.contact_phone }}">{{ ticket.contact_phone }}</a>
+          {% else %}
+            &mdash;
+          {% endif %}
+        </p>
+        <p class="mb-1">
+          <strong>WhatsApp:</strong>
+          {% if ticket.contact_whatsapp %}
+            <a href="https://wa.me/{{ ticket.contact_whatsapp|urlencode }}?text={{ 'Hello, I am following up on your contact request.'|urlencode }}" target="_blank" rel="noreferrer">
+              {{ ticket.contact_whatsapp }}
+            </a>
+          {% else %}
+            &mdash;
+          {% endif %}
+        </p>
         <p class="mb-0"><strong>Email:</strong> {{ ticket.contact_email|default:"—" }}</p>
       </div>
     </div>

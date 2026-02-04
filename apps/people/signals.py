@@ -4,7 +4,19 @@ Signal handlers for people models.
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from apps.communication.models import MessageThread
-from apps.people.models import TeacherProfile
+from apps.people.models import TeacherProfile, StudentGuardian
+
+
+@receiver(post_save, sender=StudentGuardian)
+def sync_student_parent_phone_from_guardian(sender, instance, **kwargs):
+    """
+    One-way sync: when a guardian has phone and the student's parent_phone is empty,
+    set student.parent_phone so fallback contact (StudentProfile.parent_phone) stays in sync.
+    See docs/DATA_PARENT_CONTACT.md.
+    """
+    if instance.phone and instance.student_id and not (instance.student.parent_phone or "").strip():
+        instance.student.parent_phone = instance.phone
+        instance.student.save(update_fields=["parent_phone"])
 
 
 @receiver(post_save, sender=TeacherProfile)

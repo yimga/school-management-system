@@ -36,7 +36,7 @@ class PortalFeatureItem(models.Model):
         blank=True,
         null=True,
         validators=[validate_document_file, validate_file_size_10mb],
-        help_text="Upload a document file (PDF, Word, Excel) - max 10MB"
+        help_text="Upload a document (PDF, Word, Excel, or LibreOffice ODT/ODS) - max 10MB"
     )
     document_type = models.CharField(
         max_length=20,

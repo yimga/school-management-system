@@ -107,3 +107,25 @@ class RegionalComplianceValidatorTestCase(TestCase):
         requirements = RegionalComplianceRequirement.objects.filter(region=self.region)
         score = self.validator.generate_compliance_score(requirements)
         self.assertEqual(score, 60.0)
+
+
+class ComplianceDashboardRBACTestCase(TestCase):
+    """Dashboard access: only staff/ADMIN/LEADERSHIP can access main compliance dashboard."""
+
+    def setUp(self):
+        self.parent = User.objects.create_user(
+            username="parent_rbac", email="parent_rbac@test.com", password="pass"
+        )
+        self.parent.role = User.Role.PARENT
+        self.parent.save(update_fields=["role"])
+        self.admin = User.objects.create_user(
+            username="admin_rbac", email="admin_rbac@test.com", password="pass"
+        )
+        self.admin.role = User.Role.ADMIN
+        self.admin.save(update_fields=["role"])
+
+    def test_non_staff_gets_redirected_from_dashboard(self):
+        self.client.force_login(self.parent)
+        response = self.client.get("/compliance/dashboard/")
+        # user_passes_test fails -> redirect to login (or 403 if configured)
+        self.assertIn(response.status_code, (302, 403))

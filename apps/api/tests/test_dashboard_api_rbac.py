@@ -109,3 +109,22 @@ class DashboardApiRbacTests(TestCase):
         payload = response.json()
         self.assertEqual(payload.get("my_students"), 1)
         self.assertEqual(payload.get("my_classes"), 1)
+
+    def test_financial_dashboard_denies_parent(self):
+        self.client.force_login(self.parent_user)
+        response = self.client.get("/api/dashboard/financial/")
+        self.assertEqual(response.status_code, 403)
+
+    def test_financial_dashboard_allows_bursar(self):
+        bursar = User.objects.create_user(
+            username="bursar_api",
+            password="testpass123",
+            role=User.Role.BURSAR,
+        )
+        self.client.force_login(bursar)
+        response = self.client.get("/api/dashboard/financial/")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertIn("total_revenue", payload)
+        self.assertIn("outstanding_fees", payload)
+        self.assertIn("payment_methods", payload)

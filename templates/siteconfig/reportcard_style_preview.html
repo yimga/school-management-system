@@ -85,7 +85,7 @@
           </p>
         </div>
         <div class="d-flex gap-2">
-          <a class="btn btn-outline-primary btn-sm" href="{% url 'siteconfig:reportcard_builder' %}">Back to builder</a>
+          <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'siteconfig:reportcard_builder' %}"><i class="bi bi-arrow-left me-1"></i>Back to builder</a>
           <a class="btn btn-primary btn-sm" href="{% url 'siteconfig:customizer' %}#field-theme_pack">Apply pack</a>
         </div>
       </div>
@@ -132,7 +132,7 @@
               <td class="text-center">{{ row.seq1|default:"-" }}</td>
               <td class="text-center">{{ row.seq2|default:"-" }}</td>
               <td class="text-center">{{ row.exam|default:"-" }}</td>
-              <td class="text-center">{{ row.total|floatformat:2 }}</td>
+              <td class="text-center">{{ row.total|format_number:2 }}</td>
             </tr>
           {% endfor %}
         </tbody>
@@ -141,7 +141,7 @@
       <div class="summary-grid">
         <div class="summary-card">
           <strong>Average</strong>
-          <p class="mb-0">{{ summary.average|floatformat:2|default:"-" }}</p>
+          <p class="mb-0">{{ summary.average|format_number:2|default:"-" }}</p>
         </div>
         <div class="summary-card">
           <strong>Class rank</strong>
@@ -161,7 +161,7 @@
         </div>
         <div class="summary-card">
           <strong>Generated</strong>
-          <p class="mb-0">{{ generated_at|date:"j F, Y" }}</p>
+          <p class="mb-0">{{ generated_at|format_date }}</p>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+{% load region_format %}
 <!doctype html>
 <html>
 <head>
@@ -47,7 +48,7 @@
     </div>
     <div class="box">
       <b>Summary</b><br>
-      Average: <b>{{ summary.average|floatformat:2|default:"-" }}</b><br>
+      Average: <b>{{ summary.average|format_number:2|default:"-" }}</b><br>
       Class Rank: <b>{{ summary.class_position|default:"-" }}</b> / {{ summary.class_size|default:"-" }}<br>
       Specialty Rank: <b>{{ summary.specialty_position|default:"-" }}</b> / {{ summary.specialty_size|default:"-" }}<br>
       School Rank: <b>{{ summary.school_position|default:"-" }}</b> / {{ summary.school_size|default:"-" }}<br>
@@ -86,7 +87,7 @@
             <td class="text-end">{{ row.practical|default_if_none:"" }}</td>
             <td class="text-end">
               {% if row.complete %}
-                {{ row.total|floatformat:2 }}
+                {{ row.total|format_number:2 }}
               {% else %}
                 <span class="sub">Pending</span>
               {% endif %}
@@ -107,7 +108,7 @@
     </div>
     <div class="box">
       <b>Generated</b><br>
-      {{ generated_at|date:"Y-m-d" }}
+      {{ generated_at|format_date }}
     </div>
   </div>
 

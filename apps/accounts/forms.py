@@ -76,6 +76,24 @@ class UserPermissionForm(forms.Form):
         self.fields["user"].widget.attrs.update({"class": "form-select"})
 
 
+class UserProfileEditForm(forms.ModelForm):
+    """My profile: edit name, email, profile photo (user can only edit self)."""
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "profile_photo"]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "First name"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Last name"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email"}),
+            "profile_photo": forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].required = False
+        self.fields["profile_photo"].required = False
+
+
 class ClaimInviteAccountForm(forms.Form):
     token = forms.CharField(
         label="Invite token",

@@ -1,0 +1,155 @@
+/* ============================================
+   ADMIN SIDEBAR BLACK THEME
+   Overrides Unfold sidebar with palette tokens.
+   Uses --admin-sidebar-* from base_site.html injection.
+   ============================================ */
+
+/* Sidebar container - override Unfold Tailwind */
+#nav-sidebar,
+#nav-sidebar-inner,
+.bg-base-50.border-r.border-base-200,
+.dark\:bg-base-900,
+.dark\:border-base-800 {
+  background: var(--admin-sidebar-bg, #101010) !important;
+  border-color: var(--admin-sidebar-border, rgba(255,255,255,0.08)) !important;
+  color: var(--admin-sidebar-text, #F8F9FA) !important;
+}
+
+#nav-sidebar {
+  background: var(--admin-sidebar-bg, #101010) !important;
+}
+
+#nav-sidebar-inner {
+  background: transparent !important;
+  color: var(--admin-sidebar-text, #F8F9FA) !important;
+}
+
+/* App list container */
+#nav-sidebar-apps {
+  color: var(--admin-sidebar-text, #F8F9FA);
+}
+
+/* Module / app group */
+#nav-sidebar .module,
+#nav-sidebar-apps .module {
+  background: transparent;
+  border: none;
+  margin-bottom: 0.5rem;
+}
+
+/* App heading (h2) */
+#nav-sidebar .module h2,
+#nav-sidebar .module caption,
+#nav-sidebar-apps .module h2,
+#nav-sidebar-apps h2 {
+  background: transparent !important;
+  color: var(--admin-sidebar-text, #F8F9FA) !important;
+  border: none;
+  font-weight: 600;
+}
+
+#nav-sidebar .module h2 a,
+#nav-sidebar-apps .module h2 a {
+  color: var(--admin-sidebar-text, #F8F9FA) !important;
+}
+
+#nav-sidebar .module h2 a:hover,
+#nav-sidebar-apps .module h2 a:hover {
+  color: var(--admin-sidebar-active-border, #3B86D1) !important;
+}
+
+/* Child menu - model links */
+#nav-sidebar .module ul,
+#nav-sidebar-apps .module ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.25rem 0 0 0;
+}
+
+#nav-sidebar .module li,
+#nav-sidebar-apps .module li {
+  margin: 0;
+}
+
+#nav-sidebar .module li a,
+#nav-sidebar-apps .module li a {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  color: var(--admin-sidebar-text-muted, #94a3b8) !important;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+#nav-sidebar .module li a:hover,
+#nav-sidebar-apps .module li a:hover {
+  background: var(--admin-sidebar-hover, #1e1e1e);
+  color: var(--admin-sidebar-text, #F8F9FA) !important;
+}
+
+/* Current/active model */
+#nav-sidebar .module li.current-model a,
+#nav-sidebar-apps .module li.current-model a,
+#nav-sidebar .module li a[aria-current="page"],
+#nav-sidebar-apps .module li a[aria-current="page"] {
+  background: var(--admin-sidebar-active, #222222) !important;
+  color: var(--admin-sidebar-active-border, #3B86D1) !important;
+  font-weight: 600;
+  border-left: 3px solid var(--admin-sidebar-active-border, #3B86D1);
+}
+
+/* Current app group */
+#nav-sidebar .module.current-app h2,
+#nav-sidebar-apps .module.current-app h2 {
+  color: var(--admin-sidebar-active-border, #3B86D1) !important;
+}
+
+/* Unfold Tailwind overrides - ensure dark text classes use our vars */
+#nav-sidebar .text-font-important-light,
+#nav-sidebar .text-base-900,
+#nav-sidebar .text-base-200,
+#nav-sidebar .dark\:text-font-important-dark,
+#nav-sidebar .dark\:text-font-default-dark,
+#nav-sidebar .dark\:text-base-200 {
+  color: var(--admin-sidebar-text, #F8F9FA) !important;
+}
+
+#nav-sidebar .text-base-600,
+#nav-sidebar .dark\:text-base-400 {
+  color: var(--admin-sidebar-text-muted, #94a3b8) !important;
+}
+
+/* Hover states for Unfold links */
+#nav-sidebar a:hover,
+#nav-sidebar-apps a:hover {
+  background: var(--admin-sidebar-hover, #1e1e1e);
+}
+
+/* Active link - Unfold uses .active */
+#nav-sidebar a.active,
+#nav-sidebar-apps a.active {
+  background: var(--admin-sidebar-active, #222222) !important;
+  color: var(--admin-sidebar-active-border, #3B86D1) !important;
+}
+
+/* Search box in sidebar */
+#nav-sidebar input[type="search"],
+#nav-sidebar input[type="text"] {
+  background: var(--admin-input-bg, #222222) !important;
+  border-color: var(--admin-sidebar-border, rgba(255,255,255,0.08)) !important;
+  color: var(--admin-input-text, #F8F9FA) !important;
+}
+
+/* Collapsed sidebar - readable icons */
+#nav-sidebar.sidebar-collapsed a,
+#nav-sidebar.sidebar-collapsed button {
+  color: var(--admin-sidebar-text, #F8F9FA);
+}
+
+/* Focus ring for accessibility */
+#nav-sidebar a:focus-visible,
+#nav-sidebar button:focus-visible,
+#nav-sidebar-apps a:focus-visible {
+  outline: 2px solid var(--admin-sidebar-active-border, #3B86D1);
+  outline-offset: 2px;
+}

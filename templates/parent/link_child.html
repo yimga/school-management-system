@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 {% block title %}Link a Child{% endblock %}
 
 {% block content %}
@@ -40,7 +41,7 @@
           <p class="text-uppercase small text-muted mb-1">Referral & invitations</p>
           <h5 class="mb-1">Bonus per referral</h5>
           <p class="h6 mb-3 text-primary">
-            {{ referral_bonus|default:"0.00"|floatformat:2 }} bonus credits
+            {{ referral_bonus|default:0|format_number:2 }} bonus credits
           </p>
           <p class="small text-muted">
             Share referral codes or ask the admissions team for an invite via email, SMS, or WhatsApp if you don't have one yet.

@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load admin_health static %}
+{% load admin_health static region_format %}
 
 {% block backend_title %}Backend Dashboard{% endblock %}
 
@@ -7,7 +7,6 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <!-- Include navigation bridge styles -->
-<link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'backend';
@@ -20,10 +19,10 @@
     --brand-success: {{ SITE.success_color|default:"#22c55e" }};
     --brand-warning: {{ SITE.warning_color|default:"#fbbf24" }};
     --brand-danger: {{ SITE.danger_color|default:"#ef4444" }};
-    --admin-dashboard-bg: {{ SITE.admin_sidebar_surface_color|default:"#f8fafc" }};
-    --admin-surface: {{ SITE.admin_sidebar_bg_color|default:"#ffffff" }};
-    --admin-border: {{ SITE.admin_sidebar_border_color|default:"#e2e8f0" }};
-    --admin-border-strong: {{ SITE.admin_sidebar_border_color|default:"#cbd5e0" }};
+    --admin-dashboard-bg: #f8fafc;
+    --admin-surface: #ffffff;
+    --admin-border: #e2e8f0;
+    --admin-border-strong: #cbd5e0;
     --admin-text: #0f172a;
     --admin-muted: #64748b;
     --admin-subtle: #475569;
@@ -66,7 +65,7 @@
     transform: translateY(-4px);
   }
   .filter-card {
-    background: linear-gradient(135deg, var(--admin-surface) 0%, #ffffff 100%);
+    background: linear-gradient(135deg, var(--admin-surface) 0%, var(--admin-surface) 100%);
     border: 1px solid var(--admin-border);
   }
   .modular-card {
@@ -97,16 +96,16 @@
     transform: scale(1.05);
   }
   .trend-label {
-    font-size: 0.7rem;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: #6c757d;
+    color: var(--admin-muted);
     font-weight: 700;
   }
   .trend-value {
-    font-size: 1.75rem;
+    font-size: var(--text-2xl);
     font-weight: 800;
-    color: #667eea;
+    color: var(--brand-primary);
     margin-top: 0.25rem;
   }
 
@@ -128,11 +127,11 @@
   
   .card-title h5 {
     font-weight: 700;
-    color: #1a202c;
+    color: var(--admin-text);
   }
   .meta-tag {
     font-size: 0.75rem;
-    color: #667eea;
+    color: var(--brand-primary);
     background: rgba(102, 126, 234, 0.1);
     padding: 0.25rem 0.75rem;
   }
@@ -144,10 +143,10 @@
     bottom: 20px;
     width: 320px;
     max-height: 500px;
-    background: white;
+    background: var(--admin-surface);
     border-radius: 14px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    border: 1px solid #e1e8ed;
+    border: 1px solid var(--admin-border);
     display: flex;
     flex-direction: column;
     z-index: 999;
@@ -167,8 +166,8 @@
 
   .log-panel-header {
     padding: 1rem;
-    border-bottom: 1px solid #e1e8ed;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-bottom: 1px solid var(--admin-border);
+    background: var(--gradient-primary);
     color: white;
     border-radius: 14px 14px 0 0;
     display: flex;
@@ -205,48 +204,48 @@
 
   .log-entry {
     padding: 0.5rem 0.75rem;
-    border-left: 3px solid #e1e8ed;
+    border-left: 3px solid var(--admin-border);
     margin-bottom: 0.5rem;
     border-radius: 4px;
-    background: #f8f9fa;
+    background: var(--admin-surface-alt);
   }
 
   .log-entry.success {
-    border-left-color: #28a745;
-    background: rgba(40, 167, 69, 0.05);
+    border-left-color: var(--brand-success);
+    background: rgba(34, 197, 94, 0.08);
   }
 
   .log-entry.error {
-    border-left-color: #dc3545;
-    background: rgba(220, 53, 69, 0.05);
+    border-left-color: var(--brand-danger);
+    background: rgba(239, 68, 68, 0.08);
   }
 
   .log-entry.info {
-    border-left-color: #667eea;
-    background: rgba(102, 126, 234, 0.05);
+    border-left-color: var(--brand-primary);
+    background: rgba(99, 102, 241, 0.08);
   }
 
   .log-entry-time {
     font-size: 0.7rem;
-    color: #6c757d;
+    color: var(--admin-muted);
   }
 
   .log-entry-message {
-    color: #495057;
+    color: var(--admin-text);
     margin-top: 0.2rem;
   }
 
   .log-panel-footer {
     padding: 0.75rem;
-    border-top: 1px solid #e1e8ed;
-    background: #f8f9fa;
+    border-top: 1px solid var(--admin-border);
+    background: var(--admin-surface-alt);
     border-radius: 0 0 14px 14px;
     text-align: center;
   }
 
   .log-panel-footer a {
     font-size: 0.75rem;
-    color: #667eea;
+    color: var(--brand-primary);
     text-decoration: none;
   }
 
@@ -269,21 +268,18 @@
       max-height: 400px;
     }
   }
-    border-radius: 999px;
-    font-weight: 600;
-  }
   .portal-pill {
     font-size: 0.75rem;
     padding: 0.35rem 0.85rem;
     border-radius: 999px;
-    background: #f3f4f6;
-    color: #6c757d;
-    border: 1px solid #e5e7eb;
+    background: var(--admin-surface-alt);
+    color: var(--admin-muted);
+    border: 1px solid var(--admin-border);
   }
   .portal-pill.enabled {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border-color: #10b981;
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--brand-success);
+    border-color: var(--brand-success);
   }
   
   .widget-chart {
@@ -299,7 +295,7 @@
     flex: 1;
     text-align: center;
     padding: 0.75rem 0.5rem;
-    background: #f8f9fa;
+    background: var(--admin-surface-alt);
     border-radius: 10px;
   }
   .modular-card .card-body {
@@ -334,7 +330,7 @@
   }
   .portal-pill.enabled {
     border-color: rgba(25, 135, 84, 0.4);
-    color: #0f5132;
+    color: var(--brand-success);
     background: rgba(25, 135, 84, 0.08);
   }
   .hero-info-panel {
@@ -412,27 +408,27 @@
   .contact-card .social-link {
     border-radius: 12px;
     padding: 0.65rem 1rem;
-    background: rgba(13, 110, 253, 0.08);
-    color: #0b5ed7;
-    border: 1px solid rgba(13, 110, 253, 0.2);
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--brand-primary);
+    border: 1px solid var(--admin-border);
     text-transform: capitalize;
   }
   .attendance-dial {
     height: 12px;
     border-radius: 999px;
-    background: #e9ecef;
+    background: var(--admin-border);
     overflow: hidden;
     margin-top: 1rem;
   }
   .attendance-dial .dial-fill {
     height: 100%;
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    background: linear-gradient(135deg, var(--brand-success) 0%, var(--brand-success) 100%);
   }
 
   /* Enhanced Section Styling */
   .section-divider {
     margin: 3rem 0;
-    border-top: 2px dashed #e9ecef;
+    border-top: 2px dashed var(--admin-border);
   }
   
   .badge-gradient {
@@ -505,11 +501,18 @@
   #dashboard-layout .row > [class*="col-"] {
     display: block;
   }
-  /* Quick Actions: compact, fit between sidebars, no empty space */
+  /* Quick Actions: compact, between sidebars, 1in below workflow row */
+  .backend-welcome-main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .backend-quick-actions-wrapper {
+    max-width: 100%;
+  }
   .backend-quick-actions-card {
     width: 100%;
+    max-width: 100%;
     overflow: hidden;
-    margin-bottom: 0.75rem !important;
   }
   .backend-quick-actions-card .card-body {
     overflow: hidden;
@@ -517,13 +520,13 @@
   }
   .backend-quick-actions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 0.4rem 0.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.35rem 0.4rem;
     width: 100%;
   }
   @media (min-width: 992px) {
     .backend-quick-actions-grid {
-      grid-template-columns: repeat(8, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
     }
   }
   @media (max-width: 991px) {
@@ -537,12 +540,20 @@
     }
   }
   .backend-quick-action-btn {
-    white-space: nowrap;
-    padding: 0.35rem 0.5rem;
-    font-size: 0.8rem;
+    white-space: normal;
+    word-wrap: break-word;
+    text-align: center;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.7rem;
+    line-height: 1.3;
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   .backend-quick-action-btn i {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    display: inline-block;
   }
 </style>
 {% endblock %}
@@ -552,111 +563,280 @@
   
   {% admin_health as health %}
 
-  <!-- Welcome Header -->
-  <div class="mb-2">
+  <!-- Welcome Header + Workflow row -->
+  <div class="mt-4 mb-2 backend-welcome-section">
     <h2 class="fw-bold mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h2>
     <p class="text-muted">Manage your school operations from this unified dashboard</p>
-    <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
-      <a class="btn btn-sm btn-primary" href="{% url 'accounts:workflow_center' %}">
-        <i class="bi bi-diagram-3 me-1"></i>Workflow Center
-      </a>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'accounts:workflow_center' %}">
-        <i class="bi bi-pin-angle me-1"></i>Use Workflow Center as default view
-      </a>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">
-        <i class="bi bi-chat-dots me-1"></i>Messages
-      </a>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_builder' %}">
-        <i class="bi bi-file-earmark-richtext me-1"></i>Report Card Builder
-      </a>
-      {% if allow_custom_layout %}
-      {% include "components/dashboard_customize_ui.html" %}
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Quick Actions: compact, fits between sidebars -->
-  <div class="card shadow-sm backend-quick-actions-card" data-widget-id="backend-quick-actions">
-    <div class="card-body">
-      <h6 class="fw-bold mb-2 d-flex align-items-center gap-2" style="font-size:0.95rem;">
-        <i class="bi bi-lightning-charge text-primary" style="font-size:1rem;"></i>
-        Quick Actions
-      </h6>
-      <div class="backend-quick-actions-grid">
-        {% if action_perms.people %}
-        {% if use_backend_people_ui %}
-        <a href="{% url 'accounts:backend_student_create' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-          <i class="bi bi-person-plus me-1"></i>Add Student
-        </a>
-        {% else %}
-        <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-          <i class="bi bi-person-plus me-1"></i>Add Student
-        </a>
-        {% endif %}
-        {% if use_backend_people_ui %}
-        <a href="{% url 'accounts:backend_teacher_create' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
-          <i class="bi bi-person-badge me-1"></i>Add Teacher
-        </a>
-        {% else %}
-        <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
-          <i class="bi bi-person-badge me-1"></i>Add Teacher
-        </a>
-        {% endif %}
-        <a href="{% url 'portal:student_onboarding' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
-          <i class="bi bi-mortarboard me-1"></i>Onboard Student
-        </a>
-        <a href="{% url 'portal:teacher_onboarding' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
-          <i class="bi bi-person-workspace me-1"></i>Onboard Teacher
-        </a>
-        {% endif %}
-        {% if action_perms.finance %}
-        <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn">
-          <i class="bi bi-receipt me-1"></i>Create Invoice
-        </a>
-        <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
-          <i class="bi bi-cash-stack me-1"></i>Finance Console
-        </a>
-        {% endif %}
-        {% if action_perms.site_settings %}
-        <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-outline-dark backend-quick-action-btn">
-          <i class="bi bi-palette me-1"></i>Site Settings
-        </a>
-        {% endif %}
-        <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-          <i class="bi bi-eye me-1"></i>Preview Portal
-        </a>
-        <a href="{% url 'communication:announcement_create' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
-          <i class="bi bi-megaphone me-1"></i>Announcement
-        </a>
-        {% if request.user.is_superuser %}
-        <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn" title="Configuration Engine">
-          <i class="bi bi-gear-wide-connected me-1"></i>Configuration
-        </a>
-        {% endif %}
-        {% if gce_enabled %}
-        <a href="{% url 'accounts:certification_home' %}" class="btn btn-sm btn-outline-danger backend-quick-action-btn">
-          <i class="bi bi-award me-1"></i>Certification & Exams
-        </a>
-        {% endif %}
-        {% for step in recommended_next_steps %}
-        <a href="{{ step.url }}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-          {% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}
-        </a>
-        {% endfor %}
-        <a href="{% url 'accounts:workflow_center' %}" class="btn btn-sm btn-link text-muted backend-quick-action-btn">
-          View all workflow <i class="bi bi-arrow-right ms-1"></i>
-        </a>
-      </div>
-      {% if show_request_settings_access %}
-      <div class="alert alert-warning mt-3 mb-0">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <strong>Need higher access?</strong> Request Site Settings or admin privileges from your school admins.
+    <div class="backend-welcome-row-with-sidebar d-flex flex-wrap align-items-stretch gap-3">
+      <div class="backend-welcome-main flex-grow-1 min-w-0">
+        <div class="d-flex flex-wrap gap-2 mt-2 align-items-center backend-welcome-action-row">
+          <a class="btn btn-sm btn-primary" href="{% url 'accounts:workflow_center' %}">
+            <i class="bi bi-diagram-3 me-1"></i>Workflow Center
+          </a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'accounts:workflow_center' %}">
+            <i class="bi bi-pin-angle me-1"></i>Use Workflow Center as default view
+          </a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">
+            <i class="bi bi-chat-dots me-1"></i>Messages
+          </a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_builder' %}">
+            <i class="bi bi-file-earmark-richtext me-1"></i>Report Card Builder
+          </a>
+          {% if allow_custom_layout %}
+          {% include "components/dashboard_customize_ui.html" %}
+          {% endif %}
+        </div>
+        <div class="row g-2 mt-3 backend-between-sidebars-row">
+          <div class="col-12 col-lg-6 backend-left-col d-flex flex-column">
+            <h6 class="fw-bold mb-2 text-uppercase small text-muted">Quick Actions</h6>
+            <div class="card backend-quick-actions-card mb-2" data-widget-id="backend-quick-actions">
+              <div class="card-body py-2 px-3">
+                <h6 class="fw-bold mb-2 d-flex align-items-center gap-2" style="font-size:0.9rem;">
+                  <i class="bi bi-lightning-charge text-primary"></i>
+                  Actions
+                </h6>
+                <div class="backend-quick-actions-grid">
+                {% if action_perms.people %}
+                {% if use_backend_people_ui %}
+                <a href="{% url 'accounts:backend_student_create' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+                  <i class="bi bi-person-plus me-1"></i>Add Student
+                </a>
+                {% else %}
+                <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+                  <i class="bi bi-person-plus me-1"></i>Add Student
+                </a>
+                {% endif %}
+                {% if use_backend_people_ui %}
+                <a href="{% url 'accounts:backend_teacher_create' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
+                  <i class="bi bi-person-badge me-1"></i>Add Teacher
+                </a>
+                {% else %}
+                <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
+                  <i class="bi bi-person-badge me-1"></i>Add Teacher
+                </a>
+                {% endif %}
+                <a href="{% url 'portal:student_onboarding' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
+                  <i class="bi bi-mortarboard me-1"></i>Onboard Student
+                </a>
+                <a href="{% url 'portal:teacher_onboarding' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
+                  <i class="bi bi-person-workspace me-1"></i>Onboard Teacher
+                </a>
+                {% endif %}
+                {% if action_perms.finance %}
+                <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn">
+                  <i class="bi bi-receipt me-1"></i>Create Invoice
+                </a>
+                <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
+                  <i class="bi bi-cash-stack me-1"></i>Finance Console
+                </a>
+                {% endif %}
+                {% if action_perms.site_settings %}
+                <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-outline-dark backend-quick-action-btn">
+                  <i class="bi bi-palette me-1"></i>Site Settings
+                </a>
+                {% endif %}
+                <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+                  <i class="bi bi-eye me-1"></i>Preview Portal
+                </a>
+                <a href="{% url 'communication:announcement_create' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
+                  <i class="bi bi-megaphone me-1"></i>Announcement
+                </a>
+                {% if request.user.is_superuser %}
+                <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn" title="Configuration Engine">
+                  <i class="bi bi-gear-wide-connected me-1"></i>Configuration
+                </a>
+                {% endif %}
+                {% if gce_enabled %}
+                <a href="{% url 'accounts:certification_home' %}" class="btn btn-sm btn-outline-danger backend-quick-action-btn">
+                  <i class="bi bi-award me-1"></i>Certification
+                </a>
+                {% endif %}
+                {% for step in recommended_next_steps %}
+                <a href="{{ step.url }}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+                  {% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}
+                </a>
+                {% endfor %}
+                <a href="{% url 'accounts:workflow_center' %}" class="btn btn-sm btn-link text-muted backend-quick-action-btn">
+                  View all workflow <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              </div>
+              {% if show_request_settings_access %}
+              <div class="alert alert-warning mt-2 mb-0 py-2 small">
+                <div class="d-flex justify-content-between align-items-center">
+                  <strong>Need higher access?</strong>
+                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">Request access</a>
+                </div>
+              </div>
+              {% endif %}
+              </div>
+            </div>
           </div>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">Request access</a>
+          <div class="col-12 col-lg-6 backend-kpi-col d-flex flex-column">
+            <h6 class="fw-bold mb-2 text-uppercase small text-muted">Key Metrics</h6>
+            <div class="row g-2 backend-kpi-grid-2col flex-grow-1">
+              <div class="col-6 d-flex">
+                <div class="card modular-card w-100 backend-kpi-card">
+                  <div class="card-body text-center">
+                    <div class="dashboard-kpi-label text-uppercase">Receivables</div>
+                    <div class="dashboard-kpi-value fw-bold">{{ finance_summary.receivables|default:0|format_currency }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 d-flex">
+                <div class="card modular-card w-100 backend-kpi-card">
+                  <div class="card-body text-center">
+                    <div class="dashboard-kpi-label text-uppercase">Paid</div>
+                    <div class="dashboard-kpi-value fw-bold text-success">{{ finance_summary.paid|default:0|format_currency }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 d-flex">
+                <div class="card modular-card w-100 backend-kpi-card">
+                  <div class="card-body text-center">
+                    <div class="dashboard-kpi-label text-uppercase">Overdue</div>
+                    <div class="dashboard-kpi-value fw-bold text-danger">{{ finance_summary.overdue|default:0|format_number:0 }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 d-flex">
+                <div class="card modular-card w-100 backend-kpi-card">
+                  <div class="card-body text-center">
+                    <div class="dashboard-kpi-label text-uppercase">Pending referrals</div>
+                    <div class="dashboard-kpi-value fw-bold">{{ stats.pending_referrals }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 d-flex">
+                <div class="card modular-card w-100 backend-kpi-card">
+                  <div class="card-body text-center">
+                    <div class="dashboard-kpi-label text-uppercase">Attendance %</div>
+                    <div class="dashboard-kpi-value fw-bold">{{ attendance_trend_progress|default:0 }}%</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 d-flex">
+                <div class="card modular-card w-100 backend-kpi-card">
+                  <div class="card-body text-center">
+                    <div class="dashboard-kpi-label text-uppercase">Roles</div>
+                    <div class="dashboard-kpi-value fw-bold">{{ roles|length }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row g-2 mt-2 backend-operations-row align-items-stretch">
+          <div class="col-lg-4 col-md-4 d-flex">
+            <div class="card modular-card w-100" data-widget-id="backend-portal-insights">
+              <div class="card-body">
+                <div class="card-title">
+                  <h6 class="mb-0 small fw-bold">Portal insights</h6>
+                  <span class="meta-tag small">Features & toggles</span>
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                  {% for key, value in site.portal_features.items %}
+                    <span class="portal-pill {% if value %}enabled{% endif %} small">{{ key|capfirst }} – {{ value|yesno:"On,Off" }}</span>
+                  {% endfor %}
+                </div>
+                <div class="card-actions d-flex gap-1">
+                  <a class="btn btn-xs btn-outline-primary" href="{% url 'kb:kb_home' %}">Help</a>
+                  <a class="btn btn-xs btn-outline-primary" href="{% url 'portal:parent_dashboard' %}">Preview</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-4 d-flex">
+            <div class="card modular-card w-100" data-widget-id="backend-pending-referrals">
+              <div class="card-body">
+                <div class="card-title">
+                  <h6 class="mb-0 small fw-bold">Pending referrals</h6>
+                  <span class="meta-tag small">Finance pipeline</span>
+                </div>
+                <div class="flex-grow-1">
+                  <p class="fs-5 fw-bold mb-1">{{ stats.pending_referrals }}</p>
+                  <p class="small text-muted mb-0">Awaiting approval. Overdue: {{ stats.overdue_invoices }}</p>
+                </div>
+                <div class="card-actions d-flex gap-1">
+                  <a class="btn btn-xs btn-outline-primary" href="{% url 'accounts:user_messages' %}?subject=finance+pipeline">Message</a>
+                  <a class="btn btn-xs btn-outline-primary" href="{% url 'finance:dashboard' %}">Finance</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-md-4 d-flex">
+            <div class="card modular-card w-100" data-widget-id="backend-grade-imports">
+              <div class="card-body">
+                <div class="card-title">
+                  <h6 class="mb-0 small fw-bold">Grade imports</h6>
+                  <span class="meta-tag small">Bulk uploads</span>
+                </div>
+                <p class="text-muted small mb-0 flex-grow-1">Template download + upload preview.</p>
+                <div class="card-actions d-flex gap-1">
+                  <a class="btn btn-xs btn-primary" href="{{ grade_import_upload_url }}">Upload</a>
+                  <a class="btn btn-xs btn-outline-secondary" href="{{ grade_import_template_url }}">Template</a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      {% endif %}
+      <aside class="d-none d-lg-block backend-right-sidebar flex-shrink-0">
+        {% include 'components/backend_sidebar_calendar_clock.html' %}
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Copilot Usage</h6>
+              <span class="badge bg-light text-dark" id="copilotTotalBadge">0 total</span>
+            </div>
+            <ul class="list-unstyled mb-2 small" id="copilotRoleList">
+              <li class="text-muted">Loading usage…</li>
+            </ul>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="small text-muted">Denied</span>
+              <span class="badge bg-light text-dark" id="copilotDeniedBadge">0</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="small text-muted">Config</span>
+              <span class="badge bg-light text-dark" id="copilotConfigBadge">Disabled</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="small text-muted">Rate limit</span>
+              <span class="badge bg-light text-dark" id="copilotLimitRemaining">0 remaining</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Resets</span>
+              <span class="badge bg-light text-dark" id="copilotLimitReset">—</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Refreshed</span>
+              <span class="badge bg-light text-dark" id="copilotLastRefresh">—</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Errors</span>
+              <span class="badge bg-light text-dark" id="copilotErrorBadge">0</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Last success</span>
+              <span class="badge bg-light text-dark" id="copilotLastSuccess">—</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Last error</span>
+              <span class="badge bg-light text-dark" id="copilotLastError">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Copilot Audit</h6>
+              <a href="#" class="small text-muted" id="copilotAuditRefresh">Refresh</a>
+            </div>
+            <ul class="list-unstyled mb-0 small" id="copilotAuditList">
+              <li class="text-muted">Loading audit…</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
 
@@ -674,7 +854,7 @@
     </div>
   </div>
   {% if finance_request_notifications %}
-  <div class="card shadow-sm mb-4">
+  <div class="card mb-4">
     <div class="card-body">
       <h6 class="mb-3">Finance access alerts</h6>
       <ul class="list-unstyled mb-0">
@@ -684,7 +864,7 @@
             <strong>{{ notif.title }}</strong>
             <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
           </div>
-          <span class="badge bg-secondary">{{ notif.created_at|date:"M j, H:i" }}</span>
+          <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
         </li>
         {% endfor %}
       </ul>
@@ -694,81 +874,122 @@
   {% endif %}
   {% endif %}
 
-  <!-- Right Sidebar (Desktop) -->
-  <aside class="d-none d-lg-block backend-right-sidebar">
-    {% include 'components/backend_sidebar_calendar_clock.html' %}
-    <div class="card shadow-sm mb-3">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0">Copilot Usage</h6>
-          <span class="badge bg-light text-dark" id="copilotTotalBadge">0 total</span>
-        </div>
-        <ul class="list-unstyled mb-2 small" id="copilotRoleList">
-          <li class="text-muted">Loading usage…</li>
-        </ul>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="small text-muted">Denied</span>
-          <span class="badge bg-light text-dark" id="copilotDeniedBadge">0</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-2">
-          <span class="small text-muted">Config</span>
-          <span class="badge bg-light text-dark" id="copilotConfigBadge">Disabled</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-2">
-          <span class="small text-muted">Rate limit</span>
-          <span class="badge bg-light text-dark" id="copilotLimitRemaining">0 remaining</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-1">
-          <span class="small text-muted">Resets</span>
-          <span class="badge bg-light text-dark" id="copilotLimitReset">—</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-1">
-          <span class="small text-muted">Refreshed</span>
-          <span class="badge bg-light text-dark" id="copilotLastRefresh">—</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-1">
-          <span class="small text-muted">Errors</span>
-          <span class="badge bg-light text-dark" id="copilotErrorBadge">0</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-1">
-          <span class="small text-muted">Last success</span>
-          <span class="badge bg-light text-dark" id="copilotLastSuccess">—</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mt-1">
-          <span class="small text-muted">Last error</span>
-          <span class="badge bg-light text-dark" id="copilotLastError">—</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card shadow-sm mb-3">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0">Copilot Audit</h6>
-          <a href="#" class="small text-muted" id="copilotAuditRefresh">Refresh</a>
-        </div>
-        <ul class="list-unstyled mb-0 small" id="copilotAuditList">
-          <li class="text-muted">Loading audit…</li>
-        </ul>
-      </div>
-    </div>
-
-  </aside>
-
   <style>
-    .backend-right-sidebar {
-      float: right;
-      width: 320px;
-      margin-left: 12px;
-    }
-    /* Align clock/calendar top with Workflow Center row – moved down ~3in */
-    .backend-sidebar-calendar-clock {
-      margin-top: 4.5rem;
+    /* Welcome row with right sidebar */
+    .backend-welcome-row-with-sidebar {
+      flex-wrap: wrap;
     }
     @media (min-width: 992px) {
-      .container, .container-fluid {
-        padding-right: 340px;
+      .backend-welcome-row-with-sidebar {
+        flex-wrap: nowrap;
       }
+    }
+    .backend-welcome-main {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    .backend-between-sidebars-row {
+      align-items: stretch;
+    }
+    .backend-left-col,
+    .backend-kpi-col {
+      display: flex;
+      flex-direction: column;
+    }
+    .backend-quick-actions-card {
+      flex: 1;
+      min-height: 200px;
+    }
+    .backend-quick-actions-card .card-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 0.75rem 1rem !important;
+    }
+    .backend-quick-actions-grid {
+      flex: 1;
+      align-content: start;
+    }
+    .backend-operations-row {
+      margin-top: 0.5rem !important;
+    }
+    .backend-operations-row > [class*="col-"] {
+      display: flex;
+    }
+    .backend-operations-row .card {
+      margin-bottom: 0;
+      flex: 1;
+    }
+    .backend-operations-row .card-body {
+      padding: 0.75rem 1rem !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 1;
+    }
+    .backend-operations-row .card-title {
+      margin-bottom: 0.5rem;
+    }
+    .backend-operations-row .card-actions {
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .btn-xs {
+      padding: 0.3rem 0.65rem;
+      font-size: 0.72rem;
+      line-height: 1.3;
+    }
+    .backend-kpi-grid-2col {
+      margin-bottom: 0;
+      flex: 1;
+    }
+    .backend-kpi-grid-2col > [class*="col-"] {
+      margin-bottom: 0.5rem;
+    }
+    .backend-kpi-col .backend-kpi-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+    }
+    .backend-kpi-col .backend-kpi-card .card-body {
+      padding: 0.75rem 1rem !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+    }
+    .backend-kpi-col .dashboard-kpi-value {
+      font-size: 1.2rem;
+      line-height: 1.2;
+    }
+    .backend-kpi-col .dashboard-kpi-label {
+      font-size: 0.68rem;
+      margin-bottom: 0.3rem;
+      letter-spacing: 0.03em;
+    }
+    /* Entity Management + Charts row */
+    .backend-entity-charts-row {
+      min-height: 350px;
+    }
+    .backend-entity-charts-row .card {
+      height: 100%;
+    }
+    .backend-entity-charts-row .dashboard-chart-card {
+      height: 100%;
+      min-height: 160px;
+    }
+    .backend-entity-charts-row .flex-fill {
+      flex: 1 1 auto;
+    }
+    .backend-right-sidebar {
+      flex-shrink: 0;
+      width: 320px;
+      min-width: 280px;
+    }
+    .backend-sidebar-calendar-clock {
+      margin-top: 0;
     }
   </style>
 
@@ -970,7 +1191,8 @@
        data-widget-config='{{ widget_meta_json }}'
        data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
 
-  <div class="row g-3 mb-3">
+  <!-- Row 1: Charts – Invoice status | Invoice trend -->
+  <div class="row g-2 mb-2 align-items-stretch">
     {% if chart_finance_status_json %}
     <div class="col-lg-6" data-widget-id="backend-finance-status-chart">
       {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Invoice status" chart_data=chart_finance_status_json aria_label="Invoice status distribution" %}
@@ -981,21 +1203,12 @@
       {% include "components/dashboard_chart.html" with chart_id="backendFinanceTrendChart" chart_type="line" chart_title="Invoice trend (4 months)" chart_data=chart_finance_trend_json aria_label="Invoice total over last 4 months" %}
     </div>
     {% endif %}
-    {% if chart_attendance_donut_json %}
-    <div class="col-lg-6" data-widget-id="backend-attendance-chart">
-      {% include "components/dashboard_chart.html" with chart_id="backendAttendanceChart" chart_type="doughnut" chart_title="Teacher attendance (today)" chart_data=chart_attendance_donut_json aria_label="Teacher attendance by status today" %}
-    </div>
-    {% endif %}
-    {% if chart_rbac_roles_json %}
-    <div class="col-lg-6" data-widget-id="backend-rbac-chart">
-      {% include "components/dashboard_chart.html" with chart_id="backendRbacChart" chart_type="bar" chart_title="Users per RBAC role" chart_data=chart_rbac_roles_json aria_label="Number of users assigned to each RBAC role" %}
-    </div>
-    {% endif %}
   </div>
 
-  <div class="row g-3 mb-3">
+  <!-- Row 2: Detail – Finance & trend | Attendance snapshot -->
+  <div class="row g-2 mb-2 align-items-stretch">
     <div class="col-lg-6">
-      <div class="card modular-card shadow-sm h-100" data-widget-id="backend-finance-trend">
+      <div class="card modular-card h-100" data-widget-id="backend-finance-trend">
         <div class="card-body">
           <div class="card-title mb-2">
             <h6 class="mb-0">Finance & trend</h6>
@@ -1004,22 +1217,22 @@
           <div class="d-flex flex-wrap justify-content-between gap-2">
             <div>
               <div class="text-muted small">Receivables</div>
-              <div class="fs-5 fw-bold">{{ finance_summary.receivables|default:0|floatformat:2 }}</div>
+              <div class="fs-5 fw-bold">{{ finance_summary.receivables|default:0|format_currency }}</div>
             </div>
             <div>
               <div class="text-muted small">Paid</div>
-              <div class="fs-5 fw-bold">{{ finance_summary.paid|default:0|floatformat:2 }}</div>
+              <div class="fs-5 fw-bold">{{ finance_summary.paid|default:0|format_currency }}</div>
             </div>
             <div>
               <div class="text-muted small">Overdue</div>
-              <div class="fs-5 fw-bold text-danger">{{ finance_summary.overdue|default:0|floatformat:0 }}</div>
+              <div class="fs-5 fw-bold text-danger">{{ finance_summary.overdue|default:0|format_number:0 }}</div>
             </div>
           </div>
           <div class="d-flex gap-2 flex-wrap mt-2">
             {% for point in finance_trend %}
               <div class="trend-pill" style="padding: 0.75rem; min-width: 100px;">
                 <div class="trend-label" style="font-size: 0.65rem;">{{ point.label }}</div>
-                <div class="trend-value" style="font-size: 1.5rem;">{{ point.total|default:0|floatformat:0 }}</div>
+                <div class="trend-value" style="font-size: 1.5rem;">{{ point.total|default:0|format_currency }}</div>
               </div>
             {% empty %}
               <div class="trend-pill">
@@ -1039,7 +1252,7 @@
       </div>
     </div>
     <div class="col-lg-6">
-      <div class="card modular-card shadow-sm h-100" data-widget-id="backend-attendance-snapshot">
+      <div class="card modular-card h-100" data-widget-id="backend-attendance-snapshot">
         <div class="card-body">
           <div class="card-title mb-2">
             <h6 class="mb-0">Attendance snapshot</h6>
@@ -1077,78 +1290,11 @@
     </div>
   </div>
 
-  <div class="row g-3 mb-4">
-    <div class="col-lg-4 col-md-6">
-      <div class="card modular-card shadow-sm h-100" data-widget-id="backend-portal-insights">
-        <div class="card-body">
-          <div class="card-title">
-            <h5>Portal insights</h5>
-            <span class="meta-tag">Features & toggles</span>
-          </div>
-          <div class="d-flex flex-wrap gap-2 mt-3">
-            {% for key, value in site.portal_features.items %}
-              <span class="portal-pill {% if value %}enabled{% endif %}">
-                {{ key|capfirst }} – {{ value|yesno:"On,Off" }}
-              </span>
-            {% endfor %}
-          </div>
-          <div class="card-actions">
-            <a class="btn btn-sm btn-outline-light" href="{% url 'kb:kb_home' %}">
-              Help / docs
-            </a>
-            <a class="btn btn-sm btn-outline-light" href="{% url 'portal:parent_dashboard' %}">Preview portal</a>
-          </div>
-          <details class="mt-3">
-            <summary class="fw-semibold">Top/bottom subjects</summary>
-            <p class="small text-muted mt-2">Evaluation evidence surfaces here once teachers publish marks.</p>
-          </details>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4 col-md-6">
-      <div class="card modular-card shadow-sm h-100" data-widget-id="backend-pending-referrals">
-        <div class="card-body">
-          <div class="card-title">
-            <h5>Pending referrals</h5>
-            <span class="meta-tag">Finance pipeline</span>
-          </div>
-          <p class="display-6 fw-bold">{{ stats.pending_referrals }}</p>
-          <p class="small text-muted mb-2">Awaiting finance approval or invoice assignment.</p>
-          <p class="small text-muted mb-0">Overdue invoices: {{ stats.overdue_invoices }}</p>
-          <div class="card-actions">
-            <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:user_messages' %}?subject=finance+pipeline">
-              Message finance
-            </a>
-            <a class="btn btn-sm btn-outline-light" href="{% url 'finance:dashboard' %}">Open finance console</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-4 col-md-12">
-      <div class="card modular-card shadow-sm h-100" data-widget-id="backend-grade-imports">
-        <div class="card-body d-flex flex-column justify-content-between">
-          <div>
-            <div class="card-title">
-              <h5>Grade imports</h5>
-              <span class="meta-tag">Bulk uploads</span>
-            </div>
-            <p class="text-muted small">
-              Template download + upload preview ensure clean bulk updates.
-            </p>
-          </div>
-          <div class="card-actions">
-            <a class="btn btn-sm btn-primary" href="{{ grade_import_upload_url }}">Upload grades</a>
-            <a class="btn btn-sm btn-outline-secondary" href="{{ grade_import_template_url }}">Download template</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <!-- Row 5: Certification overview (if enabled) -->
   {% if gce_enabled and certification_stats %}
-  <div class="row g-3 mb-4">
+  <div class="row g-2 mb-2 align-items-stretch">
     <div class="col-12">
-      <div class="card modular-card shadow-sm" data-widget-id="backend-certification-overview">
+      <div class="card modular-card" data-widget-id="backend-certification-overview">
         <div class="card-body">
           <div class="card-title mb-3">
             <h5><i class="bi bi-award text-danger me-2"></i>Certification & Exams</h5>
@@ -1203,7 +1349,7 @@
 
   <div class="row g-3 mb-4">
     <div class="col-md-6">
-      <div class="card shadow-sm h-100" data-widget-id="backend-rbac-snapshot">
+      <div class="card h-100" data-widget-id="backend-rbac-snapshot">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h5 class="mb-0">RBAC snapshot</h5>
@@ -1226,8 +1372,8 @@
         </div>
       </div>
     </div>
-    <div class="col-md-6">
-      <div class="card shadow-sm h-100" data-widget-id="backend-permissions-overview">
+    <div class="col-lg-6">
+      <div class="card h-100" data-widget-id="backend-permissions-overview">
         <div class="card-body">
           <h5 class="mb-2">Permissions overview</h5>
           <div class="d-flex flex-wrap gap-2">
@@ -1243,27 +1389,44 @@
     </div>
   </div>
 
-  <!-- React Components Integration -->
-  <div class="card shadow-sm mb-4" data-widget-id="react-entity-management">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-start mb-3">
-        <div>
-          <h5 class="mb-1">Entity Management (React)</h5>
-          <p class="text-muted small mb-0">
-            Manage students, teachers, and groups using React components with TanStack Query.
-          </p>
+  <!-- Entity Management + Charts (2-column) -->
+  <div class="row g-2 mb-2 align-items-stretch backend-entity-charts-row">
+    <div class="col-lg-6 d-flex flex-column">
+      <div class="card h-100" data-widget-id="react-entity-management">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h5 class="mb-1">Entity Management (React)</h5>
+              <p class="text-muted small mb-0">
+                Manage students, teachers, and groups using React components with TanStack Query.
+              </p>
+            </div>
+            <span class="badge bg-primary">React</span>
+          </div>
+          <div id="react-student-crud-container" class="mb-3"></div>
+          <div id="react-teacher-crud-container" class="mb-3"></div>
+          <div id="react-group-management-container"></div>
         </div>
-        <span class="badge bg-primary">React</span>
       </div>
-      
-      <!-- React Component Mount Points -->
-      <div id="react-student-crud-container" class="mb-4"></div>
-      <div id="react-teacher-crud-container" class="mb-4"></div>
-      <div id="react-group-management-container" class="mb-4"></div>
+    </div>
+    <div class="col-lg-6 d-flex flex-column">
+      <div class="d-flex flex-column gap-2 h-100">
+        {% if chart_rbac_roles_json %}
+        <div class="flex-fill" data-widget-id="backend-rbac-chart">
+          {% include "components/dashboard_chart.html" with chart_id="backendRbacChart" chart_type="bar" chart_title="Users per RBAC role" chart_data=chart_rbac_roles_json aria_label="Number of users assigned to each RBAC role" %}
+        </div>
+        {% endif %}
+        {% if chart_attendance_donut_json %}
+        <div class="flex-fill" data-widget-id="backend-attendance-chart">
+          {% include "components/dashboard_chart.html" with chart_id="backendAttendanceChart" chart_type="doughnut" chart_title="Teacher attendance (today)" chart_data=chart_attendance_donut_json aria_label="Teacher attendance by status today" %}
+        </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 
-  <div class="card shadow-sm mb-4" data-widget-id="backend-entity-orchestrator">
+  <!-- Frontend orchestration (beta) - LAST ITEM -->
+  <div class="card mb-2" data-widget-id="backend-entity-orchestrator">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-start">
         <div>

@@ -8,7 +8,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--admin-content-bg, #fff);
+  background: var(--admin-content-bg, var(--color-bg-primary));
   padding-top: 12px;
   padding-bottom: 16px;
   margin-bottom: 12px;
@@ -167,6 +167,35 @@ html[data-theme="dark"] .nav-dashboard-link,
   padding-top: 1.25rem;
   margin-top: 1.5rem;
   border-top: 1px solid var(--admin-content-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* ----- Admin primary: dropdown and focus use site accent (no blue) ----- */
+#content select:focus,
+#content input:focus,
+#content textarea:focus,
+#content [class*="outline-primary"] {
+  outline-color: var(--color-primary, var(--brand-primary)) !important;
+  box-shadow: 0 0 0 2px var(--color-primary, var(--brand-primary)) !important;
+}
+#content select option:checked,
+#content select option:hover {
+  background: var(--color-primary, var(--brand-primary)) !important;
+  color: var(--admin-content-accent-fg) !important;
+}
+
+/* ----- Is active / boolean toggles (form-switch): red (off) and green (on) ----- */
+#content .form-switch .form-check-input:not(:checked) {
+  background-color: var(--admin-content-danger, #dc2626) !important;
+  border-color: var(--admin-content-danger, #dc2626) !important;
+}
+#content .form-switch .form-check-input:checked {
+  background-color: var(--color-success, var(--brand-success)) !important;
+  border-color: var(--color-success, var(--brand-success)) !important;
 }
 
 /* ----- Responsive: flow on small screens ----- */

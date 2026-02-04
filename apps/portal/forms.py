@@ -287,7 +287,11 @@ class LinkChildForm(forms.Form):
 
 
 class ClaimInviteForm(forms.Form):
-    token = forms.CharField(label=_("Invite code"))
+    token = forms.CharField(
+        label=_("Invite code"),
+        help_text=_("Enter the 6-digit code from the school email or SMS."),
+        widget=forms.TextInput(attrs={"placeholder": "e.g. ABC123", "autocomplete": "one-time-code"}),
+    )
 
     def __init__(self, *args, **kwargs):
         self.invite = None
@@ -295,12 +299,18 @@ class ClaimInviteForm(forms.Form):
 
     def clean_token(self):
         token = self.cleaned_data["token"].strip()
+        if not token:
+            raise forms.ValidationError(
+                _("Please enter the invite code from the school email or SMS.")
+            )
         from .models import PendingGuardianInvite  # local import to avoid circulars
 
         try:
             invite = PendingGuardianInvite.objects.select_related("student").get(token=token)
         except PendingGuardianInvite.DoesNotExist:
-            raise forms.ValidationError(_("Invite not found or already claimed."))
+            raise forms.ValidationError(
+                _("That code wasn't found or has already been used. Please check the code from the school email or SMS, or contact the school for a new invite.")
+            )
         if invite.is_claimed:
             raise forms.ValidationError(_("This invite has already been claimed."))
         self.invite = invite

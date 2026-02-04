@@ -7,7 +7,7 @@ from typing import Iterable, Optional
 
 from django.utils import timezone
 
-from apps.academics.models import AcademicYear, Term, Classroom, Specialty, Subject
+from apps.academics.models import AcademicYear, Term, Classroom, Specialty, Subject, SubjectAssignment
 from apps.evals.models import AssessmentWeights, Evaluation, TeacherAssignment
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.reports.models import PromotionRule, TermPublishStatus
@@ -83,12 +83,20 @@ def _custom_deadline(
     classroom: Optional[Classroom],
 ) -> Optional[datetime]:
     """
-    Get custom deadline for grading.
-    
-    NOTE: GradingDeadline model was removed. Returns None.
-    TODO: Implement using SubjectAssignment.deadline_at when field is added.
+    Get earliest custom grading deadline for (year, term, classroom).
+    Uses SubjectAssignment.grading_deadline_at when set.
     """
-    return None
+    if not academic_year or not term:
+        return None
+    qs = SubjectAssignment.objects.filter(
+        academic_year=academic_year,
+        term=term,
+        grading_deadline_at__isnull=False,
+    ).order_by("grading_deadline_at")
+    if classroom:
+        qs = qs.filter(classroom=classroom)
+    first = qs.first()
+    return first.grading_deadline_at if first else None
 
 
 def _publish_deadline(
@@ -435,7 +443,8 @@ def specialty_pass_rates(
 def get_teacher_compliance(academic_year_id, term_id):
     """
     Get teacher submission compliance report.
-    
+    Uses SubjectAssignment.grading_deadline_at for deadline info.
+
     Returns:
         List of dicts with:
         - teacher_id, teacher_name, classroom_count
@@ -443,99 +452,96 @@ def get_teacher_compliance(academic_year_id, term_id):
         - overall_completion: float (0-100)
         - status: 'compliant' | 'at_risk' | 'overdue'
     """
-    from django.apps import apps as django_apps
     from django.utils import timezone
-    
-    TeacherProfile = django_apps.get_model('people', 'TeacherProfile')
-    TeacherAssignment = django_apps.get_model('academics', 'TeacherAssignment')
-    SubjectAssignment = django_apps.get_model('academics', 'SubjectAssignment')
-    StudentProfile = django_apps.get_model('people', 'StudentProfile')
-    
+    from apps.evals.models import Evaluation
+
     today = timezone.now().date()
     compliance_data = []
-    
-    # Get all teachers for academic year
+
     teacher_assignments = TeacherAssignment.objects.filter(
-        academic_year_id=academic_year_id
-    ).select_related('teacher', 'classroom')
-    
+        academic_year_id=academic_year_id,
+        subject_assignment__term_id=term_id,
+    ).select_related(
+        "teacher",
+        "teacher__user",
+        "subject_assignment",
+        "subject_assignment__classroom",
+        "subject_assignment__subject",
+    ).order_by("teacher_id", "subject_assignment__classroom_id")
+
+    # Group by (teacher, classroom)
+    from collections import defaultdict
+    groups = defaultdict(list)
     for ta in teacher_assignments:
-        teacher = ta.teacher
-        classroom = ta.classroom
-        
-        # Get all subject assignments this teacher teaches in this classroom
-        subject_assignments = SubjectAssignment.objects.filter(
-            teacher=teacher,
-            classroom=classroom,
-            academic_year_id=academic_year_id
-        ).select_related('subject')
-        
-        # Get deadline info
-        deadlines_info = []
+        key = (ta.teacher_id, ta.subject_assignment.classroom_id)
+        groups[key].append(ta)
+
+    for (teacher_id, classroom_id), tas in groups.items():
+        teacher = tas[0].teacher
+        classroom = tas[0].subject_assignment.classroom
         total_students = StudentProfile.objects.filter(classroom=classroom).count()
-        
-        for sa in subject_assignments:
-            # TODO: Implement deadline checking using SubjectAssignment.deadline_at
-            # when field is added. For now, skip deadline logic.
-            pass
-            
-            # Count submissions
+        deadlines_info = []
+
+        for ta in tas:
+            sa = ta.subject_assignment
+            deadline_dt = sa.grading_deadline_at
+            if deadline_dt:
+                deadline_date = deadline_dt.date() if hasattr(deadline_dt, "date") else deadline_dt
+                days_left = (deadline_date - today).days
+                if days_left < 0:
+                    submission_status = "overdue"
+                elif days_left <= 3:
+                    submission_status = "at_risk"
+                else:
+                    submission_status = "on_track"
+            else:
+                days_left = None
+                submission_status = "on_track"
+                deadline_date = None
+
             submitted_count = Evaluation.objects.filter(
                 academic_year_id=academic_year_id,
                 term_id=term_id,
                 subject_assignment=sa,
-                teacher=teacher
-            ).distinct('student').count()
-            
-            days_left = (deadline.deadline_date - today).days
-            
-            if days_left < 0:
-                submission_status = 'overdue'
-            elif days_left <= 3:
-                submission_status = 'at_risk'
-            else:
-                submission_status = 'on_track'
-            
+                teacher=teacher,
+            ).values("student").distinct().count()
+
             completion_rate = (submitted_count / total_students * 100) if total_students > 0 else 0
-            
             deadlines_info.append({
-                'subject_assignment_id': sa.id,
-                'subject_name': sa.subject.name,
-                'deadline_date': deadline.deadline_date.isoformat(),
-                'days_left': days_left,
-                'submission_status': submission_status,
-                'completion_rate': round(completion_rate, 1),
-                'submitted_count': submitted_count,
-                'total_students': total_students,
+                "subject_assignment_id": sa.id,
+                "subject_name": sa.subject.name,
+                "deadline_date": deadline_date.isoformat() if deadline_date else None,
+                "days_left": days_left,
+                "submission_status": submission_status,
+                "completion_rate": round(completion_rate, 1),
+                "submitted_count": submitted_count,
+                "total_students": total_students,
             })
-        
-        # Calculate overall completion
+
         if deadlines_info:
-            overall_completion = sum(d['completion_rate'] for d in deadlines_info) / len(deadlines_info)
-            
-            # Determine status
-            statuses = [d['submission_status'] for d in deadlines_info]
-            if 'overdue' in statuses:
-                overall_status = 'overdue'
-            elif 'at_risk' in statuses:
-                overall_status = 'at_risk'
+            overall_completion = sum(d["completion_rate"] for d in deadlines_info) / len(deadlines_info)
+            statuses = [d["submission_status"] for d in deadlines_info]
+            if "overdue" in statuses:
+                overall_status = "overdue"
+            elif "at_risk" in statuses:
+                overall_status = "at_risk"
             else:
-                overall_status = 'compliant'
+                overall_status = "compliant"
         else:
             overall_completion = 100
-            overall_status = 'compliant'
-        
+            overall_status = "compliant"
+
         compliance_data.append({
-            'teacher_id': teacher.id,
-            'teacher_name': f"{teacher.user.first_name} {teacher.user.last_name}",
-            'teacher_code': teacher.teacher_code,
-            'classroom_name': classroom.name,
-            'classroom_count': len(subject_assignments),
-            'deadlines': deadlines_info,
-            'overall_completion': round(overall_completion, 1),
-            'status': overall_status,
+            "teacher_id": teacher.id,
+            "teacher_name": f"{teacher.user.first_name} {teacher.user.last_name}",
+            "teacher_code": getattr(teacher, "teacher_code", "") or "",
+            "classroom_name": classroom.name,
+            "classroom_count": len(tas),
+            "deadlines": deadlines_info,
+            "overall_completion": round(overall_completion, 1),
+            "status": overall_status,
         })
-    
+
     return compliance_data
 
 

@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import csv
+import io
 import json
 import logging
 from calendar import monthrange
-from decimal import Decimal
+from datetime import timedelta
+from decimal import Decimal, InvalidOperation
+
+logger = logging.getLogger(__name__)
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -11,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import models, transaction
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
+from typing import Optional
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -22,6 +28,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
 from django.urls import reverse
 from django.core.mail import send_mail
@@ -33,11 +40,11 @@ from django.template.loader import render_to_string
 from apps.academics.models import AcademicYear
 from apps.payroll.models import Payslip
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
-from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+from apps.accounts.utils import get_dashboard_context
 from apps.evals.notifications import NotificationService
 
 from .forms import ReportRequestForm
+from .notifications import notify_guardians_new_invoices_bulk
 from .models import (
     ComplianceProfile,
     FeePlan,
@@ -50,7 +57,10 @@ from .models import (
     ReportRequest,
     WebhookLog,
 )
+from .receipt_verification import ReceiptVerificationService
 from .services import (
+    apply_payment,
+    create_payment_from_receipt,
     PROVIDER_SLUG_TO_METHOD,
     create_fee_invoices,
     finance_dashboard_data,
@@ -163,9 +173,11 @@ def dashboard(request: HttpRequest):
             {"label": "Payments", "url": "/finance/payments/"},
         ],
     }
-    dashboard_settings = load_dashboard_layout_settings(request.user, "finance")
-    allow_custom_layout = _can_customize(request.user)
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "finance"})
+    dashboard_context = get_dashboard_context(request.user, "finance")
+    dashboard_settings = dashboard_context.get("dashboard_settings", {})
+    allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
+    dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")
+    widget_meta_json = dashboard_context.get("widget_meta_json", "")
     available_sidebar_items = [
         {"id": "finance-home", "label": "Finance Home", "url": reverse("finance:dashboard"), "icon": "bi-cash-stack"},
         {"id": "finance-invoices", "label": "Invoices", "url": reverse("finance:invoices"), "icon": "bi-receipt"},
@@ -173,7 +185,6 @@ def dashboard(request: HttpRequest):
         {"id": "finance-trial", "label": "Trial Balance", "url": reverse("finance:trial_balance"), "icon": "bi-bank"},
         {"id": "finance-reports", "label": "Reports", "url": reverse("finance:reports"), "icon": "bi-graph-up-arrow"},
     ]
-    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
     finance_requests_qs = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",
@@ -266,7 +277,59 @@ def invoice_list(request: HttpRequest):
     if year_id:
         qs = qs.filter(academic_year_id=year_id)
 
-    paginator = Paginator(qs.order_by("-issued_date"), 25)
+    ordered_qs = qs.order_by("-issued_date")
+
+    # Phase 18.2: One-click export (CSV)
+    if request.GET.get("export") == "csv":
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(["Reference", "Type", "Status", "Due", "Student", "Total", "Balance", "Issued"])
+        for inv in ordered_qs[:5000]:
+            w.writerow([
+                inv.reference or str(inv.id),
+                inv.get_invoice_type_display(),
+                inv.get_status_display(),
+                inv.due_date.isoformat() if inv.due_date else "",
+                str(inv.student) if inv.student_id else "",
+                str(inv.total_amount),
+                str(inv.balance_amount),
+                inv.issued_date.isoformat() if inv.issued_date else "",
+            ])
+        resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
+        resp["Content-Disposition"] = 'attachment; filename="invoices_export.csv"'
+        return resp
+
+    # Phase 18.3: One-click export (PDF)
+    if request.GET.get("export") == "pdf":
+        try:
+            from weasyprint import HTML
+        except ImportError:
+            return HttpResponse("PDF export requires WeasyPrint.", status=503)
+        def _d(d):
+            return d.strftime("%Y-%m-%d") if d else ""
+
+        rows_html = "".join(
+            f"<tr><td>{inv.reference or inv.id}</td><td>{inv.get_invoice_type_display()}</td>"
+            f"<td>{inv.get_status_display()}</td><td>{_d(inv.due_date)}</td>"
+            f"<td>{inv.student or ''}</td><td>{inv.total_amount}</td><td>{inv.balance_amount}</td>"
+            f"<td>{_d(inv.issued_date)}</td></tr>"
+            for inv in ordered_qs[:500]
+        )
+        site = SiteSettings.get_solo()
+        title = getattr(site, "site_name", None) or "Invoices"
+        html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Invoices</title>
+<style>body{{font-family:system-ui,sans-serif;font-size:10pt;margin:12mm;}}
+table{{width:100%;border-collapse:collapse;}} th,td{{border:1px solid #ddd;padding:6px;text-align:left;}}
+th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
+<body><div class="header"><h1>{title}</h1><p>Invoices export</p></div>
+<table><thead><tr><th>Reference</th><th>Type</th><th>Status</th><th>Due</th><th>Student</th><th>Total</th><th>Balance</th><th>Issued</th></tr></thead>
+<tbody>{rows_html}</tbody></table></body></html>"""
+        pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+        resp = HttpResponse(pdf, content_type="application/pdf")
+        resp["Content-Disposition"] = 'attachment; filename="invoices_export.pdf"'
+        return resp
+
+    paginator = Paginator(ordered_qs, 25)
     page_number = request.GET.get("page") or 1
     page_obj = paginator.get_page(page_number)
 
@@ -302,7 +365,58 @@ def payment_list(request: HttpRequest):
         "invoice__student",
         "invoice__academic_year",
     )
-    paginator = Paginator(qs.order_by("-paid_at"), 25)
+    ordered_qs = qs.order_by("-paid_at")
+
+    # Phase 18.2: One-click export (CSV)
+    if request.GET.get("export") == "csv":
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(["Invoice", "Method", "Amount", "Paid at", "Student", "Receipt"])
+        for pay in ordered_qs[:5000]:
+            inv = pay.invoice
+            w.writerow([
+                inv.reference or str(inv.id),
+                pay.get_method_display(),
+                str(pay.amount),
+                pay.paid_at.isoformat() if pay.paid_at else "",
+                str(inv.student) if inv.student_id else "",
+                pay.receipt_number or "",
+            ])
+        resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
+        resp["Content-Disposition"] = 'attachment; filename="payments_export.csv"'
+        return resp
+
+    # Phase 18.3: One-click export (PDF)
+    if request.GET.get("export") == "pdf":
+        try:
+            from weasyprint import HTML
+        except ImportError:
+            return HttpResponse("PDF export requires WeasyPrint.", status=503)
+
+        def _d(d):
+            return d.strftime("%Y-%m-%d %H:%M") if d else ""
+
+        rows_html = "".join(
+            f"<tr><td>{pay.invoice.reference or pay.invoice_id}</td><td>{pay.get_method_display()}</td>"
+            f"<td>{pay.amount}</td><td>{_d(pay.paid_at)}</td><td>{pay.invoice.student or ''}</td>"
+            f"<td>{pay.receipt_number or ''}</td></tr>"
+            for pay in ordered_qs[:500]
+        )
+        site = SiteSettings.get_solo()
+        title = getattr(site, "site_name", None) or "Payments"
+        html = f"""<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Payments</title>
+<style>body{{font-family:system-ui,sans-serif;font-size:10pt;margin:12mm;}}
+table{{width:100%;border-collapse:collapse;}} th,td{{border:1px solid #ddd;padding:6px;text-align:left;}}
+th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
+<body><div class="header"><h1>{title}</h1><p>Payments export</p></div>
+<table><thead><tr><th>Invoice</th><th>Method</th><th>Amount</th><th>Paid at</th><th>Student</th><th>Receipt</th></tr></thead>
+<tbody>{rows_html}</tbody></table></body></html>"""
+        pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+        resp = HttpResponse(pdf, content_type="application/pdf")
+        resp["Content-Disposition"] = 'attachment; filename="payments_export.pdf"'
+        return resp
+
+    paginator = Paginator(ordered_qs, 25)
     page_number = request.GET.get("page") or 1
     page_obj = paginator.get_page(page_number)
 
@@ -311,6 +425,9 @@ def payment_list(request: HttpRequest):
         "page_obj": page_obj,
         "paginator": paginator,
     })
+
+
+SESSION_KEY_LAST_GENERATED_INVOICE_IDS = "finance_last_generated_invoice_ids"
 
 
 @staff_member_required
@@ -330,12 +447,33 @@ def generate_fees(request: HttpRequest):
         plan = get_object_or_404(FeePlan, id=plan_id)
         issued_date = timezone.now().date()
         invoices = create_fee_invoices(plan=plan, profile=profile, issued_date=issued_date)
-        messages.success(request, f"Generated {len(invoices)} invoices.")
-        return redirect("finance:invoices")
+        request.session[SESSION_KEY_LAST_GENERATED_INVOICE_IDS] = [inv.id for inv in invoices]
+        messages.success(request, f"Generated {len(invoices)} invoices. You can notify guardians below.")
+        return redirect("finance:generate_fees")
 
+    invoice_ids = request.session.get(SESSION_KEY_LAST_GENERATED_INVOICE_IDS) or []
     return render(request, "finance/generate_fees.html", {
         "plans": plans,
+        "last_generated_invoice_ids": invoice_ids,
+        "last_generated_count": len(invoice_ids),
     })
+
+
+@staff_member_required
+@require_POST
+def notify_guardians_new_invoices(request: HttpRequest):
+    """Phase 4.1: Send new-invoice notifications to guardians for the last bulk-generated invoices."""
+    invoice_ids = request.session.pop(SESSION_KEY_LAST_GENERATED_INVOICE_IDS, None) or []
+    if not invoice_ids:
+        messages.info(request, "No recent invoices to notify. Generate invoices first.")
+        return redirect("finance:generate_fees")
+    total = notify_guardians_new_invoices_bulk(
+        invoice_ids,
+        created_by=request.user,
+        send_email=getattr(SiteSettings.get_solo(), "finance_notify_new_invoice_email", False),
+    )
+    messages.success(request, f"Notifications sent to {total} guardian(s) for the new invoices.")
+    return redirect("finance:invoices")
 
 
 @staff_member_required
@@ -434,6 +572,11 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
 
     payment_link = generate_payment_link(invoice)
     reminder = getattr(invoice, "reminder", None)
+    
+    # Get reminder history (last 10 logs)
+    reminder_logs = []
+    if reminder:
+        reminder_logs = reminder.logs.order_by("-sent_at")[:10]
 
     finance_summary = None
     if access_state["guardian_count"]:
@@ -442,10 +585,16 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
             "currently have finance access."
         )
 
+    # Get payment proof uploads for this invoice
+    payment_proof_uploads = PaymentProofUpload.objects.filter(
+        invoice=invoice
+    ).select_related("uploaded_by", "verified_by", "payment").order_by("-created_at")
+    
     return render(request, "finance/invoice_detail.html", {
         "invoice": invoice,
         "payment_link": payment_link,
         "reminder": reminder,
+        "payment_proof_uploads": payment_proof_uploads,
         "finance_access_required": access_state["require_opt_in"],
         "finance_access_granted": access_state["finance_count"] > 0,
         "finance_access_summary": finance_summary,
@@ -454,6 +603,261 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         "finance_guardian_count": access_state["finance_count"],
         "guardian_link_count": access_state["guardian_count"],
     })
+
+
+@login_required
+@require_POST
+def upload_payment_receipt(request: HttpRequest, invoice_id: int):
+    """
+    Allow parents/guardians to upload payment receipts for cash/bank payments.
+    Receipts are automatically verified and payments applied if verification passes.
+    """
+    from apps.accounts.permissions import can_view_invoice
+    from apps.accounts.models import User
+    from apps.people.models import StudentGuardian
+    from apps.siteconfig.models import SiteSettings
+    
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+    
+    invoice = get_object_or_404(
+        Invoice.objects.select_related("student"),
+        id=invoice_id,
+        profile=profile,
+    )
+    
+    # Check permission
+    can_view = can_view_invoice(request.user, invoice_id)
+    if not can_view:
+        is_parent = getattr(request.user, "role", "") == User.Role.PARENT
+        is_guardian = bool(invoice.student_id and StudentGuardian.objects.filter(
+            guardian_user=request.user,
+            student_id=invoice.student_id,
+        ).exists())
+        if not (is_parent and is_guardian):
+            return HttpResponseForbidden("You don't have permission to upload receipts for this invoice.")
+    
+    # Check if invoice is already paid
+    if invoice.status == Invoice.Status.PAID:
+        messages.error(request, "This invoice is already fully paid.")
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    
+    # Get SiteSettings for receipt upload configuration
+    site_settings = SiteSettings.get_solo()
+    if not getattr(site_settings, "finance_receipt_upload_enabled", True):
+        messages.error(request, "Receipt upload is currently disabled.")
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    
+    # Validate file upload
+    receipt_file = request.FILES.get("receipt_file")
+    if not receipt_file:
+        messages.error(request, "Please select a receipt file to upload.")
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+
+    max_mb = getattr(site_settings, "finance_receipt_max_size_mb", 5)
+    max_bytes = max_mb * 1024 * 1024
+    if receipt_file.size > max_bytes:
+        messages.error(
+            request,
+            f"File is too large ({receipt_file.size / (1024 * 1024):.1f} MB). "
+            f"Maximum allowed is {max_mb} MB. Please compress or use a smaller image."
+        )
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    allowed_ext = (getattr(site_settings, "finance_receipt_allowed_extensions", "pdf,jpg,jpeg,png") or "pdf,jpg,jpeg,png").strip().lower()
+    allowed_list = [e.strip().lstrip(".") for e in allowed_ext.split(",") if e.strip()]
+    ext = (receipt_file.name or "").split(".")[-1].lower() if "." in (receipt_file.name or "") else ""
+    if allowed_list and ext not in allowed_list:
+        messages.error(
+            request,
+            f"File type '.{ext}' is not allowed. Use: {', '.join('.' + e for e in allowed_list)}. "
+            "Please upload a PDF or image (e.g. photo of receipt)."
+        )
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    
+    # Get payment method
+    payment_method = request.POST.get("payment_method", "")
+    if payment_method not in [code[0] for code in PaymentMethodCode.choices]:
+        messages.error(request, "Invalid payment method.")
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    
+    # Get optional fields
+    transaction_reference = request.POST.get("transaction_reference", "").strip()
+    uploaded_amount_str = request.POST.get("uploaded_amount", "").strip()
+    uploaded_amount = None
+    if uploaded_amount_str:
+        try:
+            uploaded_amount = Decimal(uploaded_amount_str)
+        except (ValueError, InvalidOperation):
+            messages.error(request, "Invalid amount format.")
+            return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    
+    notes = request.POST.get("notes", "").strip()
+    
+    # Run fraud detection BEFORE creating record
+    fraud_detector = ReceiptFraudDetector()
+    receipt_date = None  # Will be extracted during verification
+    fraud_result = fraud_detector.detect_fraud(
+        receipt_file=receipt_file,
+        receipt_date=receipt_date,
+        transaction_reference=transaction_reference,
+        uploaded_by_id=request.user.id,
+        invoice_id=invoice.id,
+        uploaded_amount=uploaded_amount,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+    file_hash = fraud_result.get("file_hash", "")
+
+    # Duplicate check by file hash (same invoice + user within window)
+    if file_hash:
+        window_mins = getattr(site_settings, "finance_receipt_idempotency_window_minutes", 10)
+        cutoff = timezone.now() - timedelta(minutes=window_mins)
+        if PaymentProofUpload.objects.filter(
+            invoice=invoice,
+            uploaded_by=request.user,
+            file_hash=file_hash,
+            created_at__gte=cutoff,
+        ).exists():
+            messages.info(
+                request,
+                "This receipt was already received (same file). If payment was deducted but you saw an error, do not pay again; contact finance with your transaction reference."
+            )
+            return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    
+    # Create PaymentProofUpload record with fraud detection data
+    proof_upload = PaymentProofUpload.objects.create(
+        invoice=invoice,
+        uploaded_by=request.user,
+        receipt_file=receipt_file,
+        payment_method=payment_method,
+        transaction_reference=transaction_reference,
+        uploaded_amount=uploaded_amount,
+        verification_notes=notes,
+        idempotency_key=idempotency_key or "",
+        status=PaymentProofUpload.Status.PENDING,
+        fraud_risk_score=fraud_result["fraud_risk_score"],
+        fraud_flags=fraud_result["fraud_flags"],
+        file_hash=fraud_result["file_hash"],
+        is_suspicious=fraud_result["recommendation"] in ["review", "reject"],
+        flagged_at=timezone.now() if fraud_result["recommendation"] in ["review", "reject"] else None,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    
+    # If suspicious, notify finance staff immediately
+    if proof_upload.is_suspicious:
+        _notify_finance_staff_suspicious_receipt(proof_upload, fraud_result)
+    
+    # Trigger automatic verification (if enabled)
+    if getattr(site_settings, "finance_receipt_auto_verify_enabled", True):
+        from apps.finance.tasks import process_payment_receipt_upload_task
+        # Process immediately (or queue for background processing)
+        process_payment_receipt_upload_task.delay(proof_upload.id)
+        messages.success(
+            request,
+            "Receipt uploaded successfully. It is being verified automatically. "
+            "You will be notified once verification is complete."
+        )
+    else:
+        messages.success(
+            request,
+            "Receipt uploaded successfully. It will be reviewed by finance staff."
+        )
+    
+    return redirect("finance:invoice_detail", invoice_id=invoice.id)
+
+
+@login_required
+def resend_reminder(request: HttpRequest, invoice_id: int) -> HttpResponse:
+    """Resend payment reminder immediately for an invoice."""
+    from apps.accounts.permissions import can_view_invoice
+    from apps.finance.tasks import run_payment_reminders
+    from django.utils import timezone
+    
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    
+    # Permission check: staff or parent/guardian
+    if not request.user.is_staff:
+        can_view = can_view_invoice(request.user, invoice_id)
+        if not can_view:
+            return HttpResponseForbidden("You don't have permission to resend reminders for this invoice.")
+    
+    reminder = getattr(invoice, "reminder", None)
+    if not reminder:
+        messages.error(request, "No reminder configured for this invoice.")
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    
+    if not reminder.is_active:
+        messages.warning(request, "Reminder is inactive. Activate it first to resend.")
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+    
+    # Force send now by setting next_send_at to past
+    reminder.next_send_at = timezone.now() - timedelta(minutes=1)
+    reminder.save(update_fields=["next_send_at"])
+    
+    # Run reminder task synchronously (or queue it)
+    try:
+        result = run_payment_reminders()
+        sent_count = result.get("sent", 0)
+        if sent_count > 0:
+            messages.success(
+                request,
+                f"Reminder sent successfully ({sent_count} channel(s): {', '.join(result.get('channels', {}).keys())})."
+            )
+        else:
+            messages.info(request, "Reminder queued but no sends occurred (may have been sent recently or no guardians configured).")
+    except Exception as e:
+        logger.error("Error resending reminder: %s", str(e))
+        messages.error(request, f"Error resending reminder: {str(e)}")
+    
+    return redirect("finance:invoice_detail", invoice_id=invoice.id)
+
+
+def _notify_finance_staff_suspicious_receipt(proof_upload: PaymentProofUpload, fraud_result: dict) -> None:
+    """Notify finance staff when suspicious receipt is uploaded."""
+    from apps.accounts.models import User
+    from apps.evals.notifications import NotificationService
+    
+    try:
+        # Get finance staff (users with finance permissions)
+        finance_staff = User.objects.filter(
+            is_staff=True,
+            groups__name__in=["Finance", "Bursar", "Accountant"]
+        ).distinct()
+        
+        # If no specific finance group, notify all staff
+        if not finance_staff.exists():
+            finance_staff = User.objects.filter(is_staff=True, is_superuser=False)
+        
+        notification_service = NotificationService()
+        
+        fraud_flags_str = ", ".join(fraud_result.get("fraud_flags", []))
+        message = (
+            f"⚠️ SUSPICIOUS RECEIPT UPLOADED\n\n"
+            f"Invoice: {proof_upload.invoice.reference or proof_upload.invoice.id}\n"
+            f"Student: {proof_upload.invoice.student}\n"
+            f"Uploaded by: {proof_upload.uploaded_by.get_full_name() if proof_upload.uploaded_by else 'Unknown'}\n"
+            f"Amount: {proof_upload.uploaded_amount or 'Not specified'}\n"
+            f"Fraud Risk Score: {fraud_result.get('fraud_risk_score', 0)}/100\n"
+            f"Flags: {fraud_flags_str}\n"
+            f"Recommendation: {fraud_result.get('recommendation', 'review').upper()}\n\n"
+            f"Please review immediately: /admin/finance/paymentproofupload/{proof_upload.id}/change/"
+        )
+        
+        for staff_member in finance_staff[:10]:  # Limit to 10 staff to avoid spam
+            try:
+                notification_service.send_notification(
+                    user=staff_member,
+                    title="🚨 Suspicious Receipt Upload",
+                    message=message,
+                    channels=["email"],  # Always email for critical alerts
+                )
+            except Exception as e:
+                logger.error(f"Failed to notify finance staff {staff_member.id}: {str(e)}")
+    
+    except Exception as e:
+        logger.error(f"Error notifying finance staff about suspicious receipt: {str(e)}")
 
 
 @login_required
@@ -740,12 +1144,14 @@ def finance_access_bulk(request: HttpRequest):
     notifier = NotificationService()
 
     if request.method == "POST":
+        # Materialize list before update so notifications run (pending_qs would be empty after update)
+        pending_list = list(pending_qs.select_related("guardian_user", "student"))
         with transaction.atomic():
             granted = pending_qs.update(can_view_finance=True)
 
         messages_out = []
-        if granted:
-            for link in pending_qs:
+        if granted and pending_list:
+            for link in pending_list:
                 user = link.guardian_user
                 if not user:
                     continue
@@ -844,6 +1250,9 @@ def invoice_receipt(request: HttpRequest, invoice_id: int, payment_id: int | Non
         "Content-Disposition"
     ] = f'attachment; filename="receipt-{payment.id}.pdf"'
     return response
+
+
+@csrf_exempt
 @require_http_methods(["POST"])
 def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     """

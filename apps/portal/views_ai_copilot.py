@@ -179,8 +179,10 @@ def get_ai_permissions(user):
 
 def is_query_allowed(user, query):
     """
-    Validate that the user's query doesn't request data they don't have access to.
-    
+    First-line validation using keyword heuristics. Do not rely on this alone for security:
+    all data returned by the AI/data layer must be scoped by role and ownership (e.g. parent
+    sees only their children, teacher only their classes). Keyword checks can be bypassed;
+    enforce server-side data scoping in the code that builds context and answers.
     Returns: (bool, str) - (is_allowed, denial_reason)
     """
     permissions = get_ai_permissions(user)

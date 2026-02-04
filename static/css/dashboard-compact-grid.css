@@ -14,7 +14,7 @@
 }
 
 .dashboard-compact-grid .compact-card {
-  background: #fff;
+  background: var(--color-bg-primary, #fff);
   border-radius: 12px;
   padding: 0.85rem 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);

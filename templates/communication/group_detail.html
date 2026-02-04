@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}{{ thread.title }}{% endblock %}
 
@@ -33,7 +33,7 @@
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <strong>{{ message.author.get_full_name|default:message.author.username }}</strong>
-                  <span class="text-muted small ms-2">{{ message.created_at|date:"M d, Y H:i" }}</span>
+                  <span class="text-muted small ms-2">{{ message.created_at|format_date }} {{ message.created_at|time:"H:i" }}</span>
                 </div>
                 {% if message.edited_at %}
                 <span class="badge bg-secondary">Edited</span>
@@ -84,7 +84,7 @@
             <strong>Classroom:</strong> {{ thread.classroom.name }}<br>
             {% endif %}
             <strong>Members:</strong> {{ thread.members.count }}<br>
-            <strong>Created:</strong> {{ thread.created_at|date:"M d, Y" }}
+            <strong>Created:</strong> {{ thread.created_at|format_date }}
           </div>
           
           <div class="mb-3">

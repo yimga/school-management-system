@@ -4,6 +4,7 @@ import csv
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 import json
+import logging
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -13,14 +14,16 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 
-from apps.academics.models import AcademicYear, Classroom, Specialty, Term, Subject
+from apps.academics.models import AcademicYear, Classroom, Specialty, Term, Subject, SubjectAssignment
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
 from apps.people.models import TeacherProfile
 from apps.siteconfig.models import SiteSettings
 from apps.finance.models import Notification
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
-from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+from apps.accounts.utils import get_dashboard_context
+
+
+usage_logger = logging.getLogger("analytics.usage")
 
 
 from .services import (
@@ -151,16 +154,17 @@ def dashboard(request: HttpRequest):
         use_promotion_rule=use_promotion_rule,
     )
 
-    dashboard_settings = load_dashboard_layout_settings(request.user, "analytics")
-    allow_custom_layout = _can_customize(request.user)
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "analytics"})
+    dashboard_context = get_dashboard_context(request.user, "analytics")
+    dashboard_settings = dashboard_context.get("dashboard_settings", {})
+    allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
+    dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")
+    widget_meta_json = dashboard_context.get("widget_meta_json", "")
     available_sidebar_items = [
         {"id": "analytics-home", "label": "Analytics Home", "url": reverse("analytics:dashboard"), "icon": "bi-bar-chart-line"},
         {"id": "analytics-master", "label": "Master Sheet", "url": reverse("analytics:master_sheet"), "icon": "bi-file-earmark-spreadsheet"},
         {"id": "analytics-deadlines", "label": "Grading Deadlines", "url": reverse("analytics:deadlines"), "icon": "bi-calendar-check"},
         {"id": "finance-notifications", "label": "Finance Notifications", "url": reverse("finance:notifications"), "icon": "bi-bell"},
     ]
-    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
     finance_requests_qs = Notification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",
@@ -251,6 +255,28 @@ def dashboard(request: HttpRequest):
         "finance_request_notifications": finance_requests_qs[:5],
         "finance_request_link": finance_request_link,
     })
+    # Lightweight analytics usage logging (for future tuning of defaults and performance)
+    try:
+        usage_logger.info(
+            "analytics_dashboard_view",
+            extra={
+                "user_id": getattr(request.user, "id", None),
+                "user_role": getattr(request.user, "role", None),
+                "year_id": year_obj.id,
+                "term_id": term_obj.id,
+                "classroom_id": getattr(classroom_obj, "id", None),
+                "specialty_id": getattr(specialty_obj, "id", None),
+                "top_n": top_n,
+                "pass_mark": float(pass_mark),
+                "weak_threshold": float(weak_threshold),
+                "improve_delta": float(improve_delta),
+                "use_promotion_rule": bool(use_promotion_rule),
+                "deadline_mode": deadline_mode,
+            },
+        )
+    except Exception:
+        # Never block the request if logging fails
+        pass
     return render(request, "analytics/dashboard.html", context)
 
 
@@ -363,10 +389,7 @@ def master_sheet(request: HttpRequest):
 def grading_deadlines(request: HttpRequest):
     """
     Grading deadlines management.
-    
-    NOTE: GradingDeadline model was removed. This view is kept for future implementation.
-    Consider adding deadline_at field to SubjectAssignment model or creating a new
-    GradingDeadline model if needed.
+    Uses SubjectAssignment.grading_deadline_at; deadlines can be set per assignment in admin.
     """
     active_year, active_term = get_active_year_and_term()
     if not active_year or not active_term:
@@ -375,9 +398,24 @@ def grading_deadlines(request: HttpRequest):
     year_obj = get_object_or_404(AcademicYear, id=request.GET.get("year") or str(active_year.id))
     term_obj = get_object_or_404(Term, id=request.GET.get("term") or str(active_term.id), academic_year=year_obj)
 
-    # TODO: Implement deadline management using SubjectAssignment.deadline_at or new model
-    messages.info(request, "Deadline management feature is under development. "
-                          "Currently, deadlines can be set per SubjectAssignment in the admin panel.")
+    deadlines_qs = (
+        SubjectAssignment.objects.filter(
+            academic_year=year_obj,
+            term=term_obj,
+            grading_deadline_at__isnull=False,
+        )
+        .select_related("classroom", "specialty", "subject")
+        .order_by("grading_deadline_at")
+    )
+    deadlines = [
+        {
+            "subject_assignment": sa,
+            "deadline_at": sa.grading_deadline_at,
+            "classroom": sa.classroom.name,
+            "subject": sa.subject.name,
+        }
+        for sa in deadlines_qs
+    ]
 
     context = {
         "year": year_obj,
@@ -385,6 +423,6 @@ def grading_deadlines(request: HttpRequest):
         "years": AcademicYear.objects.order_by("-start_date"),
         "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date"),
         "classrooms": Classroom.objects.filter(academic_year=year_obj).order_by("name"),
-        "deadlines": [],  # Empty until implementation
+        "deadlines": deadlines,
     }
     return render(request, "analytics/deadlines.html", context)

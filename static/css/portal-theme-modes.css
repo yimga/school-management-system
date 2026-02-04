@@ -5,43 +5,36 @@
 
 /* ========== Skip link: visible in both themes (default = light) ========== */
 .skip-link-theme {
-  background: #fff !important;
-  color: #0f172a !important;
-  border: 2px solid #cbd5e1;
+  background: var(--admin-content-bg) !important;
+  color: var(--admin-content-text) !important;
+  border: 2px solid var(--admin-content-border, #cbd5e1);
 }
 .skip-link-theme:hover,
 .skip-link-theme:focus {
-  background: #f8fafc !important;
-  border-color: #0d6efd;
-  outline: 2px solid #0d6efd;
+  background: var(--admin-content-surface, #f8fafc) !important;
+  border-color: var(--focus-ring-color);
+  outline: 2px solid var(--focus-ring-color);
   outline-offset: 2px;
 }
 html[data-bs-theme="dark"] .skip-link-theme {
-  background: #1e293b !important;
-  color: #f1f5f9 !important;
-  border-color: rgba(148, 163, 184, 0.4);
+  background: var(--admin-content-surface) !important;
+  color: var(--admin-content-text) !important;
+  border-color: var(--admin-content-border);
 }
 html[data-bs-theme="dark"] .skip-link-theme:hover,
 html[data-bs-theme="dark"] .skip-link-theme:focus {
-  background: #334155 !important;
-  border-color: #60a5fa;
-  outline: 2px solid #60a5fa;
+  background: var(--admin-content-thead-bg, #334155) !important;
+  border-color: var(--admin-content-accent, #60a5fa);
+  outline: 2px solid var(--admin-content-accent, #60a5fa);
   outline-offset: 2px;
 }
 
-/* ========== Focus visible: high-contrast in both themes ========== */
-:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-html[data-bs-theme="dark"] :focus-visible {
-  outline-color: #60a5fa;
-  outline-offset: 2px;
-}
+/* ========== Focus visible: use canonical --focus-ring-color from design-tokens.css ========== */
 
 /* ========== Dark mode: semantic variables (so one place controls text/overlays) ========== */
 html[data-bs-theme="dark"] {
   --portal-text: #e2e8f0;
+  --portal-text-heading: #f1f5f9;
   --portal-text-muted: #94a3b8;
   --portal-border: rgba(148, 163, 184, 0.2);
   --portal-border-strong: rgba(148, 163, 184, 0.35);
@@ -54,21 +47,21 @@ html[data-bs-theme="dark"] {
 }
 
 html[data-bs-theme="dark"] body {
-  background: #0f172a !important;
+  background: var(--portal-bg) !important;
   color: var(--portal-text) !important;
 }
 
 html[data-bs-theme="dark"] .page-wrap {
-  background: #1e293b !important;
-  border-color: rgba(148, 163, 184, 0.2) !important;
-  color: #e2e8f0 !important;
+  background: var(--admin-content-surface) !important;
+  border-color: var(--portal-border) !important;
+  color: var(--portal-text) !important;
 }
 
 html[data-bs-theme="dark"] .card,
 html[data-bs-theme="dark"] .widget-card {
-  background: #1e293b !important;
-  border-color: rgba(148, 163, 184, 0.2) !important;
-  color: #e2e8f0 !important;
+  background: var(--admin-content-surface) !important;
+  border-color: var(--portal-border) !important;
+  color: var(--portal-text) !important;
 }
 
 html[data-bs-theme="dark"] .card-title,
@@ -81,7 +74,7 @@ html[data-bs-theme="dark"] .card h3,
 html[data-bs-theme="dark"] .widget-title,
 html[data-bs-theme="dark"] [class*="widget-title"],
 html[data-bs-theme="dark"] .section-title {
-  color: #f1f5f9 !important;
+  color: var(--portal-text-heading, var(--admin-content-text)) !important;
 }
 
 /* Overlays / hover: ensure text remains readable in dark */
@@ -124,7 +117,7 @@ html[data-bs-theme="dark"] .sidebar .sidebar-section-title {
 }
 
 html[data-bs-theme="dark"] .sidebar-info h6 {
-  color: #f1f5f9 !important;
+  color: var(--portal-text-heading, var(--admin-content-text)) !important;
 }
 
 html[data-bs-theme="dark"] .sidebar-info p {
@@ -235,12 +228,12 @@ html[data-bs-theme="dark"] .list-group-item {
 }
 
 html[data-bs-theme="dark"] .badge {
-  color: #fff !important;
+  color: #f1f5f9 !important;
 }
 
 /* Dashboard hero / KPI cards */
 html[data-bs-theme="dark"] .dashboard-hero {
-  color: #fff !important;
+  color: var(--portal-text-heading) !important;
 }
 
 html[data-bs-theme="dark"] .section-title {
@@ -301,7 +294,7 @@ html[data-bs-theme="dark"] .btn-close {
 .badge.bg-danger,
 .badge.bg-warning,
 .badge.bg-info {
-  color: #fff !important;
+  color: #f1f5f9 !important;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 html[data-bs-theme="dark"] .badge.bg-light {
@@ -331,7 +324,7 @@ html[data-bs-theme="light"] body {
 
 /* Dropdown in light: ensure text and hover visible */
 html[data-bs-theme="light"] .dropdown-menu {
-  background: #fff !important;
+  background: var(--admin-content-bg) !important;
   border: 1px solid rgba(15, 23, 42, 0.12);
   color: #0f172a;
 }
@@ -373,8 +366,8 @@ html[data-bs-theme="dark"] .dashboard-stats-title {
 /* ========== Classic / no data-bs-theme – use design system ========== */
 body:not([data-bs-theme]) .card,
 body[data-bs-theme="classic"] .card {
-  background: var(--color-bg-primary, #fff) !important;
-  color: var(--color-text-primary, #0f172a) !important;
+  background: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
 }
 
 body[data-bs-theme="classic"] .text-muted {

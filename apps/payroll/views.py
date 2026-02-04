@@ -86,21 +86,20 @@ def dashboard(request: HttpRequest):
         },
     }
 
-    from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
-    from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
+    from apps.accounts.utils import get_dashboard_context
     from django.urls import reverse
-    from django.utils.safestring import mark_safe
 
-    dashboard_settings = load_dashboard_layout_settings(request.user, "payroll")
-    allow_custom_layout = _can_customize(request.user)
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "payroll"})
+    dashboard_context = get_dashboard_context(request.user, "payroll")
+    dashboard_settings = dashboard_context.get("dashboard_settings", {})
+    allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
+    dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")
+    widget_meta_json = dashboard_context.get("widget_meta_json", "")
     available_sidebar_items = [
         {"id": "payroll-home", "label": "Payroll Home", "url": reverse("payroll:dashboard"), "icon": "bi-cash-stack"},
         {"id": "payroll-create", "label": "New Payroll Run", "url": reverse("payroll:create_run"), "icon": "bi-plus-circle"},
         {"id": "payroll-employee", "label": "My Payslips", "url": reverse("payroll:employee_payslips"), "icon": "bi-wallet2"},
         {"id": "payroll-leave", "label": "Leave Requests", "url": reverse("payroll:employee_leave"), "icon": "bi-calendar-check"},
     ]
-    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
 
     return render(request, "payroll/dashboard.html", {
         "profile": profile,

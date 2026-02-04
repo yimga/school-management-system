@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}Analytics Dashboard{% endblock %}
 
@@ -33,7 +33,7 @@
                 <strong>{{ notif.title }}</strong>
                 <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
               </div>
-              <span class="badge bg-secondary">{{ notif.created_at|date:"M j, H:i" }}</span>
+              <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
             </li>
           {% endfor %}
         </ul>
@@ -71,7 +71,7 @@
       </div>
       <div class="row g-3 mt-3">
         <div class="col-sm-6 col-lg-3">
-          <div class="border p-3 rounded-3 h-100 bg-white">
+          <div class="border p-3 rounded-3 h-100" style="background: var(--admin-content-bg);">
             <div class="text-uppercase small text-muted mb-1">Top students</div>
             <div class="h4">{{ top_n }}</div>
             <div class="small text-muted">per filter results</div>
@@ -81,7 +81,7 @@
           </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-          <div class="border p-3 rounded-3 h-100 bg-white">
+          <div class="border p-3 rounded-3 h-100" style="background: var(--admin-content-bg);">
             <div class="text-uppercase small text-muted mb-1">Weak subjects</div>
             <div class="h4">{{ weak_subjects|length }}</div>
             <div class="small text-muted">monitor action</div>
@@ -91,14 +91,14 @@
           </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-          <div class="border p-3 rounded-3 h-100 bg-white">
+          <div class="border p-3 rounded-3 h-100" style="background: var(--admin-content-bg);">
             <div class="text-uppercase small text-muted mb-1">Teacher compliance</div>
             <div class="h4">{{ teacher_stats|length }}</div>
             <div class="small text-muted">on deadlines</div>
           </div>
         </div>
         <div class="col-sm-6 col-lg-3">
-          <div class="border p-3 rounded-3 h-100 bg-white text-center">
+          <div class="border p-3 rounded-3 h-100 text-center" style="background: var(--admin-content-bg);">
             <div class="h1 fw-bold">{{ improvement_rows|length }}</div>
             <div class="small text-muted">students improved</div>
           </div>
@@ -251,7 +251,7 @@
           {% for student in top_class_students|slice:":4" %}
             <li class="list-group-item d-flex justify-content-between py-2">
               <span>#{{ student.rank }} {{ student.student }}</span>
-              <strong>{{ student.average|floatformat:2 }}</strong>
+              <strong>{{ student.average|format_number:2 }}</strong>
             </li>
           {% empty %}
             <li class="list-group-item text-muted">No data yet.</li>
@@ -275,7 +275,7 @@
           {% for subject in weak_subjects|slice:":3" %}
             <li class="list-group-item d-flex justify-content-between py-2">
               <span>{{ subject.subject }}</span>
-              <strong>{{ subject.average|floatformat:1 }}</strong>
+              <strong>{{ subject.average|format_number:1 }}</strong>
             </li>
           {% endfor %}
         </ul>
@@ -331,7 +331,7 @@
               <tr>
                 <td><span class="badge bg-dark">{{ forloop.counter }}</span></td>
                 <td>{{ row.0 }}</td>
-                <td class="text-end">{{ row.1|floatformat:2 }}</td>
+                <td class="text-end">{{ row.1|format_number:2 }}</td>
               </tr>
             {% empty %}
               <tr><td colspan="3" class="text-muted">No data for this class/term.</td></tr>
@@ -363,7 +363,7 @@
                   <tr>
                     <td><span class="badge bg-primary">{{ row.rank }}</span></td>
                     <td>{{ row.student }}</td>
-                    <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                    <td class="text-end">{{ row.average|format_number:2 }}</td>
                   </tr>
                 {% empty %}
                   <tr><td colspan="3" class="text-muted">Select a classroom to view.</td></tr>
@@ -395,7 +395,7 @@
                 <tr>
                   <td><span class="badge bg-primary">{{ row.rank }}</span></td>
                   <td>{{ row.student }}</td>
-                  <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.average|format_number:2 }}</td>
                 </tr>
               {% empty %}
                 <tr><td colspan="3" class="text-muted">No data for this term.</td></tr>
@@ -428,7 +428,7 @@
                   <tr>
                     <td><span class="badge bg-success">{{ row.rank }}</span></td>
                     <td>{{ row.student }}</td>
-                    <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                    <td class="text-end">{{ row.average|format_number:2 }}</td>
                   </tr>
                 {% empty %}
                   <tr><td colspan="3" class="text-muted">Select a classroom to view.</td></tr>
@@ -460,7 +460,7 @@
                 <tr>
                   <td><span class="badge bg-success">{{ row.rank }}</span></td>
                   <td>{{ row.student }}</td>
-                  <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.average|format_number:2 }}</td>
                 </tr>
               {% empty %}
                 <tr><td colspan="3" class="text-muted">No data for annual ranking.</td></tr>
@@ -492,7 +492,7 @@
               {% for row in weak_subjects %}
                 <tr>
                   <td>{{ row.subject.name }}</td>
-                  <td class="text-end">{{ row.average|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.average|format_number:2 }}</td>
                   <td class="text-end">{{ row.count }}</td>
                 </tr>
               {% empty %}
@@ -523,9 +523,9 @@
               {% for row in improvements %}
                 <tr>
                   <td>{{ row.student }}</td>
-                  <td class="text-end">{{ row.from_average|floatformat:2 }}</td>
-                  <td class="text-end">{{ row.to_average|floatformat:2 }}</td>
-                  <td class="text-end">{{ row.delta|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.from_average|format_number:2 }}</td>
+                  <td class="text-end">{{ row.to_average|format_number:2 }}</td>
+                  <td class="text-end">{{ row.delta|format_number:2 }}</td>
                 </tr>
               {% empty %}
                 <tr><td colspan="4" class="text-muted">No improvements matched the threshold.</td></tr>
@@ -564,7 +564,7 @@
                   <td class="text-end">{{ row.on_time }}</td>
                   <td class="text-end">{{ row.late }}</td>
                   <td class="text-end">{{ row.missing }}</td>
-                  <td class="text-end">{{ row.on_time_rate|floatformat:2 }}%</td>
+                  <td class="text-end">{{ row.on_time_rate|format_number:2 }}%</td>
                 </tr>
               {% empty %}
                 <tr><td colspan="6" class="text-muted">No teacher data for this term.</td></tr>
@@ -597,7 +597,7 @@
                   <td class="text-end">{{ row.passed }}</td>
                   <td class="text-end">{{ row.total }}</td>
                   <td class="text-end">{{ row.missing }}</td>
-                  <td class="text-end">{{ row.rate|floatformat:2 }}%</td>
+                  <td class="text-end">{{ row.rate|format_number:2 }}%</td>
                 </tr>
               {% empty %}
                 <tr><td colspan="5" class="text-muted">No data for specialties.</td></tr>

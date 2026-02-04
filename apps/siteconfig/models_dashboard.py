@@ -73,6 +73,8 @@ class DashboardUserPreference(models.Model):
     # UI preferences
     items_per_page = models.IntegerField(default=10, choices=[(10, "10"), (25, "25"), (50, "50")])
     sidebar_collapsed = models.BooleanField(default=False)
+    # Phase 16: Quick access / pinned sidebar (list of sidebar item ids, e.g. ["dashboard", "kb", "finance_dashboard"])
+    pinned_sidebar_items = models.JSONField(default=list, blank=True, help_text="Sidebar item IDs to show in Quick access.")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

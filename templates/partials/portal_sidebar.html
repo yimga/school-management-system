@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 {% load accounts_extras %}
 
 <style>
@@ -6,24 +6,27 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    padding-inline: 0.5rem;
   }
 
   .portal-sidebar-content {
     flex: 1;
     overflow-y: auto;
+    padding-inline: 0.25rem;
   }
 
   .portal-sidebar-footer {
     margin-top: auto;
     padding-top: 1rem;
     margin-top: 1rem;
+    padding-inline: 0.25rem;
     border-top: 1px solid var(--portal-border, rgba(0, 0, 0, 0.08));
   }
 
   .sidebar-header {
-    padding: 0.75rem 0;
+    padding: 0.875rem 0.5rem;
     border-bottom: 1px solid var(--portal-border, rgba(0, 0, 0, 0.08));
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
   }
 
   .sidebar-header-content {
@@ -64,14 +67,15 @@
     color: var(--portal-text-muted);
     font-weight: 600;
     margin: 1.2rem 0 0.6rem 0;
+    padding-inline: 0.5rem;
   }
 
   .nav-link.nav-pill {
-    border-radius: 10px;
-    font-size: 0.9rem;
-    padding: 0.6rem 0.75rem !important;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    padding: 0.6rem 0.75rem 0.6rem 0.875rem !important;
     color: var(--portal-nav-pill);
-    transition: all 0.2s ease;
+    transition: background 0.15s, color 0.15s;
   }
 
   .nav-link.nav-pill:hover {
@@ -257,9 +261,25 @@
       font-size: 0.85rem;
     }
 
-    .sidebar-collapsible-header span {
-      font-size: 0.85rem;
-    }
+  .sidebar-collapsible-header span {
+    font-size: 0.85rem;
+  }
+
+  .sidebar-nav-item-wrapper {
+    margin-bottom: 0;
+  }
+  .sidebar-nav-item-wrapper .nav-link {
+    min-width: 0;
+  }
+  .sidebar-pin-btn {
+    opacity: 0.6;
+    font-size: 0.85rem;
+  }
+  .sidebar-nav-item-wrapper:hover .sidebar-pin-btn,
+  .sidebar-pin-btn:hover,
+  .sidebar-pin-btn:focus {
+    opacity: 1;
+  }
 
     .sidebar-section-title {
       font-size: 0.7rem;
@@ -349,12 +369,16 @@
   }
 </style>
 
+<!-- Collapse toggle (desktop): toggles icon-only strip -->
+<div class="portal-sidebar-collapse-wrap d-none d-lg-block mb-2">
+  <button type="button" class="btn btn-sm btn-outline-secondary portal-sidebar-collapse-toggle" aria-label="{% trans 'Collapse sidebar' %}" title="{% trans 'Collapse sidebar to icons' %}">
+    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+  </button>
+</div>
 <!-- User Header -->
-<div class="sidebar-header">
+<div class="sidebar-header" id="preview-sidebar-header" data-preview-label="{% trans 'Sidebar user block' %}" data-preview-changes="{% trans 'User name, role from account' %}">
   <div class="sidebar-header-content">
-    {% if SITE_SIDEBAR_ICON_URL %}
-    <img src="{{ SITE_SIDEBAR_ICON_URL }}" alt="" class="sidebar-icon-small me-2" width="40" height="40" loading="lazy" decoding="async" style="object-fit: contain; border-radius: 10px;">
-    {% endif %}
     <div class="sidebar-avatar">
       {% if request.user.first_name %}
         {{ request.user.first_name|slice:":1" }}
@@ -369,8 +393,18 @@
   </div>
 </div>
 
-<div class="nav flex-column gap-0">
+<div class="nav flex-column gap-0" id="preview-sidebar-nav" data-preview-label="{% trans 'Sidebar navigation' %}" data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
   {% if request.user.is_authenticated %}
+    {% comment %}Phase 16: Quick access (pinned) items at top{% endcomment %}
+    {% if PINNED_SIDEBAR_ITEMS %}
+    <div class="sidebar-section-title">{% trans "Quick access" %}</div>
+    {% for item in PINNED_SIDEBAR_ITEMS %}
+    <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{{ item.url }}" title="{{ item.label }}">
+      <span><i class="bi {{ item.icon|default:'bi-circle' }} me-2"></i>{{ item.label }}</span>
+      <button type="button" class="sidebar-pin-btn sidebar-pin-pinned btn btn-link p-0 ms-1" data-sidebar-id="{{ item.id }}" aria-label="{% trans 'Remove from Quick access' %}" title="{% trans 'Remove from Quick access' %}"><i class="bi bi-pin-angle-fill text-primary"></i></button>
+    </a>
+    {% endfor %}
+    {% endif %}
     {% comment %}Config-driven order from SiteSettings.portal_sidebar_order via PORTAL_SIDEBAR_ITEMS{% endcomment %}
     {% if PORTAL_SIDEBAR_ITEMS %}
       {% for item in PORTAL_SIDEBAR_ITEMS %}
@@ -378,28 +412,33 @@
           {% ifchanged item.section %}
             <div class="sidebar-section-title">{{ item.section }}</div>
           {% endifchanged %}
-          <a class="nav-link nav-pill{% if item.badge %} d-flex align-items-center justify-content-between{% endif %}" href="{{ item.url }}">
-            <span><i class="bi {{ item.icon|default:'bi-circle' }} me-2"></i>{{ item.label }}</span>
-            {% if item.badge %}<span class="badge bg-primary rounded-pill">{{ item.badge }}</span>{% endif %}
-          </a>
+          <div class="sidebar-nav-item-wrapper d-flex align-items-center gap-0">
+            <a class="nav-link nav-pill flex-grow-1{% if item.badge %} d-flex align-items-center justify-content-between{% endif %}" href="{{ item.url }}" title="{{ item.label }}" data-sidebar-id="{{ item.id }}">
+              <span><i class="bi {{ item.icon|default:'bi-circle' }} me-2"></i>{{ item.label }}</span>
+              {% if item.badge %}<span class="badge bg-primary rounded-pill">{{ item.badge }}</span>{% endif %}
+            </a>
+            <button type="button" class="sidebar-pin-btn btn btn-link p-0 me-1 {% if item.id in PINNED_SIDEBAR_IDS %}sidebar-pin-pinned{% endif %}" data-sidebar-id="{{ item.id }}" aria-label="{% if item.id in PINNED_SIDEBAR_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}" title="{% if item.id in PINNED_SIDEBAR_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}">
+              <i class="bi {% if item.id in PINNED_SIDEBAR_IDS %}bi-pin-angle-fill text-primary{% else %}bi-pin-angle text-muted{% endif %}"></i>
+            </button>
+          </div>
         {% endif %}
       {% endfor %}
     {% else %}
       <div class="sidebar-section-title">Home</div>
-      <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}">
+      <a class="nav-link nav-pill" href="{% url 'accounts:redirect' %}" title="Dashboard">
         <i class="bi bi-speedometer2 me-2"></i>Dashboard
       </a>
       <div class="sidebar-section-title">Account</div>
-      <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}">
+      <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}" title="My Profile">
         <i class="bi bi-person me-2"></i>My Profile
       </a>
-      <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}">
+      <a class="nav-link nav-pill" href="{% url 'siteconfig:user_preferences' %}" title="Preferences">
         <i class="bi bi-sliders me-2"></i>Preferences
       </a>
-      <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}">
+      <a class="nav-link nav-pill" href="{% url 'accounts:user_notifications' %}" title="Notifications">
         <i class="bi bi-bell me-2"></i>Notifications
       </a>
-      <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}">
+      <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}" title="Knowledge Base">
         <i class="bi bi-journal-text me-2"></i>Knowledge Base
       </a>
       {% if request.user.role == 'TEACHER' %}
@@ -559,6 +598,53 @@
         });
       })();
     </script>
+    {% comment %}Phase 16: Pin to Quick access – call API and reload{% endcomment %}
+    <script>
+    (function() {
+      function getCsrfToken() {
+        var name = 'csrftoken';
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+          var c = cookies[i].trim();
+          if (c.indexOf(name + '=') === 0) return c.substring(name.length + 1);
+        }
+        return '';
+      }
+      document.querySelectorAll('.sidebar-pin-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var id = this.getAttribute('data-sidebar-id');
+          if (!id) return;
+          var isPinned = this.classList.contains('sidebar-pin-pinned');
+          fetch('/api/portal-preferences/', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+          }).then(function(r) { return r.json(); }).then(function(data) {
+            var list = data.pinned_sidebar_items || [];
+            if (isPinned) {
+              list = list.filter(function(x) { return x !== id; });
+            } else {
+              if (list.indexOf(id) === -1) list.push(id);
+            }
+            return fetch('/api/portal-preferences/', {
+              method: 'PATCH',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken(),
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({ pinned_sidebar_items: list })
+            });
+          }).then(function(r) { return r.ok ? r.json() : Promise.reject(); }).then(function() {
+            window.location.reload();
+          }).catch(function() {});
+        });
+      });
+    })();
+    </script>
   {% endif %}
 </div>
 
@@ -595,3 +681,11 @@
 </div>
 {% endif %}
 
+<!-- Phase 19: Global Help link in sidebar footer for discoverability -->
+{% if request.user.is_authenticated %}
+<div class="portal-sidebar-footer mt-3">
+  <a class="nav-link nav-pill" href="{% url 'kb:kb_home' %}" title="{% trans 'Help & Knowledge Base' %}">
+    <i class="bi bi-question-circle me-2"></i>{% trans "Help" %}
+  </a>
+</div>
+{% endif %}

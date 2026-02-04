@@ -551,4 +551,27 @@ class InvoicePermissionTest(TestCase):
         self.assertFalse(can_view_invoice(self.other_parent, self.invoice.id))
 
 
+class PayrollRBACTest(TestCase):
+    """Test that teachers (non-staff) cannot access staff-only payroll views."""
+
+    def setUp(self):
+        self.teacher = User.objects.create_user(
+            username="teacher_rbac",
+            password="testpass",
+            role="TEACHER",
+            is_staff=False,
+        )
+        self.client = Client()
+
+    def test_teacher_cannot_access_payroll_run_detail(self):
+        """Teacher must not access payroll run detail (staff-only); expect 403."""
+        self.client.login(username="teacher_rbac", password="testpass")
+        response = self.client.get("/payroll/runs/1/", follow=False)
+        self.assertIn(
+            response.status_code,
+            (403, 302),
+            "Teacher must not get 200 on staff-only payroll run detail (403 or redirect to login).",
+        )
+
+
 print("Phase 0 Tests Created: webhook_security, input_validation, permissions")

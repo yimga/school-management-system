@@ -1,0 +1,517 @@
+/**
+ * Backend console themes. Dark themes extend portal-backend-dark.
+ * Light themes (sand, snow, cream, lavender) extend portal-backend-light.
+ */
+
+/* ---- BLACK: true black (OLED-friendly) ---- */
+body.portal-backend-black {
+  background: #000000 !important;
+  color: #fafafa !important;
+  --header-brand-bg: linear-gradient(90deg, #050505 0%, #0a0a0a 50%, #171717 100%);
+  --header-brand-fg: #fafafa;
+  --backend-text: #fafafa;
+  --backend-text-muted: #a3a3a3;
+  --backend-surface: #171717;
+  --backend-surface-alt: #262626;
+  --backend-border: rgba(250, 250, 250, 0.1);
+  --admin-dashboard-bg: #0a0a0a;
+  --admin-surface: #171717;
+  --brand-primary: #3b82f6;
+  --brand-success: #22c55e;
+  --brand-danger: #ef4444;
+}
+body.portal-backend-black .topbar,
+body.portal-backend-black .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-black .page-wrap,
+body.portal-backend-black #main-content { background: #0a0a0a !important; }
+body.portal-backend-black .sidebar,
+body.portal-backend-black .portal-sidebar-wrapper { background: #050505 !important; }
+body.portal-backend-black .card,
+body.portal-backend-black .workflow-card,
+body.portal-backend-black .form-control,
+body.portal-backend-black .form-select,
+body.portal-backend-black .list-group-item,
+body.portal-backend-black input,
+body.portal-backend-black select,
+body.portal-backend-black textarea,
+body.portal-backend-black .alert { background-color: #171717 !important; }
+body.portal-backend-black .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-black .dropdown-menu { background: #171717 !important; }
+
+/* ---- INK: deep black #030712 ---- */
+body.portal-backend-ink {
+  background: #030712 !important;
+  color: #f8fafc !important;
+  --header-brand-bg: linear-gradient(90deg, #030712 0%, #0f172a 50%, #1e293b 100%);
+  --header-brand-fg: #f8fafc;
+  --backend-text: #f8fafc;
+  --backend-text-muted: #94a3b8;
+  --backend-surface: #0f172a;
+  --backend-surface-alt: #1e293b;
+  --backend-border: rgba(248, 250, 252, 0.1);
+  --admin-dashboard-bg: #030712;
+  --admin-surface: #0f172a;
+}
+body.portal-backend-ink .topbar,
+body.portal-backend-ink .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-ink .page-wrap,
+body.portal-backend-ink #main-content { background: #0f172a !important; }
+body.portal-backend-ink .sidebar,
+body.portal-backend-ink .portal-sidebar-wrapper { background: #030712 !important; }
+body.portal-backend-ink .card,
+body.portal-backend-ink .workflow-card,
+body.portal-backend-ink .form-control,
+body.portal-backend-ink .form-select,
+body.portal-backend-ink .list-group-item,
+body.portal-backend-ink input,
+body.portal-backend-ink select,
+body.portal-backend-ink textarea,
+body.portal-backend-ink .alert { background-color: #1e293b !important; }
+body.portal-backend-ink .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-ink .dropdown-menu { background: #1e293b !important; }
+
+/* ---- ONYX: rich black #0c0c0c ---- */
+body.portal-backend-onyx {
+  background: #0c0c0c !important;
+  color: #fafafa !important;
+  --header-brand-bg: linear-gradient(90deg, #0c0c0c 0%, #171717 50%, #262626 100%);
+  --header-brand-fg: #fafafa;
+  --backend-text: #fafafa;
+  --backend-text-muted: #a3a3a3;
+  --backend-surface: #171717;
+  --backend-surface-alt: #262626;
+  --backend-border: rgba(250, 250, 250, 0.1);
+  --admin-dashboard-bg: #0c0c0c;
+  --admin-surface: #171717;
+}
+body.portal-backend-onyx .topbar,
+body.portal-backend-onyx .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-onyx .page-wrap,
+body.portal-backend-onyx #main-content { background: #171717 !important; }
+body.portal-backend-onyx .sidebar,
+body.portal-backend-onyx .portal-sidebar-wrapper { background: #0c0c0c !important; }
+body.portal-backend-onyx .card,
+body.portal-backend-onyx .workflow-card,
+body.portal-backend-onyx .form-control,
+body.portal-backend-onyx .form-select,
+body.portal-backend-onyx .list-group-item,
+body.portal-backend-onyx input,
+body.portal-backend-onyx select,
+body.portal-backend-onyx textarea,
+body.portal-backend-onyx .alert { background-color: #262626 !important; }
+body.portal-backend-onyx .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-onyx .dropdown-menu { background: #262626 !important; }
+
+/* ---- CHARCOAL: soft black ---- */
+body.portal-backend-charcoal {
+  background: #171717 !important;
+  color: #fafafa !important;
+  --header-brand-bg: linear-gradient(90deg, #0a0a0a 0%, #171717 50%, #262626 100%);
+  --header-brand-fg: #fafafa;
+  --backend-text: #fafafa;
+  --backend-text-muted: #a3a3a3;
+  --backend-surface: #262626;
+  --backend-surface-alt: #404040;
+  --backend-border: rgba(250, 250, 250, 0.12);
+  --admin-dashboard-bg: #171717;
+  --admin-surface: #262626;
+}
+body.portal-backend-charcoal .topbar,
+body.portal-backend-charcoal .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-charcoal .page-wrap,
+body.portal-backend-charcoal #main-content { background: #171717 !important; }
+body.portal-backend-charcoal .sidebar,
+body.portal-backend-charcoal .portal-sidebar-wrapper { background: #0a0a0a !important; }
+body.portal-backend-charcoal .card,
+body.portal-backend-charcoal .workflow-card,
+body.portal-backend-charcoal .form-control,
+body.portal-backend-charcoal .form-select,
+body.portal-backend-charcoal .list-group-item,
+body.portal-backend-charcoal input,
+body.portal-backend-charcoal select,
+body.portal-backend-charcoal textarea,
+body.portal-backend-charcoal .alert { background-color: #262626 !important; }
+body.portal-backend-charcoal .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-charcoal .dropdown-menu { background: #262626 !important; }
+
+/* ---- GRAPHITE: zinc grey ---- */
+body.portal-backend-graphite {
+  background: #18181b !important;
+  color: #f4f4f5 !important;
+  --header-brand-bg: linear-gradient(90deg, #09090b 0%, #18181b 50%, #27272a 100%);
+  --header-brand-fg: #f4f4f5;
+  --backend-text: #f4f4f5;
+  --backend-text-muted: #a1a1aa;
+  --backend-surface: #27272a;
+  --backend-surface-alt: #3f3f46;
+  --backend-border: rgba(228, 228, 231, 0.15);
+  --admin-dashboard-bg: #18181b;
+  --admin-surface: #27272a;
+}
+body.portal-backend-graphite .topbar,
+body.portal-backend-graphite .navbar.topbar { background: linear-gradient(90deg, #09090b 0%, #18181b 50%, #27272a 100%) !important; }
+body.portal-backend-graphite .page-wrap,
+body.portal-backend-graphite #main-content { background: #18181b !important; }
+body.portal-backend-graphite .sidebar,
+body.portal-backend-graphite .portal-sidebar-wrapper { background: #09090b !important; }
+body.portal-backend-graphite .card,
+body.portal-backend-graphite .workflow-card,
+body.portal-backend-graphite .form-control,
+body.portal-backend-graphite .form-select,
+body.portal-backend-graphite .list-group-item,
+body.portal-backend-graphite input,
+body.portal-backend-graphite select,
+body.portal-backend-graphite textarea,
+body.portal-backend-graphite .alert { background-color: #27272a !important; }
+body.portal-backend-graphite .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-graphite .dropdown-menu { background: #27272a !important; }
+
+/* ---- STEEL: blue-grey (industrial) ---- */
+body.portal-backend-steel {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  --header-brand-bg: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  --header-brand-fg: #e2e8f0;
+  --backend-text: #e2e8f0;
+  --backend-text-muted: #94a3b8;
+  --backend-surface: #334155;
+  --backend-surface-alt: #475569;
+  --backend-border: rgba(148, 163, 184, 0.25);
+  --admin-dashboard-bg: #1e293b;
+  --admin-surface: #334155;
+  --brand-primary: #60a5fa;
+}
+body.portal-backend-steel .topbar,
+body.portal-backend-steel .navbar.topbar { background: linear-gradient(90deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important; }
+body.portal-backend-steel .page-wrap,
+body.portal-backend-steel #main-content { background: #1e293b !important; }
+body.portal-backend-steel .sidebar,
+body.portal-backend-steel .portal-sidebar-wrapper { background: #0f172a !important; }
+body.portal-backend-steel .card,
+body.portal-backend-steel .workflow-card,
+body.portal-backend-steel .form-control,
+body.portal-backend-steel .form-select,
+body.portal-backend-steel .list-group-item,
+body.portal-backend-steel input,
+body.portal-backend-steel select,
+body.portal-backend-steel textarea,
+body.portal-backend-steel .alert { background-color: #334155 !important; }
+body.portal-backend-steel .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-steel .dropdown-menu { background: #334155 !important; }
+
+/* ---- AMBER: warm dark ---- */
+body.portal-backend-amber {
+  background: #1c1917 !important;
+  color: #fef3c7 !important;
+  --header-brand-bg: linear-gradient(90deg, #0c0a09 0%, #1c1917 50%, #292524 100%);
+  --header-brand-fg: #fef3c7;
+  --backend-text: #fef3c7;
+  --backend-text-muted: #fcd34d;
+  --backend-surface: #292524;
+  --backend-surface-alt: #44403c;
+  --backend-border: rgba(251, 191, 36, 0.2);
+  --admin-dashboard-bg: #1c1917;
+  --admin-surface: #292524;
+  --brand-primary: #fbbf24;
+  --brand-success: #34d399;
+}
+body.portal-backend-amber .topbar,
+body.portal-backend-amber .navbar.topbar { background: linear-gradient(90deg, #0c0a09 0%, #1c1917 50%, #292524 100%) !important; }
+body.portal-backend-amber .page-wrap,
+body.portal-backend-amber #main-content { background: #1c1917 !important; }
+body.portal-backend-amber .sidebar,
+body.portal-backend-amber .portal-sidebar-wrapper { background: #0c0a09 !important; }
+body.portal-backend-amber .card,
+body.portal-backend-amber .workflow-card,
+body.portal-backend-amber .form-control,
+body.portal-backend-amber .form-select,
+body.portal-backend-amber .list-group-item,
+body.portal-backend-amber input,
+body.portal-backend-amber select,
+body.portal-backend-amber textarea,
+body.portal-backend-amber .alert { background-color: #292524 !important; }
+body.portal-backend-amber .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-amber .dropdown-menu { background: #292524 !important; }
+
+/* ---- MIDNIGHT: deep blue-black ---- */
+body.portal-backend-midnight {
+  background: #0a0f1a !important;
+  color: #e2e8f0 !important;
+  --backend-text: #e2e8f0;
+  --backend-text-muted: #94a3b8;
+  --backend-surface: #0f172a;
+  --backend-surface-alt: #1e293b;
+  --backend-border: rgba(71, 85, 105, 0.4);
+  --admin-dashboard-bg: #0a0f1a;
+  --admin-surface: #0f172a;
+  --brand-primary: #3b82f6;
+  --brand-success: #22c55e;
+  --brand-danger: #ef4444;
+  --chart-color-1: rgba(59, 130, 246, 0.85);
+  --chart-color-2: rgba(34, 197, 94, 0.85);
+  --chart-color-3: rgba(251, 191, 36, 0.85);
+  --chart-color-4: rgba(239, 68, 68, 0.85);
+  --chart-color-5: rgba(168, 85, 247, 0.85);
+  --chart-color-6: rgba(6, 182, 212, 0.85);
+  --header-brand-bg: linear-gradient(90deg, #050810 0%, #0a0f1a 50%, #0f172a 100%);
+  --header-brand-fg: #e2e8f0;
+}
+body.portal-backend-midnight .topbar,
+body.portal-backend-midnight .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-midnight .page-wrap,
+body.portal-backend-midnight #main-content { background: #0a0f1a !important; }
+body.portal-backend-midnight .sidebar,
+body.portal-backend-midnight .portal-sidebar-wrapper { background: #050810 !important; }
+body.portal-backend-midnight .card,
+body.portal-backend-midnight .workflow-card,
+body.portal-backend-midnight .form-control,
+body.portal-backend-midnight .form-select,
+body.portal-backend-midnight .list-group-item,
+body.portal-backend-midnight input,
+body.portal-backend-midnight select,
+body.portal-backend-midnight textarea,
+body.portal-backend-midnight .alert { background-color: #0f172a !important; }
+body.portal-backend-midnight .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-midnight .dropdown-menu { background: #0f172a !important; }
+
+/* ---- OCEAN: dark blue ---- */
+body.portal-backend-ocean {
+  background: #0c1929 !important;
+  color: #e0f2fe !important;
+  --backend-text: #e0f2fe;
+  --backend-text-muted: #7dd3fc;
+  --backend-surface: #0e3a5f;
+  --backend-surface-alt: #164e63;
+  --backend-border: rgba(56, 189, 248, 0.2);
+  --admin-dashboard-bg: #0c1929;
+  --admin-surface: #0e3a5f;
+  --brand-primary: #38bdf8;
+  --brand-success: #2dd4bf;
+  --brand-danger: #f87171;
+}
+body.portal-backend-ocean .topbar,
+body.portal-backend-ocean .navbar.topbar { background: linear-gradient(90deg, #072541 0%, #0c1929 50%, #0e3a5f 100%) !important; }
+body.portal-backend-ocean .page-wrap,
+body.portal-backend-ocean #main-content { background: #0c1929 !important; }
+body.portal-backend-ocean .card,
+body.portal-backend-ocean .workflow-card { background: #0e3a5f !important; }
+body.portal-backend-ocean .sidebar,
+body.portal-backend-ocean .portal-sidebar-wrapper { background: #072541 !important; }
+body.portal-backend-ocean .text-muted,
+body.portal-backend-ocean .workflow-subtitle { color: #7dd3fc !important; }
+body.portal-backend-ocean .form-control,
+body.portal-backend-ocean .form-select,
+body.portal-backend-ocean .list-group-item,
+body.portal-backend-ocean input,
+body.portal-backend-ocean select,
+body.portal-backend-ocean textarea,
+body.portal-backend-ocean .alert { background-color: #0e3a5f !important; }
+body.portal-backend-ocean .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-ocean .dropdown-menu { background: #0e3a5f !important; }
+
+/* ---- SLATE: medium grey ---- */
+body.portal-backend-slate {
+  background: #334155 !important;
+  color: #f1f5f9 !important;
+  --backend-text: #f1f5f9;
+  --backend-text-muted: #cbd5e1;
+  --backend-surface: #475569;
+  --backend-surface-alt: #64748b;
+  --backend-border: rgba(148, 163, 184, 0.3);
+  --admin-dashboard-bg: #334155;
+  --admin-surface: #475569;
+  --header-brand-bg: linear-gradient(90deg, #1e293b 0%, #334155 50%, #475569 100%);
+  --header-brand-fg: #f1f5f9;
+}
+body.portal-backend-slate .topbar,
+body.portal-backend-slate .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-slate .page-wrap,
+body.portal-backend-slate #main-content { background: #334155 !important; }
+body.portal-backend-slate .card,
+body.portal-backend-slate .workflow-card { background: #475569 !important; }
+body.portal-backend-slate .sidebar,
+body.portal-backend-slate .portal-sidebar-wrapper { background: #1e293b !important; }
+body.portal-backend-slate .card,
+body.portal-backend-slate .workflow-card,
+body.portal-backend-slate .form-control,
+body.portal-backend-slate .form-select,
+body.portal-backend-slate .list-group-item,
+body.portal-backend-slate input,
+body.portal-backend-slate select,
+body.portal-backend-slate textarea,
+body.portal-backend-slate .alert { background-color: #475569 !important; }
+body.portal-backend-slate .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-slate .dropdown-menu { background: #475569 !important; }
+
+/* ---- FOREST: dark green ---- */
+body.portal-backend-forest {
+  background: #0d1f12 !important;
+  color: #dcfce7 !important;
+  --backend-text: #dcfce7;
+  --backend-text-muted: #86efac;
+  --backend-surface: #14532d;
+  --backend-surface-alt: #166534;
+  --backend-border: rgba(74, 222, 128, 0.2);
+  --admin-dashboard-bg: #0d1f12;
+  --admin-surface: #14532d;
+  --brand-primary: #22c55e;
+  --brand-success: #4ade80;
+}
+body.portal-backend-forest .topbar,
+body.portal-backend-forest .navbar.topbar { background: linear-gradient(90deg, #052e16 0%, #0d1f12 50%, #14532d 100%) !important; }
+body.portal-backend-forest .page-wrap,
+body.portal-backend-forest #main-content { background: #0d1f12 !important; }
+body.portal-backend-forest .card,
+body.portal-backend-forest .workflow-card { background: #14532d !important; }
+body.portal-backend-forest .sidebar,
+body.portal-backend-forest .portal-sidebar-wrapper { background: #052e16 !important; }
+
+/* ---- INDIGO: dark purple ---- */
+body.portal-backend-indigo {
+  background: #1e1b4b !important;
+  color: #e0e7ff !important;
+  --backend-text: #e0e7ff;
+  --backend-text-muted: #a5b4fc;
+  --backend-surface: #312e81;
+  --backend-surface-alt: #3730a3;
+  --backend-border: rgba(129, 140, 248, 0.25);
+  --admin-dashboard-bg: #1e1b4b;
+  --admin-surface: #312e81;
+  --brand-primary: #818cf8;
+  --brand-success: #34d399;
+  --header-brand-bg: linear-gradient(90deg, #0f0d2e 0%, #1e1b4b 50%, #312e81 100%);
+  --header-brand-fg: #e0e7ff;
+}
+body.portal-backend-indigo .topbar,
+body.portal-backend-indigo .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-indigo .page-wrap,
+body.portal-backend-indigo #main-content { background: #1e1b4b !important; }
+body.portal-backend-indigo .card,
+body.portal-backend-indigo .workflow-card { background: #312e81 !important; }
+body.portal-backend-indigo .sidebar,
+body.portal-backend-indigo .portal-sidebar-wrapper { background: #0f0d2e !important; }
+body.portal-backend-indigo .card,
+body.portal-backend-indigo .workflow-card,
+body.portal-backend-indigo .form-control,
+body.portal-backend-indigo .form-select,
+body.portal-backend-indigo .list-group-item,
+body.portal-backend-indigo input,
+body.portal-backend-indigo select,
+body.portal-backend-indigo textarea,
+body.portal-backend-indigo .alert { background-color: #312e81 !important; }
+body.portal-backend-indigo .table-striped tbody tr:nth-of-type(odd),
+body.portal-backend-indigo .dropdown-menu { background: #312e81 !important; }
+
+/* ---- SAND: warm light ---- */
+body.portal-backend-sand {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fef9c3 100%) !important;
+  color: #422006 !important;
+  --backend-text: #422006;
+  --backend-text-muted: #78350f;
+  --backend-surface: #fffbeb;
+  --backend-surface-alt: #fef3c7;
+  --backend-border: rgba(180, 83, 9, 0.2);
+  --admin-dashboard-bg: #fef3c7;
+  --admin-surface: #fffbeb;
+  --brand-primary: #d97706;
+  --brand-success: #059669;
+  --header-brand-bg: linear-gradient(90deg, #d97706 0%, #b45309 100%);
+  --header-brand-fg: #ffffff;
+}
+body.portal-backend-sand .topbar,
+body.portal-backend-sand .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-sand .card,
+body.portal-backend-sand .workflow-card { background: #fffbeb !important; color: #422006 !important; }
+body.portal-backend-sand .sidebar,
+body.portal-backend-sand .portal-sidebar-wrapper { background: #fef3c7 !important; }
+body.portal-backend-sand .text-muted,
+body.portal-backend-sand .workflow-subtitle { color: #78350f !important; }
+body.portal-backend-sand h1,
+body.portal-backend-sand h2,
+body.portal-backend-sand h3,
+body.portal-backend-sand .card-title { color: #422006 !important; }
+
+/* ---- SNOW: cool light ---- */
+body.portal-backend-snow {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f8fafc 100%) !important;
+  color: #0c4a6e !important;
+  --backend-text: #0c4a6e;
+  --backend-text-muted: #0369a1;
+  --backend-surface: #ffffff;
+  --backend-surface-alt: #f0f9ff;
+  --backend-border: rgba(14, 165, 233, 0.2);
+  --admin-dashboard-bg: #f0f9ff;
+  --admin-surface: #ffffff;
+  --brand-primary: #0284c7;
+  --brand-success: #059669;
+  --header-brand-bg: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
+  --header-brand-fg: #ffffff;
+}
+body.portal-backend-snow .topbar,
+body.portal-backend-snow .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-snow .card,
+body.portal-backend-snow .workflow-card { background: #ffffff !important; color: #0c4a6e !important; }
+body.portal-backend-snow .sidebar,
+body.portal-backend-snow .portal-sidebar-wrapper { background: #f0f9ff !important; }
+body.portal-backend-snow .text-muted,
+body.portal-backend-snow .workflow-subtitle { color: #0369a1 !important; }
+body.portal-backend-snow h1,
+body.portal-backend-snow h2,
+body.portal-backend-snow h3,
+body.portal-backend-snow .card-title { color: #0c4a6e !important; }
+
+/* ---- CREAM: ivory light ---- */
+body.portal-backend-cream {
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 50%, #fffbeb 100%) !important;
+  color: #422006 !important;
+  --backend-text: #422006;
+  --backend-text-muted: #713f12;
+  --backend-surface: #fffbeb;
+  --backend-surface-alt: #fefce8;
+  --backend-border: rgba(161, 98, 7, 0.15);
+  --admin-dashboard-bg: #fefce8;
+  --admin-surface: #fffbeb;
+  --brand-primary: #ca8a04;
+  --brand-success: #059669;
+}
+body.portal-backend-cream .topbar,
+body.portal-backend-cream .navbar.topbar { background: linear-gradient(90deg, #fef9c3 0%, #fefce8 50%, #fffbeb 100%) !important; }
+body.portal-backend-cream .card,
+body.portal-backend-cream .workflow-card { background: #fffbeb !important; color: #422006 !important; }
+body.portal-backend-cream .sidebar,
+body.portal-backend-cream .portal-sidebar-wrapper { background: #fefce8 !important; }
+body.portal-backend-cream .text-muted,
+body.portal-backend-cream .workflow-subtitle { color: #713f12 !important; }
+body.portal-backend-cream h1,
+body.portal-backend-cream h2,
+body.portal-backend-cream h3,
+body.portal-backend-cream .card-title { color: #422006 !important; }
+
+/* ---- LAVENDER: soft purple light ---- */
+body.portal-backend-lavender {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #f5f3ff 100%) !important;
+  color: #3b0764 !important;
+  --backend-text: #3b0764;
+  --backend-text-muted: #6b21a8;
+  --backend-surface: #ffffff;
+  --backend-surface-alt: #faf5ff;
+  --backend-border: rgba(147, 51, 234, 0.15);
+  --admin-dashboard-bg: #faf5ff;
+  --admin-surface: #ffffff;
+  --brand-primary: #7c3aed;
+  --brand-success: #059669;
+  --header-brand-bg: linear-gradient(90deg, #7c3aed 0%, #6d28d9 100%);
+  --header-brand-fg: #ffffff;
+}
+body.portal-backend-lavender .topbar,
+body.portal-backend-lavender .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
+body.portal-backend-lavender .card,
+body.portal-backend-lavender .workflow-card { background: #ffffff !important; color: #3b0764 !important; }
+body.portal-backend-lavender .sidebar,
+body.portal-backend-lavender .portal-sidebar-wrapper { background: #faf5ff !important; }
+body.portal-backend-lavender .text-muted,
+body.portal-backend-lavender .workflow-subtitle { color: #6b21a8 !important; }
+body.portal-backend-lavender h1,
+body.portal-backend-lavender h2,
+body.portal-backend-lavender h3,
+body.portal-backend-lavender .card-title { color: #3b0764 !important; }

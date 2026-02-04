@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 
 import csv
+import io
 import logging
+import os
+import tempfile
+import zipfile
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.db.models import Count
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile
 from apps.reports.models import ReportCard
@@ -23,6 +29,7 @@ from .forms import (
     ReportCardStyleAssignmentForm,
     ReportCardStyleForm,
     ReportCardStyleSelectionForm,
+    ThemeColorsForm,
     UserPreferenceForm,
 )
 from .models import (
@@ -45,6 +52,123 @@ logger = logging.getLogger(__name__)
 CACHE_KEY = "site_settings_v1"
 SESSION_KEY = "site_preview_settings"
 PORTAL_PREF_PREVIOUS_PAGE = "portal_pref_previous_page"
+
+# Fields that can be applied to session for "preview before save" (theme + branding + semantic colors).
+PREVIEW_FROM_FORM_KEYS = [
+    "site_name",
+    "tagline",
+    "primary_color",
+    "accent_color",
+    "header_bg_color",
+    "footer_bg_color",
+    "success_color",
+    "warning_color",
+    "danger_color",
+    "theme_brightness",
+    "use_dark_mode",
+    "backend_console_theme",
+    "admin_theme_pack",
+]
+
+
+# Color field names for optional hex validation in preview.
+PREVIEW_COLOR_KEYS = frozenset({
+    "primary_color", "accent_color", "header_bg_color", "footer_bg_color",
+    "success_color", "warning_color", "danger_color",
+})
+
+
+def _is_valid_hex(s):
+    """Return True if s looks like a valid hex color (#rgb or #rrggbb)."""
+    if not s or not isinstance(s, str):
+        return False
+    s = s.strip()
+    if s.startswith("#"):
+        s = s[1:]
+    return len(s) in (3, 6) and all(c in "0123456789AaBbCcDdEeFf" for c in s)
+
+
+def _normalize_preview_value(key, val):
+    """Coerce POST values for preview payload (theme and booleans)."""
+    if val is None or val == "":
+        return None
+    if key == "use_dark_mode":
+        return val in ("on", "true", "1", 1, True)
+    if key == "admin_theme_pack" and isinstance(val, str) and val.strip().isdigit():
+        return int(val.strip())
+    if isinstance(val, str):
+        return val.strip()
+    return val
+
+
+@staff_member_required
+def preview_from_form(request):
+    """
+    Accept POST with current Site Settings (or theme) form data; validate and stash in session,
+    then return redirect_url so the client can open the site in a new tab (live preview before save).
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+    payload = {}
+    errors = []
+    for key in PREVIEW_FROM_FORM_KEYS:
+        val = request.POST.get(key)
+        normalized = _normalize_preview_value(key, val)
+        if normalized is not None:
+            if key in PREVIEW_COLOR_KEYS and normalized and not _is_valid_hex(str(normalized)):
+                errors.append(f"{key.replace('_', ' ')}: invalid hex color")
+                continue
+            payload[key] = normalized
+    if errors:
+        return JsonResponse({"errors": errors}, status=400)
+    request.session[SESSION_KEY] = payload
+    request.session["preview_mode_enabled"] = True
+    request.session.modified = True
+    try:
+        redirect_url = reverse("accounts:redirect")
+    except Exception:
+        redirect_url = "/"
+    # Optional: scroll to the section(s) being previewed. Use query param so it survives redirect.
+    # Supports single section or comma-separated (e.g. "footer,header"). preview_keep=1 keeps highlights until dismiss.
+    preview_section = (request.POST.get("preview_section") or "").strip().lower()
+    preview_keep = request.POST.get("preview_keep") in ("1", "true", "on", "yes")
+    query_parts = []
+    if preview_section:
+        section_map = {
+            "footer-content": "footer",
+            "footer": "footer",
+            "theme-experience": "theme",
+            "theme": "theme",
+            "login-header-layout": "header",
+            "branding": "header",
+            "header": "header",
+            "login": "login",
+            "login-layout": "login",
+            "sidebar": "sidebar",
+        }
+        if "," in preview_section:
+            parts = [p.strip() for p in preview_section.split(",") if p.strip()]
+            normalized = ",".join(section_map.get(p, p) for p in parts)
+            if normalized:
+                query_parts.append("preview_section=" + normalized)
+        else:
+            normalized = section_map.get(preview_section, preview_section)
+            if normalized:
+                query_parts.append("preview_section=" + normalized)
+    if preview_keep:
+        query_parts.append("preview_keep=1")
+    if query_parts:
+        redirect_url += "&" if "?" in redirect_url else "?"
+        redirect_url += "&".join(query_parts)
+    # Redirect to login page when previewing login section (so login page highlights run)
+    if preview_section and "login" in preview_section and "," not in preview_section:
+        try:
+            redirect_url = reverse("accounts:login")
+            if query_parts:
+                redirect_url += "?" + "&".join(query_parts)
+        except Exception:
+            pass
+    return JsonResponse({"redirect_url": redirect_url})
 
 
 def maintenance_view(request):
@@ -249,7 +373,12 @@ def reportcard_style_pdf(request, slug: str, report_type: str):
 @permission_required("settings.manage")
 def clear_preview(request):
     request.session.pop(SESSION_KEY, None)
+    request.session["preview_mode_enabled"] = False
+    request.session.modified = True
     messages.info(request, "Preview cleared.")
+    next_url = request.GET.get("next")
+    if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+        return redirect(next_url)
     return redirect("siteconfig:user_preferences")
 
 
@@ -317,6 +446,213 @@ def report_library(request):
     return render(request, "siteconfig/report_library.html", {"reports": templates})
 
 
+def _get_classrooms_queryset():
+    """Classrooms for bulk letter dropdown; prefer active year."""
+    year, _ = get_active_year_and_term()
+    if year:
+        return Classroom.objects.filter(academic_year=year).order_by("name")
+    return Classroom.objects.select_related("academic_year").order_by("-academic_year__start_date", "name")
+
+
+BULK_LETTER_BODY_MAX_LENGTH = 100_000
+
+
+def _bulk_letters_form_data(request):
+    """Extract form data from POST for re-display on validation errors."""
+    letter_body = request.POST.get("letter_body") or ""
+    # Escape only </textarea> so re-display doesn't break the HTML textarea
+    letter_body_display = letter_body.replace("</textarea>", "&lt;/textarea&gt;")
+    return {
+        "classroom_id": (request.POST.get("classroom_id") or "").strip(),
+        "letter_title": (request.POST.get("letter_title") or "").strip(),
+        "letter_body": letter_body,
+        "letter_body_display": letter_body_display,
+        "include_pdf": request.POST.get("include_pdf") == "on",
+    }
+
+
+@permission_required("settings.manage")
+def bulk_letters(request):
+    """Generate one ODT letter per student in a classroom (mail-merge style). Requires Pandoc."""
+    classrooms = _get_classrooms_queryset()
+    student_counts = dict(
+        StudentProfile.objects.filter(classroom__in=classrooms)
+        .values("classroom_id")
+        .annotate(count=Count("id"))
+        .values_list("classroom_id", "count")
+    )
+    classroom_list = [{"room": r, "student_count": student_counts.get(r.id, 0)} for r in classrooms]
+    if request.method != "POST":
+        return render(
+            request,
+            "siteconfig/bulk_letters.html",
+            {"classroom_list": classroom_list, "form_data": None},
+        )
+    form_data = _bulk_letters_form_data(request)
+    classroom_id = form_data["classroom_id"]
+    letter_title = form_data.get("letter_title") or ""
+    letter_body = form_data["letter_body"].strip()
+    include_pdf = form_data["include_pdf"]
+    if not letter_body:
+        messages.warning(request, "Please enter the letter body.")
+        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+    if len(letter_body) > BULK_LETTER_BODY_MAX_LENGTH:
+        messages.warning(
+            request,
+            f"Letter body is too long (max {BULK_LETTER_BODY_MAX_LENGTH:,} characters).",
+        )
+        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+    classroom = None
+    if classroom_id:
+        try:
+            classroom = Classroom.objects.get(pk=classroom_id)
+        except (ValueError, Classroom.DoesNotExist):
+            pass
+    if not classroom:
+        messages.warning(request, "Please select a classroom.")
+        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+    students = StudentProfile.objects.filter(classroom=classroom).order_by("last_name", "first_name")
+    if not students.exists():
+        messages.warning(request, f"No students in {classroom.name}.")
+        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+    try:
+        from apps.portal.document_generation import html_to_odt
+    except ImportError:
+        messages.error(request, "Bulk letters require the portal document_generation module.")
+        return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+    if include_pdf:
+        try:
+            from apps.portal.document_conversion import convert_to_pdf
+        except ImportError:
+            messages.error(request, "PDF option requires the portal document_conversion module.")
+            return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+    buf = io.BytesIO()
+    pdf_skipped = []  # list of "LastName FirstName (reason)" when PDF conversion is skipped
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for student in students:
+            first_name = student.first_name or ""
+            last_name = student.last_name or ""
+            student_code = student.student_code or ""
+            classroom_name = classroom.name or classroom.code or ""
+            body = (
+                letter_body.replace("{{ first_name }}", first_name)
+                .replace("{{ last_name }}", last_name)
+                .replace("{{ student_code }}", student_code)
+                .replace("{{ classroom }}", classroom_name)
+            )
+            html = (
+                "<!DOCTYPE html><html><head><meta charset='utf-8'/></head><body>"
+                "<div style='font-family: sans-serif;'>"
+                + body
+                + "</div></body></html>"
+            )
+            doc_title = letter_title or f"Letter - {last_name} {first_name}"
+            try:
+                odt_bytes = html_to_odt(html, title=doc_title)
+            except RuntimeError as e:
+                messages.error(request, f"Pandoc conversion failed: {e}")
+                return render(request, "siteconfig/bulk_letters.html", {"classroom_list": classroom_list, "form_data": form_data})
+            safe_name = f"{last_name}_{first_name}_{student_code}".replace(" ", "_")
+            zf.writestr(f"letter_{safe_name}.odt", odt_bytes)
+            if include_pdf:
+                fd, odt_path = tempfile.mkstemp(suffix=".odt", prefix="bulk_letter_")
+                try:
+                    os.write(fd, odt_bytes)
+                    os.close(fd)
+                    fd = None
+                    pdf_bytes = convert_to_pdf(odt_path)
+                    zf.writestr(f"letter_{safe_name}.pdf", pdf_bytes)
+                except RuntimeError as e:
+                    pdf_skipped.append(f"{last_name} {first_name} - {e}")
+                finally:
+                    if fd is not None:
+                        try:
+                            os.close(fd)
+                        except OSError:
+                            pass
+                    try:
+                        os.unlink(odt_path)
+                    except OSError:
+                        pass
+        if pdf_skipped:
+            note = "PDF conversion was skipped for the following (ODT included; LibreOffice may be missing or failed):\n\n" + "\n".join(pdf_skipped)
+            zf.writestr("PDF_CONVERSION_SKIPPED.txt", note.encode("utf-8"))
+    buf.seek(0)
+    response = HttpResponse(buf.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="bulk_letters_{classroom.code}.zip"'
+    return response
+
+
+# Palette groups for Color & harmony page (must match SiteSettingsAdmin.ADMIN_PALETTE_GROUPS)
+_THEME_COLORS_PALETTE_GROUPS = [
+    ("Neutrals", ["admin-academic-slate", "admin-slate-gray"]),
+    ("Blues", ["admin-campus-blue", "admin-sky-blue", "admin-ocean-blue", "admin-indigo-lecture"]),
+    ("Greens", ["admin-forest-academy", "admin-forest-green"]),
+    ("Warm", ["admin-gilead-warm-pink", "admin-sunset-study", "admin-sunset-warm"]),
+    ("Dark", ["admin-midnight-scholar", "admin-gilead-dark-neutral", "admin-deep-space-midnight"]),
+    ("Accessibility", ["admin-high-contrast-light", "admin-high-contrast-dark"]),
+]
+
+
+@staff_member_required
+def theme_colors_page(request):
+    """Standalone Color & harmony page: palette studio, presets, preview; save colors to SiteSettings."""
+    site = SiteSettings.get_solo()
+    all_packs = list(
+        ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name")
+    )
+    admin_theme_packs = [
+        p for p in all_packs
+        if isinstance(getattr(p, "palette", None), dict) and (p.palette or {}).get("admin_dashboard")
+    ]
+    slug_to_pack = {p.slug: p for p in admin_theme_packs}
+    admin_theme_packs_by_group = []
+    for group_label, slugs in _THEME_COLORS_PALETTE_GROUPS:
+        packs_in_group = [slug_to_pack[s] for s in slugs if s in slug_to_pack]
+        if packs_in_group:
+            admin_theme_packs_by_group.append((group_label, packs_in_group))
+    in_any_group = {p for _, plist in admin_theme_packs_by_group for p in plist}
+    other = [p for p in admin_theme_packs if p not in in_any_group]
+    if other:
+        admin_theme_packs_by_group.append(("Other", other))
+
+    if request.method == "POST":
+        form = ThemeColorsForm(request.POST, instance=site)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Theme & experience settings saved.")
+            back_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
+            if back_url and back_url.startswith("/"):
+                return redirect(back_url)
+            return redirect("siteconfig:theme_colors")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = ThemeColorsForm(instance=site)
+
+    try:
+        admin_change_url = reverse(
+            "admin:siteconfig_sitesettings_change",
+            args=[site.pk],
+        )
+    except Exception:
+        admin_change_url = None
+    back_url = request.GET.get("next") or admin_change_url
+    if back_url and not back_url.startswith("/"):
+        back_url = admin_change_url
+
+    return render(
+        request,
+        "siteconfig/theme_colors.html",
+        {
+            "form": form,
+            "admin_theme_packs": admin_theme_packs,
+            "admin_theme_packs_by_group": admin_theme_packs_by_group,
+            "admin_change_url": admin_change_url,
+            "back_url": back_url,
+        },
+    )
+
+
 @staff_member_required
 def toggle_preview_mode(request):
     enabled = bool(request.session.get(PREVIEW_MODE_SESSION_KEY))
@@ -349,6 +685,25 @@ def set_act_as_role(request):
     return redirect(next_url)
 
 
+def _report_format_from_request(request, template):
+    """Resolve format: optional ?format= overrides template.preferred_format."""
+    raw = (request.GET.get("format") or "").strip().upper()
+    if raw in ReportTemplate.ReportFormat.values:
+        return raw
+    return (template.preferred_format or ReportTemplate.ReportFormat.CSV).upper()
+
+
+def _report_filename(slug, fmt):
+    """File extension for format (EXCEL -> .xlsx)."""
+    if fmt == ReportTemplate.ReportFormat.EXCEL:
+        return f"{slug}.xlsx"
+    if fmt == ReportTemplate.ReportFormat.ODS:
+        return f"{slug}.ods"
+    if fmt == ReportTemplate.ReportFormat.PDF:
+        return f"{slug}.pdf"
+    return f"{slug}.csv"
+
+
 @permission_required("settings.manage")
 def download_report(request, slug):
     template = get_object_or_404(ReportTemplate, slug=slug, is_active=True)
@@ -358,7 +713,17 @@ def download_report(request, slug):
         messages.warning(request, "No export handler registered for this report.")
         return redirect("siteconfig:report_library")
 
-    return render_csv_response(headers, rows, template.filename())
+    fmt = _report_format_from_request(request, template)
+    filename = _report_filename(template.slug, fmt)
+
+    if fmt == ReportTemplate.ReportFormat.EXCEL:
+        return _render_xlsx_response(headers, rows, filename)
+    if fmt == ReportTemplate.ReportFormat.ODS:
+        return _render_ods_response(headers, rows, filename)
+    if fmt == ReportTemplate.ReportFormat.PDF:
+        return _render_report_pdf_response(request, template.name, headers, rows, filename)
+
+    return render_csv_response(headers, rows, filename)
 
 
 def render_csv_response(headers, rows, filename) -> HttpResponse:
@@ -367,6 +732,85 @@ def render_csv_response(headers, rows, filename) -> HttpResponse:
     writer = csv.writer(response)
     writer.writerow(headers)
     writer.writerows(rows)
+    return response
+
+
+def _render_xlsx_response(headers, rows, filename) -> HttpResponse:
+    """Serve report as Excel (.xlsx) using openpyxl."""
+    try:
+        from openpyxl import Workbook
+    except ImportError:
+        return HttpResponse(
+            "Excel export requires openpyxl. Install with: pip install openpyxl",
+            status=503,
+            content_type="text/plain",
+        )
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Report"
+    for col, value in enumerate(headers, 1):
+        ws.cell(row=1, column=col, value=value)
+    for row_idx, row in enumerate(rows, 2):
+        for col_idx, value in enumerate(row, 1):
+            ws.cell(row=row_idx, column=col_idx, value=value)
+    from io import BytesIO
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    response = HttpResponse(buf.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def _render_ods_response(headers, rows, filename) -> HttpResponse:
+    """Serve report as LibreOffice Calc (.ods) using odfpy."""
+    try:
+        from odf.opendocument import OpenDocumentSpreadsheet
+        from odf.table import Table, TableRow, TableCell
+        from odf.text import P
+    except ImportError:
+        return HttpResponse(
+            "ODS export requires odfpy. Install with: pip install odfpy",
+            status=503,
+            content_type="text/plain",
+        )
+    from io import BytesIO
+    doc = OpenDocumentSpreadsheet()
+    table = Table(name="Report")
+    doc.spreadsheet.addElement(table)
+    # Header row
+    tr = TableRow()
+    for h in headers:
+        tc = TableCell(valuetype="string")
+        tc.addElement(P(text=str(h)))
+        tr.addElement(tc)
+    table.addElement(tr)
+    # Data rows
+    for row in rows:
+        tr = TableRow()
+        for val in row:
+            tc = TableCell(valuetype="string")
+            tc.addElement(P(text=str(val)))
+            tr.addElement(tc)
+        table.addElement(tr)
+    buf = BytesIO()
+    doc.write(buf)
+    buf.seek(0)
+    response = HttpResponse(
+        buf.getvalue(),
+        content_type="application/vnd.oasis.opendocument.spreadsheet",
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
+def _render_report_pdf_response(request, report_name, headers, rows, filename) -> HttpResponse:
+    """Serve report as PDF using WeasyPrint (table template)."""
+    from apps.reports.weasy import render_pdf_bytes
+    context = {"report_name": report_name, "headers": headers, "rows": rows}
+    pdf_bytes = render_pdf_bytes(request, "siteconfig/report_table_pdf.html", context)
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
 # ==========================

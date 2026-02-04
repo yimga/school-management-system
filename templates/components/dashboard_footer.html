@@ -2,9 +2,9 @@
 {% load accounts_extras %}
 <footer class="dashboard-footer" id="dashboardFooter">
   {% with can_portal=request.user|has_feature_permission:"portal.manage" can_reports=request.user|has_feature_permission:"reports.manage" can_attendance=request.user|has_feature_permission:"attendance.manage" can_finance_view=request.user|has_feature_permission:"finance.view" can_finance_manage=request.user|has_feature_permission:"finance.manage" can_data_access=request.user|has_feature_permission:"data.access" can_settings=request.user|has_feature_permission:"settings.manage" can_comms=request.user|has_feature_permission:"communication.manage" %}
-  <div class="footer-shell">
+  <div class="footer-shell" id="preview-footer-bg" data-preview-label="Footer background &amp; colors">
     <div class="footer-top">
-      <div class="footer-card brand-card">
+      <div class="footer-card brand-card" id="preview-footer-brand" data-preview-label="Logo, company name &amp; accreditation">
         <div class="brand-logo">
           {% if SITE_LOGO_URL %}
             <img src="{{ SITE_LOGO_URL }}" alt="{{ SITE.company_name|default:'School Management System' }}" width="48" height="48" loading="lazy">
@@ -18,11 +18,16 @@
           <p class="brand-micro">{{ SITE.footer_accreditation_subtext|default:"Certified for educational institutions worldwide | ISO 9001:2015 Quality Management" }}</p>
         </div>
       </div>
-      <div class="footer-card help-card">
+      <div class="footer-card help-card" id="preview-footer-help" data-preview-label="Support hours &amp; contact">
         <div class="help-title">Need extra help?</div>
         <div class="help-hours">{{ SITE.footer_support_hours|default:"Mon-Fri: 8AM-6PM | Sat: 9AM-4PM" }}</div>
-        {% if SITE.footer_whatsapp_url %}
-          <a class="pill-button success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noreferrer">WhatsApp Support</a>
+        {% if SITE.whatsapp_support_number or SITE.footer_whatsapp_url %}
+          {% if SITE.whatsapp_support_number %}
+            {# Prefer wa.me link built from configured support number #}
+            <a class="pill-button success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I need help with the school management system.'|urlencode }}" target="_blank" rel="noreferrer">WhatsApp Support</a>
+          {% else %}
+            <a class="pill-button success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noreferrer">WhatsApp Support</a>
+          {% endif %}
         {% else %}
           <a class="pill-button success" href="mailto:{{ SITE.company_email|default:'support@school.com' }}">Email Support</a>
         {% endif %}
@@ -106,7 +111,7 @@
       {% endfor %}
     </div>
 
-    <div class="footer-meta small">
+    <div class="footer-meta small" id="preview-footer-meta" data-preview-label="Copyright &amp; company name">
       <span>&copy; {% now "Y" %} {{ SITE.company_name|default:"Gilead Tech High School" }}. All rights reserved.</span>
       <span class="meta-powered">Powered by <strong>School Management System</strong></span>
     </div>
@@ -118,10 +123,10 @@
 /* Footer height reduced ~15%: padding, gaps, min-heights and font sizes scaled; width and layout unchanged */
 .dashboard-footer {
   width: 100%;
-  background: linear-gradient(180deg, rgba(6, 12, 34, 0.92), rgba(4, 10, 28, 0.95));
-  color: #e2e8f0;
+  background: var(--footer-bg);
+  color: var(--footer-text);
   padding: 0.4rem 1.2rem;
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  border-top: 1px solid var(--footer-border);
   font-size: 0.82rem;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }

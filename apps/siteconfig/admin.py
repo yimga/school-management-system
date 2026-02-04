@@ -2,6 +2,7 @@ from django.contrib import admin
 from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
+from django.template.loader import render_to_string
 from django.utils.html import format_html
 from django.contrib import messages
 from django.http import HttpResponse
@@ -10,6 +11,8 @@ from django.db import models
 import csv
 from datetime import datetime
 from django.core.exceptions import ValidationError
+from django.urls import reverse
+from urllib.parse import quote
 
 from .models import (
     Integration,
@@ -24,6 +27,7 @@ from .models import (
     HolidayCalendar,
 )
 from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout, FeatureControlAudit
+from .context_processors import SESSION_KEY
 from apps.academics.models import AcademicYear
 from .models import default_backend_feature_flags
 from apps.accounts.models import User
@@ -308,7 +312,10 @@ class SiteSettingsAdmin(ModelAdmin):
         """
         fields = kwargs.get("fields")
         if fields:
-            kwargs["fields"] = [field for field in fields if field != "backend_flags_summary"]
+            kwargs["fields"] = [
+                f for f in fields
+                if f not in ("backend_flags_summary", "theme_color_tools_link_block", "portal_features_help", "automation_overview_block", "rbac_discovery_block")
+            ]
         return super().get_form(request, obj=obj, **kwargs)
 
     # Only allow ONE row
@@ -333,10 +340,16 @@ class SiteSettingsAdmin(ModelAdmin):
         # Keep the model hidden for non-admin staff; other siteconfig models remain visible via their own admins.
         return self._is_site_admin(request.user)
 
-    readonly_fields = ("updated_at", "logo_preview")
+    readonly_fields = ("updated_at", "logo_preview", "site_summary", "theme_color_tools_link_block", "portal_features_help", "automation_overview_block", "rbac_discovery_block")
 
     fieldsets = (
+        ("At a glance", {
+            "classes": ("tab",),
+            "description": "Current site state. Use the other tabs to edit.",
+            "fields": ("site_summary",),
+        }),
         ("Branding", {
+            "classes": ("tab",),
             "fields": (
                 "site_name",
                 "tagline",
@@ -353,6 +366,7 @@ class SiteSettingsAdmin(ModelAdmin):
             )
         }),
         ("Preview & Draft", {
+            "classes": ("tab",),
             "description": "Stage changes without committing globally. Preview applies only to your session until cleared.",
             "fields": (
                 "preview_mode_enabled",
@@ -360,6 +374,7 @@ class SiteSettingsAdmin(ModelAdmin):
             ),
         }),
         ("Company Details", {
+            "classes": ("tab",),
             "fields": (
                 "company_name",
                 "company_slug",
@@ -372,6 +387,7 @@ class SiteSettingsAdmin(ModelAdmin):
             )
         }),
         ("Login, Header & Layout", {
+            "classes": ("tab",),
             "fields": (
                 "login_hero_heading",
                 "login_hero_subtext",
@@ -388,14 +404,20 @@ class SiteSettingsAdmin(ModelAdmin):
             )
         }),
         ("Theme & Experience", {
+            "classes": ("tab",),
+            "description": "Color Picker — Searching for that perfect color? Use our hex color picker to browse millions of colors and harmonies, and export Hex, RGB, HSL and OKLCH codes.",
             "fields": (
                 "primary_color",
                 "accent_color",
+                "header_bg_color",
+                "footer_bg_color",
                 "success_color",
                 "warning_color",
                 "danger_color",
                 "theme_brightness",
                 "use_dark_mode",
+                "admin_theme_pack",
+                "admin_use_site_primary",
                 "backend_console_theme",
                 "secondary_font",
                 "use_secondary_font_for_headings",
@@ -406,36 +428,13 @@ class SiteSettingsAdmin(ModelAdmin):
                 "default_refresh_rate",
                 "default_term_report_style",
                 "default_annual_report_style",
+                "theme_color_tools_link_block",
             )
         }),
-        ("Admin Sidebar Theme", {
-            "classes": ("collapse",),
-            "fields": (
-                "admin_sidebar_bg_color",
-                "admin_sidebar_surface_color",
-                "admin_sidebar_border_color",
-                "admin_sidebar_text_color",
-                "admin_sidebar_text_muted_color",
-                "admin_sidebar_hover_color",
-                "admin_sidebar_active_color",
-                "admin_sidebar_active_border_color",
-                "admin_sidebar_badge_bg_color",
-                "admin_sidebar_badge_text_color",
-                "admin_sidebar_child_bg_start",
-                "admin_sidebar_child_bg_end",
-                "admin_sidebar_child_border_color",
-                "admin_sidebar_child_hover_color",
-                "admin_sidebar_child_active_color",
-                "admin_use_site_primary",
-            )
-        }),
-        ("Admin Portal", {
+        ("Portal & content", {
+            "classes": ("tab",),
             "fields": (
                 "admin_portal_stats_config",
-            )
-        }),
-        ("Portal Content", {
-            "fields": (
                 "portal_quick_actions",
                 "portal_announcements",
                 "portal_recent_grades",
@@ -443,23 +442,26 @@ class SiteSettingsAdmin(ModelAdmin):
             )
         }),
         ("Footer Content", {
+            "classes": ("tab",),
             "fields": (
                 "footer_accreditation_text",
                 "footer_accreditation_subtext",
                 "footer_support_hours",
                 "footer_whatsapp_url",
+                "whatsapp_support_number",
+                "whatsapp_admissions_number",
+                "enable_whatsapp_parent_portal",
+                "enable_whatsapp_staff_portal",
                 "footer_status_text",
                 "footer_badges",
                 "footer_links",
             )
         }),
-        ("System Behavior", {
-            "fields": (
-                "maintenance_mode",
-            )
-        }),
         ("Feature Toggles (Modules)", {
+            "classes": ("tab",),
+            "description": "Enable or disable portal modules and report PDFs. Portal feature flags (syllabus, documents, etc.) can also be edited as JSON below, or via Feature Control with an audit trail.",
             "fields": (
+                "portal_features_help",
                 "enable_parent_portal",
                 "enable_teacher_portal",
                 "enable_reports_pdf",
@@ -467,6 +469,8 @@ class SiteSettingsAdmin(ModelAdmin):
             )
         }),
         ("Backend Orchestration & Limits", {
+            "classes": ("tab",),
+            "description": "Backend feature flags are JSON; use Feature Control for an audited toggle UI. Summary below reflects current flags. To manage who can do what (users and roles): use the Admin sidebar → Authentication → Users or Groups, or use the link below.",
             "fields": (
                 "enable_entity_console",
                 "allowed_roles_entity_console",
@@ -479,20 +483,87 @@ class SiteSettingsAdmin(ModelAdmin):
                 "allow_finance_access_requests",
                 "max_bulk_import_rows",
                 "backend_feature_flags",
+                "rbac_discovery_block",
                 "backend_flags_summary",
             )
         }),
         ("Notifications & Analytics", {
+            "classes": ("tab",),
+            "description": "Guardian notifications: in-app and optional email for new invoices and payments. Parent welcome email when creating parent accounts from backend.",
             "fields": (
                 "notification_channels",
+                "finance_notify_guardians_new_invoice",
+                "finance_notify_guardians_payment_received",
+                "finance_notify_new_invoice_email",
+                "finance_notify_payment_received_email",
+                "notify_parent_welcome_email",
             )
         }),
         ("Compliance & Payroll", {
+            "classes": ("tab",),
             "fields": (
                 "compliance_profile",
+                "require_mfa_roles",
+                "requests_reminder_interval_hours",
+            )
+        }),
+        ("Reports (publish & grades)", {
+            "classes": ("tab",),
+            "description": "When grade approval is enabled, you can require approved grades before publishing term results and show only approved grades on report cards.",
+            "fields": (
+                "reports_require_approved_grades_before_publish",
+                "reports_use_approved_grades_only",
+            )
+        }),
+        ("Finance Automation", {
+            "classes": ("tab",),
+            "description": "All finance automation in one place. Sections: (1) Fee invoice generation, (2) Fee plan copying, (3) Payment reminders, (4) Invoice status updates, (5) Receipt verification, (6) Bank deposit verification, (7) Payment instructions, (8) Real-world scenarios (overpayment, void, withdrawal, retries).",
+            "fields": (
+                "finance_auto_generate_invoices_enabled",
+                "finance_auto_generate_schedule",
+                "finance_auto_generate_due_date_offset_days",
+                "finance_auto_generate_require_approval",
+                "finance_fee_plan_auto_copy_enabled",
+                "finance_fee_plan_auto_copy_mode",
+                "finance_fee_plan_copy_increase_percentage",
+                "finance_payment_reminder_default_channels",
+                "finance_payment_reminder_default_days",
+                "finance_payment_reminder_enable_whatsapp",
+                "finance_invoice_auto_status_updates_enabled",
+                "finance_invoice_overdue_grace_period_days",
+                "finance_receipt_upload_enabled",
+                "finance_receipt_auto_verify_enabled",
+                "finance_receipt_verification_method",
+                "finance_receipt_auto_apply_enabled",
+                "finance_receipt_auto_apply_threshold",
+                "finance_receipt_require_admin_approval",
+                "finance_receipt_amount_tolerance",
+                "finance_bank_verification_enabled",
+                "finance_bank_verification_auto_approve",
+                "finance_bank_verification_tolerance_days",
+                "finance_bank_verification_amount_tolerance",
+                "finance_payment_instructions_bank",
+                "finance_payment_instructions_mtn_momo",
+                "finance_payment_instructions_orange_money",
+                "finance_payment_instructions_cash",
+                "finance_receipt_upload_instructions",
+                "finance_reminder_no_contact_action",
+                "finance_receipt_max_size_mb",
+                "finance_receipt_allowed_extensions",
+                "finance_overpayment_handling",
+                "finance_overpayment_tolerance_xaf",
+                "finance_void_invoice_with_payments",
+                "finance_on_student_withdrawal",
+                "finance_receipt_idempotency_window_minutes",
+                "finance_reminder_retry_failed_hours",
+                "finance_reminder_max_retries",
+                "finance_receipt_require_verification_reason",
+                "finance_receipt_second_approval_threshold_xaf",
             )
         }),
         ("Analytics Defaults", {
+            "classes": ("tab", "collapse"),
+            "description": "Default values used by Analytics dashboards: top students list size, pass mark, promotion rules, weak subject threshold, improvement delta, and deadline display mode. Change these to match school policy.",
             "fields": (
                 "top_students_default_limit",
                 "pass_mark",
@@ -502,10 +573,88 @@ class SiteSettingsAdmin(ModelAdmin):
                 "deadline_mode",
             )
         }),
+        ("Automation (execution & approval)", {
+            "classes": ("tab",),
+            "description": "All scheduled and manual automations (invoice generation, payment reminders, deadline reminders, etc.) log to Execution Log. High-impact tasks can use the Approval Queue when enabled in Finance Automation. Schedules and thresholds are configured in the sections above (e.g. Finance Automation, Notifications).",
+            "fields": ("automation_overview_block",),
+        }),
         ("Metadata", {
+            "classes": ("tab",),
             "fields": ("updated_at",),
         }),
     )
+
+    # Vertical sidebar navigation for Site Settings (Phase 6.1: logical buckets for non-technical admins).
+    SETTINGS_NAV_GROUPS = [
+        ("Academics", [
+            ("Reports (publish & grades)", "reports-publish-grades"),
+            ("Analytics Defaults", "analytics-defaults"),
+        ]),
+        ("Finance", [
+            ("Finance Automation", "finance-automation"),
+        ]),
+        ("System", [
+            ("Feature Toggles (Modules)", "feature-toggles-modules"),
+            ("Portal & content", "portal-content"),
+            ("Backend Orchestration & Limits", "backend-orchestration-limits"),
+            ("Compliance & Payroll", "compliance-payroll"),
+            ("Automation (execution & approval)", "automation-execution-approval"),
+            ("Metadata", "metadata"),
+        ]),
+        ("Branding & experience", [
+            ("At a glance", "at-a-glance"),
+            ("Branding", "branding"),
+            ("Preview & Draft", "preview-draft"),
+            ("Company Details", "company-details"),
+            ("Login, Header & Layout", "login-header-layout"),
+            ("Theme & Experience", "theme-experience"),
+            ("Footer Content", "footer-content"),
+        ]),
+        ("Notifications", [
+            ("Notifications & Analytics", "notifications-analytics"),
+        ]),
+    ]
+
+    # Hard color palette groups for Theme & Experience: show admin theme packs in applets by group
+    ADMIN_PALETTE_GROUPS = [
+        ("Neutrals", ["admin-academic-slate", "admin-slate-gray"]),
+        ("Blues", ["admin-campus-blue", "admin-sky-blue", "admin-ocean-blue", "admin-indigo-lecture"]),
+        ("Greens", ["admin-forest-academy", "admin-forest-green"]),
+        ("Warm", ["admin-gilead-warm-pink", "admin-sunset-study", "admin-sunset-warm"]),
+        ("Dark", ["admin-midnight-scholar", "admin-gilead-dark-neutral", "admin-deep-space-midnight"]),
+        ("Accessibility", ["admin-high-contrast-light", "admin-high-contrast-dark"]),
+    ]
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        extra_context = extra_context or {}
+        # Ensure title is "Site Settings" (avoid any pluralisation that could produce "Site Settingss")
+        extra_context.setdefault("title", "Site Settings")
+        all_packs = list(
+            ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name")
+        )
+        admin_theme_packs = [
+            p for p in all_packs
+            if isinstance(getattr(p, "palette", None), dict) and (p.palette or {}).get("admin_dashboard")
+        ]
+        slug_to_pack = {p.slug: p for p in admin_theme_packs}
+        admin_theme_packs_by_group = []
+        for group_label, slugs in self.ADMIN_PALETTE_GROUPS:
+            packs_in_group = [slug_to_pack[s] for s in slugs if s in slug_to_pack]
+            if packs_in_group:
+                admin_theme_packs_by_group.append((group_label, packs_in_group))
+        # Any pack not in a group goes into "Other"
+        in_any_group = {p for _, plist in admin_theme_packs_by_group for p in plist}
+        other = [p for p in admin_theme_packs if p not in in_any_group]
+        if other:
+            admin_theme_packs_by_group.append(("Other", other))
+        extra_context["admin_theme_packs"] = admin_theme_packs
+        extra_context["admin_theme_packs_by_group"] = admin_theme_packs_by_group
+        extra_context["settings_nav_groups"] = self.SETTINGS_NAV_GROUPS
+        # Section slugs present in fieldsets (tab class) for sidebar highlighting
+        extra_context["settings_section_slugs"] = [
+            slug for _group, items in self.SETTINGS_NAV_GROUPS for _name, slug in items
+        ]
+        return super().changeform_view(request, object_id, form_url, extra_context)
 
     def logo_preview(self, obj):
         if obj.logo:
@@ -516,6 +665,109 @@ class SiteSettingsAdmin(ModelAdmin):
         return "No logo uploaded"
 
     logo_preview.short_description = "Logo Preview"
+
+    def site_summary(self, obj):
+        """Read-only summary for the first tab: site name, logo, primary color, key toggles."""
+        if not obj or not obj.pk:
+            return mark_safe("<p>Save once to see the summary.</p>")
+        name = getattr(obj, "site_name", None) or "—"
+        primary = (getattr(obj, "primary_color", None) or "").strip() or "#0d6efd"
+        logo_html = ""
+        if obj.logo:
+            logo_html = format_html(
+                '<img src="{}" alt="" style="height:48px;border-radius:8px;background:#fff;padding:4px;margin-right:12px;" />',
+                obj.logo.url,
+            )
+        toggles = []
+        for label, val in [
+            ("Maintenance", getattr(obj, "maintenance_mode", False)),
+            ("Parent portal", getattr(obj, "enable_parent_portal", True)),
+            ("Teacher portal", getattr(obj, "enable_teacher_portal", True)),
+            ("Reports PDF", getattr(obj, "report_downloads_enabled", True)),
+            ("Dark mode", getattr(obj, "use_dark_mode", False)),
+        ]:
+            toggles.append(
+                '<span style="display:inline-block;margin-right:12px;font-size:0.85rem;">'
+                '<span style="color:{};">●</span> {}: {}</span>'.format(
+                    "#22c55e" if val else "#94a3b8", label, "On" if val else "Off"
+                )
+            )
+        formatted_inner = (
+            '<div><strong>{0}</strong><br><span style="font-size:0.9rem;color:var(--color-base-600,#64748b);">Primary: </span>'
+            '<span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:{1};vertical-align:middle;margin-left:4px;"></span>'
+            '<code style="font-size:0.8rem;margin-left:4px;">{2}</code></div>'
+        ).format(name, primary, primary)
+        body = (
+            '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:1rem;padding:0.5rem 0;">'
+            + (logo_html if isinstance(logo_html, str) else logo_html)
+            + formatted_inner
+            + '<div style="flex:1 1 100%;margin-top:0.5rem;border-top:1px solid var(--admin-content-border,rgba(0,0,0,0.08));padding-top:0.5rem;">'
+            + "".join(toggles)
+            + "</div></div>"
+        )
+        return mark_safe(body)
+
+    site_summary.short_description = "Summary"
+
+    def theme_color_tools_link_block(self, obj):
+        """Link to the combined Theme & Experience page (no sidebars; back returns here)."""
+        try:
+            url = reverse("siteconfig:theme_colors")
+            next_path = reverse("admin:siteconfig_sitesettings_change", args=[obj.pk]) + "#section-theme-experience"
+            url += "?next=" + quote(next_path, safe="/#")
+        except Exception:
+            url = "/siteconfig/theme-colors/"
+        return format_html(
+            '<p class="mb-2 text-muted">{}</p><a href="{}" class="btn btn-primary" target="_blank" rel="noopener">{}</a>',
+            "Open the Theme & Experience page to pick colors, harmonies, and edit all theme settings in one place. Back button returns here.",
+            url,
+            "Open Theme & Experience",
+        )
+
+    theme_color_tools_link_block.short_description = ""
+
+    def portal_features_help(self, obj):
+        """Link to Feature Control for audited feature toggles."""
+        try:
+            url = reverse("siteconfig:feature_control_panel")
+            return format_html(
+                '<p class="mb-3 text-sm">'
+                'To toggle features (syllabus, documents, forums, etc.) with an <strong>audit trail</strong>, '
+                'use <a href="{}" class="underline">Feature Control</a>.</p>',
+                url,
+            )
+        except Exception:
+            return ""
+    portal_features_help.short_description = ""
+
+    def automation_overview_block(self, obj):
+        """Links to Execution Log and Approval Queue in admin (Phase 3.1)."""
+        try:
+            return render_to_string(
+                "admin/siteconfig/sitesettings/automation_overview_block.html",
+                context={
+                    "execution_log_url": reverse("admin:automation_automationexecutionlog_changelist"),
+                    "approval_queue_url": reverse("admin:automation_automationapprovalqueue_changelist"),
+                },
+            )
+        except Exception:
+            return ""
+    automation_overview_block.short_description = ""
+
+    def rbac_discovery_block(self, obj):
+        """Phase 6.2: Clear entry point for User Permissions / RBAC (who can do what)."""
+        try:
+            users_url = reverse("admin:accounts_user_changelist")
+            groups_url = reverse("admin:auth_group_changelist")
+            return format_html(
+                '<p class="mb-2 text-sm">Manage users and roles:</p>'
+                '<a href="{}" class="btn btn-outline-primary btn-sm me-2">Users</a>'
+                '<a href="{}" class="btn btn-outline-primary btn-sm">Groups (roles)</a>',
+                users_url, groups_url,
+            )
+        except Exception:
+            return ""
+    rbac_discovery_block.short_description = "User permissions (who can do what)"
 
     def backend_flags_summary(self, obj):
         flags = getattr(obj, "backend_feature_flags", {}) or {}
@@ -565,19 +817,6 @@ class SiteSettingsAdmin(ModelAdmin):
                     "success_color",
                     "warning_color",
                     "danger_color",
-                    "admin_sidebar_bg_color",
-                    "admin_sidebar_surface_color",
-                    "admin_sidebar_border_color",
-                    "admin_sidebar_text_color",
-                    "admin_sidebar_text_muted_color",
-                    "admin_sidebar_hover_color",
-                    "admin_sidebar_active_color",
-                    "admin_sidebar_active_border_color",
-                    "admin_sidebar_child_bg_start",
-                    "admin_sidebar_child_bg_end",
-                    "admin_sidebar_child_border_color",
-                    "admin_sidebar_child_hover_color",
-                    "admin_sidebar_child_active_color",
                 ]
             }
             request.session[SESSION_KEY] = preview_payload
@@ -598,10 +837,23 @@ class SiteSettingsAdmin(ModelAdmin):
 
 
 class ThemePackAdmin(ModelAdmin):
+    change_form_template = "admin/siteconfig/themepack/change_form.html"
     list_display = ("name", "is_active", "is_default", "layout", "palette_preview")
     list_filter = ("is_active", "layout")
     prepopulated_fields = {"slug": ("name",)}
     search_fields = ("name", "slug")
+    fieldsets = (
+        (
+            "Color Picker",
+            {
+                "description": "Searching for that perfect color? Use our hex color picker to browse millions of colors and harmonies, and export Hex, RGB, HSL and OKLCH codes.",
+                "fields": ("primary_color", "accent_color", "background_color"),
+            },
+        ),
+        (None, {"fields": ("name", "slug", "description", "font_family", "layout", "palette")}),
+        ("Assets", {"fields": ("logo", "background_image", "video_background", "svg_background", "logo_opacity", "logo_background_mode")}),
+        ("Options", {"fields": ("applies_to_admin", "is_active", "is_default", "custom_css")}),
+    )
 
     def palette_preview(self, obj):
         start, end = obj.gradient_colors
@@ -612,7 +864,7 @@ class ThemePackAdmin(ModelAdmin):
 
 
 class UserPreferenceAdmin(ModelAdmin):
-    list_display = ("user", "dashboard_view", "timezone", "refresh_rate_minutes")
+    list_display = ("user", "dashboard_view", "timezone", "preferred_language", "preferred_region", "refresh_rate_minutes")
     search_fields = ("user__username", "user__email")
     readonly_fields = ("created_at", "updated_at")
 
@@ -625,10 +877,23 @@ class ReportTemplateAdmin(ModelAdmin):
 
 
 class ReportCardStyleAdmin(ModelAdmin):
+    change_form_template = "admin/siteconfig/reportcardstyle/change_form.html"
     list_display = ("name", "slug", "is_active", "term_template", "annual_template")
     list_filter = ("is_active",)
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
+    fieldsets = (
+        (
+            "Color Picker",
+            {
+                "description": "Searching for that perfect color? Use our hex color picker to browse millions of colors and harmonies, and export Hex, RGB, HSL and OKLCH codes.",
+                "fields": ("primary_color", "accent_color"),
+            },
+        ),
+        (None, {"fields": ("name", "slug", "description", "term_template", "annual_template")}),
+        ("Report styling", {"fields": ("watermark_text", "header_tagline", "css_snippet", "labels", "layout_config")}),
+        ("Options", {"fields": ("is_active",)}),
+    )
 
 
 class ReportCardStyleAssignmentAdmin(ModelAdmin):

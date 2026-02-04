@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Grading Deadlines{% endblock %}
 
@@ -8,7 +9,7 @@
     <h2 class="mb-0">Grading Deadlines</h2>
     <div class="text-muted">Manage custom deadlines by term and classroom.</div>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'analytics:dashboard' %}">Back to Analytics</a>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'analytics:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Analytics</a>
 </div>
 
 <div class="card mb-3">
@@ -66,32 +67,25 @@
 <div class="card">
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-sm align-middle">
+      <table class="table table-sm align-middle" aria-label="Grading deadlines by scope and date">
         <thead>
           <tr>
-            <th>Scope</th>
-            <th>Deadline</th>
-            <th style="width:120px;"></th>
+            <th scope="col">Scope</th>
+            <th scope="col">Deadline</th>
+            <th scope="col" style="width:120px;"></th>
           </tr>
         </thead>
         <tbody>
           {% for d in deadlines %}
             <tr>
-              <td>{{ d.classroom.name|default:"Whole school" }}</td>
-              <td>{{ d.deadline_at|date:"Y-m-d H:i" }}</td>
+              <td>{{ d.classroom }} — {{ d.subject }}</td>
+              <td>{{ d.deadline_at|format_date }} {{ d.deadline_at|time:"H:i" }}</td>
               <td class="text-end">
-                <form method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="year" value="{{ year.id }}">
-                  <input type="hidden" name="term" value="{{ term.id }}">
-                  <input type="hidden" name="deadline_id" value="{{ d.id }}">
-                  <input type="hidden" name="action" value="delete">
-                  <button class="btn btn-outline-danger btn-sm" type="submit">Remove</button>
-                </form>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:extend_deadline' d.subject_assignment.id %}">Extend</a>
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="3" class="text-muted">No custom deadlines set for this term.</td></tr>
+            <tr><td colspan="3" class="text-muted">No custom deadlines set for this term. Set grading deadlines on Subject Assignments in the admin.</td></tr>
           {% endfor %}
         </tbody>
       </table>

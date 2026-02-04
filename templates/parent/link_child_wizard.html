@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 {% block title %}Link a Child{% endblock %}
 
 {% block extrastyle %}
@@ -478,7 +479,7 @@
               {% if referral_bonus and referral_bonus > 0 %}
                 <div class="alert alert-info small mt-2 mb-0">
                   <i class="bi bi-info-circle me-1"></i>
-                  Referral bonus: {{ referral_bonus|floatformat:2 }} credits
+                  Referral bonus: {{ referral_bonus|format_number:2 }} credits
                 </div>
               {% endif %}
               {% if form.referral_code.errors %}

@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
+from apps.accounts.utils import get_user_role
 from apps.siteconfig.models_dashboard import (
     DashboardLayout,
     DashboardLayoutAudit,
@@ -34,7 +35,7 @@ ALLOWED_LIGHT_CUSTOM_ROLES = {
 def _can_customize(user) -> bool:
     if not user or not user.is_authenticated:
         return False
-    role = (getattr(user, "role", "") or "").upper()
+    role = get_user_role(user)
     return bool(user.is_staff or user.is_superuser or role in ALLOWED_CUSTOM_ROLES)
 
 
@@ -42,7 +43,7 @@ def _can_light_customize(user) -> bool:
     """Light mode: hide/restore widgets only (no drag). Used for parent dashboard."""
     if not user or not user.is_authenticated:
         return False
-    role = (getattr(user, "role", "") or "").upper()
+    role = get_user_role(user)
     return bool(role in ALLOWED_LIGHT_CUSTOM_ROLES or _can_customize(user))
 
 
@@ -141,7 +142,7 @@ def _create_layout_from_legacy(user, page: str) -> DashboardLayout | None:
         user=user,
         page=page,
         defaults={
-            "role": (getattr(user, "role", "") or "").upper(),
+            "role": get_user_role(user),
             "layout": payload,
             "is_default": False,
         },
@@ -165,7 +166,7 @@ def get_layout_for_page(user, page: str):
         return None
     layout_obj = DashboardLayout.objects.filter(user=user, page=page).first()
     if not layout_obj:
-        role = (getattr(user, "role", "") or "").upper()
+        role = get_user_role(user)
         layout_obj = DashboardLayout.objects.filter(page=page, role=role, is_default=True).first()
     if not layout_obj:
         layout_obj = _create_layout_from_legacy(user, page)

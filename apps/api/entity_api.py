@@ -355,6 +355,18 @@ class SessionClaimsView(APIView):
         )
 
 
+class ProfileView(APIView):
+    """Current user profile for mobile/frontend. GET /api/auth/profile/"""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = UserSerializer(request.user, context={"request": request}).data
+        role = (getattr(request.user, "role", "") or "").upper()
+        data["role"] = role
+        return Response(data)
+
+
 class TeacherRosterView(APIView):
     """Roster aggregation for teachers/admins to drive course/quiz builders."""
 

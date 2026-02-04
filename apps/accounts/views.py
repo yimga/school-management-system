@@ -26,7 +26,8 @@ from apps.accounts.decorators import permission_required
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, DashboardWidget
-from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, effective_chart_types
+from apps.siteconfig.dashboard_views import effective_chart_types
+from apps.accounts.utils import get_dashboard_context
 
 from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
 from .models import AccessRole, Permission, User
@@ -50,10 +51,198 @@ def _notify_new_direct_message(sender, recipient, message):
         pass
 
 
+def _teacher_org_tree(user):
+    """Build org tree for teacher: department, reports_to, assignments (year -> classrooms -> subjects)."""
+    try:
+        from apps.people.models import TeacherProfile
+        from apps.evals.models import TeacherAssignment
+        from apps.academics.services import get_active_year_and_term
+    except ImportError:
+        return None
+    teacher = TeacherProfile.objects.filter(user=user).select_related("department", "reports_to").first()
+    if not teacher:
+        return None
+    year, _ = get_active_year_and_term()
+    assignments = []
+    if year:
+        qs = TeacherAssignment.objects.filter(
+            teacher=teacher,
+            is_active=True,
+            subject_assignment__academic_year=year,
+        ).select_related(
+            "subject_assignment__classroom",
+            "subject_assignment__subject",
+            "subject_assignment__academic_year",
+        )
+        # Group by classroom then subject
+        by_class = {}
+        for ta in qs:
+            sa = ta.subject_assignment
+            if not sa:
+                continue
+            cname = sa.classroom.name if sa.classroom else "—"
+            if cname not in by_class:
+                by_class[cname] = []
+            by_class[cname].append(sa.subject.name if sa.subject else "—")
+        assignments = [{"classroom": c, "subjects": list(set(subs))} for c, subs in sorted(by_class.items())]
+    return {
+        "teacher": teacher,
+        "department": teacher.department,
+        "reports_to": teacher.reports_to,
+        "position_title": teacher.position_title or "—",
+        "assignments": assignments,
+        "academic_year": year,
+    }
+
+
+def _parent_children_tree(user):
+    """Build tree of children linked to this parent (guardian)."""
+    links = StudentGuardian.objects.filter(guardian_user=user).select_related(
+        "student",
+        "student__classroom",
+        "student__classroom__academic_year",
+    )
+    children = []
+    for link in links:
+        s = link.student
+        classroom = getattr(s, "classroom", None)
+        class_name = classroom.name if classroom else "—"
+        year_name = getattr(getattr(classroom, "academic_year", None), "name", "") or "—"
+        children.append({
+            "student": s,
+            "relationship": link.get_relationship_display(),
+            "classroom": class_name,
+            "academic_year": year_name,
+        })
+    return {"children": children} if children else None
+
+
+def _admin_context(user):
+    """Build admin context for staff: Site Settings, Backend, Admin, RBAC URLs and permissions summary."""
+    if not (user.is_staff or user.is_superuser):
+        role = getattr(user, "role", None)
+        if role not in ("ADMIN", "IT_ADMIN", "LEADERSHIP"):
+            return None
+    site_settings_url = None
+    if getattr(user, "has_feature_permission", lambda _: False)("settings.manage"):
+        try:
+            site = SiteSettings.get_solo()
+            site_settings_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
+        except Exception:
+            try:
+                site_settings_url = reverse("admin:siteconfig_sitesettings_changelist")
+            except NoReverseMatch:
+                pass
+    try:
+        backend_url = reverse("accounts:backend_dashboard")
+    except NoReverseMatch:
+        backend_url = None
+    try:
+        admin_url = reverse("admin:index")
+    except NoReverseMatch:
+        admin_url = None
+    try:
+        rbac_url = reverse("accounts:rbac")
+    except NoReverseMatch:
+        rbac_url = None
+    permissions_summary = []
+    if hasattr(user, "feature_permissions"):
+        for p in user.feature_permissions.all().values_list("code", flat=True):
+            permissions_summary.append(p)
+    if hasattr(user, "roles"):
+        for role in user.roles.all().prefetch_related("permissions"):
+            for p in role.permissions.all().values_list("code", flat=True):
+                permissions_summary.append(p)
+    permissions_summary = sorted(set(permissions_summary))[:20]  # cap for display
+    return {
+        "site_settings_url": site_settings_url,
+        "backend_url": backend_url,
+        "admin_url": admin_url,
+        "rbac_url": rbac_url,
+        "permissions_summary": permissions_summary,
+    }
+
+
 @login_required
 def user_profile(request):
-    """Lightweight profile landing page for any authenticated user (RBAC-safe)."""
-    return render(request, "accounts/profile.html", {})
+    """Profile landing: account overview, org tree (teacher), children tree (parent), change password & edit profile."""
+    context = {}
+    role = getattr(request.user, "role", None)
+    if role == "TEACHER":
+        context["teacher_org_tree"] = _teacher_org_tree(request.user)
+    if role == "PARENT":
+        context["parent_children_tree"] = _parent_children_tree(request.user)
+    admin_ctx = _admin_context(request.user)
+    if admin_ctx:
+        context["admin_context"] = admin_ctx
+    # MFA status (only when django_otp is available)
+    try:
+        from django_otp import user_has_device
+        context["mfa_enabled"] = user_has_device(request.user)
+    except Exception:
+        pass
+    # Optional teacher_pay_leave when payroll exposes data (e.g. next pay date, leave balance)
+    # Parent upcoming fees summary when finance exposes it
+    try:
+        from apps.finance.services import get_parent_fees_summary
+        parent_fees = get_parent_fees_summary(request.user)
+        if parent_fees:
+            context["parent_fees_summary"] = parent_fees
+    except Exception:
+        pass
+    # Profile completion: photo + email + first_name + last_name (25% each)
+    filled = []
+    missing = []
+    if request.user.profile_photo:
+        filled.append("profile photo")
+    else:
+        missing.append("profile photo")
+    if request.user.email and request.user.email.strip():
+        filled.append("email")
+    else:
+        missing.append("email")
+    if request.user.first_name and request.user.first_name.strip():
+        filled.append("first name")
+    else:
+        missing.append("first name")
+    if request.user.last_name and request.user.last_name.strip():
+        filled.append("last name")
+    else:
+        missing.append("last name")
+    percent = (len(filled) * 100) // 4
+    context["profile_completion"] = {"percent": percent, "filled": filled, "missing": missing}
+    # Active sessions count (for Security line)
+    try:
+        from django.contrib.sessions.models import Session
+        from django.utils import timezone as tz
+
+        now = tz.now()
+        count = 0
+        for session in Session.objects.filter(expire_date__gte=now)[:500]:
+            data = session.get_decoded()
+            if str(request.user.pk) == data.get("_auth_user_id"):
+                count += 1
+        context["active_sessions_count"] = count
+    except Exception:
+        context["active_sessions_count"] = None
+    return render(request, "accounts/profile.html", context)
+
+
+@login_required
+def profile_edit(request):
+    """Edit own profile: first name, last name, email, profile photo."""
+    user = request.user
+    from .forms import UserProfileEditForm
+
+    if request.method == "POST":
+        form = UserProfileEditForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated.")
+            return redirect("accounts:user_profile")
+    else:
+        form = UserProfileEditForm(instance=user)
+    return render(request, "accounts/profile_edit.html", {"form": form})
 
 
 @login_required
@@ -312,10 +501,18 @@ def redirect_view(request):
     Keeping this logic in one place makes LOGIN_REDIRECT_URL reliable and
     prevents hard-coded URLs from drifting. Respects "Dashboard view" preference
     (Overview, Workflow Center, Finance, etc.) for backend, teacher, and parent.
+    Preserves GET params (e.g. preview_section for config preview) on the target URL.
     """
     user = request.user
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
+
+    def _redirect_with_params(name_or_url, *args, **kwargs):
+        target = reverse(name_or_url, args=args, kwargs=kwargs)
+        if request.GET:
+            target += "?" if "?" not in target else "&"
+            target += request.GET.urlencode()
+        return redirect(target)
 
     # Respect the user's "Dashboard view" preference (Portal Preferences) when possible.
     dash_view = None
@@ -332,26 +529,26 @@ def redirect_view(request):
     # Staff/backend: Dashboard or Workflow Center as default view
     if user.has_feature_permission("settings.manage"):
         if dash_view == "WORKFLOW":
-            return redirect("accounts:workflow_center")
-        return redirect("accounts:backend_dashboard")
+            return _redirect_with_params("accounts:workflow_center")
+        return _redirect_with_params("accounts:backend_dashboard")
 
     if role == "TEACHER":
         if dash_view == "WORKFLOW":
-            return redirect("portal:teacher_workflow")
-        return redirect("evals:teacher_dashboard")
+            return _redirect_with_params("portal:teacher_workflow")
+        return _redirect_with_params("evals:teacher_dashboard")
     if role == "PARENT":
         if dash_view == "WORKFLOW":
-            return redirect("portal:parent_workflow")
+            return _redirect_with_params("portal:parent_workflow")
         if dash_view == "FINANCE":
-            return redirect("portal:parent_finance")
+            return _redirect_with_params("portal:parent_finance")
         if dash_view == "ACADEMICS":
-            return redirect("portal:parent_performance")
+            return _redirect_with_params("portal:parent_performance")
         if dash_view == "ATTENDANCE":
-            return redirect("portal:parent_dashboard")  # attendance is a section on the dashboard
-        return redirect("portal:parent_dashboard")
+            return _redirect_with_params("portal:parent_dashboard")
+        return _redirect_with_params("portal:parent_dashboard")
 
     # Default: admin
-    return redirect("admin:index")
+    return _redirect_with_params("admin:index")
 
 
 def _is_admin_user(user):
@@ -622,9 +819,11 @@ def backend_dashboard(request):
             {"label": "Published terms", "value": stats["published_terms"], "meta": "published"},
         ],
     }
-    from apps.siteconfig.dashboard_views import _can_customize
-    allow_custom_layout = _can_customize(request.user)
-    dashboard_settings = load_dashboard_layout_settings(request.user, "backend")
+    dashboard_context = get_dashboard_context(request.user, "backend")
+    allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
+    dashboard_settings = dashboard_context.get("dashboard_settings", {})
+    dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")
+    widget_meta_json = dashboard_context.get("widget_meta_json", "")
     def _safe_reverse(name, default="#", kwargs=None):
         try:
             return reverse(name, kwargs=kwargs)
@@ -670,6 +869,7 @@ def backend_dashboard(request):
         _item("reports", "Publish Results", "reports:publish_term_results", icon="bi-award", allow=bool(action_perms.get("people"))),
         _item("report_builder", "Report Card Builder", "siteconfig:reportcard_builder", icon="bi-file-earmark-richtext", allow=bool(action_perms.get("people"))),
         _item("report_library", "Report Library", "siteconfig:report_library", icon="bi-journal-text", allow=bool(action_perms.get("people"))),
+        _item("bulk_letters", "Bulk Letters", "siteconfig:bulk_letters", icon="bi-envelope-paper", allow=bool(action_perms.get("people"))),
         _item("certification", "Certification & Exams", "accounts:certification_home", icon="bi-award", allow=bool(year and getattr(year, "enable_gce_registration", False) if year else False)),
         _item("finance", "Finance Dashboard", "finance:dashboard", icon="bi-cash-stack", allow=bool(action_perms.get("finance"))),
         _item("documents", "Document Library", "portal:document_library_manage", icon="bi-file-earmark-text", allow=bool(action_perms.get("site_settings") or admin_like)),
@@ -685,7 +885,6 @@ def backend_dashboard(request):
     from .sidebar_organizer import organize_sidebar_items, get_sidebar_category_labels
     organized_sidebar = organize_sidebar_items(available_sidebar_items, request.user)
     sidebar_categories = get_sidebar_category_labels()
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "backend"})
     finance_requests_qs = FinanceNotification.objects.filter(
         recipient=request.user,
         title__icontains="finance access request",
@@ -831,7 +1030,7 @@ def backend_dashboard(request):
         "available_sidebar_items": available_sidebar_items,
         "organized_sidebar": organized_sidebar,
         "sidebar_categories": sidebar_categories,
-        "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
+        "widget_meta_json": widget_meta_json,
         "widget_chart_types_json": mark_safe(
             json.dumps(effective_chart_types(request.user, "backend"))
         ),
@@ -908,6 +1107,36 @@ def approval_workflow_hub(request):
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
             {"label": "Approval Hub", "url": "", "active": True},
         ],
+    })
+
+
+@login_required
+@user_passes_test(_is_admin_user)
+def automation_hub(request):
+    """Single place for automation: execution log, approval queue, and links to configure schedules (Site Settings)."""
+    execution_log_url = approval_queue_url = site_settings_url = None
+    try:
+        execution_log_url = reverse("admin:automation_automationexecutionlog_changelist")
+    except NoReverseMatch:
+        pass
+    try:
+        approval_queue_url = reverse("admin:automation_automationapprovalqueue_changelist")
+    except NoReverseMatch:
+        pass
+    try:
+        site = SiteSettings.get_solo()
+        site_settings_url = reverse("admin:siteconfig_sitesettings_change", args=[site.pk])
+    except Exception:
+        pass
+    return render(request, "accounts/automation_hub.html", {
+        "BREADCRUMBS": [
+            {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+            {"label": "Workflow Center", "url": reverse("accounts:workflow_center")},
+            {"label": "Automation", "url": "", "active": True},
+        ],
+        "execution_log_url": execution_log_url,
+        "approval_queue_url": approval_queue_url,
+        "site_settings_url": site_settings_url,
     })
 
 
@@ -1088,6 +1317,17 @@ def workflow_center(request):
             "progress_label": None,
             "tip": "RBAC controls who sees which dashboards; set theme and branding here.",
             "links": _filter_links(settings_links),
+        },
+        {
+            "title": "8) Automation",
+            "subtitle": "Execution log, approval queue, and schedule configuration (reminders, invoices, receipts).",
+            "step_key": "automation",
+            "icon": "bi-robot",
+            "progress_label": None,
+            "tip": "Use dry-run on tasks to preview; high-impact automations can require approval.",
+            "links": _filter_links([
+                _workflow_link("Automation hub", "accounts:automation_hub", primary=True),
+            ]),
         },
     ]
     total_steps = len(steps)

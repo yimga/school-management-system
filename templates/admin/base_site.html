@@ -7,14 +7,28 @@
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   <!-- UNIFIED DESIGN SYSTEM - Defines all CSS variables -->
   <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
-  
+  <link rel="stylesheet" href="{% static 'css/toggle-colors.css' %}">
+
   <!-- COMPONENT LIBRARY - Reusable components using design system variables -->
   <link rel="stylesheet" href="{% static 'css/admin-components.css' %}">
-  
-  <!-- ADMIN-SPECIFIC CUSTOMIZATIONS -->
-  <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
-  <link rel="stylesheet" href="{% static 'css/admin_sidebar_enhanced.css' %}">
-  <link rel="stylesheet" href="{% static 'css/admin-dark-readability.css' %}">
+
+  {% with admin_theme=SITE.backend_console_theme|default:'dark' %}
+  {% if admin_theme == 'light' or admin_theme == 'sand' or admin_theme == 'snow' or admin_theme == 'cream' or admin_theme == 'lavender' %}
+  <link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">
+  {% else %}
+  <link rel="stylesheet" href="{% static 'css/backend-dark-theme.css' %}">
+  {% endif %}
+  <link rel="stylesheet" href="{% static 'css/backend-themes.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-console-themes.css' %}">
+  {% endwith %}
+
+  <!-- ADMIN - Sidebar styled like /backend -->
+  <link rel="stylesheet" href="{% static 'css/admin-sidebar-scroll.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-sidebar-backend-inspired.css' %}">
+  <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
   
@@ -30,48 +44,38 @@
   <!-- Font Awesome for icons (Command Palette, Activity Feed, Student 360) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-      /* Subtle transparent logo background for admin dashboard */
-      body.admin-bg-logo::before {
-        content: '';
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 0;
-        background: url('{{ SITE_LOGO_URL }}') center center no-repeat;
-        background-size: contain;
-        opacity: {{ SITE_LOGO_OPACITY|default:0.08 }};
-        pointer-events: none;
-        filter: grayscale(1) brightness(1.2);
-        transition: opacity 0.3s;
-      }
       #container, #content, .dashboard-container, .main-content, .content {
         position: relative;
         z-index: 1;
       }
+      /* Admin dashboard: full width */
+      #container, #content {
+        max-width: none !important;
+        width: 100% !important;
+      }
+      body.admin-index #content .container,
+      body[data-dashboard-page] #content .container {
+        max-width: none !important;
+        width: 100% !important;
+      }
+
+      /* Skip link for keyboard users */
+      .skip-link {
+        position: absolute;
+        left: -999px;
+        top: 0;
+        padding: 0.4rem 0.75rem;
+        background: #0f172a;
+        color: #f9fafb;
+        z-index: 2000;
+        border-radius: 999px;
+        font-size: 0.85rem;
+      }
+      .skip-link:focus {
+        left: 0.75rem;
+        top: 0.5rem;
+      }
     </style>
-  <style>
-    :root {
-      --admin-sidebar-bg: {{ SITE.admin_sidebar_bg_color|default:"#0b0f14" }};
-      --admin-sidebar-surface: {{ SITE.admin_sidebar_surface_color|default:"#111827" }};
-      --admin-sidebar-border: {{ SITE.admin_sidebar_border_color|default:"#1f2937" }};
-      --admin-sidebar-text: {{ SITE.admin_sidebar_text_color|default:"#e2e8f0" }};
-      --admin-sidebar-text-muted: {{ SITE.admin_sidebar_text_muted_color|default:"#94a3b8" }};
-      --admin-sidebar-hover-bg: {{ SITE.admin_sidebar_hover_color|default:"#0f172a" }};
-      --admin-sidebar-active-bg: {{ SITE.admin_sidebar_active_color|default:"#0f172a" }};
-      --admin-sidebar-active-border: {% if SITE.admin_use_site_primary %}{{ SITE.primary_color|default:"#0d6efd" }}{% else %}{{ SITE.admin_sidebar_active_border_color|default:"#38bdf8" }}{% endif %};
-      --admin-sidebar-badge-bg: {{ SITE.admin_sidebar_badge_bg_color|default:"#1f2937" }};
-      --admin-sidebar-badge-text: {{ SITE.admin_sidebar_badge_text_color|default:"#e2e8f0" }};
-      --admin-sidebar-child-bg-start: {{ SITE.admin_sidebar_child_bg_start|default:"#0b1224" }};
-      --admin-sidebar-child-bg-end: {{ SITE.admin_sidebar_child_bg_end|default:"#131b33" }};
-      --admin-sidebar-child-bg: linear-gradient(
-        135deg,
-        var(--admin-sidebar-child-bg-start),
-        var(--admin-sidebar-child-bg-end)
-      );
-      --admin-sidebar-child-border: {{ SITE.admin_sidebar_child_border_color|default:"#e2e8f0" }};
-      --admin-sidebar-child-hover: {{ SITE.admin_sidebar_child_hover_color|default:"#1d4ed8" }};
-      --admin-sidebar-child-active: {{ SITE.admin_sidebar_child_active_color|default:"#0f172a" }};
-    }
-  </style>
   <style>
     .preview-cue {
       display: flex;
@@ -80,10 +84,10 @@
       gap: 12px;
       padding: 12px 16px;
       border-radius: 10px;
-      border: 1px solid var(--admin-sidebar-border);
+      border: 1px solid var(--color-base-200, #e2e8f0);
       font-size: 0.92rem;
       background: rgba(255, 255, 255, 0.02);
-      color: var(--admin-sidebar-text);
+      color: var(--color-base-900, #0f172a);
       margin-top: 12px;
       box-shadow: 0 8px 20px rgba(15, 23, 42, 0.45);
     }
@@ -115,176 +119,70 @@
       background: rgba(255, 255, 255, 0.08);
     }
   </style>
+  {# Single source for admin brand/semantic CSS variables (no conflicting settings). #}
+  {# Align Tailwind-style primary (dropdowns, focus, buttons) with site accent so admin doesn't show blue. #}
+  <style>
+    :root {
+      --brand-primary: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
+      --brand-accent: {{ ADMIN_RESOLVED_ACCENT|default:"#198754" }};
+      --brand-success: {{ ADMIN_RESOLVED_SUCCESS|default:"#22c55e" }};
+      --brand-warning: {{ ADMIN_RESOLVED_WARNING|default:"#fbbf24" }};
+      --brand-danger: {{ ADMIN_RESOLVED_DANGER|default:"#ef4444" }};
+      --surface-deep: {{ ADMIN_RESOLVED_BACKGROUND|default:"#1a1a1a" }};
+      {% if SITE and SITE.admin_sidebar_use_site_primary %}
+      --admin-sidebar-active-border: {{ SITE.primary_color|default:"#0d6efd" }};
+      {% else %}
+      --admin-sidebar-active-border: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};
+      {% endif %}
+    }
+    body, #content {
+      --color-primary: var(--brand-primary);
+      --color-primary-500: var(--brand-primary);
+      --color-primary-600: var(--brand-primary);
+    }
+  </style>
 {% endblock %}
 
 {% block extrahead %}
   {{ block.super }}
   {% if SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
-  {% get_all_model_counts as model_counts %}
+  {# Apply backend_console_theme to admin (black, charcoal, etc.) #}
   <script>
-    // Model counts from Django (injected at render time)
-    const MODEL_COUNTS = {
-      {% for key, count in model_counts.items %}
-        "{{ key }}": {{ count }}{% if not forloop.last %},{% endif %}
-      {% endfor %}
-    };
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const sidebar = document.getElementById("nav-sidebar");
-      if (!sidebar) return;
-
-      // Inject a quick "jump to model" search
-      const searchBox = document.createElement("input");
-      searchBox.type = "search";
-      searchBox.placeholder = "Jump to model…";
-      searchBox.className = "nav-search";
-      sidebar.prepend(searchBox);
-
-      // Add count badges to model links
-      const addCountBadges = () => {
-        try {
-          const modelLinks = sidebar.querySelectorAll("ul li a");
-          modelLinks.forEach((link) => {
-            const href = link.getAttribute("href");
-            if (!href || !href.includes("/admin/")) return;
-            
-            // Extract app_label and model_name from URL
-            // Format: /admin/app_label/model_name/
-            const match = href.match(/\/admin\/([^\/]+)\/([^\/]+)\//);
-            if (!match) return;
-            
-            const [, appLabel, modelName] = match;
-            const countKey = `${appLabel}.${modelName}`;
-            const count = MODEL_COUNTS[countKey];
-            
-            if (count !== undefined) {
-              // Remove existing badge if any
-              const existingBadge = link.querySelector(".admin-sidebar-badge");
-              if (existingBadge) existingBadge.remove();
-              
-              // Create and append badge
-              const badge = document.createElement("span");
-              badge.className = count > 0 ? "admin-sidebar-badge" : "admin-sidebar-badge admin-sidebar-badge--empty";
-              badge.textContent = formatCount(count);
-              badge.title = `${count} record${count !== 1 ? 's' : ''}`;
-              link.appendChild(badge);
-            }
-          });
-        } catch(e) {
-          console.warn('Error adding badges:', e);
+    (function(){
+      function apply() {
+        var theme = '{{ SITE.backend_console_theme|default:"dark"|escapejs }}';
+        if (theme === 'system') {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
-      };
-
-      // Format count for display
-      const formatCount = (count) => {
-        if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-        if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
-        return count.toString();
-      };
-
-      // Add badges after DOM is ready
-      addCountBadges();
-
-      // Enhanced Multi-Mode Accordion for each app group
-      try {
-        const modules = sidebar.querySelectorAll(".module");
-        const accordionState = {};
-      
-      modules.forEach((module, idx) => {
-        const header = module.querySelector("h2, caption");
-        const list = module.querySelector("ul");
-        if (!header || !list) return;
-
-        const title = header.textContent.trim() || `group-${idx}`;
-        const stateKey = `nav-accordion-${title}`;
-        
-        // Create toggle button with chevron icon
-        const toggle = document.createElement("button");
-        toggle.type = "button";
-        toggle.className = "nav-accordion-toggle";
-        
-        const chevron = document.createElement("span");
-        chevron.className = "nav-accordion-chevron";
-        chevron.innerHTML = "▼";
-        
-        const titleSpan = document.createElement("span");
-        titleSpan.textContent = title;
-        
-        toggle.appendChild(titleSpan);
-        toggle.appendChild(chevron);
-        toggle.setAttribute("aria-expanded", "true");
-
-        header.replaceWith(toggle);
-        
-        // Wrap list for smooth animation
-        const wrapper = document.createElement("div");
-        wrapper.className = "nav-accordion-content";
-        list.parentNode.insertBefore(wrapper, list);
-        wrapper.appendChild(list);
-
-        const applyState = (open, animate = true) => {
-          if (!animate) {
-            wrapper.style.transition = "none";
-          }
-          
-          if (open) {
-            wrapper.style.maxHeight = wrapper.scrollHeight + "px";
-            toggle.classList.remove("collapsed");
-            chevron.style.transform = "rotate(0deg)";
-          } else {
-            wrapper.style.maxHeight = "0";
-            toggle.classList.add("collapsed");
-            chevron.style.transform = "rotate(-90deg)";
-          }
-          
-          toggle.setAttribute("aria-expanded", open);
-          accordionState[stateKey] = open;
-          
-          if (!animate) {
-            setTimeout(() => { wrapper.style.transition = ""; }, 10);
-          }
-        };
-
-        // Load saved state or default to open for "People Management"
-        const savedState = localStorage.getItem(stateKey);
-        const defaultOpen = savedState !== null ? savedState === "true" : title.includes("People");
-        applyState(defaultOpen, false);
-
-        toggle.addEventListener("click", () => {
-          const isOpen = toggle.getAttribute("aria-expanded") === "true";
-          const newState = !isOpen;
-          applyState(newState, true);
-          localStorage.setItem(stateKey, newState);
-        });
-        
-        // Update maxHeight on content change (for dynamic badges)
-        const observer = new MutationObserver(() => {
-          if (toggle.getAttribute("aria-expanded") === "true") {
-            wrapper.style.maxHeight = wrapper.scrollHeight + "px";
-          }
-        });
-        observer.observe(list, { childList: true, subtree: true });
-      });
-
-      // Filter models on search
-      const allLinks = sidebar.querySelectorAll("ul li");
-      searchBox.addEventListener("input", () => {
-        const term = searchBox.value.toLowerCase();
-        allLinks.forEach((li) => {
-          const text = li.textContent.toLowerCase();
-          li.style.display = text.includes(term) ? "" : "none";
-        });
-      });
-      } catch(e) {
-        console.warn('Error during sidebar initialization:', e);
+        var darkThemes = ['dark', 'black', 'ink', 'onyx', 'charcoal', 'graphite', 'midnight', 'ocean', 'steel', 'slate', 'forest', 'indigo', 'amber'];
+        if (darkThemes.indexOf(theme) >= 0) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.setAttribute('data-bs-theme', 'dark');
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('portal-backend-dark', 'portal-backend-' + theme);
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.setAttribute('data-bs-theme', 'light');
+          document.body.classList.add('portal-backend-light', 'portal-backend-' + theme);
+        }
       }
-        // Add a class to body for admin dashboard background logo
-        document.addEventListener('DOMContentLoaded', function() {
-          document.body.classList.add('admin-bg-logo');
-        });
-    });
+      if (document.body) apply(); else document.addEventListener('DOMContentLoaded', apply);
+    })();
   </script>
+  {# Set dark mode when black theme pack is active (Deep Space, midnight, dark palettes) #}
+  {% if SITE_ADMIN_THEME and SITE_ADMIN_THEME.slug %}
+  <script>
+    (function(){
+      var s = "{{ SITE_ADMIN_THEME.slug|escapejs }}";
+      if (s.indexOf("deep-space") >= 0 || s.indexOf("midnight") >= 0 || s.indexOf("-dark") >= 0 || s.indexOf("high-contrast-dark") >= 0) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        document.documentElement.setAttribute("data-bs-theme", "dark");
+        document.documentElement.classList.add("dark");
+      }
+    })();
+  </script>
+  {% endif %}
+  <script src="{% static 'js/admin-sidebar-nav.js' %}" defer></script>
 {% endblock %}
 
 {% block title %}{% if site_title %}{{ site_title }}{% else %}{% trans 'Site administration' %}{% endif %}{% endblock %}
@@ -326,12 +224,15 @@
 {% endblock %}
 
 {% block nav-global %}
+  <a href="#content" class="skip-link">Skip to main content</a>
   <div class="nav-global-actions">
     <div class="theme-toggle" aria-label="{% trans 'Theme' %}">
       <button type="button" data-theme="light">{% trans "Light" %}</button>
       <button type="button" data-theme="dark">{% trans "Dark" %}</button>
       <button type="button" data-theme="system" class="active">{% trans "System" %}</button>
     </div>
+    <a class="button ghost" href="{% url 'accounts:user_profile' %}">{% trans "My Profile" %}</a>
+    <a class="button ghost" href="{% url 'accounts:password_change' %}">{% trans "Change password" %}</a>
     <a class="button ghost" href="{% url 'admin:logout' %}">{% trans "Log out" %}</a>
   </div>
   <script>
@@ -367,12 +268,22 @@
         }
       };
 
+      const resolveEffective = (value) => {
+        if (value === "system" || value === "auto") {
+          return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        return value;
+      };
+
       const apply = (value) => {
+        const effective = resolveEffective(value);
         if (value === "system") {
           root.removeAttribute("data-theme");
         } else {
           root.dataset.theme = value;
         }
+        root.setAttribute("data-bs-theme", effective);
+        root.classList.toggle("dark", effective === "dark");
         localStorage.setItem(THEME_KEY, value);
         document.querySelectorAll(".theme-toggle button").forEach(btn => {
           btn.classList.toggle("active", btn.dataset.theme === value);
@@ -414,88 +325,6 @@
   <!-- Dashboard Charts (Chart.js) -->
   <script src="{% static 'js/dashboard-charts.js' %}"></script>
   
-  <!-- Sidebar Collapse Toggle Button - Inject via JavaScript -->
-  <script>
-    (function() {
-      const COLLAPSE_KEY = "admin-sidebar-collapsed";
-      
-      // Initialize sidebar collapse functionality
-      const initSidebarCollapse = () => {
-        // Try multiple selectors to find the sidebar (Django admin uses #nav-sidebar or nav#nav-sidebar)
-        let sidebar = document.getElementById("nav-sidebar") || 
-                      document.querySelector("nav#nav-sidebar") ||
-                      document.querySelector(".sidebar") ||
-                      document.querySelector("aside[role='navigation']");
-        
-        const mainContent = document.getElementById("content") || 
-                           document.querySelector("main") ||
-                           document.querySelector(".main-content");
-        
-        if (!sidebar) {
-          console.warn("Admin sidebar not found. Retrying in 500ms...");
-          setTimeout(initSidebarCollapse, 500);
-          return;
-        }
-        
-        // Check if button already exists
-        if (document.getElementById("sidebarCollapseToggle")) {
-          return;
-        }
-        
-        // Create toggle button with better icon
-        const toggleBtn = document.createElement("button");
-        toggleBtn.type = "button";
-        toggleBtn.id = "sidebarCollapseToggle";
-        toggleBtn.className = "sidebar-collapse-toggle";
-        toggleBtn.setAttribute("aria-label", "Toggle Sidebar");
-        toggleBtn.title = "Collapse Sidebar (Click to toggle)";
-        // Using left/right chevron for better UX
-        toggleBtn.innerHTML = '<span class="toggle-icon">&#10094;</span>';
-        
-        document.body.appendChild(toggleBtn);
-        
-        // Apply collapse state function
-        const applyCollapseState = (collapsed) => {
-          if (collapsed) {
-            sidebar.classList.add("sidebar-collapsed");
-            if (mainContent) mainContent.classList.add("sidebar-collapsed");
-            toggleBtn.classList.add("collapsed");
-            toggleBtn.setAttribute("aria-expanded", "false");
-            toggleBtn.title = "Expand Sidebar (Click to expand)";
-            console.log('Sidebar collapsed');
-          } else {
-            sidebar.classList.remove("sidebar-collapsed");
-            if (mainContent) mainContent.classList.remove("sidebar-collapsed");
-            toggleBtn.classList.remove("collapsed");
-            toggleBtn.setAttribute("aria-expanded", "true");
-            toggleBtn.title = "Collapse Sidebar (Click to collapse)";
-            console.log('Sidebar expanded');
-          }
-          localStorage.setItem(COLLAPSE_KEY, collapsed ? "true" : "false");
-        };
-        
-        // Load saved state
-        const savedState = localStorage.getItem(COLLAPSE_KEY) === "true";
-        applyCollapseState(savedState);
-        
-        // Toggle on button click
-        toggleBtn.addEventListener("click", () => {
-          const isCollapsed = sidebar.classList.contains("sidebar-collapsed");
-          applyCollapseState(!isCollapsed);
-        });
-      };
-      
-      // Wait for DOM to be fully ready and give Django admin time to render
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-          setTimeout(initSidebarCollapse, 100);
-        });
-      } else {
-        setTimeout(initSidebarCollapse, 100);
-      }
-    })();
-  </script>
-  
   <!-- Admin content toolbar: Back button + Dashboard link (visible on all pages except index) -->
   <script>
     (function() {
@@ -518,7 +347,7 @@
         toolbar.className = "admin-content-toolbar";
         toolbar.setAttribute("role", "navigation");
         toolbar.innerHTML =
-          '<a href="' + ADMIN_INDEX_URL + '" class="admin-toolbar-back">' +
+          '<a href="' + ADMIN_INDEX_URL + '" class="admin-toolbar-back btn btn-sm btn-back-outline">' +
           '<span class="admin-toolbar-icon" aria-hidden="true">←</span> Back to dashboard' +
           '</a>' +
           '<a href="' + ADMIN_INDEX_URL + '" class="admin-toolbar-dashboard">Dashboard</a>';
@@ -529,6 +358,67 @@
         document.addEventListener("DOMContentLoaded", function() { setTimeout(injectBackToolbar, 80); });
       } else {
         setTimeout(injectBackToolbar, 80);
+      }
+    })();
+
+    /* Submit row: Back button (return from where I came).
+       Use a broad selector so it works with Unfold's layout too. */
+    (function() {
+      const ADMIN_INDEX_URL = "{% url 'admin:index' %}";
+      function injectSubmitRowBack() {
+        // Try multiple selectors to find submit row
+        const row = document.querySelector('.submit-row') || 
+                   document.querySelector('form[method="post"] .submit-row') ||
+                   document.querySelector('[class*="submit"]');
+        
+        if (!row) {
+          console.log('[Admin] Submit row not found, retrying...');
+          setTimeout(injectSubmitRowBack, 300);
+          return;
+        }
+        
+        if (row.querySelector('.submit-row-back')) {
+          return; // Already exists
+        }
+        
+        let href = ADMIN_INDEX_URL;
+        const referrer = document.referrer;
+        if (referrer) {
+          try {
+            const refUrl = new URL(referrer);
+            if (refUrl.origin === window.location.origin && referrer !== window.location.href) {
+              href = referrer;
+            }
+          } catch (e) {}
+        }
+        
+        const back = document.createElement('a');
+        back.href = href;
+        back.className = 'submit-row-back btn btn-sm';
+        back.setAttribute('aria-label', 'Back to previous page');
+        back.innerHTML = '<span aria-hidden="true">←</span> Back';
+        
+        // Ensure row is flex
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.justifyContent = 'flex-end';
+        row.style.gap = '0.5rem';
+        
+        row.insertBefore(back, row.firstChild);
+        console.log('[Admin] Back button injected successfully');
+      }
+      
+      // Try multiple times with delays
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function() { 
+          setTimeout(injectSubmitRowBack, 100);
+          setTimeout(injectSubmitRowBack, 500);
+          setTimeout(injectSubmitRowBack, 1000);
+        });
+      } else {
+        setTimeout(injectSubmitRowBack, 100);
+        setTimeout(injectSubmitRowBack, 500);
+        setTimeout(injectSubmitRowBack, 1000);
       }
     })();
   </script>
@@ -569,15 +459,20 @@
       color: #f1f5f9;
     }
     .admin-toolbar-icon { font-size: 1.1rem; }
-    :root[data-theme="light"] .admin-content-toolbar {
+    :root[data-theme="light"] .admin-content-toolbar,
+    html[data-bs-theme="light"] .admin-content-toolbar {
       background: var(--admin-surface, #f8fafc);
       border-color: var(--admin-border, #e2e8f0);
       color: #0f172a;
     }
     :root[data-theme="light"] .admin-toolbar-back,
-    :root[data-theme="light"] .admin-toolbar-dashboard { color: #0f172a; }
+    :root[data-theme="light"] .admin-toolbar-dashboard,
+    html[data-bs-theme="light"] .admin-toolbar-back,
+    html[data-bs-theme="light"] .admin-toolbar-dashboard { color: #0f172a; }
     :root[data-theme="light"] .admin-toolbar-back:hover,
-    :root[data-theme="light"] .admin-toolbar-dashboard:hover {
+    :root[data-theme="light"] .admin-toolbar-dashboard:hover,
+    html[data-bs-theme="light"] .admin-toolbar-back:hover,
+    html[data-bs-theme="light"] .admin-toolbar-dashboard:hover {
       background: rgba(15, 23, 42, 0.06);
       color: #0f172a;
     }
@@ -591,8 +486,64 @@
     .dashboard-header-wrapper + * {
       margin-top: 1rem;
     }
+    /* GLOBAL BUTTON HIERARCHY: Primary (blue) vs Secondary (outlined) */
+    #content .submit-row input[type="submit"].default,
+    #content .submit-row button[type="submit"].default,
+    #content .submit-row input[type="submit"][name="_save"] {
+      background: #2563eb !important;
+      border-color: #2563eb !important;
+      color: #ffffff !important;
+      font-weight: 600;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+    }
+    
+    #content .submit-row input[type="submit"]:not(.default),
+    #content .submit-row button[type="submit"]:not(.default),
+    #content .submit-row input[type="submit"][name="_continue"] {
+      background: transparent !important;
+      border: 2px solid rgba(15,23,42,0.3) !important;
+      color: var(--admin-content-text, #0f172a) !important;
+      font-weight: 600;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+    }
+    
+    /* Submit row Back button: secondary style (like Save and continue editing) */
+    #content .submit-row .submit-row-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      background: transparent !important;
+      color: var(--admin-content-text, #0f172a) !important;
+      border: 2px solid rgba(15,23,42,0.3) !important;
+      transition: background 0.2s, border-color 0.2s;
+      margin-right: auto;
+      order: -1;
+    }
+    #content .submit-row .submit-row-back:hover {
+      background: rgba(15,23,42,0.05) !important;
+      border-color: rgba(15,23,42,0.5) !important;
+      color: var(--admin-content-text, #0f172a) !important;
+    }
+    
+    /* Ensure submit row is flex */
+    #content .submit-row {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      gap: 0.5rem !important;
+    }
   </style>
 
   {# Include AI Copilot on admin pages as well #}
   {% include 'components/ai_copilot.html' %}
+  
+  {# Toast notifications for success/error feedback #}
+  {% include 'components/toast_notifications.html' %}
 {% endblock %}

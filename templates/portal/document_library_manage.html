@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}Document Library Management{% endblock %}
 
@@ -117,16 +117,16 @@
     <div class="card-body">
       {% if documents %}
         <div class="table-responsive">
-          <table class="table table-hover align-middle">
+          <table class="table table-hover align-middle" aria-label="Document library: title, type, file or link, signature, status, and actions">
             <thead>
               <tr>
-                <th>Title</th>
-                <th>Type</th>
-                <th>File/Link</th>
-                <th>Signature</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th class="text-end">Actions</th>
+                <th scope="col">Title</th>
+                <th scope="col">Type</th>
+                <th scope="col">File/Link</th>
+                <th scope="col">Signature</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
+                <th scope="col" class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -171,7 +171,7 @@
                     {% endif %}
                   </td>
                   <td>
-                    <div class="small">{{ doc.created_at|date:"M d, Y" }}</div>
+                    <div class="small">{{ doc.created_at|format_date }}</div>
                     <div class="text-muted small">by {{ doc.created_by.get_full_name|default:doc.created_by.username }}</div>
                   </td>
                   <td class="text-end">
@@ -180,6 +180,11 @@
                         <a href="{% url 'portal:document_download' doc.id %}" class="btn btn-outline-primary" title="Download">
                           <i class="bi bi-download"></i>
                         </a>
+                        {% if doc.file.name|slice:"-4:"|lower == ".odt" or doc.file.name|slice:"-5:"|lower == ".docx" %}
+                        <a href="{% url 'portal:document_download_pdf' doc.id %}" class="btn btn-outline-danger" title="Download as PDF">
+                          <i class="bi bi-file-earmark-pdf"></i>
+                        </a>
+                        {% endif %}
                       {% elif doc.link %}
                         <a href="{{ doc.link }}" target="_blank" class="btn btn-outline-info" title="Open Link">
                           <i class="bi bi-box-arrow-up-right"></i>
@@ -199,13 +204,8 @@
           </table>
         </div>
       {% else %}
-        <div class="text-center py-5">
-          <i class="bi bi-file-earmark-text text-muted" style="font-size: 4rem;"></i>
-          <p class="text-muted mt-3">No documents found.</p>
-          <a href="{% url 'portal:document_upload' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i>Upload Your First Document
-          </a>
-        </div>
+        {% url 'portal:document_upload' as empty_action_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-file-earmark-text" title="No documents found" message="Upload school documents, forms, and policies so staff and families can access them." action_url=empty_action_url action_text="Upload your first document" %}
       {% endif %}
     </div>
   </div>

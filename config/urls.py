@@ -55,6 +55,20 @@ def api_schema_ui(request):
     )
 
 
+_schema_view_raw = cache_page(60)(get_schema_view(
+    title="Gilead SMS API",
+    description="Entity/analytics/session claims schema for frontend orchestration",
+    version="1.0.0",
+))
+
+
+@login_required
+@user_passes_test(_is_schema_allowed)
+def schema_view(request):
+    """API schema (JSON) – same access as schema UI."""
+    return _schema_view_raw(request)
+
+
 def admin_siteconfig_customizer_redirect(request):
     """Backward compatible URL.
 
@@ -76,7 +90,19 @@ def permission_denied(request, exception):
     return render(request, 'errors/403.html', {'is_admin_forbidden': is_admin_forbidden}, status=403)
 
 
+def page_not_found(request, exception):
+    """Custom 404 page."""
+    return render(request, 'errors/404.html', status=404)
+
+
+def server_error(request):
+    """Custom 500 page."""
+    return render(request, 'errors/500.html', status=500)
+
+
 handler403 = permission_denied
+handler404 = page_not_found
+handler500 = server_error
 
 urlpatterns = [
     path('', home, name='home'),
@@ -84,16 +110,8 @@ urlpatterns = [
     # Admin interfaces - /admin/ only for superuser/staff
     path('admin/', admin_site.urls),
 
-    # API schema (RBAC-protected)
-    path(
-        'api/schema/',
-        cache_page(60)(get_schema_view(
-            title="Gilead SMS API",
-            description="Entity/analytics/session claims schema for frontend orchestration",
-            version="1.0.0"
-        )),
-        name='api-schema'
-    ),
+    # API schema (RBAC-protected; same as schema UI)
+    path('api/schema/', schema_view, name='api-schema'),
     path('api/schema/ui/', api_schema_ui, name='api-schema-ui'),
     
     # Frontend admin dashboard - separate from /admin/ (redirect to canonical URL)

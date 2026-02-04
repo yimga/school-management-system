@@ -3,6 +3,9 @@ Document Library Management Views
 Backend UI for admins to upload and manage documents
 """
 
+import os
+import tempfile
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -18,6 +21,7 @@ from apps.people.models import StudentProfile, StudentGuardian
 from apps.siteconfig.models import SiteSettings
 from .models import PortalFeatureItem, FormSignature
 from .forms_documents import DocumentUploadForm, SignatureRequestForm
+from .document_conversion import convert_to_pdf
 
 
 @permission_required("settings.manage")
@@ -143,6 +147,18 @@ def document_delete(request, document_id):
     return redirect("portal:document_library_manage")
 
 
+def _document_file_extension(document):
+    """Return lowercased file extension (e.g. '.odt') or ''."""
+    if not document.file or not document.file.name:
+        return ""
+    return os.path.splitext(document.file.name)[1].lower()
+
+
+def _is_convertible_to_pdf(document):
+    """True if the document file is ODT or DOCX and can be converted to PDF by headless."""
+    return _document_file_extension(document) in (".odt", ".docx")
+
+
 @login_required
 def document_download(request, document_id):
     """
@@ -159,10 +175,54 @@ def document_download(request, document_id):
         messages.error(request, "This document doesn't have a file attached.")
         return redirect("portal:portal_feature", feature="documents")
     
-    # Serve file
-    response = FileResponse(document.file.open(), content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{document.file.name}"'
+    # Serve file (correct content type would require mapping by extension; browser often handles)
+    f = document.file.open("rb")
+    response = FileResponse(f, content_type="application/octet-stream")
+    response["Content-Disposition"] = f'inline; filename="{os.path.basename(document.file.name)}"'
     return response
+
+
+@login_required
+def document_download_pdf(request, document_id):
+    """
+    Convert document (ODT/DOCX) to PDF and serve. Same access as document_download.
+    Requires LibreOffice headless on the server.
+    """
+    document = get_object_or_404(PortalFeatureItem, id=document_id)
+    if not document.can_view(request.user):
+        messages.error(request, "You don't have permission to access this document.")
+        return redirect("portal:portal_feature", feature="documents")
+    if not document.file:
+        messages.error(request, "This document doesn't have a file attached.")
+        return redirect("portal:portal_feature", feature="documents")
+    if not _is_convertible_to_pdf(document):
+        messages.info(request, "Convert to PDF is only available for Word (DOCX) or LibreOffice (ODT) files.")
+        return redirect("portal:document_download", document_id=document_id)
+    path = None
+    try:
+        if hasattr(document.file, "path") and os.path.isfile(document.file.path):
+            path = document.file.path
+        else:
+            with tempfile.NamedTemporaryFile(suffix=_document_file_extension(document), delete=False) as tmp:
+                tmp.write(document.file.read())
+                path = tmp.name
+        pdf_bytes = convert_to_pdf(path)
+        base = os.path.splitext(os.path.basename(document.file.name))[0]
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{base}.pdf"'
+        return response
+    except RuntimeError:
+        messages.error(request, "PDF conversion is not available (LibreOffice may not be installed).")
+        return redirect("portal:document_download", document_id=document_id)
+    except Exception:
+        messages.error(request, "PDF conversion failed.")
+        return redirect("portal:document_download", document_id=document_id)
+    finally:
+        if path and path != getattr(document.file, "path", None):
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
 
 
 @permission_required("settings.manage")
@@ -235,7 +295,7 @@ def signature_pending_list(request):
         return redirect("portal:parent_dashboard")
     
     # Get linked students
-    guardian_links = StudentGuardian.objects.filter(guardian=request.user)
+    guardian_links = StudentGuardian.objects.filter(guardian_user=request.user)
     student_ids = [link.student_id for link in guardian_links]
     
     # Get pending signature requests for this parent's children

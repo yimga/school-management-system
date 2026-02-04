@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load admin_health evals_extras static %}
+{% load admin_health evals_extras static region_format %}
 {% block title %}Teacher Dashboard{% endblock %}
 
 {% block extrastyle %}
@@ -147,6 +147,33 @@
   {% with widgets=display_widgets %}
   <div class="teacher-shell dashboard-clear">
     <div id="teacher-dashboard-widgets" class="teacher-dashboard-widgets">
+  {% if show_welcome_hint %}
+  <div class="alert alert-info d-flex align-items-center gap-2 mb-3 shadow-sm rounded-4 teacher-welcome-hint" id="teacher-welcome-hint" role="region" aria-label="Getting started" data-dismiss-storage-key="teacher_welcome_hint_dismissed">
+    <i class="bi bi-lightbulb"></i>
+    <div class="flex-grow-1">
+      <strong>New here?</strong> Get started by entering marks for your classes or open <a href="{% url 'portal:teacher_workflow' %}">My Workflow</a> to see pending tasks.
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary align-self-start teacher-welcome-dismiss" aria-label="Don't show again">
+      Don't show again
+    </button>
+  </div>
+  <script>
+  (function() {
+    var key = 'teacher_welcome_hint_dismissed';
+    var el = document.getElementById('teacher-welcome-hint');
+    var btn = el && el.querySelector('.teacher-welcome-dismiss');
+    if (!el) return;
+    try {
+      if (localStorage.getItem(key) === '1') { el.style.display = 'none'; return; }
+    } catch (e) {}
+    if (btn) btn.addEventListener('click', function() {
+      try { localStorage.setItem(key, '1'); } catch (e) {}
+      el.style.display = 'none';
+      if (typeof window.showToast === 'function') window.showToast('Got it. You can always open My Workflow from the sidebar.', 'info', 3000);
+    });
+  })();
+  </script>
+  {% endif %}
   {% if finance_access_banner %}
   <div class="alert alert-{{ finance_access_banner.level }} d-flex align-items-start gap-2 mb-3 shadow-sm rounded-4">
     <div>
@@ -172,7 +199,7 @@
             <strong>{{ notif.title }}</strong>
             <div class="small text-muted">{{ notif.message|truncatechars:100 }}</div>
           </div>
-          <span class="badge bg-secondary">{{ notif.created_at|date:"M j, H:i" }}</span>
+          <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
         </li>
         {% endfor %}
       </ul>
@@ -254,13 +281,13 @@
       <div class="mt-2">
         {% if assignments %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0 table-sm">
+          <table class="table align-middle mb-0 table-sm" aria-label="Your classes: class, subject, marks progress, and actions">
             <thead class="table-light">
               <tr>
-                <th>Class</th>
-                <th>Subject</th>
-                <th class="text-end">Marks</th>
-                <th class="text-end">Actions</th>
+                <th scope="col">Class</th>
+                <th scope="col">Subject</th>
+                <th scope="col" class="text-end">Marks</th>
+                <th scope="col" class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -278,7 +305,7 @@
                   {% endwith %}
                 </td>
                 <td class="text-end">
-                  <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}">Enter</a>
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?subject_assignment_id={{ a.subject_assignment_id }}">Enter</a>
                   <a class="btn btn-sm btn-outline-secondary" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">View</a>
                 </td>
               </tr>
@@ -288,7 +315,7 @@
         </div>
         <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
         {% else %}
-        <div class="small text-muted">No teaching assignments found yet.</div>
+        <div class="small text-muted">No classes assigned yet. <a href="{% url 'accounts:workflow_center' %}">View workflow</a> or ask your admin to assign you to a class.</div>
         {% endif %}
       </div>
     </div>
@@ -430,7 +457,7 @@
     {% for ann in class_announcements|slice:":3" %}
     <div class="small mb-2 {% if not forloop.last %}border-bottom pb-2{% endif %}">
       <span class="fw-semibold">{{ ann.title }}</span>
-      <span class="text-muted">· {{ ann.created_at|date:"M d" }}</span>
+      <span class="text-muted">· {{ ann.created_at|format_date }}</span>
       <div class="text-muted">{{ ann.body|truncatechars:100 }}</div>
     </div>
     {% endfor %}

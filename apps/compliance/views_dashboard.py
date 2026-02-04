@@ -25,11 +25,7 @@ from django.conf import settings
 
 from apps.compliance.models_audit import AuditLog, UserActivitySession, AccessLog
 from apps.accounts.models import User
-
-
-def is_admin_or_staff(user):
-    """Check if user is admin or staff."""
-    return user.is_superuser or user.is_staff or user.role in ['ADMIN', 'LEADERSHIP']
+from apps.compliance.auth_utils import is_admin_or_staff
 
 
 @method_decorator(login_required, name='dispatch')

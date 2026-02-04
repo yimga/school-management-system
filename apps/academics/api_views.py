@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from django.db.models import Sum, Count, Q, F, Avg
+from django.db.models import Sum, Count, Q, F, Avg, Case, When, IntegerField
 from django.utils import timezone
 from datetime import datetime, timedelta
 
@@ -613,9 +613,19 @@ class AssessmentResultsAPI(APIView):
         
         average_score = queryset.aggregate(Avg('score'))['score__avg'] or 0
         
-        score_distribution = queryset.extra(
-            select={'range': 'CASE WHEN score < 50 THEN "0-50" WHEN score < 70 THEN "50-70" WHEN score < 85 THEN "70-85" ELSE "85-100" END'}
-        ).values('range').annotate(count=Count('id'))
+        # DB-agnostic score buckets (Case/When works on SQLite and PostgreSQL)
+        agg = queryset.aggregate(
+            r1=Count(Case(When(score__lt=50, then=1), output_field=IntegerField())),
+            r2=Count(Case(When(score__gte=50, score__lt=70, then=1), output_field=IntegerField())),
+            r3=Count(Case(When(score__gte=70, score__lt=85, then=1), output_field=IntegerField())),
+            r4=Count(Case(When(score__gte=85, then=1), output_field=IntegerField())),
+        )
+        score_distribution = [
+            {"range": "0-50", "count": agg["r1"] or 0},
+            {"range": "50-70", "count": agg["r2"] or 0},
+            {"range": "70-85", "count": agg["r3"] or 0},
+            {"range": "85-100", "count": agg["r4"] or 0},
+        ]
         
         by_subject = queryset.values('subject__name').annotate(
             average=Avg('score'),

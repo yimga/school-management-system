@@ -7,7 +7,7 @@
         {% if request.user.profile_photo %}
           <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="40" height="40" decoding="async" loading="lazy">
         {% else %}
-          <div class="avatar-placeholder" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <div class="avatar-placeholder" style="background: linear-gradient(135deg, var(--school-primary, #667eea) 0%, var(--school-accent, #764ba2) 100%);">
             {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
           </div>
         {% endif %}
@@ -177,8 +177,8 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
-  background: #fff;
-  border: 1px solid #e9ecef;
+  background: var(--admin-content-bg);
+  border: 1px solid var(--admin-content-border, #e9ecef);
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -280,7 +280,7 @@
 .user-stats {
   display: flex;
   padding: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--school-primary, #667eea) 0%, var(--school-accent, #764ba2) 100%);
   border-radius: 8px;
   margin-bottom: 0.5rem;
 }
@@ -288,7 +288,7 @@
 .stat-item {
   flex: 1;
   text-align: center;
-  color: #fff;
+  color: var(--header-brand-fg, #fff);
 }
 
 .stat-value {
@@ -314,7 +314,7 @@
   padding: 0.5rem 1rem 0.25rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--admin-content-text-muted, #94a3b8);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: flex;
@@ -330,17 +330,18 @@
   border-radius: 6px;
   font-size: 0.9rem;
   transition: all 0.2s ease;
+  color: var(--admin-content-text);
 }
 
 .user-dropdown-menu .dropdown-item:hover {
-  background: #f8f9fa;
+  background: var(--admin-content-surface, #f8f9fa);
 }
 
 .user-dropdown-menu .dropdown-item i {
   width: 20px;
   text-align: center;
   font-size: 1rem;
-  color: #64748b;
+  color: var(--admin-content-text-muted, #64748b);
 }
 
 .user-dropdown-menu .dropdown-item span {
@@ -348,8 +349,8 @@
 }
 
 .user-dropdown-menu .dropdown-item kbd {
-  background: #f1f5f9;
-  border: 1px solid #e9ecef;
+  background: var(--admin-content-surface, #f1f5f9);
+  border: 1px solid var(--admin-content-border, #e9ecef);
   padding: 0.125rem 0.5rem;
   border-radius: 4px;
   font-size: 0.7rem;
@@ -357,11 +358,11 @@
 }
 
 .user-dropdown-menu .dropdown-item.text-danger:hover {
-  background: #fef2f2;
+  background: var(--color-danger-light, #fef2f2);
 }
 
 .user-dropdown-menu .dropdown-item.text-danger i {
-  color: #dc3545;
+  color: var(--admin-content-danger, #dc3545);
 }
 
 .user-dropdown-menu .badge {

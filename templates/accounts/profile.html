@@ -9,8 +9,21 @@
       <div>
         <h1 class="h4 mb-1">My Profile</h1>
         <div class="text-muted small">Account overview and shortcuts</div>
+        {% if profile_completion and profile_completion.percent < 100 %}
+          <div class="mt-2 small">
+            <div class="d-flex align-items-center gap-2">
+              <div class="progress flex-grow-1" style="height: 6px; max-width: 120px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ profile_completion.percent }}%;" aria-valuenow="{{ profile_completion.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <span class="text-muted">Profile {{ profile_completion.percent }}% complete</span>
+            </div>
+            <a class="text-decoration-none small" href="{% url 'accounts:profile_edit' %}">Add {{ profile_completion.missing|join:", " }} →</a>
+          </div>
+        {% endif %}
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:profile_edit' %}">Edit profile</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:password_change' %}">Change password</a>
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}">Preferences</a>
         <a class="btn btn-sm btn-primary" href="{% url 'accounts:redirect' %}">Go to dashboard</a>
       </div>
@@ -40,6 +53,24 @@
               <div class="d-flex justify-content-between"><span class="text-muted">Role</span><span class="fw-semibold">{{ request.user.role }}</span></div>
               <div class="d-flex justify-content-between"><span class="text-muted">Email</span><span class="fw-semibold">{{ request.user.email|default:"-" }}</span></div>
               <div class="d-flex justify-content-between"><span class="text-muted">Last login</span><span class="fw-semibold">{% if request.user.last_login %}{{ request.user.last_login }}{% else %}-{% endif %}</span></div>
+              <div class="d-flex justify-content-between"><span class="text-muted">Member since</span><span class="fw-semibold">{{ request.user.date_joined|date }}</span></div>
+              {% if active_sessions_count is not None %}
+                <div class="d-flex justify-content-between"><span class="text-muted">Active sessions</span><span class="fw-semibold">{{ active_sessions_count }} device{{ active_sessions_count|pluralize }}</span></div>
+              {% endif %}
+              {% if mfa_enabled is not None %}
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                  <span class="text-muted">MFA</span>
+                  <span>
+                    {% if mfa_enabled %}
+                      <span class="fw-semibold text-success">Enabled</span>
+                      <a class="btn btn-outline-secondary btn-sm py-0 ms-1" href="{% url 'accounts:mfa_setup' %}">Manage</a>
+                    {% else %}
+                      <span class="fw-semibold text-muted">Not set up</span>
+                      <a class="btn btn-outline-secondary btn-sm py-0 ms-1" href="{% url 'accounts:mfa_setup' %}">Set up</a>
+                    {% endif %}
+                  </span>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -69,6 +100,127 @@
         </div>
       </div>
     </div>
+
+    {% if request.user.role == 'TEACHER' and teacher_org_tree %}
+      <div class="row g-3 mt-0">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-semibold">Organization</div>
+            <div class="card-body">
+              <ul class="list-unstyled mb-0 small">
+                <li><span class="text-muted">Department:</span> {{ teacher_org_tree.department.name|default:"—" }}</li>
+                <li><span class="text-muted">Position:</span> {{ teacher_org_tree.position_title }}</li>
+                {% if teacher_org_tree.reports_to %}
+                  <li><span class="text-muted">Reports to:</span> {{ teacher_org_tree.reports_to.user.get_full_name|default:teacher_org_tree.reports_to.user.username }}</li>
+                {% endif %}
+              </ul>
+              {% if teacher_org_tree.assignments %}
+                <div class="mt-3">
+                  <span class="text-muted">Classes ({{ teacher_org_tree.academic_year.name|default:"current year" }}):</span>
+                  <ul class="list-unstyled mt-1 mb-0">
+                    {% for item in teacher_org_tree.assignments %}
+                      <li class="mb-1">
+                        <strong>{{ item.classroom }}</strong>
+                        <span class="text-muted">—</span>
+                        {{ item.subjects|join:", " }}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% else %}
+                <p class="text-muted small mt-2 mb-0">No class assignments for the current year.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if request.user.role == 'PARENT' and parent_children_tree %}
+      <div class="row g-3 mt-0">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-semibold">My children</div>
+            <div class="card-body">
+              {% if parent_fees_summary %}
+                <div class="mb-3">
+                  {% if parent_fees_summary.unpaid_count %}
+                    <span class="text-muted small">{{ parent_fees_summary.unpaid_count }} unpaid invoice{{ parent_fees_summary.unpaid_count|pluralize }}</span>
+                    <a class="btn btn-outline-primary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">View Finance</a>
+                  {% else %}
+                    <span class="text-muted small">No outstanding fees.</span>
+                    <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">Finance</a>
+                  {% endif %}
+                </div>
+              {% endif %}
+              <ul class="list-unstyled mb-0">
+                {% for item in parent_children_tree.children %}
+                  <li class="d-flex flex-wrap align-items-center gap-2 py-2 border-bottom border-light">
+                    <span class="fw-semibold">{{ item.student }}</span>
+                    <span class="badge bg-secondary">{{ item.relationship }}</span>
+                    <span class="text-muted small">{{ item.classroom }}{% if item.academic_year %} ({{ item.academic_year }}){% endif %}</span>
+                    <a class="btn btn-outline-primary btn-sm ms-auto" href="{% url 'portal:parent_dashboard' %}">View portal</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% elif request.user.role == 'PARENT' and parent_fees_summary %}
+      <div class="row g-3 mt-0">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-semibold">Finance</div>
+            <div class="card-body">
+              {% if parent_fees_summary.unpaid_count %}
+                <span class="text-muted small">{{ parent_fees_summary.unpaid_count }} unpaid invoice{{ parent_fees_summary.unpaid_count|pluralize }}</span>
+                <a class="btn btn-outline-primary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">View Finance</a>
+              {% else %}
+                <span class="text-muted small">No outstanding fees.</span>
+                <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">Finance</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if admin_context %}
+      <div class="row g-3 mt-0">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent fw-semibold">Console &amp; settings</div>
+            <div class="card-body">
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                {% if admin_context.site_settings_url %}
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.site_settings_url }}">Site Settings</a>
+                {% endif %}
+                {% if admin_context.backend_url %}
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.backend_url }}">Backend Console</a>
+                {% endif %}
+                {% if admin_context.admin_url %}
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.admin_url }}">Admin Panel</a>
+                {% endif %}
+                {% if admin_context.rbac_url %}
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.rbac_url }}">User management (RBAC)</a>
+                {% endif %}
+              </div>
+              {% if admin_context.permissions_summary %}
+                <div class="mt-2">
+                  <span class="text-muted small">Feature permissions:</span>
+                  <div class="d-flex flex-wrap gap-1 mt-1">
+                    {% for code in admin_context.permissions_summary %}
+                      <span class="badge bg-light text-dark border">{{ code }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
   </div>
 {% endblock %}
 

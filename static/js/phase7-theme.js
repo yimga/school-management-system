@@ -22,10 +22,12 @@ class ThemeManager {
     }
 
     setTheme(theme) {
-        if (theme === 'auto') {
+        if (theme === "auto") {
             document.documentElement.removeAttribute(this.THEME_ATTRIBUTE);
+            document.documentElement.removeAttribute("data-bs-theme");
         } else {
             document.documentElement.setAttribute(this.THEME_ATTRIBUTE, theme);
+            document.documentElement.setAttribute("data-bs-theme", theme);
         }
         localStorage.setItem(this.STORAGE_KEY, theme);
     }

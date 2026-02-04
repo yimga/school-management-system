@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load region_format %}
 
 {% block title %}Import Job Monitor{% endblock %}
 
@@ -186,9 +187,9 @@
                                     {% endif %}
                                 </h5>
                                 <small class="text-muted">
-                                    Created: {{ job.created_at|date:"F j, Y H:i" }}
+                                    Created: {{ job.created_at|format_date }} {{ job.created_at|time:"H:i" }}
                                     {% if job.completed_at %}
-                                        | Completed: {{ job.completed_at|date:"F j, Y H:i" }}
+                                        | Completed: {{ job.completed_at|format_date }} {{ job.completed_at|time:"H:i" }}
                                     {% endif %}
                                 </small>
                             </div>

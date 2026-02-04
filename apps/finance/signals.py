@@ -13,12 +13,25 @@ def ensure_invoice_reference(sender, instance: Invoice, created: bool, **kwargs)
 
 
 @receiver(post_save, sender=Invoice)
+def notify_guardians_new_invoice_signal(sender, instance: Invoice, created: bool, **kwargs):
+    """Phase 2.3: In-app (and optional email) notification when a new invoice is issued."""
+    if not created or not instance.student_id or instance.invoice_type != Invoice.InvoiceType.AR:
+        return
+    try:
+        from .notifications import notify_guardians_new_invoice
+        notify_guardians_new_invoice(instance, created_by=None)
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender=Invoice)
 def ensure_payment_reminder(sender, instance: Invoice, created: bool, **kwargs):
     if instance.invoice_type != Invoice.InvoiceType.AR or not instance.due_date:
         return
 
     reminder, _ = PaymentReminder.objects.get_or_create(invoice=instance)
-    reminder.is_active = instance.status not in {Invoice.Status.PAID, Invoice.Status.VOID}
+    reminder.is_active = instance.status not in (Invoice.Status.PAID, Invoice.Status.VOID)
+    reminder.save(update_fields=["is_active"])
     reminder.schedule_next()
 
 
@@ -40,9 +53,29 @@ def sync_payment(sender, instance: Payment, created: bool, **kwargs):
         instance.receipt_number = receipt
     if instance.invoice_id:
         apply_payment(instance)
+    if created and instance.invoice_id:
+        try:
+            from .notifications import notify_guardians_payment_received
+            created_by = getattr(instance, "processed_by", None) or getattr(instance, "created_by", None)
+            notify_guardians_payment_received(instance, created_by=created_by)
+        except Exception:
+            pass
 
 
 @receiver(post_delete, sender=Payment)
 def sync_payment_delete(sender, instance: Payment, **kwargs):
     if instance.invoice_id:
         recalculate_invoice(instance.invoice)
+
+
+def _on_student_inactive_stop_reminders(sender, instance, **kwargs):
+    """When a student is marked inactive/withdrawn, stop their payment reminders."""
+    if getattr(instance, "is_active", True) is False:
+        _deactivate_reminders_for_student(instance)
+
+
+try:
+    from apps.people.models import StudentProfile
+    post_save.connect(_on_student_inactive_stop_reminders, sender=StudentProfile)
+except ImportError:
+    pass
