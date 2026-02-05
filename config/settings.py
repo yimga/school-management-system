@@ -166,27 +166,32 @@ import os
 from urllib.parse import quote_plus
 import dj_database_url
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Treat empty or whitespace-only as unset (avoids dj_database_url returning incomplete config)
+DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip() or None
 # Build DATABASE_URL from separate vars if set (e.g. Render injects DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT)
+# Skip if DB_HOST looks like a placeholder (e.g. "from_render") and no real URL is available
 if not DATABASE_URL and os.getenv("DB_HOST"):
-    _db_user = os.getenv("DB_USER", "")
-    _db_pass = os.getenv("DB_PASSWORD", "")
-    _db_host = os.getenv("DB_HOST", "localhost")
-    _db_port = os.getenv("DB_PORT", "5432")
-    _db_name = os.getenv("DB_NAME", "gilead_school_mgmt_db")
-    _db_pass_enc = quote_plus(_db_pass) if _db_pass else ""
-    _db_user_enc = quote_plus(_db_user) if _db_user else ""
-    DATABASE_URL = f"postgresql://{_db_user_enc}:{_db_pass_enc}@{_db_host}:{_db_port}/{_db_name}"
-PREVIEW_DATABASE_URL = os.getenv("PREVIEW_DATABASE_URL")
+    _db_host = (os.getenv("DB_HOST") or "").strip()
+    if _db_host and _db_host not in ("from_render", "from_render ", ""):
+        _db_user = os.getenv("DB_USER", "")
+        _db_pass = os.getenv("DB_PASSWORD", "")
+        _db_port = os.getenv("DB_PORT", "5432")
+        _db_name = os.getenv("DB_NAME", "gilead_school_mgmt_db")
+        _db_pass_enc = quote_plus(_db_pass) if _db_pass else ""
+        _db_user_enc = quote_plus(_db_user) if _db_user else ""
+        DATABASE_URL = f"postgresql://{_db_user_enc}:{_db_pass_enc}@{_db_host}:{_db_port}/{_db_name}"
+PREVIEW_DATABASE_URL = (os.getenv("PREVIEW_DATABASE_URL") or "").strip() or None
 
 if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=not DEBUG,
-        )
-    }
+    _default_db = dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
+    # Ensure ENGINE is present (dj_database_url can return incomplete config if URL is malformed)
+    if not _default_db.get("ENGINE"):
+        _default_db["ENGINE"] = "django.db.backends.postgresql"
+    DATABASES = {"default": _default_db}
 else:
     # ✅ Local fallback (no DATABASE_URL) = sqlite
     # Use DB_FILE to point at a different file when db.sqlite3 is corrupted/locked.
@@ -205,11 +210,14 @@ else:
     }
 
 if PREVIEW_DATABASE_URL:
-    DATABASES["preview"] = dj_database_url.config(
+    _preview_db = dj_database_url.config(
         default=PREVIEW_DATABASE_URL,
         conn_max_age=600,
         ssl_require=not DEBUG,
     )
+    if not _preview_db.get("ENGINE"):
+        _preview_db["ENGINE"] = "django.db.backends.postgresql"
+    DATABASES["preview"] = _preview_db
 else:
     DATABASES["preview"] = DATABASES["default"].copy()
 

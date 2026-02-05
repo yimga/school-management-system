@@ -31,7 +31,7 @@ Example for `school-management-system-2kzk.onrender.com`:
 
 If you do **not** set `DATABASE_URL`, the app uses SQLite on the server disk. Render’s disk is **ephemeral**: it is wiped on every deploy, so **all users and data disappear** after each deploy.
 
-- **Use PostgreSQL:** In Render, create a PostgreSQL database and set `DATABASE_URL` to its Internal Database URL in your Web Service environment. Alternatively, if your host injects separate vars, the app can build the URL from `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD` when `DATABASE_URL` is not set (see `.env.example`).
+- **Use PostgreSQL:** In Render, create a PostgreSQL database and set **`DATABASE_URL`** to its **Internal Database URL** in your Web Service → Environment (paste the full URL from the Postgres service). If you use separate vars instead, set real values for `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT` (do not use placeholder text like `from_render` or the app may fall back to SQLite and migrations can fail).
 - **Recreate users on each deploy:** Set a **Release Command** so admin and demo accounts exist after every deploy. See [CREDENTIALS_AND_RESTORE.md](./CREDENTIALS_AND_RESTORE.md) for the exact steps and release command (migrate + ensure_superuser + create_teacher_parent_accounts for admin, teacher1, Parent1).
 
 ## Optional env vars on Render
