@@ -1298,8 +1298,11 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs):
         if self.theme_pack_id:
-            ThemePackModel = django_apps.get_model("siteconfig", "ThemePack")
-            if not ThemePackModel.objects.filter(pk=self.theme_pack_id).exists():
+            try:
+                ThemePackModel = django_apps.get_model("siteconfig", "ThemePack")
+                if not ThemePackModel.objects.filter(pk=self.theme_pack_id).exists():
+                    self.theme_pack = None
+            except OperationalError:
                 self.theme_pack = None
         super().save(*args, **kwargs)
 
@@ -1307,7 +1310,10 @@ class SiteSettings(models.Model):
     def active_theme(self) -> "ThemePack | None":
         if self.theme_pack:
             return self.theme_pack
-        return ThemePack.objects.filter(is_default=True, is_active=True).first()
+        try:
+            return ThemePack.objects.filter(is_default=True, is_active=True).first()
+        except OperationalError:
+            return None
 
     def apply_theme_pack(self, pack: "ThemePack", save: bool = True) -> None:
         self.theme_pack = pack
@@ -1336,8 +1342,11 @@ class SiteSettings(models.Model):
             return self.admin_theme_pack
         if self.theme_pack and getattr(self.theme_pack, "applies_to_admin", False):
             return self.theme_pack
-        fallback = ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name").first()
-        return fallback or self.theme_pack
+        try:
+            fallback = ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name").first()
+            return fallback or self.theme_pack
+        except OperationalError:
+            return self.theme_pack
 
 
 class ThemePack(models.Model):
