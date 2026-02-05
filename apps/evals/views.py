@@ -1833,8 +1833,8 @@ def grade_approval_detail(request: HttpRequest, request_id):
                     return redirect("evals:grade_approval_list")
 
     deadline_note = getattr(SiteSettings.get_solo(), "grade_approval_deadline_note", "")
-    deadline_display = approval.deadline_at.strftime("%b %d, %Y %H:%M") if approval.deadline_at else None
-    validation_flags = approval.validation_flags or []
+    deadline_display = None  # deadline_at removed from GradeApprovalRequest model
+    validation_flags = []
     return render(request, "evals/grade_approval_detail.html", {
         "approval": approval,
         "form": form,

@@ -215,8 +215,6 @@ def create_grade_approval_request(
             entries=serialized,
             summary=summary,
             requested_by=requested_by,
-            deadline_at=deadline_at,
-            validation_flags=validation_flags,
         )
     _notify_grade_approvers(request_obj)
     return request_obj

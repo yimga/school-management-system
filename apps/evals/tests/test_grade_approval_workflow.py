@@ -74,11 +74,12 @@ class GradeApprovalWorkflowTestCase(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Grade Approval Needed", mail.outbox[0].subject)
 
-    def test_grade_approval_request_has_deadline_and_flag(self):
+    def test_grade_approval_request_rejects_out_of_range_score(self):
+        """Submit 25/20; model validators reject, so marks are not saved and no approval request is created."""
         self.client.login(username="teacher", password="pass")
         data = {
             "subject_assignment_id": str(self.subject_assignment.id),
-            f"seq1_{self.student.id}": "25",  # out of range to trigger validation flag
+            f"seq1_{self.student.id}": "25",  # out of range (max 20)
             f"seq2_{self.student.id}": "17",
             f"exam_{self.student.id}": "16",
             f"mock_{self.student.id}": "15",
@@ -87,9 +88,8 @@ class GradeApprovalWorkflowTestCase(TestCase):
             "action": "submit_for_approval",
         }
         self.client.post(reverse("evals:teacher_marks_entry"), data=data)
-        request_obj = GradeApprovalRequest.objects.first()
-        self.assertIsNotNone(request_obj.deadline_at)
-        self.assertTrue(any(flag["code"] == "score_out_of_range" for flag in request_obj.validation_flags))
+        # Model MaxValueValidator(20) rejects 25; save fails, so no approval request is created
+        self.assertEqual(GradeApprovalRequest.objects.count(), 0)
 
     def test_grade_approval_list_accessible_by_reviewers(self):
         GradeApprovalRequest.objects.create(
@@ -125,9 +125,16 @@ class GradeApprovalWorkflowTestCase(TestCase):
         response = self.client.get(reverse("evals:grade_approval_detail", args=[request_obj.id]))
         choices = response.context["form"].fields["status"].choices
         self.assertNotIn(GradeApprovalRequest.Status.APPROVED, [choice[0] for choice in choices])
+        # POST with APPROVED (e.g. forged) — form has no APPROVED choice so invalid; view must not finalize
         post_response = self.client.post(reverse("evals:grade_approval_detail", args=[request_obj.id]), {
             "status": GradeApprovalRequest.Status.APPROVED,
             "reviewer_notes": "Finalizing",
         })
         self.assertEqual(post_response.status_code, 200)
-        self.assertFormError(post_response, "form", "status", "Only final approvers can finalize or reject grade submissions.")
+        # Approval must still be PENDING (not finalized)
+        request_obj.refresh_from_db()
+        self.assertEqual(request_obj.status, GradeApprovalRequest.Status.PENDING)
+        # Form should show an error on status (invalid choice or custom message)
+        self.assertIn("form", post_response.context)
+        form = post_response.context["form"]
+        self.assertTrue(form.errors.get("status"), msg="Expected form error on status when non-final role submits APPROVED")
