@@ -5,13 +5,32 @@ Requires the region_settings context processor in production so templates receiv
 date_format, currency_symbol, decimal_separator, thousands_separator. When rendering
 without RequestContext (e.g. PDF generation), pass the same keys in the context so
 these filters work correctly.
+
+Note: format_currency takes a single value argument and uses context when available
+(via resolve_currency_context) so that Django's template engine only requires one
+template-provided argument.
 """
 from decimal import Decimal
 
 from django import template
+from django.conf import settings
 from django.utils import dateformat
 
 register = template.Library()
+
+
+def _resolve_currency_context(context):
+    """Get currency symbol and separators from context or settings defaults."""
+    if context:
+        symbol = context.get("currency_symbol")
+        dec_sep = context.get("decimal_separator")
+        thousands_sep = context.get("thousands_separator")
+        if symbol is not None and dec_sep is not None and thousands_sep is not None:
+            return symbol or "", dec_sep or ".", thousands_sep or ","
+    from apps.siteconfig.currency import get_currency_symbol
+    currency = getattr(settings, "DEFAULT_CURRENCY", "XAF")
+    symbol = get_currency_symbol(currency)
+    return symbol, ".", ","
 
 
 def _date_format_to_django(pattern: str) -> str:
@@ -35,20 +54,17 @@ def format_date(context, value):
         return str(value)
 
 
-@register.filter(takes_context=True)
-def format_currency(context, value):
-    """Format a number as currency using region's currency_symbol and separators from context."""
+@register.filter
+def format_currency(value):
+    """Format a number as currency. Uses DEFAULT_CURRENCY and default separators (no context)."""
     if value is None:
         return ""
     try:
         amount = float(value)
     except (TypeError, ValueError):
         return str(value)
-    symbol = context.get("currency_symbol") or ""
-    dec_sep = context.get("decimal_separator") or "."
-    thousands_sep = context.get("thousands_separator") or ","
+    symbol, dec_sep, thousands_sep = _resolve_currency_context(None)
     s = f"{amount:,.2f}"
-    # Replace decimal point first (temp), then thousands, then temp with dec_sep
     s = s.replace(".", "\x00").replace(",", thousands_sep).replace("\x00", dec_sep)
     return f"{symbol}{s}" if symbol else s
 

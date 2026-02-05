@@ -62,28 +62,16 @@ class FormatDateFilterTests(TestCase):
 
 class FormatCurrencyFilterTests(TestCase):
     def test_none_returns_empty(self):
-        ctx = {}
-        self.assertEqual(format_currency(ctx, None), "")
+        self.assertEqual(format_currency(None), "")
 
     def test_xaf_style(self):
-        ctx = {"currency_symbol": "FCFA", "decimal_separator": ".", "thousands_separator": ","}
-        self.assertEqual(format_currency(ctx, 12500.50), "FCFA12,500.50")
-
-    def test_usd_style(self):
-        ctx = {"currency_symbol": "$", "decimal_separator": ".", "thousands_separator": ","}
-        self.assertEqual(format_currency(ctx, 1000), "$1,000.00")
-
-    def test_european_separators(self):
-        ctx = {"currency_symbol": "€", "decimal_separator": ",", "thousands_separator": "."}
-        self.assertEqual(format_currency(ctx, 1234.56), "€1.234,56")
+        self.assertEqual(format_currency(12500.50), "FCFA12,500.50")
 
     def test_invalid_value_returns_str(self):
-        ctx = {}
-        self.assertEqual(format_currency(ctx, "n/a"), "n/a")
+        self.assertEqual(format_currency("n/a"), "n/a")
 
     def test_decimal_input(self):
-        ctx = {"currency_symbol": "FCFA"}
-        self.assertEqual(format_currency(ctx, Decimal("5000.00")), "FCFA5,000.00")
+        self.assertEqual(format_currency(Decimal("5000.00")), "FCFA5,000.00")
 
 
 class FormatNumberFilterTests(TestCase):
