@@ -1623,11 +1623,14 @@ def login_view(request):
             password=request.POST.get("password"),
         )
         if user:
-            login(request,user)
+            login(request, user)
+            next_url = request.POST.get("next") or request.GET.get("next", "").strip()
+            if next_url and next_url.startswith("/") and "//" not in next_url:
+                return redirect(next_url)
             return redirect(reverse("accounts:redirect"))
 
         messages.error(request, "Invalid username or password.")
-    return render(request,"auth/login.html")
+    return render(request, "auth/login.html")
 
 def logout_view(request):
     logout(request)

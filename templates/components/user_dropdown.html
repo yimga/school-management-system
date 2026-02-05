@@ -107,13 +107,13 @@
       {% comment %} Activity logs and system health links are custom admin URLs {% endcomment %}
       {% if request.user.is_staff %}
         <li>
-          <a class="dropdown-item" href="/compliance/access-logs/">
+          <a class="dropdown-item" href="{% url 'compliance:dashboard' %}">
             <i class="bi bi-clock-history"></i>
-            <span>Activity Logs</span>
+            <span>Compliance &amp; Activity</span>
           </a>
         </li>
         <li>
-          <a class="dropdown-item" href="/health/">
+          <a class="dropdown-item" href="{% url 'health' %}">
             <i class="bi bi-heart-pulse"></i>
             <span>System Health</span>
           </a>

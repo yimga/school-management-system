@@ -19,8 +19,22 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS_RAW = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.local")
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_RAW.split(",") if host.strip()]
+# Render.com: allow *.onrender.com so login and all URLs work without setting ALLOWED_HOSTS in dashboard
+if os.getenv("RENDER") == "true":
+    if ".onrender.com" not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(".onrender.com")
 if not DEBUG and not ALLOWED_HOSTS:
     raise ImproperlyConfigured("ALLOWED_HOSTS must be configured for production.")
+
+# Behind HTTPS proxy (e.g. Render, Heroku): trust X-Forwarded-Proto so request.is_secure() and CSRF work
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# CSRF: allow HTTPS origins (Django 4.0+). On Render, set CSRF_TRUSTED_ORIGINS or RENDER_EXTERNAL_HOSTNAME is used.
+_csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "").strip()
+_render_host = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip()
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = [s.strip() for s in _csrf_origins.split(",") if s.strip()]
+elif _render_host:
+    CSRF_TRUSTED_ORIGINS = [f"https://{_render_host}"]
 
 INSTALLED_APPS = [
     # Admin theme (must be first)
