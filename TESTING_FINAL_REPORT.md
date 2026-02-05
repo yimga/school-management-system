@@ -2,7 +2,7 @@
 
 **Branch**: Testing  
 **Scope**: Dual-curriculum (General + Technical) school in Buea; emphasis on Evals and Report Cards.  
-**Passwords**: Superuser `admin` = **Sch00l_1234**; all other users = **Test1234**.
+**Passwords**: Superuser `admin` = set via ensure_superuser (e.g. **Sch00l_1234**); all other users = **Test124**.
 
 ---
 
@@ -42,7 +42,7 @@ All seeded data **remains in the database**; no teardown was performed.
 | Area | What was tested | Result | Note |
 |------|-----------------|--------|------|
 | Git & env | Pull main, branch Testing, DB migrate, code check | Pass | DB in project dir was malformed; used TEMP DB. |
-| Superuser | ensure_superuser (admin / Sch00l_1234) | Pass | |
+| Superuser | ensure_superuser (admin / your password) | Pass | |
 | Seed | seed_buea_synthetic --scale small | Pass | |
 | Evals | Grade approval workflow, evaluation scores, grading scale, mock exams; mark entry 25/20 rejection; coefficient/ranking logic | Pass | GradeApprovalRequest code/template bugs fixed; see test_finding.md. Ranking tests (phase_1_2_ranking) may conflict with seeded DB usernames if run together. |
 | Reports | Parent term/annual PDF/CSV, share link, publish flow (require_approved_grades), promotion preview, statistical return. Debt-block: **not implemented** (see test_finding.md Gaps). | Pass (logic) / Gap | Report download and share do not check finance; document as gap. Publish respects TermPublishStatus and optional approval guard. |
@@ -66,7 +66,7 @@ All seeded data **remains in the database**; no teardown was performed.
 
 ## 5. Evidence and References
 
-- **Backend**: `/authentication/login/` → admin / Sch00l_1234 or teacher_buea_01 / Test1234.
-- **Portal**: `/portal/` → parent_buea_001 / Test1234.
+- **Backend**: `/authentication/login/` → admin / (your superuser password) or teacher_buea_01 / Test124.
+- **Portal**: `/portal/` → parent_buea_001 / Test124.
 - **Seed command**: `python manage.py seed_buea_synthetic [--scale full]`.
 - **Full findings**: [test_finding.md](test_finding.md).

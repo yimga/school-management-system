@@ -17,7 +17,7 @@ This document confirms that **every app and feature** in the school management s
 
 | App | What is seeded | Purpose |
 |-----|----------------|--------|
-| **accounts** | Users (teachers, admins, bursar, parents), AccessRole, passwords Test1234 | RBAC, login, MFA, certification UI |
+| **accounts** | Users (teachers, admins, bursar, parents), AccessRole, passwords Test124 | RBAC, login, MFA, certification UI |
 | **academics** | AcademicYear (2024/25, 2025/26), Terms, Departments, Specialties, Classrooms (Form 1–5, L6, U6, Year 1–7), Subject, SubjectAssignment (coefficients), CertificationExamSession, CertificationCandidate (Form 5 / Upper Sixth), GCE enabled | Curriculum, rollover, GCE export |
 | **people** | StudentProfile (Matricule BUEA/2025/001…), TeacherProfile, StudentGuardian (with Buea addresses), **TeacherAttendance**, **TeacherLeaveRequest**, **StudentResourceReturn** | Students, staff, guardians, attendance, leave, resource return (rollover) |
 | **evals** | AssessmentWeights (20-point scale), TeacherAssignment, Evaluation (pre-filled subset), **MockExamSetting** (Form 5) | Mark entry, rankings, approval, mock blending |

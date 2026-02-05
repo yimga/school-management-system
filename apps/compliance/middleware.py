@@ -15,6 +15,7 @@ from django.http import HttpResponseForbidden
 from django.conf import settings
 from django.db import DatabaseError, connection, transaction
 from django.db.transaction import TransactionManagementError
+from django.db.utils import OperationalError
 from apps.compliance.models_audit import AccessLog, AuditLog
 from apps.compliance.access_control import check_request_access
 
@@ -105,7 +106,11 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             logger.debug("AccessLog skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
-            logger.warning("Failed to log access: %s", e, exc_info=True)
+            # Avoid traceback spam when table is missing (e.g. migrations not run yet)
+            if isinstance(e, OperationalError) and ("no such table" in str(e).lower() or "does not exist" in str(e).lower()):
+                logger.warning("Failed to log access (table missing? run migrate): %s", e)
+            else:
+                logger.warning("Failed to log access: %s", e, exc_info=True)
         except Exception as e:
             logger.warning("Failed to log access: %s", e, exc_info=True)
 
@@ -136,7 +141,10 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             logger.debug("AccessLog exception skipped (router/relation): %s", e)
         except (DatabaseError, TransactionManagementError) as e:
             _reset_db_state()
-            logger.warning("Failed to log exception: %s", e, exc_info=True)
+            if isinstance(e, OperationalError) and ("no such table" in str(e).lower() or "does not exist" in str(e).lower()):
+                logger.warning("Failed to log exception (table missing? run migrate): %s", e)
+            else:
+                logger.warning("Failed to log exception: %s", e, exc_info=True)
         except Exception as e:
             logger.warning("Failed to log exception: %s", e, exc_info=True)
 
@@ -259,30 +267,33 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
         is_allowed, reason = check_request_access(request)
         
         if not is_allowed:
-            # Log the blocked attempt
+            # Log the blocked attempt (skip if AccessLog table missing)
             user = request.user if hasattr(request, 'user') and request.user.is_authenticated else None
             ip_address = self._get_ip_address(request)
-            
-            AccessLog.objects.create(
-                user=user,
-                access_type=AccessLog.AccessType.WEB,
-                resource=request.path,
-                request_method=request.method,
-                status=403,
-                ip_address=ip_address,
-                error_message=f"Access denied: {reason}",
-            )
-            
-            # Log as audit event
-            log_access_denial(
-                user=user,
-                action='HTTP_REQUEST',
-                resource=request.path,
-                reason=f"IP/Country access denied: {reason}",
-                ip_address=ip_address,
-                severity='HIGH'
-            )
-            
+            try:
+                AccessLog.objects.create(
+                    user=user,
+                    access_type=AccessLog.AccessType.WEB,
+                    resource=request.path,
+                    request_method=request.method,
+                    status=403,
+                    ip_address=ip_address,
+                    error_message=f"Access denied: {reason}",
+                )
+                log_access_denial(
+                    user=user,
+                    action='HTTP_REQUEST',
+                    resource=request.path,
+                    reason=f"IP/Country access denied: {reason}",
+                    ip_address=ip_address,
+                    severity='HIGH'
+                )
+            except (DatabaseError, OperationalError, TransactionManagementError):
+                _reset_db_state()
+                logger.debug("Access log skipped (table missing or DB error)")
+            except Exception as e:
+                logger.warning("Failed to log access denial: %s", e)
+
             # Return 403 Forbidden
             return HttpResponseForbidden(
                 f"<h1>Access Denied</h1><p>{reason}</p><p>If you believe this is an error, contact support.</p>"

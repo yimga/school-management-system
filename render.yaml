@@ -1,9 +1,13 @@
+# Render Blueprint: Web Service + PostgreSQL
+# In Dashboard, set ADMIN_PASSWORD (secret) so preDeployCommand can create admin, teacher1, Parent1.
 services:
   - type: web
     name: school-management-system
     env: python
     plan: free
     buildCommand: "./build.sh"
+    # Runs after build, before start; has DATABASE_URL. Creates admin, teacher1, Parent1 if ADMIN_PASSWORD is set.
+    preDeployCommand: ".venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py seed_render_users"
     startCommand: ".venv/bin/gunicorn config.wsgi:application"
     envVars:
       - key: DEBUG
@@ -18,6 +22,7 @@ services:
         value: "school-management-system-2kzk.onrender.com"
       - key: SECRET_KEY
         generateValue: true
+      # Set ADMIN_PASSWORD in Dashboard (Environment) so seed_render_users can create login accounts.
 
 databases:
   - name: school-management-db

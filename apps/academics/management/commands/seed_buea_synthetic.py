@@ -1,6 +1,6 @@
 """
 Seed "Synthetic Buea" dataset: dual-curriculum (General + Technical), Buea localities,
-staff, parents, students, academics, finance, evals, GCE. All user passwords: Test1234.
+staff, parents, students, academics, finance, evals, GCE. All user passwords: Test124.
 Run: python manage.py seed_buea_synthetic [--scale full]
 """
 from __future__ import annotations
@@ -37,7 +37,7 @@ from apps.people.models import (
 )
 from apps.reports.models import PromotionRule, TermPublishStatus
 
-DEMO_PASSWORD = "Test1234"
+DEMO_PASSWORD = "Test124"
 YEAR_2425 = "2024/2025"
 YEAR_2526 = "2025/2026"
 BUEA_LOCALITIES = ["Molyko", "Great Soppo", "Mile 17", "Bonduma"]
@@ -50,7 +50,7 @@ def _random_buea_phone():
 
 
 class Command(BaseCommand):
-    help = "Seed Synthetic Buea dataset (General + Technical, Buea). Passwords: Test1234."
+    help = "Seed Synthetic Buea dataset (General + Technical, Buea). Passwords: Test124."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -123,9 +123,9 @@ class Command(BaseCommand):
         last_teacher = teacher_users[-1].username.replace("teacher_buea_", "") if teacher_users else "00"
         self.stdout.write(self.style.SUCCESS(
             "\nSynthetic Buea seed complete. All data remains in the system.\n"
-            "Superuser: admin / Sch00l_1234\n"
-            "Teachers: teacher_buea_01 .. %s (password Test1234)\n"
-            "Parents: parent_buea_01 .. (password Test1234)\n"
+            "Superuser: admin (password from ensure_superuser / ADMIN_PASSWORD)\n"
+            "Teachers: teacher_buea_01 .. %s (password Test124)\n"
+            "Parents: parent_buea_01 .. (password Test124)\n"
             "Students: BUEA/2025/001 .. (Matricule)"
         ) % last_teacher)
 

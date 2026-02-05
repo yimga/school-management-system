@@ -2,7 +2,7 @@
 
 This document is updated continuously during the comprehensive test run. All bugs, gaps, redundancies, and improvements are recorded here.
 
-**Context**: English education system in Cameroon; technical school (Form 5 & 7 GCE); Buea localities: Molyko, Great Soppo, Mile 17, Bonduma. Passwords: superuser `Sch00l_1234`, all other users `Test1234`.
+**Context**: English education system in Cameroon; technical school (Form 5 & 7 GCE); Buea localities: Molyko, Great Soppo, Mile 17, Bonduma. Passwords: superuser from ensure_superuser (e.g. `Sch00l_1234`), all other users `Test124`.
 
 ---
 
