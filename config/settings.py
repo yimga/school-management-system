@@ -185,9 +185,8 @@ PREVIEW_DATABASE_URL = (os.getenv("PREVIEW_DATABASE_URL") or "").strip() or None
 # On Render, the filesystem is ephemeral — SQLite would be empty on every deploy. Require PostgreSQL.
 if os.getenv("RENDER") == "true" and not DATABASE_URL:
     raise ImproperlyConfigured(
-        "DATABASE_URL is not set on Render. Link the PostgreSQL database to this web service: "
-        "Dashboard → school-management-system → Environment → ensure DATABASE_URL comes from database "
-        "'school-management-db' (or add it via fromDatabase in render.yaml and redeploy)."
+        "DATABASE_URL is not set on Render. In Dashboard → Web Service → Environment, add DATABASE_URL "
+        "(from your Postgres DB → Internal Database URL). See docs/RENDER_DATABASE_URL_FIX.md"
     )
 
 if DATABASE_URL:
