@@ -23,6 +23,14 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
     if not ip_address:
         return True, "No IP address provided"
 
+    # Handle case where table doesn't exist yet (migrations not run)
+    try:
+        # Quick check if table exists by trying to count
+        IPAccessRule.objects.exists()
+    except Exception:
+        # Table doesn't exist - allow access (fail open)
+        return True, "Access control table not initialized - allowing access"
+
     # Cache key includes a version so rule updates invalidate cached entries
     def _rules_version():
         ver = cache.get('access_rules_version')
@@ -39,15 +47,19 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
     now = timezone.now()
 
     # Get active rules (exclude expired ones)
-    deny_rules = IPAccessRule.objects.filter(
-        rule_type=IPAccessRule.RuleType.DENY,
-        is_active=True
-    ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
+    try:
+        deny_rules = IPAccessRule.objects.filter(
+            rule_type=IPAccessRule.RuleType.DENY,
+            is_active=True
+        ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
 
-    allow_rules = IPAccessRule.objects.filter(
-        rule_type=IPAccessRule.RuleType.ALLOW,
-        is_active=True
-    ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
+        allow_rules = IPAccessRule.objects.filter(
+            rule_type=IPAccessRule.RuleType.ALLOW,
+            is_active=True
+        ).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
+    except Exception:
+        # Database error - allow access (fail open)
+        return True, "Access control check failed - allowing access"
 
     # Check DENY rules first
     for rule in deny_rules:

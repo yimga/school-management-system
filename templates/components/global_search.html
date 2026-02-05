@@ -82,6 +82,24 @@
           </div>
         </div>
 
+        <!-- Phase 19.2: Help & Knowledge Base -->
+        <div class="search-section help-section" id="searchHelpSection">
+          <div class="search-section-header">
+            <span><i class="bi bi-journal-text"></i> Help & Knowledge Base</span>
+          </div>
+          <div class="search-items">
+            <a href="{% url 'kb:kb_home' %}" class="search-item">
+              <div class="search-item-icon bg-info">
+                <i class="bi bi-question-circle"></i>
+              </div>
+              <div class="search-item-content">
+                <div class="search-item-title">Browse help articles</div>
+                <div class="search-item-desc">FAQs, guides, and how-to articles</div>
+              </div>
+            </a>
+          </div>
+        </div>
+
         <!-- Search results will appear here -->
         <div class="search-section search-results-section" id="searchResultsSection" style="display: none;">
           <div class="search-section-header">
@@ -132,21 +150,21 @@
 .search-trigger {
   width: 100%;
   padding: 0.5rem 1rem;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--admin-content-surface, #f8f9fa);
+  border: 1px solid var(--admin-content-border, #e9ecef);
   border-radius: 8px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: #64748b;
+  color: var(--admin-content-text-muted, #64748b);
 }
 
 .search-trigger:hover {
-  background: #fff;
-  border-color: #0d6efd;
-  color: #0d6efd;
+  background: var(--admin-content-bg);
+  border-color: var(--focus-ring-color, var(--school-primary, #0d6efd));
+  color: var(--focus-ring-color, var(--school-primary, #0d6efd));
 }
 
 .search-trigger i {
@@ -161,8 +179,8 @@
 
 .search-hint kbd {
   float: right;
-  background: #fff;
-  border: 1px solid #dee2e6;
+  background: var(--admin-content-bg);
+  border: 1px solid var(--admin-content-border, #dee2e6);
   padding: 0.125rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -180,7 +198,7 @@
 
 .search-modal-header {
   padding: 1rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--admin-content-border, #f1f5f9);
   display: flex;
   gap: 0.75rem;
   align-items: center;
@@ -203,7 +221,7 @@
 .search-input {
   width: 100%;
   padding: 0.75rem 3rem 0.75rem 3rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--admin-content-border, #e9ecef);
   border-radius: 8px;
   font-size: 1rem;
   outline: none;
@@ -226,8 +244,8 @@
 }
 
 .search-clear:hover {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--admin-content-surface, #f1f5f9);
+  color: var(--admin-content-text-muted, #64748b);
 }
 
 .search-close {
@@ -238,11 +256,11 @@
 }
 
 .search-close kbd {
-  background: #f1f5f9;
+  background: var(--admin-content-surface, #f1f5f9);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--admin-content-border, #e9ecef);
 }
 
 .search-modal-body {
@@ -267,7 +285,7 @@
   margin-bottom: 0.75rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--admin-content-text-muted, #64748b);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -283,8 +301,8 @@
 }
 
 .btn-clear-history:hover {
-  background: #f1f5f9;
-  color: #64748b;
+  background: var(--admin-content-surface, #f1f5f9);
+  color: var(--admin-content-text-muted, #64748b);
 }
 
 .search-items {
@@ -332,13 +350,13 @@
 .search-item-title {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #1e293b;
+  color: var(--admin-content-text, #1e293b);
   margin-bottom: 0.125rem;
 }
 
 .search-item-desc {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--admin-content-text-muted, #64748b);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -384,7 +402,7 @@
   display: flex;
   gap: 1rem;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--admin-content-text-muted, #64748b);
 }
 
 .search-tips span {
@@ -394,8 +412,8 @@
 }
 
 .search-tips kbd {
-  background: #fff;
-  border: 1px solid #e9ecef;
+  background: var(--admin-content-bg);
+  border: 1px solid var(--admin-content-border, #e9ecef);
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
   font-size: 0.7rem;
@@ -411,7 +429,7 @@
 }
 
 .search-modal-body::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--admin-content-border, #cbd5e1);
   border-radius: 3px;
 }
 
@@ -458,6 +476,8 @@ document.addEventListener('DOMContentLoaded', function() {
     loadRecentSearches();
   });
 
+  const searchHelpSection = document.getElementById('searchHelpSection');
+
   // Search input handler
   searchInput.addEventListener('input', function() {
     const query = this.value.trim();
@@ -467,11 +487,13 @@ document.addEventListener('DOMContentLoaded', function() {
       searchResultsSection.style.display = 'none';
       searchEmpty.style.display = 'none';
       recentSearches.style.display = 'block';
+      if (searchHelpSection) searchHelpSection.style.display = 'block';
       return;
     }
 
     searchClear.style.display = 'block';
     recentSearches.style.display = 'none';
+    if (searchHelpSection) searchHelpSection.style.display = 'none';
 
     // Debounce search
     clearTimeout(searchTimeout);
@@ -486,6 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
     searchResultsSection.style.display = 'none';
     searchEmpty.style.display = 'none';
     recentSearches.style.display = 'block';
+    if (searchHelpSection) searchHelpSection.style.display = 'block';
   });
 
   // Perform search

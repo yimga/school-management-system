@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Chat with {{ other_user.get_full_name|default:other_user.username }}{% endblock %}
 
@@ -47,7 +48,7 @@
               <div class="rounded-3 px-3 py-2 {% if msg.sender_id == request.user.id %}bg-primary text-white{% else %}bg-light{% endif %}" style="max-width: 75%;">
                 <div class="small opacity-75">
                   {{ msg.sender.get_full_name|default:msg.sender.username }}
-                  · {{ msg.created_at|date:"M j, g:i A" }}
+                  · {{ msg.created_at|format_date }} {{ msg.created_at|time:"g:i A" }}
                   {% if msg.sender_id != request.user.id and msg.is_read %}
                     <span class="ms-1" title="Read">✓</span>
                   {% endif %}

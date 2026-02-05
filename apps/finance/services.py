@@ -9,10 +9,11 @@ from typing import Iterable
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Count, Sum
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.people.models import StudentProfile
-from apps.siteconfig.models import Integration
+from apps.siteconfig.models import Integration, SiteSettings
 
 from .models import (
     ComplianceProfile,
@@ -24,6 +25,8 @@ from .models import (
     LedgerAccount,
     Payment,
     PaymentMethodCode,
+    PaymentProofUpload,
+    RefundRequest,
 )
 
 
@@ -303,6 +306,7 @@ def recalculate_invoice(invoice: Invoice) -> None:
     invoice.balance_amount = balance
     invoice.status = _invoice_status(total, balance)
     invoice.save(update_fields=["total_amount", "balance_amount", "status", "updated_at"])
+    invoice.reconcile_balance()
     post_invoice_to_ledger(invoice)
 
 
@@ -313,6 +317,83 @@ def apply_payment(payment: Payment) -> None:
     post_payment_to_ledger(payment)
 
 
+def _get_region_for_refund(invoice: Invoice):
+    """Get RegionConfig for refund/overpayment (use first active region)."""
+    from apps.siteconfig.models import RegionConfig
+    return RegionConfig.objects.filter(is_active=True).first()
+
+
+@transaction.atomic
+def create_payment_from_receipt(
+    proof_upload: PaymentProofUpload,
+    verification_data: dict,
+    verified_by=None
+) -> Payment:
+    """
+    Create and apply payment from verified receipt upload.
+    Caps amount at invoice balance; overpayment within tolerance creates RefundRequest.
+    """
+    invoice = proof_upload.invoice
+    balance = invoice.balance_amount or invoice.total_amount or Decimal("0")
+
+    amount = verification_data.get("amount") or proof_upload.uploaded_amount
+    if not amount:
+        raise ValueError("Cannot create payment: amount not found in receipt")
+
+    site = SiteSettings.get_solo()
+    overpayment_handling = getattr(site, "finance_overpayment_handling", "allow_with_refund")
+    tolerance = Decimal(str(getattr(site, "finance_overpayment_tolerance_xaf", "1000")))
+
+    amount_to_apply = min(amount, balance)
+    overpayment = amount - balance if amount > balance else Decimal("0")
+
+    if overpayment > tolerance and balance > 0:
+        raise ValueError(
+            f"Receipt amount {amount} exceeds balance {balance} by more than allowed tolerance ({tolerance} XAF). "
+            "Please review manually."
+        )
+
+    payment = Payment.objects.create(
+        invoice=invoice,
+        student=invoice.student,
+        amount=amount_to_apply,
+        method=proof_upload.payment_method,
+        receipt_file=proof_upload.receipt_file,
+        reference=verification_data.get("reference") or proof_upload.transaction_reference or "",
+        external_reference=verification_data.get("reference") or proof_upload.transaction_reference or "",
+        status=Payment.STATUS_CHOICES[2][0],
+        created_by=proof_upload.uploaded_by,
+        processed_by=verified_by,
+        paid_at=timezone.now(),
+    )
+
+    apply_payment(payment)
+
+    if overpayment > 0 and overpayment_handling in ("allow_with_refund", "allow_as_credit"):
+        region = _get_region_for_refund(invoice)
+        if region:
+            RefundRequest.objects.create(
+                payment=payment,
+                region=region,
+                amount=overpayment,
+                reason="overpayment",
+                description=f"Overpayment from receipt upload (proof #{proof_upload.id}). Amount received: {amount}, applied: {amount_to_apply}.",
+                status="pending",
+                requested_by=verified_by or proof_upload.uploaded_by,
+            )
+        if not proof_upload.verification_notes:
+            proof_upload.verification_notes = ""
+        proof_upload.verification_notes += f" Overpayment {overpayment} XAF → refund request created. "
+
+    proof_upload.payment = payment
+    proof_upload.status = PaymentProofUpload.Status.VERIFIED
+    proof_upload.verified_by = verified_by
+    proof_upload.verified_at = timezone.now()
+    proof_upload.save()
+
+    return payment
+
+
 def _student_for_plan(plan: FeePlan) -> Iterable[StudentProfile]:
     return StudentProfile.objects.filter(
         academic_year=plan.academic_year,
@@ -320,6 +401,17 @@ def _student_for_plan(plan: FeePlan) -> Iterable[StudentProfile]:
         specialty=plan.specialty,
         is_active=True,
     ).order_by("last_name", "first_name")
+
+
+def _bulk_create_invoice_notify_guardians_skip():
+    """Context manager to skip per-invoice notifications during bulk create (Phase 4.1: use Notify guardians instead)."""
+    from contextvars import copy_context
+    from apps.finance.notifications import _skip_new_invoice_notify
+    token = _skip_new_invoice_notify.set(True)
+    try:
+        yield
+    finally:
+        _skip_new_invoice_notify.reset(token)
 
 
 @transaction.atomic
@@ -333,45 +425,113 @@ def create_fee_invoices(
     issued_date = issued_date or timezone.now().date()
     fee_items = list(plan.items.all())
     invoices: list[Invoice] = []
+    skip_ctx = _bulk_create_invoice_notify_guardians_skip()
+    next(skip_ctx)  # enter
 
-    for student in _student_for_plan(plan):
-        invoice, created = Invoice.objects.get_or_create(
-            profile=profile,
-            academic_year=plan.academic_year,
-            student=student,
-            invoice_type=Invoice.InvoiceType.AR,
-            reference=f"FEE-{plan.academic_year.name}-{student.student_code}",
-            defaults={
-                "issued_date": issued_date,
-                "due_date": due_date,
-                "status": Invoice.Status.ISSUED,
-            },
-        )
-        if not created:
-            invoice.issued_date = issued_date
-            invoice.due_date = due_date
-            invoice.save(update_fields=["issued_date", "due_date", "updated_at"])
+    try:
+        for student in _student_for_plan(plan):
+            invoice, created = Invoice.objects.get_or_create(
+                profile=profile,
+                academic_year=plan.academic_year,
+                student=student,
+                invoice_type=Invoice.InvoiceType.AR,
+                reference=f"FEE-{plan.academic_year.name}-{student.student_code}",
+                defaults={
+                    "issued_date": issued_date,
+                    "due_date": due_date,
+                    "status": Invoice.Status.ISSUED,
+                },
+            )
+            if not created:
+                invoice.issued_date = issued_date
+                invoice.due_date = due_date
+                invoice.save(update_fields=["issued_date", "due_date", "updated_at"])
 
-        if created or not invoice.lines.exists():
-            InvoiceLine.objects.filter(invoice=invoice).delete()
-            for item in fee_items:
-                InvoiceLine.objects.create(
-                    invoice=invoice,
-                    description=item.name,
-                    quantity=Decimal("1.00"),
-                    unit_price=item.amount,
-                    amount=item.amount,
-                    fee_item=item,
-                )
+            if created or not invoice.lines.exists():
+                InvoiceLine.objects.filter(invoice=invoice).delete()
+                for item in fee_items:
+                    InvoiceLine.objects.create(
+                        invoice=invoice,
+                        description=item.name,
+                        quantity=Decimal("1.00"),
+                        unit_price=item.amount,
+                        amount=item.amount,
+                        fee_item=item,
+                    )
 
-        recalculate_invoice(invoice)
-        invoices.append(invoice)
+            recalculate_invoice(invoice)
+            invoices.append(invoice)
+    finally:
+        try:
+            skip_ctx.send(None)
+        except StopIteration:
+            pass
 
     return invoices
 
 
 def get_month_name(dt: date) -> str:
     return dt.strftime("%b %Y")
+
+
+@transaction.atomic
+def copy_fee_plan_to_year(
+    source_plan: FeePlan,
+    target_year,
+    increase_percentage: Decimal = Decimal("0.00"),
+) -> FeePlan:
+    """
+    Copy a fee plan to a new academic year.
+    
+    Args:
+        source_plan: The FeePlan to copy from
+        target_year: AcademicYear to copy to
+        increase_percentage: Percentage increase to apply (e.g., 5.00 for 5% increase)
+    
+    Returns:
+        The newly created FeePlan
+    """
+    from apps.academics.models import AcademicYear
+    
+    if not isinstance(target_year, AcademicYear):
+        target_year = AcademicYear.objects.get(id=target_year)
+    
+    # Create new fee plan
+    new_plan = FeePlan.objects.create(
+        academic_year=target_year,
+        classroom=source_plan.classroom,
+        specialty=source_plan.specialty,
+        name=f"{source_plan.name} ({target_year.name})",
+        is_active=source_plan.is_active,
+        notes=f"Copied from {source_plan.academic_year.name}: {source_plan.notes or ''}",
+    )
+    
+    # Copy fee items with optional increase
+    multiplier = Decimal("1.00") + (increase_percentage / Decimal("100.00"))
+    
+    for item in source_plan.items.all():
+        new_amount = item.amount * multiplier
+        
+        new_item = FeeItem.objects.create(
+            plan=new_plan,
+            name=item.name,
+            amount=new_amount,
+            due_date=item.due_date,
+            item_type=item.item_type,
+            is_mandatory=item.is_mandatory,
+        )
+        
+        # Copy installments if any
+        for installment in item.installments.all():
+            new_installment_amount = installment.amount * multiplier
+            FeeInstallment.objects.create(
+                fee_item=new_item,
+                installment_number=installment.installment_number,
+                amount=new_installment_amount,
+                due_date=installment.due_date,
+            )
+    
+    return new_plan
 
 
 def finance_dashboard_data(profile):
@@ -415,3 +575,35 @@ def finance_dashboard_data(profile):
         "recent_payments": payments.order_by("-paid_at")[:5],
         "trend": month_series,
     }
+
+
+def get_parent_fees_summary(user):
+    """
+    Return a short fees summary for a parent/guardian: unpaid invoice count and link to Finance.
+    Returns None if user is not a parent, has no linked children with finance access, or on error.
+    """
+    if getattr(user, "role", None) != "PARENT":
+        return None
+    try:
+        from apps.accounts.permissions import _guardian_finance_qs
+
+        site = SiteSettings.get_solo()
+        profile = getattr(site, "compliance_profile", None)
+        if not profile:
+            profile = ComplianceProfile.objects.filter(is_active=True).first()
+        if not profile:
+            return None
+        parent_students = list(_guardian_finance_qs(user).values_list("student_id", flat=True))
+        if not parent_students:
+            return None
+        unpaid = Invoice.objects.filter(
+            profile=profile,
+            student_id__in=parent_students,
+            balance_amount__gt=0,
+        ).count()
+        return {
+            "unpaid_count": unpaid,
+            "invoices_url": reverse("finance:invoices"),
+        }
+    except Exception:
+        return None

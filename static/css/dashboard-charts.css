@@ -21,8 +21,12 @@
 }
 
 .dashboard-chart-card .card-body {
-  padding: 1rem 1.25rem;
+  padding: var(--dashboard-gap-md, 1rem) 1.25rem;
   min-height: 220px;
+}
+.dashboard-chart-card .card-title {
+  font-size: var(--dashboard-card-title-size, 1rem);
+  font-weight: 600;
 }
 
 /* Responsive chart wrapper - maintains aspect ratio */

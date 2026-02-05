@@ -1,4 +1,4 @@
-# Code Review: Gaps, Redundancies & Unnecessary Code
+go through the code agai and agin, find gaps and # Code Review: Gaps, Redundancies & Unnecessary Code
 
 ## 🔴 CRITICAL GAPS (Missing Functionality)
 
@@ -193,20 +193,20 @@ path
 ## 🎯 PRIORITY FIXES
 
 ### Immediate (This Week)
-1. ✅ Fix `GradingDeadline` issue (restore model OR remove all references)
-2. ✅ Consolidate dashboard context setup into helper function
-3. ✅ Fix incomplete URL pattern in `apps/evals/urls.py`
+1. ✅ Fix `GradingDeadline` issue — **DONE**: All references now use `SubjectAssignment.grading_deadline_at` (analytics/views, analytics/services, portal/services, evals/views extend_deadline, send_deadline_reminders command).
+2. ✅ Consolidate dashboard context setup — **DONE**: All dashboard views (accounts, finance, emis, payroll, analytics, compliance) use `get_dashboard_context(user, page)` from `apps/accounts/utils.py`.
+3. ✅ Incomplete URL in evals/urls.py — **N/A**: File is complete (no broken `path` at line 45).
 
 ### Short-term (Next Week)
-4. ✅ Merge or remove duplicate drag-and-drop JavaScript
-5. ✅ Consolidate layout loading/sanitization functions
-6. ✅ Create `get_user_role()` helper function
-7. ✅ Remove unused imports (run linter)
+4. ⏳ Merge or remove duplicate drag-and-drop JavaScript — **Deferred**: Option B (keep customizer for settings only) can be done later.
+5. ✅ Consolidate layout loading/sanitization — **DONE**: API `_sanitize_layout_settings` now calls `_normalize_dashboard_settings` from `dashboard_views` and overlays widget_meta/custom_links sanitization.
+6. ✅ Use `get_user_role()` — **DONE**: `apps/accounts/utils.get_user_role` used in `dashboard_views` and `dashboard_layout_api`.
+7. ⏳ Remove unused imports — Run linter as needed.
 
 ### Medium-term (Next Month)
-8. ✅ Complete TODO items or remove placeholders
-9. ✅ Implement missing API endpoints
-10. ✅ Add missing tests
+8. ⏳ Complete TODO items or remove placeholders
+9. ⏳ Implement missing API endpoints
+10. ✅ Add `@login_required` to portal alias views (student_portal_grades, admissions_application_status, teacher_dashboard_alias, teacher_workflow_alias).
 
 ---
 

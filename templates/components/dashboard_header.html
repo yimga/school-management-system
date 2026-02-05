@@ -1,6 +1,7 @@
 {% load static %}
+{% load region_format %}
 {# Role-based dashboard header with branding, user info, and key metrics #}
-<div class="dashboard-header-wrapper sticky-top bg-white shadow-sm">
+<div class="dashboard-header-wrapper sticky-top shadow-sm" style="background: var(--admin-content-bg);">
   <div class="dashboard-header" id="dashboardHeader">
     <div class="container-fluid py-3">
       <div class="row align-items-center g-3">
@@ -10,7 +11,7 @@
             {% if SITE_LOGO_URL %}
               <img src="{{ SITE_LOGO_URL }}" alt="Logo" class="header-logo" width="45" height="45" loading="lazy" decoding="async" style="max-height: 45px; width: auto; object-fit: contain;">
             {% else %}
-              <div class="header-logo-placeholder" style="width: 45px; height: 45px; background: linear-gradient(135deg, #0d6efd, #6366f1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px;">
+              <div class="header-logo-placeholder" style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--school-primary, #0d6efd), var(--color-secondary, #6366f1)); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--header-brand-fg, #fff); font-weight: bold; font-size: 20px;">
                 GT
               </div>
             {% endif %}
@@ -33,7 +34,7 @@
               <div class="header-subtitle text-muted small">
                 <i class="bi bi-clock-history"></i>
                 <span class="last-updated" data-timestamp="{{ current_time.timestamp }}">
-                  {{ current_time|date:"l, F j, Y - g:i A" }}
+                  {{ current_time|format_date }} {{ current_time|time:"H:i" }}
                 </span>
               </div>
             </div>
@@ -64,7 +65,7 @@
                 <div class="metric-pill">
                   <i class="bi bi-cash-stack text-warning"></i>
                   <span class="metric-label">Pending</span>
-                  <strong class="metric-value">${{ pending_amount|default:"0"|floatformat:0 }}</strong>
+                  <strong class="metric-value">{{ pending_amount|default:0|format_currency }}</strong>
                 </div>
               {% elif request.user.role == 'TEACHER' %}
                 <!-- Teacher metrics -->
@@ -98,7 +99,7 @@
                 <div class="metric-pill">
                   <i class="bi bi-receipt text-warning"></i>
                   <span class="metric-label">Balance</span>
-                  <strong class="metric-value">${{ parent_balance|default:"0"|floatformat:0 }}</strong>
+                  <strong class="metric-value">{{ parent_balance|default:0|format_currency }}</strong>
                 </div>
               {% elif request.user.role == 'STUDENT' %}
                 <!-- Student metrics -->
@@ -137,14 +138,14 @@
   position: sticky;
   top: 0;
   z-index: 1020;
-  background: #fff;
+  background: var(--admin-content-bg);
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   margin-bottom: 1.5rem;
 }
 
 .dashboard-header {
   padding: 1rem 0;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  background: var(--admin-content-bg);
 }
 
 .header-logo {
@@ -261,9 +262,9 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.75rem;
-  background: #fff;
+  background: var(--admin-content-surface);
   border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  border: 1px solid var(--admin-content-border, rgba(15, 23, 42, 0.1));
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 

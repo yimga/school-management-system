@@ -4,13 +4,14 @@
   Optional: chart_data (JSON), chart_data_url (fetch URL), show_export, aria_label
   Use with dashboard-charts-shared.js and dashboard-charts.css
 {% endcomment %}
-<div class="card dashboard-chart-card shadow-sm" data-chart-id="{{ chart_id }}" data-chart-type="{{ chart_type }}">
+<div class="card dashboard-chart-card" data-chart-id="{{ chart_id }}" data-chart-type="{{ chart_type }}">
   <div class="card-body">
     <div class="dashboard-chart-header">
       <h5 class="card-title mb-0">{{ chart_title }}</h5>
       {% if show_export|default:True %}
       <button type="button" class="btn btn-sm btn-outline-secondary dashboard-chart-export" aria-label="Download chart as PNG" title="Download as PNG" data-chart-export="{{ chart_id }}">
-        <i class="bi bi-download"></i>
+        <i class="bi bi-download" aria-hidden="true"></i>
+        <span class="d-none d-sm-inline ms-1">Export</span>
       </button>
       {% endif %}
     </div>

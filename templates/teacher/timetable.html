@@ -1,0 +1,53 @@
+{% extends "portal_base.html" %}
+
+{% block title %}My Timetable{% endblock %}
+
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  {% if not year or not term %}
+    <div class="alert alert-warning">No active academic year or term is set. Ask an admin to set the current year and term.</div>
+  {% elif not schedule %}
+    <div class="alert alert-info">
+      No timetable is published for the current term yet. When the admin publishes a schedule for {{ year.name }} – {{ term.custom_label|default:term.name }}, your sessions will appear here.
+    </div>
+  {% elif not entries %}
+    <div class="alert alert-info">
+      You have no assigned sessions in the current timetable. If you expect to see classes here, ask the admin to assign you in the schedule.
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Weekly schedule</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Subject</th>
+                <th>Class</th>
+                <th>Room</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for day, day_entries in by_day_ordered %}
+                {% for entry in day_entries %}
+                  <tr>
+                    {% if forloop.first %}
+                      <td rowspan="{{ day_entries|length }}" class="align-middle fw-semibold">{{ day }}</td>
+                    {% endif %}
+                    <td>{{ entry.time_slot.start_time|time:"H:i" }} – {{ entry.time_slot.end_time|time:"H:i" }}</td>
+                    <td>{{ entry.subject.name }}</td>
+                    <td>{{ entry.classroom.name }}</td>
+                    <td>{{ entry.room.name }}</td>
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

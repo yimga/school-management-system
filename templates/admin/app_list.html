@@ -1,0 +1,85 @@
+{% load i18n static %}
+
+<div id="nav-sidebar-apps" class="admin-sidebar-apps h-0 grow overflow-auto d-flex flex-column" data-simplebar role="navigation" aria-label="{% trans 'Applications' %}">
+  {% comment %}Brand at top (navigation.html). Quick access first, then app groups. User at bottom (navigation_user). {% endcomment %}
+
+  {% comment %}Quick access (target: uppercase title, purple active, grey inactive) {% endcomment %}
+  <div class="admin-sidebar-quick-access">
+    <h2 class="admin-sidebar-section-title">
+      {% trans "Quick access" %}
+    </h2>
+    <ul class="admin-sidebar-quick-list">
+      <li>
+        <a href="{% url 'admin:index' %}" class="admin-sidebar-link {% if request.path == '/admin/' or request.path == '/admin' %}active{% endif %}"
+           aria-current="{% if request.path == '/admin/' or request.path == '/admin' %}page{% endif %}">
+          <span class="material-symbols-outlined admin-sidebar-icon" aria-hidden="true">dashboard</span>
+          {% trans "Dashboard" %}
+        </a>
+      </li>
+      {% if request.user.is_superuser %}
+      <li>
+        <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-sidebar-link {% if 'siteconfig/sitesettings' in request.path %}active{% endif %}"
+           aria-current="{% if 'siteconfig/sitesettings' in request.path %}page{% endif %}">
+          <span class="material-symbols-outlined admin-sidebar-icon" aria-hidden="true">settings</span>
+          {% trans "Site settings" %}
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+
+  {% if app_list %}
+  <div class="admin-sidebar-app-groups" role="list">
+    {% for app in app_list %}
+    <div class="app-{{ app.app_label }} module admin-sidebar-app-group{% if app.app_url in request.path %} current-app{% endif %}"
+         x-data="{ open: {% if app.app_url in request.path %}true{% else %}true{% endif %} }"
+         role="listitem">
+      {% if app.models and not app.hidden %}
+      <h2 class="admin-sidebar-app-title"
+          x-on:click="open = !open"
+          :aria-expanded="open"
+          role="button"
+          tabindex="0"
+          aria-label="{% blocktranslate with name=app.name %}Toggle {{ name }}{% endblocktranslate %}"
+          @keydown.enter.prevent="open = !open"
+          @keydown.space.prevent="open = !open">
+        <a href="{{ app.app_url }}" class="block truncate"
+           title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}"
+           @click.stop>
+          {{ app.name }}
+        </a>
+        <span class="material-symbols-outlined admin-sidebar-chevron" aria-hidden="true"
+              :class="{ 'rotate-90': open }">chevron_right</span>
+      </h2>
+      <ol class="admin-sidebar-model-list flex flex-col gap-1 px-0 mx-0" x-show="open" x-transition role="list">
+        {% for model in app.models %}
+        {% if not model.hidden %}
+        <li class="model-{{ model.object_name|lower }}{% if model.admin_url and model.admin_url in request.path %} current-model{% endif %}" role="listitem">
+          {% if model.header %}
+          <h3 class="font-medium my-2 text-base-900 text-sm dark:text-base-200">{{ model.header }}</h3>
+          {% endif %}
+          {% if model.admin_url %}
+          <a href="{{ model.admin_url }}"
+             id="link-{{ app.app_label }}-{{ model.object_name|lower }}"
+             class="admin-sidebar-model-link truncate {% if model.admin_url in request.path %}active{% endif %}"
+             {% if model.admin_url in request.path %}aria-current="page"{% endif %}>
+            {{ model.name }}
+          </a>
+          {% else %}
+          {{ model.name }}
+          {% endif %}
+        </li>
+        {% endif %}
+        {% endfor %}
+      </ol>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="px-4 py-3 text-sm">
+    {% trans "You don't have permission to view or edit anything." as error_message %}
+    {% include "unfold/helpers/messages/error.html" with error=error_message %}
+  </p>
+  {% endif %}
+</div>

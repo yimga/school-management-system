@@ -25,7 +25,7 @@
   font-weight: 600;
   text-decoration: none;
   background: rgba(255, 255, 255, 0.15);
-  color: #ffffff !important;
+  color: #f1f5f9 !important;
   border: 1px solid rgba(255, 255, 255, 0.5);
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
@@ -35,7 +35,7 @@
 .nav-global-actions .button.ghost:hover,
 .nav-global-actions a.button.ghost:hover {
   background: rgba(255, 255, 255, 0.25) !important;
-  color: #ffffff !important;
+  color: #f1f5f9 !important;
   border-color: rgba(255, 255, 255, 0.8);
 }
 
@@ -67,7 +67,7 @@
 #header .theme-toggle button:hover,
 .nav-global-actions .theme-toggle button:hover {
   background: rgba(255, 255, 255, 0.2);
-  color: #ffffff !important;
+  color: #f1f5f9 !important;
 }
 
 #header .theme-toggle button.active,
@@ -76,16 +76,42 @@
   color: #0f172a !important;
 }
 
-/* Keep header gradient and white text in all themes */
-#header {
+/* When header uses theme vars (admin-top-header), use them for consistency and high contrast. No gradient. */
+#header.admin-top-header,
+.admin-top-header {
+  background: var(--admin-surface, var(--admin-dashboard-bg, #f8fafc)) !important;
+  color: var(--admin-text, #0f172a) !important;
+  border-color: var(--admin-border, #e2e8f0) !important;
+}
+
+/* Header row: wrap so theme switcher and profile links stay in frame on all screens */
+#header-inner,
+.admin-top-header #header-inner,
+.admin-top-header .flex.w-full {
+  flex-wrap: wrap !important;
+  gap: 0.5rem;
+}
+.admin-tab-actions {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* Legacy: non–theme-aware header (gradient) – only when not using admin-top-header */
+#header:not(.admin-top-header) {
   background: linear-gradient(115deg, var(--color-primary) 0%, var(--color-secondary) 55%, #172554 100%) !important;
-  color: #ffffff !important;
+  color: #f1f5f9 !important;
 }
 
 #branding h1 a,
-#branding #site-name a,
-#header a:not(.button.ghost):not(.theme-toggle button) {
-  color: #ffffff !important;
+#branding #site-name a {
+  color: var(--admin-text, #f1f5f9) !important;
+}
+#header.admin-top-header a:not(.button.ghost):not(.theme-toggle button),
+.admin-top-header a:not(.button.ghost):not(.theme-toggle button) {
+  color: var(--admin-accent, #0ea5e9) !important;
+}
+#header:not(.admin-top-header) a:not(.button.ghost):not(.theme-toggle button) {
+  color: #f1f5f9 !important;
 }
 
 #branding h1 a:hover,
@@ -168,9 +194,9 @@
 :root[data-theme="light"] #content .module,
 :root[data-theme="light"] #content .results,
 :root[data-theme="light"] #content #changelist-filter {
-  background: #ffffff !important;
+  background: var(--admin-content-bg) !important;
   border-color: rgba(15, 23, 42, 0.12) !important;
-  color: #0f172a !important;
+  color: var(--admin-content-text) !important;
 }
 
 :root[data-theme="light"] #content .breadcrumbs,
@@ -181,8 +207,8 @@
 :root[data-theme="light"] #content input,
 :root[data-theme="light"] #content select,
 :root[data-theme="light"] #content textarea {
-  background: #ffffff !important;
-  color: #0f172a !important;
+  background: var(--admin-content-surface) !important;
+  color: var(--admin-content-text) !important;
   border-color: rgba(15, 23, 42, 0.15) !important;
 }
 
@@ -213,22 +239,22 @@
 :root[data-theme="dark"] body,
 :root[data-theme="dark"] #content,
 :root[data-theme="dark"] #content-main {
-  background: #0f172a !important;
-  color: #f1f5f9 !important;
+  background: var(--admin-content-bg, #1e293b) !important;
+  color: var(--admin-content-text, #f1f5f9) !important;
 }
 
 :root[data-theme="dark"] #content .module,
 :root[data-theme="dark"] #content .results,
 :root[data-theme="dark"] #content #changelist-filter {
-  background: #1e293b !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #f1f5f9 !important;
+  background: var(--admin-content-surface, #334155) !important;
+  border-color: var(--admin-content-border) !important;
+  color: var(--admin-content-text) !important;
 }
 
 :root[data-theme="dark"] #content .module thead th,
 :root[data-theme="dark"] #content .results thead th {
-  background: #334155 !important;
-  color: #f8fafc !important;
+  background: var(--admin-content-thead-bg, #334155) !important;
+  color: var(--admin-content-text) !important;
 }
 
 :root[data-theme="dark"] #content .breadcrumbs,
@@ -239,14 +265,14 @@
 :root[data-theme="dark"] #content input,
 :root[data-theme="dark"] #content select,
 :root[data-theme="dark"] #content textarea {
-  background: #1e293b !important;
-  color: #f1f5f9 !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  background: var(--admin-content-surface) !important;
+  color: var(--admin-content-text) !important;
+  border-color: var(--admin-content-border) !important;
 }
 
 :root[data-theme="dark"] .admin-content-toolbar {
-  background: #0f172a !important;
-  border-color: rgba(255, 255, 255, 0.1);
+  background: transparent !important;
+  border-color: var(--admin-content-border);
 }
 
 :root[data-theme="dark"] .admin-content-toolbar__back-dashboard {
@@ -303,7 +329,7 @@ body {
 #content .button.default,
 #content .submit-row input.default {
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)) !important;
-  color: #ffffff !important;
+  color: #f1f5f9 !important;
   border-color: transparent;
 }
 
@@ -351,8 +377,8 @@ html[data-theme="light"] #content-main {
 
 html[data-theme="dark"] #content,
 html[data-theme="dark"] #content-main {
-  background: #0f172a !important;
-  color: #f1f5f9 !important;
+  background: var(--admin-content-bg, #1e293b) !important;
+  color: var(--admin-content-text) !important;
 }
 
 html[data-bs-theme="light"] #content,
@@ -367,9 +393,9 @@ html[data-bs-theme="dark"] #content {
 :root[data-theme="light"] .stat-card,
 :root[data-theme="light"] .app-section,
 :root[data-theme="light"] .app-card {
-  background: #ffffff !important;
+  background: var(--admin-content-bg) !important;
   border-color: rgba(15, 23, 42, 0.1) !important;
-  color: #0f172a !important;
+  color: var(--admin-content-text) !important;
 }
 
 :root[data-theme="light"] .dashboard-header h1,
@@ -416,7 +442,7 @@ html[data-bs-theme="dark"] #content {
 
 /* ----- Links in content: always visible ----- */
 #content a:not(.button):not(.admin-content-toolbar__back-dashboard):not(.admin-content-toolbar__back-browser) {
-  color: var(--color-primary, #2563eb);
+  color: var(--color-primary);
 }
 
 :root[data-theme="dark"] #content a:not(.button):not(.admin-content-toolbar__back-dashboard):not(.admin-content-toolbar__back-browser) {

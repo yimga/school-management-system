@@ -128,6 +128,27 @@ def convert_score(score, from_scale, to_scale):
     return result
 
 
+# Map AssessmentWeights.grading_scale (evals) to this module's scale id (RegionConfig / display).
+# Use this for conversion and display when both systems are in use.
+ASSESSMENT_WEIGHTS_SCALE_MAP = {
+    'numeric_0_20': '0-20',
+    'letter_a_e': '0-20',   # Letter grades A–E on 0–20 basis
+    'gpa_4_0': 'gpa',
+    'percentage': '0-100',
+}
+
+
+def scale_for_assessment_weights(weights) -> str:
+    """
+    Return the grading.py scale id for an AssessmentWeights instance (or None).
+    Use for convert_score, get_grade_letter, format_score when weights are from AssessmentWeights.
+    """
+    if weights is None:
+        return '0-20'
+    scale = getattr(weights, 'grading_scale', None)
+    return ASSESSMENT_WEIGHTS_SCALE_MAP.get(scale, '0-20')
+
+
 def get_grade_letter(score, scale='0-20'):
     """
     Get letter grade (A-F) from numerical score.
@@ -255,40 +276,19 @@ def scale_score(score, from_min, from_max, to_min=0, to_max=100):
     return scaled.quantize(Decimal('0.01'))
 
 
-# Currency formatting utilities
+# Currency: single source in siteconfig; re-export for backward compatibility
+from apps.siteconfig.currency import CURRENCY_SYMBOLS, get_currency_symbol
 
-CURRENCY_SYMBOLS = {
-    'XAF': 'FCFA',  # Cameroon/Central Africa
-    'USD': '$',      # USA
-    'EUR': '€',      # Europe
-    'GBP': '£',      # UK
-    'KES': 'Ksh',    # Kenya
-    'NGN': '₦',      # Nigeria
-    'ZAR': 'R',      # South Africa
-    'GHS': 'GH₵',    # Ghana
-    'TZS': 'TSh',    # Tanzania
-}
+__all__ = ["CURRENCY_SYMBOLS", "format_currency", "get_currency_symbol"]
 
 
-def format_currency(amount, currency_code='XAF', include_symbol=True):
+def format_currency(amount, currency_code="XAF", include_symbol=True):
     """
-    Format amount as currency.
-    
-    Args:
-        amount: Numerical amount
-        currency_code: ISO currency code
-        include_symbol: Whether to include currency symbol
-    
-    Returns:
-        str: Formatted currency string
-    
-    Examples:
-        >>> format_currency(15000, 'XAF')  # 'FCFA 15,000.00'
-        >>> format_currency(85.50, 'USD')  # '$ 85.50'
+    Format amount as currency (simple, no region separators).
+    For region-aware display use template filter |format_currency or
+    LocalizationService.format_currency(amount, region=region).
     """
-    symbol = CURRENCY_SYMBOLS.get(currency_code, currency_code)
-    
+    symbol = get_currency_symbol(currency_code)
     if include_symbol:
         return f"{symbol} {float(amount):,.2f}"
-    else:
-        return f"{float(amount):,.2f}"
+    return f"{float(amount):,.2f}"

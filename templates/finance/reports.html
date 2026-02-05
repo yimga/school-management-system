@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Finance Reports{% endblock %}
 
@@ -16,7 +17,7 @@
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-3">Collection rate</h5>
-        <div class="display-6 fw-semibold">{{ collection_rate|floatformat:2 }}%</div>
+        <div class="display-6 fw-semibold">{{ collection_rate|format_number:2 }}%</div>
         <p class="text-muted small mb-0">Paid vs issued invoices</p>
       </div>
     </div>
@@ -28,14 +29,14 @@
         <div class="row g-2">
           <div class="col-6">
             <div class="text-muted small">Employee contributions</div>
-            <div class="fw-semibold">{{ liabilities.total_employee|default:"0.00" }}</div>
+            <div class="fw-semibold">{{ liabilities.total_employee|format_currency|default:"0.00" }}</div>
           </div>
           <div class="col-6">
             <div class="text-muted small">Employer contributions</div>
-            <div class="fw-semibold">{{ liabilities.total_employer|default:"0.00" }}</div>
+            <div class="fw-semibold">{{ liabilities.total_employer|format_currency|default:"0.00" }}</div>
           </div>
         </div>
-        <div class="text-muted small mt-2">Taxes withheld: {{ liabilities.total_taxes|default:"0.00" }}</div>
+        <div class="text-muted small mt-2">Taxes withheld: {{ liabilities.total_taxes|format_currency|default:"0.00" }}</div>
       </div>
     </div>
   </div>
@@ -58,7 +59,7 @@
               {% for row in overdue %}
                 <tr>
                   <td>{{ row.student__classroom__name|default:"Unassigned" }}</td>
-                  <td class="text-end">{{ row.overdue_total }}</td>
+                  <td class="text-end">{{ row.overdue_total|format_currency }}</td>
                 </tr>
               {% empty %}
                 <tr><td colspan="2" class="text-muted">No overdue invoices.</td></tr>
@@ -88,7 +89,7 @@
                   <td>{{ req.get_report_type_display }}</td>
                   <td>{{ req.requested_by }}</td>
                   <td>{{ req.get_status_display }}</td>
-                  <td>{{ req.created_at|date:"M d, Y" }}</td>
+                  <td>{{ req.created_at|format_date }}</td>
                 </tr>
               {% empty %}
                 <tr><td colspan="4" class="text-muted">No report requests yet.</td></tr>

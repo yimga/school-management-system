@@ -11,6 +11,7 @@ from .models import (
     DashboardView,
     PORTAL_FEATURE_DEFAULTS,
     PORTAL_FEATURE_OPTIONS,
+    RegionConfig,
     ReportCardStyle,
     ReportCardStyleAssignment,
     SiteSettings,
@@ -18,7 +19,9 @@ from .models import (
     default_dashboard_widgets,
     get_dashboard_widget_choices,
 )
+from .translations import SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
+from .widgets import ColorInputWithPreview
 
 
 def _hex_to_rgb(value: str) -> tuple[int, int, int]:
@@ -68,6 +71,7 @@ SITESETTINGS_FIELD_ORDER = [
     "company_slug",
     "custom_css",
     "theme_pack",
+    "admin_theme_pack",
     "report_preview_contact_email",
     "report_preview_contact_phone",
     "report_preview_footer_note",
@@ -75,6 +79,8 @@ SITESETTINGS_FIELD_ORDER = [
     # Theme
     "primary_color",
     "accent_color",
+    "header_bg_color",
+    "footer_bg_color",
     "use_dark_mode",
     "backend_console_theme",
     "login_hero_heading",
@@ -94,21 +100,6 @@ SITESETTINGS_FIELD_ORDER = [
     "base_font_size",
     "default_widgets_per_role",
     "admin_use_site_primary",
-    "admin_sidebar_bg_color",
-    "admin_sidebar_surface_color",
-    "admin_sidebar_border_color",
-    "admin_sidebar_text_color",
-    "admin_sidebar_text_muted_color",
-    "admin_sidebar_hover_color",
-    "admin_sidebar_active_color",
-    "admin_sidebar_active_border_color",
-    "admin_sidebar_badge_bg_color",
-    "admin_sidebar_badge_text_color",
-    "admin_sidebar_child_bg_start",
-    "admin_sidebar_child_bg_end",
-    "admin_sidebar_child_border_color",
-    "admin_sidebar_child_hover_color",
-    "admin_sidebar_child_active_color",
     # Behavior
     "maintenance_mode",
     "default_dashboard_view",
@@ -124,8 +115,61 @@ SITESETTINGS_FIELD_ORDER = [
     "default_annual_report_style",
     "notification_channels",
     "referral_bonus_amount",
+    # Footer & contact
+    "footer_accreditation_text",
+    "footer_accreditation_subtext",
+    "footer_support_hours",
+    "footer_whatsapp_url",
+    "whatsapp_support_number",
+    "whatsapp_admissions_number",
+    "enable_whatsapp_parent_portal",
+    "enable_whatsapp_staff_portal",
+    "footer_status_text",
+    "footer_badges",
+    "footer_links",
     # Compliance
     "compliance_profile",
+    # Finance Automation
+    "finance_auto_generate_invoices_enabled",
+    "finance_auto_generate_schedule",
+    "finance_auto_generate_due_date_offset_days",
+    "finance_auto_generate_require_approval",
+    "finance_fee_plan_auto_copy_enabled",
+    "finance_fee_plan_auto_copy_mode",
+    "finance_fee_plan_copy_increase_percentage",
+    "finance_payment_reminder_default_channels",
+    "finance_payment_reminder_default_days",
+    "finance_payment_reminder_enable_whatsapp",
+    "finance_invoice_auto_status_updates_enabled",
+    "finance_invoice_overdue_grace_period_days",
+    "finance_receipt_upload_enabled",
+    "finance_receipt_auto_verify_enabled",
+    "finance_receipt_verification_method",
+    "finance_receipt_auto_apply_threshold",
+    "finance_receipt_auto_apply_enabled",
+    "finance_receipt_require_admin_approval",
+    "finance_receipt_amount_tolerance",
+    "finance_bank_verification_enabled",
+    "finance_bank_verification_auto_approve",
+    "finance_bank_verification_tolerance_days",
+    "finance_bank_verification_amount_tolerance",
+    "finance_payment_instructions_bank",
+    "finance_payment_instructions_mtn_momo",
+    "finance_payment_instructions_orange_money",
+    "finance_payment_instructions_cash",
+    "finance_receipt_upload_instructions",
+    "finance_reminder_no_contact_action",
+    "finance_receipt_max_size_mb",
+    "finance_receipt_allowed_extensions",
+    "finance_overpayment_handling",
+    "finance_overpayment_tolerance_xaf",
+    "finance_void_invoice_with_payments",
+    "finance_on_student_withdrawal",
+    "finance_receipt_idempotency_window_minutes",
+    "finance_reminder_retry_failed_hours",
+    "finance_reminder_max_retries",
+    "finance_receipt_require_verification_reason",
+    "finance_receipt_second_approval_threshold_xaf",
     # Analytics defaults
     "top_students_default_limit",
     "pass_mark",
@@ -163,23 +207,10 @@ class SiteSettingsForm(forms.ModelForm):
         "site_name": forms.TextInput(attrs={"class": "form-control"}),
         "tagline": forms.TextInput(attrs={"class": "form-control"}),
         "school_code": forms.TextInput(attrs={"class": "form-control", "maxlength": 20}),
-        "primary_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "accent_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_bg_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_surface_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_border_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_text_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_text_muted_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_hover_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_active_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_active_border_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_badge_bg_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_badge_text_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_child_bg_start": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_child_bg_end": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_child_border_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_child_hover_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
-        "admin_sidebar_child_active_color": forms.TextInput(attrs={"class": "form-control", "type": "color"}),
+        "primary_color": ColorInputWithPreview(),
+        "accent_color": ColorInputWithPreview(),
+        "header_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0d6efd"}),
+        "footer_bg_color": ColorInputWithPreview(attrs={"placeholder": "#0f172a"}),
         "login_hero_heading": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Welcome to Our School"}),
         "login_hero_subtext": forms.TextInput(attrs={"class": "form-control"}),
         "branded_domain": forms.TextInput(attrs={"class": "form-control", "placeholder": "portal.school.edu"}),
@@ -212,6 +243,15 @@ class SiteSettingsForm(forms.ModelForm):
             "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
             "notification_channels": forms.CheckboxSelectMultiple(),
             "referral_bonus_amount": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
+        "footer_accreditation_text": forms.TextInput(attrs={"class": "form-control"}),
+        "footer_accreditation_subtext": forms.TextInput(attrs={"class": "form-control"}),
+        "footer_support_hours": forms.TextInput(attrs={"class": "form-control"}),
+        "footer_whatsapp_url": forms.URLInput(attrs={"class": "form-control"}),
+        "whatsapp_support_number": forms.TextInput(attrs={"class": "form-control", "placeholder": "+2376XXXXXXX"}),
+        "whatsapp_admissions_number": forms.TextInput(attrs={"class": "form-control", "placeholder": "+2376XXXXXXX"}),
+        "footer_status_text": forms.TextInput(attrs={"class": "form-control"}),
+        "footer_badges": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        "footer_links": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "top_students_default_limit": forms.NumberInput(attrs={"class": "form-control", "min": 1}),
             "pass_mark": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
             "weak_subject_threshold": forms.NumberInput(attrs={"class": "form-control", "min": 0, "step": "0.01"}),
@@ -235,6 +275,17 @@ class SiteSettingsForm(forms.ModelForm):
         self.initial["referral_bonus_amount"] = self.instance.referral_bonus_amount or Decimal("0.00")
         self.initial["social_links"] = json.dumps(self.instance.social_links or [], indent=2)
 
+        # Mark all boolean toggles so they show On/Off badges (Feature Control pattern site-wide).
+        for name, field in self.fields.items():
+            if not isinstance(field, forms.BooleanField):
+                continue
+            widget = field.widget
+            css = widget.attrs.get("class", "")
+            if "form-check-input" not in css:
+                css = (css + " form-check-input").strip()
+            if "settings-toggle-critical" not in css:
+                widget.attrs["class"] = (css + " settings-toggle-critical").strip()
+
     def clean_portal_features(self):
         selected = self.cleaned_data.get("portal_features") or []
         return {key: key in selected for key, _ in PORTAL_FEATURE_OPTIONS}
@@ -256,22 +307,9 @@ class SiteSettingsForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        # Contrast check for primary/accent (admin sidebar colors removed)
         combos = [
-            (
-                "admin_sidebar_bg_color",
-                "admin_sidebar_text_color",
-                "Sidebar background vs text",
-            ),
-            (
-                "admin_sidebar_surface_color",
-                "admin_sidebar_text_color",
-                "Surface color vs text",
-            ),
-            (
-                "admin_sidebar_child_bg_start",
-                "admin_sidebar_child_border_color",
-                "Child card background vs border",
-            ),
+            ("primary_color", "accent_color", "Primary vs accent"),
         ]
         for bg_field, text_field, label in combos:
             bg = cleaned.get(bg_field)
@@ -337,12 +375,16 @@ class UserPreferenceForm(forms.ModelForm):
             "receive_weekly_summary",
             "theme_preference",
             "high_contrast",
+            "preferred_language",
+            "preferred_region",
         ]
         widgets = {
             "dashboard_view": forms.Select(attrs={"class": "form-select"}),
             "refresh_rate_minutes": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
             "theme_preference": forms.Select(attrs={"class": "form-select"}),
             "high_contrast": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "preferred_language": forms.Select(attrs={"class": "form-select"}),
+            "preferred_region": forms.Select(attrs={"class": "form-select"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -350,6 +392,14 @@ class UserPreferenceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         self.fields["timezone"].widget.attrs["data-default-timezone"] = settings.TIME_ZONE
+        self.fields["preferred_language"].choices = [("", "Default (from region)")] + list(SUPPORTED_LANGUAGES.items())
+        self.fields["preferred_language"].required = False
+        try:
+            region_choices = [("", "Default")] + list(RegionConfig.objects.values_list("code", "name").order_by("name"))
+            self.fields["preferred_region"].choices = region_choices
+        except Exception:
+            self.fields["preferred_region"].widget = forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. CMR"})
+        self.fields["preferred_region"].required = False
         
         if self.instance and self.instance.notification_channels:
             self.initial["notification_channels"] = self.instance.notification_channels
@@ -482,6 +532,68 @@ class ReportCardStyleSelectionForm(forms.ModelForm):
         model = SiteSettings
         fields = ["default_term_report_style", "default_annual_report_style"]
         widgets = {
+            "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
+            "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
+        }
+
+
+# Combined Theme & Experience page: all fields from admin "Theme & Experience" section (except theme_color_tools_link_block).
+THEME_EXPERIENCE_FIELD_NAMES = [
+    "primary_color",
+    "accent_color",
+    "header_bg_color",
+    "footer_bg_color",
+    "success_color",
+    "warning_color",
+    "danger_color",
+    "theme_brightness",
+    "use_dark_mode",
+    "admin_theme_pack",
+    "admin_use_site_primary",
+    "backend_console_theme",
+    "secondary_font",
+    "use_secondary_font_for_headings",
+    "base_font_size",
+    "default_widgets_per_role",
+    "report_downloads_enabled",
+    "default_dashboard_view",
+    "default_refresh_rate",
+    "default_term_report_style",
+    "default_annual_report_style",
+]
+
+# Legacy alias for JS that references color field names.
+THEME_COLOR_FIELD_NAMES = [f for f in THEME_EXPERIENCE_FIELD_NAMES if f in (
+    "primary_color", "accent_color", "header_bg_color", "footer_bg_color",
+    "success_color", "warning_color", "danger_color",
+)]
+
+
+class ThemeColorsForm(forms.ModelForm):
+    """Form for the combined Theme & Experience page (/siteconfig/theme-colors/)."""
+    class Meta:
+        model = SiteSettings
+        fields = THEME_EXPERIENCE_FIELD_NAMES
+        widgets = {
+            "primary_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#000000"}),
+            "accent_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#198754"}),
+            "header_bg_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#0d6efd"}),
+            "footer_bg_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#0f172a"}),
+            "success_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#22c55e"}),
+            "warning_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#fbbf24"}),
+            "danger_color": forms.TextInput(attrs={"class": "form-control", "type": "text", "placeholder": "#ef4444"}),
+            "theme_brightness": forms.Select(attrs={"class": "form-select"}),
+            "use_dark_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "admin_theme_pack": forms.Select(attrs={"class": "form-select"}),
+            "admin_use_site_primary": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "backend_console_theme": forms.Select(attrs={"class": "form-select"}),
+            "secondary_font": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Georgia, serif"}),
+            "use_secondary_font_for_headings": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "base_font_size": forms.NumberInput(attrs={"class": "form-control", "min": 12, "max": 24, "placeholder": "16"}),
+            "default_widgets_per_role": forms.Textarea(attrs={"class": "form-control font-monospace small", "rows": 3, "placeholder": "{}"}),
+            "report_downloads_enabled": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "default_dashboard_view": forms.Select(attrs={"class": "form-select"}),
+            "default_refresh_rate": forms.NumberInput(attrs={"class": "form-control", "min": 30, "max": 600}),
             "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
             "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
         }

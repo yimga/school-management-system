@@ -454,14 +454,16 @@ def admin_dashboard(request):
     total_users = User.objects.count()
     admin_count = User.objects.filter(is_staff=True).count()
     
-    # Try to get student/teacher counts from custom user model if available
+    # Try to get student/teacher/parent counts from custom user model if available
     try:
         from apps.accounts.models import User as CustomUser
         student_count = CustomUser.objects.filter(role='STUDENT').count()
         teacher_count = CustomUser.objects.filter(role='TEACHER').count()
+        parent_count = CustomUser.objects.filter(role='PARENT').count()
     except (ImportError, AttributeError):
         student_count = 0
         teacher_count = 0
+        parent_count = 0
     
     # Get active sessions (approximate)
     from django.contrib.sessions.models import Session
@@ -514,6 +516,7 @@ def admin_dashboard(request):
         'admin_count': admin_count,
         'student_count': student_count,
         'teacher_count': teacher_count,
+        'parent_count': parent_count,
         'active_sessions': active_sessions,
         'sessions_24h': sessions_24h,
         'new_logins_24h': new_logins_24h,

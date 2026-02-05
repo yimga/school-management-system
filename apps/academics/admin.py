@@ -12,6 +12,7 @@ from .models import (
     CertificationDocumentItem,
     CertificationCandidateDocumentStatus,
 )
+from .scheduling import Room, TimeSlot, Schedule, ScheduleEntry, TeacherAvailability, SchedulingConstraint
 
 
 class AcademicYearAdmin(ModelAdmin):
@@ -205,3 +206,58 @@ admin_site.register(CertificationExamPreset, CertificationExamPresetAdmin)
 admin_site.register(CertificationFeeTemplate, CertificationFeeTemplateAdmin)
 admin_site.register(CertificationDocumentChecklist, CertificationDocumentChecklistAdmin)
 admin_site.register(CertificationCandidateDocumentStatus, CertificationCandidateDocumentStatusAdmin)
+
+
+# --- Scheduling (timetable) ---
+class RoomAdmin(ModelAdmin):
+    list_display = ("name", "room_type", "building", "floor", "capacity", "is_available")
+    list_filter = ("room_type", "is_available")
+    search_fields = ("name", "building")
+
+
+class TimeSlotAdmin(ModelAdmin):
+    list_display = ("slot_name", "day_of_week", "start_time", "end_time", "is_active")
+    list_filter = ("day_of_week", "is_active")
+    search_fields = ("slot_name",)
+    ordering = ("day_of_week", "start_time")
+
+
+class ScheduleEntryInline(admin.TabularInline):
+    model = ScheduleEntry
+    extra = 0
+    autocomplete_fields = ("classroom", "subject", "teacher", "room", "time_slot")
+    raw_id_fields = ("replacement_teacher",)
+
+
+class ScheduleAdmin(ModelAdmin):
+    list_display = ("name", "academic_year", "term", "status", "generated_at", "published_at")
+    list_filter = ("status", "academic_year", "term")
+    search_fields = ("name",)
+    inlines = [ScheduleEntryInline]
+    autocomplete_fields = ("academic_year", "term", "created_by")
+
+
+class ScheduleEntryAdmin(ModelAdmin):
+    list_display = ("schedule", "classroom", "subject", "teacher", "room", "time_slot", "is_cancelled")
+    list_filter = ("schedule__term", "schedule__academic_year", "is_cancelled")
+    search_fields = ("classroom__name", "subject__name", "teacher__username")
+    autocomplete_fields = ("schedule", "classroom", "subject", "teacher", "room", "time_slot")
+
+
+class TeacherAvailabilityAdmin(ModelAdmin):
+    list_display = ("teacher", "time_slot", "is_available", "preference_level")
+    list_filter = ("is_available",)
+    search_fields = ("teacher__username", "time_slot__slot_name")
+
+
+class SchedulingConstraintAdmin(ModelAdmin):
+    list_display = ("name", "constraint_type", "is_active", "priority")
+    list_filter = ("constraint_type", "is_active")
+
+
+admin_site.register(Room, RoomAdmin)
+admin_site.register(TimeSlot, TimeSlotAdmin)
+admin_site.register(Schedule, ScheduleAdmin)
+admin_site.register(ScheduleEntry, ScheduleEntryAdmin)
+admin_site.register(TeacherAvailability, TeacherAvailabilityAdmin)
+admin_site.register(SchedulingConstraint, SchedulingConstraintAdmin)

@@ -3,21 +3,55 @@
 
 {% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
 
+{# Staff theme: /backend uses same ThemePack as /admin (admin_theme_pack) #}
+{% block theme_root_variables %}
+{% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
+:root {
+  --school-primary: {{ theme.primary_color|default:"#0d6efd" }};
+  --school-accent: {{ theme.accent_color|default:"#198754" }};
+  --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
+  --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
+  {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
+  {% if SITE and SITE.footer_bg_color %}--footer-bg: {{ SITE.footer_bg_color }};{% endif %}
+  {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
+}
+{% endwith %}
+{% endblock %}
+
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-spacing-readability.css' %}">
 {% with backend_theme=SITE.backend_console_theme|default:'dark' %}
-{% if backend_theme == 'light' %}
+{% if backend_theme == 'light' or backend_theme == 'sand' or backend_theme == 'snow' or backend_theme == 'cream' or backend_theme == 'lavender' %}
 <link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">
 {% else %}
 <link rel="stylesheet" href="{% static 'css/backend-dark-theme.css' %}">
 {% endif %}
+<link rel="stylesheet" href="{% static 'css/backend-themes.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
 {% endwith %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     var theme = '{{ SITE.backend_console_theme|default:"dark" }}';
-    document.body.classList.add(theme === 'light' ? 'portal-backend-light' : 'portal-backend-dark');
+    if (theme === 'system') {
+      theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    var darkThemes = ['dark', 'black', 'charcoal', 'graphite', 'midnight', 'ocean', 'steel', 'slate', 'forest', 'indigo', 'amber'];
+    var lightThemes = ['light', 'sand', 'snow', 'cream', 'lavender'];
+    if (darkThemes.indexOf(theme) >= 0) {
+      document.body.classList.add('portal-backend-dark');
+      document.body.classList.add('portal-backend-' + theme);
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.setAttribute('data-bs-theme', 'dark');
+    } else {
+      document.body.classList.add('portal-backend-light');
+      document.body.classList.add('portal-backend-' + theme);
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.setAttribute('data-bs-theme', 'light');
+    }
     // Load recent activity into left sidebar when present (desktop + mobile sidebars)
     (function() {
       var lists = document.querySelectorAll('.recent-activity-list');

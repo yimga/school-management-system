@@ -12,9 +12,7 @@
           <h1 class="h4 mb-1">{% if is_edit %}Edit{% else %}Upload{% endif %} Document</h1>
           <p class="text-muted mb-0">{% if is_edit %}Update document information{% else %}Add a new document to the library{% endif %}</p>
         </div>
-        <a href="{% url 'portal:document_library_manage' %}" class="btn btn-outline-secondary">
-          <i class="bi bi-arrow-left me-1"></i>Back to Library
-        </a>
+        <a href="{% url 'portal:document_library_manage' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Library</a>
       </div>
 
       <div class="card shadow-sm">

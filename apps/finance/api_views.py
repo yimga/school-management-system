@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.db.models import Sum, Count, Q, F
+from django.db.models.functions import ExtractMonth
 from django.utils import timezone
 from datetime import datetime
 
@@ -72,8 +73,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         to_date = request.query_params.get('to_date')
         if from_date and to_date:
             queryset = queryset.filter(
-                invoice_date__gte=from_date,
-                invoice_date__lte=to_date
+                issued_date__gte=from_date,
+                issued_date__lte=to_date
             )
         
         student_id = request.query_params.get('student_id')
@@ -290,17 +291,17 @@ class FinancialAnalyticsAPI(APIView):
         
         if from_date and to_date:
             queryset_invoices = queryset_invoices.filter(
-                invoice_date__gte=from_date,
-                invoice_date__lte=to_date
+                issued_date__gte=from_date,
+                issued_date__lte=to_date
             )
             queryset_payments = queryset_payments.filter(
-                payment_date__gte=from_date,
-                payment_date__lte=to_date
+                paid_at__date__gte=from_date,
+                paid_at__date__lte=to_date
             )
         
         total_invoiced = queryset_invoices.aggregate(
-            Sum('amount')
-        )['amount__sum'] or 0
+            Sum('total_amount')
+        )['total_amount__sum'] or 0
         
         total_collected = queryset_payments.aggregate(
             Sum('amount')
@@ -309,12 +310,12 @@ class FinancialAnalyticsAPI(APIView):
         collection_rate = (total_collected / total_invoiced * 100) if total_invoiced > 0 else 0
         
         pending_invoices = Invoice.objects.filter(
-            status__in=['pending', 'partially_paid']
-        ).aggregate(Sum('amount'))['amount__sum'] or 0
+            status__in=[Invoice.Status.ISSUED, Invoice.Status.PARTIAL]
+        ).aggregate(Sum('balance_amount'))['balance_amount__sum'] or 0
         
         overdue_invoices = Invoice.objects.filter(
-            status='overdue'
-        ).aggregate(Sum('amount'))['amount__sum'] or 0
+            status=Invoice.Status.OVERDUE
+        ).aggregate(Sum('balance_amount'))['balance_amount__sum'] or 0
         
         outstanding_fees = pending_invoices + overdue_invoices
         
@@ -322,8 +323,9 @@ class FinancialAnalyticsAPI(APIView):
             total=Sum('amount')
         )
         
-        monthly_revenue = queryset_payments.extra(
-            select={'month': 'EXTRACT(month FROM payment_date)'}
+        # DB-agnostic: works on SQLite and PostgreSQL
+        monthly_revenue = queryset_payments.annotate(
+            month=ExtractMonth('paid_at')
         ).values('month').annotate(
             total=Sum('amount')
         ).order_by('month')

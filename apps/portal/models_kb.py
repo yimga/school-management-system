@@ -164,7 +164,14 @@ class KBArticle(models.Model):
     summary = models.TextField(_("Summary"), max_length=500, help_text="Brief description for listings")
     content = models.TextField(_("Content"), help_text="Detailed article content")
     content_html = models.TextField(_("Content (HTML)"), blank=True)
-    
+    odt_file = models.FileField(
+        _("ODT document"),
+        upload_to="kb/odt/%Y/%m/",
+        blank=True,
+        null=True,
+        help_text="LibreOffice Writer (ODT) version of this article; generated from Markdown.",
+    )
+
     # Metadata
     difficulty = models.CharField(_("Difficulty Level"), max_length=20, choices=DIFFICULTY_CHOICES, default='BEGINNER')
     estimated_read_time = models.PositiveIntegerField(_("Estimated Read Time (minutes)"), default=5)
@@ -220,6 +227,16 @@ class KBArticle(models.Model):
         if total == 0:
             return 0
         return round((self.helpful_count / total) * 100, 1)
+
+    @property
+    def read_time(self):
+        """Alias for estimated_read_time (used in templates)."""
+        return getattr(self, "estimated_read_time", 5) or 5
+
+    @property
+    def views(self):
+        """Alias for view_count (used in templates)."""
+        return getattr(self, "view_count", 0) or 0
 
     def increment_view_count(self):
         """Increment view counter"""

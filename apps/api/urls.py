@@ -21,9 +21,11 @@ from apps.api.dashboard_api import (
     AcademicDashboardAPI
 )
 from apps.api.dashboard_layout_api import DashboardLayoutAPI, AvailableWidgetsAPI
+from apps.api.user_preferences_api import PortalPreferencesAPI
 from apps.api.search_api import GlobalSearchAPI, SearchSuggestionsAPI
 from apps.api.entity_api import (
     ClassroomViewSet,
+    ProfileView,
     SessionClaimsView,
     StudentGuardianViewSet,
     StudentProfileViewSet,
@@ -45,6 +47,7 @@ urlpatterns = [
     # JWT Authentication
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/profile/', ProfileView.as_view(), name='auth-profile'),
     path('session/claims/', SessionClaimsView.as_view(), name='session-claims'),
     path('entities/teacher-roster/', TeacherRosterView.as_view(), name='teacher-roster'),
     
@@ -56,6 +59,7 @@ urlpatterns = [
     path('dashboard/financial/', FinancialDashboardAPI.as_view(), name='financial-dashboard'),
     path('dashboard/academic/', AcademicDashboardAPI.as_view(), name='academic-dashboard'),
     path('dashboard/layout/<str:page>/', DashboardLayoutAPI.as_view(), name='dashboard-layout'),
+    path('portal-preferences/', PortalPreferencesAPI.as_view(), name='portal-preferences'),
     
     # Search APIs
     path('search/', GlobalSearchAPI.as_view(), name='global-search'),

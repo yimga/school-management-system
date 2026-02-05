@@ -66,7 +66,8 @@ class LinkChildTests(TestCase):
             "can_view_results": "on",
             "can_view_finance": "on",
         }
-        resp = self.client.post(reverse("portal:link_child"), data, follow=True)
+        # Use legacy single-page link_child so one POST completes the flow (link_child is now wizard)
+        resp = self.client.post(reverse("portal:link_child_legacy"), data, follow=True)
         self.assertEqual(resp.status_code, 200)
         student = StudentProfile.objects.get(pk=self.student.pk)
         self.assertEqual(student.gender, StudentProfile.Gender.FEMALE)

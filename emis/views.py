@@ -38,18 +38,17 @@ def emis_dashboard(request):
         'academic_year', 'term', 'exported_by'
     ).order_by('-export_date')[:10]
 
-    from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize
-    from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
-    from django.utils.safestring import mark_safe
+    from apps.accounts.utils import get_dashboard_context
 
-    dashboard_settings = load_dashboard_layout_settings(request.user, "emis")
-    allow_custom_layout = _can_customize(request.user)
-    dashboard_layout_url = reverse("api:dashboard-layout", kwargs={"page": "emis"})
+    dashboard_context = get_dashboard_context(request.user, "emis")
+    dashboard_settings = dashboard_context.get("dashboard_settings", {})
+    allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
+    dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")
+    widget_meta_json = dashboard_context.get("widget_meta_json", "")
     available_sidebar_items = [
         {"id": "emis-home", "label": "EMIS Home", "url": reverse("emis:dashboard"), "icon": "bi-file-earmark-spreadsheet"},
         {"id": "emis-export", "label": "Export Data", "url": reverse("emis:export"), "icon": "bi-download"},
     ]
-    widget_meta_json = mark_safe(json.dumps(get_dashboard_widget_metadata()))
 
     # Entity counts for chart
     year_for_counts = current_year or academic_years.first()
@@ -142,16 +141,21 @@ def export_emis_data(request):
 
         # Generate file content
         if export_type == 'full':
-            # For full export, create a ZIP file or JSON with multiple datasets
+            # For full export, create JSON with multiple datasets (xlsx not supported for full)
             file_content = service.generate_json(export_data)
             filename = f"emis_full_export_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.json"
+            file_content_to_save = file_content.encode('utf-8')
         else:
-            if format_type == 'csv':
+            if format_type == 'xlsx':
+                file_content_to_save = service.generate_xlsx(export_data)
+                filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            elif format_type == 'csv':
                 output = service.generate_csv(export_data)
-                file_content = output.getvalue()
+                file_content_to_save = output.getvalue().encode('utf-8')
                 filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
             else:  # json
                 file_content = service.generate_json(export_data)
+                file_content_to_save = file_content.encode('utf-8')
                 filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.json"
 
         # Create export record
@@ -165,7 +169,7 @@ def export_emis_data(request):
         )
 
         # Save file
-        export_record.file_path.save(filename, ContentFile(file_content.encode('utf-8')))
+        export_record.file_path.save(filename, ContentFile(file_content_to_save))
 
         messages.success(request, f"EMIS export completed successfully. {export_record.record_count} records exported.")
 

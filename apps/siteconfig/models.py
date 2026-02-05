@@ -329,6 +329,7 @@ class SiteSettings(models.Model):
         help_text="Opacity for logo background (0.0 = fully transparent, 1.0 = fully opaque)"
     )
     LOGO_BG_MODE_CHOICES = [
+        ("none", "None (disabled)"),
         ("contain", "Contain (default)"),
         ("cover", "Cover"),
         ("tile", "Tile/Repeat"),
@@ -459,19 +460,48 @@ class SiteSettings(models.Model):
     # Theme configuration
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
+    header_bg_color = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Optional: Header background color (hex). Leave blank to use primary→accent gradient.",
+    )
+    footer_bg_color = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Optional: Footer background color (hex). Leave blank for default.",
+    )
     success_color = models.CharField(max_length=20, default="#22c55e")
     warning_color = models.CharField(max_length=20, default="#fbbf24")
     danger_color = models.CharField(max_length=20, default="#ef4444")
     use_dark_mode = models.BooleanField(default=False)
     BACKEND_CONSOLE_THEME_CHOICES = [
-        ("dark", "Dark (grey)"),
-        ("light", "Light"),
+        ("dark", "Dark (slate grey)"),
+        ("light", "Light (lavender tint)"),
+        ("system", "System (follows OS)"),
+        ("black", "Black (true black #000)"),
+        ("ink", "Ink (deep black #030712)"),
+        ("onyx", "Onyx (rich black #0c0c0c)"),
+        ("charcoal", "Charcoal (soft black)"),
+        ("graphite", "Graphite (zinc grey)"),
+        ("midnight", "Midnight (deep blue-black)"),
+        ("ocean", "Ocean (dark blue)"),
+        ("steel", "Steel (blue-grey)"),
+        ("slate", "Slate (medium grey)"),
+        ("forest", "Forest (dark green)"),
+        ("indigo", "Indigo (dark purple)"),
+        ("amber", "Amber (warm dark)"),
+        ("sand", "Sand (warm light)"),
+        ("snow", "Snow (cool light)"),
+        ("cream", "Cream (ivory light)"),
+        ("lavender", "Lavender (soft purple light)"),
     ]
     backend_console_theme = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=BACKEND_CONSOLE_THEME_CHOICES,
         default="dark",
-        help_text="Theme for the Backend Console (Workflow Center, Entity Console). Dark = grey/dark sidebar and dashboard; Light = light background.",
+        help_text="Theme for the Backend Console (Workflow Center, Entity Console).",
     )
     custom_css = models.TextField(blank=True)
     theme_pack = models.ForeignKey(
@@ -480,6 +510,7 @@ class SiteSettings(models.Model):
         null=True,
         blank=True,
         related_name="site_settings",
+        help_text="Theme for portal (parent, teacher, student dashboards). Does not affect /admin or /backend.",
     )
     admin_theme_pack = models.ForeignKey(
         "siteconfig.ThemePack",
@@ -487,85 +518,10 @@ class SiteSettings(models.Model):
         null=True,
         blank=True,
         related_name="admin_site_settings",
-        help_text="Theme pack specifically for the Django /admin interface.",
+        help_text="Theme for staff dashboards: /admin and /backend. Shared between both.",
     )
     preview_mode_enabled = models.BooleanField(default=False)
     preview_note = models.CharField(max_length=255, blank=True, default="")
-    admin_sidebar_bg_color = models.CharField(
-        max_length=20,
-        default="#0b0f14",
-        help_text="Base sidebar background color (hex)."
-    )
-    admin_sidebar_surface_color = models.CharField(
-        max_length=20,
-        default="#111827",
-        help_text="Sidebar surface/surface overlay color."
-    )
-    admin_sidebar_border_color = models.CharField(
-        max_length=20,
-        default="#1f2937",
-        help_text="Sidebar border color."
-    )
-    admin_sidebar_text_color = models.CharField(
-        max_length=20,
-        default="#e2e8f0",
-        help_text="Primary sidebar text color."
-    )
-    admin_sidebar_text_muted_color = models.CharField(
-        max_length=20,
-        default="#94a3b8",
-        help_text="Muted sidebar text color."
-    )
-    admin_sidebar_hover_color = models.CharField(
-        max_length=20,
-        default="#0f172a",
-        help_text="Sidebar hover color."
-    )
-    admin_sidebar_active_color = models.CharField(
-        max_length=20,
-        default="#0f172a",
-        help_text="Sidebar active background color."
-    )
-    admin_sidebar_active_border_color = models.CharField(
-        max_length=20,
-        default="#38bdf8",
-        help_text="Sidebar active border color."
-    )
-    admin_sidebar_badge_bg_color = models.CharField(
-        max_length=20,
-        default="#1f2937",
-        help_text="Sidebar badge background color."
-    )
-    admin_sidebar_badge_text_color = models.CharField(
-        max_length=20,
-        default="#e2e8f0",
-        help_text="Sidebar badge text color."
-    )
-    admin_sidebar_child_bg_start = models.CharField(
-        max_length=20,
-        default="#0b1224",
-        help_text="Gradient start color for sidebar child rows."
-    )
-    admin_sidebar_child_bg_end = models.CharField(
-        max_length=20,
-        default="#131b33",
-        help_text="Gradient end color for sidebar child rows."
-    )
-    admin_sidebar_child_border_color = models.CharField(
-        max_length=20,
-        default="#e2e8f0",
-        help_text="Border color used for sidebar child cards."
-    )
-    admin_sidebar_child_hover_color = models.CharField(
-        max_length=20,
-        default="#1d4ed8",
-        help_text="Hover color for sidebar child cards."
-    )
-    admin_sidebar_child_active_color = models.CharField(
-        max_length=20,
-        default="#0f172a",
-        help_text="Active color for sidebar child cards."
-    )
 
     # Theme Phase A–D: login, header, layout, sidebar, email, nav, typography
     login_hero_heading = models.CharField(
@@ -722,6 +678,32 @@ class SiteSettings(models.Model):
         default="https://wa.me/237XXXXXXXXX?text=Hello%20School%20Management%20System%20Support",
         help_text="Footer WhatsApp support link.",
     )
+    whatsapp_support_number = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text=(
+            "Official WhatsApp Business number for general support (E.164 format, "
+            "e.g. +2376XXXXXXX). If set, footer and portal can generate wa.me links."
+        ),
+    )
+    whatsapp_admissions_number = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text=(
+            "Optional WhatsApp Business number for Admissions / Front office. "
+            "Used for admissions-specific CTAs when configured."
+        ),
+    )
+    enable_whatsapp_parent_portal = models.BooleanField(
+        default=False,
+        help_text="Allow WhatsApp contact buttons in the parent portal (support and, if set, admissions).",
+    )
+    enable_whatsapp_staff_portal = models.BooleanField(
+        default=False,
+        help_text="Allow WhatsApp shortcuts for staff when contacting guardians.",
+    )
     footer_status_text = models.CharField(
         max_length=120,
         blank=True,
@@ -775,6 +757,18 @@ class SiteSettings(models.Model):
         default=True,
         help_text="Require staff approval before publishing teacher-submitted marks.",
     )
+    # Phase 4: MFA for compliance – require TOTP for selected roles (zero marginal cost)
+    require_mfa_roles = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Role codes that must have MFA (TOTP) enabled, e.g. ["ADMIN","BURSAR","IT_ADMIN"]. Empty = not required.',
+    )
+    # Phase 4.3: Optional reminder for pending AccessRequest assignees (0 = disabled)
+    requests_reminder_interval_hours = models.PositiveIntegerField(
+        default=0,
+        blank=True,
+        help_text="When > 0, a scheduled task notifies assignees of pending access requests (e.g. 24 = daily). 0 = disabled.",
+    )
     grade_approval_roles = models.JSONField(
         default=default_grade_approval_roles,
         blank=True,
@@ -805,6 +799,15 @@ class SiteSettings(models.Model):
     enable_teacher_portal = models.BooleanField(default=True)
     enable_reports_pdf = models.BooleanField(default=True)
     report_downloads_enabled = models.BooleanField(default=True)
+    # Phase 2: Evals–Reports – require approved grades before publish; report cards show only approved grades
+    reports_require_approved_grades_before_publish = models.BooleanField(
+        default=False,
+        help_text="When enabled (and grade approval is on), block or warn when publishing term results if there are pending grade approvals.",
+    )
+    reports_use_approved_grades_only = models.BooleanField(
+        default=False,
+        help_text="When enabled, term/annual report context only includes evaluations whose subject has been approved (or has no approval request).",
+    )
     portal_features = models.JSONField(default=default_portal_features, blank=True)
     social_links = models.JSONField(default=default_social_links, blank=True)
     backend_feature_flags = models.JSONField(
@@ -903,6 +906,278 @@ class SiteSettings(models.Model):
         blank=True,
         related_name="site_settings",
     )
+    
+    # ===== NEW: FINANCE AUTOMATION =====
+    # Fee Invoice Generation
+    finance_auto_generate_invoices_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable automatic fee invoice generation based on schedule."
+    )
+    finance_auto_generate_schedule = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Schedule configuration: {"mode": "academic_year_start", "days_before": 7, "academic_year_start_offset_days": 0, "term_start_offset_days": 0, "custom_date": null}'
+    )
+    finance_auto_generate_due_date_offset_days = models.PositiveIntegerField(
+        default=30,
+        help_text="Days after issue date to set invoice due date."
+    )
+    finance_auto_generate_require_approval = models.BooleanField(
+        default=False,
+        help_text="Require admin approval before generating invoices automatically."
+    )
+    
+    # Fee Plan Copying
+    finance_fee_plan_auto_copy_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable automatic fee plan copying on academic year transition."
+    )
+    finance_fee_plan_auto_copy_mode = models.CharField(
+        max_length=20,
+        choices=[
+            ("manual", "Manual (admin action only)"),
+            ("year_start", "Auto-copy on academic year start"),
+            ("year_end", "Auto-copy on previous year end"),
+        ],
+        default="manual",
+        help_text="When to automatically copy fee plans."
+    )
+    finance_fee_plan_copy_increase_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Percentage increase to apply when copying fee plans (e.g., 5.00 for 5% increase)."
+    )
+    
+    # Payment Reminders
+    finance_payment_reminder_default_channels = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Default notification channels for payment reminders: ['email'], ['whatsapp'], ['email', 'sms'], etc."
+    )
+    finance_payment_reminder_default_days = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Default reminder days before due date: [7, 3, 1]"
+    )
+    finance_payment_reminder_enable_whatsapp = models.BooleanField(
+        default=False,
+        help_text="Enable WhatsApp as a payment reminder channel."
+    )
+    
+    # Invoice Status Updates
+    finance_invoice_auto_status_updates_enabled = models.BooleanField(
+        default=True,
+        help_text="Enable automatic invoice status updates (overdue, paid detection)."
+    )
+    finance_invoice_overdue_grace_period_days = models.PositiveIntegerField(
+        default=0,
+        help_text="Grace period in days before marking invoice as overdue."
+    )
+    
+    # Receipt Verification & Automation
+    finance_receipt_upload_enabled = models.BooleanField(
+        default=True,
+        help_text="Enable receipt upload in parent portal for cash/bank payments."
+    )
+    finance_receipt_auto_verify_enabled = models.BooleanField(
+        default=True,
+        help_text="Automatically verify uploaded receipts using pattern matching or OCR."
+    )
+    finance_receipt_verification_method = models.CharField(
+        max_length=30,
+        choices=[
+            ("pattern", "Pattern Matching (Free)"),
+            ("ocr_tesseract", "Tesseract OCR (Free, requires installation)"),
+            ("ocr_cloud_google", "Google Vision API (Paid)"),
+            ("ocr_cloud_aws", "AWS Textract (Paid)"),
+        ],
+        default="pattern",
+        help_text="Method used to extract data from receipts."
+    )
+    finance_receipt_auto_apply_threshold = models.FloatField(
+        default=0.9,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text="Confidence threshold (0.0-1.0) for auto-applying payments. Lower = more automatic, Higher = more manual review."
+    )
+    finance_receipt_auto_apply_enabled = models.BooleanField(
+        default=True,
+        help_text="Automatically apply payments when verification confidence exceeds threshold."
+    )
+    finance_receipt_require_admin_approval = models.BooleanField(
+        default=False,
+        help_text="Require admin approval even if verification passes (for extra security)."
+    )
+    finance_receipt_amount_tolerance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("1.00"),
+        help_text="Tolerance for amount matching (e.g., 1.00 XAF difference allowed)."
+    )
+    
+    # Bank Deposit Verification
+    finance_bank_verification_enabled = models.BooleanField(
+        default=True,
+        help_text="Enable bank deposit verification against bank statements."
+    )
+    finance_bank_verification_auto_approve = models.BooleanField(
+        default=False,
+        help_text="Automatically approve receipts that are verified in bank statements."
+    )
+    finance_bank_verification_tolerance_days = models.PositiveIntegerField(
+        default=7,
+        help_text="Days to search before/after receipt date when matching bank statements."
+    )
+    finance_bank_verification_amount_tolerance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("1.00"),
+        help_text="Amount tolerance when matching by amount + date (default: 1.00 XAF)."
+    )
+    
+    # Payment Instructions for Reminders
+    finance_payment_instructions_bank = models.TextField(
+        blank=True,
+        default=(
+            "🏦 BANK TRANSFER:\n"
+            "Account: {bank_account}\n"
+            "Bank: {bank_name}\n"
+            "Branch: {branch}\n"
+            "Reference: {payment_code}"
+        ),
+        help_text="Bank transfer payment instructions template. Variables: {bank_account}, {bank_name}, {branch}, {payment_code}"
+    )
+    finance_payment_instructions_mtn_momo = models.TextField(
+        blank=True,
+        default=(
+            "📱 MTN MOBILE MONEY:\n"
+            "Merchant: {mtn_momo_number}\n"
+            "Payment Code: {payment_code}\n"
+            "Amount: {amount} XAF"
+        ),
+        help_text="MTN MoMo payment instructions template. Variables: {mtn_momo_number}, {payment_code}, {amount}"
+    )
+    finance_payment_instructions_orange_money = models.TextField(
+        blank=True,
+        default=(
+            "📱 ORANGE MONEY:\n"
+            "Merchant: {orange_money_number}\n"
+            "Payment Code: {payment_code}\n"
+            "Amount: {amount} XAF"
+        ),
+        help_text="Orange Money payment instructions template. Variables: {orange_money_number}, {payment_code}, {amount}"
+    )
+    finance_payment_instructions_cash = models.TextField(
+        blank=True,
+        default="💵 CASH: Pay at school office during business hours.",
+        help_text="Cash payment instructions template"
+    )
+    finance_receipt_upload_instructions = models.TextField(
+        blank=True,
+        default="After payment, upload your receipt here: {receipt_upload_link}",
+        help_text="Receipt upload instructions. Variables: {receipt_upload_link}"
+    )
+
+    # Real-world scenarios: reminders & receipt upload
+    finance_reminder_no_contact_action = models.CharField(
+        max_length=20,
+        choices=[
+            ("skip", "Skip reminder only"),
+            ("warn_only", "Log warning only"),
+            ("create_task", "Create task for staff to contact guardian"),
+        ],
+        default="warn_only",
+        help_text="When guardian has no email/phone for reminder."
+    )
+    finance_receipt_max_size_mb = models.PositiveSmallIntegerField(
+        default=5,
+        help_text="Max receipt file size in MB (e.g. 5)."
+    )
+    finance_receipt_allowed_extensions = models.CharField(
+        max_length=80,
+        default="pdf,jpg,jpeg,png",
+        help_text="Comma-separated: pdf,jpg,jpeg,png"
+    )
+    finance_overpayment_handling = models.CharField(
+        max_length=30,
+        choices=[
+            ("reject", "Reject (strict)"),
+            ("allow_with_refund", "Allow and create refund request for excess"),
+            ("allow_as_credit", "Allow excess as credit for next invoice"),
+        ],
+        default="allow_with_refund",
+        help_text="When receipt amount exceeds invoice balance."
+    )
+    finance_overpayment_tolerance_xaf = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("1000.00"),
+        help_text="Max overpayment to allow, in site default currency (Region config). Above this always flag for review."
+    )
+    finance_void_invoice_with_payments = models.CharField(
+        max_length=30,
+        choices=[
+            ("allow", "Allow void, stop reminders only"),
+            ("allow_credit_only", "Allow void, treat remaining as credit"),
+            ("block_void", "Block void if invoice has payments"),
+        ],
+        default="allow",
+        help_text="When voiding an invoice that has payments."
+    )
+    finance_on_student_withdrawal = models.CharField(
+        max_length=30,
+        choices=[
+            ("stop_reminders_only", "Stop payment reminders only"),
+            ("stop_and_mark", "Stop reminders and mark invoices (no new payments)"),
+            ("no_auto_change", "No automatic change"),
+        ],
+        default="stop_reminders_only",
+        help_text="When student is marked withdrawn/inactive."
+    )
+    finance_receipt_idempotency_window_minutes = models.PositiveSmallIntegerField(
+        default=10,
+        help_text="Minutes within which duplicate receipt upload (same invoice+user+file) is ignored."
+    )
+    finance_reminder_retry_failed_hours = models.PositiveSmallIntegerField(
+        default=24,
+        help_text="Retry failed reminders after this many hours (0 = no retry)."
+    )
+    finance_reminder_max_retries = models.PositiveSmallIntegerField(
+        default=2,
+        help_text="Max retries for failed reminder sends."
+    )
+    finance_receipt_require_verification_reason = models.BooleanField(
+        default=True,
+        help_text="Require a reason when staff manually approve or reject a receipt."
+    )
+    finance_receipt_second_approval_threshold_xaf = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0"),
+        help_text="Receipts above this amount (site default currency, Region config) require second approver (0 = disabled)."
+    )
+    # Phase 2: Notifications to guardians (in-app + optional email)
+    finance_notify_guardians_new_invoice = models.BooleanField(
+        default=True,
+        help_text="When a new invoice is issued, send in-app notification to guardians with finance access."
+    )
+    finance_notify_guardians_payment_received = models.BooleanField(
+        default=True,
+        help_text="When a payment is recorded, send in-app notification to guardians with finance access."
+    )
+    finance_notify_new_invoice_email = models.BooleanField(
+        default=False,
+        help_text="Also send email when a new invoice is issued (in addition to in-app notification)."
+    )
+    finance_notify_payment_received_email = models.BooleanField(
+        default=False,
+        help_text="Also send email when a payment is recorded (in addition to in-app notification)."
+    )
+    # Phase 2.1: Optional parent welcome email when parent account is created (backend or onboarding)
+    notify_parent_welcome_email = models.BooleanField(
+        default=False,
+        help_text="When a parent account is created (e.g. from backend student create), send a short welcome email. Parent must contact school for login credentials unless you use a separate invite flow."
+    )
 
     class DeadlineMode(models.TextChoices):
         TERM_END = "TERM_END", "Term end date"
@@ -910,11 +1185,47 @@ class SiteSettings(models.Model):
         PUBLISH_DATE = "PUBLISH_DATE", "Publish date"
 
     # Analytics defaults
-    top_students_default_limit = models.PositiveSmallIntegerField(default=10)
-    pass_mark = models.DecimalField(max_digits=5, decimal_places=2, default=10)
-    use_promotion_rule_for_pass = models.BooleanField(default=False)
-    weak_subject_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=10)
-    improvement_delta_threshold = models.DecimalField(max_digits=5, decimal_places=2, default=1)
+    top_students_default_limit = models.PositiveSmallIntegerField(
+        default=10,
+        help_text=(
+            "How many top students to show by default on analytics views "
+            "(e.g. Top 10 students in a class or school)."
+        ),
+    )
+    pass_mark = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=10,
+        help_text=(
+            "Default pass mark used by analytics and summary widgets when a more "
+            "specific rule is not configured."
+        ),
+    )
+    use_promotion_rule_for_pass = models.BooleanField(
+        default=False,
+        help_text=(
+            "If enabled, use the promotion rule configuration to decide pass/fail "
+            "instead of this simple pass mark."
+        ),
+    )
+    weak_subject_threshold = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=10,
+        help_text=(
+            "Score threshold below which a subject is highlighted as weak in "
+            "analytics reports."
+        ),
+    )
+    improvement_delta_threshold = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=1,
+        help_text=(
+            "Minimum score improvement required between terms for a student to be "
+            "flagged as 'improving' in analytics."
+        ),
+    )
     deadline_mode = models.CharField(
         max_length=20,
         choices=DeadlineMode.choices,
@@ -925,6 +1236,7 @@ class SiteSettings(models.Model):
 
     class Meta:
         verbose_name = "Site Settings"
+        verbose_name_plural = "Site Settings"
 
     @classmethod
     def _ensure_preview_columns(cls) -> None:
@@ -982,7 +1294,7 @@ class SiteSettings(models.Model):
         theme = self.active_theme
         if theme and getattr(theme, "logo_background_mode", None):
             return theme.logo_background_mode
-        return self.LOGO_BG_MODE_CHOICES[0][0]
+        return "contain"
 
     def save(self, *args, **kwargs):
         if self.theme_pack_id:
@@ -1118,6 +1430,7 @@ class UserPreference(models.Model):
         EMAIL = "EMAIL", "Email"
         SMS = "SMS", "SMS"
         APP = "APP", "App"
+        WHATSAPP = "WHATSAPP", "WhatsApp"
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -1134,6 +1447,18 @@ class UserPreference(models.Model):
     notification_channels = models.JSONField(default=list, blank=True)
     receive_weekly_summary = models.BooleanField(default=True)
     dashboard_widgets = models.JSONField(default=list, blank=True)
+    preferred_language = models.CharField(
+        max_length=10,
+        blank=True,
+        default="",
+        help_text="User's preferred UI language (e.g. en, fr). When set, overrides region default.",
+    )
+    preferred_region = models.CharField(
+        max_length=10,
+        blank=True,
+        default="",
+        help_text="User's preferred region code (e.g. CMR, USA). When set, drives currency, date format, grading.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1234,6 +1559,7 @@ class ReportTemplate(models.Model):
         CSV = "CSV", "CSV"
         PDF = "PDF", "PDF"
         EXCEL = "EXCEL", "Excel"
+        ODS = "ODS", "LibreOffice (ODS)"
 
     slug = models.SlugField(max_length=80, unique=True)
     name = models.CharField(max_length=120)

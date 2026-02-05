@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Evaluation Evidence{% endblock %}
 
@@ -10,7 +11,7 @@
       Upload photos, videos, or documents to support technical grading.
     </div>
   </div>
-  <a class="btn btn-outline-secondary" href="{% url 'evals:evaluation_admin' %}">Back to Evaluations</a>
+  <a class="btn btn-outline-secondary btn-back-secondary" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-arrow-left me-1"></i>Back to Evaluations</a>
 </div>
 
 <div class="row g-3 mb-4">
@@ -61,7 +62,7 @@
                   <td>{{ item.evaluation.student }}</td>
                   <td>{{ item.evaluation.subject_assignment.subject.name }}</td>
                   <td>{{ item.get_media_type_display }}</td>
-                  <td>{{ item.uploaded_at|date:"M d, Y H:i" }}</td>
+                  <td>{{ item.uploaded_at|format_date }} {{ item.uploaded_at|time:"H:i" }}</td>
                 </tr>
               {% empty %}
                 <tr>

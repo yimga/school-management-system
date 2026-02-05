@@ -1,0 +1,222 @@
+{% load i18n static %}
+{# Reusable Toast Notification System
+   Usage: Include this in base templates, then call:
+   window.showToast('Message', 'success'|'error'|'warning'|'info', duration_ms)
+   Or with options: window.showToast('Message', 'success', { duration: 5000, onUndo: function() { ... } })
+   Or dispatch custom event: document.dispatchEvent(new CustomEvent('showToast', {detail: {message: 'Saved!', type: 'success', onUndo: fn}}))
+   Optional: haptic feedback (navigator.vibrate) is triggered for success/error on supported devices.
+#}
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+(function() {
+  'use strict';
+  var container = document.getElementById('toast-container');
+  if (!container) return;
+
+  // Toast function - can be called globally
+  // Third arg: number = duration_ms, or object { duration: number, onUndo: function }
+  window.showToast = function(message, type, durationOrOptions) {
+    type = type || 'info';
+    var options = typeof durationOrOptions === 'object' && durationOrOptions !== null
+      ? durationOrOptions
+      : { duration: durationOrOptions };
+    var duration = typeof options.duration === 'number' ? options.duration : 3000;
+    var onUndo = typeof options.onUndo === 'function' ? options.onUndo : null;
+
+    var toast = document.createElement('div');
+    toast.className = 'toast-notification toast-' + type;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+
+    var iconMap = {
+      success: 'bi-check-circle-fill',
+      error: 'bi-x-circle-fill',
+      warning: 'bi-exclamation-triangle-fill',
+      info: 'bi-info-circle-fill'
+    };
+
+    var undoHtml = onUndo
+      ? '<button type="button" class="toast-undo" aria-label="{% trans "Undo" %}">{% trans "Undo" %}</button>'
+      : '';
+    toast.innerHTML = '<div class="toast-icon"><i class="bi ' + (iconMap[type] || iconMap.info) + '"></i></div>' +
+      '<div class="toast-message">' + (message || '') + '</div>' +
+      undoHtml +
+      '<button type="button" class="toast-close" aria-label="{% trans "Close" %}"><i class="bi bi-x"></i></button>';
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(function() { toast.classList.add('show'); }, 10);
+
+    // Optional haptic feedback on success/error (mobile)
+    if ((type === 'success' || type === 'error') && typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(50); } catch (err) {}
+    }
+
+    // Auto-dismiss
+    var timeout = setTimeout(function() {
+      dismissToast(toast);
+    }, duration);
+
+    // Undo button
+    var undoBtn = toast.querySelector('.toast-undo');
+    if (undoBtn && onUndo) {
+      undoBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearTimeout(timeout);
+        try { onUndo(); } catch (err) {}
+        dismissToast(toast);
+      });
+    }
+
+    // Manual dismiss
+    var closeBtn = toast.querySelector('.toast-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        clearTimeout(timeout);
+        dismissToast(toast);
+      });
+    }
+
+    // Click to dismiss (except Undo/Close)
+    toast.addEventListener('click', function(e) {
+      if (e.target === toast || e.target.closest('.toast-message')) {
+        clearTimeout(timeout);
+        dismissToast(toast);
+      }
+    });
+  };
+  
+  function dismissToast(toast) {
+    toast.classList.remove('show');
+    setTimeout(function() {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }
+  
+  // Listen for custom events
+  document.addEventListener('showToast', function(e) {
+    if (e.detail) {
+      var d = e.detail;
+      var third = d.onUndo ? { duration: d.duration || 5000, onUndo: d.onUndo } : (d.duration != null ? d.duration : undefined);
+      window.showToast(d.message, d.type, third);
+    }
+  });
+})();
+</script>
+
+<style>
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.toast-notification {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 300px;
+  max-width: 400px;
+  padding: 0.875rem 1rem;
+  background: var(--admin-content-bg);
+  border: 1px solid var(--admin-content-border, rgba(15,23,42,0.12));
+  border-radius: var(--dashboard-card-radius, 12px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  opacity: 0;
+  transform: translateX(400px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: auto;
+}
+
+.toast-notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.toast-success .toast-icon { color: var(--brand-success, #22c55e); }
+.toast-error .toast-icon { color: var(--admin-content-danger, #dc2626); }
+.toast-warning .toast-icon { color: var(--brand-warning, #f59e0b); }
+.toast-info .toast-icon { color: var(--admin-content-accent, #0ea5e9); }
+
+.toast-message {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--admin-content-text, #0f172a);
+  line-height: 1.4;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--admin-content-text-muted, #475569);
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  line-height: 1;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+.toast-undo {
+  flex-shrink: 0;
+  background: var(--admin-content-accent, #0ea5e9);
+  color: #fff;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-right: 0.25rem;
+  transition: opacity 0.2s;
+}
+.toast-undo:hover {
+  opacity: 0.9;
+}
+
+/* Dark mode */
+:root[data-theme="dark"] .toast-notification,
+html[data-bs-theme="dark"] .toast-notification {
+  background: var(--admin-content-surface, #1e293b);
+  border-color: var(--admin-content-border, rgba(148,163,184,0.2));
+}
+
+:root[data-theme="dark"] .toast-message,
+html[data-bs-theme="dark"] .toast-message {
+  color: var(--admin-content-text, #f1f5f9);
+}
+
+:root[data-theme="dark"] .toast-close,
+html[data-bs-theme="dark"] .toast-close {
+  color: var(--admin-content-text-muted, #94a3b8);
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+  .toast-container {
+    left: 10px;
+    right: 10px;
+    top: 70px;
+  }
+  
+  .toast-notification {
+    min-width: auto;
+    max-width: none;
+  }
+}
+</style>

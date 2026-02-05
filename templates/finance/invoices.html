@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Invoices{% endblock %}
 
@@ -8,7 +9,7 @@
     <h2 class="mb-0">Invoices</h2>
     <div class="text-muted">Accounts receivable and payable.</div>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:dashboard' %}">Back to Finance</a>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Finance</a>
 </div>
 
 {% if finance_access_required and not finance_access_granted %}
@@ -72,9 +73,14 @@
 
 <div class="card">
   <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
       <div class="small text-muted">Showing {{ invoices|length }} invoices</div>
-      <div class="d-flex gap-2 align-items-center">
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <span class="small text-muted me-1">View:</span>
+        <div class="btn-group btn-group-sm table-density-toggle" role="group" aria-label="Table density">
+          <button type="button" class="btn btn-outline-secondary" data-density="condensed">Condensed</button>
+          <button type="button" class="btn btn-outline-secondary" data-density="expanded">Expanded</button>
+        </div>
         {% if user.is_staff or user.is_superuser %}
         <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:finance_access_bulk' %}">Bulk finance access</a>
         {% endif %}
@@ -82,22 +88,23 @@
         <a class="btn btn-outline-secondary btn-sm" href="?export=pdf{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Export PDF</a>
       </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-sm align-middle">
+    <div class="table-responsive" data-table-density-key="finance_invoices">
+      {% if invoices %}
+      <table class="table table-sm align-middle table-sticky-head table-zebra" aria-label="Invoices list: reference, type, status, due date, student, total, balance, and actions">
         <thead class="table-light">
           <tr>
-            <th>Reference</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Due</th>
-            <th>Student</th>
+            <th scope="col">Reference</th>
+            <th scope="col">Type</th>
+            <th scope="col">Status</th>
+            <th scope="col">Due</th>
+            <th scope="col">Student</th>
             {% if user.is_staff or user.is_superuser %}
-            <th>Parent access</th>
+            <th scope="col">Parent access</th>
             {% endif %}
-            <th class="text-end">Total</th>
-            <th class="text-end">Balance</th>
-            <th class="text-end">Attachment</th>
-            <th>Actions</th>
+            <th scope="col" class="text-end">Total</th>
+            <th scope="col" class="text-end">Balance</th>
+            <th scope="col" class="text-end">Attachment</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -110,7 +117,7 @@
               </td>
               <td>{{ inv.get_invoice_type_display }}</td>
               <td>{{ inv.get_status_display }}</td>
-              <td>{{ inv.due_date|default:"-" }}</td>
+              <td>{{ inv.due_date|format_date|default:"-" }}</td>
               <td>{{ inv.student|default:"-" }}</td>
               {% if user.is_staff or user.is_superuser %}
               {% with guardians=inv.student.studentguardian_set.all %}
@@ -129,8 +136,8 @@
               </td>
               {% endwith %}
               {% endif %}
-              <td class="text-end">{{ inv.total_amount }}</td>
-              <td class="text-end">{{ inv.balance_amount }}</td>
+              <td class="text-end">{{ inv.total_amount|format_currency }}</td>
+              <td class="text-end {% if inv.status == 'OVERDUE' %}cell-overdue fw-bold{% endif %}">{{ inv.balance_amount|format_currency }}</td>
               <td class="text-end">
                 {% if inv.attachment %}
                   <a class="btn btn-sm btn-outline-secondary" href="{{ inv.attachment.url }}" target="_blank">View</a>
@@ -157,19 +164,39 @@
                 </div>
               </td>
             </tr>
-          {% empty %}
-            <tr>
-              <td colspan="9" class="text-muted">
-                {% if finance_access_required and not finance_access_granted %}
-                  Finance access is not enabled yet. Request access to see invoices for your linked students.
-                {% else %}
-                  No invoices found.
-                {% endif %}
-              </td>
-            </tr>
           {% endfor %}
         </tbody>
       </table>
+      {% elif finance_access_required and not finance_access_granted %}
+      <table class="table table-sm align-middle" aria-label="Invoices list (no results)">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Reference</th>
+            <th scope="col">Type</th>
+            <th scope="col">Status</th>
+            <th scope="col">Due</th>
+            <th scope="col">Student</th>
+            {% if user.is_staff or user.is_superuser %}
+            <th scope="col">Parent access</th>
+            {% endif %}
+            <th scope="col" class="text-end">Total</th>
+            <th scope="col" class="text-end">Balance</th>
+            <th scope="col" class="text-end">Attachment</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="{% if user.is_staff or user.is_superuser %}9{% else %}8{% endif %}" class="text-muted py-4">
+              Finance access is not enabled yet. Request access to see invoices for your linked students.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {% else %}
+      {% url 'finance:generate_fees' as empty_action_url %}
+      {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title="No invoices found" message="Generate fee invoices to get started." action_url=empty_action_url action_text="Generate fees" %}
+      {% endif %}
     </div>
     {% if page_obj %}
       <div class="d-flex justify-content-between align-items-center mt-3">
@@ -186,4 +213,28 @@
     {% endif %}
   </div>
 </div>
+<script>
+(function() {
+  var key = 'table-density-finance_invoices';
+  var wrapper = document.querySelector('[data-table-density-key="finance_invoices"]');
+  if (!wrapper) return;
+  var table = wrapper.querySelector('table');
+  var condensed = localStorage.getItem(key) === 'condensed';
+  function apply() {
+    if (table) table.classList.toggle('table-condensed', condensed);
+    wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
+      btn.classList.toggle('active', (btn.getAttribute('data-density') === 'condensed') === condensed);
+    });
+  }
+  apply();
+  wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      condensed = this.getAttribute('data-density') === 'condensed';
+      localStorage.setItem(key, condensed ? 'condensed' : 'expanded');
+      apply();
+    });
+  });
+})();
+</script>
+{% include "components/was_this_helpful.html" with feedback_id="finance-invoices" %}
 {% endblock %}

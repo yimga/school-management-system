@@ -1,0 +1,29 @@
+{% load unfold %}
+
+{% if actions_list or actions_detail or actions_items or nav_global %}
+    <div class="admin-tab-actions flex flex-row flex-wrap items-center justify-end gap-2 ml-auto min-w-0" x-data="{ showActions: false }" x-on:click.outside="showActions = false">
+        {% component "unfold/components/button.html" with href="#" variant="default" class="!px-0 w-[38px] lg:hidden shrink-0" extra_attrs="x-on:click='showActions = !showActions'" %}
+            <span class="material-symbols-outlined">more_horiz</span>
+        {% endcomponent %}
+
+        <ul class="admin-tab-actions-list hidden flex-col font-medium lg:flex lg:flex-row lg:flex-wrap lg:gap-2 lg:mb-0 lg:mt-0 max-lg:absolute max-lg:right-0 max-lg:top-full max-lg:mt-1 max-lg:min-w-[200px] max-lg:rounded-lg max-lg:shadow-lg max-lg:z-50 max-lg:py-2 max-lg:border" style="background: var(--admin-surface, var(--admin-dashboard-bg, #f8fafc)); color: var(--admin-text, #0f172a); border-color: var(--admin-border, #e2e8f0);" x-bind:class="{'max-lg:!flex': showActions}">
+            {% if not actions_list_hide_default and not actions_detail_hide_default %}
+                {% if actions_items %}
+                    {{ actions_items }}
+                {% endif %}
+
+                {% if nav_global %}
+                    {{ nav_global }}
+                {% endif %}
+            {% endif %}
+
+            {% for action in actions_list %}
+                {% include "unfold/helpers/tab_action.html" with title=action.title link=action.path %}
+            {% endfor %}
+
+            {% for action in actions_detail %}
+                {% include "unfold/helpers/tab_action.html" with title=action.title link=action.path %}
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}

@@ -2,28 +2,17 @@
 {% load i18n static %}
 
 {% block extrastyle %}
-{% with ADMIN_THEME=SITE_ADMIN_THEME|default:SITE %}
+{{ block.super }}
+{# Brand/semantic vars set in base_site.html (ADMIN_RESOLVED_*); only layout vars and component styles here. #}
 <style>
-    :root {
-    --brand-primary: {{ ADMIN_THEME.primary_color|default:"#667eea" }};
-    --brand-accent: {{ ADMIN_THEME.accent_color|default:"#ff9f43" }};
-    --brand-success: {{ ADMIN_THEME.success_color|default:"#22c55e" }};
-    --brand-warning: {{ ADMIN_THEME.warning_color|default:"#fbbf24" }};
-    --brand-danger: {{ ADMIN_THEME.danger_color|default:"#ef4444" }};
-    --surface-dark: {{ SITE.admin_sidebar_surface_color|default:"#2d2d2d" }};
-    --border-dark: {{ SITE.admin_sidebar_border_color|default:"#404040" }};
-    --surface-deep: {{ ADMIN_THEME.background_color|default:"#1a1a1a" }};
+  :root {
+    --surface-dark: #2d2d2d;
+    --border-dark: #404040;
     --text-primary: #fff;
     --text-muted: #9ca3af;
   }
 
-  body {margin:0;padding:0;background:var(--surface-deep);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background-image: url('{{ SITE_ADMIN_BACKGROUND_URL|default:"" }}');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-blend-mode: multiply;
-  }
+  body {margin:0;padding:0;background:var(--surface-deep);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
   #content-main, #content {padding:0!important;margin:0;background:var(--surface-deep);}
   .module {border:none;}
   
@@ -269,7 +258,7 @@
     }
   }
 
-</style>{% endwith %}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -318,6 +307,8 @@
     <h1>Administration Dashboard</h1>
     <p class="dashboard-subtitle">Manage your school operations, monitor system health, and access all administrative functions from this central hub.</p>
     <div class="header-actions">
+      <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="btn-green">⚙️ Site Settings</a>
+      <a href="{% url 'admin:accounts_user_changelist' %}" class="btn-outline" title="{% trans 'Who can do what' %}">👥 User permissions</a>
       <a href="/analytics/master-sheet/" class="btn-orange">📊 Master Sheet</a>
       <a href="/analytics/deadlines/" class="btn-green">⏰ Deadlines</a>
       <a href="/reports/publish/" class="btn-outline">📄 Publish Reports</a>

@@ -5,14 +5,29 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.conf import settings
 import logging
-from typing import List
+from typing import Any, Dict, List
+from urllib.parse import quote_plus
 
 logger = logging.getLogger(__name__)
 
 
 class NotificationService:
-    """Handles SMS, Email, digests."""
-    
+    """Handles SMS, Email, digests, and WhatsApp deeplinks."""
+
+    # Simple built-in WhatsApp templates for common flows. Keys are short
+    # identifiers that callers can pass to ``send_whatsapp``.
+    WHATSAPP_TEMPLATES: Dict[str, str] = {
+        "CONTACT_ACK": (
+            "Hello {guardian_name}, we received your request #{ticket_id} "
+            "and will follow up shortly. You can also check the portal at {portal_link}."
+        ),
+        "RESULTS_PUBLISHED_PARENT": (
+            "Hi {guardian_name}, {student_name}'s {term_name} report is ready. "
+            "View it in the parent portal: {portal_link}."
+        ),
+        "GENERIC": "Hello {guardian_name}, this is a message from the school portal.",
+    }
+
     def __init__(self):
         self.site_settings = settings.SITE_SETTINGS if hasattr(settings, 'SITE_SETTINGS') else None
     
@@ -58,13 +73,14 @@ class NotificationService:
             return False
     
     def send_deadline_reminder_email(self, teacher, deadline_at, subject_count):
-        """Email reminder to teacher."""
+        """Email reminder to teacher. teacher is TeacherProfile (has .user)."""
         try:
             days_left = (deadline_at - timezone.now()).days
-            
+            user = getattr(teacher, "user", teacher)
+            teacher_name = (getattr(user, "get_full_name", None) and user.get_full_name()) or f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}".strip() or getattr(user, "username", "")
             context = {
-                'teacher_name': teacher.get_full_name(),
-                'deadline_at': deadline_at,
+                "teacher_name": teacher_name,
+                "deadline_at": deadline_at,
                 'days_left': days_left,
                 'subject_count': subject_count,
                 'entry_link': f"{settings.BASE_URL}/evals/teacher/marks/entry/" if hasattr(settings, 'BASE_URL') else '#',
@@ -102,6 +118,72 @@ class NotificationService:
         else:
             logger.info(f"[CONSOLE SMS] {phone_number}: {message}")
             return True
+
+    # ------------------------------------------------------------------
+    # WhatsApp helpers (deeplink generation only for now)
+    # ------------------------------------------------------------------
+
+    def _resolve_phone_for_whatsapp(self, user_or_phone: Any) -> str | None:
+        """Best-effort phone resolver for WhatsApp.
+
+        Accepts either a raw phone string or objects that commonly appear in
+        this codebase (guardian profile, user, tickets with contact_whatsapp, etc.).
+        """
+
+        if isinstance(user_or_phone, str):
+            return user_or_phone
+
+        for attr in ("whatsapp", "phone", "mobile", "contact_whatsapp"):
+            value = getattr(user_or_phone, attr, None)
+            if value:
+                return str(value)
+
+        guardian_user = getattr(user_or_phone, "guardian_user", None)
+        if guardian_user is not None:
+            for attr in ("whatsapp", "phone", "mobile"):
+                value = getattr(guardian_user, attr, None)
+                if value:
+                    return str(value)
+
+        return None
+
+    def _build_whatsapp_url(self, phone: str, message: str) -> str:
+        base_url = getattr(settings, "WHATSAPP_BASE_URL", "https://wa.me")
+        return f"{base_url.rstrip('/')}/{quote_plus(phone)}?text={quote_plus(message)}"
+
+    def send_whatsapp(self, user_or_phone: Any, template_key: str, context: Dict[str, Any]) -> str:
+        """Generate a WhatsApp deeplink for the given template.
+
+        Returns the `wa.me` URL so callers can surface it in templates or
+        redirect links. All actual sending happens on the user's device.
+        """
+
+        phone = self._resolve_phone_for_whatsapp(user_or_phone)
+        if not phone:
+            logger.info(
+                "Skipping WhatsApp deeplink – no phone available",
+                extra={"template_key": template_key},
+            )
+            return ""
+
+        template = self.WHATSAPP_TEMPLATES.get(template_key) or self.WHATSAPP_TEMPLATES["GENERIC"]
+        # Provide gentle defaults so `.format` does not KeyError when context
+        # is missing some optional keys.
+        safe_context = {
+            "guardian_name": context.get("guardian_name", "Parent"),
+            "student_name": context.get("student_name", "your child"),
+            "term_name": context.get("term_name", "this term"),
+            "portal_link": context.get("portal_link", getattr(settings, "BASE_URL", "")),
+            "ticket_id": context.get("ticket_id", ""),
+        }
+        message = template.format(**safe_context)
+        url = self._build_whatsapp_url(phone, message)
+
+        logger.info(
+            "Generated WhatsApp deeplink",
+            extra={"phone": phone, "template_key": template_key, "url": url},
+        )
+        return url
 
     def send_grade_approval_request_email(self, approver, approval_request) -> bool:
         """Notify approvers when a teacher submits grades for review."""

@@ -7,9 +7,10 @@
 :root {
   /* ============================================
      PRIMARY COLOR PALETTE - 2026 Gilead Colors
+     Prefer --school-primary from design-tokens.css (and SITE override) for brand/CTAs.
      ============================================ */
   
-  /* Primary: Warm Pink */
+  /* Primary: Warm Pink (legacy; use var(--school-primary) for brand) */
   --color-primary: #ff6a88;
   --color-primary-light: #ffb3c1;
   --color-primary-dark: #ff3b5f;
@@ -52,15 +53,9 @@
   --color-info-light: rgba(59, 130, 246, 0.1);
   
   /* ============================================
-     SPACING SCALE - 4px base unit
+     SPACING – defined in design-tokens.css (--token-space-* / --spacing-*).
+     Do not redefine here so one source of truth is maintained.
      ============================================ */
-  --spacing-xs: 0.25rem;      /* 4px */
-  --spacing-sm: 0.5rem;       /* 8px */
-  --spacing-md: 1rem;         /* 16px */
-  --spacing-lg: 1.5rem;       /* 24px */
-  --spacing-xl: 2rem;         /* 32px */
-  --spacing-2xl: 3rem;        /* 48px */
-  --spacing-3xl: 4rem;        /* 64px */
   
   /* ============================================
      BORDER RADIUS SCALE
@@ -152,10 +147,11 @@
 /* ============================================
    EXPLICIT THEME OVERRIDES (data-theme)
    ============================================ */
-:root[data-theme="light"] {
+:root[data-theme="light"],
+html[data-bs-theme="light"] {
   --color-text-primary: #0f172a;
   --color-text-secondary: #22314e;
-  --color-text-muted: #6b7280;
+  --color-text-muted: #4b5563; /* Stronger contrast on light bg (WCAG AA) */
   --color-bg-primary: #ffffff;
   --color-bg-light: #f8fafc;
   --color-bg-lighter: #f0f4f8;
@@ -167,19 +163,36 @@
   --color-info-light: rgba(59, 130, 246, 0.1);
 }
 
-:root[data-theme="dark"] {
-  --color-text-primary: #f0f4f8;
-  --color-text-secondary: #cbd5e1;
+:root[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark {
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #e2e8f0;
   --color-text-muted: #94a3b8;
-  --color-bg-primary: #1a1f3a;
-  --color-bg-light: #252d48;
-  --color-bg-lighter: #3f4765;
-  --color-border: rgba(240, 244, 248, 0.1);
-  --color-border-light: rgba(240, 244, 248, 0.05);
+  --color-bg-primary: #0f172a;
+  --color-bg-light: #1e293b;
+  --color-bg-lighter: #334155;
+  --color-border: rgba(148, 163, 184, 0.25);
+  --color-border-light: rgba(148, 163, 184, 0.12);
+  /* Desaturated accents for dark (no vibration, 4.5:1 on dark bg) */
+  --color-primary: #e87995;
+  --color-primary-light: #f0a4b5;
+  --color-primary-dark: #c45a72;
+  --color-secondary: #a78bfa;
+  --color-secondary-light: #c4b5fd;
+  --color-secondary-dark: #7c5ce8;
+  --color-accent: #5eead4;
+  --color-accent-light: #99f6e4;
+  --color-accent-dark: #2dd4bf;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-info: #60a5fa;
   --color-success-light: rgba(16, 185, 129, 0.2);
   --color-warning-light: rgba(245, 158, 11, 0.2);
   --color-danger-light: rgba(239, 68, 68, 0.2);
   --color-info-light: rgba(59, 130, 246, 0.2);
+  --focus-ring-color: var(--color-primary);
 }
 
 /* ============================================
@@ -260,16 +273,41 @@ textarea {
   font-size: var(--font-size-md);
 }
 
-/* Focus states */
+/* Focus states (use canonical token from design-tokens.css). Phase 9.2: visible focus ring. */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset, 2px);
+}
+
+/* Skip link: hidden until focused (Phase 9.2). */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 9999;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--color-primary, #0d6efd);
+  color: #fff;
+  text-decoration: none;
+  outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
 /* Selection */
 ::selection {
   background-color: var(--color-primary);
-  color: white;
+  color: #f8fafc;
+}
+/* Selection – dark mode: desaturated primary, off-white text */
+:root[data-theme="dark"] ::selection,
+html[data-bs-theme="dark"] ::selection {
+  background-color: var(--color-primary);
+  color: #f1f5f9;
 }
 
 /* Scrollbar for webkit browsers */
@@ -295,8 +333,8 @@ textarea {
    UTILITY CLASSES - For rapid development
    ============================================ */
 
-/* Visibility */
-.hidden {
+/* Visibility - use .ds-hidden to avoid conflict with Tailwind .hidden (used by Unfold sidebar) */
+.ds-hidden {
   display: none !important;
 }
 
@@ -648,4 +686,128 @@ textarea {
     top: 0;
     z-index: var(--z-navigation);
   }
+}
+
+/* ============================================
+   BACK BUTTON PATTERNS (color-coded by intent)
+   Use: .btn-back-primary = back to dashboard/home,
+        .btn-back-secondary = back to list/parent,
+        .btn-back-outline = back to admin/config
+   ============================================ */
+.btn-back-primary {
+  color: var(--school-primary, var(--color-primary, #0d6efd));
+  border-color: var(--school-primary, var(--color-primary, #0d6efd));
+}
+.btn-back-primary:hover {
+  background-color: var(--school-primary-light, rgba(13, 110, 253, 0.1));
+  color: var(--school-primary, #0d6efd);
+  border-color: var(--school-primary, #0d6efd);
+}
+.btn-back-secondary {
+  color: var(--color-text-muted, #6b7280);
+  border-color: var(--color-border, rgba(15, 23, 42, 0.08));
+}
+.btn-back-secondary:hover {
+  background-color: var(--color-bg-light, #f8fafc);
+  color: var(--color-text-primary, #0f172a);
+  border-color: var(--color-border, rgba(15, 23, 42, 0.08));
+}
+.btn-back-outline {
+  color: var(--color-text-muted, #6b7280);
+  border: 1px solid var(--color-border, rgba(15, 23, 42, 0.08));
+  background: transparent;
+}
+.btn-back-outline:hover {
+  background-color: var(--color-bg-light, #f8fafc);
+  color: var(--color-text-primary, #0f172a);
+}
+
+/* Phase 15.4: Condensed table view (smaller padding and font) */
+.table-condensed th,
+.table-condensed td {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8125rem;
+}
+.table-condensed thead th {
+  font-size: 0.75rem;
+}
+
+/* Phase 15.2: Sticky table headers for scrollable tables */
+.table-sticky-head thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bs-light, #f8f9fa);
+  box-shadow: 0 1px 0 0 var(--admin-content-border, rgba(0,0,0,0.08));
+}
+:root[data-theme="dark"] .table-sticky-head thead th,
+html[data-bs-theme="dark"] .table-sticky-head thead th {
+  background: var(--admin-content-thead-bg, #334155);
+}
+
+/* Phase 15.1: Zebra striping for data tables (theme-aware) */
+.table-zebra tbody tr:nth-of-type(even) {
+  background-color: var(--table-row-alt-bg, rgba(0, 0, 0, 0.02));
+}
+:root[data-theme="dark"] .table-zebra tbody tr:nth-of-type(even),
+html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
+  background-color: var(--table-row-alt-bg-dark, rgba(255, 255, 255, 0.04));
+}
+
+/* Phase 15.3: Conditional formatting (failing grade, overdue) */
+.table-cell-fail,
+.td-fail {
+  background-color: var(--alert-fail-bg, rgba(220, 38, 38, 0.08));
+  color: var(--alert-fail-fg, #b91c1c);
+}
+.table-cell-overdue,
+.td-overdue {
+  font-weight: 600;
+  color: var(--alert-warning-fg, #b45309);
+}
+.table-cell-overdue .badge,
+.td-overdue .badge,
+.cell-overdue {
+  font-weight: 600;
+}
+.cell-overdue {
+  color: var(--alert-warning-fg, #b45309);
+}
+
+/* Phase 15.1: Zebra striping for data tables (theme-aware) */
+.table-zebra tbody tr:nth-of-type(even) {
+  background-color: var(--table-stripe-bg, rgba(0, 0, 0, 0.03));
+}
+:root[data-theme="dark"] .table-zebra tbody tr:nth-of-type(even),
+html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
+  background-color: var(--admin-content-surface, rgba(255, 255, 255, 0.04));
+}
+
+/* Phase 15.3: Conditional formatting (failing grades, overdue – use with icon/text too) */
+.cell-fail,
+.table .cell-fail {
+  color: var(--admin-content-danger, #dc2626);
+  font-weight: 600;
+}
+.cell-overdue,
+.table .cell-overdue {
+  color: var(--brand-warning, #f59e0b);
+  font-weight: 600;
+}
+
+/* Phase 12.3 optional: 44×44px tap targets for mobile (use .touch-target on small buttons/links) */
+@media (hover: none) and (pointer: coarse) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+}
+
+.cell-success,
+.table .cell-success {
+  color: var(--brand-success, #22c55e);
 }

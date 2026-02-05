@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 {% block title %}Request {{ req.reference }}{% endblock %}
 
 {% block content %}
@@ -21,7 +22,7 @@
       </div>
       <div class="col-md-6">
         <div class="text-muted small">Requested at</div>
-        <div>{{ req.requested_at|date:"M j, H:i" }}</div>
+        <div>{{ req.requested_at|format_date }} {{ req.requested_at|time:"H:i" }}</div>
       </div>
       <div class="col-12">
         <div class="text-muted small">Summary</div>
@@ -29,7 +30,7 @@
       </div>
       <div class="col-12">
         <div class="text-muted small">Details</div>
-        <pre class="bg-light p-2 rounded small">{{ req.details|default:"{}"|safe }}</pre>
+        <pre class="bg-light p-2 rounded small">{{ req.details|default:"{}" }}</pre>
       </div>
     </div>
   </div>
@@ -62,7 +63,7 @@
         {% for decision in decisions %}
           <li class="list-group-item">
             <strong>{{ decision.get_decision_display }}</strong>
-            <span class="text-muted small">- {{ decision.created_at|date:"M j, H:i" }}</span>
+            <span class="text-muted small">- {{ decision.created_at|format_date }} {{ decision.created_at|time:"H:i" }}</span>
             <div class="small text-muted">
               By {{ decision.decided_by.get_full_name|default:decision.decided_by.username|default:"System" }}
             </div>
@@ -84,7 +85,7 @@
         {% for audit in audits %}
           <li class="list-group-item">
             <strong class="text-uppercase small">{{ audit.action }}</strong>
-            <span class="text-muted small">- {{ audit.created_at|date:"M j, H:i" }}</span>
+            <span class="text-muted small">- {{ audit.created_at|format_date }} {{ audit.created_at|time:"H:i" }}</span>
             <div class="small text-muted">By {{ audit.actor.get_full_name|default:audit.actor.username|default:"System" }}</div>
             {% if audit.message %}
               <div class="mt-1">{{ audit.message }}</div>

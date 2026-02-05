@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load region_format %}
 
 {% block title %}Extend Deadline{% endblock %}
 
@@ -17,7 +18,7 @@
                     <div class="alert alert-info">
                         <strong>{{ subject_assignment.subject.name }}</strong><br>
                         <small class="text-muted">
-                            Current deadline: <strong>{{ deadline.deadline_date|date:"F j, Y" }}</strong>
+                            Current deadline: <strong>{{ deadline.deadline_date|format_date }}</strong>
                         </small>
                     </div>
                     

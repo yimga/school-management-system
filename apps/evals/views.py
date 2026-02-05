@@ -1,7 +1,10 @@
+import logging
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponseForbidden, HttpResponse
 from django.contrib import messages
+
+logger = logging.getLogger(__name__)
 from django.contrib.admin.views.decorators import staff_member_required
 from django import forms
 import csv
@@ -603,6 +606,11 @@ def teacher_dashboard(request: HttpRequest):
                     )[:3],
                 }
 
+    # Phase 11: Show welcome hint when new (no assignments or no marks entered yet)
+    show_welcome_hint = (
+        not assignments
+        or (widget_data.get("completion_pct", 0) == 0 and widget_data.get("assignments_count", 0) > 0)
+    )
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -610,6 +618,7 @@ def teacher_dashboard(request: HttpRequest):
         "progress": progress,
         "widget_data": widget_data,
         "hero": hero,
+        "show_welcome_hint": show_welcome_hint,
         "missing_records_url": missing_records_url,
         "grade_import_upload_url": reverse("evals:grade_import_upload"),
         "grade_import_template_url": reverse("evals:grade_import_template"),
@@ -1018,16 +1027,27 @@ def teacher_marks_entry(request: HttpRequest):
             return HttpResponseForbidden("This term is published/locked. Marks entry is disabled.")
 
         action = request.POST.get("action")
-        entries_payload = grade_entries_from_submission(students, request.POST)
-        students_map = {student.id: student for student in students}
-        _update_evaluations_from_entries(
-            entries_payload,
-            students_map,
-            teacher,
-            year,
-            active_term,
-            sa,
-        )
+        try:
+            entries_payload = grade_entries_from_submission(students, request.POST)
+            students_map = {student.id: student for student in students}
+            _update_evaluations_from_entries(
+                entries_payload,
+                students_map,
+                teacher,
+                year,
+                active_term,
+                sa,
+            )
+        except Exception as e:
+            logger.exception(
+                "Marks save failed: user=%s subject_assignment_id=%s students_count=%s",
+                request.user.id,
+                sa.id,
+                len(students),
+                exc_info=True,
+            )
+            messages.error(request, "Marks could not be saved. Please try again or contact support.")
+            return redirect("evals:teacher_marks_entry")
 
         if action == "submit_for_approval" and grade_approval_enabled:
             try:
@@ -1597,6 +1617,9 @@ def evaluation_admin(request: HttpRequest):
     export_pdf_params = request.GET.copy()
     export_pdf_params["export"] = "pdf"
 
+    score_scale = getattr(current_weights, "score_scale", None) or 20
+    pass_mark = score_scale // 2  # Phase 15.3: e.g. 10 for scale 20
+
     return render(request, "evals/evaluation_admin.html", {
         "year": year_obj,
         "term": term_obj,
@@ -1607,6 +1630,7 @@ def evaluation_admin(request: HttpRequest):
         "weights_form": weights_form,
         "fill_form": fill_form,
         "current_weights": current_weights,
+        "pass_mark": pass_mark,
         "evals": evals_list,
         "missing_only": missing_only,
         "required_fields": required_fields,
@@ -1829,7 +1853,7 @@ def grade_approval_detail(request: HttpRequest, request_id):
 # ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========
 
 @staff_member_required
-@role_required(User.Role.ADMIN, 'head_of_academics')
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
 def compliance_dashboard_view(request):
     """
     Dashboard showing teacher grading compliance status.
@@ -1877,59 +1901,56 @@ def compliance_dashboard_view(request):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, 'head_of_academics')
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
 def extend_deadline_view(request, subject_assignment_id):
     """
     Extend grading deadline for a subject assignment.
-    
-    NOTE: GradingDeadline model was removed. This view needs to be updated
-    to use SubjectAssignment.deadline_at when that field is added.
+    Uses SubjectAssignment.grading_deadline_at.
     """
     from apps.academics.models import SubjectAssignment
-    
-    academic_year, term = get_active_year_and_term()
-    
+    from apps.evals.models import GradeAudit
+
     try:
         subject_assignment = SubjectAssignment.objects.get(id=subject_assignment_id)
     except SubjectAssignment.DoesNotExist:
         messages.error(request, "Subject assignment not found.")
-        return redirect('compliance_dashboard')
-    
-    # TODO: Implement deadline extension using SubjectAssignment.deadline_at
-    messages.info(request, f"Deadline extension for {subject_assignment} is under development. "
-                          "This feature will be available once deadline_at field is added to SubjectAssignment.")
-    return redirect('compliance_dashboard')
-    
-    if request.method == 'POST':
-        days_extension = int(request.POST.get('days_extension', 0))
-        reason = request.POST.get('reason', '')
-        
+        return redirect("evals:compliance_dashboard")
+
+    current_deadline = subject_assignment.grading_deadline_at
+
+    if request.method == "POST":
+        days_extension = int(request.POST.get("days_extension", 0) or 0)
+        reason = (request.POST.get("reason") or "").strip()
+
         if days_extension > 0:
-            new_deadline = deadline.deadline_date + timezone.timedelta(days=days_extension)
-            deadline.deadline_date = new_deadline
-            deadline.save()
-            
-            # Log in audit trail
-            from apps.evals.models import GradeAudit
+            base = current_deadline or timezone.now()
+            new_deadline = base + timezone.timedelta(days=days_extension)
+            subject_assignment.grading_deadline_at = new_deadline
+            subject_assignment.save(update_fields=["grading_deadline_at"])
+
             GradeAudit.objects.create(
-                evaluation=None,  # Not linked to specific evaluation
-                change_type='deadline_extended',
+                evaluation=None,
+                change_type="deadline_extended",
                 changed_by=request.user,
-                remarks_after=f"Deadline extended by {days_extension} days. Reason: {reason}"
+                remarks_after=f"Deadline extended by {days_extension} days. Reason: {reason}",
             )
-            
             messages.success(request, f"Deadline extended to {new_deadline.date()}")
-        
-        return redirect('compliance_dashboard')
-    
-    return render(request, 'evals/extend_deadline.html', {
-        'deadline': deadline,
-        'subject_assignment': subject_assignment,
-    })
+        else:
+            messages.warning(request, "Please enter a positive number of days.")
+        return redirect("evals:compliance_dashboard")
+
+    return render(
+        request,
+        "evals/extend_deadline.html",
+        {
+            "subject_assignment": subject_assignment,
+            "deadline": current_deadline,
+        },
+    )
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, 'head_of_academics')
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
 def grade_import_preview_api(request):
     """API endpoint for grade import preview with validation."""
     from apps.evals.importers import preview_import_with_validation
@@ -1979,7 +2000,7 @@ def grade_import_preview_api(request):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, 'head_of_academics')
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
 def grade_import_apply_api(request):
     """API endpoint for applying (persisting) grade import."""
     from apps.evals.importers import apply_import
@@ -2035,7 +2056,7 @@ def grade_import_apply_api(request):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, 'head_of_academics', User.Role.TEACHER)
+@role_required(User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, "HEAD_OF_ACADEMICS", "head_of_academics")
 def audit_trail_view(request, evaluation_id):
     """View audit trail for an evaluation."""
     from apps.analytics.services import get_audit_trail
@@ -2059,7 +2080,7 @@ def audit_trail_view(request, evaluation_id):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, 'head_of_academics')
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
 def resolve_offline_conflict_view(request, offline_entry_id):
     """Manual conflict resolution for offline mark entries."""
     from apps.evals.models import OfflineMarkEntry
@@ -2116,7 +2137,7 @@ def resolve_offline_conflict_view(request, offline_entry_id):
     return render(request, 'evals/resolve_offline_conflict.html', context)
 
 @staff_member_required
-@role_required(User.Role.ADMIN, 'head_of_academics')
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
 def import_job_monitor_view(request):
     """Monitor and manage import jobs."""
     from apps.analytics.models import GradeImportJob

@@ -14,16 +14,33 @@ def remove_indexes_if_exist(apps, schema_editor):
         'finance_pay_region__83483d_idx',
     ]
     
-    with connection.cursor() as cursor:
+    db_backend = schema_editor.connection.vendor
+    
+    with schema_editor.connection.cursor() as cursor:
         for index_name in indexes_to_remove:
-            # Check if index exists
-            cursor.execute("""
-                SELECT indexname 
-                FROM pg_indexes 
-                WHERE tablename=%s AND indexname=%s
-            """, [db_table, index_name])
-            if cursor.fetchone():
-                cursor.execute(f'DROP INDEX IF EXISTS {index_name}')
+            index_exists = False
+            
+            # Check if index exists (database-specific)
+            if db_backend == 'postgresql':
+                cursor.execute("""
+                    SELECT indexname 
+                    FROM pg_indexes 
+                    WHERE tablename=%s AND indexname=%s
+                """, [db_table, index_name])
+                index_exists = cursor.fetchone() is not None
+            else:
+                # For SQLite and other databases, just try to drop (IF EXISTS handles it)
+                # This avoids parameter formatting issues with SQLite's debug SQL formatter
+                index_exists = True
+            
+            if index_exists:
+                # Just drop the index - IF EXISTS handles non-existence gracefully
+                # This avoids SQLite parameter formatting issues
+                try:
+                    cursor.execute(f'DROP INDEX IF EXISTS {index_name}')
+                except Exception:
+                    # Index doesn't exist or already dropped - ignore
+                    pass
 
 
 def skip_id_alteration_if_needed(apps, schema_editor):
@@ -56,6 +73,45 @@ def reverse_remove_indexes(apps, schema_editor):
     pass
 
 
+def handle_id_field_alteration(apps, schema_editor):
+    """Handle id field alteration - PostgreSQL only."""
+    if schema_editor.connection.vendor != 'postgresql':
+        # SQLite doesn't support identity columns, skip database operation
+        return
+    
+    # PostgreSQL-specific SQL
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute("""
+            DO $$
+            BEGIN
+                -- Only alter if NOT already an identity column
+                IF NOT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_name='finance_payment' 
+                    AND column_name='id' 
+                    AND is_identity='YES'
+                ) THEN
+                    -- If it's UUID, we'd need complex conversion
+                    -- For now, just ensure it's BigAutoField if not UUID
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='finance_payment' 
+                        AND column_name='id' 
+                        AND data_type='uuid'
+                    ) THEN
+                        -- Already correct type, do nothing
+                        NULL;
+                    END IF;
+                END IF;
+            END $$;
+        """)
+
+
+def reverse_handle_id_field_alteration(apps, schema_editor):
+    """Reverse operation - no-op."""
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -68,35 +124,13 @@ class Migration(migrations.Migration):
             name='payment',
             options={'ordering': ['-paid_at']},
         ),
-        # Conditionally alter id field - skip if already identity column
+        # Conditionally alter id field - PostgreSQL only (SQLite doesn't support identity columns)
+        # For SQLite, we'll just update the state without database changes
         SeparateDatabaseAndState(
             database_operations=[
-                migrations.RunSQL(
-                    sql="""
-                        DO $$
-                        BEGIN
-                            -- Only alter if NOT already an identity column
-                            IF NOT EXISTS (
-                                SELECT 1 FROM information_schema.columns
-                                WHERE table_name='finance_payment' 
-                                AND column_name='id' 
-                                AND is_identity='YES'
-                            ) THEN
-                                -- If it's UUID, we'd need complex conversion
-                                -- For now, just ensure it's BigAutoField if not UUID
-                                IF NOT EXISTS (
-                                    SELECT 1 FROM information_schema.columns
-                                    WHERE table_name='finance_payment' 
-                                    AND column_name='id' 
-                                    AND data_type='uuid'
-                                ) THEN
-                                    -- Already correct type, do nothing
-                                    NULL;
-                                END IF;
-                            END IF;
-                        END $$;
-                    """,
-                    reverse_sql=migrations.RunSQL.noop,
+                migrations.RunPython(
+                    handle_id_field_alteration,
+                    reverse_handle_id_field_alteration,
                 ),
             ],
             state_operations=[

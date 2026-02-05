@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.db import models, connection
 from django.utils import timezone
 from django.db.models import Count, Sum, Avg, Q
+from django.db.models.functions import TruncMonth
 from datetime import timedelta, datetime
 import csv
 import json
@@ -130,11 +131,11 @@ class ExecutiveReportingService:
         end_date = timezone.now()
         start_date = end_date - timedelta(days=months * 30)
         
-        # Monthly enrollment counts
+        # Monthly enrollment counts (DB-agnostic: SQLite and PostgreSQL)
         students = Student.objects.filter(
             created_at__range=[start_date, end_date]
-        ).extra(
-            select={'month': "date_trunc('month', created_at)"}
+        ).annotate(
+            month=TruncMonth('created_at')
         ).values('month').annotate(count=Count('id')).order_by('month')
         
         trends = {

@@ -1,0 +1,114 @@
+/* Color input: interactive wheel/picker (Pickr) + editable hex */
+.color-input-with-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.color-pickr-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+
+.color-pickr-trigger:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-pickr-trigger:focus {
+  outline: 2px solid var(--color-primary-500, var(--color-primary));
+  outline-offset: 2px;
+}
+
+.color-input-with-preview-hex {
+  font-family: ui-monospace, "SF Mono", Monaco, monospace;
+  font-size: 14px;
+  width: 100px;
+  min-width: 100px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Pickr nano theme tweaks - keep picker readable in admin */
+.pickr .pcr-button,
+.pcr-button {
+  border-radius: 8px !important;
+}
+
+.pickr .pcr-interaction input {
+  font-family: ui-monospace, monospace !important;
+}
+
+/* Palette selector swatches */
+.admin-dashboard-palette-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.admin-dashboard-palette-card {
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.admin-dashboard-palette-card:hover {
+  border-color: var(--color-border, rgba(15, 23, 42, 0.15));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.admin-dashboard-palette-card.selected {
+  border-color: var(--color-primary, #ff6a88);
+  box-shadow: 0 0 0 2px rgba(255, 106, 136, 0.2);
+}
+
+.admin-dashboard-palette-swatches {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-dashboard-palette-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.admin-dashboard-palette-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text-primary, #0f172a);
+}
+
+.admin-dashboard-palette-desc {
+  font-size: 11px;
+  color: var(--color-text-muted, #6b7280);
+  margin-top: 2px;
+}
+
+/* Grouped palette applets (Theme & Experience) */
+.admin-dashboard-palette-group {
+  margin-bottom: 1.5rem;
+}
+.admin-dashboard-palette-group-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #0f172a);
+  margin: 0 0 0.5rem 0;
+}

@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}Signature Requests Management{% endblock %}
 
@@ -108,17 +108,17 @@
     <div class="card-body">
       {% if requests %}
         <div class="table-responsive">
-          <table class="table table-hover align-middle">
+          <table class="table table-hover align-middle" aria-label="Signature requests: form, student, parent, status, dates, and actions">
             <thead>
               <tr>
-                <th>Form</th>
-                <th>Student</th>
-                <th>Parent</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Expires</th>
-                <th>Signed</th>
-                <th class="text-end">Actions</th>
+                <th scope="col">Form</th>
+                <th scope="col">Student</th>
+                <th scope="col">Parent</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
+                <th scope="col">Expires</th>
+                <th scope="col">Signed</th>
+                <th scope="col" class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -156,12 +156,12 @@
                     {% endif %}
                   </td>
                   <td>
-                    <div class="small">{{ req.created_at|date:"M d, Y" }}</div>
-                    <div class="text-muted small">{{ req.created_at|date:"g:i A" }}</div>
+                    <div class="small">{{ req.created_at|format_date }}</div>
+                    <div class="text-muted small">{{ req.created_at|time:"g:i A" }}</div>
                   </td>
                   <td>
                     {% if req.expires_at %}
-                      <div class="small">{{ req.expires_at|date:"M d, Y" }}</div>
+                      <div class="small">{{ req.expires_at|format_date }}</div>
                       {% if req.is_expired %}
                         <div class="text-danger small">Expired</div>
                       {% else %}
@@ -173,8 +173,8 @@
                   </td>
                   <td>
                     {% if req.signed_at %}
-                      <div class="small">{{ req.signed_at|date:"M d, Y" }}</div>
-                      <div class="text-muted small">{{ req.signed_at|date:"g:i A" }}</div>
+                      <div class="small">{{ req.signed_at|format_date }}</div>
+                      <div class="text-muted small">{{ req.signed_at|time:"g:i A" }}</div>
                     {% else %}
                       <span class="text-muted">—</span>
                     {% endif %}
@@ -199,13 +199,8 @@
           </table>
         </div>
       {% else %}
-        <div class="text-center py-5">
-          <i class="bi bi-file-earmark-text text-muted" style="font-size: 4rem;"></i>
-          <p class="text-muted mt-3">No signature requests found.</p>
-          <a href="{% url 'portal:signature_request_create' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i>Create Your First Request
-          </a>
-        </div>
+        {% url 'portal:signature_request_create' as empty_action_url %}
+        {% include "components/dashboard_empty_state.html" with icon="bi-pen" title="No signature requests found" message="When you request signatures from staff or parents, they will appear here." action_url=empty_action_url action_text="Create your first request" %}
       {% endif %}
     </div>
   </div>

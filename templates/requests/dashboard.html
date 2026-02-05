@@ -1,10 +1,15 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static region_format %}
 {% block title %}Access Requests{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'requests';
+  });
+</script>
 {% endblock %}
 
 {% block content %}
@@ -52,15 +57,15 @@
   <div class="card-body">
     {% if requests %}
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" aria-label="Access requests: reference, type, requester, status, and actions">
           <thead>
             <tr>
-              <th>Reference</th>
-              <th>Type</th>
-              <th>Requester</th>
-              <th>Status</th>
-              <th>Requested</th>
-              <th></th>
+              <th scope="col">Reference</th>
+              <th scope="col">Type</th>
+              <th scope="col">Requester</th>
+              <th scope="col">Status</th>
+              <th scope="col">Requested</th>
+              <th scope="col"></th>
             </tr>
           </thead>
           <tbody>
@@ -74,7 +79,7 @@
                     {{ req.get_status_display }}
                   </span>
                 </td>
-                <td class="text-muted small">{{ req.requested_at|date:"M j, H:i" }}</td>
+                <td class="text-muted small">{{ req.requested_at|format_date }} {{ req.requested_at|time:"H:i" }}</td>
                 <td class="text-end">
                   <a class="btn btn-sm btn-outline-primary" href="{% url 'requests:detail' req.id %}">Review</a>
                 </td>

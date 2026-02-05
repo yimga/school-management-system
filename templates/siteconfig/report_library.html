@@ -6,9 +6,17 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h1 class="h3">Reports & Downloads</h1>
-      <p class="text-muted mb-0">Every major register is exportable and ready for offline analysis.</p>
+      <p class="text-muted mb-0">Export any report as CSV, Excel, LibreOffice (ODS), or PDF. Generate bulk letters per classroom.</p>
     </div>
-    <span class="badge bg-success">CSV-ready</span>
+    <div class="d-flex align-items-center gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:bulk_letters' %}">
+        <i class="bi bi-envelope-paper"></i> Bulk Letters
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:kb_search' %}?q=reports+downloads" title="Search help articles">
+        <i class="bi bi-question-circle"></i> Help
+      </a>
+      <span class="badge bg-success">CSV · Excel · ODS · PDF</span>
+    </div>
   </div>
 
   {% if reports %}
@@ -18,20 +26,31 @@
           <tr>
             <th scope="col">Report</th>
             <th scope="col">Description</th>
-            <th scope="col">Format</th>
-            <th scope="col" class="text-end">Actions</th>
+            <th scope="col">Default format</th>
+            <th scope="col" class="text-end">Download</th>
           </tr>
         </thead>
         <tbody>
           {% for report in reports %}
             <tr>
               <td>{{ report.name }}</td>
-              <td class="text-muted">{{ report.description }}</td>
+              <td class="text-muted">{{ report.description|default:"—" }}</td>
               <td>{{ report.get_preferred_format_display }}</td>
               <td class="text-end">
-                <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:report_download' report.slug %}">
-                  Download
-                </a>
+                <div class="btn-group btn-group-sm">
+                  <a class="btn btn-primary" href="{% url 'siteconfig:report_download' report.slug %}" title="Download (default format)">
+                    <i class="bi bi-download me-1"></i> Download
+                  </a>
+                  <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Choose format</span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=csv"><i class="bi bi-filetype-csv me-2"></i>CSV</a></li>
+                    <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=excel"><i class="bi bi-file-earmark-excel me-2"></i>Excel (.xlsx)</a></li>
+                    <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=ods"><i class="bi bi-file-earmark-spreadsheet me-2"></i>LibreOffice (ODS)</a></li>
+                    <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=pdf"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</a></li>
+                  </ul>
+                </div>
               </td>
             </tr>
           {% endfor %}

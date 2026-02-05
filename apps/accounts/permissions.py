@@ -178,6 +178,29 @@ def _user_has_any_role(user, roles: set[str]) -> bool:
     return user.roles.filter(code__in=roles).exists()
 
 
+def api_user_has_any_role(user, roles: set[str] | tuple[str, ...]) -> bool:
+    """
+    Safe for API/DRF: use from permission classes. Handles unauthenticated and
+    checks both user.role and user.roles (AccessRole). Use for consistent RBAC.
+    """
+    if not user:
+        return False
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    role_set = set(roles) if not isinstance(roles, set) else roles
+    if role_set == ALL_AUTHENTICATED:
+        return True
+    user_role = (getattr(user, "role", None) or "").strip().upper()
+    if user_role in role_set:
+        return True
+    try:
+        return user.roles.filter(code__in=role_set).exists()
+    except Exception:
+        return False
+
+
 def can_access_module(user, module: str, action: str = "read") -> bool:
     """
     Module-level access guard for role + feature-permission enforcement.
@@ -185,17 +208,26 @@ def can_access_module(user, module: str, action: str = "read") -> bool:
       - module.<module>.read
       - module.<module>.write
       - module.<module>.all
+    Unknown modules are denied by default (fail-closed); log for audit.
     """
+    import logging
+    _logger = logging.getLogger(__name__)
+
     if not user or not user.is_authenticated:
         return False
     if getattr(user, "is_superuser", False):
         return True
 
-    module = (module or "").lower()
+    module = (module or "").strip().lower()
     action = "write" if action == "write" else "read"
 
     if module == "admin":
         return getattr(user, "is_staff", False)
+
+    # Explicit allow list: unknown modules are denied (default-deny)
+    if module not in MODULE_ACCESS_DEFAULTS:
+        _logger.warning("Module access check for unknown module %r (action=%s) -> denied", module, action)
+        return False
 
     if user.has_feature_permission(f"module.{module}.all"):
         return True
@@ -204,9 +236,7 @@ def can_access_module(user, module: str, action: str = "read") -> bool:
     if action == "read" and user.has_feature_permission(f"module.{module}.read"):
         return True
 
-    defaults = MODULE_ACCESS_DEFAULTS.get(module)
-    if not defaults:
-        return True
+    defaults = MODULE_ACCESS_DEFAULTS[module]
     allowed = defaults.get(action, defaults.get("read", set()))
     return _user_has_any_role(user, allowed)
 
@@ -216,17 +246,22 @@ def _guardian_finance_qs(user):
     Return guardian links filtered by site flag that can require explicit finance opt-in.
     When the flag is disabled (default), any guardian relationship is considered sufficient
     for finance visibility; when enabled, guardians must have can_view_finance=True.
+    On DB/settings errors we fail closed: require opt-in (narrower access).
     """
+    import logging
     from apps.people.models import StudentGuardian
+    _logger = logging.getLogger(__name__)
     try:
         from apps.siteconfig.models import SiteSettings
         with transaction.atomic():
             flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", {}) or {}
             require_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     except DatabaseError:
-        require_opt_in = False
+        _logger.warning("SiteSettings unavailable for guardian finance opt-in; failing closed (require_opt_in=True).")
+        require_opt_in = True
     except Exception:
-        require_opt_in = False
+        _logger.warning("SiteSettings error for guardian finance opt-in; failing closed (require_opt_in=True).")
+        require_opt_in = True
 
     filters = {"guardian_user": user}
     if require_opt_in:

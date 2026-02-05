@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}Compliance Dashboard{% endblock %}
 
@@ -174,7 +174,7 @@
             <tbody>
                 {% for audit in recent_audits %}
                     <tr class="severity-{{ audit.sensitivity|lower }}">
-                        <td>{{ audit.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ audit.timestamp|format_date }} {{ audit.timestamp|time:"H:i:s" }}</td>
                         <td>{{ audit.user__username|default:"System" }}</td>
                         <td><span class="action-badge">{{ audit.action }}</span></td>
                         <td>{{ audit.model_name }}</td>
@@ -207,8 +207,8 @@
                 </div>
                 <div class="security-score">
                     <span class="label">Security Score</span>
-                    <div class="score-bar" style="--score-width: {{ security_summary.security_score|floatformat:0 }}%;">
-                        <span>{{ security_summary.security_score|floatformat:0 }}/100</span>
+                    <div class="score-bar" style="--score-width: {{ security_summary.security_score|format_number:0 }}%;">
+                        <span>{{ security_summary.security_score|format_number:0 }}/100</span>
                     </div>
                 </div>
             </div>
@@ -249,7 +249,7 @@
                         <span class="alert-icon">🔇</span>
                         <div class="alert-text">
                             <strong>Detection Muted</strong>
-                            <p>Until: {{ threat_metrics.mute_until|date:"Y-m-d H:i" }}</p>
+                            <p>Until: {{ threat_metrics.mute_until|format_date }} {{ threat_metrics.mute_until|time:"H:i" }}</p>
                         </div>
                     </div>
                 {% endif %}
@@ -270,7 +270,7 @@
                     <span class="value">{{ threat_metrics.after_hours }}</span>
                 </div>
                 <div class="threat-actions">
-                    <p class="last-checked">Last checked: {{ threat_metrics.last_checked|date:"Y-m-d H:i" }}</p>
+                    <p class="last-checked">Last checked: {{ threat_metrics.last_checked|format_date }} {{ threat_metrics.last_checked|time:"H:i" }}</p>
                     <div class="button-group">
                         {% if threat_metrics.is_muted %}
                             <button class="btn btn-sm" onclick="muteThreats('clear')">🔔 Unmute</button>
@@ -304,7 +304,7 @@
                                 <li>
                                     <strong>{{ item.ip }}</strong> 
                                     <span class="badge">{{ item.count }}x</span>
-                                    <br><small>Last: {{ item.last_seen|date:"Y-m-d H:i" }}</small>
+                                    <br><small>Last: {{ item.last_seen|format_date }} {{ item.last_seen|time:"H:i" }}</small>
                                 </li>
                             {% endfor %}
                         </ul>

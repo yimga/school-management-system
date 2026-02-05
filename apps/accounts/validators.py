@@ -119,9 +119,11 @@ validate_document_file = FileTypeValidator(
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.oasis.opendocument.text',
+        'application/vnd.oasis.opendocument.spreadsheet',
     ],
-    allowed_extensions=['.pdf', '.doc', '.docx', '.xls', '.xlsx'],
-    message="Only document files (PDF, Word, Excel) are allowed."
+    allowed_extensions=['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods'],
+    message="Only document files (PDF, Word, Excel, or LibreOffice ODT/ODS) are allowed."
 )
 
 validate_receipt_file = FileTypeValidator(
@@ -165,6 +167,8 @@ validate_kb_attachment_file = FileTypeValidator(
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.oasis.opendocument.text',
+        'application/vnd.oasis.opendocument.spreadsheet',
         'image/jpeg',
         'image/png',
         'image/jpg',
@@ -172,10 +176,10 @@ validate_kb_attachment_file = FileTypeValidator(
         'image/webp',
     ],
     allowed_extensions=[
-        '.pdf', '.doc', '.docx', '.xls', '.xlsx',
+        '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods',
         '.jpg', '.jpeg', '.png', '.gif', '.webp',
     ],
-    message="Only PDF, Office, or image files are allowed for attachments."
+    message="Only PDF, Office (Word/Excel or LibreOffice ODT/ODS), or image files are allowed for attachments."
 )
 
 validate_file_size_5mb = FileSizeValidator(max_size_mb=5)

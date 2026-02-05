@@ -366,8 +366,15 @@ def parent_dashboard(request: HttpRequest):
     ]
     site = SiteSettings.get_solo()
 
+    # First-time hint: show when no children and not dismissed (session)
+    if request.GET.get("dismiss_hint") == "parent_link_child":
+        request.session["hint_parent_link_child_dismissed"] = True
+        return redirect("portal:parent_dashboard")
+    show_parent_dashboard_hint = not links and not request.session.get("hint_parent_link_child_dismissed")
+
     return render(request, "parent/dashboard.html", {
         "links": links,
+        "show_parent_dashboard_hint": show_parent_dashboard_hint,
         "can_view_results": can_view_results,
         "can_view_finance": can_view_finance,
         "chart_attendance_donut_json": chart_attendance_donut_json,
@@ -666,6 +673,11 @@ def claim_invite(request: HttpRequest, token: str | None = None):
     """
     Claim a pending guardian invite using a token and link the student to the logged-in parent.
     """
+    if request.GET.get("dismiss_hint") == "claim_invite":
+        request.session["hint_claim_invite_dismissed"] = True
+        return redirect(reverse("portal:claim_invite"))
+    show_claim_invite_hint = not request.session.get("hint_claim_invite_dismissed")
+
     initial = {"token": token} if token else None
     form = ClaimInviteForm(request.POST or None, initial=initial)
 
@@ -683,6 +695,10 @@ def claim_invite(request: HttpRequest, token: str | None = None):
 
         guardian, reward = link_guardian_via_invite(invite, request.user, awarded_by=request.user)
         messages.success(request, f"Invite claimed. You are now linked to {guardian.student}.")
+        messages.info(
+            request,
+            "What's next: You can view their attendance, grades, and fees on your dashboard.",
+        )
         if reward and reward.amount > Decimal("0.00"):
             messages.info(
                 request,
@@ -690,7 +706,10 @@ def claim_invite(request: HttpRequest, token: str | None = None):
             )
         return redirect("portal:parent_dashboard")
 
-    return render(request, "parent/claim_invite.html", {"form": form})
+    return render(request, "parent/claim_invite.html", {
+        "form": form,
+        "show_claim_invite_hint": show_claim_invite_hint,
+    })
 
 
 # Per-feature RBAC: permission required to access each portal tool (sidebar + direct URL).
@@ -890,21 +909,25 @@ def portal_stats(request: HttpRequest):
     })
 
 
+@login_required
 def student_portal_grades(request: HttpRequest) -> HttpResponseRedirect:
     """Semantic alias for parent dashboard (grades overview)."""
     return redirect("portal:parent_dashboard")
 
 
+@login_required
 def admissions_application_status(request: HttpRequest) -> HttpResponseRedirect:
     """Semantic alias for application status (re-uses parent dashboard context)."""
     return redirect("portal:parent_dashboard")
 
 
+@login_required
 def teacher_dashboard_alias(request: HttpRequest):
     """Render the teacher dashboard layout under the portal path."""
     return evals_teacher_dashboard(request)
 
 
+@login_required
 def teacher_workflow_alias(request: HttpRequest):
     """Render the teacher workflow center under the portal path."""
     return evals_teacher_workflow_center(request)
@@ -1079,6 +1102,59 @@ def teacher_attendance_export(request: HttpRequest):
             entry.remarks or "",
         ])
     return response
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_timetable(request: HttpRequest):
+    """Show the logged-in teacher's timetable from published schedule (current term)."""
+    from apps.academics.scheduling import Schedule, ScheduleEntry
+    year, term = get_active_year_and_term()
+    schedule = None
+    entries = []
+    if year and term:
+        schedule = (
+            Schedule.objects.filter(academic_year=year, term=term, status="PUBLISHED")
+            .order_by("-published_at")
+            .first()
+        )
+        if not schedule:
+            schedule = (
+                Schedule.objects.filter(academic_year=year, term=term)
+                .order_by("-generated_at")
+                .first()
+            )
+        if schedule:
+            entries = (
+                ScheduleEntry.objects.filter(
+                    schedule=schedule, teacher=request.user, is_cancelled=False
+                )
+                .select_related("classroom", "subject", "room", "time_slot")
+                .order_by("time_slot__day_of_week", "time_slot__start_time")
+            )
+    by_day = {}
+    for e in entries:
+        day = e.time_slot.get_day_of_week_display()
+        by_day.setdefault(day, []).append(e)
+    days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    by_day_ordered = [(d, by_day.get(d, [])) for d in days_order if by_day.get(d)]
+    hero = {
+        "title": "My Timetable",
+        "subtitle": f"{term.custom_label or term.name if term else 'No term'} – {year.name if year else 'No year'}" if (year and term) else "No active term set.",
+        "actions": [],
+    }
+    return render(
+        request,
+        "teacher/timetable.html",
+        {
+            "hero": hero,
+            "schedule": schedule,
+            "entries": entries,
+            "by_day_ordered": by_day_ordered,
+            "year": year,
+            "term": term,
+        },
+    )
 
 
 @parent_portal_required

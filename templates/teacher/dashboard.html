@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load admin_health evals_extras static %}
+{% load admin_health evals_extras static region_format %}
 {% block title %}Teacher Dashboard{% endblock %}
 
 {% block extrastyle %}
@@ -145,6 +145,33 @@
   {% with widgets=display_widgets %}
   <div class="teacher-shell dashboard-clear">
     <div id="teacher-dashboard-widgets" class="teacher-dashboard-widgets">
+  {% if show_welcome_hint %}
+  <div class="alert alert-info d-flex align-items-center gap-2 mb-3 shadow-sm rounded-4 teacher-welcome-hint" id="teacher-welcome-hint" role="region" aria-label="Getting started" data-dismiss-storage-key="teacher_welcome_hint_dismissed">
+    <i class="bi bi-lightbulb"></i>
+    <div class="flex-grow-1">
+      <strong>New here?</strong> Get started by entering marks for your classes or open <a href="{% url 'portal:teacher_workflow' %}">My Workflow</a> to see pending tasks.
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary align-self-start teacher-welcome-dismiss" aria-label="Don't show again">
+      Don't show again
+    </button>
+  </div>
+  <script>
+  (function() {
+    var key = 'teacher_welcome_hint_dismissed';
+    var el = document.getElementById('teacher-welcome-hint');
+    var btn = el && el.querySelector('.teacher-welcome-dismiss');
+    if (!el) return;
+    try {
+      if (localStorage.getItem(key) === '1') { el.style.display = 'none'; return; }
+    } catch (e) {}
+    if (btn) btn.addEventListener('click', function() {
+      try { localStorage.setItem(key, '1'); } catch (e) {}
+      el.style.display = 'none';
+      if (typeof window.showToast === 'function') window.showToast('Got it. You can always open My Workflow from the sidebar.', 'info', 3000);
+    });
+  })();
+  </script>
+  {% endif %}
   {% if finance_access_banner %}
   <div class="alert alert-{{ finance_access_banner.level }} d-flex align-items-start gap-2 mb-3 shadow-sm rounded-4">
     <div>
@@ -170,7 +197,7 @@
             <strong>{{ notif.title }}</strong>
             <div class="small text-muted">{{ notif.message|truncatechars:100 }}</div>
           </div>
-          <span class="badge bg-secondary">{{ notif.created_at|date:"M j, H:i" }}</span>
+          <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
         </li>
         {% endfor %}
       </ul>
@@ -220,7 +247,82 @@
     </div>
   </div>
 
-  <div id="dashboard-layout" data-dashboard-column="main"
+  <!-- Your Classes at a Glance: full-width block, always visible (outside grid) -->
+  <div id="teacher-classes-at-a-glance" class="card border-0 shadow-sm mb-3 classes-glance-card" data-widget-id="teacher-assignments">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Your Classes at a Glance</h5>
+        <span class="text-uppercase small text-muted">{{ assignments|length }} classes</span>
+      </div>
+      <div class="row g-2 mb-3">
+        {% for assign in assignments|slice:":3" %}
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold">{{ assign.classroom }}</div>
+              <div class="small text-muted">{{ assign.subject }}</div>
+            </div>
+            {% with prog=progress|get_item:assign.id %}
+              {% if prog %}
+              <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
+              {% else %}
+              <span class="badge bg-secondary">0/0</span>
+              {% endif %}
+            {% endwith %}
+          </div>
+          <div class="progress mt-1" style="height:6px;">
+            {% with prog=progress|get_item:assign.id %}
+              <div class="progress-bar" role="progressbar" style="width: {% if prog %}{{ prog.width }}{% else %}0{% endif %}%;" aria-valuenow="{% if prog %}{{ prog.filled }}{% else %}0{% endif %}" aria-valuemin="0" aria-valuemax="{% if prog %}{{ prog.total }}{% else %}0{% endif %}"></div>
+            {% endwith %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-2">
+        {% if assignments %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0 table-sm" aria-label="Your classes: class, subject, marks progress, and actions">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Class</th>
+                <th scope="col">Subject</th>
+                <th scope="col" class="text-end">Marks</th>
+                <th scope="col" class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in assignments|slice:':5' %}
+              <tr>
+                <td>{{ a.classroom }}</td>
+                <td>{{ a.subject }}</td>
+                <td class="text-end">
+                  {% with p=progress|get_item:a.id %}
+                    {% if p %}
+                    <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ p.filled }}/{{ p.total }}</span>
+                    {% else %}
+                    <span class="badge bg-secondary">0/0</span>
+                    {% endif %}
+                  {% endwith %}
+                </td>
+                <td class="text-end">
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?subject_assignment_id={{ a.subject_assignment_id }}">Enter</a>
+                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">View</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
+        {% else %}
+        <div class="small text-muted">No classes assigned yet. <a href="{% url 'accounts:workflow_center' %}">View workflow</a> or ask your admin to assign you to a class.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Compact grid: charts and other cards -->
+  <div id="dashboard-layout" class="dashboard-compact-grid" data-dashboard-column="main"
        data-save-url="{{ dashboard_layout_url }}" data-load-url="{{ dashboard_layout_url }}"
        data-custom-drag-enabled="true"
        data-widget-config="{{ widget_meta_json|default:'{}' }}">

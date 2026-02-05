@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 
 {% block title %}Report card builder{% endblock %}
 
@@ -6,7 +7,8 @@
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
-        <div>
+        <div class="d-flex align-items-start gap-2">
+          <div>
           <h1 class="h4 mb-1">Report card builder</h1>
           <p class="text-muted mb-2">
             Draft branded report card layouts for Gilead Technical High School in Buea, then assign them to classrooms.
@@ -15,9 +17,12 @@
           <p class="mb-0 small text-muted">
             Choose a style, assign it to rooms, and set the default for term vs annual PDFs. Everything happens inside the admin console so teachers and parents always download the right look.
           </p>
+          </div>
+          <a href="{% url 'kb:kb_home' %}" class="btn btn-sm btn-link text-muted p-0 align-self-center" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
         </div>
-        <div class="d-flex flex-wrap gap-2">
-          <a class="btn btn-outline-primary btn-sm" href="{% url 'siteconfig:customizer' %}">Back to customizer</a>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          {% include "components/pin_to_quick_access.html" with sidebar_item_id="reportcard_builder" %}
+          <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'siteconfig:customizer' %}"><i class="bi bi-arrow-left me-1"></i>Back to customizer</a>
         </div>
       </div>
     </div>

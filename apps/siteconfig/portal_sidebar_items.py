@@ -81,6 +81,7 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "marks_entry", "label": "Enter Marks", "url": _safe_reverse("evals:teacher_marks_entry"), "icon": "bi-pencil-square", "section": "Learning Management", "badge": None})
         items.append({"id": "marks_list", "label": "Marks History", "url": _safe_reverse("evals:teacher_marks_list"), "icon": "bi-table", "section": "Learning Management", "badge": None})
         items.append({"id": "attendance", "label": "Attendance", "url": _safe_reverse("portal:teacher_attendance"), "icon": "bi-clipboard-check", "section": "Learning Management", "badge": None})
+        items.append({"id": "timetable", "label": "My Timetable", "url": _safe_reverse("portal:teacher_timetable"), "icon": "bi-calendar-week", "section": "Learning Management", "badge": None})
         items.append({"id": "payslips", "label": "Payslips", "url": _safe_reverse("payroll:employee_payslips"), "icon": "bi-wallet2", "section": "Human Resources", "badge": None})
         items.append({"id": "leave", "label": "Leave Requests", "url": _safe_reverse("payroll:employee_leave"), "icon": "bi-calendar-check", "section": "Human Resources", "badge": None})
         items.append({"id": "pay_history", "label": "Pay History", "url": _safe_reverse("payroll:employee_payslips"), "icon": "bi-receipt", "section": "Human Resources", "badge": None})
@@ -138,6 +139,7 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "payroll", "label": "Payroll", "url": _safe_reverse("payroll:dashboard"), "icon": "bi-cash-stack", "section": "Financial Management", "badge": None})
         items.append({"id": "analytics", "label": "Analytics", "url": _safe_reverse("analytics:dashboard"), "icon": "bi-graph-up-arrow", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "report_library", "label": "Report Library", "url": _safe_reverse("siteconfig:report_library"), "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
+        items.append({"id": "bulk_letters", "label": "Bulk Letters", "url": _safe_reverse("siteconfig:bulk_letters"), "icon": "bi-envelope-paper", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "reportcard_builder", "label": "Report Card Builder", "url": _safe_reverse("siteconfig:reportcard_builder"), "icon": "bi-file-earmark-richtext", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "portal_stats", "label": "Portal Stats", "url": _safe_reverse("portal:portal_stats"), "icon": "bi-graph-up", "section": "Analytics & Reports", "badge": None})
         # Admin Panel last: Dashboard Layout, Feature Control, Backend Console, Workflow Center, Customizer, Site Settings, Region Configuration, Django Admin
@@ -174,5 +176,22 @@ def build_portal_sidebar_items(request, site):
         ordered_ids = [x for x in order if isinstance(x, str) and x.strip() and x.strip() in id_to_item]
         remaining = [x for x in items if x["id"] not in ordered_ids]
         items = [id_to_item[i] for i in ordered_ids] + remaining
+
+    # Group by section so each section title appears only once ({% ifchanged item.section %}).
+    # Section order = order of first occurrence in current list; items within each section keep relative order.
+    section_order = []
+    seen = set()
+    for it in items:
+        sec = it.get("section") or ""
+        if sec not in seen:
+            seen.add(sec)
+            section_order.append(sec)
+    by_section = {}
+    for it in items:
+        sec = it.get("section") or ""
+        by_section.setdefault(sec, []).append(it)
+    items = []
+    for sec in section_order:
+        items.extend(by_section.get(sec, []))
 
     return items

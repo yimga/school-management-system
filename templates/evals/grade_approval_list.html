@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load static %}
+{% load region_format %}
 {% block title %}Grade Approvals{% endblock %}
 
 {% block content %}
@@ -27,15 +28,15 @@
 
 {% if requests %}
   <div class="table-responsive">
-    <table class="table table-hover align-middle">
+    <table class="table table-hover align-middle" aria-label="Grade approval requests: subject, teacher, status, and actions">
       <thead class="table-light">
         <tr>
-          <th>Subject</th>
-          <th>Teacher</th>
-          <th>Status</th>
-          <th>Rows</th>
-          <th>Requested</th>
-          <th></th>
+          <th scope="col">Subject</th>
+          <th scope="col">Teacher</th>
+          <th scope="col">Status</th>
+          <th scope="col">Rows</th>
+          <th scope="col">Requested</th>
+          <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
@@ -56,7 +57,7 @@
               {{ request.summary.submitted_rows }} /
               {{ request.summary.total_students }} rows
             </td>
-            <td>{{ request.requested_at|date:"M d, Y H:i" }}</td>
+            <td>{{ request.requested_at|format_date }} {{ request.requested_at|time:"H:i" }}</td>
             <td>
               <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:grade_approval_detail' request.id %}">Review</a>
             </td>
@@ -66,8 +67,6 @@
     </table>
   </div>
 {% else %}
-  <div class="alert alert-info">
-    No grade approval requests found for the selected filter.
-  </div>
+  {% include "components/dashboard_empty_state.html" with icon="bi-clipboard-check" title="No grade approval requests" message="When teachers submit grades for approval, requests will appear here. Try changing the filter or wait for new submissions." action_url=request.path action_text="Refresh" %}
 {% endif %}
 {% endblock %}

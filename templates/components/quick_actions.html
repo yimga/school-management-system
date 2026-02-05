@@ -4,7 +4,7 @@
     <h5 class="mb-0">
       <i class="fas fa-bolt"></i> Quick Actions
     </h5>
-    <span class="badge bg-light text-primary">{{ quick_actions|length }}</span>
+    <span class="badge quick-actions-badge" style="background: rgba(255,255,255,0.25); color: var(--header-brand-fg, #fff);">{{ quick_actions|length }}</span>
   </div>
   <div class="card-body p-0">
     <div class="quick-actions-grid">
@@ -76,7 +76,7 @@
 
       <!-- Academic Year -->
       <a href="{% url 'admin:academics_academicyear_changelist' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-dark">
+        <div class="quick-action-icon quick-action-icon-neutral" style="background: var(--admin-content-surface); color: var(--admin-content-text);">
           <i class="fas fa-calendar-alt"></i>
         </div>
         <div class="quick-action-content">
@@ -144,7 +144,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: white;
+  background: var(--admin-content-bg);
   text-decoration: none;
   color: inherit;
   transition: all 0.2s ease;

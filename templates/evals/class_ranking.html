@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Class Ranking{% endblock %}
 
@@ -8,7 +9,7 @@
     <h2 class="mb-0">Class Ranking</h2>
     <div class="text-muted">Ranks students by average score for the selected term.</div>
   </div>
-  <a class="btn btn-outline-secondary" href="/admin/">Back to Admin</a>
+  <a class="btn btn-outline-secondary btn-back-outline" href="/admin/"><i class="bi bi-arrow-left me-1"></i>Back to Admin</a>
 </div>
 
 <form method="get" class="card mb-3">
@@ -59,13 +60,13 @@
           <div class="col-sm-4">
             <div class="border rounded p-2 text-center">
               <div class="small text-muted">Class Mean</div>
-              <div class="fw-semibold">{{ stats.mean|floatformat:2 }}</div>
+              <div class="fw-semibold">{{ stats.mean|format_number:2 }}</div>
             </div>
           </div>
           <div class="col-sm-4">
             <div class="border rounded p-2 text-center">
               <div class="small text-muted">Class Median</div>
-              <div class="fw-semibold">{{ stats.median|floatformat:2 }}</div>
+              <div class="fw-semibold">{{ stats.median|format_number:2 }}</div>
             </div>
           </div>
           <div class="col-sm-4">
@@ -78,12 +79,12 @@
       {% endif %}
 
       <div class="table-responsive">
-        <table class="table table-sm align-middle">
+        <table class="table table-sm align-middle" aria-label="Class ranking by average score">
           <thead>
             <tr>
-              <th style="width: 80px;">Rank</th>
-              <th>Student</th>
-              <th class="text-end">Average</th>
+              <th scope="col" style="width: 80px;">Rank</th>
+              <th scope="col">Student</th>
+              <th scope="col" class="text-end">Average</th>
             </tr>
           </thead>
           <tbody>
@@ -91,10 +92,10 @@
               <tr>
                 <td><span class="badge bg-dark">{{ r.rank }}</span></td>
                 <td>{{ r.student }}</td>
-                <td class="text-end">{{ r.average|floatformat:2 }}</td>
+                <td class="text-end">{{ r.average|format_number:2 }}</td>
               </tr>
             {% empty %}
-              <tr><td colspan="3" class="text-muted">No marks found for this selection.</td></tr>
+              <tr><td colspan="3" class="text-muted">No marks found for this selection. <a href="{% url 'evals:evaluation_admin' %}">Create evaluations</a> or change the filters above.</td></tr>
             {% endfor %}
           </tbody>
         </table>

@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Payments{% endblock %}
 
@@ -8,19 +9,24 @@
     <h2 class="mb-0">Payments</h2>
     <div class="text-muted">Incoming and outgoing payments.</div>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:dashboard' %}">Back to Finance</a>
+  <div class="d-flex gap-2 align-items-center">
+    <a class="btn btn-sm btn-outline-secondary" href="?export=csv">Export CSV</a>
+    <a class="btn btn-sm btn-outline-secondary" href="?export=pdf">Export PDF</a>
+    <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Finance</a>
+  </div>
 </div>
 
 <div class="card">
   <div class="card-body">
+    {% if payments %}
     <div class="table-responsive">
-      <table class="table table-sm align-middle">
+      <table class="table table-sm align-middle table-sticky-head table-zebra" aria-label="Payments list: invoice, method, amount, and paid date">
         <thead>
           <tr>
-            <th>Invoice</th>
-            <th>Method</th>
-            <th class="text-end">Amount</th>
-            <th>Paid at</th>
+            <th scope="col">Invoice</th>
+            <th scope="col">Method</th>
+            <th scope="col" class="text-end">Amount</th>
+            <th scope="col">Paid at</th>
           </tr>
         </thead>
         <tbody>
@@ -28,15 +34,17 @@
             <tr>
               <td>{{ pay.invoice.reference|default:pay.invoice.id }}</td>
               <td>{{ pay.get_method_display }}</td>
-              <td class="text-end">{{ pay.amount }}</td>
-              <td>{{ pay.paid_at|date:"Y-m-d H:i" }}</td>
+              <td class="text-end">{{ pay.amount|format_currency }}</td>
+              <td>{{ pay.paid_at|format_date }}</td>
             </tr>
-          {% empty %}
-            <tr><td colspan="4" class="text-muted">No payments recorded.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+    {% else %}
+    {% url 'finance:invoices' as empty_action_url %}
+    {% include "components/dashboard_empty_state.html" with icon="bi-credit-card" title="No payments recorded" message="Payments will appear here once invoices are paid." action_url=empty_action_url action_text="View invoices" %}
+    {% endif %}
     {% if page_obj %}
       <div class="d-flex justify-content-between align-items-center mt-3">
         <div class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
@@ -52,4 +60,5 @@
     {% endif %}
   </div>
 </div>
+{% include "components/was_this_helpful.html" with feedback_id="finance-payments" %}
 {% endblock %}

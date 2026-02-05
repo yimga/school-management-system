@@ -1,15 +1,19 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Evaluation Manager{% endblock %}
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-  <div>
-    <h2 class="mb-1">Evaluation Manager</h2>
-    <div class="text-muted">Create evaluations in bulk and track missing scores.</div>
+  <div class="d-flex align-items-center gap-2">
+    <div>
+      <h2 class="mb-1">Evaluation Manager</h2>
+      <div class="text-muted">Create evaluations in bulk and track missing scores.</div>
+    </div>
+    {% include "components/pin_to_quick_access.html" with sidebar_item_id="eval_admin" %}
   </div>
   <div class="d-flex gap-2">
-    <a class="btn btn-outline-secondary" href="/admin/">Back to Admin</a>
+    <a class="btn btn-outline-secondary btn-back-outline" href="/admin/"><i class="bi bi-arrow-left me-1"></i>Back to Admin</a>
     <a class="btn btn-outline-primary" href="{% url 'evals:grade_import_template' %}">Download CSV template</a>
   </div>
 </div>
@@ -175,25 +179,31 @@
       <div class="text-muted small">
         Showing {{ evals|length }} evaluations • {{ selected_year.name }} • {{ selected_term.label }}
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <span class="small text-muted me-1">View:</span>
+        <div class="btn-group btn-group-sm table-density-toggle" role="group" aria-label="Table density">
+          <button type="button" class="btn btn-outline-secondary" data-density="condensed">Condensed</button>
+          <button type="button" class="btn btn-outline-secondary" data-density="expanded">Expanded</button>
+        </div>
         <a class="btn btn-outline-secondary btn-sm" href="?{{ export_csv_query }}">Export CSV</a>
         <a class="btn btn-outline-secondary btn-sm" href="?{{ export_pdf_query }}">Export PDF</a>
       </div>
     </div>
-    <div class="table-responsive">
-      <table class="table align-middle table-sticky">
+    {% if evals %}
+    <div class="table-responsive" data-table-density-key="evaluation_admin">
+      <table class="table align-middle table-sticky table-sticky-head table-zebra" aria-label="Evaluations: student, class, subject, evidence, and score components">
         <thead>
           <tr>
-            <th>Student</th>
-            <th>Class</th>
-            <th>Subject</th>
-            <th class="text-center">Evidence</th>
-            <th class="text-end">Seq 1</th>
-            <th class="text-end">Seq 2</th>
-            <th class="text-end">Exam</th>
-            <th class="text-end">Mock</th>
-            <th class="text-end">Practical</th>
-            <th class="text-end">Total</th>
+            <th scope="col">Student</th>
+            <th scope="col">Class</th>
+            <th scope="col">Subject</th>
+            <th scope="col" class="text-center">Evidence</th>
+            <th scope="col" class="text-end">Seq 1</th>
+            <th scope="col" class="text-end">Seq 2</th>
+            <th scope="col" class="text-end">Exam</th>
+            <th scope="col" class="text-end">Mock</th>
+            <th scope="col" class="text-end">Practical</th>
+            <th scope="col" class="text-end">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -212,24 +222,41 @@
               <td class="text-end">{{ e.exam_score|default:"-" }}</td>
               <td class="text-end">{{ e.mock_score|default:"-" }}</td>
               <td class="text-end">{{ e.practical_score|default:"-" }}</td>
-              <td class="text-end fw-semibold">{{ e.total_score|floatformat:2 }}</td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="10" class="text-muted">No evaluations match the selected filters.</td>
+              <td class="text-end fw-semibold {% if e.total_score is not None and pass_mark is not None and e.total_score < pass_mark %}cell-fail{% endif %}">{{ e.total_score|format_number:2 }}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+    {% else %}
+    <div class="py-4">
+      {% include "components/dashboard_empty_state.html" with icon="bi-clipboard-data" title="No evaluations match" message="Change the filters above (year, term, class, subject) or use Bulk Create to add evaluations for a class." action_url=request.path action_text="Change filters" %}
+    </div>
+    {% endif %}
   </div>
 </div>
-<style>
-  .table-sticky thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: var(--bs-light, #f8f9fa);
+<script>
+(function() {
+  var key = 'table-density-evaluation_admin';
+  var wrapper = document.querySelector('[data-table-density-key="evaluation_admin"]');
+  if (!wrapper) return;
+  var table = wrapper.querySelector('table');
+  var condensed = localStorage.getItem(key) === 'condensed';
+  function apply() {
+    if (table) table.classList.toggle('table-condensed', condensed);
+    wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
+      btn.classList.toggle('active', (btn.getAttribute('data-density') === 'condensed') === condensed);
+    });
   }
-</style>
+  apply();
+  wrapper.querySelectorAll('.table-density-toggle [data-density]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      condensed = this.getAttribute('data-density') === 'condensed';
+      localStorage.setItem(key, condensed ? 'condensed' : 'expanded');
+      apply();
+    });
+  });
+})();
+</script>
+{% include "components/was_this_helpful.html" with feedback_id="evaluation-admin" %}
 {% endblock %}

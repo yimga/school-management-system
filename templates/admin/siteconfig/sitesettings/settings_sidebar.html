@@ -1,0 +1,74 @@
+{% load i18n %}
+{# Vertical sidebar for Site Settings (Phase 1.2). Phase 6.3: Smart Search above nav. #}
+<aside id="site-settings-sidebar" class="site-settings-sidebar flex-shrink-0 w-56 hidden lg:block" aria-label="{% trans 'Settings sections' %}">
+  <div class="site-settings-search-wrap mb-2">
+    <label for="site-settings-search" class="visually-hidden">{% trans "Search settings" %}</label>
+    <input type="search"
+           id="site-settings-search"
+           class="site-settings-search form-control form-control-sm"
+           placeholder="{% trans 'Search (e.g. invoice, theme, finance…)' %}"
+           aria-label="{% trans 'Search settings' %}"
+           autocomplete="off">
+    <span id="site-settings-search-no-match" class="site-settings-search-no-match visually-hidden" role="status">{% trans "No matching section" %}</span>
+  </div>
+  <nav class="site-settings-sidebar-nav sticky top-4 flex flex-col gap-1 rounded-lg border p-2" data-settings-nav aria-label="{% trans 'Settings sections' %}">
+    {% for group_label, items in settings_nav_groups %}
+      <div class="settings-nav-group">
+        <div class="settings-nav-group-label">{{ group_label }}</div>
+        <ul class="space-y-0.5">
+          {% for section_name, slug in items %}
+            <li class="settings-nav-item" data-search-group="{{ group_label }}">
+              <a href="#section-{{ slug }}"
+                 class="settings-nav-link flex items-center gap-2 rounded-md px-2.5 py-2 text-sm font-medium transition-colors"
+                 data-section="{{ slug }}"
+                 data-section-id="section-{{ slug }}"
+                 data-search-text="{{ section_name|lower }} {{ group_label|lower }}">
+                {{ section_name }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </nav>
+</aside>
+{# Mobile: sections dropdown (shown on small screens). Phase 9.5: ARIA nav region. #}
+<div class="site-settings-mobile-nav lg:hidden mb-4" data-settings-mobile-nav role="region" aria-label="{% trans 'Settings sections' %}">
+  <button type="button"
+          class="site-settings-mobile-trigger inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium"
+          aria-expanded="false"
+          aria-controls="site-settings-mobile-dropdown"
+          aria-label="{% trans 'Open settings sections menu' %}"
+          data-settings-mobile-trigger>
+    <span data-settings-mobile-label>{% trans "Sections" %}</span>
+    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+  </button>
+  <div id="site-settings-mobile-dropdown"
+       class="site-settings-mobile-dropdown hidden mt-2 rounded-lg border shadow-lg max-h-80 overflow-y-auto"
+       data-settings-mobile-dropdown
+       role="navigation"
+       aria-label="{% trans 'Settings sections' %}">
+    <div class="p-2 border-b border-base-200 dark:border-base-700 sticky top-0 bg-inherit">
+      <input type="search"
+             id="site-settings-search-mobile"
+             class="site-settings-search form-control form-control-sm"
+             placeholder="{% trans 'Search settings…' %}"
+             aria-label="{% trans 'Search settings' %}"
+             autocomplete="off">
+    </div>
+    <div class="site-settings-mobile-links">
+      {% for group_label, items in settings_nav_groups %}
+        <div class="px-3 pt-2 pb-1 mobile-nav-group" data-search-group="{{ group_label }}">
+          <div class="settings-nav-group-label text-xs font-semibold uppercase tracking-wider">{{ group_label }}</div>
+        </div>
+        {% for section_name, slug in items %}
+          <a href="#section-{{ slug }}"
+             class="site-settings-mobile-link block px-4 py-2 text-sm"
+             data-section="{{ slug }}"
+             data-section-id="section-{{ slug }}"
+             data-search-text="{{ section_name|lower }} {{ group_label|lower }}">{{ section_name }}</a>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>

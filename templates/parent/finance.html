@@ -1,8 +1,19 @@
 {% extends "portal_base.html" %}
+{% load static i18n region_format %}
 
 {% block title %}Finances{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/report-card-print.css' %}">
+{% endblock %}
+
 {% block content %}
+  <div class="report-card-print-wrapper">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print">
+    {% include "components/pin_to_quick_access.html" with sidebar_item_id="finance" %}
+    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();" aria-label="{% trans 'Print fee statement' %}"><i class="bi bi-printer me-1"></i>{% trans "Print" %}</button>
+  </div>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
   {% if finance_access_required and not finance_access_granted %}
@@ -101,23 +112,23 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Invoices</h5>
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}#finance">Back to dashboard</a>
+        <a class="btn btn-sm btn-outline-secondary btn-back-primary no-print" href="{% url 'portal:parent_dashboard' %}#finance"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
       </div>
       {% if invoice_rows %}
         <div class="table-responsive">
-          <table class="table align-middle table-mobile-cards">
+          <table class="table align-middle table-mobile-cards" aria-label="Your invoices: reference, student, due date, status, total, balance, and actions">
             <thead class="table-light">
             <tr>
-              <th>Reference</th>
-              <th>Payment code (MoMo)</th>
-              <th>Student</th>
-              <th>Due</th>
-              <th>Status</th>
-              <th>Method</th>
-              <th class="text-end">Total</th>
-              <th class="text-end">Balance</th>
-              <th>Attachment</th>
-              <th class="text-end">Action</th>
+              <th scope="col">Reference</th>
+              <th scope="col">Payment code (MoMo)</th>
+              <th scope="col">Student</th>
+              <th scope="col">Due</th>
+              <th scope="col">Status</th>
+              <th scope="col">Method</th>
+              <th scope="col" class="text-end">Total</th>
+              <th scope="col" class="text-end">Balance</th>
+              <th scope="col">Attachment</th>
+              <th scope="col" class="text-end">Action</th>
             </tr>
             </thead>
             <tbody>
@@ -127,13 +138,13 @@
                 <td data-label="Reference">{{ invoice.reference|default:invoice.id }}</td>
                 <td data-label="Payment code"><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
                 <td data-label="Student">{{ invoice.student|default:"-" }}</td>
-                <td data-label="Due">{{ invoice.due_date|default:"TBD" }}</td>
+                <td data-label="Due">{{ invoice.due_date|format_date|default:"TBD" }}</td>
                 <td data-label="Status">
                   <span class="badge bg-light text-dark border">{{ invoice.get_status_display }}</span>
                 </td>
                 <td data-label="Method">{{ row.preferred_method }}</td>
-                <td class="text-end" data-label="Total">{{ invoice.total_amount }}</td>
-                <td class="text-end" data-label="Balance">{{ invoice.balance_amount }}</td>
+                <td class="text-end" data-label="Total">{{ invoice.total_amount|format_currency }}</td>
+                <td class="text-end" data-label="Balance">{{ invoice.balance_amount|format_currency }}</td>
                 <td class="text-center" data-label="Attachment">
                   {% if row.attachment_url %}
                     <a href="{{ row.attachment_url }}" target="_blank">View</a>
@@ -172,9 +183,9 @@
               <div>
                 <div class="fw-semibold">{{ entry.invoice.student }}</div>
                 <div class="small text-muted">
-                  Due {{ entry.invoice.due_date|default:"TBD" }} · Balance {{ entry.invoice.balance_amount }}
+                  Due {{ entry.invoice.due_date|format_date|default:"TBD" }} · Balance {{ entry.invoice.balance_amount|format_currency }}
                 </div>
-                <div class="small text-muted">Next send {{ entry.reminder.next_send_at|date:"M d, Y H:i" }}</div>
+                <div class="small text-muted">Next send {{ entry.reminder.next_send_at|format_date }}</div>
               </div>
               {% if entry.payment_link %}
                 <a class="btn btn-sm btn-outline-primary" href="{{ entry.payment_link.url }}" target="_blank">Send pay link</a>
@@ -188,5 +199,6 @@
         <div class="alert alert-info mb-0">No active reminders. Finance will queue reminders once invoices become due.</div>
       {% endif %}
     </div>
+  </div>
   </div>
 {% endblock %}

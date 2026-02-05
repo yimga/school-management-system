@@ -1,0 +1,113 @@
+/**
+ * Header & Footer – always visible regardless of themepack.
+ * Uses design tokens (--header-brand-*, --footer-*) – no hardcoded colors.
+ */
+
+/* Portal/Backend topbar and base navbar – use tokens */
+.topbar,
+.navbar.topbar,
+.navbar.navbar-dark {
+  background: var(--header-brand-bg) !important;
+  color: var(--header-brand-fg) !important;
+}
+
+.topbar .navbar-brand,
+.topbar .btn-link,
+.topbar .dropdown-toggle {
+  color: var(--header-brand-fg) !important;
+}
+
+.topbar .btn-outline-light {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: var(--header-brand-fg) !important;
+}
+
+.topbar .btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--header-brand-fg) !important;
+}
+
+/* Brand logo in header – contrasting container */
+.brand-logo,
+.topbar .brand-logo {
+  background: var(--header-brand-logo-bg, rgba(255, 255, 255, 0.2)) !important;
+}
+
+/* Footer – use tokens */
+.dashboard-footer {
+  background: var(--footer-bg) !important;
+  color: var(--footer-text) !important;
+  border-top-color: var(--footer-border) !important;
+}
+
+.dashboard-footer .segment-links a,
+.dashboard-footer .brand-title {
+  color: var(--footer-text) !important;
+}
+
+.dashboard-footer .segment-links a:hover {
+  color: var(--footer-text-muted, #94a3b8) !important;
+}
+
+.dashboard-footer .segment-title,
+.dashboard-footer .muted-link,
+.dashboard-footer .brand-micro {
+  color: var(--footer-text-muted) !important;
+}
+
+.dashboard-footer .footer-meta {
+  color: var(--footer-text-muted) !important;
+}
+
+/* Admin sidebar navigation header – ensure visibility */
+#nav-sidebar .navigation_header,
+#nav-sidebar [class*="navigation_header"] {
+  border-bottom-color: var(--admin-sidebar-border, rgba(148, 163, 184, 0.2)) !important;
+}
+
+#nav-sidebar .admin-sidebar-logo-wrap a,
+#nav-sidebar .admin-sidebar-logo-wrap img {
+  display: block;
+}
+
+/* Admin sidebar user/logoff footer – always visible regardless of themepack */
+#nav-sidebar #user-tools,
+#nav-sidebar .nav-sidebar__footer,
+#nav-sidebar .nav-sidebar-footer,
+#nav-sidebar .sidebar-footer,
+#nav-sidebar .sidebar-user,
+#nav-sidebar .admin-sidebar-footer {
+  background: var(--admin-sidebar-bg, #0f172a) !important;
+  border-top-color: var(--admin-sidebar-border, rgba(148, 163, 184, 0.2)) !important;
+  color: var(--admin-sidebar-text, #f1f5f9) !important;
+}
+#nav-sidebar #user-tools a,
+#nav-sidebar #user-tools button,
+#nav-sidebar .nav-sidebar-footer a,
+#nav-sidebar .sidebar-footer a,
+#nav-sidebar .sidebar-user a,
+#nav-sidebar .admin-sidebar-footer a,
+#nav-sidebar .admin-sidebar-footer__user {
+  color: var(--admin-sidebar-text, #f1f5f9) !important;
+}
+#nav-sidebar .admin-sidebar-footer__user span,
+#nav-sidebar .admin-user-meta,
+#nav-sidebar .admin-user-code {
+  color: var(--admin-sidebar-text-muted, #94a3b8) !important;
+}
+/* Light themes: ensure footer text visible */
+body.portal-backend-light #nav-sidebar .admin-sidebar-footer,
+body.portal-backend-sand #nav-sidebar .admin-sidebar-footer,
+body.portal-backend-snow #nav-sidebar .admin-sidebar-footer,
+body.portal-backend-cream #nav-sidebar .admin-sidebar-footer,
+body.portal-backend-lavender #nav-sidebar .admin-sidebar-footer {
+  background: var(--admin-sidebar-surface, #1e293b) !important;
+  color: #0f172a !important;
+}
+body.portal-backend-light #nav-sidebar .admin-sidebar-footer a,
+body.portal-backend-sand #nav-sidebar .admin-sidebar-footer a,
+body.portal-backend-snow #nav-sidebar .admin-sidebar-footer a,
+body.portal-backend-cream #nav-sidebar .admin-sidebar-footer a,
+body.portal-backend-lavender #nav-sidebar .admin-sidebar-footer a {
+  color: #0f172a !important;
+}

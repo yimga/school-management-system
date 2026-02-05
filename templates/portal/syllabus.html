@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Class Syllabus{% endblock %}
 
@@ -12,7 +13,7 @@
           <p class="small text-muted mb-0">{{ feature.description }}</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-          <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back to dashboard</a>
+          <a class="btn btn-sm btn-outline-secondary btn-back-primary" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:portal_feature' feature.key %}">View portal feature</a>
         </div>
       </div>
@@ -34,7 +35,7 @@
               {% endif %}
             </div>
             <div class="card-footer bg-transparent border-0 pt-0">
-              <div class="small text-muted">Updated {{ item.created_at|date:"Y-m-d" }}</div>
+              <div class="small text-muted">Updated {{ item.created_at|format_date }}</div>
             </div>
           </div>
         </div>

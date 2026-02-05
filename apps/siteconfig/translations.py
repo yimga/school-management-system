@@ -39,32 +39,79 @@ class Regionalizer:
         return ["en"]
 
 
+def _date_format_to_strftime(pattern: str) -> str:
+    """Convert placeholder pattern (DD/MM/YYYY, etc.) to strftime."""
+    if not pattern:
+        return "%d/%m/%Y"
+    return pattern.replace("YYYY", "%Y").replace("DD", "%d").replace("MM", "%m")
+
+
 class LocalizationService:
-    """Stub for localization formatting logic."""
+    """
+    Localization formatting. When region is provided, uses RegionConfig-style
+    date_format, default_currency, decimal_separator, thousands_separator.
+    """
 
     @staticmethod
-    def format_date(dt, lang):
-        # Format as DD/MM/YYYY for 'en', fallback to ISO
+    def format_date(dt, lang=None, region=None):
+        """Format date. If region has date_format, use it; else use lang (en -> DD/MM/YYYY)."""
+        if dt is None:
+            return ""
         try:
+            if region is not None:
+                pattern = getattr(region, "date_format", None) or "DD/MM/YYYY"
+                fmt = _date_format_to_strftime(pattern)
+                return dt.strftime(fmt)
             return dt.strftime("%d/%m/%Y") if lang == "en" else dt.isoformat()
         except Exception:
             return str(dt)
 
     @staticmethod
-    def format_currency(amount, currency, lang):
-        # Simple formatting for NGN, KES, etc.
-        symbol = {"NGN": "₦", "KES": "KSh", "USD": "$"}.get(currency, currency)
-        return f"{symbol}{amount:,.2f}"
+    def format_currency(amount, currency=None, lang=None, region=None):
+        """Format amount. If region has default_currency and separators, use them."""
+        from apps.siteconfig.currency import get_currency_symbol
+        try:
+            amt = float(amount)
+        except (TypeError, ValueError):
+            return str(amount)
+        if region is not None:
+            cur = getattr(region, "default_currency", None) or currency or "XAF"
+            dec_sep = getattr(region, "decimal_separator", None) or "."
+            thousands_sep = getattr(region, "thousands_separator", None) or ","
+            symbol = get_currency_symbol(cur)
+            s = f"{amt:,.2f}"
+            if thousands_sep != ",":
+                s = s.replace(",", thousands_sep)
+            if dec_sep != ".":
+                s = s.replace(".", dec_sep)
+            return f"{symbol}{s}"
+        currency = currency or "XAF"
+        symbol = get_currency_symbol(currency)
+        return f"{symbol}{amt:,.2f}"
 
     @staticmethod
-    def format_number(number, decimals=2):
-        return f"{number:,.{decimals}f}"
+    def format_number(number, decimals=2, region=None):
+        """Format number. If region has decimal/thousands separators, use them."""
+        try:
+            num = float(number)
+        except (TypeError, ValueError):
+            return str(number)
+        if region is not None:
+            dec_sep = getattr(region, "decimal_separator", None) or "."
+            thousands_sep = getattr(region, "thousands_separator", None) or ","
+            s = f"{num:,.{decimals}f}"
+            if thousands_sep != ",":
+                s = s.replace(",", thousands_sep)
+            if dec_sep != ".":
+                s = s.replace(".", dec_sep)
+            return s
+        return f"{num:,.{decimals}f}"
 
 
 # Supported languages
 SUPPORTED_LANGUAGES = {
     "en": "English",
-    "fr": "FranÃ§ais",
+    "fr": "Français",
     "pid": "Pidgin English",
     "sw": "Kiswahili",
     "ha": "Hausa",

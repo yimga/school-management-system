@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load admin_health evals_extras static %}
+{% load admin_health evals_extras static region_format %}
 {% block title %}Parent Dashboard{% endblock %}
 
 {% block extrastyle %}
@@ -947,7 +947,7 @@
               <strong>{{ notif.title }}</strong>
               <div class="small text-muted">{{ notif.message|truncatechars:100 }}</div>
             </div>
-            <span class="badge bg-secondary">{{ notif.created_at|date:"M j, H:i" }}</span>
+            <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
           </li>
           {% endfor %}
         </ul>
@@ -1017,6 +1017,22 @@
             </select>
             {% endif %}
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_notifications' %}">Manage notifications</a>
+            {% if SITE.enable_whatsapp_parent_portal and (SITE.whatsapp_support_number or SITE.footer_whatsapp_url) %}
+              {% if SITE.whatsapp_support_number %}
+                <a class="btn btn-sm btn-success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I need help with my parent portal access.'|urlencode }}" target="_blank" rel="noreferrer">
+                  <i class="bi bi-whatsapp me-1"></i>WhatsApp Support
+                </a>
+              {% else %}
+                <a class="btn btn-sm btn-success" href="{{ SITE.footer_whatsapp_url }}" target="_blank" rel="noreferrer">
+                  <i class="bi bi-whatsapp me-1"></i>WhatsApp Support
+                </a>
+              {% endif %}
+              {% if SITE.whatsapp_admissions_number %}
+                <a class="btn btn-sm btn-outline-success" href="https://wa.me/{{ SITE.whatsapp_admissions_number|urlencode }}?text={{ 'Hello, I have an admissions question for my child.'|urlencode }}" target="_blank" rel="noreferrer">
+                  <i class="bi bi-whatsapp me-1"></i>Admissions WhatsApp
+                </a>
+              {% endif %}
+            {% endif %}
             {% if hero.actions %}
               {% for action in hero.actions %}
               <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">
@@ -1232,17 +1248,19 @@
             </div>
             {% empty %}
             <div class="col-12">
-              <div class="alert alert-info">
+              <div class="alert alert-info d-flex align-items-center flex-wrap gap-2">
                 <i class="bi bi-info-circle me-2"></i>
-                No children linked to your account yet. Contact the school administration.
+                <span>No children linked yet. Add one using your invite code from the school.</span>
+                <a href="{% url 'portal:claim_invite' %}" class="btn btn-sm btn-primary">Add a child</a>
               </div>
             </div>
             {% endfor %}
           </div>
           {% if not child_cards %}
-          <div class="alert alert-info mt-3">
+          <div class="alert alert-info mt-3 d-flex align-items-center flex-wrap gap-2">
             <i class="bi bi-info-circle me-2"></i>
-            No linked students yet. Link a child to see live attendance, grades, and fee status.
+            <span>No linked students yet. Add one using your invite code to see attendance, grades, and fees.</span>
+            <a href="{% url 'portal:claim_invite' %}" class="btn btn-sm btn-primary">Add a child</a>
           </div>
           {% endif %}
         </div>
@@ -1262,7 +1280,7 @@
                   <div class="announcement-title">{{ ann.title }}</div>
                   <div class="announcement-meta">
                     {% if ann.classroom %}Class: {{ ann.classroom.name }}{% elif ann.department %}Dept: {{ ann.department.name }}{% else %}General{% endif %}
-                    · {{ ann.created_at|date:"M d, Y" }}
+                    · {{ ann.created_at|format_date }}
                   </div>
                 </div>
                 {% if ann.is_pinned %}
@@ -1296,7 +1314,7 @@
               </div>
               {% if thread.description %}<div class="text-muted small mt-1">{{ thread.description|truncatechars:180 }}</div>{% endif %}
               <div class="announcement-meta mt-1">
-                Updated {{ thread.last_message_at|date:"M d, Y" }}
+                Updated {{ thread.last_message_at|format_date }}
               </div>
             </a>
             {% endfor %}
@@ -1456,7 +1474,7 @@
                   <div class="list-group-item px-0">
                     <div class="d-flex justify-content-between mb-1">
                       <span class="fw-medium">{{ event.title }}</span>
-                      <span class="badge bg-info">{{ event.when|date:"M j" }}</span>
+                      <span class="badge bg-info">{{ event.when|format_date }}</span>
                     </div>
                     <small class="text-muted">{{ event.detail }}</small>
                   </div>

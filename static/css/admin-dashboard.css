@@ -15,8 +15,8 @@
   flex-direction: column;
   gap: var(--spacing-lg);
   padding: var(--spacing-lg);
-  max-width: 1920px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
 }
 
 /* ============================================
@@ -601,4 +601,111 @@
   .flex-column {
     flex-direction: column;
   }
+}
+
+/* ============================================
+   ADMIN DASHBOARD REVAMP - BEM, token-based (no !important)
+   ============================================ */
+
+/* Stats: block + modifiers (specificity from .admin-main when needed) */
+.admin-stat {
+  font-weight: 600;
+}
+.admin-stat--admins { color: var(--color-secondary); }
+.admin-stat--students { color: var(--color-info); }
+.admin-stat--teachers { color: var(--color-success); }
+.admin-stat--success { color: var(--color-success); }
+.admin-stat--danger { color: var(--color-danger); }
+.admin-stat--accent { color: var(--admin-accent, var(--color-primary)); }
+
+/* User card: BEM block */
+.admin-user-card {
+  padding: 12px;
+  background: var(--color-success-light);
+  border: 1px solid var(--color-success);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.admin-user-card__avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.admin-user-card__avatar--teacher {
+  background: linear-gradient(135deg, var(--color-info) 0%, var(--color-info-light) 100%);
+}
+
+.admin-user-card__avatar--parent {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+}
+
+.admin-user-card__btn {
+  width: 100%;
+  padding: 4px 8px;
+  background: var(--color-danger);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Danger button hover: solid background for guaranteed contrast (WCAG) */
+.admin-user-card__btn:hover {
+  background: var(--color-danger);
+  color: white;
+  opacity: 0.95;
+}
+
+.admin-cta-backend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.admin-cta-backend:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+  color: white;
+}
+
+.admin-weather-widget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--color-warning-light);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.admin-logo-img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }

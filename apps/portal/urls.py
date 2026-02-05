@@ -16,6 +16,7 @@ from .views import (
     teacher_pay_history,
     teacher_leave,
     teacher_attendance_export,
+    teacher_timetable,
     student_portal_grades,
     admissions_application_status,
     portal_syllabus,
@@ -35,6 +36,7 @@ try:
         document_upload,
         document_delete,
         document_download,
+        document_download_pdf,
         signature_requests_manage,
         signature_request_create,
         signature_pending_list,
@@ -43,7 +45,7 @@ try:
     DOCUMENTS_AVAILABLE = True
 except ImportError:
     DOCUMENTS_AVAILABLE = False
-    document_library_manage = document_upload = document_delete = document_download = None
+    document_library_manage = document_upload = document_delete = document_download = document_download_pdf = None
     signature_requests_manage = signature_request_create = signature_pending_list = signature_sign = None
 
 app_name = "portal"
@@ -79,6 +81,7 @@ urlpatterns = [
     path("teacher/attendance/export/", teacher_attendance_export, name="teacher_attendance_export"),
     path("teacher/pay-history/", teacher_pay_history, name="teacher_pay_history"),
     path("teacher/leave/", teacher_leave, name="teacher_leave"),
+    path("teacher/timetable/", teacher_timetable, name="teacher_timetable"),
     
     # Student onboarding
     path("student/onboarding/", student_onboarding_wizard, name="student_onboarding"),
@@ -97,6 +100,7 @@ urlpatterns = [
     path("backend/documents/upload/<int:document_id>/", document_upload, name="document_edit"),
     path("backend/documents/delete/<int:document_id>/", document_delete, name="document_delete"),
     path("backend/documents/download/<int:document_id>/", document_download, name="document_download"),
+    path("backend/documents/download/<int:document_id>/pdf/", document_download_pdf, name="document_download_pdf"),
     
     # Signature Requests Management
     path("backend/signatures/", signature_requests_manage, name="signature_requests_manage"),

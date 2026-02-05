@@ -746,15 +746,26 @@ def _finance_summary(students):
 
 def _upcoming_deadlines(year):
     """
-    Get upcoming grading deadlines.
-    
-    NOTE: GradingDeadline model was removed. This function returns empty list.
-    TODO: Implement using SubjectAssignment.deadline_at if field is added.
+    Get upcoming grading deadlines for the given academic year.
+    Uses SubjectAssignment.grading_deadline_at.
     """
     if not year:
         return []
-    # TODO: Query SubjectAssignment.deadline_at when field is added
-    return []
+    from django.utils import timezone
+    now = timezone.now()
+    qs = SubjectAssignment.objects.filter(
+        academic_year=year,
+        grading_deadline_at__isnull=False,
+        grading_deadline_at__gte=now,
+    ).select_related("term", "classroom", "subject").order_by("grading_deadline_at")[:20]
+    return [
+        {
+            "title": f"Grading: {sa.subject.name} — {sa.classroom.name}",
+            "when": sa.grading_deadline_at,
+            "detail": f"Term {sa.term.label}",
+        }
+        for sa in qs
+    ]
 
 
 def _task_tracker(students, year, term):
@@ -816,7 +827,7 @@ def _timetable_overview(students, year, term):
     if not students or not year or not term:
         return []
 
-    classroom_ids = {student.classroom_id for student in students if student.classroom_id}
+    classroom_ids = {s.classroom_id for s in students if s.classroom_id}
     assignments = (
         SubjectAssignment.objects.filter(
             academic_year=year,
@@ -827,11 +838,31 @@ def _timetable_overview(students, year, term):
         .order_by("subject__name")[:4]
     )
 
+    # When a published schedule exists, attach time_slot and room from ScheduleEntry
+    slot_by_class_subject = {}
+    try:
+        from apps.academics.scheduling import Schedule, ScheduleEntry
+        pub = Schedule.objects.filter(
+            academic_year=year, term=term, status="PUBLISHED"
+        ).first()
+        if pub:
+            for e in ScheduleEntry.objects.filter(
+                schedule=pub, classroom_id__in=classroom_ids, is_cancelled=False
+            ).select_related("time_slot", "room"):
+                key = (e.classroom_id, e.subject_id)
+                slot_by_class_subject[key] = {
+                    "time_slot": str(e.time_slot),
+                    "room": e.room.name,
+                }
+    except Exception:
+        pass
+
     return [
         {
             "subject": assignment.subject.name,
             "classroom": assignment.classroom.name,
             "coefficient": float(assignment.coefficient),
+            **(slot_by_class_subject.get((assignment.classroom_id, assignment.subject_id), {})),
         }
         for assignment in assignments
     ]

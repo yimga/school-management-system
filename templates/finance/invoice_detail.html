@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}Invoice Detail{% endblock %}
 
@@ -69,16 +70,16 @@
         <div class="card-body">
           <h5 class="mb-2">Amounts</h5>
           <div class="d-flex justify-content-between">
-            <span>Total</span><strong>{{ invoice.total_amount }}</strong>
+            <span>Total</span><strong>{{ invoice.total_amount|format_currency }}</strong>
           </div>
           <div class="d-flex justify-content-between">
-            <span>Balance</span><strong>{{ invoice.balance_amount }}</strong>
+            <span>Balance</span><strong>{{ invoice.balance_amount|format_currency }}</strong>
           </div>
           <div class="d-flex justify-content-between">
             <span>Status</span><strong>{{ invoice.get_status_display }}</strong>
           </div>
           <div class="d-flex justify-content-between">
-            <span>Due</span><strong>{{ invoice.due_date|default:"TBD" }}</strong>
+            <span>Due</span><strong>{{ invoice.due_date|format_date|default:"TBD" }}</strong>
           </div>
           {% if invoice.payment_code %}
           <div class="d-flex justify-content-between mt-2 pt-2 border-top">
@@ -108,21 +109,57 @@
   {% if reminder %}
     <div class="card mb-3">
       <div class="card-body">
-        <h5 class="mb-2">Reminder</h5>
-        <div class="row g-2">
-          <div class="col-md-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="mb-0">Payment Reminder</h5>
+          {% if reminder.is_active %}
+            <form method="post" action="{% url 'finance:resend_reminder' invoice.id %}" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-primary">Resend Now</button>
+            </form>
+          {% endif %}
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">
+            <div class="text-muted small">Status</div>
+            <div>
+              {% if reminder.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-secondary">Inactive</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-md-3">
             <div class="text-muted small">Next send</div>
-            <div>{{ reminder.next_send_at|default:"Not scheduled" }}</div>
+            <div>{% if reminder.next_send_at %}{{ reminder.next_send_at|format_date }} {{ reminder.next_send_at|time:"H:i" }}{% else %}Not scheduled{% endif %}</div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="text-muted small">Window (days before)</div>
-            <div>{{ reminder.reminder_days_before }}</div>
+            <div>{{ reminder.reminder_days_before|join:", "|default:"Default" }}</div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <div class="text-muted small">Last sent</div>
-            <div>{{ reminder.last_sent_at|default:"Never" }}</div>
+            <div>{% if reminder.last_sent_at %}{{ reminder.last_sent_at|format_date }} {{ reminder.last_sent_at|time:"H:i" }}{% else %}Never{% endif %}</div>
           </div>
         </div>
+        {% if reminder_logs %}
+        <div class="border-top pt-2">
+          <div class="text-muted small mb-1">Recent reminder history (last 10 sends):</div>
+          <div class="small">
+            {% for log in reminder_logs %}
+              <div class="mb-1">
+                <span class="badge {% if log.status == 'SENT' %}bg-success{% elif log.status == 'FAILED' %}bg-danger{% else %}bg-warning{% endif %}">
+                  {{ log.status }}
+                </span>
+                {{ log.sent_at|format_date }} {{ log.sent_at|time:"H:i" }}
+                {% if log.note %}
+                  - <span class="text-muted">{{ log.note|truncatewords:10 }}</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
   {% endif %}
@@ -148,6 +185,116 @@
     </div>
   </div>
 
+  {% if invoice.status != 'PAID' %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Upload Payment Receipt</h5>
+      </div>
+      <form method="post" action="{% url 'finance:upload_payment_receipt' invoice.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Receipt File <span class="text-danger">*</span></label>
+            <input type="file" class="form-control" name="receipt_file" accept=".pdf,.jpg,.jpeg,.png" required>
+            <div class="small text-muted">Upload receipt/screenshot (PDF or image, max 2MB)</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+            <select class="form-select" name="payment_method" required>
+              <option value="">Select method...</option>
+              <option value="CASH">Cash</option>
+              <option value="BANK">Bank Transfer</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Amount Paid (Optional)</label>
+            <input type="number" class="form-control" name="uploaded_amount" step="0.01" min="0.01" placeholder="{{ invoice.balance_amount }}">
+            <div class="small text-muted">Will be extracted from receipt if not provided</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Transaction Reference (Optional)</label>
+            <input type="text" class="form-control" name="transaction_reference" placeholder="e.g., TXN123456">
+            <div class="small text-muted">Transaction ID from receipt (will be extracted if not provided)</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Notes (Optional)</label>
+            <input type="text" class="form-control" name="notes" placeholder="Additional information">
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">Upload Receipt</button>
+            <div class="small text-muted mt-2">
+              Your receipt will be automatically verified. You'll be notified once verification is complete.
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if payment_proof_uploads %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="mb-2">Uploaded Receipts</h5>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Uploaded</th>
+              <th>Method</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Confidence</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for upload in payment_proof_uploads %}
+            <tr>
+              <td>{{ upload.created_at|format_date }} {{ upload.created_at|time:"H:i" }}</td>
+              <td>{{ upload.get_payment_method_display }}</td>
+              <td>{{ upload.uploaded_amount|format_currency|default:"-" }}</td>
+              <td>
+                {% if upload.status == 'VERIFIED' %}
+                  <span class="badge bg-success">Verified</span>
+                {% elif upload.status == 'PENDING' %}
+                  <span class="badge bg-warning">Pending</span>
+                {% elif upload.status == 'VERIFYING' %}
+                  <span class="badge bg-info">Verifying...</span>
+                {% elif upload.status == 'DISCREPANCY' %}
+                  <span class="badge bg-danger">Needs Review</span>
+                {% elif upload.status == 'REJECTED' %}
+                  <span class="badge bg-secondary">Rejected</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if upload.verification_confidence %}
+                  {{ upload.verification_confidence|format_number:2 }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                <a href="{{ upload.receipt_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                {% if upload.payment %}
+                  <a href="{% url 'finance:payments' %}?payment={{ upload.payment.id }}" class="btn btn-sm btn-outline-success">Payment</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% if upload.verification_notes %}
+            <tr>
+              <td colspan="6" class="small text-muted">{{ upload.verification_notes }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="card">
     <div class="card-body">
       <h5 class="mb-2">Lines</h5>
@@ -163,7 +310,7 @@
             {% for line in invoice.lines.all %}
               <tr>
                 <td>{{ line.description }}</td>
-                <td class="text-end">{{ line.amount }}</td>
+                <td class="text-end">{{ line.amount|format_currency }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -173,4 +320,24 @@
   </div>
 </form>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Generate idempotency key for receipt upload to prevent duplicate on retry
+(function() {
+  const form = document.getElementById('receipt-upload-form');
+  if (form) {
+    const input = document.getElementById('idempotency_key');
+    if (input && !input.value) {
+      // Generate UUID v4-like string
+      input.value = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+  }
+})();
+</script>
 {% endblock %}

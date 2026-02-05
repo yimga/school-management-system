@@ -5,10 +5,10 @@
    ============================================ */
 
 :root {
-    /* Colors - Primary */
-    --primary: #007bff;
-    --primary-dark: #0d6efd;
-    --primary-light: #e7f1ff;
+    /* Colors - Primary (alias to canonical design-system-unified when loaded) */
+    --primary: var(--color-primary, #007bff);
+    --primary-dark: var(--color-primary-dark, #0d6efd);
+    --primary-light: var(--color-primary-light, #e7f1ff);
     
     /* Colors - Secondary */
     --secondary: #6c757d;
@@ -358,10 +358,10 @@ h3 { font-size: var(--font-size-base); }
    10. ACCESSIBILITY
    ============================================ */
 
-/* Focus visible (keyboard navigation) */
+/* Focus visible (use canonical token when design-tokens/design-system loaded) */
 :focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
+    outline: 2px solid var(--focus-ring-color, var(--primary));
+    outline-offset: var(--focus-ring-offset, 2px);
 }
 
 /* Skip link (visible on focus) */

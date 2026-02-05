@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 {% load static %}
 {% block title %}Finance Dashboard{% endblock %}
 
@@ -32,7 +33,7 @@
                 <strong>{{ notif.title }}</strong>
                 <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
               </div>
-              <span class="badge bg-secondary">{{ notif.created_at|date:"M j, H:i" }}</span>
+              <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
             </li>
           {% endfor %}
         </ul>
@@ -72,13 +73,14 @@
       <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
           <h5 class="mb-3">Recent Invoices</h5>
+          {% if recent_invoices %}
           <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
+            <table class="table table-sm align-middle mb-0" aria-label="Recent invoices">
               <thead>
                 <tr>
-                  <th>Reference</th>
-                  <th>Status</th>
-                  <th class="text-end">Balance</th>
+                  <th scope="col">Reference</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" class="text-end">Balance</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,14 +88,16 @@
                   <tr>
                     <td>{{ inv.reference|default:inv.id }}</td>
                     <td>{{ inv.get_status_display }}</td>
-                    <td class="text-end">{{ inv.balance_amount|floatformat:2 }}</td>
+                    <td class="text-end">{{ inv.balance_amount|format_currency }}</td>
                   </tr>
-                {% empty %}
-                  <tr><td colspan="3" class="text-muted">No invoices found.</td></tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
+          {% else %}
+          {% url 'finance:generate_fees' as empty_action_url %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-receipt" title="No invoices yet" message="Generate fee invoices to see them here." action_url=empty_action_url action_text="Generate fees" %}
+          {% endif %}
         </div>
       </div>
     </div>
@@ -101,13 +105,14 @@
       <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
           <h5 class="mb-3">Recent Payments</h5>
+          {% if recent_payments %}
           <div class="table-responsive">
-            <table class="table table-sm align-middle mb-0">
+            <table class="table table-sm align-middle mb-0" aria-label="Recent payments">
               <thead>
                 <tr>
-                  <th>Invoice</th>
-                  <th>Method</th>
-                  <th class="text-end">Amount</th>
+                  <th scope="col">Invoice</th>
+                  <th scope="col">Method</th>
+                  <th scope="col" class="text-end">Amount</th>
                 </tr>
               </thead>
               <tbody>
@@ -115,14 +120,16 @@
                   <tr>
                     <td>{{ pay.invoice.reference|default:pay.invoice.id }}</td>
                     <td>{{ pay.get_method_display }}</td>
-                    <td class="text-end">{{ pay.amount|floatformat:2 }}</td>
+                    <td class="text-end">{{ pay.amount|format_currency }}</td>
                   </tr>
-                {% empty %}
-                  <tr><td colspan="3" class="text-muted">No payments recorded.</td></tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
+          {% else %}
+          {% url 'finance:invoices' as empty_action_url %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-credit-card" title="No payments yet" message="Payments will appear here once invoices are paid." action_url=empty_action_url action_text="View invoices" %}
+          {% endif %}
         </div>
       </div>
     </div>

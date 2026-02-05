@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 
 {% block title %}School Ranking{% endblock %}
 
@@ -39,13 +40,13 @@
 <div class="card">
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table align-middle">
+      <table class="table align-middle" aria-label="School ranking by average score">
         <thead>
           <tr>
-            <th style="width:72px">Rank</th>
-            <th>Student</th>
-            <th>Class</th>
-            <th class="text-end">Average</th>
+            <th scope="col" style="width:72px">Rank</th>
+            <th scope="col">Student</th>
+            <th scope="col">Class</th>
+            <th scope="col" class="text-end">Average</th>
           </tr>
         </thead>
         <tbody>
@@ -54,7 +55,7 @@
               <td><span class="badge text-bg-dark">#{{ r.rank }}</span></td>
               <td>{{ r.student }}</td>
               <td>{{ r.student.classroom.name }}</td>
-              <td class="text-end"><b>{{ r.average|floatformat:2 }}</b></td>
+              <td class="text-end"><b>{{ r.average|format_number:2 }}</b></td>
             </tr>
           {% empty %}
             <tr><td colspan="4" class="text-muted">No ranking data available.</td></tr>

@@ -1,4 +1,5 @@
 {% load report_style_tags %}
+{% load region_format %}
 <!doctype html>
 <html>
 <head>
@@ -73,7 +74,7 @@
   <div class="kpi-row">
     <div class="boxed center">
       <div class="muted">{% report_style_label report_style "annual_average_label" "Annual Average" %}</div>
-      <div style="font-size:18px; font-weight:900;">{{ annual_average|floatformat:2|default:"-" }}</div>
+      <div style="font-size:18px; font-weight:900;">{{ annual_average|format_number:2|default:"-" }}</div>
     </div>
     <div class="boxed center">
       <div class="muted">{% report_style_label report_style "class_rank_label" "Class Rank" %}</div>
@@ -99,7 +100,7 @@
         {% for row in term_rows %}
           <tr>
             <td>{{ row.term }}</td>
-            <td class="center">{{ row.avg|floatformat:2|default:"-" }}</td>
+            <td class="center">{{ row.avg|format_number:2|default:"-" }}</td>
             <td class="center">{{ row.pos|default:"-" }} / {{ row.class_size|default:"-" }}</td>
           </tr>
         {% empty %}
@@ -122,7 +123,7 @@
     <div class="boxed">
       <div><b>{% report_style_label report_style "principal_label" "The Principal" %}</b></div>
       <div class="line"></div>
-      <div class="muted">{{ generated_at|date:"Y-m-d" }}</div>
+      <div class="muted">{{ generated_at|format_date }}</div>
     </div>
   </div>
 
@@ -138,36 +139,7 @@
   <meta charset="utf-8" />
   {% include "reports/_report_styles.html" %}
   <style>
-    body { 
-      background: #f7f8fb;
-      {% if SITE.logo %}
-        background-image: url('{{ SITE.logo.url }}');
-        background-attachment: fixed;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: 20%;
-        background-opacity: 0.03;
-      {% endif %}
-    }
-    
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      {% if SITE.logo %}
-        background-image: url('{{ SITE.logo.url }}');
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: 25%;
-        background-attachment: fixed;
-        opacity: 0.05;
-        z-index: -1;
-        pointer-events: none;
-      {% endif %}
-    }
+    body { background: #f7f8fb; }
     
     .cameroon-head { 
       margin-bottom: 18px;
@@ -243,7 +215,7 @@
     <div class="summary-card">
       <strong>Current year</strong>
       <p class="mb-0">{{ year.name }}</p>
-      <p class="small text-muted">Annual average: {{ annual_average|floatformat:2|default:"-" }}</p>
+      <p class="small text-muted">Annual average: {{ annual_average|format_number:2|default:"-" }}</p>
     </div>
     <div class="summary-card">
       <strong>Class rank</strong>
@@ -265,7 +237,7 @@
       {% for row in term_rows %}
         <tr>
           <td>{{ row.term }}</td>
-          <td>{{ row.avg|floatformat:2|default:"-" }}</td>
+          <td>{{ row.avg|format_number:2|default:"-" }}</td>
           <td>{{ row.pos|default:"-" }} / {{ row.class_size|default:"-" }}</td>
           <td>{{ promotion_status }}</td>
         </tr>
@@ -288,7 +260,7 @@
     </div>
     <div class="summary-card">
       <strong>Generated</strong>
-      <p class="mb-0">{{ generated_at|date:"j F, Y" }}</p>
+      <p class="mb-0">{{ generated_at|format_date }}</p>
     </div>
   </div>
 

@@ -1,0 +1,94 @@
+{% load i18n static %}
+{% if admin_theme_packs %}
+<div class="admin-dashboard-palette-selector-wrapper module">
+  <h3>{% trans "Theme & Experience" %}</h3>
+  <p class="help">{% trans "Theme for /admin and /backend dashboards. Shared by both. Choose a color palette below; click a card to select, then Save." %}</p>
+  <link rel="stylesheet" href="{% static 'css/admin-color-preview.css' %}">
+  <div id="admin-dashboard-palette-selector">
+    {% if admin_theme_packs_by_group %}
+      {% for group_label, packs in admin_theme_packs_by_group %}
+      <div class="admin-dashboard-palette-group">
+        <h4 class="admin-dashboard-palette-group-title">{{ group_label }}</h4>
+        <div class="admin-dashboard-palette-selector">
+          {% for pack in packs %}
+            {% if pack.palette and pack.palette.admin_dashboard %}
+              {% with pal=pack.palette.admin_dashboard %}
+              <div class="admin-dashboard-palette-card" data-pack-id="{{ pack.pk }}" data-pack-slug="{{ pack.slug }}" title="{{ pack.name }}">
+                <div class="admin-dashboard-palette-swatches">
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.primary|default:'#ff6a88' }};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.accent|default:'#9b6bff' }};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.surface|default:'#ffffff' }}; border: 1px solid #ccc;"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.dashboard_bg|default:'#f8fafc' }};"></span>
+                </div>
+                <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
+                {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:8 }}</div>{% endif %}
+              </div>
+              {% endwith %}
+            {% else %}
+              <div class="admin-dashboard-palette-card" data-pack-id="{{ pack.pk }}" data-pack-slug="{{ pack.slug }}" title="{{ pack.name }}">
+                <div class="admin-dashboard-palette-swatches">
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.primary_color|default:'#ff6a88' }};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.accent_color|default:'#9b6bff' }};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.background_color|default:'#ffffff' }}; border: 1px solid #ccc;"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.background_color|default:'#f8fafc' }};"></span>
+                </div>
+                <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
+                {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:8 }}</div>{% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="admin-dashboard-palette-selector">
+      {% for pack in admin_theme_packs %}
+        {% if pack.palette and pack.palette.admin_dashboard %}
+          {% with pal=pack.palette.admin_dashboard %}
+          <div class="admin-dashboard-palette-card" data-pack-id="{{ pack.pk }}" data-pack-slug="{{ pack.slug }}" title="{{ pack.name }}">
+            <div class="admin-dashboard-palette-swatches">
+              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.primary|default:'#ff6a88' }};"></span>
+              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.accent|default:'#9b6bff' }};"></span>
+              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.surface|default:'#ffffff' }}; border: 1px solid #ccc;"></span>
+              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.dashboard_bg|default:'#f8fafc' }};"></span>
+            </div>
+            <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
+            {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:8 }}</div>{% endif %}
+          </div>
+          {% endwith %}
+        {% else %}
+          <div class="admin-dashboard-palette-card" data-pack-id="{{ pack.pk }}" data-pack-slug="{{ pack.slug }}" title="{{ pack.name }}">
+            <div class="admin-dashboard-palette-swatches">
+              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.primary_color|default:'#ff6a88' }};"></span>
+              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.accent_color|default:'#9b6bff' }};"></span>
+              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.background_color|default:'#ffffff' }}; border: 1px solid #ccc;"></span>
+              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.background_color|default:'#f8fafc' }};"></span>
+            </div>
+            <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
+            {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:8 }}</div>{% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  <script>
+  (function() {
+    var container = document.getElementById('admin-dashboard-palette-selector');
+    var field = document.getElementById('id_admin_theme_pack');
+    if (!container || !field) return;
+    var cards = container.querySelectorAll('.admin-dashboard-palette-card');
+    function setSelected(id) {
+      cards.forEach(function(c) {
+        c.classList.toggle('selected', String(c.dataset.packId) === String(id));
+      });
+      if (field.tagName === 'SELECT') field.value = id || '';
+    }
+    cards.forEach(function(card) {
+      card.addEventListener('click', function() { setSelected(card.dataset.packId); });
+    });
+    if (field.value) setSelected(field.value);
+  })();
+  </script>
+</div>
+{% endif %}

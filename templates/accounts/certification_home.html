@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static region_format %}
 
 {% block title %}Certification & Exams{% endblock %}
 
@@ -58,8 +58,8 @@
                 <td>
                   <div class="fw-semibold">{{ s.name }}</div>
                   <div class="small text-muted">
-                    {% if s.registration_closes_at %}Closes {{ s.registration_closes_at|date:"M j, Y" }}{% endif %}
-                    {% if s.ca_submission_deadline_at %} · CA deadline {{ s.ca_submission_deadline_at|date:"M j, Y" }}{% endif %}
+                    {% if s.registration_closes_at %}Closes {{ s.registration_closes_at|format_date }}{% endif %}
+                    {% if s.ca_submission_deadline_at %} · CA deadline {{ s.ca_submission_deadline_at|format_date }}{% endif %}
                   </div>
                 </td>
                 <td>{{ s.get_board_display }}</td>

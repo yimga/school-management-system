@@ -1,0 +1,30 @@
+{% load i18n %}
+
+{% if site_icon %}
+    <div class="shrink-0 admin-sidebar-logo-wrap flex items-center justify-center rounded-lg" style="background: var(--admin-sidebar-logo-bg, rgba(255,255,255,0.12)); padding: 6px; min-width: 38px; min-height: 38px;">
+        <{% if site_dropdown %}span{% else %}a href="{% url 'admin:index' %}"{% endif %} class="block">
+        {% if site_icon.light and site_icon.dark %}
+            <img src="{{ site_icon.dark }}" alt="{% trans 'Home' %}" class="h-[38px] hidden dark:block" style="filter: contrast(1.1);"/>
+            <img src="{{ site_icon.light }}" alt="{% trans 'Home' %}" class="block h-[38px] dark:hidden" style="filter: contrast(1.1);"/>
+        {% else %}
+            <img src="{{ site_icon }}" class="h-[38px]" alt="{% trans 'Home' %}" style="filter: contrast(1.1);"/>
+        {% endif %}
+        </{% if site_dropdown %}span{% else %}a{% endif %}>
+    </div>
+{% else %}
+    <{% if site_dropdown %}span{% else %}a href="{% url 'admin:index' %}"{% endif %} class="admin-sidebar-logo-wrap flex h-[38px] w-[38px] items-center justify-center rounded-lg shrink-0 text-xs" style="background: var(--admin-sidebar-logo-bg, rgba(255,255,255,0.12)); color: var(--admin-sidebar-logo-fg, #ffffff);">
+    <span class="material-symbols-outlined md-18">{% if site_symbol %}{{ site_symbol }}{% else %}settings{% endif %}</span>
+    </{% if site_dropdown %}span{% else %}a{% endif %}>
+{% endif %}
+
+<div class="flex flex-col gap-1.5 grow justify-center min-w-0">
+    <div class="text-important leading-none tracking-tight *:truncate {% if site_subheader %}xl:text-sm{% else %}xl:text-base{% endif %}" style="color: var(--admin-sidebar-text, var(--color-base-900, #0f172a));">
+        {{ branding }}
+    </div>
+
+    {% if site_subheader %}
+        <div class="font-normal leading-none text-subtle text-xs" style="color: var(--admin-sidebar-text-muted, var(--color-base-500, #64748b));">
+            {{ site_subheader }}
+        </div>
+    {% endif %}
+</div>

@@ -4,7 +4,7 @@ Views for FAQ and Knowledge Base system
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.contrib import messages
@@ -208,6 +208,52 @@ def kb_article(request, article_slug):
         'related_articles': related_articles,
     }
     return render(request, 'portal/kb_article.html', context)
+
+
+def kb_article_download_odt(request, article_slug):
+    """Download KB article as LibreOffice ODT (same visibility as viewing the article)."""
+    article = get_object_or_404(KBArticle, slug=article_slug, status='PUBLISHED')
+    if not article.odt_file:
+        return redirect('kb:kb_article', article_slug=article_slug)
+    try:
+        f = article.odt_file.open('rb')
+        response = FileResponse(f, as_attachment=True, filename=f'{article.slug}.odt')
+        response['Content-Type'] = 'application/vnd.oasis.opendocument.text'
+        return response
+    except Exception:
+        return redirect('kb:kb_article', article_slug=article_slug)
+
+
+def kb_article_download_pdf(request, article_slug):
+    """Download KB article as PDF (converted from ODT via LibreOffice headless). Same visibility as article."""
+    article = get_object_or_404(KBArticle, slug=article_slug, status='PUBLISHED')
+    if not article.odt_file:
+        return redirect('kb:kb_article', article_slug=article_slug)
+    import tempfile
+    import os
+    from .document_conversion import convert_to_pdf
+    path = None
+    try:
+        if hasattr(article.odt_file, 'path') and os.path.isfile(article.odt_file.path):
+            path = article.odt_file.path
+        else:
+            with tempfile.NamedTemporaryFile(suffix='.odt', delete=False) as tmp:
+                tmp.write(article.odt_file.read())
+                path = tmp.name
+        pdf_bytes = convert_to_pdf(path)
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{article.slug}.pdf"'
+        return response
+    except RuntimeError:
+        return redirect('kb:kb_article', article_slug=article_slug)
+    except Exception:
+        return redirect('kb:kb_article', article_slug=article_slug)
+    finally:
+        if path and path != getattr(article.odt_file, 'path', None):
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
 
 
 @require_POST

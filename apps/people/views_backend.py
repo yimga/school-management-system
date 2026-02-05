@@ -48,16 +48,52 @@ def backend_student_create(request):
                                 request,
                                 f"Parent account created. Please send login credentials to {parent_email}"
                             )
-                        
-                        # Create guardian link
-                        StudentGuardian.objects.get_or_create(
-                            student=student,
-                            user=parent_user,
-                            defaults={
-                                'relationship': 'PARENT',
-                                'is_primary': True,
-                            }
-                        )
+                            # Phase 2.1: Optional welcome email when parent account is created
+                            try:
+                                site = SiteSettings.get_solo()
+                                if getattr(site, "notify_parent_welcome_email", False):
+                                    from django.core.mail import send_mail
+                                    from django.conf import settings
+                                    site_name = getattr(site, "site_name", None) or "School"
+                                    login_url = request.build_absolute_uri("/authentication/login/")
+                                    send_mail(
+                                        subject=f"Your {site_name} parent portal account",
+                                        message=(
+                                            f"An account has been created for you at {site_name}.\n\n"
+                                            "To log in, please contact the school to receive your login credentials.\n\n"
+                                            f"Login page: {login_url}\n\n"
+                                            "— {0}".format(site_name)
+                                        ),
+                                        from_email=settings.DEFAULT_FROM_EMAIL,
+                                        recipient_list=[parent_email],
+                                        fail_silently=True,
+                                    )
+                            except Exception:
+                                pass
+                        else:
+                            # Existing user: only link if they are already a parent (avoid linking staff/teacher as guardian)
+                            if getattr(parent_user, "role", None) != User.Role.PARENT:
+                                messages.warning(
+                                    request,
+                                    f"{parent_email} is registered as a different role. Guardian link not created. Use Claim Invite or link from RBAC if intended."
+                                )
+                                # Still create student; skip guardian link
+                                parent_user = None
+                        if parent_user:
+                            parent_phone = form.cleaned_data.get("parent_phone") or ""
+                            guardian, created = StudentGuardian.objects.get_or_create(
+                                student=student,
+                                guardian_user=parent_user,
+                                defaults={
+                                    "relationship": StudentGuardian.Relationship.GUARDIAN,
+                                    "email": parent_email.lower(),
+                                    "phone": parent_phone,
+                                },
+                            )
+                            if not created:
+                                guardian.email = parent_email.lower()
+                                guardian.phone = parent_phone
+                                guardian.save(update_fields=["email", "phone"])
                     
                     messages.success(request, f"Student '{student.first_name} {student.last_name}' created successfully!")
                     return redirect('accounts:backend_student_list')

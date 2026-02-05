@@ -1,3 +1,4 @@
+{% load region_format %}
 <!doctype html>
 <html>
   <head>
@@ -20,7 +21,7 @@
     <div class="header">
       <h1>{{ school }} Receipt</h1>
       <div class="meta">
-        Payment #: {{ payment.reference|default:payment.id }} · {{ payment.paid_at|date:"M d, Y H:i" }}
+        Payment #: {{ payment.reference|default:payment.id }} · {{ payment.paid_at|format_date }}
       </div>
     </div>
 
@@ -28,15 +29,15 @@
       <strong>Billed to</strong>
       <div>{{ invoice.student|default:invoice.counterparty }}</div>
       <div>Invoice: {{ invoice.reference|default:invoice.id }}</div>
-      <div>Due: {{ invoice.due_date|default:"n/a" }}</div>
+      <div>Due: {{ invoice.due_date|format_date|default:"n/a" }}</div>
     </div>
 
     <div class="section">
       <strong>Payment details</strong>
       <div>Method: {{ payment.get_method_display }}</div>
-      <div>Amount: {{ payment.amount }}</div>
-      <div>Invoice total: {{ invoice.total_amount }}</div>
-      <div>Remaining balance: {{ invoice.balance_amount }}</div>
+      <div>Amount: {{ payment.amount|format_currency }}</div>
+      <div>Invoice total: {{ invoice.total_amount|format_currency }}</div>
+      <div>Remaining balance: {{ invoice.balance_amount|format_currency }}</div>
     </div>
 
     <table class="table">
@@ -50,14 +51,14 @@
         {% for line in invoice.lines.all %}
           <tr>
             <td>{{ line.description }}</td>
-            <td class="text-right">{{ line.amount }}</td>
+            <td class="text-right">{{ line.amount|format_currency }}</td>
           </tr>
         {% endfor %}
       </tbody>
       <tfoot>
         <tr>
           <th class="total">Amount paid</th>
-          <td class="text-right total">{{ payment.amount }}</td>
+          <td class="text-right total">{{ payment.amount|format_currency }}</td>
         </tr>
       </tfoot>
     </table>

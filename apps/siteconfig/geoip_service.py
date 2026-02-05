@@ -314,15 +314,10 @@ class RegionalDataLocalization:
     
     @staticmethod
     def format_currency(amount: float, region: str, decimal_places: int = 2) -> str:
-        """Format currency based on region"""
+        """Format currency based on region. Uses canonical CURRENCY_SYMBOLS from siteconfig."""
+        from apps.siteconfig.currency import get_currency_symbol
         currency = RegionalDataLocalization.get_regional_currency(region)
-        
-        CURRENCY_SYMBOLS = {
-            'NGN': '₦', 'GHS': '₵', 'KES': 'KSh',
-            'ZAR': 'R', 'EGP': 'E£', 'USD': '$',
-        }
-        
-        symbol = CURRENCY_SYMBOLS.get(currency, currency)
+        symbol = get_currency_symbol(currency)
         formatted_amount = f"{amount:,.{decimal_places}f}"
         return f"{symbol}{formatted_amount}"
     

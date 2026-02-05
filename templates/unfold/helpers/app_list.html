@@ -1,0 +1,3 @@
+{% load i18n unfold %}
+{% comment %}Project override: always use our custom admin app_list. Single sidebar for all admin pages. Ignores sidebar_navigation. {% endcomment %}
+{% include "admin/app_list.html" with app_list=available_apps show_changelinks=False %}

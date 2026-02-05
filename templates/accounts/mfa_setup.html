@@ -133,10 +133,9 @@
                 </div>
             </div>
 
-            <div class="text-center mt-3">
-                <a href="{% url 'accounts:redirect' %}" class="btn btn-link">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
-                </a>
+            <div class="text-center mt-3 d-flex flex-wrap justify-content-center gap-2">
+                <a href="{% url 'accounts:user_profile' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to My Profile</a>
+                <a href="{% url 'accounts:redirect' %}" class="btn btn-link btn-back-primary">Back to Dashboard</a>
             </div>
         </div>
     </div>

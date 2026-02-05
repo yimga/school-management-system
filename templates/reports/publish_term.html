@@ -7,7 +7,7 @@
     <h2 class="mb-1">Publish Term Results</h2>
     <div class="text-muted small">Publishing locks teacher entry and enables parent access.</div>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="/admin/">Back to Admin</a>
+  <a class="btn btn-sm btn-outline-secondary btn-back-outline" href="/admin/"><i class="bi bi-arrow-left me-1"></i>Back to Admin</a>
 </div>
 
 <div class="card mb-3">
@@ -36,6 +36,17 @@
   </div>
 </div>
 
+{% if grade_approval_enabled %}
+<div class="alert alert-{% if all_grades_approved %}success{% else %}warning{% endif %} mb-3">
+  <strong>Eval status:</strong>
+  {% if all_grades_approved %}
+    All grades approved for this term. Safe to publish.
+  {% else %}
+    {{ pending_grade_approvals }} grade approval(s) still pending. {% if reports_require_approved_grades_before_publish %}Publish will be blocked until they are approved.{% endif %}
+  {% endif %}
+</div>
+{% endif %}
+
 <div class="card">
   <div class="card-body">
     <form method="post">
@@ -62,7 +73,7 @@
             </div>
           </div>
         {% empty %}
-          <div class="text-muted">No classrooms found for this academic year.</div>
+          <div class="text-muted">No classrooms found for this academic year. <a href="{% url 'admin:academics_classroom_changelist' %}">Add classrooms</a> in Academics, then return here to publish.</div>
         {% endfor %}
       </div>
 

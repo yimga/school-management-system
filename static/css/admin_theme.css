@@ -14,24 +14,24 @@
   --admin-muted: var(--color-bg-light);
 }
 
-/* Body & Layout */
+/* Body & Layout - use palette tokens when set (black theme) */
 body {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  background: var(--admin-palette-dashboard-bg, var(--color-bg-primary));
+  color: var(--admin-palette-text, var(--color-text-primary));
   min-height: 100vh;
   font-size: var(--font-size-md);
   font-family: var(--font-family);
 }
 
 #header {
-  background: linear-gradient(115deg, var(--color-primary) 0%, var(--color-secondary) 55%, #172554 100%);
+  background: linear-gradient(115deg, var(--admin-palette-primary, var(--color-primary)) 0%, var(--admin-palette-accent, var(--color-secondary)) 55%, #172554 100%);
   border-bottom: none;
   box-shadow: var(--shadow-md);
 }
 
 #branding h1,
 #user-tools a {
-  color: #fff !important;
+  color: #f1f5f9 !important;
   text-shadow: none;
 }
 
@@ -39,20 +39,31 @@ body {
   background: transparent;
 }
 
-/* Modules */
+/* Admin header: align with sidebar tokens (Unfold header is first child of #main) */
+#main > div:first-child {
+  background: var(--admin-sidebar-surface, var(--color-bg-primary)) !important;
+  border-color: var(--admin-sidebar-border, var(--color-border)) !important;
+  color: var(--admin-sidebar-text, var(--color-text-primary));
+}
+#main > div:first-child a,
+#main > div:first-child button {
+  color: var(--admin-sidebar-text, var(--color-text-primary));
+}
+
+/* Modules (use palette tokens) */
 .dashboard-module,
 .module {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
+  background: var(--admin-palette-surface, var(--admin-content-card-bg, var(--color-bg-primary)));
+  border: 1px solid var(--admin-palette-border, var(--admin-content-border, var(--color-border)));
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
 }
 
 .module h2,
 .module caption {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--admin-palette-surface, var(--admin-content-card-bg, var(--color-bg-primary)));
+  color: var(--admin-palette-text, var(--admin-content-text, var(--color-text-primary)));
+  border-bottom: 1px solid var(--admin-palette-border, var(--admin-content-border, var(--color-border)));
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: var(--spacing-md);
 }
@@ -60,24 +71,25 @@ body {
 .module table {
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
+  background: var(--admin-palette-surface, var(--color-bg-primary));
+  border: 1px solid var(--admin-palette-border, var(--color-border));
 }
 
 .module thead th {
   position: sticky;
   top: 0;
-  background: var(--color-bg-light);
+  background: var(--admin-input-bg, var(--color-bg-light));
   z-index: 2;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--admin-palette-border, var(--color-border));
+  color: var(--admin-palette-text, var(--color-text-primary));
 }
 
 .module tbody tr:nth-child(odd) {
-  background: rgba(15, 23, 42, 0.01);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .module tbody tr:hover {
-  background: var(--color-bg-light);
+  background: var(--admin-sidebar-hover, var(--color-bg-light));
 }
 
 .module tbody tr + tr {
@@ -95,7 +107,7 @@ div.breadcrumbs {
 }
 
 div.breadcrumbs {
-  color: var(--color-text-primary);
+  color: var(--admin-palette-text, var(--color-text-primary));
 }
 
 a:link,
@@ -113,7 +125,7 @@ a:hover {
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   border: none;
   box-shadow: var(--shadow-lg);
-  color: white;
+  color: #f1f5f9;
   font-weight: var(--font-weight-medium);
 }
 
@@ -147,35 +159,35 @@ a:hover {
 .module a.button.default {
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   border: none;
-  color: white;
+  color: #f1f5f9;
   box-shadow: var(--shadow-md);
 }
 
-/* Sidebar Navigation */
+/* Sidebar Navigation – use admin-sidebar vars so admin_sidebar_enhanced.css is single source of truth */
 #nav-sidebar,
 #nav-sidebar .module {
-  background: var(--color-text-primary);
-  color: var(--color-bg-light);
+  background: var(--admin-sidebar-bg, var(--color-text-primary));
+  color: var(--admin-sidebar-text, var(--color-bg-light));
   border: none;
   box-shadow: none;
 }
 
 #nav-sidebar a {
-  color: var(--color-bg-light);
+  color: var(--admin-sidebar-text, var(--color-bg-light));
 }
 
 #nav-sidebar .current-model {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--admin-sidebar-active-bg, rgba(255, 255, 255, 0.08));
 }
 
 #nav-sidebar a:hover {
-  color: white;
+  color: var(--admin-sidebar-text);
 }
 
 #nav-sidebar .module h2,
 #nav-sidebar .module caption {
   background: transparent;
-  color: rgba(226, 232, 240, 0.78);
+  color: var(--admin-sidebar-text-muted, rgba(226, 232, 240, 0.78));
   padding: var(--spacing-md) 0;
   border: none;
   text-transform: uppercase;
@@ -186,8 +198,8 @@ a:hover {
 #nav-sidebar .module li a:focus-visible,
 .button:focus-visible,
 .submit-row input:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: var(--spacing-xs);
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset, var(--spacing-xs));
 }
 
 .module table thead th,
@@ -231,16 +243,22 @@ a:hover {
   font-weight: var(--font-weight-medium);
 }
 
-/* Forms & Inputs */
+/* Forms & Inputs (use palette tokens for black theme) */
+#content input,
+#content select,
+#content textarea,
+main input,
+main select,
+main textarea,
 input,
 select,
 textarea {
-  background: var(--color-bg-primary) !important;
-  color: var(--color-text-primary) !important;
-  border: 1px solid var(--color-border) !important;
+  background: var(--admin-input-bg, var(--admin-content-surface, var(--color-bg-primary))) !important;
+  color: var(--admin-input-text, var(--admin-content-text, var(--color-text-primary))) !important;
+  border: 1px solid var(--admin-input-border, var(--admin-content-border, var(--color-border))) !important;
   border-radius: var(--radius-md) !important;
   padding: var(--spacing-md) !important;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
   font-family: var(--font-family) !important;
   font-size: var(--font-size-md) !important;
 }
@@ -248,15 +266,31 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(255, 106, 136, 0.1) !important;
+  border-color: var(--admin-focus, var(--focus-ring-color, var(--color-primary))) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--admin-focus, var(--focus-ring-color, var(--color-primary))) 18%, transparent) !important;
   outline: none;
+}
+
+/* Unfold/Bootstrap form overrides */
+#content .form-control,
+#content .form-select,
+main .form-control,
+main .form-select {
+  background: var(--admin-input-bg, #222222) !important;
+  border-color: var(--admin-input-border, rgba(255,255,255,0.12)) !important;
+  color: var(--admin-input-text, #F8F9FA) !important;
+}
+
+#content .form-check-input,
+main .form-check-input {
+  background-color: var(--admin-input-bg, #222222) !important;
+  border-color: var(--admin-input-border, rgba(255,255,255,0.12)) !important;
 }
 
 .aligned .form-row,
 .inline-group .inline-related {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
+  background: var(--admin-form-bg, var(--admin-content-surface, var(--color-bg-primary)));
+  border: 1px solid var(--admin-palette-border, var(--admin-content-border, var(--color-border)));
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
@@ -268,15 +302,31 @@ textarea:focus {
 .help,
 .helptext,
 label {
-  color: var(--color-text-primary);
+  color: var(--admin-label, var(--admin-content-text, var(--color-text-primary)));
   font-family: var(--font-family);
 }
 
-/* Submit Row */
+/* Messages and errors (dark background compatible) */
+.messagelist {
+  background: var(--admin-palette-surface, #1e293b);
+  border: 1px solid var(--admin-palette-border, rgba(148,163,184,0.25));
+  border-radius: var(--radius-md);
+  color: var(--admin-palette-text, #e2e8f0);
+}
+
+.errornote {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+}
+
+/* Submit Row (use palette tokens) */
 .submit-row {
-  background: var(--color-bg-primary);
+  background: var(--admin-form-bg, var(--admin-content-surface, var(--color-bg-primary)));
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--admin-palette-border, var(--admin-content-border, var(--color-border)));
   box-shadow: var(--shadow-md);
   padding: var(--spacing-lg);
   display: flex;
@@ -714,7 +764,7 @@ input[type="file"][accept*="image"]:hover,
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #f1f5f9;
   font-weight: 600;
   font-size: 12px;
   transition: all 0.2s ease;
@@ -809,4 +859,42 @@ input[type="file"][accept*="image"]:hover,
 .sidebar .dropdown-divider {
   margin: 6px 0;
   border-top: 1px solid var(--color-border);
+}
+
+/* ============================================
+   Theme preset panel (Site config change form) – BEM
+   ============================================ */
+.admin-theme-preset {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-light);
+}
+
+.admin-theme-preset h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+}
+
+.admin-theme-preset .help {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-muted);
+}
+
+.admin-theme-preset__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-theme-preset__actions .form-control {
+  width: auto;
+  max-width: 220px;
+}
+
+.admin-theme-preset__actions .button {
+  padding: 6px 12px;
 }

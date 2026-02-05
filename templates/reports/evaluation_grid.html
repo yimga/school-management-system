@@ -1,3 +1,4 @@
+{% load region_format %}
 <!doctype html>
 <html>
 <head>
@@ -44,7 +45,7 @@
           </div>
         {% endif %}
       </div>
-      <div class="small text-muted ms-auto">Generated {{ generated_at|date:"Y-m-d H:i" }}</div>
+      <div class="small text-muted ms-auto">Generated {{ generated_at|format_date }} {{ generated_at|time:"H:i" }}</div>
     </div>
   </div>
 

@@ -1,0 +1,75 @@
+{% load i18n %}
+<div class="admin-theme-preset module">
+  <h3>{% trans "Color Picker" %}</h3>
+  <p class="help">{% trans "Searching for that perfect color? Use our hex color picker to browse millions of colors and harmonies, and export Hex, RGB, HSL and OKLCH codes." %}</p>
+  <p class="help">{% trans "Fill primary and accent colors at once. Use Admin theme pack above for sidebar and forms. Click Save to apply." %}</p>
+  <div class="admin-theme-preset__actions">
+    <label for="admin-theme-preset-select">{% trans "Preset:" %}</label>
+    <select id="admin-theme-preset-select" class="form-control">
+      <option value="">{% trans "Choose a preset…" %}</option>
+      <option value="lively_slate">{% trans "Lively Slate" %}</option>
+      <option value="refined">{% trans "Refined (beautified)" %}</option>
+      <option value="dark_minimal">{% trans "Dark minimal" %}</option>
+      <option value="light_card">{% trans "Light card" %}</option>
+      <option value="ink_onyx">{% trans "Ink & Onyx" %}</option>
+      <option value="sunrise_warm">{% trans "Sunrise Warm" %}</option>
+      <option value="emerald_focus">{% trans "Emerald Focus" %}</option>
+      <option value="high_contrast">{% trans "High contrast" %}</option>
+    </select>
+    <button type="button" id="admin-theme-preset-apply" class="button">{% trans "Apply" %}</button>
+  </div>
+</div>
+<script>
+(function() {
+  var presets = {
+    lively_slate: {
+      primary_color: '#667eea',
+      accent_color: '#38bdf8'
+    },
+    refined: {
+      primary_color: '#0c1222',
+      accent_color: '#22d3ee'
+    },
+    dark_minimal: {
+      primary_color: '#0b0f14',
+      accent_color: '#64748b'
+    },
+    light_card: {
+      primary_color: '#1e293b',
+      accent_color: '#38bdf8'
+    },
+    ink_onyx: {
+      primary_color: '#111827',
+      accent_color: '#9b6bff'
+    },
+    sunrise_warm: {
+      primary_color: '#f97316',
+      accent_color: '#ef4444'
+    },
+    emerald_focus: {
+      primary_color: '#065f46',
+      accent_color: '#22c55e'
+    },
+    high_contrast: {
+      primary_color: '#000000',
+      accent_color: '#facc15'
+    }
+  };
+  function applyPreset(presetId) {
+    var values = presets[presetId];
+    if (!values) return;
+    for (var fieldName in values) {
+      var el = document.getElementById('id_' + fieldName);
+      if (el) el.value = values[fieldName];
+    }
+  }
+  var select = document.getElementById('admin-theme-preset-select');
+  var btn = document.getElementById('admin-theme-preset-apply');
+  if (btn && select) {
+    btn.addEventListener('click', function() {
+      var presetId = select.value;
+      if (presetId) applyPreset(presetId);
+    });
+  }
+})();
+</script>

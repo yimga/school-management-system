@@ -1,4 +1,8 @@
+{% load i18n %}
 {% with current_role=request.user.role|default:"Administrator" %}
+<noscript>
+  <p class="alert alert-info mb-2">{% trans "Theme preview requires JavaScript. Use the form fields to change colors; save to see changes on the site." %}</p>
+</noscript>
 <section class="theme-preview-section">
   <div class="theme-preview-card" data-current-role="{{ current_role }}">
     <header>
@@ -73,13 +77,12 @@
       </button>
     </footer>
   </div>
-  <div class="preview-note" aria-live="polite">
+  <p class="small text-muted mt-1 mb-0">
+    Need details? Consult the <a href="/documents/theme-guide.md" target="_blank">Documented Theme Guide</a> for the workflow,
+    including the Documents section that mirrors this preview.
+  </p>
+  <div class="preview-note theme-preview-end-note" aria-live="polite">
     Ephemeral previews & compliance checks keep synthetic data isolated—run sandboxed builds before deploying live changes.
   </div>
 </section>
-
-<p class="small text-muted mt-2">
-  Need details? Consult the <a href="/documents/theme-guide.md" target="_blank">Documented Theme Guide</a> for the workflow,
-  including the Documents section that mirrors this preview.
-</p>
 {% endwith %}

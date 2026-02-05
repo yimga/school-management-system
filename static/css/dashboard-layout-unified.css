@@ -54,7 +54,7 @@
 .parent-dashboard-widgets .row.mb-4,
 .teacher-dashboard-widgets .row.mb-4,
 #dashboard-layout .row.mb-4 {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 /* ===== Standard card padding ===== */
@@ -80,6 +80,10 @@
 #dashboard-layout .card {
   margin-bottom: 1rem;
   min-width: 0;
+}
+/* Cards inside #dashboard-layout rows: gutters handle spacing, no double margins */
+#dashboard-layout .row .card {
+  margin-bottom: 0;
 }
 
 .dashboard-layout-unified .card:last-child,

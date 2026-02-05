@@ -9,10 +9,72 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.db.models import Q, Count
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from datetime import datetime, timedelta
 
 from apps.api.permissions import IsAdminUser, IsTeacherOrAdmin
+from apps.accounts.permissions import api_user_has_any_role
+
+
+def _can_message_user(sender, recipient):
+    """
+    Enforce recipient policy: staff/admin/leadership can message anyone;
+    parents can message teachers (of their children) and staff; teachers can message parents (of their students) and staff.
+    """
+    if not sender or not recipient or not getattr(sender, "is_authenticated", False):
+        return False
+    if sender.id == recipient.id:
+        return False
+    # Staff / admin / leadership can message anyone
+    if getattr(sender, "is_staff", False) or getattr(sender, "is_superuser", False):
+        return True
+    if api_user_has_any_role(sender, {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "COMMS_STAFF"}):
+        return True
+    # Recipient is staff → allow (so parents/teachers can contact school)
+    if getattr(recipient, "is_staff", False):
+        return True
+    role = (getattr(sender, "role", None) or "").upper()
+    recipient_role = (getattr(recipient, "role", None) or "").upper()
+    # Parent can message teachers (of their children) and other parents in same context - allow teacher/parent
+    if role == "PARENT":
+        if recipient_role in ("TEACHER", "ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "HOD", "ACADEMICS_STAFF"):
+            return True
+        if recipient_role == "PARENT":
+            from apps.people.models import StudentGuardian
+            sender_children = set(StudentGuardian.objects.filter(guardian_user=sender).values_list("student_id", flat=True))
+            recip_children = set(StudentGuardian.objects.filter(guardian_user=recipient).values_list("student_id", flat=True))
+            if sender_children & recip_children:
+                return True
+        return False
+    # Teacher can message parents (of students in their classes) and staff
+    if role in ("TEACHER", "HOD", "ACADEMICS_STAFF"):
+        if recipient_role in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"):
+            return True
+        if recipient_role == "PARENT":
+            from apps.people.models import StudentGuardian
+            from apps.evals.models import TeacherAssignment
+            teacher_profile = getattr(sender, "teacher_profile", None)
+            if not teacher_profile:
+                return False
+            my_classroom_ids = set(
+                TeacherAssignment.objects.filter(teacher=teacher_profile, is_active=True)
+                .values_list("subject_assignment__classroom_id", flat=True)
+            )
+            parent_student_ids = set(
+                StudentGuardian.objects.filter(guardian_user=recipient).values_list("student_id", flat=True)
+            )
+            from apps.people.models import StudentProfile
+            parent_classroom_ids = set(
+                StudentProfile.objects.filter(id__in=parent_student_ids).values_list("classroom_id", flat=True)
+            )
+            if my_classroom_ids & parent_classroom_ids:
+                return True
+        return False
+    # Student: allow messaging teachers/staff only
+    if role == "STUDENT":
+        return recipient_role in ("TEACHER", "ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "HOD", "ACADEMICS_STAFF")
+    return False
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -82,35 +144,35 @@ class MessageViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """
-        Send a new message
-        
-        Request Body:
-        {
-            "recipient": 1,
-            "subject": "Important Update",
-            "body": "Please see the attached document",
-            "priority": "normal"
-        }
+        Send a new message. Recipient must be allowed by policy (role/relationship).
         """
         from apps.communication.models import Message
-        
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
         recipient_id = request.data.get('recipient')
         subject = request.data.get('subject')
         body = request.data.get('body')
-        
+
         if not all([recipient_id, subject, body]):
             return Response(
                 {'error': 'recipient, subject, and body are required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+        recipient = get_object_or_404(User, pk=recipient_id)
+        if not _can_message_user(request.user, recipient):
+            return Response(
+                {'error': 'You are not allowed to send messages to this recipient.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         message = Message.objects.create(
             sender=request.user,
-            recipient_id=recipient_id,
+            recipient=recipient,
             subject=subject,
             body=body
         )
-        
+
         from apps.api.serializers import MessageSerializer
         serializer = MessageSerializer(message)
         return Response(
@@ -120,17 +182,16 @@ class MessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
-        """Mark a message as read"""
+        """Mark a message as read. Returns 404 for invalid or non-existent pk."""
         from apps.communication.models import Message
-        
-        message = Message.objects.get(pk=pk)
-        
+
+        message = get_object_or_404(Message, pk=pk)
         if message.recipient != request.user:
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         message.is_read = True
         message.save()
         
@@ -141,8 +202,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         """Archive a message"""
         from apps.communication.models import Message
         
-        message = Message.objects.get(pk=pk)
-        
+        message = get_object_or_404(Message, pk=pk)
         if message.recipient != request.user and message.sender != request.user:
             return Response(
                 {'error': 'Permission denied'},
@@ -337,7 +397,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         
         from apps.communication.models import Announcement
         
-        announcement = Announcement.objects.get(pk=pk)
+        announcement = get_object_or_404(Announcement, pk=pk)
         announcement.is_active = False
         announcement.save()
         

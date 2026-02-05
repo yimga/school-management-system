@@ -15,6 +15,7 @@ from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.reports.models import ReportCard, ReportCardAudit, TermPublishStatus
+from apps.siteconfig.models import SiteSettings
 from apps.reports.services import (
     annual_report_context,
     are_terms_published,
@@ -344,12 +345,15 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
             email.send(fail_silently=True)
             messages.success(request, "Share link emailed successfully.")
 
+    site = SiteSettings.get_solo()
+    enable_whatsapp_share = getattr(site, "enable_whatsapp_parent_portal", False)
     return render(request, "reports/share_link.html", {
         "student": student,
         "year": year,
         "term": term,
         "report_type": report_type,
         "share_url": share_url,
+        "enable_whatsapp_share": enable_whatsapp_share,
     })
 
 
@@ -416,6 +420,20 @@ def report_share(request: HttpRequest, token: str):
     return HttpResponseForbidden("Unknown report type.")
 
 
+def _pending_grade_approvals_count(academic_year_id, term_id):
+    """Count pending grade approval requests for this term (Phase 2: publish guard)."""
+    from apps.evals.models import GradeApprovalRequest
+    return GradeApprovalRequest.objects.filter(
+        academic_year_id=academic_year_id,
+        term_id=term_id,
+        status__in=(
+            GradeApprovalRequest.Status.PENDING,
+            GradeApprovalRequest.Status.UNDER_REVIEW,
+            GradeApprovalRequest.Status.REVISION_REQUESTED,
+        ),
+    ).count()
+
+
 @staff_member_required
 def publish_term_results(request: HttpRequest):
     year, active_term = get_active_year_and_term()
@@ -430,36 +448,60 @@ def publish_term_results(request: HttpRequest):
 
     classrooms = Classroom.objects.filter(academic_year=year_obj).order_by("name")
 
-    if request.method == "POST":
-        now = timezone.now()
-        publish_school = request.POST.get("publish_school") == "1"
-        TermPublishStatus.objects.update_or_create(
-            academic_year=year_obj,
-            term=term_obj,
-            classroom=None,
-            defaults={
-                "is_published": publish_school,
-                "published_at": now if publish_school else None,
-                "published_by": request.user if publish_school else None,
-            },
-        )
+    site = SiteSettings.get_solo()
+    require_approved_before_publish = getattr(site, "reports_require_approved_grades_before_publish", False)
+    grade_approval_enabled = getattr(site, "grade_approval_enabled", False)
+    pending_approvals = _pending_grade_approvals_count(year_obj.id, term_obj.id)
+    all_grades_approved = pending_approvals == 0
 
-        selected_classrooms = set(request.POST.getlist("classroom_ids"))
-        for classroom in classrooms:
-            publish_class = str(classroom.id) in selected_classrooms
+    if request.method == "POST":
+        if require_approved_before_publish and grade_approval_enabled and pending_approvals > 0:
+            messages.error(
+                request,
+                f"Cannot publish: there are {pending_approvals} pending grade approval(s) for this term. "
+                "Approve them in Evals → Grade approvals, or turn off 'Require approved grades before publish' in Site Settings.",
+            )
+        else:
+            now = timezone.now()
+            publish_school = request.POST.get("publish_school") == "1"
+            selected_classrooms = set(request.POST.getlist("classroom_ids"))
             TermPublishStatus.objects.update_or_create(
                 academic_year=year_obj,
                 term=term_obj,
-                classroom=classroom,
+                classroom=None,
                 defaults={
-                    "is_published": publish_class,
-                    "published_at": now if publish_class else None,
-                    "published_by": request.user if publish_class else None,
+                    "is_published": publish_school,
+                    "published_at": now if publish_school else None,
+                    "published_by": request.user if publish_school else None,
                 },
             )
-
-        messages.success(request, "Publish status updated.")
-        return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
+            for classroom in classrooms:
+                publish_class = str(classroom.id) in selected_classrooms
+                TermPublishStatus.objects.update_or_create(
+                    academic_year=year_obj,
+                    term=term_obj,
+                    classroom=classroom,
+                    defaults={
+                        "is_published": publish_class,
+                        "published_at": now if publish_class else None,
+                        "published_by": request.user if publish_class else None,
+                    },
+                )
+            try:
+                from apps.compliance.models_audit import AuditLog
+                AuditLog.objects.create(
+                    action=AuditLog.Action.PUBLISH,
+                    user=request.user,
+                    model_name="TermPublishStatus",
+                    object_id=f"{year_obj.id}_{term_obj.id}",
+                    object_repr=f"{year_obj} {term_obj}",
+                    app_label="reports",
+                    new_values={"publish_school": publish_school, "classroom_ids": list(selected_classrooms)},
+                )
+            except Exception:
+                pass
+            messages.success(request, "Publish status updated.")
+            return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
 
     statuses = TermPublishStatus.objects.filter(
         academic_year=year_obj,
@@ -484,6 +526,10 @@ def publish_term_results(request: HttpRequest):
         "classrooms": classrooms,
         "school_published": bool(school_status),
         "classroom_states": classroom_states,
+        "pending_grade_approvals": pending_approvals,
+        "all_grades_approved": all_grades_approved,
+        "grade_approval_enabled": grade_approval_enabled,
+        "reports_require_approved_grades_before_publish": require_approved_before_publish,
     })
 
 

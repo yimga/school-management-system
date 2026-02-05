@@ -14,7 +14,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import User
-from apps.siteconfig.dashboard_views import _can_customize, _log_layout_audit, get_layout_for_page
+from apps.accounts.utils import get_user_role
+from apps.siteconfig.dashboard_views import (
+    _can_customize,
+    _log_layout_audit,
+    _normalize_dashboard_settings,
+    get_layout_for_page,
+)
 from apps.siteconfig.models_dashboard import DashboardWidget, DashboardLayout
 
 
@@ -180,44 +186,24 @@ def _sanitize_widget_meta(raw_meta: Any, allowed_widgets: Dict[str, DashboardWid
 
 
 def _sanitize_layout_settings(raw_settings: Any, allowed_widgets: Dict[str, DashboardWidget]) -> dict:
+    """
+    Sanitize layout settings; reuse _normalize_dashboard_settings and overlay API-specific sanitization.
+    """
     settings = raw_settings if isinstance(raw_settings, dict) else {}
-    sidebar_items = []
-    for item in settings.get("sidebar_items") or []:
-        sidebar_items.append(str(item))
-    tile_variant = str(settings.get("tile_variant") or "default").strip().lower()
-    if tile_variant not in ALLOWED_TILE_VARIANTS:
-        tile_variant = "default"
-    widget_meta = _sanitize_widget_meta(settings.get("widget_meta"), allowed_widgets)
-    raw_hidden = settings.get("hidden_widget_ids") or []
-    hidden_widget_ids = []
-    if isinstance(raw_hidden, list):
-        for w in raw_hidden:
-            w = str(w).strip()
-            if w and (not allowed_widgets or w in allowed_widgets):
-                hidden_widget_ids.append(w)
-
-    raw_pinned = settings.get("pinned_widgets") or []
-    pinned_widgets = []
-    if isinstance(raw_pinned, list):
-        for p in raw_pinned:
-            wid = p.get("widget_id") if isinstance(p, dict) else None
-            if isinstance(p, dict) and wid and (not allowed_widgets or wid in allowed_widgets):
-                pages = p.get("pages") or []
-                if isinstance(pages, list):
-                    pinned_widgets.append({
-                        "widget_id": str(wid),
-                        "pages": [str(x) for x in pages if x],
-                    })
-
-    return {
-        "show_sidebar": bool(settings.get("show_sidebar")),
-        "sidebar_items": sidebar_items,
-        "tile_variant": tile_variant,
-        "custom_links": _sanitize_custom_links(settings.get("custom_links")),
-        "widget_meta": widget_meta,
-        "hidden_widget_ids": hidden_widget_ids,
-        "pinned_widgets": pinned_widgets,
-    }
+    base = _normalize_dashboard_settings(settings)
+    base["widget_meta"] = _sanitize_widget_meta(settings.get("widget_meta"), allowed_widgets)
+    base["custom_links"] = _sanitize_custom_links(settings.get("custom_links"))
+    if allowed_widgets:
+        base["hidden_widget_ids"] = [w for w in base.get("hidden_widget_ids", []) if w in allowed_widgets]
+        base["pinned_widgets"] = [
+            p
+            for p in base.get("pinned_widgets", [])
+            if isinstance(p, dict) and p.get("widget_id") in allowed_widgets
+        ]
+    tile = str(base.get("tile_variant") or "default").strip().lower()
+    if tile not in ALLOWED_TILE_VARIANTS:
+        base["tile_variant"] = "default"
+    return base
 
 
 def _allowed_roles_for_page(page: str) -> List[str]:
@@ -271,6 +257,7 @@ class AvailableWidgetsAPI(APIView):
     GET: return available widgets for a dashboard page (role-scoped).
     Used by palette UI and AI Copilot for widget discovery.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get_user_role(self, user: User) -> str:
@@ -301,7 +288,7 @@ class DashboardLayoutAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_user_role(self, user: User) -> str:
-        return (getattr(user, "role", "") or "").upper()
+        return get_user_role(user)
 
     def _enforce_page_access(self, page: str, user: User) -> None:
         allowed = _allowed_roles_for_page(page)

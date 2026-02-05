@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load region_format %}
 {% block title %}Finance Access Requests{% endblock %}
 
 {% block content %}
@@ -58,7 +59,7 @@
                       <span class="badge bg-warning text-dark">Unread</span>
                     {% endif %}
                   </td>
-                  <td>{{ notif.created_at|date:"M j, H:i" }}</td>
+                  <td>{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</td>
                   <td>
                     {% if not notif.is_read %}
                       <input type="checkbox" name="notification_id" value="{{ notif.id }}" aria-label="Mark notification read">
@@ -120,7 +121,7 @@
                   <strong>{{ audit.notification.title }}</strong>
                   <div class="small text-muted">{{ audit.notification.message|truncatechars:90 }}</div>
                 </td>
-                <td class="text-muted small">{{ audit.created_at|date:"M j, H:i" }}</td>
+                <td class="text-muted small">{{ audit.created_at|format_date }} {{ audit.created_at|time:"H:i" }}</td>
               </tr>
             {% endfor %}
           </tbody>
