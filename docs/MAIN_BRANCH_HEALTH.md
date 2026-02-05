@@ -62,6 +62,16 @@ Single reference to confirm **everything on main is in order** and where the **t
 
 ## 4. Optional: run tests
 
+### Smoke test (no database)
+
+```bash
+python manage.py test apps.accounts.tests.test_smoke_urls
+```
+
+Uses **SimpleTestCase** (no DB created). Validates that critical URL names resolve correctly (home, admin, siteconfig, portal, analytics, reports, evals, finance, health). Safe for CI when the DB is missing or broken.
+
+### Full test suite
+
 ```bash
 python manage.py test
 ```
