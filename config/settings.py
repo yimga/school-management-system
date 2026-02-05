@@ -163,9 +163,20 @@ WSGI_APPLICATION = "config.wsgi.application"
 # --- Database ---
 
 import os
+from urllib.parse import quote_plus
 import dj_database_url
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+# Build DATABASE_URL from separate vars if set (e.g. Render injects DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT)
+if not DATABASE_URL and os.getenv("DB_HOST"):
+    _db_user = os.getenv("DB_USER", "")
+    _db_pass = os.getenv("DB_PASSWORD", "")
+    _db_host = os.getenv("DB_HOST", "localhost")
+    _db_port = os.getenv("DB_PORT", "5432")
+    _db_name = os.getenv("DB_NAME", "gilead_school_mgmt_db")
+    _db_pass_enc = quote_plus(_db_pass) if _db_pass else ""
+    _db_user_enc = quote_plus(_db_user) if _db_user else ""
+    DATABASE_URL = f"postgresql://{_db_user_enc}:{_db_pass_enc}@{_db_host}:{_db_port}/{_db_name}"
 PREVIEW_DATABASE_URL = os.getenv("PREVIEW_DATABASE_URL")
 
 if DATABASE_URL:
