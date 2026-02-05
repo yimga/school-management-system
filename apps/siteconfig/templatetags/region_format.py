@@ -71,9 +71,18 @@ def format_currency(value):
     return f"{symbol}{s}" if symbol else s
 
 
+def _context_like(obj):
+    """True if obj looks like a template context (dict-like with .get)."""
+    return obj is not None and hasattr(obj, "get") and callable(obj.get)
+
+
 @register.filter(takes_context=True)
 def format_number(context, value, decimals=2):
-    """Format a number using region's decimal_separator and thousands_separator from context."""
+    """Format a number using region's decimal_separator and thousands_separator from context.
+    Handles both (context, value, decimals) and (value, decimals) when context is not passed.
+    """
+    if not _context_like(context):
+        context, value, decimals = None, context, (value if value is not None else 2)
     if value is None:
         return ""
     try:
@@ -83,8 +92,12 @@ def format_number(context, value, decimals=2):
             num = float(value)
     except (TypeError, ValueError):
         return str(value)
-    dec_sep = context.get("decimal_separator") or "."
-    thousands_sep = context.get("thousands_separator") or ","
+    if context:
+        dec_sep = context.get("decimal_separator") or "."
+        thousands_sep = context.get("thousands_separator") or ","
+    else:
+        dec_sep = "."
+        thousands_sep = ","
     dec = int(decimals) if decimals is not None else 2
     s = f"{num:,.{dec}f}"
     s = s.replace(".", "\x00").replace(",", thousands_sep).replace("\x00", dec_sep)
