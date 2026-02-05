@@ -3,6 +3,28 @@
 from django.db import migrations, models
 
 
+def alter_reminder_days_before_to_jsonb(apps, schema_editor):
+    """PostgreSQL: smallint cannot cast to jsonb; use to_jsonb(ARRAY[...]). SQLite: use schema_editor.alter_field."""
+    if schema_editor.connection.vendor == "postgresql":
+        with schema_editor.connection.cursor() as cursor:
+            cursor.execute(
+                "ALTER TABLE finance_paymentreminder "
+                "ALTER COLUMN reminder_days_before TYPE jsonb "
+                "USING to_jsonb(ARRAY[reminder_days_before]::integer[]);"
+            )
+        return
+    # SQLite: run the equivalent AlterField
+    PaymentReminder = apps.get_model("finance", "PaymentReminder")
+    old_field = PaymentReminder._meta.get_field("reminder_days_before")
+    new_field = models.JSONField(
+        default=list,
+        help_text="List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty.",
+    )
+    new_field.column = old_field.column
+    new_field.set_attributes_from_name("reminder_days_before")
+    schema_editor.alter_field(PaymentReminder, old_field, new_field)
+
+
 def migrate_payment_reminder_data(apps, schema_editor):
     """Migrate existing PaymentReminder data: convert single integer to list."""
     PaymentReminder = apps.get_model('finance', 'PaymentReminder')
@@ -57,11 +79,18 @@ class Migration(migrations.Migration):
             code=lambda apps, schema_editor: migrate_message_templates(apps, schema_editor),
             reverse_code=migrations.RunPython.noop,
         ),
-        # Alter reminder_days_before field
-        migrations.AlterField(
-            model_name='paymentreminder',
-            name='reminder_days_before',
-            field=models.JSONField(default=list, help_text='List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty.'),
+        # Alter reminder_days_before: smallint -> jsonb. Postgres cannot cast smallint to jsonb; use custom SQL.
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterField(
+                    model_name='paymentreminder',
+                    name='reminder_days_before',
+                    field=models.JSONField(default=list, help_text='List of days before due date to send reminders, e.g., [7, 3, 1]. Falls back to SiteSettings default if empty.'),
+                ),
+            ],
+            database_operations=[
+                migrations.RunPython(alter_reminder_days_before_to_jsonb, migrations.RunPython.noop),
+            ],
         ),
         # Migrate reminder_days_before data
         migrations.RunPython(
