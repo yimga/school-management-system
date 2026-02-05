@@ -42,8 +42,10 @@ def _date_format_to_django(pattern: str) -> str:
 
 
 @register.filter(takes_context=True)
-def format_date(context, value):
-    """Format a date/datetime using the region's date_format from context."""
+def format_date(context, value=None):
+    """Format a date/datetime using the region's date_format from context.
+    Value defaults to None so Django counts one template-provided argument (required 1, provided 1).
+    """
     if value is None:
         return ""
     pattern = context.get("date_format") or "DD/MM/YYYY"
