@@ -41,6 +41,37 @@
     @media (max-width: 1279px) {
       #page > div:first-child { display: none !important; }
     }
+    /* Sidebar readable when external CSS 404s on production: light text on dark */
+    #nav-sidebar,
+    #nav-sidebar-inner {
+      color: #e2e8f0 !important;
+    }
+    #nav-sidebar a,
+    #nav-sidebar .admin-sidebar-link {
+      color: #cbd5e1 !important;
+    }
+    #nav-sidebar a:hover,
+    #nav-sidebar .admin-sidebar-link:hover,
+    #nav-sidebar a.active,
+    #nav-sidebar .admin-sidebar-link.active {
+      color: #f1f5f9 !important;
+    }
+    #nav-sidebar .admin-sidebar-section-title,
+    #nav-sidebar .admin-sidebar-app-title {
+      color: #94a3b8 !important;
+    }
+    #nav-sidebar .admin-sidebar-chevron svg,
+    #nav-sidebar .admin-sidebar-icon svg {
+      stroke: #94a3b8;
+    }
+    #nav-sidebar input#nav-filter {
+      background: #1e293b !important;
+      border-color: #334155 !important;
+      color: #f1f5f9 !important;
+    }
+    #nav-sidebar input#nav-filter::placeholder {
+      color: #64748b !important;
+    }
   </style>
   <!-- DESIGN TOKENS - Shared variable names (Portal, Admin, Backend) -->
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">

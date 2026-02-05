@@ -1,25 +1,27 @@
-{% load unfold i18n %}
-
-{% comment %}Always use compact header: brand is in sidebar_inner/navigation above. This keeps the same sidebar look on index and all admin pages (no duplicate logo or height change).{% endcomment %}
-<div class="border-b border-base-200 flex gap-3 items-center dark:border-base-800 px-3 {% element_classes 'navigation_header' %} navigation-header-compact" {% if site_dropdown %}x-data="{ openDropdown: false }"{% endif %}>
-    <div class="bg-transparent flex font-semibold gap-3 grow min-w-0 items-center px-3 min-h-[40px] {% if site_dropdown %}cursor-pointer transition-all -mx-3 px-6 hover:bg-base-100 dark:hover:bg-white/[.06]{% endif %}"
+{% load unfold %}
+{# Override: use SVG so "close" and "unfold_more" never show as text when Material Symbols font 404s on production. #}
+<div class="border-b border-base-200 flex gap-3 items-center h-[65px] mb-6 dark:border-base-800 px-3 {% element_classes 'navigation_header' %}" {% if site_dropdown %}x-data="{ openDropdown: false }"{% endif %}>
+    <div class="bg-transparent flex font-semibold gap-3 grow min-w-0 h-[64px] items-center px-3 {% if site_dropdown %}cursor-pointer transition-all -mx-3 px-6 hover:bg-base-100 dark:hover:bg-white/[.06]{% endif %}"
          {% if site_dropdown %}
              x-on:click="openDropdown = !openDropdown"
              x-bind:class="{'bg-base-100 dark:bg-white/[.06]': openDropdown, 'bg-transparent': !openDropdown}"
          {% endif %}
     >
-        {# Brand is in sidebar_inner (above search). Spacer only for close button alignment. #}
-        <div class="grow min-w-0"></div>
+        {% if site_logo %}
+            {% include "unfold/helpers/site_logo.html" %}
+        {% elif branding %}
+            {% include "unfold/helpers/site_icon.html" %}
+        {% endif %}
 
         {% if site_dropdown %}
-            <span class="material-symbols-outlined ml-auto select-none text-font-default-light dark:text-font-default-dark">
-                unfold_more
+            <span class="ml-auto select-none text-font-default-light dark:text-font-default-dark inline-flex" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
             </span>
         {% endif %}
     </div>
 
-    <span class="material-symbols-outlined block cursor-pointer h-[18px] xl:hidden! hover:text-base-700 dark:hover:text-base-200" x-on:click="sidebarMobileOpen = !sidebarMobileOpen">
-        close
+    <span class="block cursor-pointer h-[18px] xl:hidden! hover:text-base-700 dark:hover:text-base-200 inline-flex items-center" x-on:click="sidebarMobileOpen = !sidebarMobileOpen" aria-label="Close menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
     </span>
 
     {% include "unfold/helpers/site_dropdown.html" %}
