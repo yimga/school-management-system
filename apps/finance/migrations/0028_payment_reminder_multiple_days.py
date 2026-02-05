@@ -4,13 +4,23 @@ from django.db import migrations, models
 
 
 def alter_reminder_days_before_to_jsonb(apps, schema_editor):
-    """PostgreSQL: smallint cannot cast to jsonb; use to_jsonb(ARRAY[...]). SQLite: use schema_editor.alter_field."""
+    """PostgreSQL: add new jsonb column, backfill, drop old column, rename (avoids constraint re-validation). SQLite: use schema_editor.alter_field."""
     if schema_editor.connection.vendor == "postgresql":
         with schema_editor.connection.cursor() as cursor:
             cursor.execute(
                 "ALTER TABLE finance_paymentreminder "
-                "ALTER COLUMN reminder_days_before TYPE jsonb "
-                "USING to_jsonb(ARRAY[reminder_days_before]::integer[]);"
+                "ADD COLUMN reminder_days_before_new jsonb NOT NULL DEFAULT '[]'::jsonb;"
+            )
+            cursor.execute(
+                "UPDATE finance_paymentreminder "
+                "SET reminder_days_before_new = to_jsonb(ARRAY[reminder_days_before]::integer[]);"
+            )
+            cursor.execute(
+                "ALTER TABLE finance_paymentreminder DROP COLUMN reminder_days_before;"
+            )
+            cursor.execute(
+                "ALTER TABLE finance_paymentreminder "
+                "RENAME COLUMN reminder_days_before_new TO reminder_days_before;"
             )
         return
     # SQLite: run the equivalent AlterField
