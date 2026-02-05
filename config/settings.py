@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
-# Load .env.local so DB_FILE etc. can be set (override=True so local wins over .env)
-load_dotenv(BASE_DIR / ".env.local", override=True)
+# .env.local: do not override vars already set (e.g. DATABASE_URL on Render), so local file only fills in unset keys.
+load_dotenv(BASE_DIR / ".env.local", override=False)
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -181,13 +181,6 @@ if not DATABASE_URL and os.getenv("DB_HOST"):
         _db_user_enc = quote_plus(_db_user) if _db_user else ""
         DATABASE_URL = f"postgresql://{_db_user_enc}:{_db_pass_enc}@{_db_host}:{_db_port}/{_db_name}"
 PREVIEW_DATABASE_URL = (os.getenv("PREVIEW_DATABASE_URL") or "").strip() or None
-
-# On Render, the filesystem is ephemeral — SQLite would be empty on every deploy. Require PostgreSQL.
-if os.getenv("RENDER") == "true" and not DATABASE_URL:
-    raise ImproperlyConfigured(
-        "DATABASE_URL is not set on Render. In Dashboard → Web Service → Environment, add DATABASE_URL "
-        "(from your Postgres DB → Internal Database URL). See docs/RENDER_DATABASE_URL_FIX.md"
-    )
 
 if DATABASE_URL:
     _default_db = dj_database_url.config(

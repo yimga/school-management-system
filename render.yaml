@@ -1,13 +1,11 @@
 # Render Blueprint: Web Service + PostgreSQL
-# Set in Dashboard → Environment: DATABASE_URL (Internal DB URL), ADMIN_PASSWORD (for admin/teacher1/Parent1).
-# Do NOT define DATABASE_URL here so your Dashboard value is not overwritten by Blueprint sync.
+# Set DATABASE_URL in Dashboard → Environment (Internal DB URL from your Postgres).
 services:
   - type: web
     name: school-management-system
     env: python
     plan: free
     buildCommand: "./build.sh"
-    preDeployCommand: ".venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py seed_render_users"
     startCommand: ".venv/bin/gunicorn config.wsgi:application"
     envVars:
       - key: DEBUG
