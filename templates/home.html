@@ -14,14 +14,14 @@
           <div class="card p-3 h-100" style="background:rgba(13,110,253,.06);">
             <h5 class="mb-2">Staff / Admin</h5>
             <p class="text-muted small mb-3">Manage students, evaluations, reports, and settings.</p>
-            <a class="btn btn-primary" href="/admin/">Go to Admin</a>
+            <a class="btn btn-primary" href="{% url 'admin:index' %}">Go to Admin</a>
           </div>
         </div>
         <div class="col-md-6">
           <div class="card p-3 h-100" style="background:rgba(255,122,24,.08);">
             <h5 class="mb-2">Parent / Student</h5>
             <p class="text-muted small mb-3">View results, report cards, fees, and announcements.</p>
-            <a class="btn btn-outline-primary" href="/authentication/login/">Sign in</a>
+            <a class="btn btn-outline-primary" href="{% url 'accounts:login' %}">Sign in</a>
           </div>
         </div>
       </div>
@@ -29,8 +29,8 @@
       <hr class="my-4">
 
       <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-secondary" href="/siteconfig/user_preferences/">Site Settings</a>
-        <a class="btn btn-outline-secondary" href="/portal/">Portal</a>
+        <a class="btn btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}">Preferences</a>
+        <a class="btn btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">Portal</a>
       </div>
     </div>
   </div>

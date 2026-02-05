@@ -172,6 +172,7 @@
 </div>
 
 <script>
+  window.EVALS_EXTEND_DEADLINE_URL_BASE = "{% url 'evals:extend_deadline' 0 %}";
 function showTeacherDetails(teacherId, teacherName, deadlines) {
     document.getElementById('teacherName').textContent = teacherName;
     
@@ -195,7 +196,7 @@ function showTeacherDetails(teacherId, teacherName, deadlines) {
                 </span>
             </td>
             <td>
-                <a href="/evals/compliance/deadline/${deadline.subject_assignment_id}/extend/" class="btn btn-xs btn-warning">
+                <a href="${(window.EVALS_EXTEND_DEADLINE_URL_BASE || '/evals/compliance/deadline/0/extend/').replace('/0/', '/' + deadline.subject_assignment_id + '/')}" class="btn btn-xs btn-warning">
                     Extend
                 </a>
             </td>

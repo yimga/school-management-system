@@ -9,8 +9,8 @@
     {% include "components/pin_to_quick_access.html" with sidebar_item_id="marks_entry" %}
   </div>
   <div>
-    <a class="btn btn-outline-primary btn-sm" href="/evals/teacher/">Dashboard</a>
-    <a class="btn btn-outline-primary btn-sm" href="/evals/teacher/marks/">My Marks</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_dashboard' %}">Dashboard</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_marks_list' %}">My Marks</a>
   </div>
 </div>
 

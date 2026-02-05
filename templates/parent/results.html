@@ -16,7 +16,7 @@
   </div>
   <div class="d-flex flex-wrap gap-2 no-print">
     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();" aria-label="{% trans 'Print' %}"><i class="bi bi-printer me-1"></i>{% trans "Print" %}</button>
-    <a class="btn btn-outline-primary btn-sm" href="/portal/parent/">Back</a>
+    <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back</a>
     {% if published %}
       <a class="btn btn-success btn-sm" href="{% url 'parent_download_term_report' student.id %}">Download Term PDF</a>
       <a class="btn btn-outline-primary btn-sm" href="{% url 'parent_download_term_report_csv' student.id %}">Term CSV</a>

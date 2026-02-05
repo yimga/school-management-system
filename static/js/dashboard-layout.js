@@ -542,10 +542,7 @@
 
     document.getElementById('btnAddWidget')?.addEventListener('click', openAddWidgetPalette);
 
-    // Skip layout load/apply for backend (complex nested row/col structure would break)
-    if (page === 'backend') return;
-
-    // Loading state
+    // Loading state (backend still loads meta and wires controls; we skip applyLayout only)
     const loader = document.createElement('div');
     loader.className = 'small text-muted mb-2';
     loader.id = 'dashboard-layout-loading';
@@ -565,7 +562,8 @@
             widgetMetaById[w.id] = w;
           });
         }
-        if (data.layout) applyLayout(columns, data.layout);
+        // Backend: do not reorder DOM (complex nested row/col would break); other pages apply saved layout
+        if (data.layout && page !== 'backend') applyLayout(columns, data.layout);
 
         hiddenWidgetIds = (data.layout && data.layout.__settings__ && data.layout.__settings__.hidden_widget_ids) || [];
         if (!Array.isArray(hiddenWidgetIds)) hiddenWidgetIds = [];

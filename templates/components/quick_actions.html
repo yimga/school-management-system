@@ -98,8 +98,8 @@
       </a>
       {% endif %}
 
-      <!-- Analytics -->
-      <a href="{% url 'admin:analytics_gradingdeadline_changelist' %}" class="quick-action-item">
+      <!-- Analytics (frontend dashboard; analytics app has no admin models) -->
+      <a href="{% url 'analytics:dashboard' %}" class="quick-action-item">
         <div class="quick-action-icon bg-gradient">
           <i class="fas fa-chart-line"></i>
         </div>
@@ -110,7 +110,7 @@
       </a>
 
       <!-- Compliance -->
-      <a href="/compliance/dashboard/" class="quick-action-item">
+      <a href="{% url 'compliance:dashboard' %}" class="quick-action-item">
         <div class="quick-action-icon bg-danger">
           <i class="fas fa-shield-alt"></i>
         </div>
@@ -125,7 +125,7 @@
     <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary">
       <i class="fas fa-th"></i> View All Admin
     </a>
-    <a href="/backend/rbac/" class="btn btn-sm btn-outline-secondary">
+    <a href="{% url 'accounts:rbac' %}" class="btn btn-sm btn-outline-secondary">
       <i class="fas fa-users-cog"></i> RBAC
     </a>
   </div>

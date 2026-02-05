@@ -222,6 +222,7 @@
 })();
 </script>
 <script>
+  window.EMIS_DOWNLOAD_URL_BASE = "{% url 'emis:download' 0 %}";
 document.addEventListener('DOMContentLoaded', function() {
   // Load initial data
   loadCountryInfo();
@@ -284,7 +285,7 @@ function loadRecentExports() {
             <td><span class="badge bg-${statusClass}">${export_item.status}</span></td>
             <td>
               ${export_item.status === 'completed' ?
-                `<a href="/emis/download/${export_item.id}/" class="btn btn-sm btn-outline-primary">Download</a>` :
+                `<a href="${(window.EMIS_DOWNLOAD_URL_BASE || '/emis/download/0/').replace('/0/', '/' + export_item.id + '/')}" class="btn btn-sm btn-outline-primary">Download</a>` :
                 '-'}
             </td>
           </tr>

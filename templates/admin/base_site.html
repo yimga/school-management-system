@@ -3,6 +3,45 @@
 
 {% block extrastyle %}
   {{ block.super }}
+  <!-- CRITICAL: Admin layout fallback so sidebar stays LEFT when Unfold/Tailwind CSS fails to load (e.g. static 404) -->
+  <style id="admin-layout-critical">
+    #page {
+      display: flex !important;
+      flex-direction: row !important;
+      min-height: 100vh !important;
+      max-width: 100% !important;
+    }
+    #page > div:first-child {
+      width: 288px !important;
+      min-width: 288px !important;
+      flex-shrink: 0 !important;
+      overflow: hidden !important;
+      position: sticky !important;
+      top: 0 !important;
+      height: 100vh !important;
+      background: var(--admin-sidebar-bg, #f8fafc) !important;
+      border-right: 1px solid var(--admin-sidebar-border, #e2e8f0) !important;
+    }
+    html.dark #page > div:first-child,
+    [data-theme="dark"] #page > div:first-child,
+    [data-bs-theme="dark"] #page > div:first-child {
+      background: var(--admin-sidebar-bg, #0f172a) !important;
+      border-right-color: var(--admin-sidebar-border, #1e293b) !important;
+    }
+    #page #main {
+      flex: 1 1 0% !important;
+      min-width: 0 !important;
+    }
+    #nav-sidebar {
+      width: 288px !important;
+      max-width: 288px !important;
+      min-height: 100vh !important;
+      box-sizing: border-box !important;
+    }
+    @media (max-width: 1279px) {
+      #page > div:first-child { display: none !important; }
+    }
+  </style>
   <!-- DESIGN TOKENS - Shared variable names (Portal, Admin, Backend) -->
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   <!-- UNIFIED DESIGN SYSTEM - Defines all CSS variables -->
@@ -207,7 +246,7 @@
       </span>
       <div class="preview-cue-actions">
         <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
-        <a href="/siteconfig/customizer/clear-preview/">Clear preview</a>
+        <a href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
       </div>
     </div>
   {% elif PREVIEW_TOGGLE_ENABLED %}

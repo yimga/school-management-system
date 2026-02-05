@@ -214,9 +214,9 @@
                 </a>
               {% endif %}
               {% if preview_data.preview_mode_enabled %}
-                <a href="/siteconfig/customizer/clear-preview/" class="btn btn-sm btn-outline-secondary" title="Clear staged preview">Clear preview</a>
+                <a href="{% url 'siteconfig:clear_preview' %}" class="btn btn-sm btn-outline-secondary" title="Clear staged preview">Clear preview</a>
               {% endif %}
-              <a href="/siteconfig/customizer/" class="btn btn-sm btn-primary" title="Open the Site Settings preview customizer">Open customizer</a>
+              <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-primary" title="Open the Site Settings preview customizer">Open customizer</a>
             </div>
             <div class="preview-status-card__colors">
               <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.primary }};">Primary</span>
@@ -285,7 +285,7 @@
               <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">System Health</span>
               <span style="font-size: 20px;">⚙️</span>
             </div>
-            <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;"><a href="/api/health/" target="_blank" rel="noopener" style="color: inherit; text-decoration: none;" title="View API health"><span class="admin-stat admin-stat--success">100%</span></a></div>
+            <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;"><a href="{% url 'api_health' %}" target="_blank" rel="noopener" style="color: inherit; text-decoration: none;" title="View API health"><span class="admin-stat admin-stat--success">100%</span></a></div>
             <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
               <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Status:</span> <span class="admin-stat admin-stat--success">Operational</span></span>
               <span style="display: flex; justify-content: space-between;"><span>Uptime:</span> <span style="color: var(--admin-text); font-weight: 600;">24/7</span></span>
@@ -391,16 +391,16 @@
     <div style="margin-bottom: 32px;" data-widget-id="admin-controls">
       <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px;">Admin Controls</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
-        <a href="/admin/auth/user/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
+        <a href="{% url 'admin:accounts_user_changelist' %}" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
           👥 Manage Users
         </a>
-        <a href="/admin/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
+        <a href="{% url 'admin:index' %}" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
           📋 All Models
         </a>
-        <a href="/api/health/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
+        <a href="{% url 'api_health' %}" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
           ⚕️ API Health
         </a>
-        <a href="/admin/siteconfig/customizer/" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
+        <a href="{% url 'siteconfig:customizer' %}" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
           ⚙️ Site Config
         </a>
         <a href="{% url 'accounts:backend_dashboard' %}" class="admin-cta-backend">
