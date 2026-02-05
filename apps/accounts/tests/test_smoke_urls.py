@@ -34,6 +34,9 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_siteconfig_clear_preview(self):
         self.assertEqual(reverse("siteconfig:clear_preview"), "/siteconfig/customizer/clear-preview/")
 
+    def test_siteconfig_feature_control_panel(self):
+        self.assertEqual(reverse("siteconfig:feature_control_panel"), "/siteconfig/feature-control/")
+
     def test_portal_parent_dashboard(self):
         self.assertEqual(reverse("portal:parent_dashboard"), "/portal/parent/")
 

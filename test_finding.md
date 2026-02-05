@@ -1,74 +1,105 @@
-# Buea Real User Testing — Findings Log
+# Test Findings — Buea Dual-Curriculum & Report Cards
 
-This document is updated continuously during the comprehensive test run. All bugs, gaps, redundancies, and improvements are recorded here.
+Document every **bug**, **redundancy**, **gap**, and **improvement** found while running the comprehensive test plan. See **docs/COMPREHENSIVE_TEST_PLAN_BUEA.md** for the full plan.
 
-**Context**: English education system in Cameroon; technical school (Form 5 & 7 GCE); Buea localities: Molyko, Great Soppo, Mile 17, Bonduma. Passwords: superuser from ensure_superuser (e.g. `Sch00l_1234`), all other users `Test124`.
-
----
-
-## Environment / Setup
-
-| Date | Finding | Severity | Notes |
-|------|---------|----------|--------|
-| 2026-02-04 | SQLite DB in project root (`db_working.sqlite3` / `db.sqlite3`) failed with "database disk image is malformed" during migrate. | High | Migrate succeeded when using `DB_FILE=$TEMP/gilead_buea_test.sqlite3` (DB in system temp). Likely cause: cloud sync or antivirus on project directory. **Workaround**: Use `export DB_FILE=$TEMP/gilead_buea_test.sqlite3` (or copy the created DB to a non-synced path and set DB_FILE). |
-| 2026-02-04 | Superuser created: username `admin`, password `Sch00l_1234`. | Info | Created via `ensure_superuser --no-input --username admin --password Sch00l_1234`. |
-| 2026-02-04 | Synthetic Buea seed completed (scale=small). | Info | 200 students, 150 parents, 10 teachers, 5 admins, 1 bursar; academics, fee plans, invoices (~30% debt), evals subset, GCE session and candidates. DB copied to `db_buea_seed.sqlite3`. Use `DB_FILE=db_buea_seed.sqlite3` to run against seeded data. |
-| 2026-02-05 | Seed expanded to engage **every app/module**: reports (TermPublishStatus), portal (Announcement, PortalFeatureItem), communication (Message, ContactRequest), requests (AccessRequest, RequestDecision), analytics (AttendanceLog, GradeImportJob), people (TeacherAttendance, TeacherLeaveRequest, StudentResourceReturn), evals (MockExamSetting), finance (Payment, PaymentReminder), payroll (PayScale, PayrollEmployee, Contract, PayrollRun, Payslip), siteconfig (RegionConfig, HolidayCalendar), compliance (ComplianceRule), automation (AutomationExecutionLog). See docs/BUEA_SEED_FEATURE_CONFIRMATION.md. | Info | Single run of `seed_buea_synthetic` creates full test environment; document all issues in this tracker (test_finding.md). |
-| 2026-02-05 | **Step 4 (tracker run)** executed: Automated test suites run and results logged here. | Info | See "Step 4 execution" below. |
+**Convention:** Use headings by phase or area; each finding: short title, severity (Critical/High/Medium/Low), steps to reproduce (if bug), expected vs actual, and recommendation.
 
 ---
 
-## Step 4 execution (test run and tracker update)
+## What’s missing in the code (vs comprehensive plan)
 
-| When | What was run | Result | Notes |
-|------|----------------|--------|--------|
-| 2026-02-05 | `python manage.py test apps.evals.tests.test_grade_approval_workflow apps.finance.tests.test_phase0_security apps.reports.tests apps.requests` | **69 tests OK** | Evals: grade approval workflow (submit, list, detail, 25/20 rejection, non-final role). Finance: webhook security, idempotency, signature, IP. Reports: publish term. Requests: module. |
-| 2026-02-05 | Migrate + seed (for full environment) | **Skipped** | `DB_FILE=db_step4.sqlite3` was used; migrate failed partway with "database disk image is malformed" (same disk/sync issue as in Environment). On a healthy DB: run `migrate` → `ensure_superuser` → `seed_buea_synthetic` → then run all scenarios and log every finding in this tracker. |
+Summary of **plan vs code**: what the plan expects that is **not implemented** or only **partially implemented**.
 
-**Ongoing**: As you run more scenarios (manual or automated), add rows to Bugs, Gaps, Redundancies, Improvements, Security, or Data and Config above. Keep this table updated with what was run and the outcome.
+| # | Plan requirement | In code? | Where / note |
+|---|------------------|---------|--------------|
+| 1 | **Report card block by financial arrears** | **Yes** | `apps/reports/services.py`: `student_has_financial_clearance()`; views block when `block_report_download_if_outstanding_balance` (default True). |
+| 2 | **Arrears carry-forward on rollover** | **Yes** | `apps/finance/services.py`: `carry_forward_arrears()`; rollover form "Carry forward unpaid fees" (flag `carry_forward_arrears_on_rollover`). |
+| 3 | **GCE Board export: CIN 9-digit, DATE_OF_BIRTH DD/MM/YYYY, EXAM_TYPE, MOMO_TRANS_ID** | **Yes** | `views_certification.py`: candidates.csv has CIN, DATE_OF_BIRTH (DD/MM/YYYY), EXAM_TYPE, MOMO_TRANS_ID, specialty_code. |
+| 4 | **ITC/ATC pass rule (5 subjects, 2 Professional + 1 Related)** | **Yes** | `apps/reports/models.PromotionRule`: only `promotion_average` (e.g. 10/20). No Technical-specific “5 subjects, 2 professional” logic in promotion or rollover. |
+| 5 | **Industrial attachment (Paper 3) mark → syncs to Sequence 6** | Partial | Evals has `practical_score` and workshop-related models; no explicit “Industrial Attachment” as Paper 3 that auto-syncs to a sequence score. |
+| 6 | **Report card QR code + public verification URL** | No | No QR on report PDF; no public URL to verify authenticity against DB. |
+| 7 | **Workshop inventory: block report/promotion if unreturned tool** | **Yes** | `StudentResourceReturn` exists (rollover can block on “outstanding returns”). Report download does not check unreturned resources/tools. |
+| 8 | **Form 4 blocked from GCE registration (only Form 5 / Upper Sixth)** | **Yes** | `Classroom.gce_eligible`; bulk-add shows only GCE-eligible classrooms when any are marked. |
+| 9 | **PTA vs Tuition vs Workshop fees (separate on invoice)** | Partial | `apps/finance`: Invoice, FeeItem, FeePlan. PTA/Workshop can be separate items; confirm generation and display match “PTA levy, Workshop fee, Tuition” split. |
+| 10 | **Transport fee auto-appended to invoice (bus route)** | Unclear | No obvious “bus route” or transport fee auto-add on invoice in quick scan; needs verification. |
+| 11 | **SMS to parent when report blocked (debt)** | No | Report download does not block by debt, so no “block + SMS” flow. After implementing (1), add optional SMS via `apps.communication`. |
+| 12 | **Offline mark entry → cache → sync on reconnect** | Partial | `apps/evals`: `OfflineMarkEntry`, `offline_sync.py`, resolve conflict view. Backend exists; front-end may not use IndexedDB/LocalStorage for true offline cache and sync on reconnect. |
+| 13 | **MoMo callback (webhook) + idempotency** | Yes | `apps/finance`: `payment_provider_webhook`, WebhookLog, idempotency in `security.py`. Implemented. |
+| 14 | **Promotion by single average threshold (General)** | Yes | `PromotionRule.promotion_average`; rollover uses get_promotion_status. Implemented for single-threshold. |
+| 15 | **Evals year lock (no edit after rollover)** | Yes | Evals views check academic year lock; edits forbidden after lock. Implemented. |
+
+**Priority fixes from plan:** (1) Report card block by debt, (2) Arrears carry-forward, (3) GCE export format (Board columns + DD/MM/YYYY), (4) ITC/ATC pass logic if Technical stream is in scope — **all implemented**.
+
+---
+
+## Gaps (missing features / logic)
+
+### GAP-001: Report card download not blocked by financial arrears
+- **Severity:** Critical (Buea requirement: financial clearance before report card).
+- **Where:** `apps/reports/views.py` — `parent_download_term_report`, `parent_download_annual_report`, and share-link flows.
+- **Current:** No check for outstanding balance before generating/serving PDF.
+- **Expected:** If student has outstanding balance (e.g. `Invoice` status not PAID or balance > 0), block download and show message: “Please clear fees at the Bursary” (or similar); optionally trigger SMS to parent via apps.communication.
+- **Recommendation:** Add a helper (e.g. `student_has_financial_clearance(student, year, term)`) using apps.finance; call it before generating PDF and return 403 + message if not clear.
+
+### GAP-002: Arrears not carried forward to next academic year
+- **Severity:** High (year-on-year continuity).
+- **Where:** `apps/accounts/views.py` — `rollover_year`; `apps/finance` (no “opening balance” or arrears carry-forward on rollover).
+- **Current:** Rollover moves students and can lock source year; it does not create Opening Balance or carry unpaid fees into the new year in apps.finance.
+- **Expected:** Unpaid fees from source year appear as Opening Balance / arrears for the target year for each student.
+- **Recommendation:** After rollover, run a finance step: for each student with unpaid invoice in source year, create an Opening Balance entry or equivalent in target year (design with finance module maintainer).
 
 ---
 
 ## Bugs
 
-| Date | Description | Severity | Notes |
-|------|-------------|----------|--------|
-| 2026-02-04 | **GradeApprovalRequest**: Views and approval flow referenced `deadline_at` and `validation_flags`, which were removed from the model in migration 0021. | High | Fixed: `evals/views.py` and `evals/approval.py` no longer pass or read these fields; detail template uses `deadline_display = None` and `validation_flags = []`. |
-| 2026-02-04 | **Evals templates**: `grade_approval_list.html` used `format_date` (region_format), causing "format_date requires 2 arguments, 1 provided" in test context; `grade_approval_detail.html` used `{% load humanize %}` (KeyError when humanize not in INSTALLED_APPS) and Python-style `x if y` in `{{ }}` (TemplateSyntaxError). | Medium | Fixed: list/detail use `date:"d/m/Y"` for requested_at; humanize load removed; conditional output replaced with `{% if %}...{% endif %}`. |
-| 2026-02-04 | **Evals test**: `test_grade_approval_request_has_deadline_and_flag` asserted on removed `deadline_at`/`validation_flags`; `test_non_final_role_cannot_finalize` used `assertFormError` on a response that re-renders with invalid choice (no custom error). | Low | Fixed: test renamed to `test_grade_approval_request_rejects_out_of_range_score` (asserts no approval request when 25/20 submitted); non-final test now asserts status remains PENDING and form has error on `status`. |
+*(Add as discovered: title, severity, steps, expected, actual, file/line if known.)*
 
----
-
-## Gaps
-
-| Gap | Description | Notes |
-|-----|-------------|--------|
-| **Debt-block on report card** | `parent_download_term_report`, `parent_download_term_report_csv`, `parent_download_annual_report`, `report_share` do **not** check student/guardian outstanding balance or arrears. Parents of students with debt can download term/annual PDF/CSV and use share links. | **Expected (from guide)**: Block PDF and show “Clear Workshop Fees at Bursary” (or similar); optionally trigger SMS to guardian. **Recommendation**: Add financial clearance check in reports views and optionally notify on payment to “unlock” report. |
-| **GCE export columns** | `export_certification_pack` produces: academic_year, session_name, board, level, student_id, student_name, classroom, specialty, admission_number, candidate_number, status, ca_uploaded_at, notes. **Missing vs guide**: CIN (9 digits), FULL_NAMES UPPERCASE, DATE_OF_BIRTH in **DD/MM/YYYY**, EXAM_TYPE (GCE_OL, GCE_AL, ITC, ATC), SPECIALTY_CODE, MOMO_TRANS_ID. Date is not in DD/MM/YYYY; student_name is not forced UPPERCASE. | Add columns and date/name formatting for board template compliance. |
-| 6-sequence evals | Model has seq1, seq2, exam, mock, practical (5). If MINESEC requires 6 sequences, document and add if missing. | |
-| **Arrears carry-forward** | Unpaid fees from previous year do not appear as opening balance for next year in finance (no explicit carry-forward implemented). | Document for Buea: consider adding opening_balance or arrears carry on rollover. |
-| ITC/ATC pass rule, industrial attachment, workshop inventory, QR on report | (To be verified in respective sections.) | |
+- (none logged yet)
 
 ---
 
 ## Redundancies
 
-*(None yet.)*
+*(Duplicate code, duplicate UI, dead code.)*
+
+- (none logged yet)
 
 ---
 
 ## Improvements
 
-*(None yet.)*
+*(UX, performance, clarity, or non-blocking enhancements.)*
+
+- (none logged yet)
 
 ---
 
-## Security
+## Evals-specific
 
-*(None yet.)*
+*(Marks, sequences, coefficients, approval, lock.)*
+
+- (none logged yet)
 
 ---
 
-## Data and Config
+## Report card–specific
 
-*(None yet.)*
+*(PDF layout, content, bulk generation, share link, QR.)*
+
+- (none logged yet)
+
+---
+
+## Finance & payment
+
+*(Invoices, PTA/workshop split, MoMo callback, payroll.)*
+
+- (none logged yet)
+
+---
+
+## GCE / EMIS / Rollover
+
+*(Registration, export format, rollover logic, archive.)*
+
+- (none logged yet)

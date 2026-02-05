@@ -186,6 +186,7 @@ def certification_export_zip(request, session_id: int):
     # Build main candidates CSV
     csv_buf = io.StringIO()
     writer = csv.writer(csv_buf)
+    # Board-style column names (CIN, DATE_OF_BIRTH DD/MM/YYYY, EXAM_TYPE, MOMO_TRANS_ID) for GCE upload
     writer.writerow(
         [
             "centre_number",
@@ -197,10 +198,15 @@ def certification_export_zip(request, session_id: int):
             "student_name",
             "classroom",
             "specialty",
+            "specialty_code",
             "admission_number",
             "unique_identifier",
+            "CIN",
+            "DATE_OF_BIRTH",
+            "EXAM_TYPE",
             "official_cin",
             "payment_transaction_id",
+            "MOMO_TRANS_ID",
             "payment_amount_fcfa",
             "status",
             "validated_at",
@@ -211,6 +217,10 @@ def certification_export_zip(request, session_id: int):
     for c in candidates:
         s = c.student
         student_name = getattr(s, "get_full_name", lambda: f"{s.last_name} {s.first_name}")()
+        dob = getattr(s, "date_of_birth", None)
+        date_of_birth_ddmmYYYY = dob.strftime("%d/%m/%Y") if dob else ""
+        specialty = getattr(s, "specialty", None)
+        specialty_code = getattr(specialty, "code", None) or getattr(specialty, "name", "") or ""
         writer.writerow(
             [
                 session.exam_centre_number or "",
@@ -221,10 +231,15 @@ def certification_export_zip(request, session_id: int):
                 s.id,
                 student_name,
                 getattr(getattr(s, "classroom", None), "name", "") or "",
-                getattr(getattr(s, "specialty", None), "name", "") or "",
+                getattr(specialty, "name", "") or "",
+                specialty_code,
                 getattr(s, "admission_number", "") or getattr(s, "student_code", "") or "",
                 c.unique_identifier or "",
+                (c.official_cin or "")[:9] if c.official_cin else "",
+                date_of_birth_ddmmYYYY,
+                session.level or "",
                 c.official_cin or "",
+                c.payment_transaction_id or "",
                 c.payment_transaction_id or "",
                 c.payment_amount_fcfa or 0,
                 c.status,
@@ -457,7 +472,10 @@ class CertificationBulkCandidateForm(forms.Form):
         self.fields["skip_existing_candidates"].widget.attrs.update({"class": "form-check-input"})
 
         if year is not None:
-            self.fields["classrooms"].queryset = Classroom.objects.filter(academic_year=year).order_by("name")
+            base_classrooms = Classroom.objects.filter(academic_year=year).order_by("name")
+            if base_classrooms.filter(gce_eligible=True).exists():
+                base_classrooms = base_classrooms.filter(gce_eligible=True)
+            self.fields["classrooms"].queryset = base_classrooms
             self.fields["specialties"].queryset = Specialty.objects.all().order_by("name")
 
 

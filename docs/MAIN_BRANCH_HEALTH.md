@@ -50,6 +50,18 @@ Single reference to confirm **everything on main is in order** and where the **t
 
 ---
 
+## 2b. Verification performed (no duplicates)
+
+- **Admin sidebar:** Single logo row in `sidebar_inner.html`; no duplicate branding row (navigation_header is minimal: close + dropdown only).
+- **Admin header:** Nav bridge, weather, site name, preview banner live in `unfold/helpers/header.html` (main content), not in sidebar.
+- **Logos:** `static/images/logo.png` and `static/images/gilead_logo_transparent.png` are in repo and tracked; sidebar uses SITE_ADMIN_LOGO_URL → SITE_LOGO_URL → static `images/logo.png` with icon fallback.
+- **CSS:** No duplicate `<link>` for the same file in `admin/base_site.html` (duplicate `admin-dashboard.css` removed).
+- **Templates:** All templates that use `{% static %}` have `{% load static %}` (or extend a template that does).
+- **Smoke test:** `python manage.py test apps.accounts.tests.test_smoke_urls` — 17 URL resolution tests (including siteconfig feature-control), no DB required; CI runs on push/PR to main.
+- **Test users on live:** The **admin panel** (`/admin/`) shows a **“Testing & test users”** card with usernames (admin, teacher1, Parent1, principal1) and where the password comes from (ADMIN_PASSWORD on Render; or the password you pass when running the seed commands locally).
+
+---
+
 ## 3. Quick “everything good” checklist
 
 - [ ] On main: `git status` shows no unintended modified/untracked code (DB backups like `db.sqlite3.corrupted` can stay untracked).

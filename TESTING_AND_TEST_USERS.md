@@ -38,8 +38,8 @@ python manage.py migrate --noinput
 # 2. Create superuser (admin)
 python manage.py ensure_superuser --no-input --password Sch00l_1234
 
-# 3. Create teacher and parent (same password as you like)
-python manage.py create_teacher_parent_accounts --teacher-username teacher1 --parent-username Parent1 --password Sch00l_1234
+# 3. Create teacher, parent, and principal (same password as you like)
+python manage.py create_teacher_parent_accounts --teacher-username teacher1 --parent-username Parent1 --principal-username principal1 --password Sch00l_1234
 ```
 
 **Result:**
@@ -49,9 +49,10 @@ python manage.py create_teacher_parent_accounts --teacher-username teacher1 --pa
 | **admin** | Sch00l_1234 | Superuser |
 | **teacher1** | Sch00l_1234 | Teacher |
 | **Parent1** | Sch00l_1234 | Parent |
+| **principal1** | Sch00l_1234 | Principal |
 
 - Log in at **/authentication/login/** or **/admin/**.
-- Exact usernames: `admin`, `teacher1`, `Parent1` (case-sensitive).
+- Exact usernames: `admin`, `teacher1`, `Parent1`, `principal1` (case-sensitive).
 
 To use a different password (e.g. from env):
 
@@ -75,6 +76,7 @@ On Render, test users are created by the **preDeployCommand** (or Release Comman
    - **admin** (superuser) – password = `ADMIN_PASSWORD`
    - **teacher1** (teacher) – password = `ADMIN_PASSWORD`
    - **Parent1** (parent) – password = `ADMIN_PASSWORD`
+   - **principal1** (principal) – password = `ADMIN_PASSWORD`
 
 If credentials disappear (e.g. ephemeral DB or new DB), set `ADMIN_PASSWORD` and redeploy so `seed_render_users` runs again. See **docs/CREDENTIALS_AND_RESTORE.md** and **docs/CONFIG_AND_USERNAMES_REFERENCE.md**.
 
@@ -91,7 +93,7 @@ python manage.py seed_buea_synthetic --scale small
 ```
 
 - **admin** / Sch00l_1234 – superuser (from ensure_superuser).
-- All Buea seed users (teachers, parents, admins, bursar) use password **Test124**.
+- All Buea seed users (teachers, parents, admins, bursar) use password **Test1234**.
 - Usernames: e.g. teacher_buea_01 … teacher_buea_10, parent_buea_001 … parent_buea_150, admin_buea_01 … admin_buea_05, bursar_buea. See **docs/CONFIG_AND_USERNAMES_REFERENCE.md**.
 
 ---
@@ -105,21 +107,28 @@ After creating users and starting the server:
 - [ ] **Django Admin:** As admin, open `/admin/`. Sidebar on the **left**; app list and models load.
 - [ ] **Parent:** Log in as **Parent1**, open `/portal/parent/`. Parent dashboard loads.
 - [ ] **Teacher:** Log in as **teacher1**, open `/portal/teacher/`. Teacher dashboard loads.
+- [ ] **Principal:** Log in as **principal1**. Can access backend; role is Principal.
 
 ---
 
-## 4. Where test-user logic lives
+## 4. Comprehensive Buea test plan (evals, report cards, rollover)
+
+For **real-world testing** of the dual-curriculum (General + Technical), report cards, evals, finance, and rollover, see **docs/COMPREHENSIVE_TEST_PLAN_BUEA.md**. Log all bugs, gaps, and improvements in **test_finding.md** (project root).
+
+---
+
+## 5. Where test-user logic lives
 
 | What | Where |
 |------|--------|
 | Superuser (admin) | `apps/accounts/management/commands/ensure_superuser.py` |
-| Teacher + parent (teacher1, Parent1) | `apps/accounts/management/commands/create_teacher_parent_accounts.py` |
+| Teacher + parent + principal (teacher1, Parent1, principal1) | `apps/accounts/management/commands/create_teacher_parent_accounts.py` |
 | Render seed (admin + teacher1 + Parent1) | `apps/accounts/management/commands/seed_render_users.py` (calls ensure_superuser + create_teacher_parent_accounts) |
 | Full Buea synthetic data | `apps/academics/management/commands/seed_buea_synthetic.py` |
 
 ---
 
-## 5. More detail
+## 6. More detail
 
 - **Credentials and restore:** **docs/CREDENTIALS_AND_RESTORE.md**
 - **Usernames and config (Render + Buea):** **docs/CONFIG_AND_USERNAMES_REFERENCE.md**

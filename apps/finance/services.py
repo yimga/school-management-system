@@ -317,6 +317,74 @@ def apply_payment(payment: Payment) -> None:
     post_payment_to_ledger(payment)
 
 
+def carry_forward_arrears(source_year, target_year) -> int:
+    """
+    For each student with unpaid invoice balance in source_year, create an Opening Balance
+    (arrears) invoice in target_year. Idempotent: uses reference ARREARS-{target_year.name}-{student_code}
+    so re-running does not duplicate. Returns the number of arrears invoices created.
+    """
+    from apps.academics.models import AcademicYear
+
+    if not isinstance(source_year, AcademicYear):
+        source_year = AcademicYear.objects.get(id=source_year)
+    if not isinstance(target_year, AcademicYear):
+        target_year = AcademicYear.objects.get(id=target_year)
+
+    profile = ComplianceProfile.objects.filter(is_active=True).first()
+    if not profile:
+        return 0
+
+    invoices_source = Invoice.objects.filter(
+        academic_year=source_year,
+        student__isnull=False,
+        invoice_type=Invoice.InvoiceType.AR,
+    ).exclude(status=Invoice.Status.VOID).select_related("student")
+
+    # Group by student: sum computed_balance (property, so we iterate)
+    arrears_by_student: dict[int, Decimal] = {}
+    for inv in invoices_source:
+        bal = inv.computed_balance
+        if bal > Decimal("0.00"):
+            sid = inv.student_id
+            arrears_by_student[sid] = arrears_by_student.get(sid, Decimal("0.00")) + bal
+
+    created = 0
+    issued = timezone.now().date()
+    with transaction.atomic():
+        for student_id, total_arrears in arrears_by_student.items():
+            if total_arrears <= Decimal("0.00"):
+                continue
+            student = StudentProfile.objects.filter(id=student_id).first()
+            if not student:
+                continue
+            ref = f"ARREARS-{target_year.name}-{student.student_code}"
+            inv, created_inv = Invoice.objects.get_or_create(
+                profile=profile,
+                academic_year=target_year,
+                student_id=student_id,
+                reference=ref,
+                invoice_type=Invoice.InvoiceType.AR,
+                defaults={
+                    "issued_date": issued,
+                    "due_date": issued,
+                    "status": Invoice.Status.ISSUED,
+                    "total_amount": total_arrears,
+                },
+            )
+            if not created_inv:
+                continue
+            InvoiceLine.objects.create(
+                invoice=inv,
+                description=f"Opening balance / Arrears from {source_year.name}",
+                quantity=Decimal("1.00"),
+                unit_price=total_arrears,
+                amount=total_arrears,
+            )
+            recalculate_invoice(inv)
+            created += 1
+    return created
+
+
 def _get_region_for_refund(invoice: Invoice):
     """Get RegionConfig for refund/overpayment (use first active region)."""
     from apps.siteconfig.models import RegionConfig

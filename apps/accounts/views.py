@@ -1406,6 +1406,7 @@ def rollover_year(request):
         lock_source = request.POST.get("lock_source") == "on"
         notify_parents = request.POST.get("notify_parents") == "on"
         allow_outstanding_returns = request.POST.get("allow_outstanding_returns") == "on"
+        carry_forward_arrears_check = request.POST.get("carry_forward_arrears") == "on"
         if not source_id or not target_id:
             messages.error(request, "Please select both source and target year.")
             return render(request, "accounts/rollover_year.html", {"years": years})
@@ -1494,6 +1495,20 @@ def rollover_year(request):
                             notifier.send_sms(link.phone, msg)
                         except Exception:
                             pass
+        if carry_forward_arrears_check and flags.get("carry_forward_arrears_on_rollover", True):
+            try:
+                from apps.finance.services import carry_forward_arrears
+                arrears_created = carry_forward_arrears(source_year, target_year)
+                if arrears_created:
+                    messages.success(
+                        request,
+                        f"Created {arrears_created} opening balance (arrears) invoice(s) in {target_year.name}.",
+                    )
+            except Exception as e:
+                messages.error(
+                    request,
+                    f"Arrears carry-forward failed: {e}. Please check Finance configuration.",
+                )
         if lock_source:
             source_year.is_locked = True
             source_year.save(update_fields=["is_locked"])
@@ -1513,7 +1528,7 @@ def rollover_year(request):
     # GET: show form and optionally student list when source/target selected
     source_id = request.GET.get("source_year")
     target_id = request.GET.get("target_year")
-    context = {"years": years, "rows": [], "source_year": None, "target_year": None, "target_classrooms": [], "checklist": [], "block_promotion_if_outstanding_returns": False}
+    context = {"years": years, "rows": [], "source_year": None, "target_year": None, "target_classrooms": [], "checklist": [], "block_promotion_if_outstanding_returns": False, "carry_forward_arrears_on_rollover": False}
     if source_id and target_id:
         source_year = AcademicYear.objects.filter(id=source_id).first()
         target_year = AcademicYear.objects.filter(id=target_id).first()
@@ -1560,6 +1575,9 @@ def rollover_year(request):
             site = SiteSettings.get_solo()
             context["block_promotion_if_outstanding_returns"] = (
                 (getattr(site, "backend_feature_flags", None) or {}).get("block_promotion_if_outstanding_returns", False)
+            )
+            context["carry_forward_arrears_on_rollover"] = (
+                (getattr(site, "backend_feature_flags", None) or {}).get("carry_forward_arrears_on_rollover", True)
             )
             for s in students:
                 annual_avg = _annual_average_for_student(s, terms) if terms else None

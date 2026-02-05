@@ -1,24 +1,24 @@
-{% load i18n unfold %}
+{% load i18n static unfold %}
 {% comment %}
-Single source for admin sidebar. Used by nav_sidebar.html so index and all other admin pages
-show the same sidebar (branding, Quick access, app list, user). Never use Unfold's conditional
-navigation so we avoid two different sidebars.
+Single source for admin sidebar: logo + title at top, then search, Quick access, app list, user.
+Logo: SITE_ADMIN_LOGO_URL (ThemePack) or SITE_LOGO_URL (SiteSettings) or static fallback.
 {% endcomment %}
 <nav id="nav-sidebar-inner" class="bg-base-50 flex flex-col min-h-screen dark:text-font-default-dark dark:bg-base-950/20 {% element_classes 'navigation_inner' %}">
     <div class="flex-shrink-0 border-b border-base-200 dark:border-base-800 px-3 py-3">
         <a href="{% url 'admin:index' %}" class="admin-sidebar-brand-link-header flex items-center gap-3 min-w-0 text-decoration-none" style="color: var(--admin-sidebar-text, #0f172a);">
-            <div class="admin-sidebar-logo-wrap flex items-center justify-center shrink-0 rounded-lg" style="background: var(--admin-sidebar-logo-bg, rgba(0,0,0,0.12)); padding: 6px; min-width: 38px; min-height: 38px; color: var(--admin-sidebar-logo-fg, inherit);">
+            <div class="admin-sidebar-logo-wrap flex items-center justify-center shrink-0 rounded-xl overflow-hidden" style="background: var(--admin-sidebar-logo-bg, rgba(0,0,0,0.08)); padding: 6px; width: 40px; height: 40px; color: var(--admin-sidebar-logo-fg, inherit);">
                 {% if SITE_ADMIN_LOGO_URL %}
-                    <img src="{{ SITE_ADMIN_LOGO_URL }}" alt="{% trans 'Home' %}" class="h-8" style="object-fit: contain; filter: contrast(1.1) brightness(1.05);" width="32" height="32">
+                    <img src="{{ SITE_ADMIN_LOGO_URL }}" alt="{% trans 'Home' %}" class="h-7 w-7 object-contain" style="filter: contrast(1.05) brightness(1.02);" width="28" height="28">
                 {% elif SITE_LOGO_URL %}
-                    <img src="{{ SITE_LOGO_URL }}" alt="{% trans 'Home' %}" class="h-8" style="object-fit: contain; filter: contrast(1.1) brightness(1.05);" width="32" height="32">
+                    <img src="{{ SITE_LOGO_URL }}" alt="{% trans 'Home' %}" class="h-7 w-7 object-contain" style="filter: contrast(1.05) brightness(1.02);" width="28" height="28">
                 {% else %}
-                    <span class="material-symbols-outlined" style="font-size: 1.25rem;">school</span>
+                    <img src="{% static 'images/logo.png' %}" alt="{% trans 'Home' %}" class="h-7 w-7 object-contain" width="28" height="28" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                    <span class="material-symbols-outlined inline-flex items-center justify-center" style="font-size: 1.25rem; display: none;" aria-hidden="true">school</span>
                 {% endif %}
             </div>
             <div class="flex flex-col gap-0.5 min-w-0">
-                <span class="font-semibold truncate text-sm" style="color: var(--admin-sidebar-text, #0f172a);">{{ site_header|default:_('Gilead School Management') }}</span>
-                <span class="text-xs truncate" style="color: var(--admin-sidebar-text-muted, #64748b);">{{ site_title|default:_('Gilead Tech High School') }}</span>
+                <span class="font-semibold truncate text-sm leading-tight" style="color: var(--admin-sidebar-text, #0f172a);">{{ site_header|default:_('Gilead School Management') }}</span>
+                <span class="text-xs truncate leading-tight" style="color: var(--admin-sidebar-text-muted, #64748b);">{{ site_title|default:_('Gilead School Admin') }}</span>
             </div>
         </a>
     </div>

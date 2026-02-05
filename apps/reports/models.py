@@ -105,6 +105,10 @@ class PromotionRule(models.Model):
     classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.CASCADE, related_name="promotion_rules")
     promotion_average = models.DecimalField(max_digits=5, decimal_places=2, default=10)
     demotion_average = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    use_technical_promotion_rule = models.BooleanField(
+        default=False,
+        help_text="When enabled, use ITC/ATC rule: pass in at least 5 subjects including at least 2 Professional and 1 Related (in addition to overall average).",
+    )
 
     class Meta:
         unique_together = ("academic_year", "classroom")

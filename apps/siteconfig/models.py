@@ -150,6 +150,9 @@ def default_backend_feature_flags():
         "allow_finance_access_requests": True,
         "notify_parent_on_absence": True,
         "block_promotion_if_outstanding_returns": False,
+        "block_report_download_if_outstanding_balance": True,
+        "block_report_download_if_outstanding_returns": False,
+        "carry_forward_arrears_on_rollover": True,
     }
 
 

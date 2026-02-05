@@ -144,6 +144,10 @@ class Classroom(models.Model):
         default=True,
         help_text="Disable to block third-term activities (e.g., Form 5/Upper Sixth).",
     )
+    gce_eligible = models.BooleanField(
+        default=False,
+        help_text="When True, students in this class can be registered as GCE/certification candidates (e.g. Form 5, Upper Sixth). Form 4 and other non-exam classes should leave this unchecked.",
+    )
 
     class Meta:
         ordering = ["name"]
@@ -183,6 +187,7 @@ class Subject(models.Model):
     class Category(models.TextChoices):
         GENERAL = "GENERAL", "General"
         PROFESSIONAL = "PROFESSIONAL", "Professional"
+        RELATED = "RELATED", "Related"
         OTHER = "OTHER", "Other"
 
     name = models.CharField(max_length=120, unique=True)

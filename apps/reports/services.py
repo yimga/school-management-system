@@ -68,6 +68,49 @@ def _promotion_rule_for_student(student: StudentProfile, academic_year) -> Optio
     return PromotionRule.objects.filter(academic_year=academic_year, classroom__isnull=True).first()
 
 
+def _annual_subject_averages(student: StudentProfile, academic_year) -> list[tuple]:
+    """
+    Return list of (subject, category, annual_average) for the student in this year.
+    Used for technical (ITC/ATC) promotion rule: 5 subjects, 2 Professional + 1 Related.
+    """
+    from django.db.models import Q
+    from apps.academics.models import Subject
+    terms = terms_for_student(academic_year, student.classroom)
+    if not terms:
+        return []
+    site = SiteSettings.get_solo()
+    use_approved_only = getattr(site, "reports_use_approved_grades_only", False)
+    acc = {}  # subject_id -> {"subject": Subject, "category": str, "scores": [float]}
+    for term in terms:
+        evals_qs = Evaluation.objects.filter(
+            student=student,
+            term=term,
+            academic_year=academic_year,
+        ).select_related("subject_assignment", "subject_assignment__subject")
+        if use_approved_only:
+            approved_ids, any_request_ids = _approved_or_unrequested_subject_assignment_filter(
+                academic_year.id, term.id
+            )
+            evals_qs = evals_qs.filter(
+                Q(subject_assignment_id__in=approved_ids) | ~Q(subject_assignment_id__in=any_request_ids)
+            )
+        for e in evals_qs:
+            if not e.subject_assignment or not e.subject_assignment.subject_id:
+                continue
+            subj = e.subject_assignment.subject
+            category = getattr(subj, "category", None) or Subject.Category.OTHER
+            sid = subj.id
+            if sid not in acc:
+                acc[sid] = {"subject": subj, "category": category, "scores": []}
+            acc[sid]["scores"].append(float(e.total_score))
+    result = []
+    for data in acc.values():
+        scores = data["scores"]
+        avg = sum(scores) / len(scores) if scores else 0.0
+        result.append((data["subject"], data["category"], avg))
+    return result
+
+
 def get_promotion_status(student, academic_year, overall_average):
     if overall_average is None:
         return "NO_DATA"
@@ -77,7 +120,28 @@ def get_promotion_status(student, academic_year, overall_average):
         return "PENDING"
 
     avg = float(overall_average)
-    if avg >= float(rule.promotion_average):
+    threshold = float(rule.promotion_average)
+
+    if getattr(rule, "use_technical_promotion_rule", False):
+        subject_avgs = _annual_subject_averages(student, academic_year)
+        pass_count = 0
+        professional_passed = 0
+        related_passed = 0
+        from apps.academics.models import Subject
+        for subj, category, subj_avg in subject_avgs:
+            if subj_avg >= threshold:
+                pass_count += 1
+                if category == Subject.Category.PROFESSIONAL:
+                    professional_passed += 1
+                elif category in (Subject.Category.RELATED, Subject.Category.GENERAL):
+                    related_passed += 1
+        if avg >= threshold and pass_count >= 5 and professional_passed >= 2 and related_passed >= 1:
+            return "PROMOTED"
+        if avg < float(rule.demotion_average):
+            return "DEMOTED"
+        return "REPEAT"
+
+    if avg >= threshold:
         return "PROMOTED"
     if avg < float(rule.demotion_average):
         return "DEMOTED"
@@ -99,6 +163,45 @@ def terms_for_student(academic_year, classroom) -> list[Term]:
     if not classroom.allows_third_term:
         terms = [t for t in terms if getattr(t, "position", None) != 3]
     return terms
+
+
+def student_has_financial_clearance(student: StudentProfile, academic_year) -> bool:
+    """
+    True if the school does not block report downloads by debt, or if the student
+    has no outstanding balance for this academic year. Used to block term/annual
+    report download when block_report_download_if_outstanding_balance is True.
+    """
+    site = SiteSettings.get_solo()
+    flags = getattr(site, "backend_feature_flags", None) or {}
+    if not flags.get("block_report_download_if_outstanding_balance", True):
+        return True
+    from apps.finance.models import Invoice
+    from decimal import Decimal
+    invoices = Invoice.objects.filter(
+        student=student,
+        academic_year=academic_year,
+    ).exclude(status=Invoice.Status.VOID)
+    for inv in invoices:
+        if inv.computed_balance > Decimal("0.00"):
+            return False
+    return True
+
+
+def student_has_outstanding_returns(student: StudentProfile, academic_year) -> bool:
+    """
+    True if the student has unreturned resources for this academic year.
+    Used to block report download when block_report_download_if_outstanding_returns is True.
+    """
+    site = SiteSettings.get_solo()
+    flags = getattr(site, "backend_feature_flags", None) or {}
+    if not flags.get("block_report_download_if_outstanding_returns", False):
+        return False
+    from apps.people.models import StudentResourceReturn
+    return StudentResourceReturn.objects.filter(
+        student=student,
+        academic_year=academic_year,
+        returned_at__isnull=True,
+    ).exists()
 
 
 def are_terms_published(academic_year_id: int, term_ids: Iterable[int], classroom_id: int) -> bool:

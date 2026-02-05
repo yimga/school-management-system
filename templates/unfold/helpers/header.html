@@ -1,7 +1,32 @@
-{% load unfold %}
+{% load unfold i18n %}
 
 {% if not is_popup %}
     {% block header %}
+        {# Admin nav bridge and preview live in main content so the sidebar stays clean. #}
+        {% include 'components/admin_nav_bridge.html' %}
+        <div class="px-4" style="margin: 12px 0; max-width: 500px;">
+            {% include 'components/header_weather_widget.html' %}
+        </div>
+        <h1 id="site-name" class="px-4 text-xl font-semibold mb-2">
+            <a href="{% url 'admin:index' %}" style="color: var(--admin-text, #0f172a); text-decoration: none;">{{ site_header|default:_('Gilead Admin') }}</a>
+        </h1>
+        {% if PREVIEW_MODE_ENABLED %}
+            <div class="preview-cue preview-cue--active mx-4 mb-4">
+                <span><strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}</span>
+                <div class="preview-cue-actions">
+                    <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
+                    <a href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
+                </div>
+            </div>
+        {% elif PREVIEW_TOGGLE_ENABLED %}
+            <div class="preview-cue preview-cue--ready mx-4 mb-4">
+                <span><strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}</span>
+                <div class="preview-cue-actions">
+                    <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
+                </div>
+            </div>
+        {% endif %}
+
         {# Use theme variables so header matches sidebar/content in dark and light (Site Settings). No hardcoded white. #}
         <div id="header" class="admin-top-header border-b mb-6 px-4 z-40 {% element_classes 'header' %}" style="background: var(--admin-surface, var(--admin-dashboard-bg, #f8fafc)); color: var(--admin-text, #0f172a); border-color: var(--admin-border, #e2e8f0);">
             <div class="{% if not cl.model_admin.list_fullwidth %}container{% endif %} flex items-center h-16 mx-auto py-4">

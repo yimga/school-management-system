@@ -23,6 +23,8 @@ from apps.reports.services import (
     build_share_url,
     is_term_published,
     parse_share_token,
+    student_has_financial_clearance,
+    student_has_outstanding_returns,
     term_report_context,
     terms_for_student,
 )
@@ -124,6 +126,15 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     if not is_term_published(year.id, term.id, student.classroom_id):
         return HttpResponseForbidden("Results not published yet.")
 
+    if not student_has_financial_clearance(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until fees are cleared. Please visit the Bursary."
+        )
+    if student_has_outstanding_returns(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until all issued resources are returned."
+        )
+
     context = term_report_context(student, year, term)
     context.update({
         "student": student,
@@ -184,6 +195,15 @@ def parent_download_term_report_csv(request: HttpRequest, student_id: int):
     if not is_term_published(year.id, term.id, student.classroom_id):
         return HttpResponseForbidden("Results not published yet.")
 
+    if not student_has_financial_clearance(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until fees are cleared. Please visit the Bursary."
+        )
+    if student_has_outstanding_returns(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until all issued resources are returned."
+        )
+
     context = term_report_context(student, year, term)
     rows = []
     for r in context["rows"]:
@@ -224,6 +244,15 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
     terms = terms_for_student(year, student.classroom)
     if not are_terms_published(year.id, [t.id for t in terms], student.classroom_id):
         return HttpResponseForbidden("Annual report is not available yet.")
+
+    if not student_has_financial_clearance(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until fees are cleared. Please visit the Bursary."
+        )
+    if student_has_outstanding_returns(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until all issued resources are returned."
+        )
 
     context = annual_report_context(student, year)
     context.update({
@@ -267,6 +296,18 @@ def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
     student = _get_guardian_student(request, student_id)
     if not student:
         return HttpResponseForbidden("Not authorized.")
+
+    terms_annual = terms_for_student(year, student.classroom)
+    if not are_terms_published(year.id, [t.id for t in terms_annual], student.classroom_id):
+        return HttpResponseForbidden("Annual report is not available yet.")
+    if not student_has_financial_clearance(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until fees are cleared. Please visit the Bursary."
+        )
+    if student_has_outstanding_returns(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until all issued resources are returned."
+        )
 
     context = annual_report_context(student, year)
     rows = []
@@ -322,6 +363,15 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
     else:
         return HttpResponseForbidden("Unknown report type.")
 
+    if not student_has_financial_clearance(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until fees are cleared. Please visit the Bursary."
+        )
+    if student_has_outstanding_returns(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until all issued resources are returned."
+        )
+
     token = build_share_token(report_type, student.id, year.id, term_id)
     share_url = build_share_url(request, token)
 
@@ -370,6 +420,15 @@ def report_share(request: HttpRequest, token: str):
     student = get_object_or_404(StudentProfile, id=payload["student_id"])
     year = get_object_or_404(AcademicYear, id=payload["academic_year_id"])
     report_type = payload["report_type"]
+
+    if not student_has_financial_clearance(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until fees are cleared. Please visit the Bursary."
+        )
+    if student_has_outstanding_returns(student, year):
+        return HttpResponseForbidden(
+            "Report card is not available until all issued resources are returned."
+        )
 
     if report_type == ReportCard.Type.TERM:
         term_id = payload.get("term_id")

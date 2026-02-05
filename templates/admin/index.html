@@ -315,6 +315,48 @@
     </div>
   </header>
 
+  <!-- Testing & test users (visible on live so staff have the logins) -->
+  <section class="app-section" style="margin-bottom: 24px;">
+    <div class="app-section-header">
+      <h2>🧪 Testing &amp; test users</h2>
+    </div>
+    <p class="dashboard-subtitle" style="margin-bottom: 16px;">Seed users created by <code>seed_render_users</code> (Render) or <code>ensure_superuser</code> + <code>create_teacher_parent_accounts</code> (local). Log in at <strong>/authentication/login/</strong> or <strong>/admin/</strong>.</p>
+    <div style="overflow-x: auto;">
+      <table class="stat-card" style="width: 100%; border-collapse: collapse; padding: 16px; border: 1px solid var(--border-dark, #404040); border-radius: 12px;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-dark, #404040);">
+            <th style="text-align: left; padding: 12px; color: var(--text-primary);">Username</th>
+            <th style="text-align: left; padding: 12px; color: var(--text-primary);">Role</th>
+            <th style="text-align: left; padding: 12px; color: var(--text-primary);">Password</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border-dark, #404040);">
+            <td style="padding: 12px;"><strong>admin</strong></td>
+            <td style="padding: 12px;">Superuser</td>
+            <td style="padding: 12px;">Production: value of <code>ADMIN_PASSWORD</code> (set in Render Environment). Local: use <code>ensure_superuser --password &lt;your-password&gt;</code>.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-dark, #404040);">
+            <td style="padding: 12px;"><strong>teacher1</strong></td>
+            <td style="padding: 12px;">Teacher</td>
+            <td style="padding: 12px;">Same as <code>ADMIN_PASSWORD</code> on Render; or the password you pass to <code>create_teacher_parent_accounts --password &lt;pwd&gt;</code> locally.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-dark, #404040);">
+            <td style="padding: 12px;"><strong>Parent1</strong></td>
+            <td style="padding: 12px;">Parent</td>
+            <td style="padding: 12px;">Same as <code>ADMIN_PASSWORD</code> on Render; or the password you pass to <code>create_teacher_parent_accounts --password &lt;pwd&gt;</code> locally.</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px;"><strong>principal1</strong></td>
+            <td style="padding: 12px;">Principal</td>
+            <td style="padding: 12px;">Same as <code>ADMIN_PASSWORD</code> on Render; or the password you pass when creating principal locally.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="stat-meta" style="margin-top: 12px;">Ensure Render <strong>Release Command</strong> runs: <code>python manage.py migrate --noinput &amp;&amp; python manage.py seed_render_users</code> and <strong>ADMIN_PASSWORD</strong> is set in Environment. Full details: repo docs <strong>TESTING_AND_TEST_USERS.md</strong>, <strong>docs/CREDENTIALS_AND_RESTORE.md</strong>.</p>
+  </section>
+
   <!-- Stats Overview -->
   <div class="stats-grid">
     <div class="stat-card">

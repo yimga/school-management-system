@@ -29,11 +29,12 @@ class Command(BaseCommand):
             "create_teacher_parent_accounts",
             "--teacher-username", "teacher1",
             "--parent-username", "Parent1",
+            "--principal-username", "principal1",
             "--password", password,
             verbosity=1,
         )
         self.stdout.write(
             self.style.SUCCESS(
-                "Seed users ready. Log in with admin, teacher1, or Parent1 / your ADMIN_PASSWORD."
+                "Seed users ready. Log in with admin, teacher1, Parent1, or principal1 / your ADMIN_PASSWORD."
             )
         )

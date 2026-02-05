@@ -30,14 +30,15 @@ These are created only when `ADMIN_PASSWORD` is set and `seed_render_users` runs
 | **admin** | Value of `ADMIN_PASSWORD` | Superuser | `ensure_superuser` |
 | **teacher1** | Value of `ADMIN_PASSWORD` | Teacher | `create_teacher_parent_accounts` |
 | **Parent1** | Value of `ADMIN_PASSWORD` | Parent | `create_teacher_parent_accounts` |
+| **principal1** | Value of `ADMIN_PASSWORD` | Principal | `create_teacher_parent_accounts` |
 
-**Actual usernames (exact):** `admin`, `teacher1`, `Parent1` — case-sensitive; parent is `Parent1` with capital P.
+**Actual usernames (exact):** `admin`, `teacher1`, `Parent1`, `principal1` — case-sensitive; parent is `Parent1` with capital P.
 
 ---
 
 ## 3. Usernames created by seed_buea_synthetic (local / test data)
 
-Run: `python manage.py seed_buea_synthetic --scale small` (or `--scale full`). Password for all: **Test124**.
+Run: `python manage.py seed_buea_synthetic --scale small` (or `--scale full`). Password for all: **Test1234**.
 
 ### Teachers (scale small: 10; scale full: 20)
 

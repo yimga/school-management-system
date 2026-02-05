@@ -55,6 +55,9 @@ FEATURE_CATEGORIES = {
         ("backend_flags.require_guardian_finance_opt_in", "Guardian Finance Opt-In", False, "Parents must opt in to see finance", "Finance visible by default", ["enable_parent_portal"]),
         ("backend_flags.allow_finance_access_requests", "Finance Access Requests", False, "Parents can request finance visibility", "Access requests disabled", ["enable_parent_portal"]),
         ("backend_flags.block_promotion_if_outstanding_returns", "Block Promotion if Returns", False, "Block promotion with outstanding resource returns", "Promotion allowed despite returns", []),
+        ("backend_flags.block_report_download_if_outstanding_balance", "Block Report Download if Fees Owed", True, "Block term/annual report download until fees are cleared", "Reports downloadable even with outstanding balance", []),
+        ("backend_flags.block_report_download_if_outstanding_returns", "Block Report Download if Returns Owed", False, "Block report download until issued resources are returned", "Reports downloadable despite unreturned items", []),
+        ("backend_flags.carry_forward_arrears_on_rollover", "Carry Forward Arrears on Rollover", False, "Create opening-balance invoices in next year for unpaid fees", "Rollover does not carry arrears", []),
     ],
     "backend": [
         ("backend_flags.enable_entity_console", "Entity Console", False, "Data orchestration UI", "Entity Console hidden", []),
@@ -130,6 +133,9 @@ def _get_site_features(site: SiteSettings) -> dict:
         "backend_flags.allow_finance_access_requests": bool(flags.get("allow_finance_access_requests", True)),
         "backend_flags.notify_parent_on_absence": bool(flags.get("notify_parent_on_absence", True)),
         "backend_flags.block_promotion_if_outstanding_returns": bool(flags.get("block_promotion_if_outstanding_returns")),
+        "backend_flags.block_report_download_if_outstanding_balance": bool(flags.get("block_report_download_if_outstanding_balance", True)),
+        "backend_flags.block_report_download_if_outstanding_returns": bool(flags.get("block_report_download_if_outstanding_returns")),
+        "backend_flags.carry_forward_arrears_on_rollover": bool(flags.get("carry_forward_arrears_on_rollover", True)),
     }
 
 

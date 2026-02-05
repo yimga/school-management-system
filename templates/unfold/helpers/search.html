@@ -40,7 +40,7 @@
                        class="grow font-medium min-w-0 overflow-hidden p-2 placeholder-font-subtle-light truncate focus:outline-hidden dark:bg-base-900 dark:placeholder-font-subtle-dark dark:text-font-default-dark"
                        placeholder="{% trans 'Search apps and models...' %}"
                        aria-label="{% trans 'Filter navigation items' %}">
-                {% include "unfold/helpers/shortcut.html" with shortcut="t" %}
+                {% comment %}Shortcut "t" omitted to avoid stray character below search when layout wraps. Use Ctrl+K for command palette. {% endcomment %}
             </div>
             <div id="search-results" x-show="openSearchResults"></div>
         </div>

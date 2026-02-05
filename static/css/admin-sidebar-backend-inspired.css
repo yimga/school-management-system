@@ -9,7 +9,21 @@
   margin-bottom: 0.5rem !important;
 }
 
-/* ----- Brand block (logo + site name at top of app list) ----- */
+/* ----- Brand block (logo + site name at top) ----- */
+#nav-sidebar .admin-sidebar-brand-link-header {
+  border-radius: 8px;
+  transition: background 0.15s, opacity 0.15s;
+}
+#nav-sidebar .admin-sidebar-brand-link-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.dark #nav-sidebar .admin-sidebar-brand-link-header:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+#nav-sidebar .admin-sidebar-logo-wrap img {
+  object-fit: contain;
+  display: block;
+}
 #nav-sidebar .admin-sidebar-brand,
 #nav-sidebar-apps .admin-sidebar-brand {
   flex-shrink: 0;

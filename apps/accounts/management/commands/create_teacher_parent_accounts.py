@@ -27,11 +27,17 @@ class Command(BaseCommand):
             default="parent",
             help="Username for parent account (default: parent)",
         )
+        parser.add_argument(
+            "--principal-username",
+            default="",
+            help="Username for principal account (optional). e.g. principal1.",
+        )
 
     def handle(self, *args, **options):
         password = options["password"] or "Test1234"
         teacher_username = (options["teacher_username"] or "teacher").strip()
         parent_username = (options["parent_username"] or "parent").strip()
+        principal_username = (options.get("principal_username") or "").strip()
 
         # Teacher
         teacher, created = User.objects.get_or_create(
@@ -100,11 +106,39 @@ class Command(BaseCommand):
             )
         )
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                "\nYou can log in at /authentication/login/ or /admin/ with:\n"
-                "  Teacher: %s / %s\n"
-                "  Parent:  %s / %s"
-                % (teacher_username, password, parent_username, password)
+        # Principal (optional)
+        if principal_username:
+            principal, p_created = User.objects.get_or_create(
+                username=principal_username,
+                defaults={
+                    "email": f"{principal_username}@example.com",
+                    "first_name": "Demo",
+                    "last_name": "Principal",
+                    "role": User.Role.PRINCIPAL,
+                    "is_staff": True,
+                    "is_active": True,
+                },
             )
-        )
+            if not p_created:
+                principal.role = User.Role.PRINCIPAL
+                principal.is_staff = True
+                principal.is_active = True
+                principal.email = principal.email or f"{principal_username}@example.com"
+                principal.save(update_fields=["role", "is_staff", "is_active", "email"])
+            principal.set_password(password)
+            principal.save()
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Principal account '%s' %s (password set)."
+                    % (principal_username, "created" if p_created else "updated")
+                )
+            )
+
+        lines = [
+            "\nYou can log in at /authentication/login/ or /admin/ with:",
+            "  Teacher: %s / (password above)" % teacher_username,
+            "  Parent:  %s / (password above)" % parent_username,
+        ]
+        if principal_username:
+            lines.append("  Principal: %s / (password above)" % principal_username)
+        self.stdout.write(self.style.SUCCESS("\n".join(lines)))

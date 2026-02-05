@@ -27,7 +27,41 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-### Manual fix
+### If the error keeps coming back (e.g. OneDrive/cloud sync)
+
+If the project lives in a **synced folder** (OneDrive, Dropbox, etc.), SQLite files there can get corrupted. Use a DB file **outside** that folder:
+
+1. **Use the system temp folder** (recommended on Windows):
+   - Add to `.env.local`:
+     ```env
+     DB_FILE=%TEMP%\gilead_db.sqlite3
+     ```
+   - On Git Bash / Linux / macOS you can use:
+     ```env
+     DB_FILE=/tmp/gilead_db.sqlite3
+     ```
+     or (if you want a path that expands):
+     ```env
+     DB_FILE=${TEMP}/gilead_db.sqlite3
+     ```
+   - Then from project root:
+     ```bash
+     python manage.py migrate --noinput
+     python manage.py ensure_superuser --no-input --password YOUR_PASSWORD
+     python manage.py create_teacher_parent_accounts --password YOUR_PASSWORD
+     python manage.py runserver
+     ```
+   - All `manage.py` and runserver commands will use this DB as long as `.env.local` is loaded (e.g. by your IDE or `export $(cat .env.local | xargs)` in the shell).
+
+2. **One-off migrate in temp (without changing .env):**
+   ```bash
+   # Windows (Git Bash)
+   export DB_FILE="${TEMP}/gilead_db.sqlite3"
+   python manage.py migrate --noinput
+   ```
+   Then set `DB_FILE` the same way whenever you run the app, or add it to `.env.local` as above.
+
+### Manual fix (fresh DB in project folder)
 
 1. **Stop the dev server** (Ctrl+C).
 2. **Delete the corrupted DB file** (so migrate can recreate it):
@@ -48,6 +82,7 @@ python manage.py runserver
    python manage.py createsuperuser
    python manage.py runserver
    ```
+   If "database disk image is malformed" happens again during or after migrate, use the **temp folder** option above instead.
 
 ---
 
