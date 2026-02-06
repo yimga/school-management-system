@@ -3,14 +3,18 @@ Custom Admin Site Configuration
 Provides enhanced admin interface with logical app grouping and custom ordering
 """
 import datetime
+import sys
 
+import django
 from apps.finance.models import Notification
 from apps.siteconfig.models import SiteSettings
 
+from django.conf import settings
 from django.contrib import admin
 from unfold.sites import UnfoldAdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
+from django.db import connection
 from django.db.models import Count, Q, Value
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect
@@ -143,12 +147,28 @@ class GileadAdminSite(UnfoldAdminSite):
         can_see_compliance = user.is_superuser or user.has_perm('compliance.view_auditlog') or user.has_perm('compliance.view_accesslog')
         can_see_finance_inbox = user.is_superuser or getattr(user, 'has_feature_permission', lambda _: False)('finance.view_invoice')
 
+        # System info (dynamic, not hardcoded)
+        db_engine = connection.vendor  # 'sqlite', 'postgresql', etc.
+        db_engine_display = {
+            'sqlite': 'SQLite3',
+            'postgresql': 'PostgreSQL',
+            'mysql': 'MySQL',
+            'oracle': 'Oracle',
+        }.get(db_engine, db_engine.title())
+        django_version = django.get_version()
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        is_debug = settings.DEBUG
+
         context = {
             **self.each_context(request),
             'title': self.index_title,
             'preview_data': preview_data,
             'admin_theme': admin_theme,
             'admin_palette': admin_palette,
+            'django_version': django_version,
+            'python_version': python_version,
+            'db_engine_display': db_engine_display,
+            'is_debug': is_debug,
         }
         if can_see_user_stats:
             context.update({
@@ -202,47 +222,48 @@ class GileadAdminSite(UnfoldAdminSite):
         """
         app_dict = self._build_app_dict(request, app_label)
         
-        # Define logical grouping with custom order
+        # Define logical grouping with custom order.
+        # section: visual separator group in sidebar (people, academic, financial, operations, system)
         app_order = {
             # Core Administration & People
-            "accounts": {"order": 1, "name": "👤 Accounts", "icon": "👤"},
-            "people": {"order": 2, "name": "👥 People Management", "icon": "👥"},
-            # Keep auth tightly coupled with People Management
-            "auth": {"order": 2.1, "name": "🔐 Authentication & Authorization", "icon": "🔐"},
+            "accounts": {"order": 1, "name": "👤 Accounts", "icon": "👤", "section": "people"},
+            "people": {"order": 2, "name": "👥 People Management", "icon": "👥", "section": "people"},
+            "auth": {"order": 2.1, "name": "🔐 Auth & Authorization", "icon": "🔐", "section": "people"},
 
             # Academic Structure
-            "academics": {"order": 4, "name": "🎓 Academic Structure", "icon": "🎓"},
-            "evals": {"order": 5, "name": "📊 Evaluations & Grading", "icon": "📊"},
-            "reports": {"order": 6, "name": "📄 Reports & Transcripts", "icon": "📄"},
+            "academics": {"order": 4, "name": "🎓 Academic Structure", "icon": "🎓", "section": "academic"},
+            "evals": {"order": 5, "name": "📊 Evaluations & Grading", "icon": "📊", "section": "academic"},
+            "reports": {"order": 6, "name": "📄 Reports & Transcripts", "icon": "📄", "section": "academic"},
 
             # Financial
-            "finance": {"order": 7, "name": "💰 Finance & Billing", "icon": "💰"},
-            "payroll": {"order": 8, "name": "💵 Payroll & Leave", "icon": "💵"},
+            "finance": {"order": 7, "name": "💰 Finance & Billing", "icon": "💰", "section": "financial"},
+            "payroll": {"order": 8, "name": "💵 Payroll & Leave", "icon": "💵", "section": "financial"},
 
             # Operations & Portals
-            "portal": {"order": 9, "name": "📢 Portal & Communication", "icon": "📢"},
-            "analytics": {"order": 10, "name": "📈 Analytics & Insights", "icon": "📈"},
-            "compliance": {"order": 11, "name": "🔒 Compliance & Audit", "icon": "🔒"},
+            "portal": {"order": 9, "name": "📢 Portal & Communication", "icon": "📢", "section": "operations"},
+            "analytics": {"order": 10, "name": "📈 Analytics & Insights", "icon": "📈", "section": "operations"},
+            "compliance": {"order": 11, "name": "🔒 Compliance & Audit", "icon": "🔒", "section": "operations"},
 
             # Django Built-ins (if any remain)
-            "sites": {"order": 998, "name": "🌐 Sites", "icon": "🌐"},
+            "sites": {"order": 998, "name": "🌐 Sites", "icon": "🌐", "section": "system"},
 
             # Configuration (force last)
-            "siteconfig": {"order": 1000, "name": "⚙️ System Configuration", "icon": "⚙️"},
+            "siteconfig": {"order": 1000, "name": "⚙️ System Configuration", "icon": "⚙️", "section": "system"},
         }
         
-        # Apply custom ordering and naming
+        # Apply custom ordering, naming, and section grouping
         app_list = []
         for app_name, app_info in app_dict.items():
             if app_name in app_order:
-                app_info['app_order'] = app_order[app_name]['order']
+                cfg = app_order[app_name]
+                app_info['app_order'] = cfg['order']
                 app_info['app_label'] = app_name
-                # Use custom name if available
-                app_info['name'] = app_order[app_name]['name']
+                app_info['name'] = cfg['name']
+                app_info['section'] = cfg.get('section', 'other')
             else:
-                # Unknown apps go to the end
                 app_info['app_order'] = 999
                 app_info['app_label'] = app_name
+                app_info['section'] = 'other'
             
             app_list.append(app_info)
 

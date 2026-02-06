@@ -3,7 +3,7 @@
    All components use CSS variables from design-system-unified.css
    ============================================ */
 
-@import url('./design-system-unified.css');
+/* NOTE: design-system-unified.css is loaded via base_site.html. Do NOT @import here. */
 
 /* ============================================
    CARDS - Base card styling

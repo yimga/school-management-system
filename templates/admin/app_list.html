@@ -24,6 +24,13 @@
           {% trans "Site settings" %}
         </a>
       </li>
+      <li>
+        <a href="{% url 'accounts:backend_dashboard' %}" class="admin-sidebar-link {% if '/authentication/backend' in request.path %}active{% endif %}"
+           aria-current="{% if '/authentication/backend' in request.path %}page{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>
+          {% trans "Backend Console" %}
+        </a>
+      </li>
       {% endif %}
     </ul>
   </div>
@@ -31,8 +38,9 @@
   {% if app_list %}
   <div class="admin-sidebar-app-groups" role="list">
     {% for app in app_list %}
+    {% ifchanged app.section %}{% if not forloop.first %}<hr class="admin-sidebar-section-divider" aria-hidden="true">{% endif %}{% endifchanged %}
     <div class="app-{{ app.app_label }} module admin-sidebar-app-group{% if app.app_url in request.path %} current-app{% endif %}"
-         x-data="{ open: {% if app.app_url in request.path %}true{% else %}true{% endif %} }"
+         x-data="{ open: {% if app.app_url in request.path %}true{% else %}false{% endif %} }"
          role="listitem">
       {% if app.models and not app.hidden %}
       <h2 class="admin-sidebar-app-title"

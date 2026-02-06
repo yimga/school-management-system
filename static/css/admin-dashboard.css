@@ -3,8 +3,8 @@
    Dashboard-specific layout and responsive design
    ============================================ */
 
-@import url('./design-system-unified.css');
-@import url('./admin-components.css');
+/* NOTE: design-system-unified.css and admin-components.css are loaded via base_site.html.
+   Do NOT @import them here to avoid double-loading. */
 
 /* ============================================
    PAGE LAYOUT - Main dashboard container

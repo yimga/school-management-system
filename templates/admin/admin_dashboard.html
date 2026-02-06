@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}Admin Dashboard{% endblock %}
 
@@ -30,503 +30,348 @@
   --admin-border-hover: {{ admin_palette.border_hover|default:"#94a3b8" }};
 }
 
-.preview-status-card {
-  background: var(--admin-surface);
-  border: 1px solid var(--admin-border);
-  border-radius: 10px;
-  padding: 18px 22px;
-  box-shadow: var(--admin-shadow);
-  margin-bottom: 24px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-}
+/* === Dashboard Layout === */
+.admin-dash { background: var(--admin-dashboard-bg); padding: 24px 16px; min-height: 80vh; }
+.admin-dash__inner { width: 100%; max-width: none; }
+.admin-dash__header { margin-bottom: 32px; border-bottom: 1px solid var(--admin-border); padding-bottom: 24px; }
+.admin-dash__header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; }
+.admin-dash__brand { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 280px; }
+.admin-dash__title { margin: 0; font-size: 28px; font-weight: 700; color: var(--admin-text); letter-spacing: -0.5px; }
+.admin-dash__subtitle { margin: 2px 0 0 0; font-size: 12px; color: var(--admin-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.admin-dash__tagline { margin: 8px 0 0 0; font-size: 14px; color: var(--admin-muted); }
 
-.preview-status-card__info {
-  flex: 1 1 320px;
-  min-width: 240px;
-}
+/* === KPI Grid === */
+.admin-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.admin-kpi-card { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease, transform 0.2s ease; }
+.admin-kpi-card:hover { box-shadow: var(--admin-shadow-hover); transform: translateY(-2px); }
+.admin-kpi-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.admin-kpi-card__label { font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+.admin-kpi-card__icon { font-size: 20px; }
+.admin-kpi-card__value { font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px; }
+.admin-kpi-card__details { font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px; }
+.admin-kpi-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.admin-kpi-row:last-child { margin-bottom: 0; }
+.admin-kpi-val { font-weight: 600; color: var(--admin-text); }
 
-.preview-status-card__actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+/* === Security Row === */
+.admin-security-row { display: grid; grid-template-columns: 1fr minmax(240px, 280px); gap: 12px; margin-bottom: 32px; align-items: stretch; }
+.admin-security-card { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); display: flex; flex-direction: column; }
+.admin-security-card__body { display: flex; gap: 12px; flex-wrap: wrap; flex: 1; }
+.admin-security-panel { flex: 1 1 260px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.admin-security-panel__title { font-size: 11px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+.admin-security-stat { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.admin-security-stat:last-child { margin-bottom: 0; }
+.admin-security-divider { border-top: 1px solid var(--admin-border); padding-top: 8px; }
+.admin-security-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--admin-border); text-align: center; font-size: 12px; color: var(--admin-muted); }
 
-.preview-status-card__actions .btn {
-  font-size: 11px;
-  padding: 6px 12px;
-}
+/* === Admin Controls === */
+.admin-controls__title { margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px; }
+.admin-controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.admin-control-btn { display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow); }
+.admin-control-btn:hover { border-color: var(--admin-border-hover); box-shadow: var(--admin-shadow-hover); transform: translateY(-1px); color: var(--admin-text); text-decoration: none; }
 
-.preview-status-card__colors {
-  display: flex;
-  gap: 10px;
-}
+/* === System Info Table === */
+.admin-sysinfo { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); }
+.admin-sysinfo__title { margin: 0 0 20px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px; }
+.admin-sysinfo table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.admin-sysinfo td { padding: 16px 0; }
+.admin-sysinfo tr { border-bottom: 1px solid var(--admin-border); }
+.admin-sysinfo tr:last-child { border-bottom: none; }
+.admin-sysinfo__label { color: var(--admin-subtle); font-weight: 600; width: 35%; }
+.admin-sysinfo__val { color: var(--admin-text); }
+.admin-sysinfo__mono { font-family: 'Monaco', 'Menlo', monospace; }
 
-.preview-status-card__chip {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  color: white;
-}
+/* === Preview Card === */
+.preview-status-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 18px 22px; box-shadow: var(--admin-shadow); margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.preview-status-card__info { flex: 1 1 320px; min-width: 240px; }
+.preview-status-card__info-label { font-size: 13px; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.preview-status-card__info-title { font-size: 18px; font-weight: 600; color: var(--admin-text); }
+.preview-status-card__info-desc { margin: 6px 0 0 0; font-size: 12px; color: var(--admin-subtle); }
+.preview-status-card__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.preview-status-card__actions .btn { font-size: 11px; padding: 6px 12px; }
+.preview-status-card__colors { display: flex; gap: 10px; }
+.preview-status-card__chip { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; color: white; }
 
-/* Dark theme: design-system-unified sets html[data-bs-theme="dark"] vars; --admin-* alias above inherit */
+/* === Calendar Widget === */
+.calendar-widget { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 16px; box-shadow: var(--admin-shadow); display: flex; flex-direction: column; }
+.calendar-header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; margin-bottom: 12px; gap: 8px; }
+.calendar-header__month { color: var(--admin-text); font-size: 12px; font-weight: 600; text-align: center; }
+.calendar-nav-btn { background: var(--admin-accent); color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; color: var(--admin-text); font-size: 10px; }
+.calendar-grid__header { font-weight: 700; text-align: center; padding: 6px 4px; color: var(--admin-accent); }
+.calendar-day { text-align: center; padding: 3px 2px; border-radius: 3px; background: var(--admin-border); color: var(--admin-muted); font-size: 10px; }
+.calendar-day--today { background: var(--admin-accent); color: white; font-weight: 700; }
+.calendar-day--empty { opacity: 0.3; background: transparent; }
+.calendar-widget__footer { padding-top: 8px; border-top: 1px solid var(--admin-border); margin-top: auto; }
+.calendar-widget__today { text-align: center; margin-bottom: 6px; color: var(--admin-accent); font-weight: 600; font-size: 11px; }
+.weather-widget { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px; background: {{ admin_palette.weather_bg|default:'rgba(255, 149, 0, 0.08)' }}; border-radius: 6px; margin-bottom: 6px; }
+.weather-widget__icon { font-size: 18px; }
+.weather-widget__temp { color: var(--admin-text); font-weight: 700; font-size: 13px; }
+.weather-widget__desc { color: var(--admin-muted); font-size: 10px; }
+.daily-message { text-align: center; color: var(--admin-muted); font-size: 10px; font-style: italic; line-height: 1.3; }
 
-.admin-layout {
-  display: block;
-  max-width: 100%;
-}
-
-/* Sidebar removed - using Django admin sidebar instead */
-
-
-.theme-toggle-btn {
-  background: var(--admin-accent);
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  margin-left: 8px;
-}
-
-.theme-toggle-btn:hover {
-  background: var(--admin-accent-light);
-}
-
-.sidebar-toggle-btn:focus-visible,
-.theme-toggle-btn:focus-visible {
-  outline: 2px solid var(--admin-accent);
-  outline-offset: 2px;
-}
-
-.calendar-widget {
-  background: var(--admin-surface);
-  border: 1px solid var(--admin-border);
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: var(--admin-shadow);
-}
-
-/* Same row: card matches Active Users block height (grid align-items: stretch); content not stretched */
-.calendar-widget--same-row {
-  height: 100%;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 12px 14px;
-  box-sizing: border-box;
-}
-
-.calendar-widget--same-row .calendar-header--compact {
-  margin-bottom: 8px;
-  width: 100%;
-  min-width: 0;
-}
-
-.calendar-widget--same-row .calendar-grid--compact {
-  gap: 2px;
-  font-size: 10px;
-}
-
-.calendar-widget--same-row .calendar-grid--compact .calendar-day {
-  padding: 3px 2px;
-  border-radius: 3px;
-  font-size: 10px;
-}
-
-.calendar-widget--same-row .calendar-widget__footer {
-  padding-top: 8px;
-  border-top: 1px solid var(--admin-border);
-}
-
-.calendar-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  margin-bottom: 12px;
-  color: var(--admin-text);
-  font-weight: 600;
-}
-
-.calendar-header #monthYear {
-  text-align: center;
-  grid-column: 2;
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  color: var(--admin-text);
-  font-size: 12px;
-}
-
-.calendar-day {
-  text-align: center;
-  padding: 6px 4px;
-  border-radius: 4px;
-  background: var(--admin-border);
-  color: var(--admin-muted);
-}
-
-.calendar-day.today {
-  background: var(--admin-accent);
-  color: white;
-  font-weight: 700;
-}
-
-.orange-accent {
-  color: var(--admin-accent);
-  font-weight: 600;
-}
-
+/* === Responsive === */
 @media (max-width: 992px) {
-  .admin-layout {
-    /* No grid needed - full width */
-  }
+  .admin-security-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .admin-kpi-grid { grid-template-columns: 1fr; }
+  .admin-controls-grid { grid-template-columns: repeat(2, 1fr); }
+  .admin-dash { padding: 16px 12px; }
+}
+@media (max-width: 480px) {
+  .admin-controls-grid { grid-template-columns: 1fr; }
+  .admin-dash__brand { min-width: auto; }
+  .admin-dash__title { font-size: 22px; }
 }
 </style>
-<div style="background: var(--admin-dashboard-bg); padding: 24px 16px; overflow-y: auto;">
-  <div style="width: 100%; max-width: none;">
-        <div class="admin-layout">
-          {% if preview_data %}
-          <div class="preview-status-card" data-widget-id="admin-preview-status">
-            <div class="preview-status-card__info">
-              <div style="font-size: 13px; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px;">Preview Staging</div>
-              <div style="font-size: 18px; font-weight: 600; color: var(--admin-text);">
-                {% if preview_data.preview_mode_enabled %}Preview mode enabled{% else %}Ready to stage preview changes{% endif %}
-              </div>
-              <p style="margin: 6px 0 0 0; font-size: 12px; color: var(--admin-subtle);">
-                {{ preview_data.preview_banner_text|default:preview_data.preview_note|default:"Use the preview toggle to stage palette/theme edits safely." }}
-              </p>
-            </div>
-            <div class="preview-status-card__actions">
-              {% if preview_data.preview_toggle_enabled %}
-                <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}" class="btn btn-sm btn-outline-dark" title="Toggle preview mode">
-                  {% if preview_data.preview_mode_enabled %}Exit preview{% else %}Enter preview{% endif %}
-                </a>
+
+<div class="admin-dash">
+  <div class="admin-dash__inner">
+
+    {# === Preview Status === #}
+    {% if preview_data %}
+    <div class="preview-status-card" data-widget-id="admin-preview-status">
+      <div class="preview-status-card__info">
+        <div class="preview-status-card__info-label">Preview Staging</div>
+        <div class="preview-status-card__info-title">
+          {% if preview_data.preview_mode_enabled %}Preview mode enabled{% else %}Ready to stage preview changes{% endif %}
+        </div>
+        <p class="preview-status-card__info-desc">
+          {{ preview_data.preview_banner_text|default:preview_data.preview_note|default:"Use the preview toggle to stage palette/theme edits safely." }}
+        </p>
+      </div>
+      <div class="preview-status-card__actions">
+        {% if preview_data.preview_toggle_enabled %}
+          <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}" class="btn btn-sm btn-outline-dark" title="Toggle preview mode">
+            {% if preview_data.preview_mode_enabled %}Exit preview{% else %}Enter preview{% endif %}
+          </a>
+        {% endif %}
+        {% if preview_data.preview_mode_enabled %}
+          <a href="{% url 'siteconfig:clear_preview' %}" class="btn btn-sm btn-outline-secondary" title="Clear staged preview">Clear preview</a>
+        {% endif %}
+        <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-primary" title="Open the Site Settings preview customizer">Open customizer</a>
+      </div>
+      <div class="preview-status-card__colors">
+        <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.primary }};">Primary</span>
+        <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.accent }};">Accent</span>
+      </div>
+    </div>
+    {% endif %}
+
+    {# === Header === #}
+    <div class="admin-dash__header">
+      <div class="admin-dash__header-row">
+        <div class="admin-dash__brand">
+          <img src="{% static 'images/gilead_logo_transparent.png' %}" alt="{% trans 'Gilead Logo' %}" width="60" height="60" loading="lazy" decoding="async" class="admin-logo-img" />
+          <div>
+            <h1 class="admin-dash__title">{% trans "Administration Dashboard" %}</h1>
+            <p class="admin-dash__subtitle">{% trans "Gilead School System Management" %}</p>
+          </div>
+        </div>
+      </div>
+      <p class="admin-dash__tagline">{% trans "System monitoring and backend administration" %}</p>
+    </div>
+
+    {# === Key Metrics Row === #}
+    <div class="admin-kpi-grid" data-dashboard-column="main">
+
+      {# Total Users Card #}
+      <div class="admin-kpi-card" data-widget-id="admin-total-users">
+        <div class="admin-kpi-card__head">
+          <span class="admin-kpi-card__label">{% trans "Total Users" %}</span>
+          <span class="admin-kpi-card__icon">👥</span>
+        </div>
+        <div class="admin-kpi-card__value">{{ total_users|default:"0" }}</div>
+        <div class="admin-kpi-card__details">
+          <div class="admin-kpi-row"><span>{% trans "Admins" %}:</span> <span class="admin-kpi-val admin-stat admin-stat--admins">{{ admin_count|default:"0" }}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Students" %}:</span> <span class="admin-kpi-val admin-stat admin-stat--students">{{ student_count|default:"0" }}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Teachers" %}:</span> <span class="admin-kpi-val admin-stat admin-stat--teachers">{{ teacher_count|default:"0" }}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Parents" %}:</span> <span class="admin-kpi-val">{{ parent_count|default:"0" }}</span></div>
+        </div>
+      </div>
+
+      {# Database & App Stats Card #}
+      <div class="admin-kpi-card" data-widget-id="admin-db-app-stats">
+        <div class="admin-kpi-card__head">
+          <span class="admin-kpi-card__label">{% trans "Database & App Stats" %}</span>
+          <span class="admin-kpi-card__icon">📊</span>
+        </div>
+        <div class="admin-kpi-card__details">
+          <div class="admin-kpi-row"><span>{% trans "Connection" %}:</span> <span class="admin-stat admin-stat--success">✓ {% trans "Ready" %}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Database Health" %}:</span> <span class="admin-stat admin-stat--success">{% trans "Optimal" %}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Engine" %}:</span> <span class="admin-kpi-val">{{ db_engine_display|default:"SQLite3" }}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Active Sessions" %}:</span> <span class="admin-kpi-val">{{ active_sessions|default:"0" }}</span></div>
+        </div>
+      </div>
+
+      {# System Health Card #}
+      <div class="admin-kpi-card" data-widget-id="admin-system-health">
+        <div class="admin-kpi-card__head">
+          <span class="admin-kpi-card__label">{% trans "System Health" %}</span>
+          <span class="admin-kpi-card__icon">⚙️</span>
+        </div>
+        <div class="admin-kpi-card__value">
+          <a href="{% url 'api_health' %}" target="_blank" rel="noopener" title="{% trans 'View API health' %}" class="admin-stat admin-stat--success" style="text-decoration: none; color: inherit;">{% trans "Operational" %}</a>
+        </div>
+        <div class="admin-kpi-card__details">
+          <div class="admin-kpi-row"><span>{% trans "Status" %}:</span> <span class="admin-stat admin-stat--success">{% trans "Online" %}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Sessions (24h)" %}:</span> <span class="admin-kpi-val">{{ sessions_24h|default:"0" }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    {# === Security / Compliance + Calendar Row === #}
+    <div class="admin-security-row">
+
+      {# Security / Compliance Block #}
+      <div class="admin-security-card" data-widget-id="admin-active-users-security">
+        <div class="admin-kpi-card__head">
+          <span class="admin-kpi-card__label">{% trans "Security / Compliance (24h)" %}</span>
+          <span class="admin-kpi-card__icon">🛡️</span>
+        </div>
+        <div class="admin-security-card__body">
+          <div class="admin-security-panel">
+            <div class="admin-security-panel__title">{% trans "Login Activity" %}</div>
+            <div class="admin-security-stat"><span>{% trans "New logins" %}</span> <strong class="admin-kpi-val">{{ new_logins_24h|default:"0" }}</strong></div>
+            <div class="admin-security-stat"><span>{% trans "Failed logins" %}</span> <strong class="admin-stat admin-stat--danger">{{ failed_logins_24h|default:"0" }}</strong></div>
+            <div class="admin-security-divider">
+              <div class="admin-security-panel__title">{% trans "Failed logins by role" %}</div>
+              {% if failed_logins_by_role %}
+                {% for row in failed_logins_by_role %}
+                  <div class="admin-security-stat"><span>{{ row.role }}</span> <strong>{{ row.count }}</strong></div>
+                {% endfor %}
+              {% else %}
+                <div class="admin-security-stat" style="color: var(--admin-muted);">{% trans "No failed logins." %}</div>
               {% endif %}
-              {% if preview_data.preview_mode_enabled %}
-                <a href="{% url 'siteconfig:clear_preview' %}" class="btn btn-sm btn-outline-secondary" title="Clear staged preview">Clear preview</a>
-              {% endif %}
-              <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-primary" title="Open the Site Settings preview customizer">Open customizer</a>
-            </div>
-            <div class="preview-status-card__colors">
-              <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.primary }};">Primary</span>
-              <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.accent }};">Accent</span>
             </div>
           </div>
-          {% endif %}
-
-      <!-- Sidebar removed - using Django admin sidebar navigation -->
-
-      <div class="admin-main">
-        <!-- HEADER SECTION WITH LOGO & CONTROLS -->
-        <div style="margin-bottom: 32px; border-bottom: 1px solid var(--admin-border); padding-bottom: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
-            <!-- Logo & Title -->
-            <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 300px;">
-              <img src="{% static 'images/gilead_logo_transparent.png' %}" alt="Gilead Logo" width="60" height="60" loading="lazy" decoding="async" class="admin-logo-img" />
-              <div>
-                <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: var(--admin-text); letter-spacing: -0.5px;">Administration Dashboard</h1>
-                <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--admin-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Gilead School System Management</p>
-              </div>
-            </div>
-            <!-- Controls -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark</button>
-            </div>
-          </div>
-          <p style="margin: 8px 0 0 0; font-size: 14px; color: var(--admin-muted);">System monitoring and backend administration</p>
-        </div>
-
-        <!-- KEY METRICS ROW: Total Users, Database, System Health -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px;" data-dashboard-column="main">
-          <!-- Total Users Card -->
-          <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;" data-widget-id="admin-total-users">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Total Users</span>
-              <span style="font-size: 20px;">👥</span>
-            </div>
-            <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;">{{ total_users|default:"0" }}</div>
-            <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
-              <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Admins:</span> <span style="color: var(--stat-admin); font-weight: 600;">{{ admin_count|default:"0" }}</span></span>
-              <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Students:</span> <span style="color: var(--stat-student); font-weight: 600;">{{ student_count|default:"0" }}</span></span>
-              <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Teachers:</span> <span style="color: var(--stat-teacher); font-weight: 600;">{{ teacher_count|default:"0" }}</span></span>
-              <span style="display: flex; justify-content: space-between;"><span>Parents:</span> <span style="color: var(--stat-parent); font-weight: 600;">{{ parent_count|default:"0" }}</span></span>
-            </div>
-          </div>
-
-          <!-- Database & App Stats Card -->
-          <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;" data-widget-id="admin-db-app-stats">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Database & App Stats</span>
-              <span style="font-size: 20px;">📊</span>
-            </div>
-            <div style="font-size: 13px; color: var(--admin-subtle); line-height: 2; border-top: 1px solid var(--admin-border); padding-top: 12px;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Connection:</span> <span class="admin-stat admin-stat--success">✓ Ready</span></div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Database Health:</span> <span class="admin-stat admin-stat--success">Optimal</span></div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Storage Used:</span> <span style="color: var(--admin-text); font-weight: 600;">~450 MB</span></div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Total Tables:</span> <span style="color: var(--admin-text); font-weight: 600;">28</span></div>
-              <div style="display: flex; justify-content: space-between;"><span>Last Backup:</span> <span style="color: var(--admin-accent); font-weight: 600;">16 hrs ago</span></div>
-            </div>
-          </div>
-
-          <!-- System Health Card -->
-          <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease;" data-widget-id="admin-system-health">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">System Health</span>
-              <span style="font-size: 20px;">⚙️</span>
-            </div>
-            <div style="font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px;"><a href="{% url 'api_health' %}" target="_blank" rel="noopener" style="color: inherit; text-decoration: none;" title="View API health"><span class="admin-stat admin-stat--success">100%</span></a></div>
-            <div style="font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px;">
-              <span style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span>Status:</span> <span class="admin-stat admin-stat--success">Operational</span></span>
-              <span style="display: flex; justify-content: space-between;"><span>Uptime:</span> <span style="color: var(--admin-text); font-weight: 600;">24/7</span></span>
+          <div class="admin-security-panel">
+            <div class="admin-security-panel__title">{% trans "Alerts & Access" %}</div>
+            <div class="admin-security-stat"><span>{% trans "Security alerts" %}</span> <strong class="admin-stat admin-stat--danger">{{ security_alerts_24h|default:"0" }}</strong></div>
+            <div class="admin-security-stat"><span>{% trans "Access denials" %}</span> <strong class="admin-stat admin-stat--danger">{{ access_denials_24h|default:"0" }}</strong></div>
+            <div class="admin-security-divider">
+              <div class="admin-security-stat"><span>{% trans "Sessions (24h)" %}</span> <strong class="admin-kpi-val">{{ sessions_24h|default:"0" }}</strong></div>
+              <div class="admin-security-stat"><span>{% trans "Active sessions" %}</span> <strong class="admin-kpi-val">{{ active_sessions|default:"0" }}</strong></div>
             </div>
           </div>
         </div>
-
-        <!-- ROW: Active Users / Security / Compliance | Calendar / Weather (same row, same height) -->
-        <div style="display: grid; grid-template-columns: 1fr minmax(240px, 280px); gap: 12px; margin-bottom: 32px; align-items: stretch;">
-          <!-- Active Users / Security / Compliance block -->
-          <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); display: flex; flex-direction: column; min-height: 0;" data-widget-id="admin-active-users-security">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-              <span style="font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">Active Users / Security / Compliance</span>
-              <span style="font-size: 20px;">👥</span>
-            </div>
-            <div style="display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; flex: 1; min-height: 0;">
-              <div style="flex: 2 1 420px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
-                <div class="admin-user-card">
-                  <div class="admin-user-card__avatar">AD</div>
-                  <div style="font-size: 11px; color: var(--admin-text); font-weight: 600; margin-bottom: 4px;">Admin User</div>
-                  <div style="font-size: 10px; color: var(--admin-muted); margin-bottom: 8px;">Now</div>
-                  <button type="button" onclick="alert('Kick user functionality')" class="admin-user-card__btn">End Session</button>
-                </div>
-                <div class="admin-user-card">
-                  <div class="admin-user-card__avatar admin-user-card__avatar--teacher">TE</div>
-                  <div style="font-size: 11px; color: var(--admin-text); font-weight: 600; margin-bottom: 4px;">Teacher</div>
-                  <div style="font-size: 10px; color: var(--admin-muted); margin-bottom: 8px;">2m ago</div>
-                  <button type="button" onclick="alert('Kick user functionality')" class="admin-user-card__btn">End Session</button>
-                </div>
-                <div class="admin-user-card">
-                  <div class="admin-user-card__avatar admin-user-card__avatar--parent">PA</div>
-                  <div style="font-size: 11px; color: var(--admin-text); font-weight: 600; margin-bottom: 4px;">Parent</div>
-                  <div style="font-size: 10px; color: var(--admin-muted); margin-bottom: 8px;">5m ago</div>
-                  <button type="button" onclick="alert('Kick user functionality')" class="admin-user-card__btn">End Session</button>
-                </div>
-              </div>
-              <div style="flex: 1 1 260px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 12px; justify-content: space-between;">
-                <div style="font-size: 11px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;">Security / Compliance (24h)</div>
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                  <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                    <span>Recent security alerts</span>
-                    <strong class="admin-stat admin-stat--danger">{{ security_alerts_24h|default:"0" }}</strong>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                    <span>Access denials</span>
-                    <strong class="admin-stat admin-stat--danger">{{ access_denials_24h|default:"0" }}</strong>
-                  </div>
-                </div>
-                <div style="border-top: 1px solid var(--admin-border); padding-top: 8px;">
-                  <div style="font-size: 11px; color: var(--admin-muted); font-weight: 600; margin-bottom: 6px;">Failed logins by role</div>
-                  {% if failed_logins_by_role %}
-                    {% for row in failed_logins_by_role %}
-                      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                        <span>{{ row.role }}</span>
-                        <strong>{{ row.count }}</strong>
-                      </div>
-                    {% endfor %}
-                  {% else %}
-                    <div style="font-size: 12px; color: var(--admin-muted);">No failed logins.</div>
-                  {% endif %}
-                </div>
-                <div style="border-top: 1px solid var(--admin-border); padding-top: 8px;">
-                  <div style="display: flex; justify-content: space-between; font-size: 12px;"><span>Sessions (24h)</span><strong style="color: var(--admin-text);">{{ sessions_24h|default:"—" }}</strong></div>
-                  <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;"><span>New logins (24h)</span><strong style="color: var(--admin-text);">{{ new_logins_24h|default:"—" }}</strong></div>
-                </div>
-              </div>
-            </div>
-            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--admin-border); text-align: center; font-size: 12px; color: var(--admin-muted);">
-              {{ active_sessions|default:"3" }} user{{ active_sessions|default:"3"|pluralize }} online • {{ sessions_24h|default:"25" }} in last 24h
-            </div>
-          </div>
-
-          <!-- Calendar / Weather block (same height as Active Users block) -->
-          <div class="calendar-widget calendar-widget--same-row" data-widget-id="admin-calendar-widget" style="display: flex; flex-direction: column;">
-            <div class="calendar-header calendar-header--compact">
-              <button onclick="prevMonth()" style="background: var(--admin-accent); color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 11px;">←</button>
-              <span id="monthYear" style="color: var(--admin-text); font-size: 12px; text-align: center; grid-column: 2;">January 2026</span>
-              <button onclick="nextMonth()" style="background: var(--admin-accent); color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 11px;">→</button>
-            </div>
-            <div class="calendar-grid calendar-grid--compact" id="calendarGrid">
-              <!-- Calendar will be generated by JavaScript -->
-            </div>
-            <div class="calendar-widget__footer">
-              <div style="text-align: center; margin-bottom: 6px;">
-                <span id="todayDate" style="color: var(--admin-accent); font-weight: 600; font-size: 11px;">Today: Jan 23</span>
-              </div>
-              <div id="weatherWidget" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px; background: {{ admin_palette.weather_bg|default:'rgba(255, 149, 0, 0.08)' }}; border-radius: 6px; margin-bottom: 6px;">
-                <span id="weatherIcon" style="font-size: 18px;">🌤️</span>
-                <div style="text-align: left;">
-                  <div id="weatherTemp" style="color: var(--admin-text); font-weight: 700; font-size: 13px;">--°</div>
-                  <div id="weatherDesc" style="color: var(--admin-muted); font-size: 10px;">Loading...</div>
-                </div>
-              </div>
-              <div id="dailyMessage" style="text-align: center; color: var(--admin-muted); font-size: 10px; font-style: italic; line-height: 1.3;">
-                "Great things are done by a series of small things brought together."
-              </div>
-            </div>
-          </div>
+        <div class="admin-security-footer">
+          {{ active_sessions|default:"0" }} {% trans "user" %}{{ active_sessions|default:"0"|pluralize }} {% trans "online" %} &bull; {{ sessions_24h|default:"0" }} {% trans "in last 24h" %}
         </div>
+      </div>
 
-    <!-- ADMIN CONTROLS SECTION -->
+      {# Calendar / Weather Block #}
+      <div class="calendar-widget" data-widget-id="admin-calendar-widget">
+        <div class="calendar-header">
+          <button type="button" class="calendar-nav-btn" onclick="prevMonth()" aria-label="{% trans 'Previous month' %}">←</button>
+          <span id="monthYear" class="calendar-header__month"></span>
+          <button type="button" class="calendar-nav-btn" onclick="nextMonth()" aria-label="{% trans 'Next month' %}">→</button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        <div class="calendar-widget__footer">
+          <div class="calendar-widget__today" id="todayDate"></div>
+          <div class="weather-widget" id="weatherWidget">
+            <span class="weather-widget__icon" id="weatherIcon">🌤️</span>
+            <div>
+              <div class="weather-widget__temp" id="weatherTemp">--°</div>
+              <div class="weather-widget__desc" id="weatherDesc">{% trans "Loading..." %}</div>
+            </div>
+          </div>
+          <div class="daily-message" id="dailyMessage"></div>
+        </div>
+      </div>
+    </div>
+
+    {# === Admin Controls === #}
     <div data-dashboard-column="lower">
-    <div style="margin-bottom: 32px;" data-widget-id="admin-controls">
-      <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px;">Admin Controls</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
-        <a href="{% url 'admin:accounts_user_changelist' %}" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
-          👥 Manage Users
-        </a>
-        <a href="{% url 'admin:index' %}" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
-          📋 All Models
-        </a>
-        <a href="{% url 'api_health' %}" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
-          ⚕️ API Health
-        </a>
-        <a href="{% url 'siteconfig:customizer' %}" style="display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow);" onmouseover="this.style.borderColor='var(--admin-border-hover)'; this.style.boxShadow='var(--admin-shadow-hover)';" onmouseout="this.style.borderColor='var(--admin-border-strong)'; this.style.boxShadow='var(--admin-shadow)';">
-          ⚙️ Site Config
-        </a>
-        <a href="{% url 'accounts:backend_dashboard' %}" class="admin-cta-backend">
-          🎛️ Backend Console
-        </a>
+      <div style="margin-bottom: 32px;" data-widget-id="admin-controls">
+        <h2 class="admin-controls__title">{% trans "Admin Controls" %}</h2>
+        <div class="admin-controls-grid">
+          <a href="{% url 'admin:accounts_user_changelist' %}" class="admin-control-btn">👥 {% trans "Manage Users" %}</a>
+          <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-control-btn">⚙️ {% trans "Site Settings" %}</a>
+          <a href="{% url 'api_health' %}" target="_blank" rel="noopener" class="admin-control-btn">⚕️ {% trans "API Health" %}</a>
+          <a href="{% url 'siteconfig:customizer' %}" class="admin-control-btn">🎨 {% trans "Customizer" %}</a>
+          <a href="{% url 'accounts:backend_dashboard' %}" class="admin-cta-backend">🎛️ {% trans "Backend Console" %}</a>
+        </div>
       </div>
-    </div>
 
-    <!-- SYSTEM INFORMATION TABLE -->
-    <div style="background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow);" data-widget-id="admin-system-information">
-      <h2 style="margin: 0 0 20px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px;">System Information</h2>
-      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--admin-border);">
-            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600; width: 35%;">Django Version</td>
-            <td style="padding: 16px 0; color: var(--admin-text);">5.2.10</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--admin-border);">
-            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600;">Python Version</td>
-            <td style="padding: 16px 0; color: var(--admin-text);">3.14</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--admin-border);">
-            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600;">Database Engine</td>
-            <td style="padding: 16px 0; color: var(--admin-text);">SQLite3</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--admin-border);">
-            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600;">Admin Theme</td>
-            <td style="padding: 16px 0; color: var(--admin-text);">Unfold v0.76.0</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--admin-border);">
-            <td style="padding: 16px 0; color: var(--admin-subtle); font-weight: 600;">Server Time</td>
-            <td style="padding: 16px 0; color: var(--admin-text); font-family: 'Monaco', 'Menlo', monospace;" id="timestamp">Loading...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- FOOTER SPACING -->
-    <div style="margin-bottom: 24px;"></div>
-
-    </div>
+      {# === System Information === #}
+      <div class="admin-sysinfo" data-widget-id="admin-system-information">
+        <h2 class="admin-sysinfo__title">{% trans "System Information" %}</h2>
+        <table>
+          <tbody>
+            <tr>
+              <td class="admin-sysinfo__label">{% trans "Django Version" %}</td>
+              <td class="admin-sysinfo__val">{{ django_version|default:"Unknown" }}</td>
+            </tr>
+            <tr>
+              <td class="admin-sysinfo__label">{% trans "Python Version" %}</td>
+              <td class="admin-sysinfo__val">{{ python_version|default:"Unknown" }}</td>
+            </tr>
+            <tr>
+              <td class="admin-sysinfo__label">{% trans "Database Engine" %}</td>
+              <td class="admin-sysinfo__val">{{ db_engine_display|default:"SQLite3" }}</td>
+            </tr>
+            <tr>
+              <td class="admin-sysinfo__label">{% trans "Admin Theme" %}</td>
+              <td class="admin-sysinfo__val">Unfold</td>
+            </tr>
+            <tr>
+              <td class="admin-sysinfo__label">{% trans "Server Time" %}</td>
+              <td class="admin-sysinfo__val admin-sysinfo__mono" id="timestamp">{% trans "Loading..." %}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <!-- /admin-main -->
+
+      <div style="margin-bottom: 24px;"></div>
     </div>
-    <!-- /admin-layout -->
   </div>
-  <!-- /max-width container -->
 </div>
-<!-- /page background -->
 
 <script>
-  // Theme Toggle (sync data-theme and data-bs-theme for Unfold + admin_sidebar_enhanced)
-  // Uses gilead-theme-preference so theme follows user from portal to admin
-  function toggleTheme() {
-    const root = document.documentElement;
-    const isDark = root.getAttribute('data-theme') === 'dark';
-    const newTheme = isDark ? 'light' : 'dark';
-    root.setAttribute('data-theme', newTheme);
-    root.setAttribute('data-bs-theme', newTheme);
-    localStorage.setItem('gilead-theme-preference', newTheme);
-    document.getElementById('themeToggle').textContent = isDark ? '🌙 Dark' : '☀️ Light';
-  }
-
-  // Load saved theme on page load (same key as portal for consistent preference)
+  // Initialize dashboard on load (no duplicate theme toggle -- using base_site.html's toggle)
   window.addEventListener('DOMContentLoaded', function() {
-    const savedTheme = localStorage.getItem('gilead-theme-preference') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.documentElement.setAttribute('data-bs-theme', savedTheme);
-    document.getElementById('themeToggle').textContent = savedTheme === 'dark' ? '☀️ Light' : '🌙 Dark';
     generateCalendar();
-    document.getElementById('timestamp').textContent = new Date().toLocaleString();
+    var ts = document.getElementById('timestamp');
+    if (ts) ts.textContent = new Date().toLocaleString();
     loadWeather();
     loadDailyMessage();
+    // Update today display
+    var todayEl = document.getElementById('todayDate');
+    if (todayEl) {
+      var now = new Date();
+      todayEl.textContent = 'Today: ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
   });
 
-  // Weather functionality
+  // Weather -- Buea, Cameroon (4.1527, 9.2410)
   async function loadWeather() {
     try {
-      // Using Open-Meteo free weather API (no key required)
-      const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=9.0820&longitude=8.6753&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=Africa%2FLagos');
-      const data = await response.json();
-      
+      var response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=4.1527&longitude=9.2410&current=temperature_2m,weather_code&temperature_unit=celsius&timezone=Africa%2FDouala');
+      var data = await response.json();
       if (data.current) {
-        const temp = Math.round(data.current.temperature_2m);
-        const weatherCode = data.current.weather_code;
-        
-        // Weather icon mapping
-        const weatherIcons = {
-          0: '☀️', // Clear
-          1: '🌤️', 2: '⛅', 3: '☁️', // Partly cloudy
-          45: '🌫️', 48: '🌫️', // Fog
-          51: '🌦️', 53: '🌦️', 55: '🌦️', // Drizzle
-          61: '🌧️', 63: '🌧️', 65: '🌧️', // Rain
-          71: '🌨️', 73: '🌨️', 75: '🌨️', // Snow
-          80: '🌦️', 81: '🌦️', 82: '🌦️', // Showers
-          95: '⛈️', 96: '⛈️', 99: '⛈️' // Thunderstorm
-        };
-        
-        const weatherDescriptions = {
-          0: 'Clear sky',
-          1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-          45: 'Foggy', 48: 'Foggy',
-          51: 'Light drizzle', 53: 'Drizzle', 55: 'Heavy drizzle',
-          61: 'Light rain', 63: 'Rain', 65: 'Heavy rain',
-          71: 'Light snow', 73: 'Snow', 75: 'Heavy snow',
-          80: 'Light showers', 81: 'Showers', 82: 'Heavy showers',
-          95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Heavy thunderstorm'
-        };
-        
-        document.getElementById('weatherIcon').textContent = weatherIcons[weatherCode] || '🌤️';
-        document.getElementById('weatherTemp').textContent = `${temp}°F`;
-        document.getElementById('weatherDesc').textContent = weatherDescriptions[weatherCode] || 'Unknown';
+        var temp = Math.round(data.current.temperature_2m);
+        var code = data.current.weather_code;
+        var icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌦️',82:'🌦️',95:'⛈️',96:'⛈️',99:'⛈️'};
+        var descs = {0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Foggy',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Light showers',81:'Showers',82:'Heavy showers',95:'Thunderstorm',96:'Thunderstorm',99:'Heavy thunderstorm'};
+        document.getElementById('weatherIcon').textContent = icons[code] || '🌤️';
+        document.getElementById('weatherTemp').textContent = temp + '°C';
+        document.getElementById('weatherDesc').textContent = (descs[code] || 'Unknown') + ' — Buea';
       }
-    } catch (error) {
-      console.log('Weather loading failed:', error);
-      document.getElementById('weatherTemp').textContent = '72°F';
-      document.getElementById('weatherDesc').textContent = 'Abuja, Nigeria';
+    } catch (e) {
+      document.getElementById('weatherTemp').textContent = '24°C';
+      document.getElementById('weatherDesc').textContent = 'Buea, Cameroon';
     }
   }
 
   // Daily inspirational messages
   function loadDailyMessage() {
-    const messages = [
-      '"Great things are done by a series of small things brought together." — Vincent Van Gogh',
+    var msgs = [
       '"Education is the most powerful weapon which you can use to change the world." — Nelson Mandela',
       '"The beautiful thing about learning is that no one can take it away from you." — B.B. King',
+      '"Great things are done by a series of small things brought together." — Vincent Van Gogh',
       '"Success is not final, failure is not fatal: it is the courage to continue that counts." — Winston Churchill',
       '"The only way to do great work is to love what you do." — Steve Jobs',
       '"Believe you can and you\'re halfway there." — Theodore Roosevelt',
@@ -535,85 +380,53 @@
       '"Excellence is not a skill, it\'s an attitude." — Ralph Marston',
       '"The expert in anything was once a beginner." — Helen Hayes'
     ];
-    
-    // Use day of year to get consistent message for the day
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const diff = now - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    const dayOfYear = Math.floor(diff / oneDay);
-    
-    const messageIndex = dayOfYear % messages.length;
-    document.getElementById('dailyMessage').textContent = messages[messageIndex];
+    var now = new Date();
+    var start = new Date(now.getFullYear(), 0, 0);
+    var dayOfYear = Math.floor((now - start) / 86400000);
+    var el = document.getElementById('dailyMessage');
+    if (el) el.textContent = msgs[dayOfYear % msgs.length];
   }
 
-  // Calendar functionality
-  let currentDate = new Date();
-
+  // Calendar
+  var currentDate = new Date();
   function generateCalendar() {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // Update month/year display
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                       'July', 'August', 'September', 'October', 'November', 'December'];
-    document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
-    
-    // Get first day of month and number of days
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const today = new Date();
-    
-    // Create calendar grid
-    const calendarGrid = document.getElementById('calendarGrid');
-    calendarGrid.innerHTML = '';
-    
-    // Add day headers
-    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    dayHeaders.forEach(day => {
-      const header = document.createElement('div');
-      header.style.fontWeight = '700';
-      header.style.textAlign = 'center';
-      header.style.padding = '6px 4px';
-      header.style.color = 'var(--admin-accent)';
-      header.textContent = day;
-      calendarGrid.appendChild(header);
+    var year = currentDate.getFullYear();
+    var month = currentDate.getMonth();
+    var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var el = document.getElementById('monthYear');
+    if (el) el.textContent = monthNames[month] + ' ' + year;
+    var firstDay = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var today = new Date();
+    var grid = document.getElementById('calendarGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d) {
+      var h = document.createElement('div');
+      h.className = 'calendar-grid__header';
+      h.textContent = d;
+      grid.appendChild(h);
     });
-    
-    // Add empty cells before first day
-    for (let i = 0; i < firstDay; i++) {
-      const emptyCell = document.createElement('div');
-      emptyCell.style.opacity = '0.3';
-      calendarGrid.appendChild(emptyCell);
+    for (var i = 0; i < firstDay; i++) {
+      var empty = document.createElement('div');
+      empty.className = 'calendar-day calendar-day--empty';
+      grid.appendChild(empty);
     }
-    
-    // Add day cells
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayCell = document.createElement('div');
-      dayCell.className = 'calendar-day';
-      dayCell.textContent = day;
-      
-      // Highlight today
+    for (var day = 1; day <= daysInMonth; day++) {
+      var cell = document.createElement('div');
+      cell.className = 'calendar-day';
+      cell.textContent = day;
       if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === day) {
-        dayCell.classList.add('today');
+        cell.classList.add('calendar-day--today');
       }
-      
-      calendarGrid.appendChild(dayCell);
+      grid.appendChild(cell);
     }
   }
-
-  function prevMonth() {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    generateCalendar();
-  }
-
-  function nextMonth() {
-    currentDate.setMonth(currentDate.getMonth() + 1);
-    generateCalendar();
-  }
+  function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); generateCalendar(); }
+  function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); generateCalendar(); }
 </script>
 
-<!-- Weather Marquee Footer -->
+{# Weather Marquee Footer #}
 <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--admin-border);">
   {% include 'components/weather_marquee.html' %}
 </div>

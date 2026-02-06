@@ -1,6 +1,7 @@
 /**
  * Admin sidebar keyboard navigation.
  * Arrow keys: Up/Down to move focus; Enter/Space to activate.
+ * Ctrl+K / Cmd+K: Focus the sidebar search input.
  */
 (function () {
   function init() {
@@ -42,6 +43,23 @@
     }
 
     sidebar.addEventListener("keydown", handleKeydown);
+
+    // Ctrl+K / Cmd+K: Focus sidebar search input
+    document.addEventListener("keydown", function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        // Try Unfold search input first, then our nav-filter
+        var searchInput =
+          sidebar.querySelector('input[type="search"]') ||
+          sidebar.querySelector('input[name="q"]') ||
+          sidebar.querySelector("#nav-filter") ||
+          document.querySelector('[data-action="search"] input');
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      }
+    });
   }
 
   if (document.readyState === "loading") {

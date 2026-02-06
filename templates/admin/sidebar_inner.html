@@ -25,6 +25,7 @@ Logo: SITE_ADMIN_LOGO_URL (ThemePack) or SITE_LOGO_URL (SiteSettings) or static 
 
     {% include "unfold/helpers/navigation_header.html" %}
     {% include "unfold/helpers/search.html" %}
+    <div class="admin-sidebar-search-hint" aria-hidden="true"><kbd>Ctrl</kbd>+<kbd>K</kbd> {% trans "to search" %}</div>
 
     {% include "admin/app_list.html" with app_list=available_apps show_changelinks=False %}
 

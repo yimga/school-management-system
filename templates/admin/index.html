@@ -1,560 +1,68 @@
 {% extends "admin/base_site.html" %}
 {% load i18n static %}
+{# 
+  NOTE: This template is the Django default admin index fallback.
+  The REAL admin dashboard is rendered by config/admin.py index() using admin_dashboard.html.
+  This file exists as a safety net -- if the custom view ever fails, Django falls back here.
+  Keep it minimal; do NOT duplicate dashboard logic.
+#}
 
 {% block extrastyle %}
 {{ block.super }}
-{# Brand/semantic vars set in base_site.html (ADMIN_RESOLVED_*); only layout vars and component styles here. #}
 <style>
-  :root {
-    --surface-dark: #2d2d2d;
-    --border-dark: #404040;
-    --text-primary: #fff;
-    --text-muted: #9ca3af;
-  }
-
-  body {margin:0;padding:0;background:var(--surface-deep);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
-  #content-main, #content {padding:0!important;margin:0;background:var(--surface-deep);}
-  .module {border:none;}
-  
-  /* Theme Toggle */
-  .theme-toggle {position:fixed;top:80px;right:20px;z-index:1000;background:var(--surface-dark);border:1px solid var(--border-dark);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:0.2s;}
-  .theme-toggle:hover {background:#353535;border-color:var(--brand-success);}
-  .theme-toggle-label {color:var(--text-muted);font-size:12px;font-weight:600;}
-  
-  .dashboard-container {max-width:100%;padding:24px;background:var(--surface-deep);min-height:100vh;}
-  
-  /* Header */
-  .dashboard-header {background:var(--surface-dark);padding:24px;border-radius:12px;margin-bottom:24px;border:1px solid var(--border-dark);}
-  .dashboard-header h1 {margin:0 0 8px;font-size:28px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;}
-  .dashboard-subtitle {color:var(--text-muted);font-size:14px;margin-bottom:16px;line-height:1.6;}
-  .header-actions {display:flex;gap:12px;flex-wrap:wrap;}
-  .btn-orange {background:var(--brand-accent);color:#1a1a1a;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);text-decoration:none;display:inline-block;}
-  .btn-orange:hover {background:var(--brand-accent);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.28);}
-  .btn-green {background:var(--brand-success);color:#1a1a1a;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);text-decoration:none;display:inline-block;}
-  .btn-green:hover {background:var(--brand-success);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.28);}
-  .btn-outline {background:transparent;color:var(--text-muted);border:2px solid var(--border-dark);border-radius:8px;padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;text-decoration:none;display:inline-block;}
-  .btn-outline:hover {border-color:var(--brand-success);color:var(--brand-success);background:#252525;}
-  
-  /* Stats Grid */
-  .stats-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-bottom:24px;}
-  .stat-card {background:var(--surface-dark);border:1px solid var(--border-dark);border-radius:12px;padding:20px;transition:all 0.3s;}
-  .stat-card:hover {border-color:var(--brand-success);box-shadow:0 8px 24px rgba(0,0,0,0.2);transform:translateY(-3px);}
-  .stat-card h3 {margin:0 0 16px;font-size:16px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;}
-  .stat-item {background:var(--surface-deep);border:2px dashed var(--border-dark);border-radius:10px;padding:18px;margin-bottom:12px;transition:0.3s;cursor:pointer;}
-  .stat-item:hover {border-style:solid;border-color:var(--brand-success);}
-  .stat-item.active {background:#1f2937;border:2px solid var(--brand-success);box-shadow:0 0 0 4px rgba(74,222,128,0.1);}
-  .stat-time {color:var(--brand-success);font-size:13px;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
-  .stat-title {color:#e5e7eb;font-size:15px;font-weight:600;margin-bottom:4px;}
-  .stat-meta {color:#6b7280;font-size:12px;}
-  
-  /* App Grid */
-  .app-section {background:var(--surface-dark);padding:28px;border-radius:12px;margin-bottom:24px;border:1px solid var(--border-dark);}
-  .app-section-header {display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
-  .app-section h2 {margin:0;font-size:22px;font-weight:800;color:var(--text-primary);letter-spacing:-0.01em;}
-  .app-count {background:var(--surface-deep);color:var(--text-muted);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;border:1px solid var(--border-dark);}
-  .app-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
-  .app-card {background:var(--surface-deep);border:1px solid var(--border-dark);padding:20px;border-radius:12px;transition:all 0.3s;cursor:pointer;}
-  .app-card:hover {border-color:var(--brand-accent);background:#252525;transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.25);}
-  .app-icon {font-size:32px;margin-bottom:12px;display:block;}
-  .app-title {margin:0 0 8px;font-size:15px;font-weight:700;color:var(--text-primary);letter-spacing:-0.01em;}
-  .app-meta {margin:0 0 16px;font-size:12px;color:#6b7280;}
-  .app-actions {display:flex;gap:8px;}
-  .app-btn {background:transparent;color:var(--text-muted);border:1px solid var(--border-dark);border-radius:6px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;transition:0.2s;text-decoration:none;display:inline-block;}
-  .app-btn:hover {border-color:var(--brand-success);color:var(--brand-success);background:#1f2937;}
-  
-  /* Light Mode */
-  body.light-mode {background:#f8fafc;}
-  body.light-mode #content-main,body.light-mode #content {background:#f8fafc;}
-  body.light-mode .dashboard-container {background:#f8fafc;}
-  body.light-mode .dashboard-header,body.light-mode .stat-card,body.light-mode .app-section {background:#fff;border-color:#e5e7eb;}
-  body.light-mode .dashboard-header h1,body.light-mode .stat-card h3,body.light-mode .app-section h2 {color:#1e293b;}
-  body.light-mode .stat-item {background:#f8fafc;border-color:#e5e7eb;}
-  body.light-mode .stat-item.active {background:#f0fdf4;border-color:#4ade80;}
-  body.light-mode .stat-title {color:#1e293b;}
-  body.light-mode .app-card {background:#f8fafc;border-color:#e5e7eb;}
-  body.light-mode .app-card:hover {background:#fff;border-color:#ff9f43;}
-  body.light-mode .app-title {color:#1e293b;}
-  body.light-mode .app-count {background:#f1f5f9;color:#64748b;border-color:#e5e7eb;}
-  body.light-mode .theme-toggle {background:#fff;border-color:#e5e7eb;}
-  
-  /* Mobile-First Responsive Design */
-  @media (max-width:479px) {
-    .dashboard-container {
-      padding: 12px;
-    }
-
-    .dashboard-header {
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .dashboard-header h1 {
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    .dashboard-subtitle {
-      font-size: 12px;
-      line-height: 1.4;
-    }
-
-    .header-actions {
-      gap: 6px;
-      margin-top: 12px;
-    }
-
-    .btn-orange, .btn-green, .btn-outline {
-      padding: 10px 16px;
-      font-size: 12px;
-      flex: 1;
-      min-height: 44px;
-    }
-
-    .stats-grid {
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .stat-card {
-      padding: 16px;
-      border-radius: 10px;
-    }
-
-    .stat-card h3 {
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
-
-    .stat-item {
-      padding: 12px;
-      margin-bottom: 8px;
-    }
-
-    .stat-time {
-      font-size: 11px;
-      margin-bottom: 4px;
-    }
-
-    .stat-title {
-      font-size: 13px;
-      margin-bottom: 2px;
-    }
-
-    .stat-meta {
-      font-size: 11px;
-    }
-
-    .app-section {
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .app-section h2 {
-      font-size: 18px;
-      margin-bottom: 12px;
-    }
-
-    .app-grid {
-      gap: 12px;
-    }
-
-    .app-card {
-      padding: 16px;
-      border-radius: 10px;
-    }
-
-    .app-icon {
-      font-size: 24px;
-      margin-bottom: 8px;
-    }
-
-    .app-title {
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .app-meta {
-      font-size: 11px;
-      margin-bottom: 12px;
-    }
-
-    .app-actions {
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .app-btn {
-      flex: 1;
-      min-height: 40px;
-      padding: 6px 12px;
-      font-size: 11px;
-    }
-
-    /* Theme toggle repositioned for mobile */
-    .theme-toggle {
-      top: auto;
-      bottom: 20px;
-      right: 12px;
-      z-index: 1000;
-      padding: 8px 10px;
-    }
-  }
-
-  @media (max-width:768px) {
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .app-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .dashboard-container {
-      padding: 16px;
-    }
-
-    .header-actions {
-      flex-direction: column;
-    }
-
-    .btn-orange, .btn-green, .btn-outline {
-      width: 100%;
-      min-height: 44px;
-    }
-  }
-
-  @media (max-width:767px) {
-    .dashboard-container {
-      padding: 12px;
-    }
-  }
-
-  @media (min-width:769px) {
-    .stats-grid {
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    }
-
-    .app-grid {
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    }
-  }
-
-  /* Touch device optimizations */
-  @media (hover: none) and (pointer: coarse) {
-    .stat-item, .app-card {
-      padding: 16px;
-    }
-
-    .stat-item:active {
-      border-color: #4ade80;
-    }
-
-    .app-card:active {
-      border-color: #ff9f43;
-    }
-
-    .app-btn, .btn-orange, .btn-green, .btn-outline {
-      min-height: 48px;
-    }
-  }
-
+  .admin-fallback { max-width: 100%; padding: 24px; }
+  .admin-fallback__header { margin-bottom: 24px; }
+  .admin-fallback__header h1 { margin: 0 0 8px; font-size: 24px; font-weight: 700; color: var(--admin-text, #0f172a); }
+  .admin-fallback__subtitle { color: var(--admin-muted, #64748b); font-size: 14px; }
+  .admin-fallback__actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+  .admin-fallback__btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+  .admin-fallback__btn--primary { background: var(--brand-accent, #198754); color: #fff; border: none; }
+  .admin-fallback__btn--primary:hover { opacity: 0.9; transform: translateY(-1px); color: #fff; }
+  .admin-fallback__btn--outline { background: transparent; color: var(--admin-text, #0f172a); border: 2px solid var(--admin-border, #e2e8f0); }
+  .admin-fallback__btn--outline:hover { border-color: var(--brand-accent, #198754); color: var(--brand-accent, #198754); }
+  .admin-fallback__apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .admin-fallback__app { background: var(--admin-surface, #fff); border: 1px solid var(--admin-border, #e2e8f0); border-radius: 10px; padding: 20px; transition: all 0.2s; }
+  .admin-fallback__app:hover { border-color: var(--brand-accent, #198754); box-shadow: 0 4px 12px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .admin-fallback__app-icon { font-size: 28px; margin-bottom: 8px; display: block; }
+  .admin-fallback__app-title { font-size: 15px; font-weight: 700; color: var(--admin-text, #0f172a); margin: 0 0 6px; }
+  .admin-fallback__app-links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .admin-fallback__app-link { font-size: 12px; color: var(--admin-muted, #64748b); text-decoration: none; padding: 4px 10px; border: 1px solid var(--admin-border, #e2e8f0); border-radius: 6px; transition: 0.2s; }
+  .admin-fallback__app-link:hover { border-color: var(--brand-accent, #198754); color: var(--brand-accent, #198754); }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Theme Toggle -->
-<div class="theme-toggle" onclick="toggleTheme()">
-  <span id="theme-icon">🌙</span>
-  <span class="theme-toggle-label" id="theme-label">Dark</span>
-</div>
-
-<div class="dashboard-container">
-  {% if PREVIEW_MODE_ENABLED %}
-  <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <div>
-      <strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}
-    </div>
-    <div class="d-flex gap-2 mt-2 mt-sm-0">
-      <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
-      <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
-    </div>
+<div class="admin-fallback">
+  {# Header #}
+  <div class="admin-fallback__header">
+    <h1>{% trans "Administration Dashboard" %}</h1>
+    <p class="admin-fallback__subtitle">{% trans "Manage your school operations and access all administrative functions." %}</p>
   </div>
-  {% elif PREVIEW_TOGGLE_ENABLED %}
-  <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <div>
-      <strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}
-    </div>
-    <div class="d-flex gap-2 mt-2 mt-sm-0">
-      <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
-    </div>
-  </div>
-  {% endif %}
 
-  {% if FINANCE_REQUEST_ALERT_COUNT %}
-  <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between mb-3">
-    <div>
-      <strong>{{ FINANCE_REQUEST_ALERT_COUNT }} pending finance access request{% if FINANCE_REQUEST_ALERT_COUNT != 1 %}s{% endif %}</strong>
-      <div class="small text-muted">Handle guardian approvals without leaving the admin hub.</div>
+  {# Quick Actions #}
+  <div class="admin-fallback__actions">
+    <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-fallback__btn admin-fallback__btn--primary">⚙️ {% trans "Site Settings" %}</a>
+    <a href="{% url 'admin:accounts_user_changelist' %}" class="admin-fallback__btn admin-fallback__btn--outline">👥 {% trans "Users" %}</a>
+    <a href="{% url 'accounts:backend_dashboard' %}" class="admin-fallback__btn admin-fallback__btn--outline">🎛️ {% trans "Backend Console" %}</a>
+  </div>
+
+  {# App Grid (dynamic from app_list) #}
+  {% if app_list %}
+  <div class="admin-fallback__apps">
+    {% for app in app_list %}
+    <div class="admin-fallback__app">
+      <span class="admin-fallback__app-icon">{{ app.name|truncatechars:2 }}</span>
+      <h3 class="admin-fallback__app-title">{{ app.name }}</h3>
+      <div class="admin-fallback__app-links">
+        {% for model in app.models %}
+          {% if model.admin_url %}
+          <a href="{{ model.admin_url }}" class="admin-fallback__app-link">{{ model.name }}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
     </div>
-    <div class="d-flex gap-2 mt-2 mt-sm-0">
-      <a class="btn btn-sm btn-light text-dark" href="{{ FINANCE_REQUEST_LINK }}">Open finance inbox</a>
-    </div>
+    {% endfor %}
   </div>
   {% endif %}
-
-  <!-- Header -->
-  <header class="dashboard-header">
-    <h1>Administration Dashboard</h1>
-    <p class="dashboard-subtitle">Manage your school operations, monitor system health, and access all administrative functions from this central hub.</p>
-    <div class="header-actions">
-      <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="btn-green">⚙️ Site Settings</a>
-      <a href="{% url 'admin:accounts_user_changelist' %}" class="btn-outline" title="{% trans 'Who can do what' %}">👥 User permissions</a>
-      <a href="{% url 'analytics:master_sheet' %}" class="btn-orange">📊 Master Sheet</a>
-      <a href="{% url 'analytics:deadlines' %}" class="btn-green">⏰ Deadlines</a>
-      <a href="{% url 'reports:publish_term_results' %}" class="btn-outline">📄 Publish Reports</a>
-    </div>
-  </header>
-
-  <!-- Testing & test users (visible on live so staff have the logins) -->
-  <section class="app-section" style="margin-bottom: 24px;">
-    <div class="app-section-header">
-      <h2>🧪 Testing &amp; test users</h2>
-    </div>
-    <p class="dashboard-subtitle" style="margin-bottom: 16px;">Seed users created by <code>seed_render_users</code> (Render) or <code>ensure_superuser</code> + <code>create_teacher_parent_accounts</code> (local). Log in at <strong>/authentication/login/</strong> or <strong>/admin/</strong>.</p>
-    <div style="overflow-x: auto;">
-      <table class="stat-card" style="width: 100%; border-collapse: collapse; padding: 16px; border: 1px solid var(--border-dark, #404040); border-radius: 12px;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border-dark, #404040);">
-            <th style="text-align: left; padding: 12px; color: var(--text-primary);">Username</th>
-            <th style="text-align: left; padding: 12px; color: var(--text-primary);">Role</th>
-            <th style="text-align: left; padding: 12px; color: var(--text-primary);">Password</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border-dark, #404040);">
-            <td style="padding: 12px;"><strong>admin</strong></td>
-            <td style="padding: 12px;">Superuser</td>
-            <td style="padding: 12px;">Production: value of <code>ADMIN_PASSWORD</code> (set in Render Environment). Local: use <code>ensure_superuser --password &lt;your-password&gt;</code>.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border-dark, #404040);">
-            <td style="padding: 12px;"><strong>teacher1</strong></td>
-            <td style="padding: 12px;">Teacher</td>
-            <td style="padding: 12px;">Same as <code>ADMIN_PASSWORD</code> on Render; or the password you pass to <code>create_teacher_parent_accounts --password &lt;pwd&gt;</code> locally.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border-dark, #404040);">
-            <td style="padding: 12px;"><strong>Parent1</strong></td>
-            <td style="padding: 12px;">Parent</td>
-            <td style="padding: 12px;">Same as <code>ADMIN_PASSWORD</code> on Render; or the password you pass to <code>create_teacher_parent_accounts --password &lt;pwd&gt;</code> locally.</td>
-          </tr>
-          <tr>
-            <td style="padding: 12px;"><strong>principal1</strong></td>
-            <td style="padding: 12px;">Principal</td>
-            <td style="padding: 12px;">Same as <code>ADMIN_PASSWORD</code> on Render; or the password you pass when creating principal locally.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="stat-meta" style="margin-top: 12px;">Ensure Render <strong>Release Command</strong> runs: <code>python manage.py migrate --noinput &amp;&amp; python manage.py seed_render_users</code> and <strong>ADMIN_PASSWORD</strong> is set in Environment. Full details: repo docs <strong>TESTING_AND_TEST_USERS.md</strong>, <strong>docs/CREDENTIALS_AND_RESTORE.md</strong>.</p>
-  </section>
-
-  <!-- Stats Overview -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <h3>📈 System Status</h3>
-      <div class="stat-item active">
-        <div class="stat-time">Live Status</div>
-        <div class="stat-title">All Systems Operational</div>
-        <div class="stat-meta">Last checked: Just now</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-time">Quick Stats</div>
-        <div class="stat-title">4 Active Students • 4 Subjects</div>
-        <div class="stat-meta">Current academic year</div>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <h3>📊 Academic Overview</h3>
-      <div class="stat-item">
-        <div class="stat-time">Students</div>
-        <div class="stat-title">4 Enrolled Students</div>
-        <div class="stat-meta">Manage student profiles & records</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-time">Curriculum</div>
-        <div class="stat-title">4 Active Subjects</div>
-        <div class="stat-meta">View subject catalog</div>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <h3>💰 Financial Status</h3>
-      <div class="stat-item">
-        <div class="stat-time">Billing</div>
-        <div class="stat-title">0 Overdue Invoices</div>
-        <div class="stat-meta">Financial health: Good</div>
-      </div>
-      <div class="stat-item active">
-        <div class="stat-time">Portals</div>
-        <div class="stat-title">Parent & Teacher Active</div>
-        <div class="stat-meta">Both portals enabled</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Applications -->
-  <section class="app-section">
-    <div class="app-section-header">
-      <h2>Applications & Sections</h2>
-      <span class="app-count">{{ app_list|length|default_if_none:0 }} Apps</span>
-    </div>
-    <div class="app-grid">
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'accounts' %}'">
-        <span class="app-icon">👤</span>
-        <h3 class="app-title">People & Access Controls</h3>
-        <p class="app-meta">Users, roles, authentication, and entity orchestration</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:accounts_user_changelist' %}" class="app-btn">Users</a>
-          <a href="{% url 'admin:accounts_accessrole_changelist' %}" class="app-btn">Roles</a>
-          <a href="{% url 'admin:auth_group_changelist' %}" class="app-btn">Groups</a>
-        </div>
-        <div class="app-actions mt-2">
-          <a href="{% url 'accounts:rbac' %}" class="app-btn">RBAC & Access Control</a>
-          <a href="{% url 'accounts:backend_entity_console' %}" class="app-btn">Entity Console</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'people' %}'">
-        <span class="app-icon">👥</span>
-        <h3 class="app-title">People Management</h3>
-        <p class="app-meta">Students, teachers, guardians</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:people_studentprofile_changelist' %}" class="app-btn">Student profiles</a>
-          <a href="{% url 'admin:people_studentguardian_changelist' %}" class="app-btn">Student guardians</a>
-          <a href="{% url 'admin:people_teacherprofile_changelist' %}" class="app-btn">Teachers</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'academics' %}'">
-        <span class="app-icon">🎓</span>
-        <h3 class="app-title">Academic Structure</h3>
-        <p class="app-meta">7 sections</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'academics' %}" class="app-btn">Open</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'evals' %}'">
-        <span class="app-icon">📊</span>
-        <h3 class="app-title">Evaluations & Grading</h3>
-        <p class="app-meta">6 sections</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'evals' %}" class="app-btn">Open</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'reports' %}'">
-        <span class="app-icon">📄</span>
-        <h3 class="app-title">Reports & Transcripts</h3>
-        <p class="app-meta">3 sections</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'reports' %}" class="app-btn">Open</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'finance' %}'">
-        <span class="app-icon">💰</span>
-        <h3 class="app-title">Finance & Billing</h3>
-        <p class="app-meta">20 sections</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'finance' %}" class="app-btn">Open</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'payroll' %}'">
-        <span class="app-icon">💵</span>
-        <h3 class="app-title">Payroll & Leave</h3>
-        <p class="app-meta">7 sections</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'payroll' %}" class="app-btn">Open</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'portal' %}'">
-        <span class="app-icon">📢</span>
-        <h3 class="app-title">Portal & Communication</h3>
-        <p class="app-meta">Portal content & notices</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'portal' %}" class="app-btn">Open</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'analytics' %}'">
-        <span class="app-icon">📈</span>
-        <h3 class="app-title">Analytics & Insights</h3>
-        <p class="app-meta">1 sections</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'analytics' %}" class="app-btn">Open</a>
-        </div>
-      </div>
-
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'compliance' %}'">
-        <span class="app-icon">🔒</span>
-        <h3 class="app-title">Compliance & Audit</h3>
-        <p class="app-meta">7 sections</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'compliance' %}" class="app-btn">Open</a>
-        </div>
-      </div>
-
-      {% if request.user.is_superuser or request.user.role == 'ADMIN' %}
-      <div class="app-card" onclick="window.location='{% url 'admin:app_list' 'siteconfig' %}'">
-        <span class="app-icon">⚙️</span>
-        <h3 class="app-title">System Configuration</h3>
-        <p class="app-meta">Site settings & regions</p>
-        <div class="app-actions">
-          <a href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}" class="app-btn">Site settings</a>
-          <a href="{% url 'admin:siteconfig_regionconfig_changelist' %}" class="app-btn">Region config</a>
-        </div>
-      </div>
-      {% endif %}
-    </div>
-  </section>
 </div>
-
-<script>
-function toggleTheme() {
-  const body = document.body;
-  const root = document.documentElement;
-  const icon = document.getElementById('theme-icon');
-  const label = document.getElementById('theme-label');
-  
-  if (body.classList.contains('light-mode')) {
-    body.classList.remove('light-mode');
-    root.dataset.theme = 'dark';
-    icon.textContent = '🌙';
-    label.textContent = 'Dark';
-    localStorage.setItem('theme', 'dark');
-  } else {
-    body.classList.add('light-mode');
-    root.dataset.theme = 'light';
-    icon.textContent = '☀️';
-    label.textContent = 'Light';
-    localStorage.setItem('theme', 'light');
-  }
-}
-
-// Load theme
-document.addEventListener('DOMContentLoaded', function() {
-  const root = document.documentElement;
-  if (localStorage.getItem('theme') === 'light') {
-    document.body.classList.add('light-mode');
-    root.dataset.theme = 'light';
-    document.getElementById('theme-icon').textContent = '☀️';
-    document.getElementById('theme-label').textContent = 'Light';
-  } else {
-    root.dataset.theme = 'dark';
-  }
-});
-</script>
 {% endblock %}

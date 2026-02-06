@@ -511,6 +511,14 @@ def admin_dashboard(request):
         security_alerts_24h = 0
         access_denials_24h = 0
     
+    # System info (dynamic, shared with config/admin.py dashboard)
+    import sys
+    import django as _django
+    from django.db import connection as _conn
+    from django.conf import settings as _settings
+    _db_vendor = _conn.vendor
+    _db_display = {'sqlite': 'SQLite3', 'postgresql': 'PostgreSQL', 'mysql': 'MySQL', 'oracle': 'Oracle'}.get(_db_vendor, _db_vendor.title())
+
     context = {
         'total_users': total_users,
         'admin_count': admin_count,
@@ -524,6 +532,12 @@ def admin_dashboard(request):
         'failed_logins_by_role': failed_logins_by_role,
         'security_alerts_24h': security_alerts_24h,
         'access_denials_24h': access_denials_24h,
+        'django_version': _django.get_version(),
+        'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        'db_engine_display': _db_display,
+        'is_debug': _settings.DEBUG,
+        'admin_palette': {},
+        'preview_data': None,
     }
     
     return render(request, 'admin/admin_dashboard.html', context)

@@ -101,12 +101,14 @@
   <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
+  <!-- ADMIN - Polish (toolbar, submit row, content readability) -->
+  <link rel="stylesheet" href="{% static 'css/admin-polish.css' %}">
   
-  <!-- Bootstrap 5 CSS (if not already loaded by Unfold) -->
+  <!-- Bootstrap 5 CSS (subset utilities -- consider replacing with design-system) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   
-  <!-- Chart.js for visualizations -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <!-- Chart.js for visualizations (loaded globally for dashboard charts) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js" defer></script>
   
   <!-- Font Awesome for icons (Command Palette, Activity Feed, Student 360) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -356,10 +358,10 @@
   {{ block.super }}
   
   <!-- Bootstrap 5 JS Bundle (required for modals, dropdowns, etc.) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
   
   <!-- Dashboard Charts (Chart.js) -->
-  <script src="{% static 'js/dashboard-charts.js' %}"></script>
+  <script src="{% static 'js/dashboard-charts.js' %}" defer></script>
   
   <!-- Admin content toolbar: Back button + Dashboard link (visible on all pages except index) -->
   <script>
@@ -459,122 +461,11 @@
     })();
   </script>
 
+  {# Toolbar, submit row, and button styles are now in admin-polish.css #}
   <style>
-    /* Admin content toolbar: back button + dashboard link */
-    .admin-content-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-      padding: 0.75rem 1rem;
-      margin: -0.5rem -0.5rem 1rem -0.5rem;
-      border-radius: 10px;
-      background: var(--admin-surface, #1e293b);
-      border: 1px solid var(--admin-border, rgba(148, 163, 184, 0.25));
-      color: var(--admin-text, #e2e8f0);
-    }
-    .admin-toolbar-back,
-    .admin-toolbar-dashboard {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-decoration: none;
-      color: var(--admin-text, #e2e8f0);
-      background: transparent;
-      border: 1px solid transparent;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .admin-toolbar-back:hover,
-    .admin-toolbar-dashboard:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(148, 163, 184, 0.3);
-      color: #f1f5f9;
-    }
-    .admin-toolbar-icon { font-size: 1.1rem; }
-    :root[data-theme="light"] .admin-content-toolbar,
-    html[data-bs-theme="light"] .admin-content-toolbar {
-      background: var(--admin-surface, #f8fafc);
-      border-color: var(--admin-border, #e2e8f0);
-      color: #0f172a;
-    }
-    :root[data-theme="light"] .admin-toolbar-back,
-    :root[data-theme="light"] .admin-toolbar-dashboard,
-    html[data-bs-theme="light"] .admin-toolbar-back,
-    html[data-bs-theme="light"] .admin-toolbar-dashboard { color: #0f172a; }
-    :root[data-theme="light"] .admin-toolbar-back:hover,
-    :root[data-theme="light"] .admin-toolbar-dashboard:hover,
-    html[data-bs-theme="light"] .admin-toolbar-back:hover,
-    html[data-bs-theme="light"] .admin-toolbar-dashboard:hover {
-      background: rgba(15, 23, 42, 0.06);
-      color: #0f172a;
-    }
     /* Position dashboard header at top of admin */
-    #dashboardHeader {
-      position: sticky;
-      top: 0;
-      z-index: 1030;
-      margin-bottom: 0;
-    }
-    .dashboard-header-wrapper + * {
-      margin-top: 1rem;
-    }
-    /* GLOBAL BUTTON HIERARCHY: Primary (blue) vs Secondary (outlined) */
-    #content .submit-row input[type="submit"].default,
-    #content .submit-row button[type="submit"].default,
-    #content .submit-row input[type="submit"][name="_save"] {
-      background: #2563eb !important;
-      border-color: #2563eb !important;
-      color: #ffffff !important;
-      font-weight: 600;
-      padding: 0.5rem 1.25rem;
-      border-radius: 8px;
-    }
-    
-    #content .submit-row input[type="submit"]:not(.default),
-    #content .submit-row button[type="submit"]:not(.default),
-    #content .submit-row input[type="submit"][name="_continue"] {
-      background: transparent !important;
-      border: 2px solid rgba(15,23,42,0.3) !important;
-      color: var(--admin-content-text, #0f172a) !important;
-      font-weight: 600;
-      padding: 0.5rem 1.25rem;
-      border-radius: 8px;
-    }
-    
-    /* Submit row Back button: secondary style (like Save and continue editing) */
-    #content .submit-row .submit-row-back {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-decoration: none;
-      background: transparent !important;
-      color: var(--admin-content-text, #0f172a) !important;
-      border: 2px solid rgba(15,23,42,0.3) !important;
-      transition: background 0.2s, border-color 0.2s;
-      margin-right: auto;
-      order: -1;
-    }
-    #content .submit-row .submit-row-back:hover {
-      background: rgba(15,23,42,0.05) !important;
-      border-color: rgba(15,23,42,0.5) !important;
-      color: var(--admin-content-text, #0f172a) !important;
-    }
-    
-    /* Ensure submit row is flex */
-    #content .submit-row {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: flex-end !important;
-      gap: 0.5rem !important;
-    }
+    #dashboardHeader { position: sticky; top: 0; z-index: 1030; margin-bottom: 0; }
+    .dashboard-header-wrapper + * { margin-top: 1rem; }
   </style>
 
   {# Include AI Copilot on admin pages as well #}
