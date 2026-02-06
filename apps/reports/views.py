@@ -21,6 +21,7 @@ from apps.reports.services import (
     are_terms_published,
     build_share_token,
     build_share_url,
+    generate_report_qr_code,
     is_term_published,
     parse_share_token,
     student_has_financial_clearance,
@@ -144,6 +145,12 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         "generated_at": timezone.now(),
     })
 
+    # Generate QR code for report authenticity verification
+    share_token = build_share_token("term", student.id, year.id, term.id)
+    share_url = build_share_url(request, share_token)
+    context["qr_code_data_uri"] = generate_report_qr_code(share_url)
+    context["verification_url"] = share_url
+
     style = get_report_card_style_for_student(student, ReportCard.Type.TERM)
     template_name = style.template_for(ReportCard.Type.TERM) if style else "reports/term_report.html"
     context["report_style"] = style
@@ -261,6 +268,12 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
         "year": year,
         "generated_at": timezone.now(),
     })
+
+    # QR code for annual report verification
+    share_token = build_share_token("annual", student.id, year.id, None)
+    share_url = build_share_url(request, share_token)
+    context["qr_code_data_uri"] = generate_report_qr_code(share_url)
+    context["verification_url"] = share_url
 
     style = get_report_card_style_for_student(student, ReportCard.Type.ANNUAL)
     template_name = style.template_for(ReportCard.Type.ANNUAL) if style else "reports/annual_report.html"

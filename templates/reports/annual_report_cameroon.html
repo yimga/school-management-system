@@ -264,6 +264,20 @@
     </div>
   </div>
 
+  {% if qr_code_data_uri %}
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+    <div style="flex: 1;">
+      <p style="font-size: 9px; color: #64748b; margin: 0;">
+        This report card can be verified by scanning the QR code or visiting:<br>
+        <span style="font-size: 8px; word-break: break-all;">{{ verification_url }}</span>
+      </p>
+    </div>
+    <div style="flex-shrink: 0; margin-left: 16px;">
+      <img src="{{ qr_code_data_uri }}" alt="Verification QR Code" style="width: 80px; height: 80px;">
+    </div>
+  </div>
+  {% endif %}
+
   <p class="small text-muted text-end mt-3">Powered by Gilead Technical High System</p>
 </body>
 </html>

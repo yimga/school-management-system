@@ -501,3 +501,35 @@ def parse_share_token(token: str) -> Optional[dict]:
 
 def build_share_url(request, token: str) -> str:
     return request.build_absolute_uri(reverse("report_share", args=[token]))
+
+
+def generate_report_qr_code(share_url: str) -> str:
+    """Generate a QR code PNG for a report share URL and return as a base64 data-URI.
+
+    The QR code is embedded directly in the report PDF as an <img> tag so that
+    anyone holding the paper copy can scan it to verify the report's authenticity
+    against the school database.
+
+    Returns a string like "data:image/png;base64,iVBOR..." ready for <img src="">.
+    """
+    import base64
+    import io
+
+    try:
+        import qrcode  # qrcode[pil] is in requirements.txt
+    except ImportError:
+        return ""
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=6,
+        border=2,
+    )
+    qr.add_data(share_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    b64 = base64.b64encode(buffer.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{b64}"
