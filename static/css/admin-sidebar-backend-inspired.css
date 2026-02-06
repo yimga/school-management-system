@@ -75,7 +75,7 @@ body.portal-backend-lavender #nav-sidebar .admin-sidebar-section-title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 0.75rem 0.6rem 0.875rem !important;
+  padding: 0.6rem 0.75rem 0.6rem 0.875rem;
   border-radius: 8px;
   font-size: 0.9375rem;
   color: var(--color-base-700, #334155);

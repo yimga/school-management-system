@@ -5,6 +5,7 @@
   {{ block.super }}
   <!-- CRITICAL: Admin layout fallback so sidebar stays LEFT when Unfold/Tailwind CSS fails to load (e.g. static 404) -->
   <style id="admin-layout-critical">
+    /* Layout only -- no color overrides here. Colors come from admin-sidebar-*.css files. */
     #page {
       display: flex !important;
       flex-direction: row !important;
@@ -19,14 +20,6 @@
       position: sticky !important;
       top: 0 !important;
       height: 100vh !important;
-      background: var(--admin-sidebar-bg, #f8fafc) !important;
-      border-right: 1px solid var(--admin-sidebar-border, #e2e8f0) !important;
-    }
-    html.dark #page > div:first-child,
-    [data-theme="dark"] #page > div:first-child,
-    [data-bs-theme="dark"] #page > div:first-child {
-      background: var(--admin-sidebar-bg, #0f172a) !important;
-      border-right-color: var(--admin-sidebar-border, #1e293b) !important;
     }
     #page #main {
       flex: 1 1 0% !important;
@@ -40,37 +33,6 @@
     }
     @media (max-width: 1279px) {
       #page > div:first-child { display: none !important; }
-    }
-    /* Sidebar readable when external CSS 404s on production: light text on dark */
-    #nav-sidebar,
-    #nav-sidebar-inner {
-      color: #e2e8f0 !important;
-    }
-    #nav-sidebar a,
-    #nav-sidebar .admin-sidebar-link {
-      color: #cbd5e1 !important;
-    }
-    #nav-sidebar a:hover,
-    #nav-sidebar .admin-sidebar-link:hover,
-    #nav-sidebar a.active,
-    #nav-sidebar .admin-sidebar-link.active {
-      color: #f1f5f9 !important;
-    }
-    #nav-sidebar .admin-sidebar-section-title,
-    #nav-sidebar .admin-sidebar-app-title {
-      color: #94a3b8 !important;
-    }
-    #nav-sidebar .admin-sidebar-chevron svg,
-    #nav-sidebar .admin-sidebar-icon svg {
-      stroke: #94a3b8;
-    }
-    #nav-sidebar input#nav-filter {
-      background: #1e293b !important;
-      border-color: #334155 !important;
-      color: #f1f5f9 !important;
-    }
-    #nav-sidebar input#nav-filter::placeholder {
-      color: #64748b !important;
     }
   </style>
   <!-- DESIGN TOKENS - Shared variable names (Portal, Admin, Backend) -->
