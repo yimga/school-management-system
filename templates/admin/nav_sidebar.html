@@ -1,9 +1,9 @@
 {% load i18n unfold %}
-{% comment %}Always use our single sidebar (admin/sidebar_inner.html) so index and all admin pages show the same sidebar. {% endcomment %}
-<div class="relative z-60">
-    <div class="fixed hidden xl:relative xl:block w-[288px] {% element_classes 'navigation_wrapper' %}" x-bind:class="{'xl:hidden!': !sidebarDesktopOpen, 'block!': sidebarMobileOpen}">
+{% comment %}Single sidebar: visible on desktop (xl) by default so it shows even before Alpine; Alpine toggles desktop/mobile. {% endcomment %}
+<div class="relative z-60 shrink-0">
+    <div class="fixed w-[288px] max-xl:hidden xl:relative xl:block {% element_classes 'navigation_wrapper' %}" x-bind:class="{'xl:!hidden': sidebarDesktopOpen === false, 'max-xl:!block': sidebarMobileOpen === true}">
         <div class="bg-base-50 relative z-30 dark:bg-base-900">
-            <div id="nav-sidebar" class="bg-base-50 border-r border-base-200 bottom-0 fixed max-h-screen top-0 w-[288px] dark:border-base-800 dark:bg-base-900 {% element_classes 'navigation' %}">
+            <div id="nav-sidebar" class="bg-base-50 border-r border-base-200 bottom-0 fixed left-0 top-0 w-[288px] max-h-screen flex flex-col dark:border-base-800 dark:bg-base-900 {% element_classes 'navigation' %}" style="inset-inline-start: 0;">
                 {% include "admin/sidebar_inner.html" %}
             </div>
         </div>

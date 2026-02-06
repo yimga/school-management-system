@@ -4,9 +4,10 @@
    focus states, mobile, accessibility
    ============================================ */
 
-/* ----- Scroll ----- */
-#nav-sidebar,
-#nav-sidebar-inner,
+/* ----- Vertical scroll: only the main app list area scrolls (header + user stay fixed) ----- */
+#nav-sidebar-inner {
+  overflow: hidden;
+}
 #nav-sidebar-apps,
 .admin-sidebar-apps {
   overflow-y: auto !important;
@@ -14,45 +15,50 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
-#nav-sidebar::-webkit-scrollbar,
-#nav-sidebar-inner::-webkit-scrollbar,
 #nav-sidebar-apps::-webkit-scrollbar,
 .admin-sidebar-apps::-webkit-scrollbar {
   width: 6px;
 }
 
-#nav-sidebar::-webkit-scrollbar-track,
-#nav-sidebar-inner::-webkit-scrollbar-track,
 #nav-sidebar-apps::-webkit-scrollbar-track,
 .admin-sidebar-apps::-webkit-scrollbar-track {
   background: transparent;
 }
 
-#nav-sidebar::-webkit-scrollbar-thumb,
-#nav-sidebar-inner::-webkit-scrollbar-thumb,
 #nav-sidebar-apps::-webkit-scrollbar-thumb,
 .admin-sidebar-apps::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
 }
 
-#nav-sidebar::-webkit-scrollbar-thumb:hover,
+#nav-sidebar-apps::-webkit-scrollbar-thumb:hover,
 .admin-sidebar-apps::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
 }
 
-.dark #nav-sidebar::-webkit-scrollbar-thumb,
+.dark #nav-sidebar-apps::-webkit-scrollbar-thumb,
 .dark .admin-sidebar-apps::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* ----- Sticky header/user ----- */
+/* ----- Sidebar: always on the left; flex so app list scrolls; no scroll on wrapper ----- */
+#nav-sidebar {
+  left: 0 !important;
+  right: auto !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 #nav-sidebar-inner {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 #nav-sidebar-inner .nav-search,

@@ -3,7 +3,7 @@
 {% load admin_list i18n unfold %}
 
 {% block base %}
-    <div id="page" class="flex max-w-full min-h-screen {% element_classes 'page' %}">
+    <div id="page" class="flex flex-row max-w-full min-h-screen {% element_classes 'page' %}">
         {% if not is_popup %}
             {% block nav-sidebar %}
                 {# Always our sidebar: single source for index and all admin pages. Show whenever not popup so dashboard and changelist match. #}
