@@ -36,7 +36,7 @@ class GileadAdminSite(UnfoldAdminSite):
     site_header = "Gilead Tech High - Configuration"
     site_title = "Gilead Configuration"
 
-    index_title = "Configuration Dashboard"
+    index_title = "Administration Dashboard"
 
     def each_context(self, request):
         context = super().each_context(request)
