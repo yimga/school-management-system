@@ -45,7 +45,7 @@ python manage.py create_teacher_parent_accounts --teacher-username teacher1 --pa
 
 | Username   | Password (example) | Role     |
 |------------|---------------------|----------|
-| admin      | ADMIN_PASSWORD or admin123 (DEBUG) | Superuser |
+| admin      | ADMIN_PASSWORD or Sch00l_1234 (DEBUG) | Superuser |
 | teacher1   | Same as ADMIN_PASSWORD when using seed_render_users | Teacher  |
 | Parent1    | Same as ADMIN_PASSWORD when using seed_render_users | Parent   |
 | principal1 | Same as ADMIN_PASSWORD when using seed_render_users | Principal |
@@ -62,4 +62,4 @@ No built-in seed for custom usernames. Recreate them in Django Admin (/admin/) a
 python scripts/create_fresh_db_and_accounts.py
 ```
 
-Then set DB_FILE=db_clean.sqlite3 in .env.local and start the server. Creates admin (admin123 in DEBUG), teacher, and parent (Test1234).
+Then set DB_FILE=db_clean.sqlite3 in .env.local and start the server. Creates admin (Sch00l_1234 in DEBUG), teacher, and parent (Test1234).

@@ -204,6 +204,45 @@ def student_has_outstanding_returns(student: StudentProfile, academic_year) -> b
     ).exists()
 
 
+def notify_parent_report_blocked_by_debt(student: StudentProfile, academic_year, *, dedupe_hours: int = 24) -> bool:
+    """
+    Send SMS to a guardian when report download is blocked due to outstanding fees.
+    Deduplication: at most one SMS per (student, year) per dedupe_hours (default 24).
+    Returns True if SMS was sent, False if skipped (no phone, already sent, or send failed).
+    """
+    from django.core.cache import cache
+    from apps.people.models import StudentGuardian
+
+    cache_key = f"report_block_sms:{student.id}:{getattr(academic_year, 'id', academic_year)}"
+    if cache.get(cache_key):
+        return False
+    guardians = StudentGuardian.objects.filter(student=student).select_related("guardian_user")
+    phone = None
+    for g in guardians:
+        phone = getattr(g, "phone", None) or (g.guardian_user and getattr(g.guardian_user, "phone", None))
+        if phone and str(phone).strip():
+            break
+    if not phone:
+        return False
+    try:
+        from apps.evals.notifications import NotificationService
+        notifier = NotificationService()
+        student_name = getattr(student, "get_full_name", lambda: f"{student.last_name} {student.first_name}")()
+        year_name = getattr(academic_year, "name", str(academic_year))
+        message = (
+            f"Report card for {student_name} is not available until fees are cleared for {year_name}. "
+            "Please visit the Bursary."
+        )
+        sent = notifier.send_sms(str(phone).strip(), message)
+        if sent:
+            cache.set(cache_key, "1", timeout=dedupe_hours * 3600)
+        return sent
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("Failed to send report-blocked SMS to parent.")
+        return False
+
+
 def are_terms_published(academic_year_id: int, term_ids: Iterable[int], classroom_id: int) -> bool:
     for term_id in term_ids:
         if not is_term_published(academic_year_id, term_id, classroom_id):

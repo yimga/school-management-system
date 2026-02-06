@@ -195,17 +195,23 @@ class RequireMFAMiddleware:
 
         try:
             from apps.siteconfig.models import SiteSettings
-            site = SiteSettings.get_solo()
-            required_roles = getattr(site, "require_mfa_roles", None) or []
-            if not required_roles:
-                return self.get_response(request)
-            role = get_user_role(user)
-            if role not in [r.upper() if isinstance(r, str) else str(r) for r in required_roles]:
-                return self.get_response(request)
             from django_otp import user_has_device
-            if user_has_device(user):
+
+            site = SiteSettings.get_solo()
+            require_all_staff = getattr(site, "require_mfa_all_staff", False)
+            required_roles = getattr(site, "require_mfa_roles", None) or []
+
+            must_have_mfa = False
+            if require_all_staff and user.is_staff:
+                must_have_mfa = True
+            elif required_roles:
+                role = get_user_role(user)
+                if role in [r.upper() if isinstance(r, str) else str(r) for r in required_roles]:
+                    must_have_mfa = True
+
+            if not must_have_mfa or user_has_device(user):
                 return self.get_response(request)
-            # Role requires MFA but user has no TOTP device → redirect to setup
+            # Staff must set up MFA → redirect to setup
             mfa_setup_url = reverse("accounts:mfa_setup")
             if path != mfa_setup_url.rstrip("/") and not path.endswith(mfa_setup_url):
                 return redirect(mfa_setup_url + "?next=" + (request.GET.get("next") or request.path))

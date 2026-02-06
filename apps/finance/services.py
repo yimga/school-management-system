@@ -17,6 +17,7 @@ from apps.siteconfig.models import Integration, SiteSettings
 
 from .models import (
     ComplianceProfile,
+    FeeItem,
     FeePlan,
     Invoice,
     InvoiceLine,
@@ -518,6 +519,10 @@ def create_fee_invoices(
             if created or not invoice.lines.exists():
                 InvoiceLine.objects.filter(invoice=invoice).delete()
                 for item in fee_items:
+                    # Transport (bus route) fee: only add line when student uses transport
+                    if item.item_type == FeeItem.ItemType.TRANSPORT:
+                        if not getattr(student, "uses_transport", False):
+                            continue
                     InvoiceLine.objects.create(
                         invoice=invoice,
                         description=item.name,

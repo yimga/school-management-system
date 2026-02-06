@@ -249,7 +249,11 @@ class StudentProfile(models.Model):
     )
 
     is_active = models.BooleanField(default=True)
-    
+    uses_transport = models.BooleanField(
+        default=False,
+        help_text="Student uses school bus/transport; transport fee will be added to fee invoices when the plan includes a Transport fee item.",
+    )
+
     # Audit logging fields for data integrity
     deleted_at = models.DateTimeField(
         null=True,

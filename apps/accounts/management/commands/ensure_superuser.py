@@ -36,7 +36,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--password",
             default=os.environ.get("ADMIN_PASSWORD"),
-            help="Password (default: ADMIN_PASSWORD env; in DEBUG only, fallback 'admin123')",
+            help="Password (default: ADMIN_PASSWORD env; in DEBUG only, fallback 'Sch00l_1234')",
         )
         parser.add_argument(
             "--email",
@@ -78,10 +78,10 @@ class Command(BaseCommand):
             return
 
         if not password and settings.DEBUG:
-            password = "admin123"
+            password = "Sch00l_1234"
             self.stdout.write(
                 self.style.WARNING(
-                    "Using default password 'admin123' (DEBUG=True). "
+                    "Using default password 'Sch00l_1234' (DEBUG=True). "
                     "Change it: python manage.py changepassword " + username
                 )
             )

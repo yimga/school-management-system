@@ -18,7 +18,7 @@
     <h2 class="mb-0">Access requests</h2>
     <p class="text-muted small mb-0">Review and action all approval requests in one place.</p>
   </div>
-  <div class="badge bg-secondary">Total {{ requests|length }}</div>
+  <div class="badge bg-secondary">Total {% if page_obj %}{{ page_obj.paginator.count }}{% else %}{{ requests|length }}{% endif %}</div>
 </div>
 
 <form method="get" class="row g-2 align-items-end mb-3">
@@ -90,6 +90,9 @@
       </div>
     {% else %}
       <div class="alert alert-info mb-0">No matching requests.</div>
+    {% endif %}
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
     {% endif %}
   </div>
 </div>

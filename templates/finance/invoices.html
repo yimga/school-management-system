@@ -46,7 +46,11 @@
 <form method="get" class="card mb-3">
   <div class="card-body">
     <div class="row g-2 align-items-end">
-      <div class="col-md-4">
+      <div class="col-md-3">
+        <label class="form-label small">Search</label>
+        <input type="search" class="form-control" name="q" placeholder="Reference or student name..." value="{{ search }}">
+      </div>
+      <div class="col-md-3">
         <label class="form-label small">Status</label>
         <select class="form-select" name="status">
           <option value="">All</option>
@@ -55,7 +59,7 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label small">Academic year</label>
         <select class="form-select" name="year">
           <option value="">All</option>
@@ -64,7 +68,7 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-4 d-grid">
+      <div class="col-md-3 d-grid">
         <button class="btn btn-primary">Filter</button>
       </div>
     </div>
@@ -199,17 +203,7 @@
       {% endif %}
     </div>
     {% if page_obj %}
-      <div class="d-flex justify-content-between align-items-center mt-3">
-        <div class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
-        <div class="btn-group">
-          {% if page_obj.has_previous %}
-            <a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Prev</a>
-          {% endif %}
-          {% if page_obj.has_next %}
-            <a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Next</a>
-          {% endif %}
-        </div>
-      </div>
+    {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
     {% endif %}
   </div>
 </div>

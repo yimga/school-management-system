@@ -17,6 +17,36 @@
         </a>
       </div>
 
+      <form method="get" class="card card-body bg-light mb-3" role="search">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label for="student-q" class="form-label small">Search</label>
+            <input type="search" id="student-q" name="q" class="form-control form-control-sm" placeholder="Name or admission number..." value="{{ search }}">
+          </div>
+          <div class="col-md-2">
+            <label for="student-year" class="form-label small">Year</label>
+            <select id="student-year" name="year" class="form-select form-select-sm">
+              <option value="">All years</option>
+              {% for y in years %}
+              <option value="{{ y.id }}" {% if selected_year == y.id|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="student-classroom" class="form-label small">Classroom</label>
+            <select id="student-classroom" name="classroom" class="form-select form-select-sm">
+              <option value="">All classrooms</option>
+              {% for c in classrooms %}
+              <option value="{{ c.id }}" {% if selected_classroom == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+          </div>
+        </div>
+      </form>
+
       <div class="card shadow-sm">
         <div class="card-body">
           {% if students %}
@@ -71,6 +101,9 @@
           {% else %}
           {% url 'accounts:backend_student_create' as empty_action_url %}
           {% include "components/dashboard_empty_state.html" with icon="bi-people" title="No students found" message="Students you add will appear here. Add your first student to get started." action_url=empty_action_url action_text="Add your first student" %}
+          {% endif %}
+          {% if page_obj %}
+          {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=show_page_size page_size=page_size page_size_options=page_size_options %}
           {% endif %}
         </div>
       </div>

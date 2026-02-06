@@ -2,7 +2,7 @@
 
 **Branch**: Testing  
 **Scope**: Dual-curriculum (General + Technical) school in Buea; emphasis on Evals and Report Cards.  
-**Passwords**: Superuser `admin` = set via ensure_superuser (e.g. **Sch00l_1234**); all other users = **Test124**.
+**Passwords**: Superuser `admin` = set via ensure_superuser (e.g. **Sch00l_1234**); all other users = **Test1234**.
 
 ---
 
@@ -66,7 +66,7 @@ All seeded data **remains in the database**; no teardown was performed.
 
 ## 5. Evidence and References
 
-- **Backend**: `/authentication/login/` → admin / (your superuser password) or teacher_buea_01 / Test124.
-- **Portal**: `/portal/` → parent_buea_001 / Test124.
+- **Backend**: `/authentication/login/` → admin / (your superuser password) or teacher_buea_01 / Test1234.
+- **Portal**: `/portal/` → parent_buea_001 / Test1234.
 - **Seed command**: `python manage.py seed_buea_synthetic [--scale full]`.
 - **Full findings**: [test_finding.md](test_finding.md).

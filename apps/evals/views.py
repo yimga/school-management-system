@@ -2,6 +2,7 @@ import logging
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpRequest, HttpResponseForbidden, HttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
 
 logger = logging.getLogger(__name__)
@@ -251,7 +252,7 @@ def _build_ocr_preview(entries, student_lookup, existing_evaluations: dict = Non
         existing_eval = existing_evaluations.get(student.id) if student else None
         existing_scores = {}
         if existing_eval:
-            for field in ["seq1_score", "seq2_score", "exam_score", "mock_score", "practical_score"]:
+            for field in ["seq1_score", "seq2_score", "exam_score", "mock_score", "practical_score", "internship_score"]:
                 val = getattr(existing_eval, field, None)
                 if val is not None:
                     existing_scores[field] = val
@@ -1325,6 +1326,28 @@ def class_ranking_view(request: HttpRequest):
             }
             for entry in ranking
         ]
+        # Paginate ranking (e.g. 50 per page) for large classes; validate page_size
+        try:
+            per_page = min(100, max(20, int(request.GET.get("page_size", 50))))
+        except (TypeError, ValueError):
+            per_page = 50
+        paginator = Paginator(rows, per_page)
+        page_number = request.GET.get("page", 1)
+        try:
+            page_obj = paginator.get_page(page_number)
+        except PageNotAnInteger:
+            page_obj = paginator.get_page(1)
+        except EmptyPage:
+            page_obj = paginator.get_page(paginator.num_pages)
+        rows = list(page_obj.object_list)
+        q = request.GET.copy()
+        q.pop("page", None)
+        pagination_extra_query = q.urlencode()
+    else:
+        page_obj = None
+        q = request.GET.copy()
+        q.pop("page", None)
+        pagination_extra_query = q.urlencode()
 
     return render(request, "evals/class_ranking.html", {
         "year": year_obj,
@@ -1337,6 +1360,8 @@ def class_ranking_view(request: HttpRequest):
         "selected_classroom": selected_classroom,
         "rows": rows,
         "stats": stats,
+        "page_obj": page_obj,
+        "pagination_extra_query": pagination_extra_query,
     })
 
 
@@ -1375,6 +1400,22 @@ def school_ranking_view(request: HttpRequest):
         }
         for entry in ranking
     ]
+    try:
+        per_page = min(100, max(20, int(request.GET.get("page_size", 50))))
+    except (TypeError, ValueError):
+        per_page = 50
+    paginator = Paginator(rows, per_page)
+    page_number = request.GET.get("page", 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    rows = list(page_obj.object_list)
+    q = request.GET.copy()
+    q.pop("page", None)
+    pagination_extra_query = q.urlencode()
 
     return render(request, "evals/school_ranking.html", {
         "year": year_obj,
@@ -1384,6 +1425,8 @@ def school_ranking_view(request: HttpRequest):
         "years": AcademicYear.objects.order_by("-start_date"),
         "terms": Term.objects.filter(academic_year=year_obj).order_by("start_date", "name"),
         "rows": rows,
+        "page_obj": page_obj,
+        "pagination_extra_query": pagination_extra_query,
     })
 
 

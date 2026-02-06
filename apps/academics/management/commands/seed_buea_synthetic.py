@@ -532,13 +532,13 @@ class Command(BaseCommand):
             FeeItem.objects.get_or_create(
                 plan=plan,
                 name="PTA",
-                defaults={"amount": Decimal("15000"), "item_type": FeeItem.ItemType.ACTIVITY},
+                defaults={"amount": Decimal("15000"), "item_type": FeeItem.ItemType.PTA},
             )
             if classroom in classrooms_tech:
                 FeeItem.objects.get_or_create(
                     plan=plan,
                     name="Workshop Fee",
-                    defaults={"amount": Decimal("25000"), "item_type": FeeItem.ItemType.CUSTOM},
+                    defaults={"amount": Decimal("25000"), "item_type": FeeItem.ItemType.WORKSHOP},
                 )
             FeeItem.objects.get_or_create(
                 plan=plan,

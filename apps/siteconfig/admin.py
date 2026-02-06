@@ -504,6 +504,7 @@ class SiteSettingsAdmin(ModelAdmin):
             "fields": (
                 "compliance_profile",
                 "require_mfa_roles",
+                "require_mfa_all_staff",
                 "requests_reminder_interval_hours",
             )
         }),

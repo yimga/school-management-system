@@ -2,6 +2,7 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -84,14 +85,30 @@ def requests_dashboard(request: HttpRequest):
         },
     }
 
+    per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
+    paginator = Paginator(qs, per_page)
+    page_number = request.GET.get("page", 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+
+    q = request.GET.copy()
+    q.pop("page", None)
+    pagination_extra_query = q.urlencode()
+
     return render(request, "requests/dashboard.html", {
-        "requests": qs[:250],
+        "requests": page_obj.object_list,
+        "page_obj": page_obj,
         "type_filter": request_type,
         "status_filter": status,
         "search": search,
         "type_options": type_options,
         "status_options": status_options,
         "chart_status_donut_json": json.dumps(chart_status_donut),
+        "pagination_extra_query": pagination_extra_query,
     })
 
 

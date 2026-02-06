@@ -26,7 +26,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
@@ -258,6 +258,7 @@ def invoice_list(request: HttpRequest):
 
     status = request.GET.get("status")
     year_id = request.GET.get("year")
+    search = (request.GET.get("q") or "").strip()
     qs = Invoice.objects.filter(profile=profile).select_related("student", "academic_year")
     
     # Filter invoices based on user role
@@ -276,6 +277,13 @@ def invoice_list(request: HttpRequest):
         qs = qs.filter(status=status)
     if year_id:
         qs = qs.filter(academic_year_id=year_id)
+    if search:
+        qs = qs.filter(
+            models.Q(reference__icontains=search)
+            | models.Q(student__first_name__icontains=search)
+            | models.Q(student__last_name__icontains=search)
+            | models.Q(student__admission_number__icontains=search)
+        )
 
     ordered_qs = qs.order_by("-issued_date")
 
@@ -331,7 +339,15 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
 
     paginator = Paginator(ordered_qs, 25)
     page_number = request.GET.get("page") or 1
-    page_obj = paginator.get_page(page_number)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    q = request.GET.copy()
+    q.pop("page", None)
+    pagination_extra_query = q.urlencode()
 
     return render(request, "finance/invoices.html", {
         "invoices": page_obj,
@@ -339,8 +355,10 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
         "selected_status": status or "",
         "years": AcademicYear.objects.order_by("-start_date"),
         "selected_year": year_id or "",
+        "search": search,
         "page_obj": page_obj,
         "paginator": paginator,
+        "pagination_extra_query": pagination_extra_query,
         "finance_access_required": access_state["require_opt_in"],
         "finance_access_granted": access_state["finance_count"] > 0,
         "finance_guardian_count": access_state["finance_count"],
@@ -418,12 +436,21 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
 
     paginator = Paginator(ordered_qs, 25)
     page_number = request.GET.get("page") or 1
-    page_obj = paginator.get_page(page_number)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    q = request.GET.copy()
+    q.pop("page", None)
+    pagination_extra_query = q.urlencode()
 
     return render(request, "finance/payments.html", {
         "payments": page_obj,
         "page_obj": page_obj,
         "paginator": paginator,
+        "pagination_extra_query": pagination_extra_query,
     })
 
 
@@ -1576,11 +1603,25 @@ def notifications(request: HttpRequest):
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    alerts = Notification.objects.filter(
+    qs = Notification.objects.filter(
         models.Q(recipient=request.user) | models.Q(created_by=request.user)
-    ).order_by("-created_at")[:25]
+    ).order_by("-created_at")
+    per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
+    paginator = Paginator(qs, per_page)
+    page_number = request.GET.get("page", 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    q = request.GET.copy()
+    q.pop("page", None)
+    pagination_extra_query = q.urlencode()
     return render(request, "finance/notifications.html", {
-        "alerts": alerts,
+        "alerts": page_obj.object_list,
+        "page_obj": page_obj,
+        "pagination_extra_query": pagination_extra_query,
     })
 
 
@@ -1645,13 +1686,28 @@ def finance_requests(request: HttpRequest):
                 messages.success(request, f"Marked {len(targets)} finance request(s) as read.")
         return redirect(f"{reverse('finance:requests')}?view={view_mode}&severity={severity_filter.lower()}")
 
+    per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
+    paginator = Paginator(notifications_qs, per_page)
+    page_number = request.GET.get("page", 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    q = request.GET.copy()
+    q.pop("page", None)
+    pagination_extra_query = q.urlencode()
+
     return render(request, "finance/requests.html", {
-        "notifications": notifications_qs,
+        "notifications": page_obj.object_list,
+        "page_obj": page_obj,
         "unread_count": unread_count,
         "view_mode": view_mode,
         "severity_filter": severity_filter,
         "severity_counts": {row["severity"]: row["count"] for row in severity_counts},
         "severity_options": severity_options,
+        "pagination_extra_query": pagination_extra_query,
         "finance_request_audits": list(
             FinanceRequestAudit.objects.select_related("notification", "user").order_by("-created_at")[:25]
         ),

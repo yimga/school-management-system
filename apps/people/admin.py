@@ -194,9 +194,10 @@ class StudentProfileAdmin(ModelAdmin):
         "classroom",
         "specialty",
         "is_active",
+        "uses_transport",
         "parent_completeness",
     )
-    list_filter = ("academic_year", "classroom", "specialty", "is_active")
+    list_filter = ("academic_year", "classroom", "specialty", "is_active", "uses_transport")
     list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("student_code", "admission_number", "first_name", "last_name")
     readonly_fields = ("parent_completeness",)
@@ -232,7 +233,7 @@ class StudentProfileAdmin(ModelAdmin):
                 )
             },
         ),
-        ("Flags", {"fields": ("is_active",)}),
+        ("Flags", {"fields": ("is_active", "uses_transport")}),
     )
 
     actions = ("create_guardian_invites", "issue_referral_rewards")

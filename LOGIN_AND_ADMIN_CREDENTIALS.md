@@ -19,14 +19,14 @@ Use the **same username and password** in both places.
 
 If the database was just created or reset, there may be no users. Create a superuser:
 
-### Option A – Quick (creates `admin` with password `admin123` when DB is empty)
+### Option A – Quick (creates `admin` with password `Sch00l_1234` when DB is empty)
 
 ```bash
 python manage.py ensure_superuser
 ```
 
 - Only runs if **no users exist**.
-- In DEBUG mode it creates username `admin`, password `admin123`.
+- In DEBUG mode it creates username `admin`, password `Sch00l_1234`.
 - **Change the password:** `python manage.py changepassword admin`
 
 ### Option B – Interactive (choose username and password)

@@ -215,6 +215,15 @@ class Evaluation(models.Model):
         blank=True,
         validators=[MinValueValidator(0), MaxValueValidator(20)],
     )
+    internship_score = models.DecimalField(
+        "Industrial attachment / Internship",
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(20)],
+        help_text="Industrial attachment (Paper 3) or internship mark; may sync to sequence.",
+    )
     remarks = models.CharField(max_length=255, blank=True)
     
     # NEW: Grade conversion & practical assessment

@@ -77,6 +77,9 @@
           No finance access requests at the moment.
         </div>
       {% endif %}
+      {% if page_obj and page_obj.paginator.num_pages > 1 %}
+      {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
+      {% endif %}
     </div>
   </div>
   <div class="d-flex justify-content-between align-items-center">

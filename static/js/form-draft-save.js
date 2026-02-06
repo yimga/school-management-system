@@ -13,8 +13,11 @@
   'use strict';
 
   var STORAGE_PREFIX = 'sms_draft_';
+  var PENDING_SUBMISSIONS_KEY = 'sms_pending_mark_submissions';
   var DEFAULT_MAX_AGE_HOURS = 24;
   var DEBOUNCE_MS = 1500;
+  var PENDING_MAX_AGE_MS = 48 * 60 * 60 * 1000; // 48h
+  var PENDING_MAX_COUNT = 30; // cap queue to avoid localStorage bloat
 
   function storageKey(key) {
     return STORAGE_PREFIX + (key || '').replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -75,6 +78,30 @@
     } catch (e) {}
   }
 
+  function getCsrf() {
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input) return input.value;
+    var match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+  }
+
+  function getPendingSubmissions() {
+    try {
+      var raw = localStorage.getItem(PENDING_SUBMISSIONS_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      var now = Date.now();
+      return list.filter(function (p) { return p.savedAt && (now - p.savedAt) < PENDING_MAX_AGE_MS; });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function setPendingSubmissions(list) {
+    try {
+      localStorage.setItem(PENDING_SUBMISSIONS_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
   function isExpired(data, maxAgeHours) {
     if (!data || !data.savedAt) return true;
     var ageHours = (Date.now() - data.savedAt) / (1000 * 60 * 60);
@@ -108,8 +135,28 @@
 
     form.addEventListener('input', debouncedSave);
     form.addEventListener('change', debouncedSave);
-    form.addEventListener('submit', function () {
+    form.addEventListener('submit', function (e) {
+      if (!navigator.onLine && form.getAttribute('data-draft-key')) {
+        e.preventDefault();
+        var pending = getPendingSubmissions();
+        if (pending.length >= PENDING_MAX_COUNT) {
+          showOfflineSavedForSyncBanner(form, true);
+          return;
+        }
+        var url = (form.getAttribute('action') || window.location.href).split('?')[0];
+        var fd = new FormData(form);
+        var body = Array.from(fd.entries()).map(function (pair) {
+          return encodeURIComponent(pair[0]) + '=' + encodeURIComponent(pair[1] || '');
+        }).join('&');
+        pending.push({ url: url, body: body, savedAt: Date.now() });
+        setPendingSubmissions(pending);
+        removeDraft(key);
+        showOfflineSavedForSyncBanner(form, false);
+        return;
+      }
       removeDraft(key);
+      hideOfflineBanner();
+      hideSyncBanner();
     });
 
     window.addEventListener('beforeunload', function () {
@@ -120,7 +167,158 @@
     if (existing && !isExpired(existing, maxAgeHours) && Object.keys(existing.fields).length > 0) {
       showResumeBanner(form, key, existing, maxAgeHours);
     }
+
+    offlineSyncBanner(form, key);
   };
+
+  function hideOfflineBanner() {
+    var el = document.getElementById('sms-offline-draft-banner');
+    if (el) el.remove();
+  }
+
+  function hideSyncBanner() {
+    var el = document.getElementById('sms-sync-draft-banner');
+    if (el) el.remove();
+  }
+
+  function hideUnsyncedBanner() {
+    var el = document.getElementById('sms-unsynced-submissions-banner');
+    if (el) el.remove();
+  }
+
+  function showOfflineSavedForSyncBanner(form, atCap) {
+    var pending = getPendingSubmissions();
+    var n = pending.length;
+    if (document.getElementById('sms-offline-saved-for-sync-banner')) return;
+    var banner = document.createElement('div');
+    banner.id = 'sms-offline-saved-for-sync-banner';
+    banner.className = 'alert alert-dismissible fade show mb-3';
+    banner.classList.add(atCap ? 'alert-warning' : 'alert-info');
+    banner.setAttribute('role', 'alert');
+    var msg = atCap
+      ? '<strong>Queue full.</strong> Sync ' + n + ' pending submission(s) when back online before saving more.'
+      : '<strong>Saved for sync.</strong> You are offline. ' + n + ' submission(s) will be sent when you are back online.';
+    banner.innerHTML = msg + ' <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    form.parentNode.insertBefore(banner, form);
+  }
+
+  function syncPendingSubmissions(done) {
+    var pending = getPendingSubmissions();
+    if (pending.length === 0) {
+      if (done) done(false);
+      return;
+    }
+    var csrf = getCsrf();
+    var i = 0;
+    var stillPending = [];
+    function next() {
+      if (i >= pending.length) {
+        setPendingSubmissions(stillPending);
+        hideUnsyncedBanner();
+        if (done) done(stillPending.length > 0);
+        return;
+      }
+      var p = pending[i];
+      var current = i;
+      fetch(p.url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+        body: p.body,
+        credentials: 'same-origin'
+      }).then(function (res) {
+        if (!res.ok) stillPending.push(p);
+        i = current + 1;
+        next();
+      }).catch(function () {
+        stillPending.push(p);
+        i = current + 1;
+        next();
+      });
+    }
+    next();
+  }
+
+  function showUnsyncedBannerIfAny(container) {
+    var pending = getPendingSubmissions();
+    if (pending.length === 0 || document.getElementById('sms-unsynced-submissions-banner')) return;
+    var parent = container && container.parentNode ? container.parentNode : document.body;
+    var banner = document.createElement('div');
+    banner.id = 'sms-unsynced-submissions-banner';
+    banner.className = 'alert alert-warning alert-dismissible fade show mb-3';
+    banner.setAttribute('role', 'alert');
+    banner.innerHTML =
+      '<strong>Unsynced marks:</strong> ' + pending.length + ' submission(s) saved while offline. ' +
+      '<button type="button" class="btn btn-sm btn-warning ms-2 btn-sync-pending-now" aria-label="Sync unsynced marks to server">Sync now</button> ' +
+      '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+    parent.insertBefore(banner, container);
+    var syncBtn = banner.querySelector('.btn-sync-pending-now');
+    var msgStrong = banner.querySelector('strong');
+    syncBtn.addEventListener('click', function runSync() {
+      syncBtn.disabled = true;
+      syncBtn.textContent = 'Syncing…';
+      syncBtn.setAttribute('aria-busy', 'true');
+      syncPendingSubmissions(function (hadFailures) {
+        syncBtn.removeAttribute('aria-busy');
+        if (hadFailures) {
+          syncBtn.disabled = false;
+          syncBtn.textContent = 'Sync now';
+          banner.classList.remove('alert-warning');
+          banner.classList.add('alert-danger');
+          if (msgStrong) msgStrong.textContent = 'Some submissions could not be synced.';
+          var textAfter = banner.childNodes;
+          for (var t = 0; t < textAfter.length; t++) {
+            if (textAfter[t].nodeType === 3) {
+              textAfter[t].textContent = ' Try again or check your connection. ';
+              break;
+            }
+          }
+        } else {
+          window.location.reload();
+        }
+      });
+    });
+  }
+
+  function offlineSyncBanner(form, key) {
+    function showOffline() {
+      if (document.getElementById('sms-offline-draft-banner')) return;
+      var banner = document.createElement('div');
+      banner.id = 'sms-offline-draft-banner';
+      banner.className = 'alert alert-secondary alert-dismissible fade show mb-3';
+      banner.setAttribute('role', 'alert');
+      banner.innerHTML = '<strong>Offline.</strong> Changes are saved in your browser. They will sync when you are back online. <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+      form.parentNode.insertBefore(banner, form);
+    }
+
+    function showSyncPrompt() {
+      if (!getDraft(key) || document.getElementById('sms-sync-draft-banner')) return;
+      var banner = document.createElement('div');
+      banner.id = 'sms-sync-draft-banner';
+      banner.className = 'alert alert-success alert-dismissible fade show mb-3';
+      banner.setAttribute('role', 'alert');
+      banner.innerHTML =
+        '<strong>Back online.</strong> Submit your draft to save marks to the server. ' +
+        '<button type="button" class="btn btn-sm btn-success ms-2 btn-sync-draft-now">Submit draft now</button> ' +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+      form.parentNode.insertBefore(banner, form);
+      banner.querySelector('.btn-sync-draft-now').addEventListener('click', function () {
+        var data = getDraft(key);
+        if (data && data.fields) restoreForm(form, data);
+        form.requestSubmit();
+        banner.remove();
+      });
+    }
+
+    if (!navigator.onLine) showOffline();
+    window.addEventListener('offline', showOffline);
+    window.addEventListener('online', function () {
+      hideOfflineBanner();
+      showSyncPrompt();
+      showUnsyncedBannerIfAny(form);
+    });
+
+    showUnsyncedBannerIfAny(form);
+  }
 
   function showResumeBanner(form, key, data, maxAgeHours) {
     var banner = document.createElement('div');
@@ -153,6 +351,9 @@
     },
     getDraft: getDraft,
     setDraft: setDraft,
-    removeDraft: removeDraft
+    removeDraft: removeDraft,
+    getPendingSubmissions: getPendingSubmissions,
+    syncPendingSubmissions: syncPendingSubmissions,
+    showUnsyncedBannerIfAny: showUnsyncedBannerIfAny
   };
 })();

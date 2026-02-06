@@ -32,7 +32,7 @@ from .views_certification import (
     certification_bulk_add_candidates,
     certification_session_override,
 )
-from .views_mfa import mfa_setup, mfa_verify
+from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
 
 try:
     from apps.people.views_backend import (
@@ -87,6 +87,7 @@ urlpatterns = [
     path("certification/session/<int:session_id>/override/", certification_session_override, name="certification_session_override"),
     path("claim-invite/", claim_invite, name="claim_invite"),
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
+    path("mfa/dismiss-banner/", dismiss_mfa_banner, name="dismiss_mfa_banner"),
     path("mfa/verify/", mfa_verify, name="mfa_verify"),
     
     # Backend UI for People Management

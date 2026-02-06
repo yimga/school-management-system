@@ -766,6 +766,10 @@ class SiteSettings(models.Model):
         blank=True,
         help_text='Role codes that must have MFA (TOTP) enabled, e.g. ["ADMIN","BURSAR","IT_ADMIN"]. Empty = not required.',
     )
+    require_mfa_all_staff = models.BooleanField(
+        default=False,
+        help_text="When enabled, all staff must set up MFA (TOTP) before accessing admin or backend. Overrides role-based require_mfa_roles for staff.",
+    )
     # Phase 4.3: Optional reminder for pending AccessRequest assignees (0 = disabled)
     requests_reminder_interval_hours = models.PositiveIntegerField(
         default=0,

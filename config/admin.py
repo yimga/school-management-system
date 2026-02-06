@@ -46,6 +46,21 @@ class GileadAdminSite(UnfoldAdminSite):
             )
         except Exception:
             context["extra_userlinks"] = ""
+        # MFA encouragement: show dismissible banner for staff without MFA
+        try:
+            from django.urls import reverse
+            from django_otp import user_has_device
+            show = (
+                request.user.is_authenticated
+                and request.user.is_staff
+                and not user_has_device(request.user)
+                and not request.session.get("mfa_banner_dismissed")
+            )
+            context["show_mfa_banner"] = show
+            context["mfa_setup_url"] = reverse("accounts:mfa_setup") if show else ""
+        except Exception:
+            context["show_mfa_banner"] = False
+            context["mfa_setup_url"] = ""
         return context
 
     def has_permission(self, request):
@@ -140,6 +155,39 @@ class GileadAdminSite(UnfoldAdminSite):
                 "accent": getattr(site, "accent_color", "#198754"),
             },
         }
+        # MFA compliance KPI: staff with at least one confirmed TOTP device
+        mfa_enabled_count = 0
+        mfa_staff_total = admin_count
+        mfa_compliance_percent = 0
+        try:
+            from django_otp.plugins.otp_totp.models import TOTPDevice
+            staff_ids = list(User.objects.filter(is_staff=True).values_list("id", flat=True))
+            if staff_ids:
+                mfa_enabled_count = TOTPDevice.objects.filter(
+                    user_id__in=staff_ids, confirmed=True
+                ).values_list("user_id", flat=True).distinct().count()
+                mfa_compliance_percent = round(100 * mfa_enabled_count / len(staff_ids)) if staff_ids else 0
+        except Exception:
+            pass
+
+        # Action queue: pending AccessRequests (for users who can manage requests)
+        pending_approvals_count = 0
+        pending_approvals_list = []
+        try:
+            from apps.requests.models import AccessRequest
+            from apps.requests.views import _can_manage_requests
+            if _can_manage_requests(request.user):
+                pending_approvals_count = AccessRequest.objects.filter(
+                    status=AccessRequest.Status.PENDING
+                ).count()
+                pending_approvals_list = list(
+                    AccessRequest.objects.filter(status=AccessRequest.Status.PENDING)
+                    .select_related("requester")
+                    .order_by("-requested_at")[:5]
+                )
+        except Exception:
+            pass
+
         # RBAC: only expose KPIs the user has permission to see (superuser sees all)
         user = request.user
         can_see_user_stats = user.is_superuser or user.has_perm('auth.view_user')
@@ -196,6 +244,13 @@ class GileadAdminSite(UnfoldAdminSite):
                 'finance_inbox_preview': finance_inbox_preview,
                 'finance_inbox_unread': finance_inbox_unread,
             })
+        context.update({
+            'mfa_enabled_count': mfa_enabled_count,
+            'mfa_staff_total': mfa_staff_total,
+            'mfa_compliance_percent': mfa_compliance_percent,
+            'pending_approvals_count': pending_approvals_count,
+            'pending_approvals_list': pending_approvals_list,
+        })
         if extra_context:
             context.update(extra_context)
 
@@ -243,6 +298,10 @@ class GileadAdminSite(UnfoldAdminSite):
             "portal": {"order": 9, "name": "📢 Portal & Communication", "icon": "📢", "section": "operations"},
             "analytics": {"order": 10, "name": "📈 Analytics & Insights", "icon": "📈", "section": "operations"},
             "compliance": {"order": 11, "name": "🔒 Compliance & Audit", "icon": "🔒", "section": "operations"},
+            "automation": {"order": 12, "name": "🤖 Automation", "icon": "🤖", "section": "operations"},
+            "requests": {"order": 13, "name": "📋 Requests & Approvals", "icon": "📋", "section": "operations"},
+            "communication": {"order": 14, "name": "💬 Communication", "icon": "💬", "section": "operations"},
+            "emis": {"order": 15, "name": "📤 EMIS & Export", "icon": "📤", "section": "operations"},
 
             # Django Built-ins (if any remain)
             "sites": {"order": 998, "name": "🌐 Sites", "icon": "🌐", "section": "system"},

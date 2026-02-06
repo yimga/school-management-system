@@ -7,9 +7,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import StudentProfile, TeacherProfile, StudentGuardian
 from .forms_backend import StudentCreateForm, TeacherCreateForm, ClassroomCreateForm
-from apps.academics.models import AcademicYear, Classroom
+from apps.academics.models import AcademicYear, Classroom, Department
 from apps.siteconfig.models import SiteSettings
 
 User = get_user_model()
@@ -172,29 +174,105 @@ def backend_classroom_create(request):
     })
 
 
+def _pagination_extra_query(request):
+    """Build query string from GET excluding 'page' for pagination links."""
+    q = request.GET.copy()
+    q.pop('page', None)
+    return q.urlencode()
+
+
 @login_required
 @permission_required('people.view_studentprofile', raise_exception=True)
 def backend_student_list(request):
-    """List students in user-friendly backend UI"""
-    students = StudentProfile.objects.select_related(
+    """List students in user-friendly backend UI with search, filters, and pagination."""
+    qs = StudentProfile.objects.select_related(
         'academic_year', 'classroom', 'specialty'
-    ).filter(is_active=True).order_by('last_name', 'first_name')[:100]
-    
+    ).filter(is_active=True).order_by('last_name', 'first_name')
+
+    search = (request.GET.get('q') or '').strip()
+    if search:
+        qs = qs.filter(
+            Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+            | Q(admission_number__icontains=search)
+        )
+    year_id = request.GET.get('year')
+    if year_id:
+        qs = qs.filter(academic_year_id=year_id)
+    classroom_id = request.GET.get('classroom')
+    if classroom_id:
+        qs = qs.filter(classroom_id=classroom_id)
+
+    per_page = min(100, max(10, int(request.GET.get('page_size', 25))))
+    paginator = Paginator(qs, per_page)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+
+    years = AcademicYear.objects.order_by('-start_date')
+    classrooms = Classroom.objects.order_by('name')
+
     return render(request, 'people/backend_student_list.html', {
-        'students': students,
+        'students': page_obj.object_list,
+        'page_obj': page_obj,
         'title': 'Students',
+        'search': search,
+        'selected_year': year_id or '',
+        'selected_classroom': classroom_id or '',
+        'years': years,
+        'classrooms': classrooms,
+        'pagination_extra_query': _pagination_extra_query(request),
+        'page_size': per_page,
+        'page_size_options': [20, 50, 100],
+        'show_page_size': True,
     })
 
 
 @login_required
 @permission_required('people.view_teacherprofile', raise_exception=True)
 def backend_teacher_list(request):
-    """List teachers in user-friendly backend UI"""
-    teachers = TeacherProfile.objects.select_related(
+    """List teachers in user-friendly backend UI with search, filter, and pagination."""
+    qs = TeacherProfile.objects.select_related(
         'user', 'department'
     ).filter(is_active=True).order_by('staff_id')
-    
+
+    search = (request.GET.get('q') or '').strip()
+    if search:
+        qs = qs.filter(
+            Q(staff_id__icontains=search)
+            | Q(user__first_name__icontains=search)
+            | Q(user__last_name__icontains=search)
+            | Q(user__email__icontains=search)
+        )
+    department_id = request.GET.get('department')
+    if department_id:
+        qs = qs.filter(department_id=department_id)
+
+    per_page = min(100, max(10, int(request.GET.get('page_size', 25))))
+    paginator = Paginator(qs, per_page)
+    page_number = request.GET.get('page', 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+
+    departments = Department.objects.order_by('name')
+
     return render(request, 'people/backend_teacher_list.html', {
-        'teachers': teachers,
+        'teachers': page_obj.object_list,
+        'page_obj': page_obj,
         'title': 'Teachers',
+        'search': search,
+        'selected_department': department_id or '',
+        'departments': departments,
+        'pagination_extra_query': _pagination_extra_query(request),
+        'page_size': per_page,
+        'page_size_options': [20, 50, 100],
+        'show_page_size': True,
     })

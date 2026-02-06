@@ -1,12 +1,10 @@
-from django.contrib import admin
+from django.contrib.admin import ModelAdmin
 from django.urls import reverse
 from django.utils.html import format_html
-from django.contrib.admin import ModelAdmin
 
 from .models import EMISExport, EMISFieldMapping, EMISCompliance
 
 
-@admin.register(EMISExport)
 class EMISExportAdmin(ModelAdmin):
     list_display = [
         'export_type', 'academic_year', 'term', 'exported_by',
@@ -37,7 +35,6 @@ class EMISExportAdmin(ModelAdmin):
         return request.user.is_superuser
 
 
-@admin.register(EMISFieldMapping)
 class EMISFieldMappingAdmin(ModelAdmin):
     list_display = ['country_code', 'export_type', 'field_name', 'mapped_name', 'data_type', 'required']
     list_filter = ['country_code', 'export_type', 'data_type', 'required']
@@ -54,7 +51,6 @@ class EMISFieldMappingAdmin(ModelAdmin):
     )
 
 
-@admin.register(EMISCompliance)
 class EMISComplianceAdmin(ModelAdmin):
     list_display = ['country_name', 'country_code', 'ministry_name', 'emis_version', 'is_active']
     list_filter = ['is_active', 'emis_version']
@@ -73,3 +69,11 @@ class EMISComplianceAdmin(ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+# Register with custom admin site (deferred to avoid circular import)
+from config.admin import admin_site
+
+admin_site.register(EMISExport, EMISExportAdmin)
+admin_site.register(EMISFieldMapping, EMISFieldMappingAdmin)
+admin_site.register(EMISCompliance, EMISComplianceAdmin)

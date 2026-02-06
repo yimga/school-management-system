@@ -21,7 +21,7 @@
         Borderline = average between demotion and promotion threshold (e.g. 9.0–10.0 when threshold is 10).
       </p>
       <form method="get" action="" class="row g-3 align-items-end">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label for="year" class="form-label">Academic year</label>
           <select name="year" id="year" class="form-select" onchange="this.form.submit()">
             <option value="">— Select —</option>
@@ -30,8 +30,19 @@
             {% endfor %}
           </select>
         </div>
+        {% if year and classrooms %}
+        <div class="col-md-3">
+          <label for="classroom" class="form-label">Classroom</label>
+          <select name="classroom" id="classroom" class="form-select" onchange="this.form.submit()">
+            <option value="">All classrooms</option>
+            {% for c in classrooms %}
+            <option value="{{ c.id }}" {% if selected_classroom == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
         <div class="col-md-4">
-          <a href="?year={{ year.id|default:'' }}&export=csv" class="btn btn-outline-primary">Export CSV</a>
+          <a href="?year={{ year.id|default:'' }}{% if selected_classroom %}&classroom={{ selected_classroom }}{% endif %}&export=csv" class="btn btn-outline-primary">Export CSV</a>
         </div>
       </form>
     </div>
@@ -60,22 +71,23 @@
             </tr>
           </thead>
           <tbody>
-            {% for group in by_classroom %}
-              {% for row in group.students %}
-              <tr>
-                <td>{{ group.classroom.name }}</td>
-                <td>{{ row.student.get_full_name|default:row.student.last_name }}</td>
-                <td>{{ row.annual_average|default:"—" }}</td>
-                <td><span class="badge {% if row.promotion_status == 'PROMOTED' %}bg-success{% elif row.promotion_status == 'REPEAT' or row.promotion_status == 'DEMOTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ row.promotion_status }}</span></td>
-                <td>{% if row.is_borderline %}<span class="badge bg-warning text-dark">Yes</span>{% else %}—{% endif %}</td>
-              </tr>
-              {% endfor %}
+            {% for row in rows %}
+            <tr>
+              <td>{{ row.classroom.name }}</td>
+              <td>{{ row.student.get_full_name|default:row.student.last_name }}</td>
+              <td>{{ row.annual_average|default:"—" }}</td>
+              <td><span class="badge {% if row.promotion_status == 'PROMOTED' %}bg-success{% elif row.promotion_status == 'REPEAT' or row.promotion_status == 'DEMOTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ row.promotion_status }}</span></td>
+              <td>{% if row.is_borderline %}<span class="badge bg-warning text-dark">Yes</span>{% else %}—{% endif %}</td>
+            </tr>
             {% empty %}
             <tr><td colspan="5" class="text-muted">No students in {{ year.name }}.</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
+      {% if page_obj and page_obj.paginator.num_pages > 1 %}
+      {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
+      {% endif %}
     </div>
   </div>
   {% endif %}

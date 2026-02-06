@@ -219,6 +219,20 @@
           <div class="admin-kpi-row"><span>{% trans "Sessions (24h)" %}:</span> <span class="admin-kpi-val">{{ sessions_24h|default:"0" }}</span></div>
         </div>
       </div>
+
+      {# MFA Compliance Card #}
+      <div class="admin-kpi-card" data-widget-id="admin-mfa-compliance">
+        <div class="admin-kpi-card__head">
+          <span class="admin-kpi-card__label">{% trans "MFA Compliance" %}</span>
+          <span class="admin-kpi-card__icon">🔐</span>
+        </div>
+        <div class="admin-kpi-card__value">{{ mfa_compliance_percent|default:0 }}%</div>
+        <div class="admin-kpi-card__details">
+          <div class="admin-kpi-row"><span>{% trans "Staff with MFA" %}:</span> <span class="admin-kpi-val">{{ mfa_enabled_count|default:0 }}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Total staff" %}:</span> <span class="admin-kpi-val">{{ mfa_staff_total|default:0 }}</span></div>
+          <div class="admin-kpi-row"><a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-kpi-val" style="font-size: 12px;">{% trans "Site Settings" %}</a></div>
+        </div>
+      </div>
     </div>
 
     {# === Security / Compliance + Calendar Row === #}
@@ -258,6 +272,36 @@
         </div>
         <div class="admin-security-footer">
           {{ active_sessions|default:"0" }} {% trans "user" %}{{ active_sessions|default:"0"|pluralize }} {% trans "online" %} &bull; {{ sessions_24h|default:"0" }} {% trans "in last 24h" %}
+        </div>
+      </div>
+
+      {# Action queue: Pending approvals #}
+      <div class="admin-security-card" data-widget-id="admin-action-queue">
+        <div class="admin-kpi-card__head">
+          <span class="admin-kpi-card__label">{% trans "Action queue" %}</span>
+          <span class="admin-kpi-card__icon">📋</span>
+        </div>
+        <div class="admin-security-card__body">
+          <div class="admin-security-panel" style="flex: 1 1 100%;">
+            <div class="admin-security-stat">
+              <span>{% trans "Pending approvals" %}</span>
+              <strong class="admin-kpi-val">{{ pending_approvals_count|default:0 }}</strong>
+            </div>
+            {% if pending_approvals_list %}
+              <div class="admin-security-divider">
+                <div class="admin-security-panel__title">{% trans "Recent" %}</div>
+                {% for req in pending_approvals_list %}
+                  <div class="admin-security-stat">
+                    <span title="{{ req.reference }}">{{ req.reference }}</span>
+                    <span>{{ req.get_request_type_display }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="admin-security-footer">
+          <a href="{% url 'admin:requests_accessrequest_changelist' %}" class="admin-control-btn" style="display: inline-flex;">{% trans "View all" %}</a>
         </div>
       </div>
 

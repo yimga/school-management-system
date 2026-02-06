@@ -263,7 +263,7 @@ def certification_export_zip(request, session_id: int):
         ca_config = preset.ca_export_config
         use_practical_split = ca_config.get("use_practical_split", False)
         
-        headers = ["candidate_id", "student_name", "admission_number", "unique_identifier", "official_cin"]
+        headers = ["candidate_id", "FULL_NAMES", "MINSEC_ID", "admission_number", "unique_identifier", "official_cin"]
         
         # Get subject list from preset or from first candidate's evaluations
         subject_codes = []
@@ -295,9 +295,12 @@ def certification_export_zip(request, session_id: int):
             
             s = c.student
             student_name = getattr(s, "get_full_name", lambda: f"{s.last_name} {s.first_name}")()
+            full_names_upper = (student_name or "").upper()
+            minsec_id = getattr(s, "student_code", "") or getattr(s, "admission_number", "") or ""
             row = [
                 c.id,
-                student_name,
+                full_names_upper,
+                minsec_id,
                 getattr(s, "admission_number", "") or getattr(s, "student_code", "") or "",
                 c.unique_identifier or "",
                 c.official_cin or "",

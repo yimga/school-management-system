@@ -177,7 +177,10 @@ class FeePlan(models.Model):
 class FeeItem(models.Model):
     class ItemType(models.TextChoices):
         TUITION = "TUITION", "Tuition"
+        PTA = "PTA", "PTA Levy"
+        WORKSHOP = "WORKSHOP", "Workshop Fee"
         ACTIVITY = "ACTIVITY", "Activity"
+        TRANSPORT = "TRANSPORT", "Transport / Bus"
         CUSTOM = "CUSTOM", "Custom"
 
     plan = models.ForeignKey(FeePlan, on_delete=models.CASCADE, related_name="items")

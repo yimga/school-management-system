@@ -40,7 +40,10 @@ def faq_list(request):
     paginator = Paginator(faqs, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+    q = request.GET.copy()
+    q.pop('page', None)
+    pagination_extra_query = q.urlencode()
+
     context = {
         'page_obj': page_obj,
         'categories': categories,
@@ -48,6 +51,7 @@ def faq_list(request):
         'popular_faqs': popular_faqs,
         'current_category': category_slug,
         'search_query': search_query,
+        'pagination_extra_query': pagination_extra_query,
     }
     return render(request, 'portal/faq_list.html', context)
 
@@ -177,11 +181,15 @@ def kb_category(request, category_slug):
     paginator = Paginator(articles, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+    q = request.GET.copy()
+    q.pop('page', None)
+    pagination_extra_query = q.urlencode()
+
     context = {
         'category': category,
         'page_obj': page_obj,
         'subcategories': subcategories,
+        'pagination_extra_query': pagination_extra_query,
     }
     return render(request, 'portal/kb_category.html', context)
 

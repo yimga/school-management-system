@@ -78,6 +78,14 @@ def mfa_setup(request):
 
 
 @login_required
+def dismiss_mfa_banner(request):
+    """Dismiss the 'Set up MFA' encouragement banner for this session (e.g. from admin)."""
+    request.session["mfa_banner_dismissed"] = True
+    next_url = request.GET.get("next") or request.build_absolute_uri("/admin/")
+    return redirect(next_url)
+
+
+@login_required
 def mfa_verify(request):
     """
     Verify MFA token during login.

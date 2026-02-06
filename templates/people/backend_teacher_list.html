@@ -1,0 +1,85 @@
+{% extends "backend_base.html" %}
+{% load static region_format %}
+{% block backend_title %}Teachers - Backend{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Teachers</h2>
+          <p class="text-muted mb-0">Manage teacher records</p>
+        </div>
+        <a href="{% url 'accounts:backend_teacher_create' %}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-2"></i>Add Teacher
+        </a>
+      </div>
+
+      <form method="get" class="card card-body bg-light mb-3" role="search">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label for="teacher-q" class="form-label small">Search</label>
+            <input type="search" id="teacher-q" name="q" class="form-control form-control-sm" placeholder="Name, staff ID, or email..." value="{{ search }}">
+          </div>
+          <div class="col-md-2">
+            <label for="teacher-department" class="form-label small">Department</label>
+            <select id="teacher-department" name="department" class="form-select form-select-sm">
+              <option value="">All departments</option>
+              {% for d in departments %}
+              <option value="{{ d.id }}" {% if selected_department == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          {% if teachers %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle table-zebra table-sticky-head" aria-label="Teachers">
+              <thead>
+                <tr>
+                  <th scope="col">Staff ID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Department</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                  <td>{{ teacher.staff_id|default:"-" }}</td>
+                  <td>{{ teacher.user.get_full_name|default:teacher.user.username }}</td>
+                  <td>{{ teacher.user.email|default:"-" }}</td>
+                  <td>{{ teacher.department.name|default:"-" }}</td>
+                  <td>
+                    {% if request.user.is_superuser %}
+                    <a href="{% url 'admin:people_teacherprofile_change' teacher.id %}" class="btn btn-sm btn-outline-warning" title="Edit in Configuration Engine">
+                      <i class="bi bi-gear"></i>
+                    </a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          {% url 'accounts:backend_teacher_create' as empty_action_url %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-person-badge" title="No teachers found" message="Teachers you add will appear here." action_url=empty_action_url action_text="Add your first teacher" %}
+          {% endif %}
+          {% if page_obj %}
+          {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=show_page_size page_size=page_size page_size_options=page_size_options %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

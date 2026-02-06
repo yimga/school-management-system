@@ -31,6 +31,7 @@ class EvaluationAdmin(ModelAdmin):
         "exam_score",
         "mock_score",
         "practical_score",
+        "internship_score",
         "total_score",
         "letter_grade",
     )
@@ -71,7 +72,7 @@ class OfflineMarkEntryAdmin(ModelAdmin):
     list_per_page = 50  # PERFORMANCE: Add pagination
     fieldsets = (
         ('Grade Entry', {
-            'fields': ('student', 'subject_assignment', 'teacher', 'seq1_score', 'seq2_score', 'exam_score', 'mock_score', 'practical_score', 'remarks'),
+            'fields': ('student', 'subject_assignment', 'teacher', 'seq1_score', 'seq2_score', 'exam_score', 'mock_score', 'practical_score', 'internship_score', 'remarks'),
         }),
         ('Sync Status', {
             'fields': ('status', 'created_offline_at', 'synced_at', 'synced_by'),

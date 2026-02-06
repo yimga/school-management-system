@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -26,6 +27,7 @@ from apps.reports.services import (
     parse_share_token,
     student_has_financial_clearance,
     student_has_outstanding_returns,
+    notify_parent_report_blocked_by_debt,
     term_report_context,
     terms_for_student,
 )
@@ -128,6 +130,7 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         return HttpResponseForbidden("Results not published yet.")
 
     if not student_has_financial_clearance(student, year):
+        notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
             "Report card is not available until fees are cleared. Please visit the Bursary."
         )
@@ -203,6 +206,7 @@ def parent_download_term_report_csv(request: HttpRequest, student_id: int):
         return HttpResponseForbidden("Results not published yet.")
 
     if not student_has_financial_clearance(student, year):
+        notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
             "Report card is not available until fees are cleared. Please visit the Bursary."
         )
@@ -253,6 +257,7 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
         return HttpResponseForbidden("Annual report is not available yet.")
 
     if not student_has_financial_clearance(student, year):
+        notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
             "Report card is not available until fees are cleared. Please visit the Bursary."
         )
@@ -314,6 +319,7 @@ def parent_download_annual_report_csv(request: HttpRequest, student_id: int):
     if not are_terms_published(year.id, [t.id for t in terms_annual], student.classroom_id):
         return HttpResponseForbidden("Annual report is not available yet.")
     if not student_has_financial_clearance(student, year):
+        notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
             "Report card is not available until fees are cleared. Please visit the Bursary."
         )
@@ -377,6 +383,7 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
         return HttpResponseForbidden("Unknown report type.")
 
     if not student_has_financial_clearance(student, year):
+        notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
             "Report card is not available until fees are cleared. Please visit the Bursary."
         )
@@ -435,6 +442,7 @@ def report_share(request: HttpRequest, token: str):
     report_type = payload["report_type"]
 
     if not student_has_financial_clearance(student, year):
+        notify_parent_report_blocked_by_debt(student, year)
         return HttpResponseForbidden(
             "Report card is not available until fees are cleared. Please visit the Bursary."
         )
@@ -717,10 +725,15 @@ def promotion_preview(request: HttpRequest):
 
     year_obj = get_object_or_404(AcademicYear, id=year_id)
     terms = list(Term.objects.filter(academic_year=year_obj).order_by("position", "start_date"))
-    classrooms = list(Classroom.objects.filter(academic_year=year_obj).order_by("name"))
+    classrooms_qs = Classroom.objects.filter(academic_year=year_obj).order_by("name")
+    classroom_id = request.GET.get("classroom")
+    if classroom_id:
+        classrooms_qs = classrooms_qs.filter(id=classroom_id)
+    classrooms = list(classrooms_qs)
 
     by_classroom = []
     borderline_count = 0
+    flat_rows = []
 
     for classroom in classrooms:
         students = list(
@@ -740,12 +753,15 @@ def promotion_preview(request: HttpRequest):
                 is_borderline = demotion_avg <= annual_avg < promo_avg
                 if is_borderline:
                     borderline_count += 1
-            student_rows.append({
+            row_data = {
+                "classroom": classroom,
                 "student": s,
                 "annual_average": round(annual_avg, 2) if annual_avg is not None else None,
                 "promotion_status": promo,
                 "is_borderline": is_borderline,
-            })
+            }
+            student_rows.append(row_data)
+            flat_rows.append(row_data)
         by_classroom.append({
             "classroom": classroom,
             "students": student_rows,
@@ -768,6 +784,20 @@ def promotion_preview(request: HttpRequest):
                 ])
         return response
 
+    per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
+    paginator = Paginator(flat_rows, per_page)
+    page_number = request.GET.get("page", 1)
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
+    q = request.GET.copy()
+    q.pop("page", None)
+    pagination_extra_query = q.urlencode()
+    all_classrooms = list(Classroom.objects.filter(academic_year=year_obj).order_by("name"))
+
     return render(
         request,
         "reports/promotion_preview.html",
@@ -776,5 +806,10 @@ def promotion_preview(request: HttpRequest):
             "year": year_obj,
             "by_classroom": by_classroom,
             "borderline_count": borderline_count,
+            "rows": page_obj.object_list,
+            "page_obj": page_obj,
+            "pagination_extra_query": pagination_extra_query,
+            "classrooms": all_classrooms,
+            "selected_classroom": classroom_id or "",
         },
     )

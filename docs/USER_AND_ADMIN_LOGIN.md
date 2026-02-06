@@ -21,7 +21,7 @@ Create a superuser:
 python manage.py ensure_superuser
 ```
 
-- With no options, in DEBUG it creates user `admin` with password `admin123`.
+- With no options, in DEBUG it creates user `admin` with password `Sch00l_1234`.
 - To set your own password:  
   `python manage.py ensure_superuser --username admin --password YourSecurePassword`
 - Or use env: `ADMIN_PASSWORD=YourSecurePassword python manage.py ensure_superuser --no-input`
