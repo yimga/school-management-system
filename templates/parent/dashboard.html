@@ -1017,7 +1017,7 @@
             </select>
             {% endif %}
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_notifications' %}">Manage notifications</a>
-            {% if SITE.enable_whatsapp_parent_portal and (SITE.whatsapp_support_number or SITE.footer_whatsapp_url) %}
+            {% if SITE.enable_whatsapp_parent_portal and SITE.whatsapp_support_number or SITE.enable_whatsapp_parent_portal and SITE.footer_whatsapp_url %}
               {% if SITE.whatsapp_support_number %}
                 <a class="btn btn-sm btn-success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I need help with my parent portal access.'|urlencode }}" target="_blank" rel="noreferrer">
                   <i class="bi bi-whatsapp me-1"></i>WhatsApp Support

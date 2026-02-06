@@ -9,7 +9,7 @@
     <p class="text-muted small mb-1">
       Submit a request and the school team will call or message you.
     </p>
-    {% if SITE.enable_whatsapp_parent_portal and (SITE.whatsapp_support_number or SITE.footer_whatsapp_url) %}
+    {% if SITE.enable_whatsapp_parent_portal and SITE.whatsapp_support_number or SITE.enable_whatsapp_parent_portal and SITE.footer_whatsapp_url %}
       <div class="d-flex flex-wrap align-items-center gap-2">
         {% if SITE.whatsapp_support_number %}
           <a class="btn btn-sm btn-success" href="https://wa.me/{{ SITE.whatsapp_support_number|urlencode }}?text={{ 'Hello, I would like to contact the school.'|urlencode }}" target="_blank" rel="noreferrer">

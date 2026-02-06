@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.http import JsonResponse, HttpResponseForbidden, HttpRequest, Http404, HttpResponse, HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from collections import Counter
 from django.contrib import messages
 from django.utils import timezone
@@ -909,15 +910,17 @@ def portal_stats(request: HttpRequest):
     })
 
 
-@login_required
 def student_portal_grades(request: HttpRequest) -> HttpResponseRedirect:
     """Semantic alias for parent dashboard (grades overview)."""
+    if not request.user.is_authenticated:
+        return redirect_to_login(next=reverse("portal:parent_dashboard"))
     return redirect("portal:parent_dashboard")
 
 
-@login_required
 def admissions_application_status(request: HttpRequest) -> HttpResponseRedirect:
     """Semantic alias for application status (re-uses parent dashboard context)."""
+    if not request.user.is_authenticated:
+        return redirect_to_login(next=reverse("portal:parent_dashboard"))
     return redirect("portal:parent_dashboard")
 
 
