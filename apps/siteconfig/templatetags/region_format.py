@@ -41,14 +41,21 @@ def _date_format_to_django(pattern: str) -> str:
     return s
 
 
-@register.filter(takes_context=True)
-def format_date(context, value=None):
-    """Format a date/datetime using the region's date_format from context.
-    Value defaults to None so Django counts one template-provided argument (required 1, provided 1).
+@register.filter
+def format_date(value, date_format_pattern=None):
+    """Format a date/datetime.
+
+    Usage in templates:
+        {{ some_date|format_date }}            -> DD/MM/YYYY (default)
+        {{ some_date|format_date:"YYYY-MM-DD" }} -> 2026-02-05
+
+    Note: takes_context=True is NOT supported on Django filters (only on tags).
+    The previous implementation silently broke because Django passed the piped
+    value as the first arg and None as the second, so it always returned "".
     """
     if value is None:
         return ""
-    pattern = context.get("date_format") or "DD/MM/YYYY"
+    pattern = date_format_pattern or "DD/MM/YYYY"
     fmt = _date_format_to_django(pattern)
     try:
         return dateformat.format(value, fmt)
@@ -71,34 +78,22 @@ def format_currency(value):
     return f"{symbol}{s}" if symbol else s
 
 
-def _context_like(obj):
-    """True if obj looks like a template context (dict-like with .get)."""
-    return obj is not None and hasattr(obj, "get") and callable(obj.get)
+@register.filter
+def format_number(value, decimals=2):
+    """Format a number with thousands separators.
 
+    Usage in templates:
+        {{ amount|format_number }}      -> 1,234.56 (2 decimals)
+        {{ amount|format_number:0 }}    -> 1,235 (no decimals)
 
-@register.filter(takes_context=True)
-def format_number(context, value, decimals=2):
-    """Format a number using region's decimal_separator and thousands_separator from context.
-    Handles both (context, value, decimals) and (value, decimals) when context is not passed.
+    Uses period for decimal and comma for thousands (Anglophone Cameroon default).
     """
-    if not _context_like(context):
-        context, value, decimals = None, context, (value if value is not None else 2)
     if value is None:
         return ""
     try:
-        if isinstance(value, Decimal):
-            num = float(value)
-        else:
-            num = float(value)
+        num = float(value)
     except (TypeError, ValueError):
         return str(value)
-    if context:
-        dec_sep = context.get("decimal_separator") or "."
-        thousands_sep = context.get("thousands_separator") or ","
-    else:
-        dec_sep = "."
-        thousands_sep = ","
     dec = int(decimals) if decimals is not None else 2
     s = f"{num:,.{dec}f}"
-    s = s.replace(".", "\x00").replace(",", thousands_sep).replace("\x00", dec_sep)
     return s

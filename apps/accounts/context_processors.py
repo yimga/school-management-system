@@ -143,10 +143,16 @@ def dashboard_context(request):
             context['total_students'] = StudentProfile.objects.filter(is_active=True).count()
             context['total_teachers'] = TeacherProfile.objects.count()
             
-            # Pending invoices
-            pending_invoices = Invoice.objects.filter(status__in=['PENDING', 'PARTIAL'])
-            context['pending_amount'] = sum(inv.balance or 0 for inv in pending_invoices)
-            context['pending_invoices_count'] = pending_invoices.count()
+            # Pending invoices -- use aggregate() to avoid SELECTing all columns
+            # (prevents crash if a new column like void_reason hasn't been migrated yet)
+            from django.db.models import Sum, DecimalField
+            from django.db.models.functions import Coalesce
+            _inv_qs = Invoice.objects.filter(status__in=['PENDING', 'PARTIAL'])
+            _inv_agg = _inv_qs.aggregate(
+                total=Coalesce(Sum('balance_amount'), Decimal('0'), output_field=DecimalField())
+            )
+            context['pending_amount'] = _inv_agg['total']
+            context['pending_invoices_count'] = _inv_qs.count()
 
             context['dashboard_stats_cards'] = [
                 stat_card("Students", context.get('total_students', 0), "blue"),
@@ -269,9 +275,15 @@ def dashboard_context(request):
                 except ImportError:
                     context['parent_avg_attendance'] = 0
                 
-                # Total balance for all children
-                invoices = Invoice.objects.filter(student__in=children, status__in=['PENDING', 'PARTIAL'])
-                context['parent_balance'] = sum(inv.balance or 0 for inv in invoices)
+                # Total balance for all children -- aggregate to avoid SELECTing all columns
+                from django.db.models import Sum, DecimalField
+                from django.db.models.functions import Coalesce
+                _parent_agg = Invoice.objects.filter(
+                    student__in=children, status__in=['PENDING', 'PARTIAL']
+                ).aggregate(
+                    total=Coalesce(Sum('balance_amount'), Decimal('0'), output_field=DecimalField())
+                )
+                context['parent_balance'] = _parent_agg['total']
             else:
                 context['parent_avg_attendance'] = 0
                 context['parent_balance'] = 0
