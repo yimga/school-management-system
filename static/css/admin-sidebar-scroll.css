@@ -42,35 +42,46 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.35) rgba(0, 0, 0, 0.06);
   flex: 1 1 0;
   min-height: 0;
 }
 
+.dark #nav-sidebar-apps,
+.dark .admin-sidebar-apps {
+  scrollbar-color: rgba(255, 255, 255, 0.35) rgba(255, 255, 255, 0.06);
+}
+
 #nav-sidebar-apps::-webkit-scrollbar,
 .admin-sidebar-apps::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 #nav-sidebar-apps::-webkit-scrollbar-track,
 .admin-sidebar-apps::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
 }
 
 #nav-sidebar-apps::-webkit-scrollbar-thumb,
 .admin-sidebar-apps::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
 }
 
 #nav-sidebar-apps::-webkit-scrollbar-thumb:hover,
 .admin-sidebar-apps::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .dark #nav-sidebar-apps::-webkit-scrollbar-thumb,
 .dark .admin-sidebar-apps::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.dark #nav-sidebar-apps::-webkit-scrollbar-track,
+.dark .admin-sidebar-apps::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* ----- Sidebar: always on the left; flex so app list scrolls; no scroll on wrapper ----- */
@@ -129,6 +140,7 @@
   margin: 0;
 }
 
+/* Link/hover/active styles delegated to admin-sidebar-backend-inspired.css (single source). */
 .admin-sidebar-link {
   display: flex;
   align-items: center;
@@ -139,31 +151,6 @@
   color: var(--color-base-700, #334155);
   text-decoration: none;
   transition: background 0.15s, color 0.15s;
-}
-
-.dark .admin-sidebar-link {
-  color: var(--color-base-300, #cbd5e1);
-}
-
-.admin-sidebar-link:hover {
-  background: var(--color-base-100, rgba(0, 0, 0, 0.04));
-  color: var(--color-primary-600, var(--color-primary));
-}
-
-.dark .admin-sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--color-primary-400, #60a5fa);
-}
-
-.admin-sidebar-link.active {
-  background: var(--color-primary-50, rgba(37, 99, 235, 0.1));
-  color: var(--color-primary-600, var(--color-primary));
-  font-weight: 600;
-}
-
-.dark .admin-sidebar-link.active {
-  background: rgba(96, 165, 250, 0.15);
-  color: var(--color-primary-400, #60a5fa);
 }
 
 .admin-sidebar-icon {

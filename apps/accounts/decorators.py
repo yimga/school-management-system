@@ -1,8 +1,19 @@
 from functools import wraps
+
 from django.contrib.auth.decorators import user_passes_test
+from django.db.models import Q
 from django.http import HttpResponseForbidden
 
 from apps.siteconfig.models import SiteSettings
+
+
+def _normalize_role(r) -> str:
+    """Normalize role to uppercase string for case-insensitive comparison."""
+    if hasattr(r, "value"):
+        return str(r.value).strip().upper()
+    if isinstance(r, str):
+        return r.strip().upper()
+    return str(r).strip().upper()
 
 
 def _has_any_role(user, roles: tuple[str, ...]) -> bool:
@@ -10,9 +21,16 @@ def _has_any_role(user, roles: tuple[str, ...]) -> bool:
         return False
     if getattr(user, "is_superuser", False):
         return True
-    if getattr(user, "role", None) in roles:
+    normalized = tuple(_normalize_role(r) for r in roles)
+    user_role = getattr(user, "role", None)
+    user_role_str = _normalize_role(user_role) if user_role is not None else ""
+    if user_role_str in normalized:
         return True
-    return user.roles.filter(code__in=roles).exists()
+    # Case-insensitive match for AccessRole.code (DB may store mixed case)
+    q = Q()
+    for r in normalized:
+        q |= Q(code__iexact=r)
+    return user.roles.filter(q).exists()
 
 
 def role_required(*roles: str):

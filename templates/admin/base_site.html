@@ -22,12 +22,13 @@
   <link rel="stylesheet" href="{% static 'css/admin-console-themes.css' %}">
   {% endwith %}
 
-  <!-- ADMIN - Sidebar styled like /backend -->
+  <!-- ADMIN - Sidebar: scroll/layout first, then backend-inspired as single source for link active/hover -->
   <link rel="stylesheet" href="{% static 'css/admin-sidebar-scroll.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-sidebar-backend-inspired.css' %}">
   <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
+  <link rel="stylesheet" href="{% static 'css/theme-proof-visibility.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
@@ -40,6 +41,8 @@
   
   <!-- Font Awesome for icons (Command Palette, Activity Feed, Student 360) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Material Symbols for sidebar and header icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
       #container, #content, .dashboard-container, .main-content, .content {
         position: relative;

@@ -1896,7 +1896,7 @@ def grade_approval_detail(request: HttpRequest, request_id):
 # ========== COMPLIANCE & ADVANCED IMPORT VIEWS ==========
 
 @staff_member_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def compliance_dashboard_view(request):
     """
     Dashboard showing teacher grading compliance status.
@@ -1944,7 +1944,7 @@ def compliance_dashboard_view(request):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def extend_deadline_view(request, subject_assignment_id):
     """
     Extend grading deadline for a subject assignment.
@@ -1993,7 +1993,7 @@ def extend_deadline_view(request, subject_assignment_id):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def grade_import_preview_api(request):
     """API endpoint for grade import preview with validation."""
     from apps.evals.importers import preview_import_with_validation
@@ -2043,7 +2043,7 @@ def grade_import_preview_api(request):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def grade_import_apply_api(request):
     """API endpoint for applying (persisting) grade import."""
     from apps.evals.importers import apply_import
@@ -2099,7 +2099,7 @@ def grade_import_apply_api(request):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, "HEAD_OF_ACADEMICS", "head_of_academics")
+@role_required(User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, "HEAD_OF_ACADEMICS")
 def audit_trail_view(request, evaluation_id):
     """View audit trail for an evaluation."""
     from apps.analytics.services import get_audit_trail
@@ -2123,7 +2123,7 @@ def audit_trail_view(request, evaluation_id):
 
 
 @staff_member_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def resolve_offline_conflict_view(request, offline_entry_id):
     """Manual conflict resolution for offline mark entries."""
     from apps.evals.models import OfflineMarkEntry
@@ -2180,7 +2180,7 @@ def resolve_offline_conflict_view(request, offline_entry_id):
     return render(request, 'evals/resolve_offline_conflict.html', context)
 
 @staff_member_required
-@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS", "head_of_academics")
+@role_required(User.Role.ADMIN, User.Role.HOD, "HEAD_OF_ACADEMICS")
 def import_job_monitor_view(request):
     """Monitor and manage import jobs."""
     from apps.analytics.models import GradeImportJob
