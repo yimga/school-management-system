@@ -1,9 +1,9 @@
 {% load i18n static %}
-{% if admin_theme_packs %}
 <div class="admin-dashboard-palette-selector-wrapper module">
-  <h3>{% trans "Theme & Experience" %}</h3>
-  <p class="help">{% trans "Theme for /admin and /backend dashboards. Shared by both. Choose a color palette below; click a card to select, then Save." %}</p>
+  <h3>{% trans "Theme packs & color combinations" %}</h3>
+  <p class="help">{% trans "Pick a theme pack for /admin and /backend, or use the color harmony reference below to inspire custom colors. Click a pack card to select; then Save." %}</p>
   <link rel="stylesheet" href="{% static 'css/admin-color-preview.css' %}">
+  {% if admin_theme_packs %}
   <div id="admin-dashboard-palette-selector">
     {% if admin_theme_packs_by_group %}
       {% for group_label, packs in admin_theme_packs_by_group %}
@@ -90,5 +90,6 @@
     if (field.value) setSelected(field.value);
   })();
   </script>
+  {% endif %}
+  {% include "admin/components/color_combinations_reference.html" %}
 </div>
-{% endif %}
