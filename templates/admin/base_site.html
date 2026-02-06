@@ -138,6 +138,15 @@
       --color-primary-600: var(--brand-primary);
     }
   </style>
+  {# Critical: sidebar must stay LEFT of dashboard (not on top). Inline so it cannot be overridden by cached CSS. #}
+  <style id="admin-layout-sidebar-left">
+    #page { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; }
+    #page .admin-sidebar-column { flex: 0 0 288px !important; width: 288px !important; max-width: 288px !important; min-width: 288px !important; }
+    #page > #main { flex: 1 1 auto !important; min-width: 0 !important; }
+    @media (max-width: 1279px) {
+      #page .admin-sidebar-column { flex: 0 0 0 !important; width: 0 !important; min-width: 0 !important; max-width: 0 !important; overflow: hidden !important; }
+    }
+  </style>
 {% endblock %}
 
 {% block extrahead %}
