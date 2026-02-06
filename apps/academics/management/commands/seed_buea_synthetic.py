@@ -96,24 +96,34 @@ class Command(BaseCommand):
         students = self._ensure_students(
             year_2526, classrooms_gen, classrooms_tech, specialties, parent_users, n_students
         )
-        assignments = self._ensure_subject_assignments(
-            year_2526, terms_2526[0], classrooms_gen, classrooms_tech, specialties, subject_map
-        )
-        self._ensure_teacher_assignments(year_2526, assignments, teacher_profiles)
         self._ensure_assessment_weights(year_2526)
         self._ensure_promotion_rules(year_2526, classrooms_gen, classrooms_tech)
-        self._ensure_evaluations(terms_2526[0], assignments, students, teacher_profiles, subject_map)
+
+        # ---- Create subject assignments, evaluations, and publish status for ALL 3 terms ----
+        all_assignments = []
+        for idx, term in enumerate(terms_2526):
+            self.stdout.write(f"  Seeding Term {idx + 1} ({term.name})...")
+            assignments = self._ensure_subject_assignments(
+                year_2526, term, classrooms_gen, classrooms_tech, specialties, subject_map
+            )
+            self._ensure_teacher_assignments(year_2526, assignments, teacher_profiles)
+            self._ensure_evaluations(term, idx, assignments, students, teacher_profiles, subject_map)
+            self._ensure_evals_extras(year_2526, term, classrooms_gen)
+            self._ensure_analytics_data(year_2526, term, teacher_users)
+            all_assignments.extend(assignments)
+
+        # Publish terms 1 and 2 (leave term 3 unpublished so the publish flow can be tested)
+        for term in terms_2526[:2]:
+            self._ensure_reports_publish_status(year_2526, term)
+
         self._ensure_fee_plans_and_invoices(year_2526, profile, students, classrooms_gen, classrooms_tech, specialties)
         self._ensure_gce_session_and_candidates(year_2526, students, terms_2526[0])
 
         # ---- Engage every app/module for full test environment ----
-        self._ensure_reports_publish_status(year_2526, terms_2526[0])
         self._ensure_portal_data(admin_users)
         self._ensure_communication_data(admin_users, parent_users, teacher_users)
         self._ensure_requests_data(admin_users, teacher_users)
-        self._ensure_analytics_data(year_2526, terms_2526[0], teacher_users)
         self._ensure_people_extras(year_2526, students, teacher_profiles)
-        self._ensure_evals_extras(year_2526, terms_2526[0], classrooms_gen)
         self._ensure_finance_extras(profile, students)
         self._ensure_payroll_data(profile, teacher_users, admin_users)
         self._ensure_siteconfig_extras()
@@ -478,7 +488,11 @@ class Command(BaseCommand):
                 defaults={"promotion_average": Decimal("10"), "demotion_average": Decimal("0")},
             )
 
-    def _ensure_evaluations(self, term, assignments, students, teacher_profiles, subject_map):
+    def _ensure_evaluations(self, term, term_index, assignments, students, teacher_profiles, subject_map):
+        """Create evaluations for this term. Use slightly different score ranges per term for realism."""
+        # Term 1: scores 8-18, Term 2: scores 7-17, Term 3: scores 6-19 (wider spread)
+        lo = max(4, 8 - term_index)
+        hi = min(20, 18 + term_index)
         for student in students[: min(50, len(students))]:
             for sa in assignments[:6]:
                 if sa.classroom_id != student.classroom_id or sa.specialty_id != student.specialty_id:
@@ -491,9 +505,9 @@ class Command(BaseCommand):
                     student=student,
                     defaults={
                         "teacher": teacher,
-                        "seq1_score": Decimal(str(random.randint(8, 18))),
-                        "seq2_score": Decimal(str(random.randint(8, 18))),
-                        "exam_score": Decimal(str(random.randint(8, 18))),
+                        "seq1_score": Decimal(str(random.randint(lo, hi))),
+                        "seq2_score": Decimal(str(random.randint(lo, hi))),
+                        "exam_score": Decimal(str(random.randint(lo, hi))),
                     },
                 )
 
@@ -780,8 +794,10 @@ class Command(BaseCommand):
 
     def _ensure_automation_data(self):
         from apps.automation.models import AutomationExecutionLog
-        AutomationExecutionLog.objects.create(
+        AutomationExecutionLog.objects.get_or_create(
             task_name="seed_verification",
-            status=AutomationExecutionLog.Status.SUCCESS,
-            execution_summary={"message": "Buea synthetic seed completed"},
+            defaults={
+                "status": AutomationExecutionLog.Status.SUCCESS,
+                "execution_summary": {"message": "Buea synthetic seed completed"},
+            },
         )

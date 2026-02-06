@@ -195,7 +195,8 @@ def certification_export_zip(request, session_id: int):
             "level",
             "session_name",
             "student_id",
-            "student_name",
+            "FULL_NAMES",
+            "MINSEC_ID",
             "classroom",
             "specialty",
             "specialty_code",
@@ -217,6 +218,8 @@ def certification_export_zip(request, session_id: int):
     for c in candidates:
         s = c.student
         student_name = getattr(s, "get_full_name", lambda: f"{s.last_name} {s.first_name}")()
+        full_names_upper = student_name.upper()  # GCE Board requires UPPERCASE as per birth certificate
+        minsec_id = getattr(s, "student_code", "") or getattr(s, "admission_number", "") or ""
         dob = getattr(s, "date_of_birth", None)
         date_of_birth_ddmmYYYY = dob.strftime("%d/%m/%Y") if dob else ""
         specialty = getattr(s, "specialty", None)
@@ -229,7 +232,8 @@ def certification_export_zip(request, session_id: int):
                 session.level,
                 session.name,
                 s.id,
-                student_name,
+                full_names_upper,
+                minsec_id,
                 getattr(getattr(s, "classroom", None), "name", "") or "",
                 getattr(specialty, "name", "") or "",
                 specialty_code,
