@@ -694,6 +694,7 @@ class Command(BaseCommand):
                     defaults={
                         "student": getattr(inv, "student", None),
                         "amount": inv.total_amount,
+                        "method": "CASH",
                         "status": "completed",
                         "paid_at": timezone.now(),
                         "purpose": "tuition",
