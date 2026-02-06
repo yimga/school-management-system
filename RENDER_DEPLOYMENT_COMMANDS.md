@@ -60,6 +60,14 @@ python manage.py migrate
 ```
 This applies any new database changes.
 
+### Step 4b: Seed Theme Packs (Theme & Experience color palettes)
+If the **Theme & Experience** page is missing the themepack cards and color-combination column (Neutrals, Blues, Greens, Warm, Dark, Accessibility), run once:
+```bash
+python manage.py seed_admin_dashboard_palettes
+```
+This creates the preset ThemePacks with admin dashboard palettes. Optional: add to your **Release Command** so they exist after every deploy:  
+`python manage.py migrate --noinput && python manage.py seed_admin_dashboard_palettes && python manage.py seed_render_users`
+
 ### Step 5: Clear Django Cache
 ```bash
 python manage.py shell

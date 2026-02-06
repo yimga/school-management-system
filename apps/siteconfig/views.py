@@ -601,18 +601,16 @@ def theme_colors_page(request):
     all_packs = list(
         ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name")
     )
-    admin_theme_packs = [
-        p for p in all_packs
-        if isinstance(getattr(p, "palette", None), dict) and (p.palette or {}).get("admin_dashboard")
-    ]
-    slug_to_pack = {p.slug: p for p in admin_theme_packs}
+    # Show all admin theme packs (template falls back to primary/accent/background if no palette.admin_dashboard)
+    admin_theme_packs = all_packs
+    slug_to_pack = {p.slug: p for p in all_packs}
     admin_theme_packs_by_group = []
     for group_label, slugs in _THEME_COLORS_PALETTE_GROUPS:
         packs_in_group = [slug_to_pack[s] for s in slugs if s in slug_to_pack]
         if packs_in_group:
             admin_theme_packs_by_group.append((group_label, packs_in_group))
     in_any_group = {p for _, plist in admin_theme_packs_by_group for p in plist}
-    other = [p for p in admin_theme_packs if p not in in_any_group]
+    other = [p for p in all_packs if p not in in_any_group]
     if other:
         admin_theme_packs_by_group.append(("Other", other))
 
