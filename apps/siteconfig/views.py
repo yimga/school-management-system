@@ -44,6 +44,7 @@ from .models import (
     GradingScaleConfig,
     HolidayCalendar,
 )
+from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
@@ -583,31 +584,6 @@ def bulk_letters(request):
     return response
 
 
-# Palette groups for Color & harmony page (must match SiteSettingsAdmin.ADMIN_PALETTE_GROUPS)
-_THEME_COLORS_PALETTE_GROUPS = [
-    ("School (Admin)", [
-        "admin-academic-authority", "admin-executive-ivy", "admin-modern-chancellor",
-        "admin-sophisticated-slate", "admin-digital-lavender", "admin-modern-sage",
-        "admin-focused-classroom", "admin-verdant-growth", "admin-sensory-room",
-    ]),
-    ("Neutrals", ["admin-academic-slate", "admin-slate-gray"]),
-    ("Blues", ["admin-campus-blue", "admin-sky-blue", "admin-ocean-blue", "admin-indigo-lecture"]),
-    ("Greens", ["admin-forest-academy", "admin-forest-green"]),
-    ("Warm", ["admin-gilead-warm-pink", "admin-sunset-study", "admin-sunset-warm"]),
-    ("Dark", ["admin-midnight-scholar", "admin-gilead-dark-neutral", "admin-deep-space-midnight", "admin-the-midnight-scholar"]),
-    ("Niche (STEM / Specialized / Boutique)", [
-        "admin-cyber-lab", "admin-blueprint", "admin-tech-pioneer",
-        "admin-high-contrast-accessible", "admin-focus-mode",
-        "admin-conservatory", "admin-modern-gallery",
-    ]),
-    ("Contemporary", [
-        "admin-glassmorphism", "admin-neo-brutalist", "admin-eco-digital",
-        "admin-monochrome-pro", "admin-retro-future", "admin-bento-box",
-    ]),
-    ("Accessibility", ["admin-high-contrast-light", "admin-high-contrast-dark"]),
-]
-
-
 @staff_member_required
 def theme_colors_page(request):
     """Standalone Color & harmony page: palette studio, presets, preview; save colors to SiteSettings."""
@@ -617,16 +593,7 @@ def theme_colors_page(request):
     )
     # Show all admin theme packs (template falls back to primary/accent/background if no palette.admin_dashboard)
     admin_theme_packs = all_packs
-    slug_to_pack = {p.slug: p for p in all_packs}
-    admin_theme_packs_by_group = []
-    for group_label, slugs in _THEME_COLORS_PALETTE_GROUPS:
-        packs_in_group = [slug_to_pack[s] for s in slugs if s in slug_to_pack]
-        if packs_in_group:
-            admin_theme_packs_by_group.append((group_label, packs_in_group))
-    in_any_group = {p for _, plist in admin_theme_packs_by_group for p in plist}
-    other = [p for p in all_packs if p not in in_any_group]
-    if other:
-        admin_theme_packs_by_group.append(("Other", other))
+    admin_theme_packs_by_group = build_theme_pack_groups(admin_theme_packs, THEME_PALETTE_GROUPS)
 
     if request.method == "POST":
         form = ThemeColorsForm(request.POST, instance=site)

@@ -28,6 +28,7 @@ from .models import (
 )
 from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout, FeatureControlAudit
 from .context_processors import SESSION_KEY
+from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from apps.academics.models import AcademicYear
 from .models import default_backend_feature_flags
 from apps.accounts.models import User
@@ -666,15 +667,8 @@ class SiteSettingsAdmin(ModelAdmin):
         ]),
     ]
 
-    # Hard color palette groups for Theme & Experience: show admin theme packs in applets by group
-    ADMIN_PALETTE_GROUPS = [
-        ("Neutrals", ["admin-academic-slate", "admin-slate-gray"]),
-        ("Blues", ["admin-campus-blue", "admin-sky-blue", "admin-ocean-blue", "admin-indigo-lecture"]),
-        ("Greens", ["admin-forest-academy", "admin-forest-green"]),
-        ("Warm", ["admin-gilead-warm-pink", "admin-sunset-study", "admin-sunset-warm"]),
-        ("Dark", ["admin-midnight-scholar", "admin-gilead-dark-neutral", "admin-deep-space-midnight"]),
-        ("Accessibility", ["admin-high-contrast-light", "admin-high-contrast-dark"]),
-    ]
+    # Shared palette groups for Theme & Experience.
+    ADMIN_PALETTE_GROUPS = THEME_PALETTE_GROUPS
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         extra_context = extra_context or {}
@@ -687,17 +681,10 @@ class SiteSettingsAdmin(ModelAdmin):
             p for p in all_packs
             if isinstance(getattr(p, "palette", None), dict) and (p.palette or {}).get("admin_dashboard")
         ]
-        slug_to_pack = {p.slug: p for p in admin_theme_packs}
-        admin_theme_packs_by_group = []
-        for group_label, slugs in self.ADMIN_PALETTE_GROUPS:
-            packs_in_group = [slug_to_pack[s] for s in slugs if s in slug_to_pack]
-            if packs_in_group:
-                admin_theme_packs_by_group.append((group_label, packs_in_group))
-        # Any pack not in a group goes into "Other"
-        in_any_group = {p for _, plist in admin_theme_packs_by_group for p in plist}
-        other = [p for p in admin_theme_packs if p not in in_any_group]
-        if other:
-            admin_theme_packs_by_group.append(("Other", other))
+        admin_theme_packs_by_group = build_theme_pack_groups(
+            admin_theme_packs,
+            self.ADMIN_PALETTE_GROUPS,
+        )
         extra_context["admin_theme_packs"] = admin_theme_packs
         extra_context["admin_theme_packs_by_group"] = admin_theme_packs_by_group
         extra_context["settings_nav_groups"] = self.SETTINGS_NAV_GROUPS

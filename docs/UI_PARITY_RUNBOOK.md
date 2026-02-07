@@ -43,10 +43,10 @@ python manage.py shell -c "from apps.siteconfig.models import SiteSettings; s=Si
 ## 5) Permanent deployment guardrails
 
 `render.yaml` includes:
-- `preDeployCommand`: migrate + normalize UI config
+- `preDeployCommand`: migrate + seed admin theme packs + normalize UI config
 - `buildCommand`: collectstatic
 
-This prevents drift from duplicate defaults or stale theme pointers.
+This prevents drift from missing ThemePacks, duplicate defaults, or stale theme pointers.
 
 ## 6) Important manual parity item: media files
 
