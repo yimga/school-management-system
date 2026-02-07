@@ -6,7 +6,7 @@ services:
     env: python
     plan: free
     buildCommand: "./build.sh"
-    preDeployCommand: ".venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py seed_admin_dashboard_palettes && .venv/bin/python manage.py normalize_ui_config"
+    preDeployCommand: ".venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py seed_admin_dashboard_palettes && if [ \"${APPLY_UI_FIXTURE_ON_DEPLOY:-1}\" = \"1\" ] && [ -f fixtures/ui_config.json ]; then .venv/bin/python manage.py import_ui_config fixtures/ui_config.json; fi && .venv/bin/python manage.py normalize_ui_config"
     startCommand: ".venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
       - key: DEBUG
@@ -17,6 +17,8 @@ services:
         value: "school-management-system-2kzk.onrender.com"
       - key: SECRET_KEY
         generateValue: true
+      - key: APPLY_UI_FIXTURE_ON_DEPLOY
+        value: "1"
 
 databases:
   - name: school-management-db
