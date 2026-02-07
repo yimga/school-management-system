@@ -130,6 +130,8 @@
 
 /* On dashboard index, hide the duplicate "Administration Dashboard" in the top header (we show it once with logo below) */
 body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
+/* Dashboard page uses the admin bridge header as the single top bar. */
+#main > #header.admin-top-header { display: none !important; }
 </style>
 
 <div class="admin-dash">
