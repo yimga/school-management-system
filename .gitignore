@@ -18,6 +18,9 @@ celerybeat.pid
 
 # DB
 *.sqlite3
+*.sqlite3.corrupted
+*.sqlite3.malformed
+*.sqlite3.bak
 
 # OS
 .DS_Store

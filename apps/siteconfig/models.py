@@ -5,6 +5,7 @@ import logging
 
 from django.conf import settings
 from django.db import models, connection, OperationalError, DatabaseError
+from django.db.models import Q
 from django.db.models.fields.files import FieldFile
 from django.db.models.signals import post_delete, post_save
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -1384,6 +1385,13 @@ class ThemePack(models.Model):
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                condition=Q(is_default=True),
+                fields=("is_default",),
+                name="siteconfig_one_default_themepack",
+            )
+        ]
 
     def __str__(self) -> str:
         return self.name

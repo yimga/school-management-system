@@ -6,7 +6,8 @@ services:
     env: python
     plan: free
     buildCommand: "./build.sh"
-    startCommand: ".venv/bin/gunicorn config.wsgi:application"
+    preDeployCommand: ".venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py normalize_ui_config"
+    startCommand: ".venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
       - key: DEBUG
         value: "0"
