@@ -735,7 +735,7 @@
                 </div>
                 <div class="d-flex flex-wrap gap-1">
                   {% for key, value in site.portal_features.items %}
-                    <span class="portal-pill {% if value %}enabled{% endif %} small">{{ key|capfirst }} – {{ value|yesno:"On,Off" }}</span>
+                    <span class="portal-pill {% if value %}enabled{% endif %} small">{{ key|capfirst }} - {{ value|yesno:"On,Off" }}</span>
                   {% endfor %}
                 </div>
                 <div class="card-actions d-flex gap-1">
@@ -789,7 +789,7 @@
               <span class="badge bg-light text-dark" id="copilotTotalBadge">0 total</span>
             </div>
             <ul class="list-unstyled mb-2 small" id="copilotRoleList">
-              <li class="text-muted">Loading usage…</li>
+              <li class="text-muted">Loading usage...</li>
             </ul>
             <div class="d-flex justify-content-between align-items-center">
               <span class="small text-muted">Denied</span>
@@ -805,11 +805,11 @@
             </div>
             <div class="d-flex justify-content-between align-items-center mt-1">
               <span class="small text-muted">Resets</span>
-              <span class="badge bg-light text-dark" id="copilotLimitReset">—</span>
+              <span class="badge bg-light text-dark" id="copilotLimitReset">--</span>
             </div>
             <div class="d-flex justify-content-between align-items-center mt-1">
               <span class="small text-muted">Refreshed</span>
-              <span class="badge bg-light text-dark" id="copilotLastRefresh">—</span>
+              <span class="badge bg-light text-dark" id="copilotLastRefresh">--</span>
             </div>
             <div class="d-flex justify-content-between align-items-center mt-1">
               <span class="small text-muted">Errors</span>
@@ -817,11 +817,11 @@
             </div>
             <div class="d-flex justify-content-between align-items-center mt-1">
               <span class="small text-muted">Last success</span>
-              <span class="badge bg-light text-dark" id="copilotLastSuccess">—</span>
+              <span class="badge bg-light text-dark" id="copilotLastSuccess">--</span>
             </div>
             <div class="d-flex justify-content-between align-items-center mt-1">
               <span class="small text-muted">Last error</span>
-              <span class="badge bg-light text-dark" id="copilotLastError">—</span>
+              <span class="badge bg-light text-dark" id="copilotLastError">--</span>
             </div>
           </div>
         </div>
@@ -829,10 +829,10 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <h6 class="mb-0">Copilot Audit</h6>
-              <a href="#" class="small text-muted" id="copilotAuditRefresh">Refresh</a>
+              <button type="button" class="btn btn-link btn-sm text-muted p-0" id="copilotAuditRefresh">Refresh</button>
             </div>
             <ul class="list-unstyled mb-0 small" id="copilotAuditList">
-              <li class="text-muted">Loading audit…</li>
+              <li class="text-muted">Loading audit...</li>
             </ul>
           </div>
         </div>
@@ -1008,9 +1008,9 @@
         const data = await res.json();
         if (!data || !data.success) {
           roleList.innerHTML = '<li class="text-danger">Failed to load usage.</li>';
-          if (errorBadge) errorBadge.textContent = '—';
-          if (lastSuccess) lastSuccess.textContent = '—';
-          if (lastError) lastError.textContent = '—';
+          if (errorBadge) errorBadge.textContent = '--';
+          if (lastSuccess) lastSuccess.textContent = '--';
+          if (lastError) lastError.textContent = '--';
           return;
         }
         totalBadge.textContent = `${data.total} total`;
@@ -1018,9 +1018,9 @@
         if (errorBadge) errorBadge.textContent = String(data.errors ?? 0);
 
         const formatTs = (tsVal) => {
-          if (!tsVal) return '—';
+          if (!tsVal) return '--';
           const dt = new Date(tsVal * 1000);
-          if (Number.isNaN(dt.getTime())) return '—';
+          if (Number.isNaN(dt.getTime())) return '--';
           return dt.toLocaleTimeString();
         };
         if (lastSuccess) lastSuccess.textContent = formatTs(data.last_success_ts);
@@ -1070,7 +1070,7 @@
           return;
         }
         const enabled = !!data.enabled;
-        const model = data.model ? String(data.model) : '—';
+        const model = data.model ? String(data.model) : '--';
         badge.textContent = enabled ? `Enabled (${model})` : 'Disabled';
       } catch (e) {
         badge.textContent = 'Error';
@@ -1095,7 +1095,7 @@
         const data = await res.json();
         if (!data || !data.success) {
           rem.textContent = 'Unavailable';
-          reset.textContent = '—';
+          reset.textContent = '--';
           return;
         }
         const remaining = Number(data.remaining || 0);
@@ -1110,7 +1110,7 @@
         markCopilotRefreshed();
       } catch (e) {
         rem.textContent = 'Error';
-        reset.textContent = '—';
+        reset.textContent = '--';
       }
     }
 
@@ -1191,7 +1191,7 @@
        data-widget-config='{{ widget_meta_json }}'
        data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
 
-  <!-- Row 1: Charts – Invoice status | Invoice trend -->
+  <!-- Row 1: Charts - Invoice status | Invoice trend -->
   <div class="row g-2 mb-2 align-items-stretch">
     {% if chart_finance_status_json %}
     <div class="col-lg-6" data-widget-id="backend-finance-status-chart">
@@ -1205,7 +1205,7 @@
     {% endif %}
   </div>
 
-  <!-- Row 2: Detail – Finance & trend | Attendance snapshot -->
+  <!-- Row 2: Detail - Finance & trend | Attendance snapshot -->
   <div class="row g-2 mb-2 align-items-stretch">
     <div class="col-lg-6">
       <div class="card modular-card h-100" data-widget-id="backend-finance-trend">
@@ -1447,7 +1447,7 @@
           <div class="col-lg-4">
             <label class="form-label small text-uppercase text-muted">Classroom</label>
             <select id="bulkClassroomSelect" class="form-select">
-              <option value="">Loading classrooms…</option>
+              <option value="">Loading classrooms...</option>
             </select>
           </div>
           <div class="col-lg-2">
@@ -1607,7 +1607,7 @@
 
       form.addEventListener('submit', async function(evt) {
         evt.preventDefault();
-        statusEl.textContent = 'Syncing…';
+        statusEl.textContent = 'Syncing...';
         const studentIds = window.EntityOrchestrator.parseIds(form.student_ids.value);
         const classroomId = form.querySelector('#bulkClassroomSelect').value;
         const academicYear = form.academic_year.value;

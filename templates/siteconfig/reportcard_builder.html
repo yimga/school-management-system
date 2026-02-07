@@ -74,14 +74,14 @@
                   Term template: {{ style.term_template }}, Annual: {{ style.annual_template }}
                 </div>
                 <div class="d-flex flex-wrap gap-2 mt-3">
-                  <button class="btn btn-outline-primary btn-sm report-preview-trigger"
+                  <button type="button" class="btn btn-outline-primary btn-sm report-preview-trigger"
                           type="button"
                           data-preview-type="term"
                           data-preview-url="{% url 'siteconfig:reportcard_style_pdf' style.slug 'term' %}"
                           data-report-name="{{ style.name }} (term)">
                     Preview term PDF
                   </button>
-                  <button class="btn btn-outline-secondary btn-sm report-preview-trigger"
+                  <button type="button" class="btn btn-outline-secondary btn-sm report-preview-trigger"
                           type="button"
                           data-preview-type="annual"
                           data-preview-url="{% url 'siteconfig:reportcard_style_pdf' style.slug 'annual' %}"
@@ -109,13 +109,13 @@
                   <strong>{{ assign.classroom.name }}</strong> → {{ assign.style.name }}
                   {% if assign.sample_student %}
                     <div class="mt-1 d-flex flex-wrap gap-2">
-                      <button class="btn btn-outline-primary btn-sm report-preview-trigger"
+                      <button type="button" class="btn btn-outline-primary btn-sm report-preview-trigger"
                               type="button"
                               data-preview-url="{% url 'siteconfig:reportcard_style_pdf' assign.style.slug 'term' %}?student_id={{ assign.sample_student.id }}"
                               data-report-name="{{ assign.sample_student.first_name }} {{ assign.sample_student.last_name }} (term)">
                         Preview term
                       </button>
-                      <button class="btn btn-outline-secondary btn-sm report-preview-trigger"
+                      <button type="button" class="btn btn-outline-secondary btn-sm report-preview-trigger"
                               type="button"
                               data-preview-url="{% url 'siteconfig:reportcard_style_pdf' assign.style.slug 'annual' %}?student_id={{ assign.sample_student.id }}"
                               data-report-name="{{ assign.sample_student.first_name }} {{ assign.sample_student.last_name }} (annual)">

@@ -213,7 +213,7 @@
   {% if PREVIEW_MODE_ENABLED %}
     <div class="preview-cue preview-cue--active">
       <span>
-        <strong>Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}
+        <strong>Preview mode</strong> &mdash; {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Sandbox data will not persist." }}
       </span>
       <div class="preview-cue-actions">
         <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
@@ -223,7 +223,7 @@
   {% elif PREVIEW_TOGGLE_ENABLED %}
     <div class="preview-cue preview-cue--ready">
       <span>
-        <strong>Preview ready</strong> — {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}
+        <strong>Preview ready</strong> &mdash; {{ PREVIEW_BANNER_TEXT|default:"Staged changes can be reviewed without publishing." }}
       </span>
       <div class="preview-cue-actions">
         <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
@@ -233,7 +233,7 @@
   {% if show_mfa_banner %}
     <div class="preview-cue preview-cue--ready mfa-encourage-banner" role="region" aria-label="{% trans 'MFA setup' %}">
       <span>
-        <strong>{% trans "Stronger security" %}</strong> — {% trans "Set up MFA (TOTP) to protect your account. Free and quick." %}
+        <strong>{% trans "Stronger security" %}</strong> &mdash; {% trans "Set up MFA (TOTP) to protect your account. Free and quick." %}
       </span>
       <div class="preview-cue-actions">
         <a href="{{ mfa_setup_url }}?next={{ request.get_full_path|urlencode }}" class="btn-mfa-setup">{% trans "Set up MFA" %}</a>
@@ -369,7 +369,7 @@
         toolbar.setAttribute("role", "navigation");
         toolbar.innerHTML =
           '<a href="' + ADMIN_INDEX_URL + '" class="admin-toolbar-back btn btn-sm btn-back-outline">' +
-          '<span class="admin-toolbar-icon" aria-hidden="true">←</span> Back to dashboard' +
+          '<span class="admin-toolbar-icon" aria-hidden="true">&larr;</span> Back to dashboard' +
           '</a>' +
           '<a href="' + ADMIN_INDEX_URL + '" class="admin-toolbar-dashboard">Dashboard</a>';
         content.insertBefore(toolbar, content.firstChild);
@@ -417,7 +417,7 @@
         back.href = href;
         back.className = 'submit-row-back btn btn-sm';
         back.setAttribute('aria-label', 'Back to previous page');
-        back.innerHTML = '<span aria-hidden="true">←</span> Back';
+        back.innerHTML = '<span aria-hidden="true">&larr;</span> Back';
         
         // Ensure row is flex
         row.style.display = 'flex';

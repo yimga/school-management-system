@@ -232,6 +232,41 @@ def kb_article_download_odt(request, article_slug):
         return redirect('kb:kb_article', article_slug=article_slug)
 
 
+def kb_article_download_docx(request, article_slug):
+    """Download KB article as Word DOCX (converted from ODT via LibreOffice headless)."""
+    article = get_object_or_404(KBArticle, slug=article_slug, status='PUBLISHED')
+    if not article.odt_file:
+        return redirect('kb:kb_article', article_slug=article_slug)
+    import tempfile
+    import os
+    from .document_conversion import convert_to_docx
+    path = None
+    try:
+        if hasattr(article.odt_file, 'path') and os.path.isfile(article.odt_file.path):
+            path = article.odt_file.path
+        else:
+            with tempfile.NamedTemporaryFile(suffix='.odt', delete=False) as tmp:
+                tmp.write(article.odt_file.read())
+                path = tmp.name
+        docx_bytes = convert_to_docx(path)
+        response = HttpResponse(
+            docx_bytes,
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        )
+        response['Content-Disposition'] = f'attachment; filename="{article.slug}.docx"'
+        return response
+    except RuntimeError:
+        return redirect('kb:kb_article', article_slug=article_slug)
+    except Exception:
+        return redirect('kb:kb_article', article_slug=article_slug)
+    finally:
+        if path and path != getattr(article.odt_file, 'path', None):
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+
+
 def kb_article_download_pdf(request, article_slug):
     """Download KB article as PDF (converted from ODT via LibreOffice headless). Same visibility as article."""
     article = get_object_or_404(KBArticle, slug=article_slug, status='PUBLISHED')

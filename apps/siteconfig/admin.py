@@ -382,8 +382,19 @@ class SiteSettingsAdmin(ModelAdmin):
                 "company_address",
                 "company_phone",
                 "company_email",
+                "country",
+                "region",
+                "ministry",
+                "default_region",
                 "ministry_registration_code",
                 "social_links",
+            )
+        }),
+        ("Admissions & IDs", {
+            "classes": ("tab",),
+            "fields": (
+                "admission_number_mode",
+                "admission_number_pattern",
             )
         }),
         ("Login, Header & Layout", {
@@ -439,6 +450,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "portal_announcements",
                 "portal_recent_grades",
                 "portal_upcoming_assessments",
+                "referral_bonus_amount",
             )
         }),
         ("Footer Content", {
@@ -468,6 +480,15 @@ class SiteSettingsAdmin(ModelAdmin):
                 "portal_features",
             )
         }),
+        ("System Behavior & Offline", {
+            "classes": ("tab",),
+            "fields": (
+                "maintenance_mode",
+                "enable_offline_mode",
+                "offline_sync_conflict_resolution",
+                "auto_tag_photos_from_exif",
+            )
+        }),
         ("Backend Orchestration & Limits", {
             "classes": ("tab",),
             "description": "Backend feature flags are JSON; use Feature Control for an audited toggle UI. Summary below reflects current flags. To manage who can do what (users and roles): use the Admin sidebar → Authentication → Users or Groups, or use the link below.",
@@ -492,6 +513,12 @@ class SiteSettingsAdmin(ModelAdmin):
             "description": "Guardian notifications: in-app and optional email for new invoices and payments. Parent welcome email when creating parent accounts from backend.",
             "fields": (
                 "notification_channels",
+                "sms_provider",
+                "sms_api_key",
+                "sms_sender_id",
+                "email_from_address",
+                "teacher_deadline_reminder_days",
+                "teacher_reminder_time_of_day",
                 "finance_notify_guardians_new_invoice",
                 "finance_notify_guardians_payment_received",
                 "finance_notify_new_invoice_email",
@@ -508,10 +535,28 @@ class SiteSettingsAdmin(ModelAdmin):
                 "requests_reminder_interval_hours",
             )
         }),
+        ("Marks Entry & OCR", {
+            "classes": ("tab",),
+            "fields": (
+                "marksheet_ocr_command",
+                "enable_concurrent_mark_uploads",
+                "enable_practical_assessment",
+            )
+        }),
         ("Reports (publish & grades)", {
             "classes": ("tab",),
             "description": "When grade approval is enabled, you can require approved grades before publishing term results and show only approved grades on report cards.",
             "fields": (
+                "report_preview_contact_email",
+                "report_preview_contact_phone",
+                "report_preview_footer_note",
+                "default_report_preview_type",
+                "grade_approval_enabled",
+                "grade_approval_roles",
+                "grade_approval_auto_validate",
+                "grade_approval_deadline_days",
+                "grade_approval_deadline_note",
+                "grade_post_roles",
                 "reports_require_approved_grades_before_publish",
                 "reports_use_approved_grades_only",
             )
@@ -567,11 +612,13 @@ class SiteSettingsAdmin(ModelAdmin):
             "description": "Default values used by Analytics dashboards: top students list size, pass mark, promotion rules, weak subject threshold, improvement delta, and deadline display mode. Change these to match school policy.",
             "fields": (
                 "top_students_default_limit",
+                "default_grading_scale",
                 "pass_mark",
                 "use_promotion_rule_for_pass",
                 "weak_subject_threshold",
                 "improvement_delta_threshold",
                 "deadline_mode",
+                "cache_rankings_interval_minutes",
             )
         }),
         ("Automation (execution & approval)", {
@@ -588,6 +635,8 @@ class SiteSettingsAdmin(ModelAdmin):
     # Vertical sidebar navigation for Site Settings (Phase 6.1: logical buckets for non-technical admins).
     SETTINGS_NAV_GROUPS = [
         ("Academics", [
+            ("Admissions & IDs", "admissions-ids"),
+            ("Marks Entry & OCR", "marks-entry-ocr"),
             ("Reports (publish & grades)", "reports-publish-grades"),
             ("Analytics Defaults", "analytics-defaults"),
         ]),
@@ -596,6 +645,7 @@ class SiteSettingsAdmin(ModelAdmin):
         ]),
         ("System", [
             ("Feature Toggles (Modules)", "feature-toggles-modules"),
+            ("System Behavior & Offline", "system-behavior-offline"),
             ("Portal & content", "portal-content"),
             ("Backend Orchestration & Limits", "backend-orchestration-limits"),
             ("Compliance & Payroll", "compliance-payroll"),

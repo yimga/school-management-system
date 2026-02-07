@@ -1635,6 +1635,10 @@ def academic_rules(request):
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.method == "POST":
+        next_url = request.POST.get("next") or request.GET.get("next", "").strip()
+        if next_url and (not next_url.startswith("/") or "//" in next_url):
+            next_url = ""
+
         user = authenticate(
             request,
             username=request.POST.get("username"),
@@ -1642,8 +1646,64 @@ def login_view(request):
         )
         if user:
             login(request, user)
-            next_url = request.POST.get("next") or request.GET.get("next", "").strip()
-            if next_url and next_url.startswith("/") and "//" not in next_url:
+
+            # MFA enforcement: if required or configured, route to setup/verify first.
+            try:
+                from django_otp import user_has_device
+                from django_otp.plugins.otp_totp.models import TOTPDevice
+
+                site = SiteSettings.get_solo()
+                require_all_staff = getattr(site, "require_mfa_all_staff", False)
+                required_roles = getattr(site, "require_mfa_roles", None) or []
+
+                role = (getattr(user, "role", "") or "").upper()
+                must_have_mfa = False
+                if require_all_staff and user.is_staff:
+                    must_have_mfa = True
+                elif required_roles:
+                    required_normalized = [
+                        r.upper() if isinstance(r, str) else str(r).upper()
+                        for r in required_roles
+                    ]
+                    if role in required_normalized:
+                        must_have_mfa = True
+
+                try:
+                    has_device = user_has_device(user, confirmed=True)
+                except TypeError:
+                    has_device = user_has_device(user)
+                if not has_device:
+                    has_device = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
+
+                def _mfa_remembered():
+                    until_raw = request.session.get("mfa_verified_until")
+                    if not until_raw:
+                        return False
+                    try:
+                        until_dt = timezone.datetime.fromisoformat(until_raw)
+                        if timezone.is_naive(until_dt):
+                            until_dt = timezone.make_aware(until_dt, timezone.get_current_timezone())
+                        if timezone.now() <= until_dt:
+                            return True
+                    except Exception:
+                        pass
+                    request.session.pop("mfa_verified_until", None)
+                    return False
+
+                if must_have_mfa and not has_device:
+                    mfa_setup_url = reverse("accounts:mfa_setup")
+                    if next_url:
+                        return redirect(mfa_setup_url + "?next=" + next_url)
+                    return redirect(mfa_setup_url)
+
+                if (has_device or must_have_mfa) and not _mfa_remembered():
+                    if next_url:
+                        request.session["mfa_next"] = next_url
+                    return redirect(reverse("accounts:mfa_verify"))
+            except Exception:
+                pass
+
+            if next_url:
                 return redirect(next_url)
             return redirect(reverse("accounts:redirect"))
 

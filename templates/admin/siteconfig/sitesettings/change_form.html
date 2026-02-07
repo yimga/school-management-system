@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block field_sets %}
-  {# Phase 1.2: Vertical sidebar – render each tab fieldset as a section; sidebar links scroll to section and set active. #}
+  {# Phase 1.2: Vertical sidebar -- render each tab fieldset as a section; sidebar links scroll to section and set active. #}
   {% with has_conditional_display=adminform.model_admin.conditional_fields %}
     {% for fieldset in adminform %}
       {% if "tab" in fieldset.classes %}
@@ -35,14 +35,14 @@
       width: 100%;
     }
 
-    /* Hide Unfold's horizontal tab strip on Site Settings – we use the vertical sidebar only */
+    /* Hide Unfold's horizontal tab strip on Site Settings -- we use the vertical sidebar only */
     body.app-siteconfig.model-sitesettings.change-form .site-settings-main [role="tablist"],
     body.app-siteconfig.model-sitesettings.change-form .site-settings-main nav[class*="tab"],
     body.app-siteconfig.model-sitesettings.change-form .site-settings-main .border-b.overflow-x-auto {
       display: none !important;
     }
 
-    /* Phase 1.2: Vertical sidebar – show only the active section */
+    /* Phase 1.2: Vertical sidebar -- show only the active section */
     body.app-siteconfig.model-sitesettings.change-form .site-settings-section {
       display: none;
     }
@@ -228,7 +228,7 @@
       border-color: #16a34a !important;
     }
     
-    /* Critical toggles: ON/OFF badges – explicit hex so visible in all theme/color packs */
+    /* Critical toggles: ON/OFF badges -- explicit hex so visible in all theme/color packs */
     body.app-siteconfig.model-sitesettings.change-form .form-check-input.settings-toggle-critical + .form-check-label::after {
       content: "Off";
       display: inline-block;
@@ -457,7 +457,7 @@
                      ? document.referrer
                      : '/admin/';
       backBtn.className = 'submit-row-back btn btn-sm';
-      backBtn.innerHTML = '<span aria-hidden="true">←</span> Back';
+      backBtn.innerHTML = '<span aria-hidden="true">&larr;</span> Back';
       backBtn.style.marginRight = 'auto';
       backBtn.style.order = '-1';
 

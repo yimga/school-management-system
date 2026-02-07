@@ -76,16 +76,20 @@ def validate_template_links():
             links = re.findall(r'href=["\']([^"\']+)["\']', content)
             
             for link in links:
-                # Skip dynamic URLs with variables
-                if '{{' in link or '{%' in link or '<' in link:
+                # Skip dynamic URLs with variables or template literals
+                if '{{' in link or '{%' in link or '<' in link or '${' in link or '$(' in link:
                     continue
                 
                 # Skip external links
                 if link.startswith('http'):
                     continue
                 
-                # Skip empty or anchor-only links
-                if not link or link == '#':
+                # Skip empty, anchors, or JS links
+                if not link or link.startswith('#') or link.startswith('?') or link.lower().startswith('javascript:'):
+                    continue
+                
+                # Skip mailto/tel/data links
+                if link.lower().startswith(('mailto:', 'tel:', 'data:')):
                     continue
                 
                 # Check if it's a valid URL prefix

@@ -1,4 +1,4 @@
-{% load region_format %}
+{% load region_format report_style_tags %}
 <!doctype html>
 <html>
 <head>
@@ -36,14 +36,14 @@
 <body>
   <div class="header-grid">
     <div class="header-left">
-      <div style="font-weight:800;">{{ report_style.label("ministry_name","MINISTRY OF SECONDARY EDUCATION") }}</div>
-      <div class="muted">{{ report_style.label("delegation_line_1","Regional Delegation of Secondary Education") }}</div>
-      <div class="muted">{{ report_style.label("delegation_line_2","Divisional Delegation of Secondary Education") }}</div>
+      <div style="font-weight:800;">{% report_style_label report_style "ministry_name" "MINISTRY OF SECONDARY EDUCATION" %}</div>
+      <div class="muted">{% report_style_label report_style "delegation_line_1" "Regional Delegation of Secondary Education" %}</div>
+      <div class="muted">{% report_style_label report_style "delegation_line_2" "Divisional Delegation of Secondary Education" %}</div>
       <div style="margin-top:6px; font-weight:900; color: var(--rc-accent);">
-        {{ report_style.label("school_name", SITE.site_name|default:"School") }}
+        {% report_style_label report_style "school_name" SITE.site_name|default:"School" %}
       </div>
-      <div class="muted">{{ report_style.label("school_address_line", SITE.company_address|default:"") }}</div>
-      <div class="muted">{{ report_style.label("school_email", SITE.company_email|default:"") }}</div>
+      <div class="muted">{% report_style_label report_style "school_address_line" SITE.company_address|default:"" %}</div>
+      <div class="muted">{% report_style_label report_style "school_email" SITE.company_email|default:"" %}</div>
     </div>
     <div class="header-center">
       {% if SITE_LOGO_URL %}
@@ -51,45 +51,45 @@
       {% endif %}
     </div>
     <div class="header-right" style="text-align:right;">
-      <div style="font-weight:800;">{{ report_style.label("republic_name","REPUBLIC OF CAMEROON") }}</div>
-      <div class="muted">{{ report_style.label("motto","Peace-Work-Fatherland") }}</div>
+      <div style="font-weight:800;">{% report_style_label report_style "republic_name" "REPUBLIC OF CAMEROON" %}</div>
+      <div class="muted">{% report_style_label report_style "motto" "Peace-Work-Fatherland" %}</div>
       <div style="margin-top:18px; font-weight:800; color: var(--rc-accent);">
-        {{ report_style.label("specialty_label","SPECIALTY") }}: {{ student.specialty.name|default:"" }}
+        {% report_style_label report_style "specialty_label" "SPECIALTY" %}: {{ student.specialty.name|default:"" }}
       </div>
     </div>
   </div>
 
-  <div class="rc-title">{{ report_style.label("report_title","ACADEMIC REPORT SHEET / BULLETIN DE NOTES") }}</div>
+  <div class="rc-title">{% report_style_label report_style "report_title" "ACADEMIC REPORT SHEET / BULLETIN DE NOTES" %}</div>
   <div class="meta-row">
-    <div class="cell"><b>{{ report_style.label("term_label","Term / Trimestre") }}:</b> {{ term.label|default:term.get_name_display }}</div>
-    <div class="cell center"><b>{{ report_style.label("academic_year_label","Academic Year / Année Scolaire") }}:</b> {{ year.name }}</div>
-    <div class="cell right"><b>{{ report_style.label("resumption_label","Resumption / Reprise") }}:</b> {{ report_style.label("resumption_date","") }}</div>
+    <div class="cell"><b>{% report_style_label report_style "term_label" "Term / Trimestre" %}:</b> {{ term.label|default:term.get_name_display }}</div>
+    <div class="cell center"><b>{% report_style_label report_style "academic_year_label" "Academic Year / Année Scolaire" %}:</b> {{ year.name }}</div>
+    <div class="cell right"><b>{% report_style_label report_style "resumption_label" "Resumption / Reprise" %}:</b> {% report_style_label report_style "resumption_date" "" %}</div>
   </div>
 
   <div class="meta-row" style="margin-top:6px;">
-    <div class="cell"><b>{{ report_style.label("student_name_label","Name & Surname / Nom & Prénom") }}:</b> {{ student_name }}</div>
-    <div class="cell center"><b>{{ report_style.label("class_label","Class / Classe") }}:</b> {{ student.classroom.name }}</div>
-    <div class="cell right"><b>{{ report_style.label("enrollment_label","Enrollment / Effectif") }}:</b> {{ summary.class_size|default:"-" }}</div>
+    <div class="cell"><b>{% report_style_label report_style "student_name_label" "Name & Surname / Nom & Prénom" %}:</b> {{ student_name }}</div>
+    <div class="cell center"><b>{% report_style_label report_style "class_label" "Class / Classe" %}:</b> {{ student.classroom.name }}</div>
+    <div class="cell right"><b>{% report_style_label report_style "enrollment_label" "Enrollment / Effectif" %}:</b> {{ summary.class_size|default:"-" }}</div>
   </div>
   <div class="meta-row" style="margin-top:4px;">
-    <div class="cell"><b>{{ report_style.label("dob_label","Born on / Né(e) le") }}:</b> {{ student.date_of_birth|format_date|default:"" }}</div>
-    <div class="cell center"><b>{{ report_style.label("sex_label","Sex / Sexe") }}:</b> {{ student.gender|default:"" }}</div>
-    <div class="cell right"><b>{{ report_style.label("reg_no_label","Reg. Num / Matricule") }}:</b> {{ student.student_code }}</div>
+    <div class="cell"><b>{% report_style_label report_style "dob_label" "Born on / Né(e) le" %}:</b> {{ student.date_of_birth|format_date|default:"" }}</div>
+    <div class="cell center"><b>{% report_style_label report_style "sex_label" "Sex / Sexe" %}:</b> {{ student.gender|default:"" }}</div>
+    <div class="cell right"><b>{% report_style_label report_style "reg_no_label" "Reg. Num / Matricule" %}:</b> {{ student.student_code }}</div>
   </div>
 
   <div class="boxed" style="margin-top:8px;">
     <table class="cam">
       <thead>
         <tr>
-          <th style="width:32%;">{{ report_style.label("subject_header","Subject / Matière") }}</th>
-          <th class="center" style="width:7%;">{{ report_style.label("seq1_header","Sequence 1") }}</th>
-          <th class="center" style="width:7%;">{{ report_style.label("seq2_header","Test4 / Eval2") }}</th>
-          <th class="center" style="width:7%;">{{ report_style.label("avg_header","Avg / Moy") }}</th>
-          <th class="center" style="width:6%;">{{ report_style.label("coef_header","Coef") }}</th>
-          <th class="center" style="width:8%;">{{ report_style.label("total_header","Total") }}</th>
-          <th class="center" style="width:8%;">{{ report_style.label("rank_header","Rank") }}</th>
-          <th style="width:13%;">{{ report_style.label("remark_header","Remark / Sign") }}</th>
-          <th style="width:12%;">{{ report_style.label("teacher_header","Teacher") }}</th>
+          <th style="width:32%;">{% report_style_label report_style "subject_header" "Subject / Matière" %}</th>
+          <th class="center" style="width:7%;">{% report_style_label report_style "seq1_header" "Sequence 1" %}</th>
+          <th class="center" style="width:7%;">{% report_style_label report_style "seq2_header" "Test4 / Eval2" %}</th>
+          <th class="center" style="width:7%;">{% report_style_label report_style "avg_header" "Avg / Moy" %}</th>
+          <th class="center" style="width:6%;">{% report_style_label report_style "coef_header" "Coef" %}</th>
+          <th class="center" style="width:8%;">{% report_style_label report_style "total_header" "Total" %}</th>
+          <th class="center" style="width:8%;">{% report_style_label report_style "rank_header" "Rank" %}</th>
+          <th style="width:13%;">{% report_style_label report_style "remark_header" "Remark / Sign" %}</th>
+          <th style="width:12%;">{% report_style_label report_style "teacher_header" "Teacher" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -108,7 +108,7 @@
             <td></td>
           </tr>
         {% empty %}
-          <tr><td colspan="9" class="muted">{{ report_style.label("no_data","No marks recorded yet.") }}</td></tr>
+          <tr><td colspan="9" class="muted">{% report_style_label report_style "no_data" "No marks recorded yet." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -116,41 +116,42 @@
 
   <div class="kpi-grid">
     <div class="boxed">
-      <div><b>{{ report_style.label("best_avg","Best Average") }}</b> —</div>
-      <div><b>{{ report_style.label("worst_avg","Worst Average") }}</b> —</div>
-      <div><b>{{ report_style.label("class_avg","Class Average") }}</b> —</div>
+      <div><b>{% report_style_label report_style "best_avg" "Best Average" %}</b> —</div>
+      <div><b>{% report_style_label report_style "worst_avg" "Worst Average" %}</b> —</div>
+      <div><b>{% report_style_label report_style "class_avg" "Class Average" %}</b> —</div>
     </div>
     <div class="boxed center">
-      <div class="muted">{{ report_style.label("student_avg","Student's Average") }}</div>
+      <div class="muted">{% report_style_label report_style "student_avg" "Student's Average" %}</div>
       <div style="font-size:18px; font-weight:900;">{{ summary.average|format_number:2|default:"-" }}</div>
-      <div class="muted">{{ report_style.label("rank_label","Rank") }}</div>
+      <div class="muted">{% report_style_label report_style "rank_label" "Rank" %}</div>
       <div style="font-size:16px; font-weight:900;">
-        {{ summary.class_position|default:"-" }} {{ report_style.label("of","of") }} {{ summary.class_size|default:"-" }}
+        {{ summary.class_position|default:"-" }} {% report_style_label report_style "of" "of" %} {{ summary.class_size|default:"-" }}
       </div>
-      {% if report_style.flag("show_specialty_rank", True) %}
-        <div class="muted">{{ report_style.label("specialty_rank_label","Specialty Rank") }}</div>
+      {% report_style_flag report_style "show_specialty_rank" True as show_specialty_rank %}
+      {% if show_specialty_rank %}
+        <div class="muted">{% report_style_label report_style "specialty_rank_label" "Specialty Rank" %}</div>
         <div style="font-weight:800;">
-          {{ summary.specialty_position|default:"-" }} {{ report_style.label("of","of") }} {{ summary.specialty_size|default:"-" }}
+          {{ summary.specialty_position|default:"-" }} {% report_style_label report_style "of" "of" %} {{ summary.specialty_size|default:"-" }}
         </div>
       {% endif %}
     </div>
     <div class="boxed">
-      <div><b>{{ report_style.label("remark_box","Remark") }}</b></div>
+      <div><b>{% report_style_label report_style "remark_box" "Remark" %}</b></div>
       <div style="min-height:48px;">{{ summary.teacher_remark }}</div>
     </div>
   </div>
 
   <div class="signature-grid">
     <div class="boxed">
-      <div><b>{{ report_style.label("term_avg_label","Terminal Average") }}</b></div>
+      <div><b>{% report_style_label report_style "term_avg_label" "Terminal Average" %}</b></div>
       <div class="line"></div>
     </div>
     <div class="boxed">
-      <div><b>{{ report_style.label("discipline_label","Discipline") }}</b></div>
+      <div><b>{% report_style_label report_style "discipline_label" "Discipline" %}</b></div>
       <div class="line"></div>
     </div>
     <div class="boxed">
-      <div><b>{{ report_style.label("principal_label","The Principal") }}</b></div>
+      <div><b>{% report_style_label report_style "principal_label" "The Principal" %}</b></div>
       <div class="line"></div>
     </div>
   </div>
@@ -158,184 +159,5 @@
   <div class="boxed" style="margin-top:8px; min-height:64px;">
     <div class="center"><b>{% report_style_label report_style "class_council" "Class Council Decision" %}</b></div>
   </div>
-</body>
-</html>
-
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  {% include "reports/_report_styles.html" %}
-  <style>
-    body { background: #f8f9fb; }
-    
-    .cameroon-letterhead {
-      background: #fff;
-      border-radius: 18px;
-      padding: 18px;
-      border: 1px solid #dde1e8;
-      box-shadow: 0 8px 30px rgba(0,0,0,.08);
-      margin-bottom: 18px;
-      position: relative;
-      z-index: 1;
-    }
-    .cameroon-letterhead .title {
-      color: var(--report-accent);
-      font-size: 20pt;
-    }
-    .cameroon-letterhead .subtitle {
-      font-size: 11pt;
-      color: #0a3f60;
-    }
-    .cameroon-letterhead .info-grid {
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap:4px;
-      margin-top:10px;
-      font-size:11pt;
-    }
-    .cameroon-mark-table {
-      width:100%;
-      border-collapse:collapse;
-      background:#fff;
-      border-radius:14px;
-      overflow:hidden;
-      box-shadow: inset 0 0 0 1px #d8dee4;
-    }
-    .cameroon-mark-table th,
-    .cameroon-mark-table td {
-      border-bottom:1px solid #e1e6ef;
-      padding:8px 6px;
-      font-size:10pt;
-    }
-    .cameroon-mark-table th {
-      background:#f0f4fb;
-      font-size:10pt;
-      text-transform:uppercase;
-    }
-    .summary-card {
-      border-radius:14px;
-      padding:14px;
-      background:#fff;
-      border:1px solid #e0e4ec;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.02);
-    }
-    .summary-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-top:16px; }
-    .watermark-note { font-size:9pt; margin-top:10px; color:#6c757d; }
-  </style>
-</head>
-<body>
-  <div class="cameroon-letterhead">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <p class="subtitle mb-1 text-uppercase">MINISTRY OF SECONDARY EDUCATION</p>
-        <p class="title mb-0">GILEAD TECHNICAL HIGH SCHOOL</p>
-        <p class="sub text-muted">{{ SITE.region|default:"Small Soppo Buea" }} | {{ SITE.country|default:"Republic of Cameroon" }}</p>
-        {% if report_style and report_style.header_tagline %}
-          <p class="sub text-uppercase small">{{ report_style.header_tagline }}</p>
-        {% endif %}
-        <!-- School Contact Info -->
-        <div style="margin-top: 8px; font-size: 9pt; color: #555;">
-          {% if SITE.company_email %}
-            <p style="margin: 2px 0;"><strong>Email:</strong> {{ SITE.company_email }}</p>
-          {% endif %}
-          {% if SITE.company_phone %}
-            <p style="margin: 2px 0;"><strong>Phone:</strong> {{ SITE.company_phone }}</p>
-          {% endif %}
-          {% if SITE.company_address %}
-            <p style="margin: 2px 0;"><strong>Address:</strong> {{ SITE.company_address }}</p>
-          {% endif %}
-        </div>
-      </div>
-      <!-- Logo -->
-      {% if SITE.logo %}
-        <div style="text-align:center; position: relative;">
-          <img src="{{ SITE.logo.url }}" alt="School Logo" width="80" height="80" decoding="async" style="height:80px; width: auto; object-fit: contain; opacity: 1;"/>
-          <div class="small text-muted" style="margin-top: 4px;">{{ SITE.ministry|default:"Ministry of Secondary Education" }}</div>
-        </div>
-      {% endif %}
-    </div>
-    <div class="info-grid mt-2">
-      <div><strong>Student</strong><br>{{ student_name }}</div>
-      <div><strong>Class</strong><br>{{ student.classroom.name }}</div>
-      <div><strong>Academic Year</strong><br>{{ year.name }}</div>
-      <div><strong>Term</strong><br>{{ term.get_name_display }}</div>
-      <div><strong>Pass mark</strong><br>{{ weights.pass_mark|default_if_none:10 }}</div>
-      <div><strong>School code</strong><br>{{ SITE.school_code|default:"GIL" }}</div>
-    </div>
-  </div>
-
-  <table class="cameroon-mark-table">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th class="text-center">Coef</th>
-        <th class="text-center">Seq1</th>
-        <th class="text-center">Seq2</th>
-        <th class="text-center">Exam</th>
-        <th class="text-center">Mock</th>
-        <th class="text-center">Pract</th>
-        <th class="text-center">Total</th>
-        <th>Remark</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in rows %}
-        <tr>
-          <td>{{ row.subject }}</td>
-          <td class="text-center">{{ row.coef }}</td>
-          <td class="text-center">{{ row.seq1|default_if_none:"-" }}</td>
-          <td class="text-center">{{ row.seq2|default_if_none:"-" }}</td>
-          <td class="text-center">{{ row.exam|default_if_none:"-" }}</td>
-          <td class="text-center">{{ row.mock|default_if_none:"-" }}</td>
-          <td class="text-center">{{ row.practical|default_if_none:"-" }}</td>
-          <td class="text-center">
-            {% if row.complete %}{{ row.total|format_number:2 }}{% else %}Pending{% endif %}
-          </td>
-          <td>{{ row.remark }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="9" class="text-center small text-muted">No marks yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="summary-grid">
-    <div class="summary-card">
-      <strong>Term overview</strong>
-      <p class="mb-1">Average: <strong>{{ summary.average|format_number:2|default:"-" }}</strong></p>
-      <p class="mb-1">Class rank: <strong>{{ summary.class_position|default:"-" }}/{{ summary.class_size|default:"-" }}</strong></p>
-      <p class="mb-1">School rank: <strong>{{ summary.school_position|default:"-" }}/{{ summary.school_size|default:"-" }}</strong></p>
-      <p class="mb-0">Status: <strong>{{ summary.promotion_status }}</strong></p>
-    </div>
-    <div class="summary-card">
-      <strong>Teacher remarks</strong>
-      <p class="mb-0">{{ summary.teacher_remark }}</p>
-    </div>
-    <div class="summary-card">
-      <strong>Generated</strong>
-      <p class="mb-0">{{ generated_at|format_date }}</p>
-    </div>
-    <div class="summary-card">
-      <strong>Weights</strong>
-      <p class="mb-0 small">Sequence 1 {{ weights.seq1_weight }}% · Sequence 2 {{ weights.seq2_weight }}% · Exam {{ weights.exam_weight }}%</p>
-    </div>
-  </div>
-
-  {% if qr_code_data_uri %}
-  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-    <div style="flex: 1;">
-      <p style="font-size: 9px; color: #64748b; margin: 0;">
-        This report card can be verified by scanning the QR code or visiting:<br>
-        <span style="font-size: 8px; word-break: break-all;">{{ verification_url }}</span>
-      </p>
-    </div>
-    <div style="flex-shrink: 0; margin-left: 16px;">
-      <img src="{{ qr_code_data_uri }}" alt="Verification QR Code" style="width: 80px; height: 80px;">
-    </div>
-  </div>
-  {% endif %}
-
-  <p class="watermark-note text-end">Powered by {{ SITE.site_name|default:"Gilead School System" }}</p>
 </body>
 </html>

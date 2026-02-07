@@ -26,7 +26,7 @@
   {% if can_request_finance_access %}
   <form method="post" action="{{ finance_request_url }}">
     {% csrf_token %}
-    <button class="btn btn-sm btn-primary">Request finance access</button>
+    <button type="submit" class="btn btn-sm btn-primary">Request finance access</button>
   </form>
   {% endif %}
 </div>
@@ -37,7 +37,7 @@
   {% if can_request_finance_access %}
   <form method="post" action="{{ finance_request_url }}" class="ms-auto">
     {% csrf_token %}
-    <button class="btn btn-sm btn-outline-primary">Request broader access</button>
+    <button type="submit" class="btn btn-sm btn-outline-primary">Request broader access</button>
   </form>
   {% endif %}
 </div>
@@ -69,7 +69,7 @@
         </select>
       </div>
       <div class="col-md-3 d-grid">
-        <button class="btn btn-primary">Filter</button>
+        <button type="submit" class="btn btn-primary">Filter</button>
       </div>
     </div>
   </div>
@@ -162,7 +162,7 @@
                   <form method="post" action="{% url 'finance:finance_request_access' %}" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="student_id" value="{{ inv.student.id }}">
-                    <button class="btn btn-sm btn-outline-secondary" onclick="return confirm('Grant finance access to guardians for {{ inv.student }}?');">Grant guardian access</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Grant finance access to guardians for {{ inv.student }}?');">Grant guardian access</button>
                   </form>
                   {% endif %}
                 </div>

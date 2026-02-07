@@ -585,11 +585,25 @@ def bulk_letters(request):
 
 # Palette groups for Color & harmony page (must match SiteSettingsAdmin.ADMIN_PALETTE_GROUPS)
 _THEME_COLORS_PALETTE_GROUPS = [
+    ("School (Admin)", [
+        "admin-academic-authority", "admin-executive-ivy", "admin-modern-chancellor",
+        "admin-sophisticated-slate", "admin-digital-lavender", "admin-modern-sage",
+        "admin-focused-classroom", "admin-verdant-growth", "admin-sensory-room",
+    ]),
     ("Neutrals", ["admin-academic-slate", "admin-slate-gray"]),
     ("Blues", ["admin-campus-blue", "admin-sky-blue", "admin-ocean-blue", "admin-indigo-lecture"]),
     ("Greens", ["admin-forest-academy", "admin-forest-green"]),
     ("Warm", ["admin-gilead-warm-pink", "admin-sunset-study", "admin-sunset-warm"]),
-    ("Dark", ["admin-midnight-scholar", "admin-gilead-dark-neutral", "admin-deep-space-midnight"]),
+    ("Dark", ["admin-midnight-scholar", "admin-gilead-dark-neutral", "admin-deep-space-midnight", "admin-the-midnight-scholar"]),
+    ("Niche (STEM / Specialized / Boutique)", [
+        "admin-cyber-lab", "admin-blueprint", "admin-tech-pioneer",
+        "admin-high-contrast-accessible", "admin-focus-mode",
+        "admin-conservatory", "admin-modern-gallery",
+    ]),
+    ("Contemporary", [
+        "admin-glassmorphism", "admin-neo-brutalist", "admin-eco-digital",
+        "admin-monochrome-pro", "admin-retro-future", "admin-bento-box",
+    ]),
     ("Accessibility", ["admin-high-contrast-light", "admin-high-contrast-dark"]),
 ]
 

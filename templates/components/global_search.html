@@ -2,7 +2,7 @@
 {# Global search bar component with autocomplete #}
 <div class="global-search">
   <div class="search-container">
-    <button class="search-trigger" id="searchTrigger">
+    <button type="button" class="search-trigger" id="searchTrigger">
       <i class="bi bi-search"></i>
       <span class="search-hint">Search... <kbd>Ctrl+K</kbd></span>
     </button>
@@ -23,7 +23,7 @@
             placeholder="Search students, teachers, classes, invoices..."
             autocomplete="off"
           >
-          <button class="search-clear" id="searchClear" style="display: none;">
+          <button type="button" class="search-clear" id="searchClear" style="display: none;">
             <i class="bi bi-x"></i>
           </button>
         </div>
@@ -37,7 +37,7 @@
         <div class="search-section recent-searches" id="recentSearches">
           <div class="search-section-header">
             <span><i class="bi bi-clock-history"></i> Recent Searches</span>
-            <button class="btn-clear-history" id="clearHistory">Clear</button>
+            <button type="button" class="btn-clear-history" id="clearHistory">Clear</button>
           </div>
           <div class="search-recent-items" id="recentItems">
             <!-- Recent items will be loaded here -->

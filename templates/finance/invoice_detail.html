@@ -21,7 +21,7 @@
       {% if can_request_finance_access %}
       <form method="post" action="{{ finance_request_url }}">
         {% csrf_token %}
-        <button class="btn btn-sm btn-primary">Request finance access</button>
+        <button type="submit" class="btn btn-sm btn-primary">Request finance access</button>
       </form>
       {% endif %}
     </div>
@@ -40,7 +40,7 @@
   {% if can_request_finance_access %}
   <form method="post" action="{{ finance_request_url }}">
     {% csrf_token %}
-    <button class="btn btn-sm btn-outline-primary">Request broader access</button>
+    <button type="submit" class="btn btn-sm btn-outline-primary">Request broader access</button>
   </form>
   {% endif %}
 </div>

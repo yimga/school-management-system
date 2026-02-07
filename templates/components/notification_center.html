@@ -14,20 +14,20 @@
         <i class="bi bi-bell-fill"></i> Notifications
       </h6>
       <div class="notification-actions">
-        <button class="btn btn-sm btn-link" id="markAllRead">
+        <button type="button" class="btn btn-sm btn-link" id="markAllRead">
           <i class="bi bi-check-all"></i> Mark all read
         </button>
-        <button class="btn btn-sm btn-link" id="notificationSettings">
+        <button type="button" class="btn btn-sm btn-link" id="notificationSettings">
           <i class="bi bi-gear"></i>
         </button>
       </div>
     </div>
 
     <div class="notification-tabs">
-      <button class="notification-tab active" data-tab="all">All</button>
-      <button class="notification-tab" data-tab="messages">Messages</button>
-      <button class="notification-tab" data-tab="tasks">Tasks</button>
-      <button class="notification-tab" data-tab="alerts">Alerts</button>
+      <button type="button" class="notification-tab active" data-tab="all">All</button>
+      <button type="button" class="notification-tab" data-tab="messages">Messages</button>
+      <button type="button" class="notification-tab" data-tab="tasks">Tasks</button>
+      <button type="button" class="notification-tab" data-tab="alerts">Alerts</button>
     </div>
 
     <div class="notification-body" id="notificationBody">
@@ -442,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="notification-empty">
         <i class="bi bi-exclamation-triangle"></i>
         <p class="mb-0">Failed to load notifications</p>
-        <button class="btn btn-sm btn-primary mt-2" onclick="location.reload()">Retry</button>
+        <button type="button" class="btn btn-sm btn-primary mt-2" onclick="location.reload()">Retry</button>
       </div>
     `;
   }

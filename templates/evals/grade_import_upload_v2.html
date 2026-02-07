@@ -214,10 +214,10 @@
                     
                     <!-- Action Buttons -->
                     <div class="mt-4">
-                        <button class="btn btn-primary" id="proceedButton" onclick="moveToStep3()">
+                        <button type="button" class="btn btn-primary" id="proceedButton" onclick="moveToStep3()">
                             <i class="fas fa-arrow-right"></i> Proceed to Review
                         </button>
-                        <button class="btn btn-secondary" onclick="resetUpload()">
+                        <button type="button" class="btn btn-secondary" onclick="resetUpload()">
                             <i class="fas fa-redo"></i> Upload New File
                         </button>
                     </div>
@@ -256,10 +256,10 @@
                     </div>
                     
                     <div class="mt-4">
-                        <button class="btn btn-lg btn-success" id="applyButton" onclick="applyImport()">
+                        <button type="button" class="btn btn-lg btn-success" id="applyButton" onclick="applyImport()">
                             <i class="fas fa-check"></i> Confirm & Import
                         </button>
-                        <button class="btn btn-lg btn-secondary" onclick="backToValidation()">
+                        <button type="button" class="btn btn-lg btn-secondary" onclick="backToValidation()">
                             <i class="fas fa-arrow-left"></i> Back
                         </button>
                     </div>
@@ -314,7 +314,7 @@
                         <a href="{% url 'evals:compliance_dashboard' %}" class="btn btn-primary">
                             <i class="fas fa-chart-line"></i> View Compliance Dashboard
                         </a>
-                        <button class="btn btn-secondary" onclick="resetUpload()">
+                        <button type="button" class="btn btn-secondary" onclick="resetUpload()">
                             <i class="fas fa-upload"></i> Import Another File
                         </button>
                     </div>

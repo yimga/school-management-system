@@ -11,6 +11,8 @@ from apps.siteconfig.models import SiteSettings
 
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin.models import LogEntry
+from django.contrib.contenttypes.models import ContentType
 from unfold.sites import UnfoldAdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.models import Session
@@ -159,6 +161,7 @@ class GileadAdminSite(UnfoldAdminSite):
         mfa_enabled_count = 0
         mfa_staff_total = admin_count
         mfa_compliance_percent = 0
+        mfa_by_role = []
         try:
             from django_otp.plugins.otp_totp.models import TOTPDevice
             staff_ids = list(User.objects.filter(is_staff=True).values_list("id", flat=True))
@@ -167,8 +170,29 @@ class GileadAdminSite(UnfoldAdminSite):
                     user_id__in=staff_ids, confirmed=True
                 ).values_list("user_id", flat=True).distinct().count()
                 mfa_compliance_percent = round(100 * mfa_enabled_count / len(staff_ids)) if staff_ids else 0
+            if role_field:
+                staff_qs = User.objects.filter(is_staff=True).exclude(role__isnull=True).exclude(role="")
+                for role in staff_qs.values_list("role", flat=True).distinct():
+                    total = staff_qs.filter(role=role).count()
+                    enabled = TOTPDevice.objects.filter(user__in=staff_qs.filter(role=role), confirmed=True).values_list("user_id", flat=True).distinct().count()
+                    mfa_by_role.append({
+                        "role": role,
+                        "enabled": enabled,
+                        "total": total,
+                        "percent": round(100 * enabled / total) if total else 0,
+                    })
         except Exception:
             pass
+
+        # Site settings change audit (recent log entries)
+        settings_change_log = []
+        try:
+            ct = ContentType.objects.get_for_model(SiteSettings)
+            settings_change_log = list(
+                LogEntry.objects.filter(content_type=ct).order_by("-action_time")[:5]
+            )
+        except Exception:
+            settings_change_log = []
 
         # Action queue: pending AccessRequests (for users who can manage requests)
         pending_approvals_count = 0
@@ -248,8 +272,10 @@ class GileadAdminSite(UnfoldAdminSite):
             'mfa_enabled_count': mfa_enabled_count,
             'mfa_staff_total': mfa_staff_total,
             'mfa_compliance_percent': mfa_compliance_percent,
+            'mfa_by_role': mfa_by_role,
             'pending_approvals_count': pending_approvals_count,
             'pending_approvals_list': pending_approvals_list,
+            'settings_change_log': settings_change_log,
         })
         if extra_context:
             context.update(extra_context)
@@ -325,6 +351,34 @@ class GileadAdminSite(UnfoldAdminSite):
                 app_info['section'] = 'other'
             
             app_list.append(app_info)
+
+        # Model ordering within apps (prioritize the most-used items)
+        model_order = {
+            "siteconfig": [
+                "SiteSettings",
+                "ThemePack",
+                "ReportCardStyle",
+                "ReportCardStyleAssignment",
+                "ReportTemplate",
+                "Integration",
+                "RegionConfig",
+                "GradingScaleConfig",
+                "HolidayCalendar",
+                "DashboardWidget",
+                "DashboardLayout",
+                "DashboardUserPreference",
+                "UserPreference",
+                "FeatureControlAudit",
+            ],
+        }
+        for app_info in app_list:
+            order_list = model_order.get(app_info.get("app_label"))
+            if not order_list:
+                continue
+            order_map = {name: idx for idx, name in enumerate(order_list)}
+            app_info["models"].sort(
+                key=lambda m: (order_map.get(m.get("object_name"), 999), m.get("name", "").lower())
+            )
 
         # RBAC: hide app groups with zero models (after permission filtering)
         app_list = [app_info for app_info in app_list if (app_info.get('models') or [])]

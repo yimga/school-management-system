@@ -6,6 +6,7 @@ import os
 import re
 from pathlib import Path
 from django.core.management.base import BaseCommand
+from django.core.management import call_command
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
 from apps.portal.models_kb import KBCategory, KBArticle
@@ -48,16 +49,44 @@ class Command(BaseCommand):
             action='store_true',
             help='Also import selected operator-facing markdown files from repo root.',
         )
+        parser.add_argument(
+            '--generate-odt',
+            action='store_true',
+            help='Generate LibreOffice ODT files after import (KB articles).',
+        )
+        parser.add_argument(
+            '--odt-engine',
+            type=str,
+            default='auto',
+            choices=['auto', 'libreoffice', 'pandoc'],
+            help='ODT conversion engine to use when --generate-odt is set.',
+        )
+        parser.add_argument(
+            '--odt-toc',
+            action='store_true',
+            help='Include table of contents in ODT output (Pandoc only).',
+        )
+
+    def _safe_write(self, message: str):
+        """Write to stdout, falling back to safe replacement on Windows consoles."""
+        if message is None:
+            return
+        try:
+            self.stdout.write(message)
+        except UnicodeEncodeError:
+            encoding = getattr(self.stdout, "encoding", None) or "utf-8"
+            safe = message.encode(encoding, errors="replace").decode(encoding, errors="replace")
+            self.stdout.write(safe)
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS('Starting documentation import...'))
+        self._safe_write(self.style.SUCCESS('Starting documentation import...'))
         
         # Get base directory
         base_dir = Path(__file__).resolve().parent.parent.parent.parent.parent
         docs_dir = base_dir / 'docs'
         
         if not docs_dir.exists():
-            self.stdout.write(self.style.ERROR(f'Docs directory not found: {docs_dir}'))
+            self._safe_write(self.style.ERROR(f'Docs directory not found: {docs_dir}'))
             return
         
         # Operator Manual structure (Cameroon-first, globally flexible)
@@ -74,9 +103,9 @@ class Command(BaseCommand):
             },
         )
         if created:
-            self.stdout.write(self.style.SUCCESS(f"Created root KB category: {operator_root.name}"))
+            self._safe_write(self.style.SUCCESS(f"Created root KB category: {operator_root.name}"))
         else:
-            self.stdout.write(f"Using existing root KB category: {operator_root.name}")
+            self._safe_write(f"Using existing root KB category: {operator_root.name}")
 
         # Child categories as proposed in the plan
         operator_categories = [
@@ -138,7 +167,7 @@ class Command(BaseCommand):
         for md_file in iter_source_files():
             # Skip KB files that are already in KB format
             if md_file.name.startswith('KB_'):
-                self.stdout.write(f'  [SKIP] Skipping KB file: {md_file.name}')
+                self._safe_write(f'  [SKIP] Skipping KB file: {md_file.name}')
                 continue
             
             # Skip implementation guides and checklists (these are for developers)
@@ -154,7 +183,7 @@ class Command(BaseCommand):
             ]
             explicit_mapping = md_file.name in doc_mapping
             if (not explicit_mapping) and any(pattern in md_file.name.upper() for pattern in skip_patterns):
-                self.stdout.write(f'  [SKIP] Skipping developer doc: {md_file.name}')
+                self._safe_write(f'  [SKIP] Skipping developer doc: {md_file.name}')
                 continue
             
             # Get metadata for this file
@@ -188,14 +217,14 @@ class Command(BaseCommand):
                 slug = slugify(md_file.stem)
                 
                 if options['dry_run']:
-                    self.stdout.write(f'  -> Would import: {title} (slug: {slug})')
+                    self._safe_write(f'  -> Would import: {title} (slug: {slug})')
                     imported_count += 1
                     continue
                 
                 # Check if article exists
                 existing = KBArticle.objects.filter(slug=slug).first()
                 if existing and not options['overwrite']:
-                    self.stdout.write(f'  [SKIP] Skipping existing: {title} (use --overwrite to update)')
+                    self._safe_write(f'  [SKIP] Skipping existing: {title} (use --overwrite to update)')
                     skipped_count += 1
                     continue
                 
@@ -220,20 +249,30 @@ class Command(BaseCommand):
                     for key, value in article_data.items():
                         setattr(existing, key, value)
                     existing.save()
-                    self.stdout.write(self.style.SUCCESS(f'  [OK] Updated: {title}'))
+                    self._safe_write(self.style.SUCCESS(f'  [OK] Updated: {title}'))
                 else:
                     article = KBArticle.objects.create(**article_data)
-                    self.stdout.write(self.style.SUCCESS(f'  [OK] Created: {title}'))
+                    self._safe_write(self.style.SUCCESS(f'  [OK] Created: {title}'))
                 
                 imported_count += 1
                 
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'  [ERROR] Error processing {md_file.name}: {e}'))
+                self._safe_write(self.style.ERROR(f'  [ERROR] Error processing {md_file.name}: {e}'))
         
-        self.stdout.write('')
-        self.stdout.write(self.style.SUCCESS(f'Import complete!'))
-        self.stdout.write(f'  Imported: {imported_count}')
-        self.stdout.write(f'  Skipped: {skipped_count}')
+        self._safe_write('')
+        self._safe_write(self.style.SUCCESS(f'Import complete!'))
+        self._safe_write(f'  Imported: {imported_count}')
+        self._safe_write(f'  Skipped: {skipped_count}')
+
+        if options.get("generate_odt"):
+            self._safe_write("")
+            self._safe_write(self.style.SUCCESS("Generating ODT exports for KB articles..."))
+            cmd_args = ["--all", "--engine", options.get("odt_engine", "auto")]
+            if options.get("overwrite"):
+                cmd_args.append("--overwrite")
+            if options.get("odt_toc"):
+                cmd_args.append("--toc")
+            call_command("generate_kb_odt", *cmd_args)
     
     def _get_doc_mapping(self):
         """Map documentation files to categories and metadata"""
@@ -423,7 +462,7 @@ class Command(BaseCommand):
                 ])
                 html_content = md.convert(content)
             except Exception as e:
-                self.stdout.write(self.style.WARNING(f'Markdown conversion error: {e}, using simple conversion'))
+                self._safe_write(self.style.WARNING(f'Markdown conversion error: {e}, using simple conversion'))
                 html_content = self._simple_markdown_to_html(content)
         else:
             html_content = self._simple_markdown_to_html(content)

@@ -28,7 +28,7 @@
     {% if can_request_finance_access %}
     <form method="post" action="{{ finance_request_url }}" class="ms-md-auto">
       {% csrf_token %}
-      <button class="btn btn-sm btn-primary">Request finance access</button>
+      <button type="submit" class="btn btn-sm btn-primary">Request finance access</button>
     </form>
     {% endif %}
   </div>

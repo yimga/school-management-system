@@ -1,0 +1,179 @@
+{% load region_format %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  {% include "reports/_report_styles.html" %}
+  <style>
+    body { background: #f8f9fb; }
+    
+    .cameroon-letterhead {
+      background: #fff;
+      border-radius: 18px;
+      padding: 18px;
+      border: 1px solid #dde1e8;
+      box-shadow: 0 8px 30px rgba(0,0,0,.08);
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+    .cameroon-letterhead .title {
+      color: var(--report-accent);
+      font-size: 20pt;
+    }
+    .cameroon-letterhead .subtitle {
+      font-size: 11pt;
+      color: #0a3f60;
+    }
+    .cameroon-letterhead .info-grid {
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:4px;
+      margin-top:10px;
+      font-size:11pt;
+    }
+    .cameroon-mark-table {
+      width:100%;
+      border-collapse:collapse;
+      background:#fff;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow: inset 0 0 0 1px #d8dee4;
+    }
+    .cameroon-mark-table th,
+    .cameroon-mark-table td {
+      border-bottom:1px solid #e1e6ef;
+      padding:8px 6px;
+      font-size:10pt;
+    }
+    .cameroon-mark-table th {
+      background:#f0f4fb;
+      font-size:10pt;
+      text-transform:uppercase;
+    }
+    .summary-card {
+      border-radius:14px;
+      padding:14px;
+      background:#fff;
+      border:1px solid #e0e4ec;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.02);
+    }
+    .summary-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-top:16px; }
+    .watermark-note { font-size:9pt; margin-top:10px; color:#6c757d; }
+  </style>
+</head>
+<body>
+  <div class="cameroon-letterhead">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <p class="subtitle mb-1 text-uppercase">MINISTRY OF SECONDARY EDUCATION</p>
+        <p class="title mb-0">GILEAD TECHNICAL HIGH SCHOOL</p>
+        <p class="sub text-muted">{{ SITE.region|default:"Small Soppo Buea" }} | {{ SITE.country|default:"Republic of Cameroon" }}</p>
+        {% if report_style and report_style.header_tagline %}
+          <p class="sub text-uppercase small">{{ report_style.header_tagline }}</p>
+        {% endif %}
+        <!-- School Contact Info -->
+        <div style="margin-top: 8px; font-size: 9pt; color: #555;">
+          {% if SITE.company_email %}
+            <p style="margin: 2px 0;"><strong>Email:</strong> {{ SITE.company_email }}</p>
+          {% endif %}
+          {% if SITE.company_phone %}
+            <p style="margin: 2px 0;"><strong>Phone:</strong> {{ SITE.company_phone }}</p>
+          {% endif %}
+          {% if SITE.company_address %}
+            <p style="margin: 2px 0;"><strong>Address:</strong> {{ SITE.company_address }}</p>
+          {% endif %}
+        </div>
+      </div>
+      <!-- Logo -->
+      {% if SITE.logo %}
+        <div style="text-align:center; position: relative;">
+          <img src="{{ SITE.logo.url }}" alt="School Logo" width="80" height="80" decoding="async" style="height:80px; width: auto; object-fit: contain; opacity: 1;"/>
+          <div class="small text-muted" style="margin-top: 4px;">{{ SITE.ministry|default:"Ministry of Secondary Education" }}</div>
+        </div>
+      {% endif %}
+    </div>
+    <div class="info-grid mt-2">
+      <div><strong>Student</strong><br>{{ student_name }}</div>
+      <div><strong>Class</strong><br>{{ student.classroom.name }}</div>
+      <div><strong>Academic Year</strong><br>{{ year.name }}</div>
+      <div><strong>Term</strong><br>{{ term.get_name_display }}</div>
+      <div><strong>Pass mark</strong><br>{{ weights.pass_mark|default_if_none:10 }}</div>
+      <div><strong>School code</strong><br>{{ SITE.school_code|default:"GIL" }}</div>
+    </div>
+  </div>
+
+  <table class="cameroon-mark-table">
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th class="text-center">Coef</th>
+        <th class="text-center">Seq1</th>
+        <th class="text-center">Seq2</th>
+        <th class="text-center">Exam</th>
+        <th class="text-center">Mock</th>
+        <th class="text-center">Pract</th>
+        <th class="text-center">Total</th>
+        <th>Remark</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>{{ row.subject }}</td>
+          <td class="text-center">{{ row.coef }}</td>
+          <td class="text-center">{{ row.seq1|default_if_none:"-" }}</td>
+          <td class="text-center">{{ row.seq2|default_if_none:"-" }}</td>
+          <td class="text-center">{{ row.exam|default_if_none:"-" }}</td>
+          <td class="text-center">{{ row.mock|default_if_none:"-" }}</td>
+          <td class="text-center">{{ row.practical|default_if_none:"-" }}</td>
+          <td class="text-center">
+            {% if row.complete %}{{ row.total|format_number:2 }}{% else %}Pending{% endif %}
+          </td>
+          <td>{{ row.remark }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="9" class="text-center small text-muted">No marks yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <strong>Term overview</strong>
+      <p class="mb-1">Average: <strong>{{ summary.average|format_number:2|default:"-" }}</strong></p>
+      <p class="mb-1">Class rank: <strong>{{ summary.class_position|default:"-" }}/{{ summary.class_size|default:"-" }}</strong></p>
+      <p class="mb-1">School rank: <strong>{{ summary.school_position|default:"-" }}/{{ summary.school_size|default:"-" }}</strong></p>
+      <p class="mb-0">Status: <strong>{{ summary.promotion_status }}</strong></p>
+    </div>
+    <div class="summary-card">
+      <strong>Teacher remarks</strong>
+      <p class="mb-0">{{ summary.teacher_remark }}</p>
+    </div>
+    <div class="summary-card">
+      <strong>Generated</strong>
+      <p class="mb-0">{{ generated_at|format_date }}</p>
+    </div>
+    <div class="summary-card">
+      <strong>Weights</strong>
+      <p class="mb-0 small">Sequence 1 {{ weights.seq1_weight }}% · Sequence 2 {{ weights.seq2_weight }}% · Exam {{ weights.exam_weight }}%</p>
+    </div>
+  </div>
+
+  {% if qr_code_data_uri %}
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+    <div style="flex: 1;">
+      <p style="font-size: 9px; color: #64748b; margin: 0;">
+        This report card can be verified by scanning the QR code or visiting:<br>
+        <span style="font-size: 8px; word-break: break-all;">{{ verification_url }}</span>
+      </p>
+    </div>
+    <div style="flex-shrink: 0; margin-left: 16px;">
+      <img src="{{ qr_code_data_uri }}" alt="Verification QR Code" style="width: 80px; height: 80px;">
+    </div>
+  </div>
+  {% endif %}
+
+  <p class="watermark-note text-end">Powered by {{ SITE.site_name|default:"Gilead School System" }}</p>
+</body>
+</html>

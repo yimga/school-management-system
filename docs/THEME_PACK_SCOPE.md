@@ -74,3 +74,16 @@ If you already ran the command before, run it again (no `--reset`): it will **up
 ## 6. **Black theme (sidebar + forms)**
 
 For a professional black theme on `/admin`, use **Deep Space / Midnight Blue** and see [docs/ADMIN_BLACK_THEME.md](ADMIN_BLACK_THEME.md) for token reference and customization.
+
+---
+
+## 7. **School theme packs (15 core + niche + contemporary)**
+
+The seed command `python manage.py seed_admin_dashboard_palettes` creates many school-focused themes:
+
+- **School (Admin):** Academic Authority, Executive Ivy, Modern Chancellor, Sophisticated Slate, Digital Lavender, Modern Sage, Focused Classroom, Verdant Growth, The Sensory Room.
+- **Portal-only** (Theme pack dropdown): Active Learner, Creative Spark, Sunset Scholar, Grounded Mentor, The Playroom, The Orchard.
+- **Niche:** The Cyber Lab, The Blueprint, High-Contrast Accessible, The Focus Mode, The Conservatory, The Modern Gallery, The Midnight Scholar.
+- **Contemporary:** Glassmorphism, Neo-Brutalist, Eco-Digital, Monochrome Pro, Retro-Future, Bento-Box.
+
+For accessibility and component specs, see [THEME_ACCESSIBILITY.md](THEME_ACCESSIBILITY.md) and [THEME_COMPONENT_KITS.md](THEME_COMPONENT_KITS.md).

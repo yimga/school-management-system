@@ -307,13 +307,14 @@ UNFOLD = {
     # Titles
     "ENVIRONMENT": "Development" if DEBUG else "Production",
 
-    # Sidebar: search, all-apps dropdown
+    # Sidebar: search, all-apps dropdown; collapsible app groups in app_list.html
     "SIDEBAR": {
         "show_search": True,
         "command_search": False,
         "show_all_applications": True,
         "navigation": [],
     },
+    # Custom CSS (theme-proof, sidebar scroll, dashboard) loaded via admin/base_site.html extrastyle
 }
 
 # --- Logging (configured below in "Logging Configuration" section) ---
@@ -605,6 +606,7 @@ EXTRA_LANG_INFO = {
 }
 django.conf.locale.LANG_INFO = {**django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO}
 
+# Buea/Cameroon: use TIME_ZONE=Africa/Douala in .env for local schedules and attendance
 TIME_ZONE = os.getenv('TIME_ZONE', 'UTC')
 LOCALE_PATHS = [
     BASE_DIR / 'locale',

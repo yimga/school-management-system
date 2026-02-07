@@ -1614,10 +1614,12 @@ class ReportCardStyle(models.Model):
     TERM_TEMPLATE_CHOICES = [
         ("reports/term_report.html", "Standard term template"),
         ("reports/term_report_cameroon.html", "Cameroon term template"),
+        ("reports/term_report_cameroon_modern.html", "Cameroon term template (modern)"),
     ]
     ANNUAL_TEMPLATE_CHOICES = [
         ("reports/annual_report.html", "Standard annual template"),
         ("reports/annual_report_cameroon.html", "Cameroon annual template"),
+        ("reports/annual_report_cameroon_modern.html", "Cameroon annual template (modern)"),
     ]
 
     slug = models.SlugField(max_length=80, unique=True)

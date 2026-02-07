@@ -141,13 +141,13 @@
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="javascript:void(0);" title="Contact Support">
+        <a class="dropdown-item" href="{% url 'portal:support_request' %}?type=support&next={{ request.path|urlencode }}" title="Contact Support">
           <i class="bi bi-envelope"></i>
           <span>Contact Support</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="javascript:void(0);" title="Send Feedback">
+        <a class="dropdown-item" href="{% url 'portal:support_request' %}?type=feedback&next={{ request.path|urlencode }}" title="Send Feedback">
           <i class="bi bi-chat-left-text"></i>
           <span>Send Feedback</span>
         </a>

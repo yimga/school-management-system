@@ -37,7 +37,7 @@
           </small>
         </div>
       </div>
-      <button class="btn btn-sm btn-link text-white" id="aiCopilotClose">
+      <button type="button" class="btn btn-sm btn-link text-white" id="aiCopilotClose">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
@@ -91,33 +91,33 @@
           </button>
         </div>
         {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
-          <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show me today's attendance summary">
+          <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show me today's attendance summary">
             <i class="bi bi-calendar-check"></i> Today's Attendance
           </button>
-          <button class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="What are the overdue invoices?">
+          <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="What are the overdue invoices?">
             <i class="bi bi-cash-stack"></i> Overdue Invoices
           </button>
-          <button class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Show recent user activities">
+          <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Show recent user activities">
             <i class="bi bi-activity"></i> Recent Activities
           </button>
         {% elif request.user.role == 'TEACHER' %}
-          <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my today's classes">
+          <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my today's classes">
             <i class="bi bi-calendar3"></i> Today's Classes
           </button>
-          <button class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Students pending grades">
+          <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Students pending grades">
             <i class="bi bi-journal-text"></i> Pending Grades
           </button>
-          <button class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Attendance summary this week">
+          <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Attendance summary this week">
             <i class="bi bi-clipboard-check"></i> Attendance
           </button>
         {% elif request.user.role == 'PARENT' %}
-          <button class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my child's recent grades">
+          <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my child's recent grades">
             <i class="bi bi-graph-up"></i> Recent Grades
           </button>
-          <button class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Check fee payment status">
+          <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Check fee payment status">
             <i class="bi bi-wallet2"></i> Fee Status
           </button>
-          <button class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Upcoming parent-teacher meetings">
+          <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Upcoming parent-teacher meetings">
             <i class="bi bi-calendar-event"></i> Meetings
           </button>
         {% endif %}
@@ -132,7 +132,7 @@
           rows="2" 
           placeholder="Ask me anything..."
           maxlength="500"></textarea>
-        <button class="btn btn-primary ai-send-btn" id="aiCopilotSend" disabled>
+        <button type="button" class="btn btn-primary ai-send-btn" id="aiCopilotSend" disabled>
           <i class="bi bi-send-fill"></i>
         </button>
       </div>

@@ -48,10 +48,13 @@
 .admin-kpi-card__label { font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
 .admin-kpi-card__icon { font-size: 20px; }
 .admin-kpi-card__value { font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px; }
-.admin-kpi-card__details { font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px; }
+.admin-kpi-card__details { font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px; overflow: visible; min-height: 0; }
+.admin-kpi-card { overflow: visible; }
 .admin-kpi-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
 .admin-kpi-row:last-child { margin-bottom: 0; }
 .admin-kpi-val { font-weight: 600; color: var(--admin-text); }
+/* System Health: keep "Operational" consistent with other card values, not oversized */
+.admin-kpi-card[data-widget-id="admin-system-health"] .admin-kpi-card__value { font-size: 1.25rem; font-weight: 600; }
 
 /* === Security Row === */
 .admin-security-row { display: grid; grid-template-columns: 1fr minmax(240px, 280px); gap: 12px; margin-bottom: 32px; align-items: stretch; }
@@ -124,6 +127,9 @@
   .admin-dash__brand { min-width: auto; }
   .admin-dash__title { font-size: 22px; }
 }
+
+/* On dashboard index, hide the duplicate "Administration Dashboard" in the top header (we show it once with logo below) */
+body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
 </style>
 
 <div class="admin-dash">
@@ -198,8 +204,8 @@
           <span class="admin-kpi-card__icon">📊</span>
         </div>
         <div class="admin-kpi-card__details">
-          <div class="admin-kpi-row"><span>{% trans "Connection" %}:</span> <span class="admin-stat admin-stat--success">✓ {% trans "Ready" %}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Database Health" %}:</span> <span class="admin-stat admin-stat--success">{% trans "Optimal" %}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Connection" %}:</span> <span id="dbConnectionStatus" class="admin-stat admin-stat--success">✓ {% trans "Ready" %}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Database Health" %}:</span> <span id="dbHealthStatus" class="admin-stat admin-stat--success">{% trans "Optimal" %}</span></div>
           <div class="admin-kpi-row"><span>{% trans "Engine" %}:</span> <span class="admin-kpi-val">{{ db_engine_display|default:"SQLite3" }}</span></div>
           <div class="admin-kpi-row"><span>{% trans "Active Sessions" %}:</span> <span class="admin-kpi-val">{{ active_sessions|default:"0" }}</span></div>
         </div>
@@ -212,10 +218,10 @@
           <span class="admin-kpi-card__icon">⚙️</span>
         </div>
         <div class="admin-kpi-card__value">
-          <a href="{% url 'api_health' %}" target="_blank" rel="noopener" title="{% trans 'View API health' %}" class="admin-stat admin-stat--success" style="text-decoration: none; color: inherit;">{% trans "Operational" %}</a>
+          <a id="apiHealthStatus" href="{% url 'api_health' %}" target="_blank" rel="noopener" title="{% trans 'View API health' %}" class="admin-stat admin-stat--success" style="text-decoration: none; color: inherit;">{% trans "Operational" %}</a>
         </div>
         <div class="admin-kpi-card__details">
-          <div class="admin-kpi-row"><span>{% trans "Status" %}:</span> <span class="admin-stat admin-stat--success">{% trans "Online" %}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Status" %}:</span> <span id="systemStatus" class="admin-stat admin-stat--success">{% trans "Online" %}</span></div>
           <div class="admin-kpi-row"><span>{% trans "Sessions (24h)" %}:</span> <span class="admin-kpi-val">{{ sessions_24h|default:"0" }}</span></div>
         </div>
       </div>
@@ -230,6 +236,16 @@
         <div class="admin-kpi-card__details">
           <div class="admin-kpi-row"><span>{% trans "Staff with MFA" %}:</span> <span class="admin-kpi-val">{{ mfa_enabled_count|default:0 }}</span></div>
           <div class="admin-kpi-row"><span>{% trans "Total staff" %}:</span> <span class="admin-kpi-val">{{ mfa_staff_total|default:0 }}</span></div>
+          {% if mfa_by_role %}
+            <div class="admin-kpi-row">
+              <span>{% trans "By role" %}:</span>
+              <span class="admin-kpi-val">
+                {% for row in mfa_by_role %}
+                  {{ row.role }} {{ row.enabled }}/{{ row.total }} ({{ row.percent }}%){% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              </span>
+            </div>
+          {% endif %}
           <div class="admin-kpi-row"><a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-kpi-val" style="font-size: 12px;">{% trans "Site Settings" %}</a></div>
         </div>
       </div>
@@ -305,6 +321,40 @@
         </div>
       </div>
 
+      {# Finance inbox: access requests / alerts #}
+      {% if finance_inbox_preview or finance_inbox_unread %}
+      <div class="admin-security-card" data-widget-id="admin-finance-inbox">
+        <div class="admin-kpi-card__head">
+          <span class="admin-kpi-card__label">{% trans "Finance Inbox" %}</span>
+          <span class="admin-kpi-card__icon">💰</span>
+        </div>
+        <div class="admin-security-card__body">
+          <div class="admin-security-panel" style="flex: 1 1 100%;">
+            <div class="admin-security-stat">
+              <span>{% trans "Unread requests" %}</span>
+              <strong class="admin-kpi-val">{{ finance_inbox_unread|default:0 }}</strong>
+            </div>
+            {% if finance_inbox_preview %}
+              <div class="admin-security-divider">
+                <div class="admin-security-panel__title">{% trans "Recent" %}</div>
+                {% for note in finance_inbox_preview %}
+                  <div class="admin-security-stat">
+                    <span title="{{ note.title }}">{{ note.title|truncatewords:6 }}</span>
+                    <span>{{ note.created_at|date:"M d, H:i" }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="admin-security-stat" style="color: var(--admin-muted);">{% trans "No recent finance requests." %}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="admin-security-footer">
+          <a href="{% url 'finance:dashboard' %}" class="admin-control-btn" style="display: inline-flex;">{% trans "Open finance" %}</a>
+        </div>
+      </div>
+      {% endif %}
+
       {# Calendar / Weather Block #}
       <div class="calendar-widget" data-widget-id="admin-calendar-widget">
         <div class="calendar-header">
@@ -334,6 +384,9 @@
         <div class="admin-controls-grid">
           <a href="{% url 'admin:accounts_user_changelist' %}" class="admin-control-btn">👥 {% trans "Manage Users" %}</a>
           <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-control-btn">⚙️ {% trans "Site Settings" %}</a>
+          <a href="{% url 'siteconfig:feature_control_panel' %}" class="admin-control-btn">🧩 {% trans "Feature Control" %}</a>
+          <a href="{% url 'siteconfig:report_library' %}" class="admin-control-btn">📄 {% trans "Report Library" %}</a>
+          <a href="{% url 'kb:kb_home' %}" class="admin-control-btn">📚 {% trans "Knowledge Base" %}</a>
           <a href="{% url 'api_health' %}" target="_blank" rel="noopener" class="admin-control-btn">⚕️ {% trans "API Health" %}</a>
           <a href="{% url 'siteconfig:customizer' %}" class="admin-control-btn">🎨 {% trans "Customizer" %}</a>
           <a href="{% url 'accounts:backend_dashboard' %}" class="admin-cta-backend">🎛️ {% trans "Backend Console" %}</a>
@@ -369,6 +422,22 @@
         </table>
       </div>
 
+      {% if settings_change_log %}
+      <div class="admin-sysinfo" data-widget-id="admin-settings-audit" style="margin-top: 16px;">
+        <h2 class="admin-sysinfo__title">{% trans "Recent Site Settings Changes" %}</h2>
+        <table>
+          <tbody>
+            {% for entry in settings_change_log %}
+            <tr>
+              <td class="admin-sysinfo__label">{{ entry.user|default:"System" }}</td>
+              <td class="admin-sysinfo__val">{{ entry.action_time|date:"M d, H:i" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
       <div style="margin-bottom: 24px;"></div>
     </div>
   </div>
@@ -380,6 +449,7 @@
     generateCalendar();
     var ts = document.getElementById('timestamp');
     if (ts) ts.textContent = new Date().toLocaleString();
+    loadSystemHealth();
     loadWeather();
     loadDailyMessage();
     // Update today display
@@ -389,6 +459,46 @@
       todayEl.textContent = 'Today: ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
   });
+
+  async function loadSystemHealth() {
+    try {
+      const response = await fetch('{% url "api_health" %}', { credentials: 'same-origin' });
+      const data = await response.json();
+      const ok = response.ok && data && data.status === 'healthy';
+      const apiEl = document.getElementById('apiHealthStatus');
+      const sysEl = document.getElementById('systemStatus');
+      const dbConn = document.getElementById('dbConnectionStatus');
+      const dbHealth = document.getElementById('dbHealthStatus');
+      if (apiEl) {
+        apiEl.textContent = ok ? 'Operational' : 'Degraded';
+        apiEl.className = 'admin-stat ' + (ok ? 'admin-stat--success' : 'admin-stat--danger');
+      }
+      if (sysEl) {
+        sysEl.textContent = ok ? 'Online' : 'Attention';
+        sysEl.className = 'admin-stat ' + (ok ? 'admin-stat--success' : 'admin-stat--danger');
+      }
+      if (dbConn) {
+        const dbOk = data && data.database === 'connected';
+        dbConn.textContent = dbOk ? '✓ Ready' : 'Issue';
+        dbConn.className = 'admin-stat ' + (dbOk ? 'admin-stat--success' : 'admin-stat--danger');
+      }
+      if (dbHealth) {
+        dbHealth.textContent = ok ? 'Optimal' : 'Check';
+        dbHealth.className = 'admin-stat ' + (ok ? 'admin-stat--success' : 'admin-stat--danger');
+      }
+    } catch (e) {
+      const apiEl = document.getElementById('apiHealthStatus');
+      const sysEl = document.getElementById('systemStatus');
+      if (apiEl) {
+        apiEl.textContent = 'Degraded';
+        apiEl.className = 'admin-stat admin-stat--danger';
+      }
+      if (sysEl) {
+        sysEl.textContent = 'Attention';
+        sysEl.className = 'admin-stat admin-stat--danger';
+      }
+    }
+  }
 
   // Weather -- Buea, Cameroon (4.1527, 9.2410)
   async function loadWeather() {

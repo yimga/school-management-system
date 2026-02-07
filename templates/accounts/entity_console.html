@@ -100,7 +100,7 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h5 class="mb-0">Students</h5>
-            <button class="btn btn-outline-secondary btn-sm" id="refreshStudents">Refresh</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshStudents">Refresh</button>
           </div>
           <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
@@ -160,7 +160,7 @@
                 <td>${item.first_name || ''} ${item.last_name || ''}</td>
                 <td>${item.classroom || ''}</td>
                 <td>${item.status || ''}</td>
-                <td><button class="btn btn-link btn-sm select-student">Select</button></td>
+                <td><button type="button" class="btn btn-link btn-sm select-student">Select</button></td>
               `;
               rows.appendChild(tr);
             });

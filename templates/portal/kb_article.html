@@ -117,15 +117,18 @@
                         </div>
                         <div class="d-flex gap-2">
                         {% if article.odt_file %}
+                        <a href="{% url 'kb:kb_article_download_docx' article.slug %}" class="btn btn-outline-primary btn-sm" download>
+                            <i class="bi bi-file-earmark-word"></i> Download Word (DOCX)
+                        </a>
                         <a href="{% url 'kb:kb_article_download_odt' article.slug %}" class="btn btn-outline-success btn-sm" download>
-                            <i class="bi bi-file-earmark-word"></i> Download as Word (ODT)
+                            <i class="bi bi-file-earmark-word"></i> Download ODT (LibreOffice)
                         </a>
                         <a href="{% url 'kb:kb_article_download_pdf' article.slug %}" class="btn btn-outline-danger btn-sm" download>
                             <i class="bi bi-file-earmark-pdf"></i> Download as PDF
                         </a>
                         {% endif %}
                         {% if user.is_authenticated %}
-                        <button id="shareArticleBtn" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal" aria-label="Share this article">
+                        <button type="button" id="shareArticleBtn" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shareModal" aria-label="Share this article">
                             <i class="bi bi-share"></i> Share
                         </button>
                         {% endif %}
@@ -291,7 +294,7 @@
                             </div>
                             <p class="mb-2">{{ comment.text }}</p>
                             {% if user.is_authenticated and not comment.is_helpful %}
-                            <button class="btn btn-sm btn-outline-success mark-helpful-btn" 
+                            <button type="button" class="btn btn-sm btn-outline-success mark-helpful-btn" 
                                     data-comment-id="{{ comment.id }}">
                                 <i class="fas fa-thumbs-up"></i> Mark as helpful
                             </button>
