@@ -11,7 +11,7 @@
                     {% trans 'Search apps and models...' %}
                 </div>
                 {% if 'Macintosh' in request.META.HTTP_USER_AGENT %}
-                    {% include "unfold/helpers/shortcut.html" with shortcut="⌘K" %}
+                    {% include "unfold/helpers/shortcut.html" with shortcut="Cmd + K" %}
                 {% else %}
                     {% include "unfold/helpers/shortcut.html" with shortcut="Ctrl + K" %}
                 {% endif %}
