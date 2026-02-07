@@ -25,7 +25,6 @@ python3 -m pip install -r requirements.txt --no-cache-dir
 export DJANGO_SETTINGS_MODULE=config.settings
 
 # Never run makemigrations in CI/production.
-python3 manage.py migrate --noinput
 python3 manage.py collectstatic --noinput
 
 echo "Build complete - venv is ready at .venv/"

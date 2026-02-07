@@ -121,6 +121,51 @@
       #page .admin-sidebar-column { flex: 0 0 0 !important; width: 0 !important; min-width: 0 !important; max-width: 0 !important; overflow: hidden !important; }
     }
   </style>
+  {# Critical fallback: keep /admin sidebar readable even if external sidebar css is stale or cached. #}
+  <style id="admin-sidebar-critical-fallback">
+    #nav-sidebar ul,
+    #nav-sidebar ol,
+    #nav-sidebar-apps ul,
+    #nav-sidebar-apps ol,
+    #nav-sidebar .admin-sidebar-quick-list,
+    #nav-sidebar .admin-sidebar-model-list,
+    #nav-sidebar-apps .admin-sidebar-quick-list,
+    #nav-sidebar-apps .admin-sidebar-model-list {
+      list-style: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    #nav-sidebar li,
+    #nav-sidebar-apps li {
+      list-style: none !important;
+    }
+    #nav-sidebar .admin-sidebar-link,
+    #nav-sidebar .admin-sidebar-model-link,
+    #nav-sidebar .admin-sidebar-app-title a,
+    #nav-sidebar-apps .admin-sidebar-link,
+    #nav-sidebar-apps .admin-sidebar-model-link,
+    #nav-sidebar-apps .admin-sidebar-app-title a {
+      text-decoration: none !important;
+    }
+    #nav-sidebar .admin-sidebar-app-title,
+    #nav-sidebar-apps .admin-sidebar-app-title {
+      margin: 0.625rem 0.75rem 0.25rem !important;
+      line-height: 1.2 !important;
+    }
+    #nav-sidebar .admin-sidebar-app-title a,
+    #nav-sidebar-apps .admin-sidebar-app-title a {
+      font-size: 1.0625rem !important;
+      font-weight: 600 !important;
+      line-height: 1.2 !important;
+    }
+    #nav-sidebar .admin-sidebar-model-link,
+    #nav-sidebar-apps .admin-sidebar-model-link {
+      display: block !important;
+      padding: 0.3rem 0.9rem !important;
+      font-size: 0.95rem !important;
+      line-height: 1.35 !important;
+    }
+  </style>
 {% endblock %}
 
 {% block extrahead %}
