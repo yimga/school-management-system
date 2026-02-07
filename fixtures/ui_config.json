@@ -1,0 +1,583 @@
+[
+{
+  "model": "siteconfig.themepack",
+  "pk": 1,
+  "fields": {
+    "name": "Gilead Modern",
+    "slug": "gilead-modern",
+    "description": "School-branded blue/green palette with card focus layouts.",
+    "primary_color": "#0d6efd",
+    "accent_color": "#198754",
+    "background_color": "#f8f9fa",
+    "font_family": "Inter, system-ui, sans-serif",
+    "layout": "CARD",
+    "custom_css": "",
+    "palette": {},
+    "logo": "",
+    "background_image": "",
+    "video_background": "",
+    "svg_background": "",
+    "logo_opacity": 0.3,
+    "logo_background_mode": "contain",
+    "applies_to_admin": false,
+    "is_active": true,
+    "is_default": false,
+    "created_at": "2026-01-19T03:55:05.345Z",
+    "updated_at": "2026-01-19T04:18:54.326Z"
+  }
+},
+{
+  "model": "siteconfig.themepack",
+  "pk": 2,
+  "fields": {
+    "name": "Neutral Minimal",
+    "slug": "neutral-minimal",
+    "description": "Light neutral marketing theme for modern schools.",
+    "primary_color": "#212529",
+    "accent_color": "#6c757d",
+    "background_color": "#ffffff",
+    "font_family": "Nunito, system-ui, sans-serif",
+    "layout": "MINIMAL",
+    "custom_css": "",
+    "palette": {},
+    "logo": "",
+    "background_image": "",
+    "video_background": "",
+    "svg_background": "",
+    "logo_opacity": 0.3,
+    "logo_background_mode": "contain",
+    "applies_to_admin": false,
+    "is_active": false,
+    "is_default": false,
+    "created_at": "2026-01-19T03:55:05.349Z",
+    "updated_at": "2026-01-19T04:19:00.372Z"
+  }
+},
+{
+  "model": "siteconfig.themepack",
+  "pk": 3,
+  "fields": {
+    "name": "Gilead Gradient",
+    "slug": "gilead-gradient",
+    "description": "Hero-inspired blue to rose gradient and pill actions.",
+    "primary_color": "#1d2b64",
+    "accent_color": "#ff6a88",
+    "background_color": "#0f172a",
+    "font_family": "Space Grotesk, Inter, system-ui, sans-serif",
+    "layout": "CARD",
+    "custom_css": ".btn-gradient-pill { box-shadow: 0 15px 35px rgba(255, 106, 136, 0.35); }",
+    "palette": {
+      "card": "#ffffff",
+      "gradient": [
+        "#1d2b64",
+        "#ff6a88"
+      ]
+    },
+    "logo": "",
+    "background_image": "",
+    "video_background": "",
+    "svg_background": "",
+    "logo_opacity": 0.3,
+    "logo_background_mode": "contain",
+    "applies_to_admin": false,
+    "is_active": false,
+    "is_default": false,
+    "created_at": "2026-01-21T15:46:24.972Z",
+    "updated_at": "2026-01-28T01:34:28.675Z"
+  }
+},
+{
+  "model": "siteconfig.themepack",
+  "pk": 4,
+  "fields": {
+    "name": "Modern Slate",
+    "slug": "modern-slate",
+    "description": "Crisp slate background with neon aqua highlights for analytics.",
+    "primary_color": "#0f172a",
+    "accent_color": "#22d3ee",
+    "background_color": "#f4f6fb",
+    "font_family": "Plus Jakarta Sans, Inter, sans-serif",
+    "layout": "CARD",
+    "custom_css": ".card { border-radius: 28px; box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08); }",
+    "palette": {
+      "card": "#ffffff",
+      "gradient": [
+        "#020617",
+        "#1d1f36"
+      ]
+    },
+    "logo": "",
+    "background_image": "",
+    "video_background": "",
+    "svg_background": "",
+    "logo_opacity": 0.3,
+    "logo_background_mode": "contain",
+    "applies_to_admin": false,
+    "is_active": false,
+    "is_default": false,
+    "created_at": "2026-01-21T15:46:24.981Z",
+    "updated_at": "2026-01-28T01:33:55.649Z"
+  }
+},
+{
+  "model": "siteconfig.themepack",
+  "pk": 5,
+  "fields": {
+    "name": "Sunset Atelier",
+    "slug": "sunset-atelier",
+    "description": "Warm peach accents and ivory surfaces for refined academics.",
+    "primary_color": "#dc3f45",
+    "accent_color": "#fbbc04",
+    "background_color": "#fff9f4",
+    "font_family": "Poppins, Inter, sans-serif",
+    "layout": "WIDE",
+    "custom_css": ".hero-card { border-radius: 32px; }",
+    "palette": {
+      "card": "#fff",
+      "gradient": [
+        "#dc3f45",
+        "#fbbc04"
+      ]
+    },
+    "logo": "",
+    "background_image": "",
+    "video_background": "",
+    "svg_background": "",
+    "logo_opacity": 0.3,
+    "logo_background_mode": "contain",
+    "applies_to_admin": true,
+    "is_active": true,
+    "is_default": true,
+    "created_at": "2026-01-21T15:46:24.988Z",
+    "updated_at": "2026-01-28T01:35:26.882Z"
+  }
+},
+{
+  "model": "siteconfig.sitesettings",
+  "pk": 1,
+  "fields": {
+    "video_background": "",
+    "svg_background": "",
+    "site_name": "Gilead School System Management System",
+    "tagline": "Knowledge • Technology • Excellence",
+    "logo": "branding/Transparent_logo_gilead.png",
+    "logo_opacity": 0.3,
+    "logo_background_mode": "contain",
+    "theme_brightness": "system",
+    "background_image": "branding/bg/logo_gileadHS_r5IGCo0.jpg",
+    "brand_font": "Space Grotesk, Inter, system-ui, sans-serif",
+    "school_code": "GIL",
+    "admission_number_mode": "AUTO_OR_MANUAL",
+    "admission_number_pattern": "(\\d{2}[A-Z0-9]{2,10}\\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4})|(\\d{2}-[A-Z0-9]{2,10}-\\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4})",
+    "company_name": "",
+    "company_address": "",
+    "company_phone": "",
+    "company_email": "",
+    "ministry_registration_code": "",
+    "company_slug": "",
+    "country": "",
+    "region": "",
+    "ministry": "",
+    "primary_color": "#ababab",
+    "accent_color": "#ababab",
+    "header_bg_color": "",
+    "footer_bg_color": "",
+    "success_color": "#22c55e",
+    "warning_color": "#fbbf24",
+    "danger_color": "#ef4444",
+    "use_dark_mode": false,
+    "backend_console_theme": "dark",
+    "custom_css": ".btn-gradient-pill { box-shadow: 0 15px 35px rgba(255, 106, 136, 0.35); }",
+    "theme_pack": 5,
+    "admin_theme_pack": null,
+    "preview_mode_enabled": false,
+    "preview_note": "",
+    "login_hero_heading": "",
+    "login_hero_subtext": "",
+    "show_header_search": true,
+    "show_header_notifications": true,
+    "show_header_profile_menu": true,
+    "show_header_theme_toggle": true,
+    "favicon": "",
+    "layout_style": "fluid",
+    "default_sidebar_collapsed": false,
+    "branded_domain": "",
+    "portal_sidebar_order": [],
+    "sidebar_icon": "",
+    "secondary_font": "",
+    "use_secondary_font_for_headings": false,
+    "base_font_size": 16,
+    "default_widgets_per_role": {},
+    "admin_use_site_primary": false,
+    "maintenance_mode": false,
+    "default_dashboard_view": "OVERVIEW",
+    "default_refresh_rate": 60,
+    "notification_channels": [],
+    "admin_portal_stats_config": {
+      "items": {
+        "finance": [
+          "Invoices",
+          "Overdue",
+          "Draft"
+        ],
+        "accounts": [
+          "Users",
+          "Teachers",
+          "Guardians"
+        ],
+        "academics": [
+          "Students",
+          "Classrooms",
+          "Subjects"
+        ]
+      },
+      "sections": [
+        "academics",
+        "accounts",
+        "finance"
+      ],
+      "max_items": 3,
+      "max_sections": 3
+    },
+    "portal_quick_actions": [
+      {
+        "url": "#",
+        "icon": "bi-chat-dots",
+        "label": "Message Teacher",
+        "roles": [
+          "PARENT"
+        ],
+        "enabled": true
+      },
+      {
+        "url": "#",
+        "icon": "bi-file-earmark-text",
+        "label": "View Report Card",
+        "roles": [
+          "PARENT"
+        ],
+        "enabled": true
+      },
+      {
+        "url": "#",
+        "icon": "bi-calendar-event",
+        "label": "Request Meeting",
+        "roles": [
+          "PARENT"
+        ],
+        "enabled": true
+      },
+      {
+        "url": "#",
+        "icon": "bi-download",
+        "label": "Download Documents",
+        "roles": [
+          "PARENT"
+        ],
+        "enabled": true
+      }
+    ],
+    "portal_announcements": [
+      {
+        "meta": "2 days ago",
+        "roles": [
+          "PARENT"
+        ],
+        "title": "New Homework Policy",
+        "enabled": true
+      },
+      {
+        "meta": "4 days ago",
+        "roles": [
+          "PARENT"
+        ],
+        "title": "Sports Day Registration Open",
+        "enabled": true
+      },
+      {
+        "meta": "1 week ago",
+        "roles": [
+          "PARENT"
+        ],
+        "title": "Library Hours Extended",
+        "enabled": true
+      }
+    ],
+    "portal_recent_grades": [
+      {
+        "tone": "success",
+        "grade": "A (92%)",
+        "label": "Mathematics",
+        "roles": [
+          "PARENT"
+        ],
+        "enabled": true
+      },
+      {
+        "tone": "success",
+        "grade": "A- (88%)",
+        "label": "English",
+        "roles": [
+          "PARENT"
+        ],
+        "enabled": true
+      },
+      {
+        "tone": "primary",
+        "grade": "B+ (85%)",
+        "label": "Science",
+        "roles": [
+          "PARENT"
+        ],
+        "enabled": true
+      },
+      {
+        "tone": "warning",
+        "grade": "B (82%)",
+        "label": "History",
+        "roles": [
+          "PARENT"
+        ],
+        "enabled": true
+      }
+    ],
+    "portal_upcoming_assessments": [
+      {
+        "tone": "info",
+        "when": "Tomorrow",
+        "roles": [
+          "PARENT"
+        ],
+        "title": "Physics Test",
+        "detail": "Chapter 5-7",
+        "enabled": true
+      },
+      {
+        "tone": "secondary",
+        "when": "Jan 28",
+        "roles": [
+          "PARENT"
+        ],
+        "title": "Math Quiz",
+        "detail": "Algebra II",
+        "enabled": true
+      },
+      {
+        "tone": "secondary",
+        "when": "Feb 2",
+        "roles": [
+          "PARENT"
+        ],
+        "title": "English Essay",
+        "detail": "Due by 5 PM",
+        "enabled": true
+      }
+    ],
+    "footer_accreditation_text": "Ministry of Education - Cameroon | UNESCO Standards 2026 Compliant",
+    "footer_accreditation_subtext": "Certified for educational institutions worldwide | ISO 9001:2015 Quality Management",
+    "footer_support_hours": "Mon-Fri: 8AM-6PM | Sat: 9AM-4PM",
+    "footer_whatsapp_url": "https://wa.me/237XXXXXXXXX?text=Hello%20School%20Management%20System%20Support",
+    "whatsapp_support_number": "",
+    "whatsapp_admissions_number": "",
+    "enable_whatsapp_parent_portal": false,
+    "enable_whatsapp_staff_portal": false,
+    "footer_status_text": "All Systems Operational",
+    "footer_badges": [
+      {
+        "tone": "secure",
+        "label": "Secure & Encrypted"
+      },
+      {
+        "tone": "compliant",
+        "label": "2026 Standards Compliant"
+      }
+    ],
+    "footer_links": [
+      {
+        "url": "",
+        "label": "Privacy Policy",
+        "roles": [],
+        "enabled": true
+      },
+      {
+        "url": "",
+        "label": "Terms of Service",
+        "roles": [],
+        "enabled": true
+      },
+      {
+        "url": "",
+        "label": "About Us",
+        "roles": [],
+        "enabled": true
+      },
+      {
+        "url": "",
+        "label": "Documentation",
+        "roles": [],
+        "enabled": true
+      },
+      {
+        "url": "",
+        "label": "Support Center",
+        "roles": [],
+        "enabled": true
+      },
+      {
+        "url": "",
+        "label": "Compliance Reports",
+        "roles": [],
+        "enabled": true
+      }
+    ],
+    "report_preview_contact_email": "reports@gileadtech.edu",
+    "report_preview_contact_phone": "+237 670 000 000",
+    "report_preview_footer_note": "Powered by Gilead Technical High School.",
+    "default_report_preview_type": "term",
+    "marksheet_ocr_command": "",
+    "grade_approval_enabled": true,
+    "require_mfa_roles": [],
+    "require_mfa_all_staff": false,
+    "requests_reminder_interval_hours": 0,
+    "grade_approval_roles": [
+      "DEAN",
+      "HOD"
+    ],
+    "grade_approval_auto_validate": true,
+    "grade_approval_deadline_days": 3,
+    "grade_approval_deadline_note": "Please review before the deadline.",
+    "grade_post_roles": [
+      "DEAN",
+      "PRINCIPAL",
+      "LEADERSHIP"
+    ],
+    "enable_parent_portal": true,
+    "enable_teacher_portal": true,
+    "enable_reports_pdf": true,
+    "report_downloads_enabled": false,
+    "reports_require_approved_grades_before_publish": false,
+    "reports_use_approved_grades_only": false,
+    "portal_features": {
+      "video": false,
+      "forums": false,
+      "syllabus": false,
+      "documents": true,
+      "messaging": true
+    },
+    "social_links": [
+      {
+        "url": "",
+        "icon": "bi bi-facebook",
+        "enabled": false,
+        "platform": "Facebook"
+      },
+      {
+        "url": "",
+        "icon": "bi bi-instagram",
+        "enabled": false,
+        "platform": "Instagram"
+      },
+      {
+        "url": "",
+        "icon": "bi bi-youtube",
+        "enabled": false,
+        "platform": "YouTube"
+      }
+    ],
+    "backend_feature_flags": {
+      "allow_bulk_commit": true,
+      "enable_api_schema_ui": true,
+      "enable_entity_import": true,
+      "max_bulk_import_rows": 500,
+      "enable_entity_console": true,
+      "allowed_roles_api_schema": [
+        "ADMIN",
+        "LEADERSHIP",
+        "IT_ADMIN"
+      ],
+      "allowed_roles_entity_import": [
+        "ADMIN",
+        "LEADERSHIP",
+        "IT_ADMIN"
+      ],
+      "allowed_roles_entity_console": [
+        "ADMIN",
+        "LEADERSHIP",
+        "IT_ADMIN"
+      ],
+      "allow_finance_access_requests": true,
+      "require_guardian_finance_opt_in": true
+    },
+    "default_term_report_style": null,
+    "default_annual_report_style": null,
+    "referral_bonus_amount": "0.00",
+    "default_grading_scale": "numeric_0_20",
+    "default_region": "cameroon_anglophone",
+    "sms_provider": "console",
+    "sms_api_key": "",
+    "sms_sender_id": "GILEAD",
+    "email_from_address": "noreply@school.example.com",
+    "teacher_deadline_reminder_days": [],
+    "teacher_reminder_time_of_day": "08:00:00",
+    "cache_rankings_interval_minutes": 10,
+    "enable_concurrent_mark_uploads": true,
+    "enable_practical_assessment": true,
+    "auto_tag_photos_from_exif": true,
+    "enable_offline_mode": true,
+    "offline_sync_conflict_resolution": "show_both",
+    "compliance_profile": 1,
+    "finance_auto_generate_invoices_enabled": false,
+    "finance_auto_generate_schedule": {},
+    "finance_auto_generate_due_date_offset_days": 30,
+    "finance_auto_generate_require_approval": false,
+    "finance_fee_plan_auto_copy_enabled": false,
+    "finance_fee_plan_auto_copy_mode": "manual",
+    "finance_fee_plan_copy_increase_percentage": "0.00",
+    "finance_payment_reminder_default_channels": [],
+    "finance_payment_reminder_default_days": [],
+    "finance_payment_reminder_enable_whatsapp": false,
+    "finance_invoice_auto_status_updates_enabled": true,
+    "finance_invoice_overdue_grace_period_days": 0,
+    "finance_receipt_upload_enabled": true,
+    "finance_receipt_auto_verify_enabled": true,
+    "finance_receipt_verification_method": "pattern",
+    "finance_receipt_auto_apply_threshold": 0.9,
+    "finance_receipt_auto_apply_enabled": true,
+    "finance_receipt_require_admin_approval": false,
+    "finance_receipt_amount_tolerance": "1.00",
+    "finance_bank_verification_enabled": true,
+    "finance_bank_verification_auto_approve": false,
+    "finance_bank_verification_tolerance_days": 7,
+    "finance_bank_verification_amount_tolerance": "1.00",
+    "finance_payment_instructions_bank": "🏦 BANK TRANSFER:\nAccount: {bank_account}\nBank: {bank_name}\nBranch: {branch}\nReference: {payment_code}",
+    "finance_payment_instructions_mtn_momo": "📱 MTN MOBILE MONEY:\nMerchant: {mtn_momo_number}\nPayment Code: {payment_code}\nAmount: {amount} XAF",
+    "finance_payment_instructions_orange_money": "📱 ORANGE MONEY:\nMerchant: {orange_money_number}\nPayment Code: {payment_code}\nAmount: {amount} XAF",
+    "finance_payment_instructions_cash": "💵 CASH: Pay at school office during business hours.",
+    "finance_receipt_upload_instructions": "After payment, upload your receipt here: {receipt_upload_link}",
+    "finance_reminder_no_contact_action": "warn_only",
+    "finance_receipt_max_size_mb": 5,
+    "finance_receipt_allowed_extensions": "pdf,jpg,jpeg,png",
+    "finance_overpayment_handling": "allow_with_refund",
+    "finance_overpayment_tolerance_xaf": "1000.00",
+    "finance_void_invoice_with_payments": "allow",
+    "finance_on_student_withdrawal": "stop_reminders_only",
+    "finance_receipt_idempotency_window_minutes": 10,
+    "finance_reminder_retry_failed_hours": 24,
+    "finance_reminder_max_retries": 2,
+    "finance_receipt_require_verification_reason": true,
+    "finance_receipt_second_approval_threshold_xaf": "0.00",
+    "finance_notify_guardians_new_invoice": true,
+    "finance_notify_guardians_payment_received": true,
+    "finance_notify_new_invoice_email": false,
+    "finance_notify_payment_received_email": false,
+    "notify_parent_welcome_email": false,
+    "top_students_default_limit": 10,
+    "pass_mark": "10.00",
+    "use_promotion_rule_for_pass": false,
+    "weak_subject_threshold": "10.00",
+    "improvement_delta_threshold": "1.00",
+    "deadline_mode": "TERM_END",
+    "updated_at": "2026-02-06T22:14:44.076Z"
+  }
+}
+]
