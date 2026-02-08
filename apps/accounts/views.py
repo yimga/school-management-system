@@ -29,8 +29,16 @@ from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, Dash
 from apps.siteconfig.dashboard_views import effective_chart_types
 from apps.accounts.utils import get_dashboard_context
 
-from .forms import ClaimInviteAccountForm, EditRoleForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
-from .models import AccessRole, Permission, User
+from .forms import (
+    ClaimInviteAccountForm,
+    EditRoleForm,
+    PermissionForm,
+    RoleForm,
+    TemporaryRoleGrantForm,
+    UserPermissionForm,
+    UserRoleForm,
+)
+from .models import AccessRole, Permission, User, TemporaryRoleGrant
 
 
 def _notify_new_direct_message(sender, recipient, message):
@@ -635,6 +643,7 @@ def rbac_dashboard(request):
     permission_form = PermissionForm(prefix="permission")
     user_role_form = UserRoleForm(prefix="user_role", initial=initial_user_roles or None)
     user_permission_form = UserPermissionForm(prefix="user_permission")
+    temporary_grant_form = TemporaryRoleGrantForm(prefix="temp_grant")
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
@@ -681,6 +690,38 @@ def rbac_dashboard(request):
                 messages.success(request, f"Role '{role.name}' updated.")
                 return redirect("accounts:rbac")
             edit_role_id = edit_role_form.cleaned_data.get("role_id") or request.POST.get("role_id")
+        elif form_type == "temporary_grant":
+            temporary_grant_form = TemporaryRoleGrantForm(request.POST, prefix="temp_grant")
+            if temporary_grant_form.is_valid():
+                from datetime import datetime, time
+                user = temporary_grant_form.cleaned_data["user"]
+                role = temporary_grant_form.cleaned_data["role"]
+                expires_date = temporary_grant_form.cleaned_data["expires_at"]
+                valid_from_date = temporary_grant_form.cleaned_data.get("valid_from")
+                notes = (temporary_grant_form.cleaned_data.get("notes") or "").strip()[:255]
+                expires_at = timezone.make_aware(
+                    datetime.combine(expires_date, time(23, 59, 59)),
+                    timezone.get_current_timezone(),
+                )
+                valid_from = None
+                if valid_from_date:
+                    valid_from = timezone.make_aware(
+                        datetime.combine(valid_from_date, time(0, 0, 0)),
+                        timezone.get_current_timezone(),
+                    )
+                TemporaryRoleGrant.objects.create(
+                    user=user,
+                    role=role,
+                    expires_at=expires_at,
+                    valid_from=valid_from,
+                    created_by=request.user,
+                    notes=notes,
+                )
+                messages.success(
+                    request,
+                    f"Temporary role '{role.name}' granted to {user.username} until {expires_date}.",
+                )
+                return redirect("accounts:rbac")
 
     today = timezone.localdate()
     week_start = today - timedelta(days=6)
@@ -708,6 +749,13 @@ def rbac_dashboard(request):
             except ValueError:
                 pass
 
+    now = timezone.now()
+    active_temporary_grants = TemporaryRoleGrant.objects.filter(
+        expires_at__gt=now,
+    ).filter(
+        Q(valid_from__isnull=True) | Q(valid_from__lte=now),
+    ).select_related("user", "role", "created_by").order_by("expires_at")[:50]
+
     context = {
         "roles": roles_qs,
         "permissions": Permission.objects.order_by("code"),
@@ -715,6 +763,8 @@ def rbac_dashboard(request):
         "permission_form": permission_form,
         "user_role_form": user_role_form,
         "user_permission_form": user_permission_form,
+        "temporary_grant_form": temporary_grant_form,
+        "active_temporary_grants": active_temporary_grants,
         "edit_role_form": edit_role_form,
         "edit_role_id": edit_role_id,
         "selected_role_ids": selected_role_ids,

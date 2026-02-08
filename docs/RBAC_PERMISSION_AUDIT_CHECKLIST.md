@@ -75,6 +75,8 @@ Parents **should** keep (if you want them to have):
 
 **Auto-apply:** When you create or change a user’s **role** (User.role) in Configuration Engine, the system automatically assigns the matching AccessRole(s) so permissions apply without a separate step. Use **Assign Roles to User** to add extra roles or override.
 
+**Temporary role grants:** Use **Grant role with expiry** on the RBAC page (or Configuration Engine → Accounts → Temporary role grants) to give a user a role until a set date (e.g. an auditor for one month). Permissions from that role apply only while the grant is active (expires_at in the future, and optional valid_from in the past). Active temporary grants are listed on the RBAC page; run `python manage.py list_expired_temporary_grants` to list expired grants.
+
 After saving, sidebar and backend dashboard sections show/hide based on `action_perms` and `has_feature_permission`.
 
 ---
