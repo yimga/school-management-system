@@ -8,6 +8,7 @@ import logging
 from django.utils import timezone
 
 from celery import shared_task
+from apps.automation.models import AutomationExecutionLog
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +23,22 @@ def remind_pending_assignees_task(self) -> dict:
     from apps.finance.models import Notification
     from .models import AccessRequest
 
+    execution_log = AutomationExecutionLog.objects.create(
+        task_name="requests.remind_pending_assignees",
+        execution_type=AutomationExecutionLog.ExecutionType.SCHEDULED,
+        status=AutomationExecutionLog.Status.PENDING,
+    )
     try:
         site = SiteSettings.get_solo()
         interval_hours = getattr(site, "requests_reminder_interval_hours", 0) or 0
         if interval_hours <= 0:
-            return {"notified": 0, "message": "Reminder disabled (interval 0)"}
+            result = {"notified": 0, "message": "Reminder disabled (interval 0)"}
+            execution_log.mark_completed(
+                AutomationExecutionLog.Status.SUCCESS,
+                records_processed=0,
+                summary=result,
+            )
+            return result
 
         pending = AccessRequest.objects.filter(
             status=AccessRequest.Status.PENDING,
@@ -57,7 +69,17 @@ def remind_pending_assignees_task(self) -> dict:
             except Exception as e:
                 logger.warning("Failed to notify assignee %s: %s", assignee_id, e)
 
-        return {"notified": notified, "assignees": len(by_assignee), "pending_total": pending.count()}
+        result = {"notified": notified, "assignees": len(by_assignee), "pending_total": pending.count()}
+        execution_log.mark_completed(
+            AutomationExecutionLog.Status.SUCCESS,
+            records_processed=notified,
+            summary=result,
+        )
+        return result
     except Exception as e:
         logger.exception("remind_pending_assignees_task failed: %s", e)
+        execution_log.mark_completed(
+            AutomationExecutionLog.Status.FAILED,
+            error_message=str(e),
+        )
         raise
