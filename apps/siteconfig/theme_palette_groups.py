@@ -10,80 +10,49 @@ THEME_PALETTE_GROUPS: Sequence[Tuple[str, Sequence[str]]] = (
     (
         "Leadership & Academic",
         (
-            "admin-academic-authority",
-            "admin-executive-ivy",
-            "admin-modern-chancellor",
-            "admin-focused-classroom",
             "admin-academic-slate",
-            "admin-slate-gray",
-        ),
-    ),
-    (
-        "Campus Warmth",
-        (
-            "admin-gilead-warm-pink",
-            "admin-sunset-study",
-            "admin-sunset-warm",
-            "admin-modern-sage",
-            "admin-verdant-growth",
-            "admin-digital-lavender",
+            "admin-academic-authority",
+            "admin-campus-blue",
         ),
     ),
     (
         "Blue Spectrum",
         (
-            "admin-campus-blue",
-            "admin-sky-blue",
             "admin-ocean-blue",
             "admin-indigo-lecture",
-            "admin-sophisticated-slate",
+            "admin-digital-lavender",
         ),
     ),
     (
-        "STEM & Technical",
+        "Warm & Human",
+        (
+            "admin-gilead-warm-pink",
+            "admin-sunset-study",
+            "admin-sunset-warm",
+        ),
+    ),
+    (
+        "Nature & Growth",
+        (
+            "admin-forest-academy",
+            "admin-modern-sage",
+            "admin-verdant-growth",
+        ),
+    ),
+    (
+        "STEM & Contemporary",
         (
             "admin-tech-pioneer",
             "admin-cyber-lab",
-            "admin-blueprint",
-            "admin-retro-future",
-            "admin-bento-box",
-        ),
-    ),
-    (
-        "Accessibility & Inclusion",
-        (
-            "admin-high-contrast-light",
-            "admin-high-contrast-dark",
-            "admin-high-contrast-accessible",
-            "admin-sensory-room",
-            "admin-focus-mode",
-        ),
-    ),
-    (
-        "Boutique & Conservatory",
-        (
-            "admin-conservatory",
-            "admin-modern-gallery",
-            "admin-forest-academy",
-            "admin-forest-green",
-            "admin-eco-digital",
-        ),
-    ),
-    (
-        "Contemporary Experimental",
-        (
             "admin-glassmorphism",
-            "admin-neo-brutalist",
-            "admin-monochrome-pro",
         ),
     ),
     (
-        "Dark Focus",
+        "Accessibility & Premium",
         (
             "admin-midnight-scholar",
-            "admin-the-midnight-scholar",
-            "admin-gilead-dark-neutral",
-            "admin-deep-space-midnight",
+            "admin-high-contrast-accessible",
+            "admin-conservatory",
         ),
     ),
 )

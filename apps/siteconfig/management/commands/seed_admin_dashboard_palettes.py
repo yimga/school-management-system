@@ -7,6 +7,33 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from apps.siteconfig.models import ThemePack, SiteSettings
 
+CURATED_CATALOG_SLUGS = (
+    "admin-academic-slate",
+    "admin-academic-authority",
+    "admin-campus-blue",
+    "admin-ocean-blue",
+    "admin-indigo-lecture",
+    "admin-digital-lavender",
+    "admin-gilead-warm-pink",
+    "admin-sunset-study",
+    "admin-sunset-warm",
+    "admin-forest-academy",
+    "admin-modern-sage",
+    "admin-verdant-growth",
+    "admin-tech-pioneer",
+    "admin-cyber-lab",
+    "admin-glassmorphism",
+    "admin-high-contrast-accessible",
+    "admin-conservatory",
+    "admin-midnight-scholar",
+    "portal-active-learner",
+    "portal-creative-spark",
+    "portal-sunset-scholar",
+    "portal-grounded-mentor",
+    "portal-playroom",
+    "portal-orchard",
+)
+
 
 def build_admin_dashboard_palette(
     primary,
@@ -1259,10 +1286,18 @@ class Command(BaseCommand):
             },
         ]
 
+        all_defined_slugs = [p["slug"] for p in palettes]
+        by_slug = {p["slug"]: p for p in palettes}
+        palettes = [by_slug[slug] for slug in CURATED_CATALOG_SLUGS if slug in by_slug]
+        missing_slugs = [slug for slug in CURATED_CATALOG_SLUGS if slug not in by_slug]
+        if missing_slugs:
+            self.stdout.write(self.style.WARNING(f"Skipped missing curated slugs: {', '.join(missing_slugs)}"))
+
         slugs = [p["slug"] for p in palettes]
         if reset:
             self.stdout.write("Deleting existing admin dashboard palettes...")
             ThemePack.objects.filter(slug__in=slugs).delete()
+            ThemePack.objects.filter(slug__in=all_defined_slugs).exclude(slug__in=slugs).delete()
             self.stdout.write(self.style.SUCCESS("  Deleted.\n"))
 
         created_count = 0

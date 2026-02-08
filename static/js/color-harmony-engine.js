@@ -693,6 +693,21 @@
     }
   };
 
+  var CURATED_PRESET_KEYS = [
+    'lively-slate',
+    'refined-beautified',
+    'dark-minimal',
+    'light-card',
+    'ink-and-onyx',
+    'sunrise-warm',
+    'emerald-focus',
+    'high-contrast',
+    'gilead-blue',
+    'indigo-amber',
+    'twilight',
+    'deep-navy-gold'
+  ];
+
   // ============================================================
   // Harmony metadata
   // ============================================================
@@ -810,6 +825,7 @@
   // Metadata
   colorHarmony.HARMONIES = HARMONIES;
   colorHarmony.PRESETS = PRESETS;
+  colorHarmony.CURATED_PRESET_KEYS = CURATED_PRESET_KEYS.slice();
 
   /**
    * Generate harmony by name
@@ -839,7 +855,9 @@
    * @returns {string[]}
    */
   colorHarmony.listPresets = function () {
-    return Object.keys(PRESETS);
+    return CURATED_PRESET_KEYS.filter(function (key) {
+      return !!PRESETS[key];
+    });
   };
 
   /**
