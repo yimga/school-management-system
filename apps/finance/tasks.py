@@ -1010,119 +1010,133 @@ def retry_bank_verification_task(self, days_old: int = 30) -> dict:
             "still_pending": int
         }
     """
-    from apps.finance.bank_verification import BankDepositVerifier
-    from apps.finance.models import BankAccount, BankStatementEntry
-    from apps.siteconfig.models import SiteSettings
-    
-    verifier = BankDepositVerifier()
-    site_settings = SiteSettings.get_solo()
-    tolerance_days = int(getattr(site_settings, "finance_bank_verification_tolerance_days", 7))
-    
-    # Get receipts that failed bank verification and are old enough
-    cutoff_date = timezone.now() - timedelta(days=days_old)
-    pending_receipts = PaymentProofUpload.objects.filter(
-        bank_verified=False,
-        payment_method__in=["BANK", "MTN_MOMO", "ORANGE_MOMO"],
-        created_at__lte=cutoff_date,
-        status__in=[
-            PaymentProofUpload.Status.PENDING,
-            PaymentProofUpload.Status.DISCREPANCY
-        ]
-    ).select_related("invoice", "uploaded_by")
-    
-    retried_count = 0
-    verified_count = 0
-    still_pending_count = 0
-    
-    for receipt_upload in pending_receipts:
-        try:
-            # Get relevant bank accounts
-            if receipt_upload.payment_method == "BANK":
-                accounts = BankAccount.objects.filter(
-                    account_type=BankAccount.AccountType.BANK,
-                    is_active=True
-                )
-            elif receipt_upload.payment_method == "MTN_MOMO":
-                accounts = BankAccount.objects.filter(
-                    account_type=BankAccount.AccountType.MTN_MOMO,
-                    is_active=True
-                )
-            elif receipt_upload.payment_method == "ORANGE_MOMO":
-                accounts = BankAccount.objects.filter(
-                    account_type=BankAccount.AccountType.ORANGE_MONEY,
-                    is_active=True
-                )
-            else:
-                continue
-            
-            # Get bank statements
-            all_statements = []
-            for account in accounts:
-                statements = BankStatementEntry.objects.filter(
-                    bank_account=account,
-                    transaction_type__in=[
-                        BankStatementEntry.TransactionType.DEPOSIT,
-                        BankStatementEntry.TransactionType.TRANSFER_IN
-                    ]
-                )
-                all_statements.extend(list(statements))
-            
-            # Verify deposit
-            if receipt_upload.payment_method == "MTN_MOMO":
-                verification_result = verifier.verify_mtn_momo_deposit(
-                    receipt_upload,
-                    [s for s in all_statements if s.bank_account.account_type == BankAccount.AccountType.MTN_MOMO]
-                )
-            elif receipt_upload.payment_method == "ORANGE_MOMO":
-                verification_result = verifier.verify_orange_money_deposit(
-                    receipt_upload,
-                    [s for s in all_statements if s.bank_account.account_type == BankAccount.AccountType.ORANGE_MONEY]
-                )
-            else:
-                verification_result = verifier.verify_deposit(
-                    receipt_upload,
-                    all_statements,
-                    tolerance_days=tolerance_days
-                )
-            
-            # Update receipt upload
-            receipt_upload.bank_verified = verification_result["verified"]
-            receipt_upload.bank_verification_date = timezone.now() if verification_result["verified"] else None
-            receipt_upload.bank_verification_method = verification_result["match_method"]
-            receipt_upload.bank_statement_entry = verification_result.get("matched_entry")
-            receipt_upload.bank_verification_notes = "; ".join(verification_result.get("discrepancies", []))
-            receipt_upload.last_verification_attempt = timezone.now()
-            receipt_upload.verification_retry_count += 1
-            
-            if verification_result["verified"]:
-                verified_count += 1
-                # Auto-approve if enabled
-                if getattr(site_settings, "finance_bank_verification_auto_approve", False):
-                    from apps.finance.services import create_payment_from_receipt
-                    receipt_data = receipt_upload.verification_data or {}
-                    create_payment_from_receipt(receipt_upload, receipt_data)
-            else:
-                still_pending_count += 1
-            
-            receipt_upload.save()
-            retried_count += 1
-            
-        except Exception as e:
-            logger.error(f"Error retrying bank verification for receipt {receipt_upload.id}: {str(e)}")
+    execution_log = AutomationExecutionLog.objects.create(
+        task_name="finance.retry_bank_verification",
+        execution_type=AutomationExecutionLog.ExecutionType.SCHEDULED,
+        status=AutomationExecutionLog.Status.PENDING,
+    )
+    try:
+        from apps.finance.bank_verification import BankDepositVerifier
+        from apps.finance.models import BankAccount, BankStatementEntry
+        from apps.siteconfig.models import SiteSettings
 
+        verifier = BankDepositVerifier()
+        site_settings = SiteSettings.get_solo()
+        tolerance_days = int(getattr(site_settings, "finance_bank_verification_tolerance_days", 7))
+
+        # Get receipts that failed bank verification and are old enough
+        cutoff_date = timezone.now() - timedelta(days=days_old)
+        pending_receipts = PaymentProofUpload.objects.filter(
+            bank_verified=False,
+            payment_method__in=["BANK", "MTN_MOMO", "ORANGE_MOMO"],
+            created_at__lte=cutoff_date,
+            status__in=[
+                PaymentProofUpload.Status.PENDING,
+                PaymentProofUpload.Status.DISCREPANCY
+            ]
+        ).select_related("invoice", "uploaded_by")
+
+        retried_count = 0
+        verified_count = 0
+        still_pending_count = 0
+        error_count = 0
+
+        for receipt_upload in pending_receipts:
+            try:
+                # Get relevant bank accounts
+                if receipt_upload.payment_method == "BANK":
+                    accounts = BankAccount.objects.filter(
+                        account_type=BankAccount.AccountType.BANK,
+                        is_active=True
+                    )
+                elif receipt_upload.payment_method == "MTN_MOMO":
+                    accounts = BankAccount.objects.filter(
+                        account_type=BankAccount.AccountType.MTN_MOMO,
+                        is_active=True
+                    )
+                elif receipt_upload.payment_method == "ORANGE_MOMO":
+                    accounts = BankAccount.objects.filter(
+                        account_type=BankAccount.AccountType.ORANGE_MONEY,
+                        is_active=True
+                    )
+                else:
+                    continue
+
+                # Get bank statements
+                all_statements = []
+                for account in accounts:
+                    statements = BankStatementEntry.objects.filter(
+                        bank_account=account,
+                        transaction_type__in=[
+                            BankStatementEntry.TransactionType.DEPOSIT,
+                            BankStatementEntry.TransactionType.TRANSFER_IN
+                        ]
+                    )
+                    all_statements.extend(list(statements))
+
+                # Verify deposit
+                if receipt_upload.payment_method == "MTN_MOMO":
+                    verification_result = verifier.verify_mtn_momo_deposit(
+                        receipt_upload,
+                        [s for s in all_statements if s.bank_account.account_type == BankAccount.AccountType.MTN_MOMO]
+                    )
+                elif receipt_upload.payment_method == "ORANGE_MOMO":
+                    verification_result = verifier.verify_orange_money_deposit(
+                        receipt_upload,
+                        [s for s in all_statements if s.bank_account.account_type == BankAccount.AccountType.ORANGE_MONEY]
+                    )
+                else:
+                    verification_result = verifier.verify_deposit(
+                        receipt_upload,
+                        all_statements,
+                        tolerance_days=tolerance_days
+                    )
+
+                # Update receipt upload
+                receipt_upload.bank_verified = verification_result["verified"]
+                receipt_upload.bank_verification_date = timezone.now() if verification_result["verified"] else None
+                receipt_upload.bank_verification_method = verification_result["match_method"]
+                receipt_upload.bank_statement_entry = verification_result.get("matched_entry")
+                receipt_upload.bank_verification_notes = "; ".join(verification_result.get("discrepancies", []))
+                receipt_upload.last_verification_attempt = timezone.now()
+                receipt_upload.verification_retry_count += 1
+
+                if verification_result["verified"]:
+                    verified_count += 1
+                    # Auto-approve if enabled
+                    if getattr(site_settings, "finance_bank_verification_auto_approve", False):
+                        receipt_data = receipt_upload.verification_data or {}
+                        create_payment_from_receipt(receipt_upload, receipt_data)
+                else:
+                    still_pending_count += 1
+
+                receipt_upload.save()
+                retried_count += 1
+            except Exception as e:
+                error_count += 1
+                logger.error("Error retrying bank verification for receipt %s: %s", receipt_upload.id, str(e))
+
+        task_status = (
+            AutomationExecutionLog.Status.SUCCESS
+            if error_count == 0
+            else AutomationExecutionLog.Status.PARTIAL
+        )
         execution_log.mark_completed(
-            AutomationExecutionLog.Status.SUCCESS,
+            task_status,
             records_processed=retried_count,
+            records_failed=error_count,
             summary={
                 "retried": retried_count,
                 "verified": verified_count,
                 "still_pending": still_pending_count,
+                "errors": error_count,
             },
         )
         return {
             "retried": retried_count,
             "verified": verified_count,
-            "still_pending": still_pending_count
+            "still_pending": still_pending_count,
+            "errors": error_count,
         }
     except Exception as e:
         logger.exception("retry_bank_verification_task failed")

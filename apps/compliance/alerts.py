@@ -118,6 +118,13 @@ def _send_email(subject: str, message: str):
         logger.warning("Failed to send compliance alert email: %s", exc)
 
 
+def send_email_alert(subject: str, message: str):
+    """
+    Backwards-compatible public email sender for management commands.
+    """
+    _send_email(subject, message)
+
+
 def _send_slack(message: str):
     cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
     webhook = cfg.get("slack_webhook_url")
