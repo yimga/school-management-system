@@ -10,6 +10,7 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
 from django_otp import user_has_device, login as otp_login
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import timedelta
 from io import BytesIO
 import qrcode
@@ -31,15 +32,28 @@ def _generate_backup_tokens(device, count=10):
     return tokens
 
 
+def _safe_next_url(request, candidate, fallback=""):
+    if not candidate:
+        return fallback
+    value = str(candidate).strip()
+    if not value:
+        return fallback
+    if url_has_allowed_host_and_scheme(
+        url=value,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return value
+    return fallback
+
+
 @login_required
 def mfa_setup(request):
     """
     Allow user to set up MFA (Time-based One-Time Password).
     Generates QR code for authenticator apps (Google Authenticator, Authy, etc.)
     """
-    next_url = (request.POST.get("next") or request.GET.get("next") or "").strip()
-    if next_url and (not next_url.startswith("/") or "//" in next_url):
-        next_url = ""
+    next_url = _safe_next_url(request, request.POST.get("next") or request.GET.get("next"), "")
     # Check if user already has MFA enabled
     has_mfa = user_has_device(request.user)
     
@@ -122,7 +136,7 @@ def mfa_setup(request):
 def dismiss_mfa_banner(request):
     """Dismiss the 'Set up MFA' encouragement banner for this session (e.g. from admin)."""
     request.session["mfa_banner_dismissed"] = True
-    next_url = request.GET.get("next") or request.build_absolute_uri("/admin/")
+    next_url = _safe_next_url(request, request.GET.get("next"), "/admin/")
     return redirect(next_url)
 
 
@@ -142,9 +156,11 @@ def mfa_verify(request):
         pass
 
     # Capture next URL (GET) for post-verification redirect
-    next_url = (request.POST.get("next") or request.GET.get("next") or request.session.get("mfa_next") or "").strip()
-    if next_url and (not next_url.startswith("/") or "//" in next_url):
-        next_url = ""
+    next_url = _safe_next_url(
+        request,
+        request.POST.get("next") or request.GET.get("next") or request.session.get("mfa_next"),
+        "",
+    )
     if next_url:
         request.session["mfa_next"] = next_url
     

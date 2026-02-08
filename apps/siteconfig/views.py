@@ -17,6 +17,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
@@ -113,6 +114,22 @@ def _normalize_preview_value(key, val):
     if isinstance(val, str):
         return val.strip()
     return val
+
+
+def _safe_next_url(request, candidate, fallback):
+    """Return candidate only when it is a safe local URL for this host."""
+    if not candidate:
+        return fallback
+    value = str(candidate).strip()
+    if not value:
+        return fallback
+    if url_has_allowed_host_and_scheme(
+        url=value,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return value
+    return fallback
 
 
 @staff_member_required
@@ -214,9 +231,18 @@ def reportcard_builder(request):
         .order_by("classroom__name")
     )
     all_classrooms = list(Classroom.objects.order_by("name"))
+    sample_students = {}
+    classroom_ids = [assignment.classroom_id for assignment in assignments]
+    if classroom_ids:
+        sample_candidates = (
+            StudentProfile.objects.filter(classroom_id__in=classroom_ids, is_active=True)
+            .order_by("classroom_id", "last_name", "first_name")
+        )
+        for student in sample_candidates:
+            # Keep the first student per classroom from the ordered queryset.
+            sample_students.setdefault(student.classroom_id, student)
     for assignment in assignments:
-        sample = StudentProfile.objects.filter(classroom=assignment.classroom, is_active=True).order_by("last_name", "first_name").first()
-        assignment.sample_student = sample
+        assignment.sample_student = sample_students.get(assignment.classroom_id)
     preview_students = list(
         StudentProfile.objects.filter(is_active=True)
         .select_related("classroom")
@@ -467,28 +493,28 @@ def clear_preview(request):
     request.session["preview_mode_enabled"] = False
     request.session.modified = True
     messages.info(request, "Preview cleared.")
-    next_url = request.GET.get("next")
-    if next_url and next_url.startswith("/") and not next_url.startswith("//"):
-        return redirect(next_url)
-    return redirect("siteconfig:user_preferences")
+    fallback = reverse("siteconfig:user_preferences")
+    next_url = _safe_next_url(request, request.GET.get("next"), fallback)
+    return redirect(next_url)
 
 
 @login_required
 def set_default_dashboard_view(request):
     """Set the user's default dashboard view (Overview, Workflow Center, etc.) and redirect."""
     view_value = request.GET.get("view") or request.POST.get("view")
-    next_url = request.GET.get("next") or request.POST.get("next")
+    success_fallback = reverse("accounts:redirect")
+    invalid_fallback = reverse("siteconfig:user_preferences")
+    next_candidate = request.GET.get("next") or request.POST.get("next")
+    next_url = _safe_next_url(request, next_candidate, success_fallback)
     allowed = {c[0] for c in DashboardView.choices}
     if view_value not in allowed:
         messages.warning(request, "Invalid dashboard view.")
-        return redirect(next_url or "siteconfig:user_preferences")
+        return redirect(_safe_next_url(request, next_candidate, invalid_fallback))
     preference, _ = UserPreference.objects.get_or_create(user=request.user)
     preference.dashboard_view = view_value
     preference.save()
     messages.success(request, "Default view updated.")
-    if next_url:
-        return redirect(next_url)
-    return redirect("accounts:redirect")
+    return redirect(next_url)
 
 
 @login_required
@@ -497,6 +523,7 @@ def user_preferences(request):
 
     if request.method == "GET":
         previous = request.GET.get("next") or request.META.get("HTTP_REFERER")
+        previous = _safe_next_url(request, previous, "")
         if previous:
             normalized = previous.split("?")[0]
             if "/siteconfig/preferences" not in normalized and "/siteconfig/user_preferences" not in normalized:
@@ -512,11 +539,12 @@ def user_preferences(request):
     else:
         form = UserPreferenceForm(instance=preference, user=request.user)
 
-    next_page = (
+    next_page = _safe_next_url(
+        request,
         request.GET.get("next")
         or request.session.pop(PORTAL_PREF_PREVIOUS_PAGE, None)
-        or request.META.get("HTTP_REFERER")
-        or reverse("accounts:redirect")
+        or request.META.get("HTTP_REFERER"),
+        reverse("accounts:redirect"),
     )
     if next_page and ("/siteconfig/preferences" in next_page or "/siteconfig/user_preferences" in next_page):
         next_page = reverse("accounts:redirect")
@@ -729,8 +757,8 @@ def theme_colors_page(request):
                 )
             else:
                 messages.success(request, "Theme & experience settings saved.")
-            back_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
-            if back_url and back_url.startswith("/"):
+            back_url = _safe_next_url(request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "")
+            if back_url:
                 return redirect(back_url)
             return redirect("siteconfig:theme_colors")
         messages.error(request, "Please fix the errors below.")
@@ -744,9 +772,7 @@ def theme_colors_page(request):
         )
     except Exception:
         admin_change_url = None
-    back_url = request.GET.get("next") or admin_change_url
-    if back_url and not back_url.startswith("/"):
-        back_url = admin_change_url
+    back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url)
     preview_mode_active = bool(request.session.get("preview_mode_enabled") or site.preview_mode_enabled)
 
     return render(
@@ -771,8 +797,8 @@ def theme_experience_redirect(request):
     Theme & Experience studio.
     """
     target = reverse("siteconfig:theme_colors")
-    next_url = request.GET.get("next")
-    if next_url and next_url.startswith("/"):
+    next_url = _safe_next_url(request, request.GET.get("next"), "")
+    if next_url:
         target = f"{target}?{urlencode({'next': next_url})}"
     return redirect(target)
 
@@ -783,14 +809,15 @@ def toggle_preview_mode(request):
     request.session[PREVIEW_MODE_SESSION_KEY] = not enabled
     status = "enabled" if not enabled else "disabled"
     messages.info(request, f"Preview/sandbox mode {status}.")
-    next_url = request.GET.get("next") or request.META.get("HTTP_REFERER") or "/"
+    next_url = _safe_next_url(request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "/")
     return redirect(next_url)
 
 
 @staff_member_required
 def set_act_as_role(request):
     if request.method != "POST":
-        return redirect(request.GET.get("next") or request.META.get("HTTP_REFERER") or "/")
+        next_url = _safe_next_url(request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "/")
+        return redirect(next_url)
 
     role_code = request.POST.get("role")
     valid_roles = {code: label for code, label in User.Role.choices}
@@ -805,7 +832,11 @@ def set_act_as_role(request):
         messages.info(request, "Act-as role cleared.")
         logger.info("User %s cleared act-as role (was %s)", request.user.username, previous)
 
-    next_url = request.POST.get("next") or request.GET.get("next") or request.META.get("HTTP_REFERER") or "/"
+    next_url = _safe_next_url(
+        request,
+        request.POST.get("next") or request.GET.get("next") or request.META.get("HTTP_REFERER"),
+        "/",
+    )
     return redirect(next_url)
 
 

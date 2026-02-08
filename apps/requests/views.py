@@ -6,11 +6,40 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.urls import reverse
 
 from apps.accounts.models import User
 
 from .models import AccessRequest, RequestDecision
 from .services import apply_request_decision, create_access_request
+
+
+def _safe_int(raw, *, default, minimum=None, maximum=None):
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        value = default
+    if minimum is not None:
+        value = max(minimum, value)
+    if maximum is not None:
+        value = min(maximum, value)
+    return value
+
+
+def _safe_next_url(request: HttpRequest, candidate: str | None, fallback: str) -> str:
+    if not candidate:
+        return fallback
+    value = str(candidate).strip()
+    if not value:
+        return fallback
+    if url_has_allowed_host_and_scheme(
+        url=value,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return value
+    return fallback
 
 
 def _can_manage_requests(user) -> bool:
@@ -85,7 +114,7 @@ def requests_dashboard(request: HttpRequest):
         },
     }
 
-    per_page = min(100, max(10, int(request.GET.get("page_size", 25))))
+    per_page = _safe_int(request.GET.get("page_size", 25), default=25, minimum=10, maximum=100)
     paginator = Paginator(qs, per_page)
     page_number = request.GET.get("page", 1)
     try:
@@ -152,7 +181,7 @@ def request_module_access(request: HttpRequest):
 
     module = (request.POST.get("module") or "").strip().lower()
     action = (request.POST.get("action") or "read").strip().lower()
-    next_url = request.POST.get("next") or "/"
+    next_url = _safe_next_url(request, request.POST.get("next"), reverse("requests:dashboard"))
 
     if action not in {"read", "write"}:
         action = "read"
