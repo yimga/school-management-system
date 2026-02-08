@@ -68,11 +68,16 @@ Parents **should** keep (if you want them to have):
 
 ## 5. Where to change permissions
 
-1. **Backend** → **RBAC & Access Control** (or Django admin → AccessRole / User → feature_permissions).
-2. Edit the **role** (e.g. TEACHER, PARENT) and add/remove permissions.
-3. Or edit **individual user** → Feature permissions (overrides role).
+1. **Backend** → **RBAC & Access Control** (requires **settings.manage**; or Configuration Engine → Accounts → AccessRole / User → feature_permissions).
+2. **Edit a role’s permissions:** In RBAC & Access Control, open **Existing Roles** → **Edit** next to the role; or in Configuration Engine go to Accounts → Access roles and edit the role there.
+3. **Assign roles to a user:** In RBAC & Access Control use **Assign Roles to User** (select user, check one or more roles, Save). This sets the user’s **AccessRoles** (multiple roles allowed). The user’s **primary role** (User.role, e.g. for display) can be set in Configuration Engine when editing the user; changing User.role there also auto-applies the corresponding AccessRole permissions.
+4. **Individual user overrides:** Edit the user in Configuration Engine and set **Feature permissions** (overrides role).
 
-After saving, sidebar and backend dashboard sections will show/hide automatically based on `action_perms` and `has_feature_permission`.
+**Auto-apply:** When you create or change a user’s **role** (User.role) in Configuration Engine, the system automatically assigns the matching AccessRole(s) so permissions apply without a separate step. Use **Assign Roles to User** to add extra roles or override.
+
+**Temporary role grants:** Use **Grant role with expiry** on the RBAC page (or Configuration Engine → Accounts → Temporary role grants) to give a user a role until a set date (e.g. an auditor for one month). Permissions from that role apply only while the grant is active (expires_at in the future, and optional valid_from in the past). Active temporary grants are listed on the RBAC page; run `python manage.py list_expired_temporary_grants` to list expired grants.
+
+After saving, sidebar and backend dashboard sections show/hide based on `action_perms` and `has_feature_permission`.
 
 ---
 

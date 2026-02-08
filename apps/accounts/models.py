@@ -1,6 +1,9 @@
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import DatabaseError, connection, models, transaction
+from django.db.models import Q
 from django.db.transaction import TransactionManagementError
+from django.utils import timezone
 
 # User UI/UX preferences (background logo, opacity, etc.)
 class UserPreference(models.Model):
@@ -47,6 +50,45 @@ class AccessRole(models.Model):
         return f"{self.code} - {self.name}"
 
 
+class TemporaryRoleGrant(models.Model):
+    """
+    Time-limited role grant (e.g. auditor for one month). Permissions from this
+    role are effective only while expires_at > now (and valid_from <= now if set).
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="temporary_role_grants",
+    )
+    role = models.ForeignKey(AccessRole, on_delete=models.CASCADE, related_name="temporary_grants")
+    valid_from = models.DateTimeField(null=True, blank=True, help_text="Optional: grant active from this time.")
+    expires_at = models.DateTimeField(help_text="Grant stops being active after this time.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_temporary_grants",
+    )
+    notes = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["-expires_at"]
+
+    def __str__(self):
+        return f"{self.user.username} <- {self.role.code} until {self.expires_at}"
+
+    @property
+    def is_active(self):
+        now = timezone.now()
+        if self.expires_at <= now:
+            return False
+        if self.valid_from is not None and self.valid_from > now:
+            return False
+        return True
+
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         SUPERADMIN = "SUPERADMIN", "Super Administrator"
@@ -91,7 +133,16 @@ class User(AbstractUser):
                 return False
             if self.feature_permissions.filter(code=code).exists():
                 return True
-            return self.roles.filter(permissions__code=code).exists()
+            if self.roles.filter(permissions__code=code).exists():
+                return True
+            now = timezone.now()
+            if TemporaryRoleGrant.objects.filter(
+                user=self, expires_at__gt=now
+            ).filter(
+                Q(valid_from__isnull=True) | Q(valid_from__lte=now)
+            ).filter(role__permissions__code=code).exists():
+                return True
+            return False
         except (DatabaseError, TransactionManagementError):
             try:
                 if connection.in_atomic_block:

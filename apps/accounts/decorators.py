@@ -1,7 +1,6 @@
 from functools import wraps
 
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Q
 from django.http import HttpResponseForbidden
 
 from apps.siteconfig.models import SiteSettings
@@ -17,20 +16,16 @@ def _normalize_role(r) -> str:
 
 
 def _has_any_role(user, roles: tuple[str, ...]) -> bool:
+    from apps.accounts.permissions import has_role
     if not user.is_authenticated:
         return False
     if getattr(user, "is_superuser", False):
         return True
     normalized = tuple(_normalize_role(r) for r in roles)
-    user_role = getattr(user, "role", None)
-    user_role_str = _normalize_role(user_role) if user_role is not None else ""
-    if user_role_str in normalized:
-        return True
-    # Case-insensitive match for AccessRole.code (DB may store mixed case)
-    q = Q()
     for r in normalized:
-        q |= Q(code__iexact=r)
-    return user.roles.filter(q).exists()
+        if has_role(user, r):
+            return True
+    return False
 
 
 def role_required(*roles: str):

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from .models import AccessRole, Permission, User, UserPreference
 from apps.portal.models import PendingGuardianInvite
@@ -50,8 +51,30 @@ class PermissionForm(forms.ModelForm):
         }
 
 
+class EditRoleForm(forms.Form):
+    """Edit an existing role's description and permissions (used in RBAC Edit Role modal)."""
+    role_id = forms.IntegerField(widget=forms.HiddenInput)
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}))
+    permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+    )
+
+    def __init__(self, role=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if role is not None:
+            self.fields["role_id"].initial = role.pk
+            self.fields["description"].initial = role.description or ""
+            self.fields["permissions"].initial = list(role.permissions.all())
+
+
 class UserRoleForm(forms.Form):
-    user = forms.ModelChoiceField(queryset=User.objects.all())
+    user = forms.ModelChoiceField(
+        queryset=User.objects.all(),
+        required=True,
+        empty_label="Select user",
+    )
     roles = forms.ModelMultipleChoiceField(
         queryset=AccessRole.objects.all(),
         required=False,
@@ -61,6 +84,43 @@ class UserRoleForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["user"].widget.attrs.update({"class": "form-select"})
+
+
+class TemporaryRoleGrantForm(forms.Form):
+    """Grant a role to a user with an expiry date (e.g. auditor for one month)."""
+    user = forms.ModelChoiceField(
+        queryset=User.objects.all(),
+        required=True,
+        empty_label="Select user",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    role = forms.ModelChoiceField(
+        queryset=AccessRole.objects.all(),
+        required=True,
+        empty_label="Select role",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    expires_at = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        help_text="Grant stops being active after this date (end of day).",
+    )
+    valid_from = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        help_text="Optional: grant active from this date.",
+    )
+    notes = forms.CharField(
+        required=False,
+        max_length=255,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. External auditor"}),
+    )
+
+    def clean_expires_at(self):
+        value = self.cleaned_data.get("expires_at")
+        if value and value < timezone.localdate():
+            raise ValidationError("Expiry date must be today or in the future.")
+        return value
 
 
 class UserPermissionForm(forms.Form):

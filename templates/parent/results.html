@@ -1,179 +1,221 @@
 {% extends "portal_base.html" %}
 {% load static i18n region_format %}
-{% block title %}Results{% endblock %}
+{# Refactor: workflow (grouped downloads), semantics (dl/section/aria), consistency (spacing, borders), fix messaging→contact_school, responsive actions. See docs/REFACTOR_PARENT_RESULTS_CHANGES.md #}
+{% block title %}{% trans "Results" %} — {{ student.student_code }}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/report-card-print.css' %}">
+<style>
+  .results-page { max-width: 56rem; margin: 0 auto; }
+  .results-actions { gap: 0.5rem; flex-wrap: wrap; }
+  .results-student-card { border-left: 4px solid var(--school-primary, #0d6efd); }
+  .results-summary-card { height: 100%; border-radius: 8px; }
+  .results-table-card { border-radius: 8px; overflow: hidden; }
+  @media (max-width: 576px) {
+    .results-actions .btn-group { width: 100%; }
+    .results-actions .dropdown-menu { position: static; width: 100%; }
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="report-card-print-wrapper">
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-  <div class="d-flex align-items-center gap-2">
-    <h2 class="mb-0">Results</h2>
-    {% include "components/pin_to_quick_access.html" with sidebar_item_id="my_children" %}
-  </div>
-  <div class="d-flex flex-wrap gap-2 no-print">
-    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();" aria-label="{% trans 'Print' %}"><i class="bi bi-printer me-1"></i>{% trans "Print" %}</button>
-    <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back</a>
-    {% if published %}
-      <a class="btn btn-success btn-sm" href="{% url 'parent_download_term_report' student.id %}">Download Term PDF</a>
-      <a class="btn btn-outline-primary btn-sm" href="{% url 'parent_download_term_report_csv' student.id %}">Term CSV</a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'parent_share_report' student.id 'term' %}">Share Term Report</a>
-    {% endif %}
-    {% if annual_published %}
-      <a class="btn btn-outline-success btn-sm" href="{% url 'parent_download_annual_report' student.id %}">Download Annual PDF</a>
-      <a class="btn btn-outline-primary btn-sm" href="{% url 'parent_download_annual_report_csv' student.id %}">Annual CSV</a>
-      <a class="btn btn-outline-secondary btn-sm" href="{% url 'parent_share_report' student.id 'annual' %}">Share Annual Report</a>
-    {% endif %}
-  </div>
-</div>
-
-  <div class="card mb-3">
-    <div class="card-body">
-      <b>Student:</b> {{ student.last_name }} {{ student.first_name }} ({{ student.student_code }})<br/>
-      <b>Class:</b> {{ student.classroom.name }} / {{ student.specialty.name }}<br/>
-      <b>Year:</b> {{ year.name }} | <b>Term:</b> {{ term.get_name_display }}
+<div class="report-card-print-wrapper results-page">
+  {# ----- Page header: title + actions (fewer clicks via grouped Download) ----- #}
+  <header class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 no-print">
+    <div class="d-flex align-items-center gap-2">
+      <h1 class="h4 mb-0 fw-semibold">{% trans "Results" %}</h1>
+      {% include "components/pin_to_quick_access.html" with sidebar_item_id="my_children" %}
     </div>
-  </div>
+    <div class="d-flex flex-wrap results-actions align-items-center gap-2">
+      <a class="btn btn-outline-secondary btn-sm order-2 order-sm-0" href="{% url 'portal:parent_dashboard' %}">
+        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to dashboard" %}
+      </a>
+      <div class="d-flex flex-wrap align-items-center gap-2 no-print" role="group" aria-label="{% trans 'Download and share' %}">
+        {% if published %}
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="downloadTermDropdown">
+              {% trans "Download term" %}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="downloadTermDropdown">
+              <li><a class="dropdown-item" href="{% url 'reports:parent_download_term_report' student.id %}"><i class="bi bi-file-pdf me-2"></i>{% trans "Term PDF" %}</a></li>
+              <li><a class="dropdown-item" href="{% url 'reports:parent_download_term_report_csv' student.id %}"><i class="bi bi-filetype-csv me-2"></i>{% trans "Term CSV" %}</a></li>
+            </ul>
+          </div>
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'reports:parent_share_report' student.id 'term' %}">{% trans "Share term" %}</a>
+        {% endif %}
+        {% if annual_published %}
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="downloadAnnualDropdown">
+              {% trans "Download annual" %}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="downloadAnnualDropdown">
+              <li><a class="dropdown-item" href="{% url 'reports:parent_download_annual_report' student.id %}"><i class="bi bi-file-pdf me-2"></i>{% trans "Annual PDF" %}</a></li>
+              <li><a class="dropdown-item" href="{% url 'reports:parent_download_annual_report_csv' student.id %}"><i class="bi bi-filetype-csv me-2"></i>{% trans "Annual CSV" %}</a></li>
+            </ul>
+          </div>
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'reports:parent_share_report' student.id 'annual' %}">{% trans "Share annual" %}</a>
+        {% endif %}
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print();" aria-label="{% trans 'Print' %}">
+        <i class="bi bi-printer me-1" aria-hidden="true"></i>{% trans "Print" %}
+      </button>
+    </div>
+  </header>
+
+  {# ----- Student context (single card, semantic list) ----- #}
+  <section class="card mb-3 results-student-card" aria-labelledby="student-info-heading">
+    <div class="card-body py-3">
+      <h2 id="student-info-heading" class="visually-hidden">{% trans "Student information" %}</h2>
+      <dl class="row mb-0 g-2 g-md-3 small">
+        <div class="col-sm-6 col-md-4">
+          <dt class="text-muted fw-normal">{% trans "Student" %}</dt>
+          <dd class="mb-0">{{ student.last_name }} {{ student.first_name }} ({{ student.student_code }})</dd>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <dt class="text-muted fw-normal">{% trans "Class" %}</dt>
+          <dd class="mb-0">{{ student.classroom.name }} / {{ student.specialty.name }}</dd>
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <dt class="text-muted fw-normal">{% trans "Year" %} / {% trans "Term" %}</dt>
+          <dd class="mb-0">{{ year.name }} · {{ term.get_name_display }}</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
 
   {% if metadata %}
-    <div class="row g-3 mb-3">
+    <section class="row g-3 mb-3" aria-label="{% trans 'School and branding' %}">
       <div class="col-md-6">
-        <div class="card border-secondary">
-          <div class="card-body">
-            <h6 class="mb-1">School geography</h6>
-            <p class="small mb-1">
-              <b>Country:</b> {{ metadata.country|default:"Not set" }} ·
-              <b>Region:</b> {{ metadata.region|default:"Not set" }}
-            </p>
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body py-3">
+            <h3 class="h6 text-muted text-uppercase mb-2">{% trans "School geography" %}</h3>
             <p class="small mb-0">
-              <b>Ministry:</b> {{ metadata.ministry|default:"Not set" }}
+              {% trans "Country" %}: {{ metadata.country|default:_("Not set") }} ·
+              {% trans "Region" %}: {{ metadata.region|default:_("Not set") }} ·
+              {% trans "Ministry" %}: {{ metadata.ministry|default:_("Not set") }}
             </p>
           </div>
         </div>
       </div>
       <div class="col-md-6">
-        <div class="card border-secondary">
-          <div class="card-body">
-            <h6 class="mb-1">Branding</h6>
-            <p class="small mb-0">
-              {{ metadata.school_name }} ({{ metadata.school_code|default:"" }}) · {{ metadata.tagline|default:"" }}
-            </p>
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body py-3">
+            <h3 class="h6 text-muted text-uppercase mb-2">{% trans "Branding" %}</h3>
+            <p class="small mb-0">{{ metadata.school_name }}{% if metadata.school_code %} ({{ metadata.school_code }}){% endif %}{% if metadata.tagline %} · {{ metadata.tagline }}{% endif %}</p>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   {% endif %}
 
   {% if published and summary %}
-    <div class="row g-3 mb-3">
+    <section class="row g-3 mb-3" aria-label="{% trans 'Performance summary' %}">
       <div class="col-md-4">
-        <div class="card h-100 border-primary">
+        <div class="card results-summary-card border-0 shadow-sm border-primary border-top border-3">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="mb-0">Performance</h6>
-              <span class="badge bg-light text-dark">{{ summary.promotion_status }}</span>
+              <span class="h6 text-muted mb-0">{% trans "Performance" %}</span>
+              <span class="badge bg-primary">{{ summary.promotion_status }}</span>
             </div>
-            <h3 class="fw-bold mb-1">{{ summary.average|default:"-"|format_number:2 }}</h3>
-            <div class="text-muted small">
-              Class: {{ summary.class_position|default:"-" }} / {{ summary.class_size|default:"-" }}<br/>
-              School: {{ summary.school_position|default:"-" }} / {{ summary.school_size|default:"-" }}
-            </div>
+            <p class="h3 fw-bold mb-1">{{ summary.average|default:"-"|format_number:2 }}</p>
+            <p class="small text-muted mb-0">
+              {% trans "Class" %}: {{ summary.class_position|default:"-" }} / {{ summary.class_size|default:"-" }} ·
+              {% trans "School" %}: {{ summary.school_position|default:"-" }} / {{ summary.school_size|default:"-" }}
+            </p>
             {% if summary.teacher_remark %}
-              <div class="mt-2 small">
-                <strong>Teacher remark:</strong> {{ summary.teacher_remark }}
-              </div>
+              <p class="small mt-2 mb-0"><strong>{% trans "Teacher remark" %}:</strong> {{ summary.teacher_remark }}</p>
             {% endif %}
           </div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="card h-100 border-success">
+        <div class="card results-summary-card border-0 shadow-sm border-success border-top border-3">
           <div class="card-body">
-            <h6 class="mb-2">Weights</h6>
-            <div class="text-muted small">
-              Seq1 {{ weights.seq1_weight }}% · Seq2 {{ weights.seq2_weight }}%<br/>
-              Exam {{ weights.exam_weight }}% · Mock {{ weights.mock_weight }}% · Pract {{ weights.practical_weight }}%
+            <h3 class="h6 text-muted mb-2">{% trans "Weights" %}</h3>
+            <p class="small text-muted mb-2">
+              Seq1 {{ weights.seq1_weight }}% · Seq2 {{ weights.seq2_weight }}% · {% trans "Exam" %} {{ weights.exam_weight }}% · Mock {{ weights.mock_weight }}% · {% trans "Pract" %} {{ weights.practical_weight }}%
+            </p>
+            <div class="progress" style="height: 6px;" role="progressbar" aria-valuenow="{{ completion_pct }}" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar" style="width: {{ completion_pct }}%;"></div>
             </div>
-            <div class="progress mt-3" style="height:6px;">
-              <div class="progress-bar" role="progressbar" style="width: {{ completion_pct }}%;" aria-valuenow="{{ completion_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-            <small class="text-muted d-block mt-1">{{ completed_count }} of {{ rows|length }} subjects complete.</small>
+            <p class="small text-muted mt-1 mb-0">{{ completed_count }} {% trans "of" %} {{ rows|length }} {% trans "subjects complete" %}.</p>
           </div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="card h-100 border-info">
+        <div class="card results-summary-card border-0 shadow-sm border-info border-top border-3">
           <div class="card-body">
-            <h6 class="mb-2">Next steps</h6>
-            <p class="mb-2 small text-muted">
-              Use the grading weights to know what matters most. If you need clarity, request a follow-up from your child’s teachers using the portal messaging tool.
+            <h3 class="h6 text-muted mb-2">{% trans "Next steps" %}</h3>
+            <p class="small text-muted mb-2">
+              {% trans "Use the grading weights to see what matters most. For follow-up, contact the school via the portal." %}
             </p>
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:portal_feature' 'messaging' %}">Open messaging</a>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_contact_school' %}">{% trans "Contact school" %}</a>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   {% endif %}
 
-{% if not published %}
-  <div class="alert alert-danger"><b>Not published yet.</b> Please check back later.</div>
-{% else %}
-  <div class="card">
-    <div class="card-body table-responsive">
-      <table class="table table-sm table-striped align-middle table-mobile-cards" aria-label="Term results: subject, coefficient, sequence and exam scores, average, and status">
-        <thead>
-          <tr>
-            <th scope="col">Subject</th>
-            <th scope="col">Coef</th>
-            <th scope="col">Seq1</th>
-            <th scope="col">Seq2</th>
-            <th scope="col">Exam</th>
-            <th scope="col">Mock</th>
-            <th scope="col">Pract</th>
-            <th scope="col">Avg</th>
-            <th scope="col">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in rows %}
-            <tr>
-              <td data-label="Subject">{{ r.subject }}</td>
-              <td data-label="Coef">{{ r.coef }}</td>
-              <td data-label="Seq1">{{ r.seq1|default_if_none:"" }}</td>
-              <td data-label="Seq2">{{ r.seq2|default_if_none:"" }}</td>
-              <td data-label="Exam">{{ r.exam|default_if_none:"" }}</td>
-              <td data-label="Mock">{{ r.mock|default_if_none:"" }}</td>
-              <td data-label="Pract">{{ r.practical|default_if_none:"" }}</td>
-              <td data-label="Avg">{{ r.avg|default_if_none:"" }}</td>
-              <td data-label="Status">
-                {% if r.avg is None %}
-                  <span class="badge bg-secondary">Pending</span>
-                {% elif r.avg >= 10 %}
-                  <span class="badge bg-success">Pass</span>
-                {% else %}
-                  <span class="badge bg-danger">Needs work</span>
-                {% endif %}
-              </td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="9" class="text-muted">No marks for this term yet. They will appear when the school publishes results.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      {% if totals %}
-        <div class="mt-2">
-          <b>Total Coef:</b> {{ totals.total_coef }}<br/>
-          <b>Overall:</b> {{ totals.overall }}
-        </div>
-      {% endif %}
+  {% if not published %}
+    <div class="alert alert-warning border-0 shadow-sm" role="alert">
+      <i class="bi bi-info-circle me-2" aria-hidden="true"></i>{% trans "Results are not published yet. Please check back later." %}
     </div>
-  </div>
-{% endif %}
+  {% else %}
+    <section class="card results-table-card border-0 shadow-sm" aria-labelledby="results-table-heading">
+      <div class="card-body p-0">
+        <h2 id="results-table-heading" class="visually-hidden">{% trans "Subject results" %}</h2>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle table-mobile-cards mb-0" aria-label="{% trans 'Term results: subject, coefficient, sequence and exam scores, average, and status' %}">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">{% trans "Subject" %}</th>
+                <th scope="col">{% trans "Coef" %}</th>
+                <th scope="col">Seq1</th>
+                <th scope="col">Seq2</th>
+                <th scope="col">{% trans "Exam" %}</th>
+                <th scope="col">Mock</th>
+                <th scope="col">{% trans "Pract" %}</th>
+                <th scope="col">{% trans "Avg" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in rows %}
+                <tr>
+                  <td data-label="{% trans 'Subject' %}">{{ r.subject }}</td>
+                  <td data-label="{% trans 'Coef' %}">{{ r.coef }}</td>
+                  <td data-label="Seq1">{{ r.seq1|default_if_none:"" }}</td>
+                  <td data-label="Seq2">{{ r.seq2|default_if_none:"" }}</td>
+                  <td data-label="{% trans 'Exam' %}">{{ r.exam|default_if_none:"" }}</td>
+                  <td data-label="Mock">{{ r.mock|default_if_none:"" }}</td>
+                  <td data-label="{% trans 'Pract' %}">{{ r.practical|default_if_none:"" }}</td>
+                  <td data-label="{% trans 'Avg' %}">{{ r.avg|default_if_none:"" }}</td>
+                  <td data-label="{% trans 'Status' %}">
+                    {% if r.avg is None %}
+                      <span class="badge bg-secondary">{% trans "Pending" %}</span>
+                    {% elif r.avg >= 10 %}
+                      <span class="badge bg-success">{% trans "Pass" %}</span>
+                    {% else %}
+                      <span class="badge bg-danger">{% trans "Needs work" %}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="9" class="text-muted py-4 text-center">{% trans "No marks for this term yet. They will appear when the school publishes results." %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if totals %}
+          <div class="px-3 py-2 bg-light small border-top">
+            <strong>{% trans "Total Coef" %}:</strong> {{ totals.total_coef }} · <strong>{% trans "Overall" %}:</strong> {{ totals.overall }}
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
 </div>
 {% endblock %}
-
-

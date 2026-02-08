@@ -29,8 +29,16 @@ from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, Dash
 from apps.siteconfig.dashboard_views import effective_chart_types
 from apps.accounts.utils import get_dashboard_context
 
-from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
-from .models import AccessRole, Permission, User
+from .forms import (
+    ClaimInviteAccountForm,
+    EditRoleForm,
+    PermissionForm,
+    RoleForm,
+    TemporaryRoleGrantForm,
+    UserPermissionForm,
+    UserRoleForm,
+)
+from .models import AccessRole, Permission, User, TemporaryRoleGrant
 
 
 def _notify_new_direct_message(sender, recipient, message):
@@ -609,12 +617,33 @@ def _resolve_admin_portal_stats(section_stats, config):
 
 
 @login_required
+@permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def rbac_dashboard(request):
+    roles_qs = AccessRole.objects.prefetch_related("permissions").order_by("code")
+    initial_user_roles = {}
+    if request.method == "GET" and request.GET.get("user"):
+        try:
+            u = User.objects.get(pk=request.GET.get("user"))
+            initial_user_roles = {"user": u, "roles": list(u.roles.all())}
+        except (User.DoesNotExist, ValueError):
+            pass
+
+    edit_role_id = None
+    edit_role_form = None
+    if request.method == "GET" and request.GET.get("edit_role"):
+        try:
+            edit_role = AccessRole.objects.prefetch_related("permissions").get(pk=request.GET.get("edit_role"))
+            edit_role_form = EditRoleForm(role=edit_role)
+            edit_role_id = edit_role.pk
+        except (AccessRole.DoesNotExist, ValueError):
+            pass
+
     role_form = RoleForm(prefix="role")
     permission_form = PermissionForm(prefix="permission")
-    user_role_form = UserRoleForm(prefix="user_role")
+    user_role_form = UserRoleForm(prefix="user_role", initial=initial_user_roles or None)
     user_permission_form = UserPermissionForm(prefix="user_permission")
+    temporary_grant_form = TemporaryRoleGrantForm(prefix="temp_grant")
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
@@ -638,6 +667,11 @@ def rbac_dashboard(request):
                 user.roles.set(roles)
                 messages.success(request, f"Roles updated for {user.username}.")
                 return redirect("accounts:rbac")
+            else:
+                try:
+                    initial_user_roles = {"roles": [AccessRole.objects.get(pk=int(pk)) for pk in request.POST.getlist("user_role-roles")]}
+                except (ValueError, AccessRole.DoesNotExist):
+                    initial_user_roles = {}
         elif form_type == "user_permissions":
             user_permission_form = UserPermissionForm(request.POST, prefix="user_permission")
             if user_permission_form.is_valid():
@@ -645,6 +679,48 @@ def rbac_dashboard(request):
                 permissions = user_permission_form.cleaned_data["permissions"]
                 user.feature_permissions.set(permissions)
                 messages.success(request, f"Permissions updated for {user.username}.")
+                return redirect("accounts:rbac")
+        elif form_type == "edit_role":
+            edit_role_form = EditRoleForm(request.POST)
+            if edit_role_form.is_valid():
+                role = get_object_or_404(AccessRole, pk=edit_role_form.cleaned_data["role_id"])
+                role.description = edit_role_form.cleaned_data["description"] or ""
+                role.permissions.set(edit_role_form.cleaned_data["permissions"])
+                role.save()
+                messages.success(request, f"Role '{role.name}' updated.")
+                return redirect("accounts:rbac")
+            edit_role_id = edit_role_form.cleaned_data.get("role_id") or request.POST.get("role_id")
+        elif form_type == "temporary_grant":
+            temporary_grant_form = TemporaryRoleGrantForm(request.POST, prefix="temp_grant")
+            if temporary_grant_form.is_valid():
+                from datetime import datetime, time
+                user = temporary_grant_form.cleaned_data["user"]
+                role = temporary_grant_form.cleaned_data["role"]
+                expires_date = temporary_grant_form.cleaned_data["expires_at"]
+                valid_from_date = temporary_grant_form.cleaned_data.get("valid_from")
+                notes = (temporary_grant_form.cleaned_data.get("notes") or "").strip()[:255]
+                expires_at = timezone.make_aware(
+                    datetime.combine(expires_date, time(23, 59, 59)),
+                    timezone.get_current_timezone(),
+                )
+                valid_from = None
+                if valid_from_date:
+                    valid_from = timezone.make_aware(
+                        datetime.combine(valid_from_date, time(0, 0, 0)),
+                        timezone.get_current_timezone(),
+                    )
+                TemporaryRoleGrant.objects.create(
+                    user=user,
+                    role=role,
+                    expires_at=expires_at,
+                    valid_from=valid_from,
+                    created_by=request.user,
+                    notes=notes,
+                )
+                messages.success(
+                    request,
+                    f"Temporary role '{role.name}' granted to {user.username} until {expires_date}.",
+                )
                 return redirect("accounts:rbac")
 
     today = timezone.localdate()
@@ -663,16 +739,37 @@ def rbac_dashboard(request):
     attendance_trend_total = sum(item["present"] for item in attendance_trend)
     attendance_trend_progress = min(attendance_trend_total, 100)
 
+    selected_role_ids = set()
+    if initial_user_roles and "roles" in initial_user_roles:
+        selected_role_ids = {r.pk for r in initial_user_roles["roles"]}
+    elif request.method == "POST" and request.POST.get("form_type") == "user_roles":
+        for pk in request.POST.getlist("user_role-roles"):
+            try:
+                selected_role_ids.add(int(pk))
+            except ValueError:
+                pass
+
+    now = timezone.now()
+    active_temporary_grants = TemporaryRoleGrant.objects.filter(
+        expires_at__gt=now,
+    ).filter(
+        Q(valid_from__isnull=True) | Q(valid_from__lte=now),
+    ).select_related("user", "role", "created_by").order_by("expires_at")[:50]
+
     context = {
-        "roles": AccessRole.objects.prefetch_related("permissions").order_by("code"),
+        "roles": roles_qs,
         "permissions": Permission.objects.order_by("code"),
         "role_form": role_form,
         "permission_form": permission_form,
         "user_role_form": user_role_form,
         "user_permission_form": user_permission_form,
+        "temporary_grant_form": temporary_grant_form,
+        "active_temporary_grants": active_temporary_grants,
+        "edit_role_form": edit_role_form,
+        "edit_role_id": edit_role_id,
+        "selected_role_ids": selected_role_ids,
         "attendance_trend_total": attendance_trend_total,
         "attendance_trend_progress": attendance_trend_progress,
-
     }
     return render(request, "accounts/rbac_dashboard.html", context)
 

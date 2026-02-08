@@ -5,7 +5,7 @@ from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 
-from .models import User, AccessRole, Permission, UserPreference
+from .models import User, AccessRole, Permission, UserPreference, TemporaryRoleGrant
 
 class UserPreferenceAdmin(ModelAdmin):
     list_display = ("user", "show_background_logo", "background_logo_opacity", "updated_at")
@@ -45,6 +45,15 @@ class PermissionAdmin(ModelAdmin):
     search_fields = ("code", "name")
 
 
+class TemporaryRoleGrantAdmin(ModelAdmin):
+    list_display = ("user", "role", "valid_from", "expires_at", "created_by", "created_at")
+    list_filter = ("role",)
+    search_fields = ("user__username", "notes")
+    raw_id_fields = ("user", "created_by")
+    readonly_fields = ("created_at",)
+    date_hierarchy = "expires_at"
+
+
 class GroupAdmin(ModelAdmin):
     """Groups admin - relocated from django.contrib.auth to Accounts section."""
     list_display = ("name",)
@@ -61,5 +70,6 @@ class GroupAdmin(ModelAdmin):
 admin_site.register(User, UserAdmin)
 admin_site.register(AccessRole, RoleAdmin)
 admin_site.register(Permission, PermissionAdmin)
+admin_site.register(TemporaryRoleGrant, TemporaryRoleGrantAdmin)
 admin_site.register(Group, GroupAdmin)
 admin_site.register(UserPreference, UserPreferenceAdmin)

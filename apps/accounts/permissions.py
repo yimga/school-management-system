@@ -162,7 +162,17 @@ def _user_has_role(user, role: str) -> bool:
         return True
     if getattr(user, "role", None) == role:
         return True
-    return user.roles.filter(code=role).exists()
+    if user.roles.filter(code=role).exists():
+        return True
+    from django.utils import timezone
+    from apps.accounts.models import TemporaryRoleGrant
+    from django.db.models import Q
+    now = timezone.now()
+    return TemporaryRoleGrant.objects.filter(
+        user=user, role__code=role, expires_at__gt=now
+    ).filter(
+        Q(valid_from__isnull=True) | Q(valid_from__lte=now)
+    ).exists()
 
 
 def _user_has_any_role(user, roles: set[str]) -> bool:
@@ -175,7 +185,17 @@ def _user_has_any_role(user, roles: set[str]) -> bool:
     user_role = getattr(user, "role", None)
     if user_role in roles:
         return True
-    return user.roles.filter(code__in=roles).exists()
+    if user.roles.filter(code__in=roles).exists():
+        return True
+    from django.utils import timezone
+    from apps.accounts.models import TemporaryRoleGrant
+    from django.db.models import Q
+    now = timezone.now()
+    return TemporaryRoleGrant.objects.filter(
+        user=user, role__code__in=roles, expires_at__gt=now
+    ).filter(
+        Q(valid_from__isnull=True) | Q(valid_from__lte=now)
+    ).exists()
 
 
 def api_user_has_any_role(user, roles: set[str] | tuple[str, ...]) -> bool:
@@ -196,7 +216,17 @@ def api_user_has_any_role(user, roles: set[str] | tuple[str, ...]) -> bool:
     if user_role in role_set:
         return True
     try:
-        return user.roles.filter(code__in=role_set).exists()
+        if user.roles.filter(code__in=role_set).exists():
+            return True
+        from django.utils import timezone
+        from apps.accounts.models import TemporaryRoleGrant
+        from django.db.models import Q
+        now = timezone.now()
+        return TemporaryRoleGrant.objects.filter(
+            user=user, role__code__in=role_set, expires_at__gt=now
+        ).filter(
+            Q(valid_from__isnull=True) | Q(valid_from__lte=now)
+        ).exists()
     except Exception:
         return False
 
@@ -280,12 +310,12 @@ def _role_rank(role: str | None) -> int:
 
 
 def has_role(user, role: str) -> bool:
-    """Check if user has a specific role or higher."""
+    """Check if user has a specific role (including via temporary grant)."""
     if not user.is_authenticated:
         return False
     if user.is_superuser:
         return True
-    return user.role == role or user.roles.filter(code=role).exists()
+    return _user_has_role(user, role)
 
 
 def has_role_hierarchy(user, required_role: str) -> bool:
@@ -303,7 +333,7 @@ def has_role_hierarchy(user, required_role: str) -> bool:
     if _role_rank(user_role) >= _role_rank(required_role):
         return True
 
-    return user.roles.filter(code=required_role).exists()
+    return _user_has_role(user, required_role)
 
 
 def can_view_student_data(user, student_id: int) -> bool:

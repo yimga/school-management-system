@@ -32,18 +32,12 @@ def has_feature_permission(user, code):
 def has_role(user, code):
     if not getattr(user, "is_authenticated", False):
         return False
-    if getattr(user, "role", None) == code:
-        return True
-    if hasattr(user, "roles"):
-        if connection.needs_rollback:
-            _reset_db_state()
-            return False
-        try:
-            return user.roles.filter(code=code).exists()
-        except (DatabaseError, TransactionManagementError):
-            _reset_db_state()
-            return False
-    return False
+    from apps.accounts.permissions import has_role as _has_role
+    try:
+        return _has_role(user, (code or "").strip())
+    except Exception:
+        _reset_db_state()
+        return False
 
 
 @register.filter
@@ -55,15 +49,9 @@ def has_any_role(user, codes):
     code_list = [c.strip() for c in str(codes).split(",") if c.strip()]
     if not code_list:
         return False
-    if getattr(user, "role", None) in code_list:
-        return True
-    if hasattr(user, "roles"):
-        if connection.needs_rollback:
-            _reset_db_state()
-            return False
-        try:
-            return user.roles.filter(code__in=code_list).exists()
-        except (DatabaseError, TransactionManagementError):
-            _reset_db_state()
-            return False
-    return False
+    from apps.accounts.permissions import has_role as _has_role
+    try:
+        return any(_has_role(user, c) for c in code_list)
+    except Exception:
+        _reset_db_state()
+        return False

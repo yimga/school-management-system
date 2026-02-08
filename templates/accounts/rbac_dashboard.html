@@ -48,15 +48,22 @@
     display: contents !important;
   }
   #rbac-page .rbac-roles-wrapper .form-check,
-  #rbac-page .rbac-roles-wrapper > div > div {
+  #rbac-page .rbac-roles-wrapper .rbac-role-item {
     display: flex !important;
-    align-items: center;
-    white-space: nowrap;
+    align-items: flex-start;
+    white-space: normal;
     min-width: 0;
+    gap: 0.35rem;
   }
   #rbac-page .rbac-roles-wrapper .form-check-label {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: normal;
+    flex: 1;
+    min-width: 0;
+  }
+  @media (max-width: 576px) {
+    #rbac-page .rbac-roles-wrapper { grid-template-columns: 1fr; }
   }
 
   /* Django 4.x CheckboxSelectMultiple: outer div for non-roles */
@@ -71,7 +78,7 @@
     padding: 0;
   }
 
-  /* Each choice: horizontal block */
+  /* Each choice: horizontal block (permissions etc.) */
   #rbac-page .rbac-form-check-wrapper:not(.rbac-roles-wrapper) > div > div,
   #rbac-page .rbac-form-check-wrapper li {
     display: inline-flex !important;
@@ -80,7 +87,7 @@
     align-items: center;
     white-space: nowrap;
     flex: 0 0 auto;
-    min-width: min-content;
+    min-width: 0;
   }
 
   #rbac-page .rbac-form-check-wrapper label,
@@ -133,18 +140,28 @@
             <input type="hidden" name="form_type" value="user_roles">
             {{ user_role_form.non_field_errors }}
             <div class="col-12 col-md-3">
-              <label class="form-label">User</label>
+              <label class="form-label" for="{{ user_role_form.user.id_for_label }}">User</label>
               {{ user_role_form.user }}
             </div>
             <div class="col-12 col-md-9">
-              <label class="form-label">Roles</label>
-              <div class="rbac-form-check-wrapper rbac-roles-wrapper" id="rbac-roles-container">
-                {{ user_role_form.roles }}
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <label class="form-label mb-0">Roles</label>
+                <button class="btn btn-primary btn-sm" type="submit">Save Roles</button>
               </div>
-              <small class="form-text text-muted">Select one or more roles.</small>
-            </div>
-            <div class="col-12">
-              <button class="btn btn-primary" type="submit">Save Roles</button>
+              <div class="rbac-form-check-wrapper rbac-roles-wrapper" id="rbac-roles-container">
+                {% for role in roles %}
+                <div class="form-check rbac-role-item">
+                  <input class="form-check-input" type="checkbox" name="user_role-roles" value="{{ role.pk }}" id="id_user_role-roles_{{ role.pk }}"{% if role.pk in selected_role_ids %} checked{% endif %}>
+                  <label class="form-check-label" for="id_user_role-roles_{{ role.pk }}">
+                    <span class="fw-medium">{{ role.code }} — {{ role.name }}</span>
+                    {% if role.permissions.all %}
+                    <span class="d-block small text-muted mt-0" title="{% for p in role.permissions.all %}{{ p.code }}{% if not forloop.last %}, {% endif %}{% endfor %}">{% for p in role.permissions.all %}<span class="badge text-bg-light rbac-badge">{{ p.code }}</span>{% endfor %}</span>
+                    {% endif %}
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+              <small class="form-text text-muted">Select one or more roles. Assign only roles needed for this user's job.</small>
             </div>
           </form>
         </div>
@@ -236,6 +253,74 @@
         </div>
       </div>
     </div>
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Grant role with expiry</h5>
+          <p class="small text-muted">Give a user a role until a set date (e.g. auditor for one month).</p>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="temporary_grant">
+            {{ temporary_grant_form.non_field_errors }}
+            <div class="mb-3">
+              <label class="form-label" for="{{ temporary_grant_form.user.id_for_label }}">User</label>
+              {{ temporary_grant_form.user }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="{{ temporary_grant_form.role.id_for_label }}">Role</label>
+              {{ temporary_grant_form.role }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="{{ temporary_grant_form.expires_at.id_for_label }}">Expires on</label>
+              {{ temporary_grant_form.expires_at }}
+              {% if temporary_grant_form.expires_at.errors %}<div class="invalid-feedback d-block">{{ temporary_grant_form.expires_at.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="{{ temporary_grant_form.valid_from.id_for_label }}">Active from (optional)</label>
+              {{ temporary_grant_form.valid_from }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="{{ temporary_grant_form.notes.id_for_label }}">Notes (optional)</label>
+              {{ temporary_grant_form.notes }}
+            </div>
+            <button class="btn btn-outline-primary" type="submit">Grant role</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5 class="mb-3">Active temporary grants</h5>
+      {% if active_temporary_grants %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Expires</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for g in active_temporary_grants %}
+                <tr>
+                  <td>{{ g.user.username }}</td>
+                  <td>{{ g.role.code }}</td>
+                  <td>{{ g.expires_at|date:"Y-m-d H:i" }}</td>
+                  <td>{{ g.notes|default:"—" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="small text-muted mt-2">Showing up to 50 active grants. Manage all in Configuration Engine → Accounts → Temporary role grants.</p>
+      {% else %}
+        <p class="text-muted mb-0">No active temporary grants. Use the form above to grant a role with an expiry date.</p>
+      {% endif %}
+    </div>
   </div>
 
   <div class="card mt-4">
@@ -250,6 +335,7 @@
                 <th>Name</th>
                 <th>Description</th>
                 <th>Permissions</th>
+                <th class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -269,6 +355,9 @@
                       <span class="text-muted">No permissions</span>
                     {% endif %}
                   </td>
+                  <td class="text-end">
+                    <a href="?edit_role={{ role.pk }}" class="btn btn-sm btn-outline-primary" aria-label="Edit role {{ role.code }}">Edit</a>
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -279,6 +368,41 @@
       {% endif %}
     </div>
   </div>
+
+  {% if edit_role_form %}
+  <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-describedby="editRoleModalDesc" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editRoleModalLabel">Edit role permissions</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="edit_role">
+          {{ edit_role_form.role_id }}
+          <div class="modal-body" id="editRoleModalDesc">
+            {{ edit_role_form.non_field_errors }}
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              {{ edit_role_form.description }}
+            </div>
+            <div class="mb-0">
+              <label class="form-label">Permissions</label>
+              <div class="rbac-form-check-wrapper rbac-permissions-wrapper border rounded p-2" style="max-height: 280px;">
+                {{ edit_role_form.permissions }}
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="{% url 'accounts:rbac' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="card mt-4">
     <div class="card-body">
@@ -310,4 +434,16 @@
     </div>
   </div>
 </div>
+{% if edit_role_form and edit_role_id %}
+<script>
+(function() {
+  var modalEl = document.getElementById('editRoleModal');
+  if (modalEl) {
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
+    modalEl.addEventListener('hidden.bs.modal', function() { window.location.href = '{% url "accounts:rbac" %}'; });
+  }
+})();
+</script>
+{% endif %}
 {% endblock %}
