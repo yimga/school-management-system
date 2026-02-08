@@ -29,7 +29,7 @@ from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, Dash
 from apps.siteconfig.dashboard_views import effective_chart_types
 from apps.accounts.utils import get_dashboard_context
 
-from .forms import ClaimInviteAccountForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
+from .forms import ClaimInviteAccountForm, EditRoleForm, PermissionForm, RoleForm, UserPermissionForm, UserRoleForm
 from .models import AccessRole, Permission, User
 
 
@@ -620,6 +620,16 @@ def rbac_dashboard(request):
         except (User.DoesNotExist, ValueError):
             pass
 
+    edit_role_id = None
+    edit_role_form = None
+    if request.method == "GET" and request.GET.get("edit_role"):
+        try:
+            edit_role = AccessRole.objects.prefetch_related("permissions").get(pk=request.GET.get("edit_role"))
+            edit_role_form = EditRoleForm(role=edit_role)
+            edit_role_id = edit_role.pk
+        except (AccessRole.DoesNotExist, ValueError):
+            pass
+
     role_form = RoleForm(prefix="role")
     permission_form = PermissionForm(prefix="permission")
     user_role_form = UserRoleForm(prefix="user_role", initial=initial_user_roles or None)
@@ -660,6 +670,16 @@ def rbac_dashboard(request):
                 user.feature_permissions.set(permissions)
                 messages.success(request, f"Permissions updated for {user.username}.")
                 return redirect("accounts:rbac")
+        elif form_type == "edit_role":
+            edit_role_form = EditRoleForm(request.POST)
+            if edit_role_form.is_valid():
+                role = get_object_or_404(AccessRole, pk=edit_role_form.cleaned_data["role_id"])
+                role.description = edit_role_form.cleaned_data["description"] or ""
+                role.permissions.set(edit_role_form.cleaned_data["permissions"])
+                role.save()
+                messages.success(request, f"Role '{role.name}' updated.")
+                return redirect("accounts:rbac")
+            edit_role_id = edit_role_form.cleaned_data.get("role_id") or request.POST.get("role_id")
 
     today = timezone.localdate()
     week_start = today - timedelta(days=6)
@@ -694,6 +714,8 @@ def rbac_dashboard(request):
         "permission_form": permission_form,
         "user_role_form": user_role_form,
         "user_permission_form": user_permission_form,
+        "edit_role_form": edit_role_form,
+        "edit_role_id": edit_role_id,
         "selected_role_ids": selected_role_ids,
         "attendance_trend_total": attendance_trend_total,
         "attendance_trend_progress": attendance_trend_progress,

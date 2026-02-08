@@ -50,6 +50,24 @@ class PermissionForm(forms.ModelForm):
         }
 
 
+class EditRoleForm(forms.Form):
+    """Edit an existing role's description and permissions (used in RBAC Edit Role modal)."""
+    role_id = forms.IntegerField(widget=forms.HiddenInput)
+    description = forms.CharField(required=False, widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}))
+    permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+    )
+
+    def __init__(self, role=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if role is not None:
+            self.fields["role_id"].initial = role.pk
+            self.fields["description"].initial = role.description or ""
+            self.fields["permissions"].initial = list(role.permissions.all())
+
+
 class UserRoleForm(forms.Form):
     user = forms.ModelChoiceField(
         queryset=User.objects.all(),

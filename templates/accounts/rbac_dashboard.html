@@ -267,6 +267,7 @@
                 <th>Name</th>
                 <th>Description</th>
                 <th>Permissions</th>
+                <th class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -286,6 +287,9 @@
                       <span class="text-muted">No permissions</span>
                     {% endif %}
                   </td>
+                  <td class="text-end">
+                    <a href="?edit_role={{ role.pk }}" class="btn btn-sm btn-outline-primary" aria-label="Edit role {{ role.code }}">Edit</a>
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -296,6 +300,41 @@
       {% endif %}
     </div>
   </div>
+
+  {% if edit_role_form %}
+  <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-describedby="editRoleModalDesc" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editRoleModalLabel">Edit role permissions</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="edit_role">
+          {{ edit_role_form.role_id }}
+          <div class="modal-body" id="editRoleModalDesc">
+            {{ edit_role_form.non_field_errors }}
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              {{ edit_role_form.description }}
+            </div>
+            <div class="mb-0">
+              <label class="form-label">Permissions</label>
+              <div class="rbac-form-check-wrapper rbac-permissions-wrapper border rounded p-2" style="max-height: 280px;">
+                {{ edit_role_form.permissions }}
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="{% url 'accounts:rbac' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="card mt-4">
     <div class="card-body">
@@ -327,4 +366,16 @@
     </div>
   </div>
 </div>
+{% if edit_role_form and edit_role_id %}
+<script>
+(function() {
+  var modalEl = document.getElementById('editRoleModal');
+  if (modalEl) {
+    var modal = new bootstrap.Modal(modalEl);
+    modal.show();
+    modalEl.addEventListener('hidden.bs.modal', function() { window.location.href = '{% url "accounts:rbac" %}'; });
+  }
+})();
+</script>
+{% endif %}
 {% endblock %}

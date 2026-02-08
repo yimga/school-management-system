@@ -24,6 +24,9 @@ ROLE_TEMPLATES: dict[str, list[str]] = {
     User.Role.TEACHER: ["TEACHER"],
     User.Role.IT_ADMIN: ["IT_ADMIN"],
     User.Role.BOARDING_MANAGER: ["BOARDING_MANAGER"],
+    User.Role.SECRETARY: ["SECRETARY"],
+    User.Role.EXECUTIVE_ASSISTANT: ["EXECUTIVE_ASSISTANT"],
+    User.Role.VIRTUAL_ASSISTANT: ["VIRTUAL_ASSISTANT"],
     User.Role.PARENT: ["PARENT"],
     User.Role.STUDENT: ["STUDENT"],
 }

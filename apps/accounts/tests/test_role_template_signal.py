@@ -57,18 +57,11 @@ class RoleTemplateSignalTests(TestCase):
         user.refresh_from_db()
         self.assertEqual(list(user.roles.values_list("code", flat=True)), ["DEAN"])
 
-    def test_role_not_in_templates_does_not_clear_roles(self):
+    def test_create_user_secretary_gets_secretary_access_role(self):
         user = User.objects.create_user(
-            username="teacher_keep",
+            username="secretary1",
             password="pass1234",
-            role=User.Role.TEACHER,
+            role=User.Role.SECRETARY,
         )
-        self.assertEqual(list(user.roles.values_list("code", flat=True)), ["TEACHER"])
-        user.role = User.Role.SECRETARY
-        user.save()
-        user.refresh_from_db()
-        self.assertEqual(
-            list(user.roles.values_list("code", flat=True)),
-            ["TEACHER"],
-            msg="SECRETARY has no ROLE_TEMPLATES entry; user.roles should be unchanged",
-        )
+        role_codes = list(user.roles.values_list("code", flat=True))
+        self.assertEqual(role_codes, ["SECRETARY"])
