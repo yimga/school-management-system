@@ -10,6 +10,27 @@ from apps.portal.views import parent_dashboard
 
 
 class FakeSiteSettings(SimpleNamespace):
+    def __getattr__(self, name):
+        defaults = {
+            "theme_brightness": "system",
+            "footer_links": [],
+            "footer_badges": [],
+            "footer_status_text": "",
+            "footer_support_hours": "",
+            "footer_whatsapp_url": "",
+            "site_name": "School Management System",
+            "tagline": "",
+            "show_header_search": True,
+            "show_header_notifications": True,
+            "show_header_profile_menu": True,
+            "show_header_theme_toggle": True,
+            "brand_font": "",
+            "secondary_font": "",
+            "use_secondary_font_for_headings": False,
+            "base_font_size": 16,
+        }
+        return defaults.get(name, None)
+
     def get_theme_background(self, *args, **kwargs):
         return None
 
