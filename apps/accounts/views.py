@@ -611,9 +611,18 @@ def _resolve_admin_portal_stats(section_stats, config):
 @login_required
 @user_passes_test(_is_admin_user)
 def rbac_dashboard(request):
+    roles_qs = AccessRole.objects.prefetch_related("permissions").order_by("code")
+    initial_user_roles = {}
+    if request.method == "GET" and request.GET.get("user"):
+        try:
+            u = User.objects.get(pk=request.GET.get("user"))
+            initial_user_roles = {"user": u, "roles": list(u.roles.all())}
+        except (User.DoesNotExist, ValueError):
+            pass
+
     role_form = RoleForm(prefix="role")
     permission_form = PermissionForm(prefix="permission")
-    user_role_form = UserRoleForm(prefix="user_role")
+    user_role_form = UserRoleForm(prefix="user_role", initial=initial_user_roles or None)
     user_permission_form = UserPermissionForm(prefix="user_permission")
 
     if request.method == "POST":
@@ -638,6 +647,11 @@ def rbac_dashboard(request):
                 user.roles.set(roles)
                 messages.success(request, f"Roles updated for {user.username}.")
                 return redirect("accounts:rbac")
+            else:
+                try:
+                    initial_user_roles = {"roles": [AccessRole.objects.get(pk=int(pk)) for pk in request.POST.getlist("user_role-roles")]}
+                except (ValueError, AccessRole.DoesNotExist):
+                    initial_user_roles = {}
         elif form_type == "user_permissions":
             user_permission_form = UserPermissionForm(request.POST, prefix="user_permission")
             if user_permission_form.is_valid():
@@ -663,16 +677,26 @@ def rbac_dashboard(request):
     attendance_trend_total = sum(item["present"] for item in attendance_trend)
     attendance_trend_progress = min(attendance_trend_total, 100)
 
+    selected_role_ids = set()
+    if initial_user_roles and "roles" in initial_user_roles:
+        selected_role_ids = {r.pk for r in initial_user_roles["roles"]}
+    elif request.method == "POST" and request.POST.get("form_type") == "user_roles":
+        for pk in request.POST.getlist("user_role-roles"):
+            try:
+                selected_role_ids.add(int(pk))
+            except ValueError:
+                pass
+
     context = {
-        "roles": AccessRole.objects.prefetch_related("permissions").order_by("code"),
+        "roles": roles_qs,
         "permissions": Permission.objects.order_by("code"),
         "role_form": role_form,
         "permission_form": permission_form,
         "user_role_form": user_role_form,
         "user_permission_form": user_permission_form,
+        "selected_role_ids": selected_role_ids,
         "attendance_trend_total": attendance_trend_total,
         "attendance_trend_progress": attendance_trend_progress,
-
     }
     return render(request, "accounts/rbac_dashboard.html", context)
 

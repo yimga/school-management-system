@@ -48,15 +48,22 @@
     display: contents !important;
   }
   #rbac-page .rbac-roles-wrapper .form-check,
-  #rbac-page .rbac-roles-wrapper > div > div {
+  #rbac-page .rbac-roles-wrapper .rbac-role-item {
     display: flex !important;
-    align-items: center;
-    white-space: nowrap;
+    align-items: flex-start;
+    white-space: normal;
     min-width: 0;
+    gap: 0.35rem;
   }
   #rbac-page .rbac-roles-wrapper .form-check-label {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: normal;
+    flex: 1;
+    min-width: 0;
+  }
+  @media (max-width: 576px) {
+    #rbac-page .rbac-roles-wrapper { grid-template-columns: 1fr; }
   }
 
   /* Django 4.x CheckboxSelectMultiple: outer div for non-roles */
@@ -71,7 +78,7 @@
     padding: 0;
   }
 
-  /* Each choice: horizontal block */
+  /* Each choice: horizontal block (permissions etc.) */
   #rbac-page .rbac-form-check-wrapper:not(.rbac-roles-wrapper) > div > div,
   #rbac-page .rbac-form-check-wrapper li {
     display: inline-flex !important;
@@ -80,7 +87,7 @@
     align-items: center;
     white-space: nowrap;
     flex: 0 0 auto;
-    min-width: min-content;
+    min-width: 0;
   }
 
   #rbac-page .rbac-form-check-wrapper label,
@@ -133,18 +140,28 @@
             <input type="hidden" name="form_type" value="user_roles">
             {{ user_role_form.non_field_errors }}
             <div class="col-12 col-md-3">
-              <label class="form-label">User</label>
+              <label class="form-label" for="{{ user_role_form.user.id_for_label }}">User</label>
               {{ user_role_form.user }}
             </div>
             <div class="col-12 col-md-9">
-              <label class="form-label">Roles</label>
-              <div class="rbac-form-check-wrapper rbac-roles-wrapper" id="rbac-roles-container">
-                {{ user_role_form.roles }}
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <label class="form-label mb-0">Roles</label>
+                <button class="btn btn-primary btn-sm" type="submit">Save Roles</button>
               </div>
-              <small class="form-text text-muted">Select one or more roles.</small>
-            </div>
-            <div class="col-12">
-              <button class="btn btn-primary" type="submit">Save Roles</button>
+              <div class="rbac-form-check-wrapper rbac-roles-wrapper" id="rbac-roles-container">
+                {% for role in roles %}
+                <div class="form-check rbac-role-item">
+                  <input class="form-check-input" type="checkbox" name="user_role-roles" value="{{ role.pk }}" id="id_user_role-roles_{{ role.pk }}"{% if role.pk in selected_role_ids %} checked{% endif %}>
+                  <label class="form-check-label" for="id_user_role-roles_{{ role.pk }}">
+                    <span class="fw-medium">{{ role.code }} — {{ role.name }}</span>
+                    {% if role.permissions.all %}
+                    <span class="d-block small text-muted mt-0" title="{% for p in role.permissions.all %}{{ p.code }}{% if not forloop.last %}, {% endif %}{% endfor %}">{% for p in role.permissions.all %}<span class="badge text-bg-light rbac-badge">{{ p.code }}</span>{% endfor %}</span>
+                    {% endif %}
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+              <small class="form-text text-muted">Select one or more roles. Assign only roles needed for this user's job.</small>
             </div>
           </form>
         </div>

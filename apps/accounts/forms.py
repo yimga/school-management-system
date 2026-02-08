@@ -51,7 +51,11 @@ class PermissionForm(forms.ModelForm):
 
 
 class UserRoleForm(forms.Form):
-    user = forms.ModelChoiceField(queryset=User.objects.all())
+    user = forms.ModelChoiceField(
+        queryset=User.objects.all(),
+        required=True,
+        empty_label="Select user",
+    )
     roles = forms.ModelMultipleChoiceField(
         queryset=AccessRole.objects.all(),
         required=False,
