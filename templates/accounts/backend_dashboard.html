@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load admin_health static region_format %}
+{% load admin_health i18n static region_format %}
 
 {% block backend_title %}Backend Dashboard{% endblock %}
 
@@ -602,7 +602,7 @@
                   <i class="bi bi-person-plus me-1"></i>Add Student
                 </a>
                 {% else %}
-                <a href="{% url 'admin:people_studentprofile_add' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
+                <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn" title="{% trans 'Add student in Configuration Engine' %}">
                   <i class="bi bi-person-plus me-1"></i>Add Student
                 </a>
                 {% endif %}
@@ -611,7 +611,7 @@
                   <i class="bi bi-person-badge me-1"></i>Add Teacher
                 </a>
                 {% else %}
-                <a href="{% url 'admin:people_teacherprofile_add' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
+                <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn" title="{% trans 'Add teacher in Configuration Engine' %}">
                   <i class="bi bi-person-badge me-1"></i>Add Teacher
                 </a>
                 {% endif %}
@@ -623,7 +623,7 @@
                 </a>
                 {% endif %}
                 {% if action_perms.finance %}
-                <a href="{% url 'admin:finance_invoice_add' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn">
+                <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn">
                   <i class="bi bi-receipt me-1"></i>Create Invoice
                 </a>
                 <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
@@ -1334,7 +1334,7 @@
             <a class="btn btn-sm btn-primary" href="{% url 'accounts:certification_home' %}">
               <i class="bi bi-award me-1"></i>Open Certification Center
             </a>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:academics_certificationexamsession_add' %}">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:index' %}" title="{% trans 'Create session in Configuration Engine' %}">
               <i class="bi bi-plus-circle me-1"></i>Create Session
             </a>
             <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:workflow_center' %}">

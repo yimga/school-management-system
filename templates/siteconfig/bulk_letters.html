@@ -22,7 +22,7 @@
     <div class="card-body">
       {% if not classroom_list %}
       <div class="alert alert-info mb-0">
-        <i class="bi bi-info-circle"></i> No classrooms found. Add an academic year and classrooms in <a href="{% url 'admin:academics_classroom_changelist' %}">Academics → Classrooms</a> (or via year setup), then return here to generate letters.
+        <i class="bi bi-info-circle"></i> No classrooms found. {% if is_backend_context %}Add an academic year and classrooms in <a href="{% url 'accounts:workflow_center' %}">Workflow Center</a> (or use Configuration Engine), then return here to generate letters.{% else %}Add an academic year and classrooms in <a href="{% url 'admin:academics_classroom_changelist' %}">Academics → Classrooms</a> (or via year setup), then return here to generate letters.{% endif %}
       </div>
       {% else %}
       <form method="post" action="{% url 'siteconfig:bulk_letters' %}">

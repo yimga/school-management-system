@@ -1,5 +1,5 @@
 <!-- Recent Activity Widget -->
-{% load static %}
+{% load i18n static %}
 
 <div class="card shadow-sm">
   <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -38,9 +38,15 @@
     {% endif %}
   </div>
   <div class="card-footer bg-light text-center">
+    {% if is_backend_context %}
+    <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-list"></i> {% trans "Back to Backend" %}
+    </a>
+    {% else %}
     <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-secondary">
       <i class="fas fa-list"></i> View Full Admin Log
     </a>
+    {% endif %}
   </div>
 </div>
 

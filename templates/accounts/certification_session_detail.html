@@ -20,7 +20,7 @@
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:certification_home' %}">
         <i class="bi bi-arrow-left me-1"></i>Back
       </a>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:academics_certificationexamsession_change' session.id %}">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:academics_certificationexamsession_change' session.id %}" title="Edit in Configuration Engine">
         Edit session
       </a>
       {% if can_add_candidates or has_registration_override %}
@@ -81,7 +81,7 @@
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Candidates</h5>
         {% if can_add_candidates or has_registration_override %}
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'admin:academics_certificationcandidate_add' %}">
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'admin:academics_certificationcandidate_add' %}" title="Add in Configuration Engine">
           Add candidate
         </a>
         {% else %}

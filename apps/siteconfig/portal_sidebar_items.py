@@ -122,12 +122,13 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
         # Certification & Exams (GCE) – admins get quick access; certification home handles “not enabled”
         items.append({"id": "certification", "label": "Certification & Exams", "url": _safe_reverse("accounts:certification_home"), "icon": "bi-award", "section": "Academic Management", "badge": None})
+        in_backend = request.path.startswith("/backend") or "/authentication/backend" in request.path
         student_list_url = _safe_reverse("accounts:backend_student_list")
-        if not student_list_url and is_superuser:
+        if not student_list_url and is_superuser and not in_backend:
             student_list_url = _safe_reverse("admin:people_studentprofile_changelist")
         if student_list_url:
             items.append({"id": "students", "label": "Student Profiles", "url": student_list_url, "icon": "bi-person-lines-fill", "section": "People & Access", "badge": None})
-        if is_superuser:
+        if is_superuser and not in_backend:
             items.append({"id": "guardians", "label": "Student Guardians", "url": _safe_reverse("admin:people_studentguardian_changelist"), "icon": "bi-people-fill", "section": "People & Access", "badge": None})
             items.append({"id": "groups", "label": "Authentication Groups", "url": _safe_reverse("admin:auth_group_changelist"), "icon": "bi-unlock", "section": "People & Access", "badge": None})
         items.append({"id": "rbac", "label": "RBAC & Access Control", "url": _safe_reverse("accounts:rbac"), "icon": "bi-diagram-3", "section": "People & Access", "badge": None})
@@ -159,7 +160,7 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "import_hub", "label": "Import Hub", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
         if can_manage_site:
             items.append({"id": "customizer", "label": "Customizer", "url": _safe_reverse("siteconfig:customizer"), "icon": "bi-palette", "section": "Admin Panel", "badge": None})
-        if is_superuser:
+        if is_superuser and not in_backend:
             site_pk = getattr(site, "pk", 1)
             items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
             items.append({"id": "region_config", "label": "Region Configuration", "url": _safe_reverse("admin:siteconfig_regionconfig_changelist"), "icon": "bi-geo-alt", "section": "Admin Panel", "badge": None})

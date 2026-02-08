@@ -745,7 +745,11 @@
                   <i class="bi bi-gear" aria-hidden="true"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
+                  {% if is_backend_context and request.user.is_superuser %}
+                  <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected"></i> {% trans "Configuration Engine" %}</a></li>
+                  {% elif not is_backend_context %}
                   <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
+                  {% endif %}
                   <li><a class="dropdown-item" href="{% url 'admin:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
                   <li><a class="dropdown-item" href="{% url 'admin:system_health' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
                 </ul>

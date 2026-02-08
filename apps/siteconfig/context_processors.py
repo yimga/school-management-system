@@ -242,9 +242,14 @@ def site_settings(request):
             or getattr(request.user, "has_feature_permission", lambda _code: False)("settings.manage")
         )
 
+    is_backend_context = (
+        request.path.startswith("/backend")
+        or "/authentication/backend" in request.path
+    )
     ctx = {
         "SITE": site,
         "SITE_SETTINGS": site,
+        "is_backend_context": is_backend_context,
         "SITE_THEME": site.active_theme,
         "SITE_ADMIN_THEME": admin_theme,
         "ADMIN_RESOLVED_PRIMARY": admin_primary,
