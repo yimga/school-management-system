@@ -28,15 +28,20 @@ class Command(BaseCommand):
 
         changed_messages: list[str] = []
         with transaction.atomic():
-            default_themes = list(ThemePack.objects.filter(is_default=True).order_by("pk"))
+            all_themes = ThemePack.objects.order_by("pk")
+            default_themes = list(all_themes.filter(is_default=True))
+            active_default_themes = [theme for theme in default_themes if theme.is_active]
 
+            site_theme = ThemePack.objects.filter(pk=site.theme_pack_id).first() if site.theme_pack_id else None
             preferred_default = None
-            if site.theme_pack_id and ThemePack.objects.filter(pk=site.theme_pack_id).exists():
-                preferred_default = ThemePack.objects.get(pk=site.theme_pack_id)
-            elif default_themes:
-                preferred_default = default_themes[0]
+            if site_theme and site_theme.is_active:
+                preferred_default = site_theme
+            elif active_default_themes:
+                preferred_default = active_default_themes[0]
             else:
-                preferred_default = ThemePack.objects.order_by("pk").first()
+                preferred_default = all_themes.filter(is_active=True).first()
+                if preferred_default is None:
+                    preferred_default = default_themes[0] if default_themes else all_themes.first()
 
             if preferred_default:
                 if not preferred_default.is_default or len(default_themes) > 1:
@@ -49,7 +54,14 @@ class Command(BaseCommand):
                         )
                         ThemePack.objects.filter(pk=preferred_default.pk).update(is_default=True)
 
-                if site.theme_pack_id != preferred_default.pk:
+                if site.theme_pack_id and site_theme and not site_theme.is_active:
+                    changed_messages.append(
+                        f"Replaced inactive SiteSettings.theme_pack id={site_theme.pk} with active theme id={preferred_default.pk} ({preferred_default.name})."
+                    )
+                    if not dry_run:
+                        site.theme_pack_id = preferred_default.pk
+                        site.save(update_fields=["theme_pack"])
+                elif site.theme_pack_id != preferred_default.pk:
                     changed_messages.append(
                         f"Updated SiteSettings.theme_pack -> id={preferred_default.pk} ({preferred_default.name})."
                     )
@@ -57,9 +69,16 @@ class Command(BaseCommand):
                         site.theme_pack_id = preferred_default.pk
                         site.save(update_fields=["theme_pack"])
 
-            if site.admin_theme_pack_id and not ThemePack.objects.filter(pk=site.admin_theme_pack_id).exists():
+            admin_theme = ThemePack.objects.filter(pk=site.admin_theme_pack_id).first() if site.admin_theme_pack_id else None
+            if site.admin_theme_pack_id and admin_theme is None:
+                changed_messages.append(f"Cleared invalid admin_theme_pack reference id={site.admin_theme_pack_id}.")
+                if not dry_run:
+                    site.admin_theme_pack = None
+                    site.save(update_fields=["admin_theme_pack"])
+            elif admin_theme and (not admin_theme.is_active or not admin_theme.applies_to_admin):
+                reason = "inactive" if not admin_theme.is_active else "not admin-capable"
                 changed_messages.append(
-                    f"Cleared invalid admin_theme_pack reference id={site.admin_theme_pack_id}."
+                    f"Cleared {reason} admin_theme_pack id={admin_theme.pk} ({admin_theme.name})."
                 )
                 if not dry_run:
                     site.admin_theme_pack = None

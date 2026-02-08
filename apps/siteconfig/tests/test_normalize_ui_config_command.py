@@ -48,3 +48,56 @@ class NormalizeUIConfigCommandTests(TestCase):
         site.refresh_from_db()
 
         self.assertEqual(site.admin_theme_pack_id, admin_theme.pk)
+
+    def test_replaces_inactive_site_theme_with_active_theme(self):
+        inactive = ThemePack.objects.create(
+            name="Inactive Theme",
+            slug="inactive-theme",
+            is_default=True,
+            is_active=False,
+        )
+        active = ThemePack.objects.create(
+            name="Active Theme",
+            slug="active-theme",
+            is_default=False,
+            is_active=True,
+        )
+        site = SiteSettings.objects.create(theme_pack=inactive)
+
+        call_command("normalize_ui_config")
+        site.refresh_from_db()
+        active.refresh_from_db()
+        inactive.refresh_from_db()
+
+        self.assertEqual(site.theme_pack_id, active.pk)
+        self.assertTrue(active.is_default)
+        self.assertFalse(inactive.is_default)
+
+    def test_replaces_invalid_admin_theme_with_admin_capable_fallback(self):
+        site_theme = ThemePack.objects.create(
+            name="Site Theme",
+            slug="site-theme-2",
+            is_default=True,
+            is_active=True,
+            applies_to_admin=False,
+        )
+        invalid_admin = ThemePack.objects.create(
+            name="Invalid Admin Theme",
+            slug="invalid-admin-theme",
+            is_default=False,
+            is_active=True,
+            applies_to_admin=False,
+        )
+        valid_admin = ThemePack.objects.create(
+            name="Valid Admin Theme",
+            slug="valid-admin-theme",
+            is_default=False,
+            is_active=True,
+            applies_to_admin=True,
+        )
+        site = SiteSettings.objects.create(theme_pack=site_theme, admin_theme_pack=invalid_admin)
+
+        call_command("normalize_ui_config")
+        site.refresh_from_db()
+
+        self.assertEqual(site.admin_theme_pack_id, valid_admin.pk)
