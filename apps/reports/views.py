@@ -22,6 +22,7 @@ from apps.reports.services import (
     are_terms_published,
     build_share_token,
     build_share_url,
+    grade_approval_publish_readiness,
     generate_report_qr_code,
     is_term_published,
     parse_share_token,
@@ -32,7 +33,7 @@ from apps.reports.services import (
     terms_for_student,
 )
 from apps.reports.weasy import render_pdf_bytes
-from apps.siteconfig.models import ReportCardStyle, SiteSettings, get_report_card_style_for_student
+from apps.siteconfig.models import ReportCardStyle, get_report_card_style_for_student
 
 
 def _reports_enabled() -> bool:
@@ -499,21 +500,6 @@ def report_share(request: HttpRequest, token: str):
 
     return HttpResponseForbidden("Unknown report type.")
 
-
-def _pending_grade_approvals_count(academic_year_id, term_id):
-    """Count pending grade approval requests for this term (Phase 2: publish guard)."""
-    from apps.evals.models import GradeApprovalRequest
-    return GradeApprovalRequest.objects.filter(
-        academic_year_id=academic_year_id,
-        term_id=term_id,
-        status__in=(
-            GradeApprovalRequest.Status.PENDING,
-            GradeApprovalRequest.Status.UNDER_REVIEW,
-            GradeApprovalRequest.Status.REVISION_REQUESTED,
-        ),
-    ).count()
-
-
 @staff_member_required
 def publish_term_results(request: HttpRequest):
     year, active_term = get_active_year_and_term()
@@ -531,15 +517,19 @@ def publish_term_results(request: HttpRequest):
     site = SiteSettings.get_solo()
     require_approved_before_publish = getattr(site, "reports_require_approved_grades_before_publish", False)
     grade_approval_enabled = getattr(site, "grade_approval_enabled", False)
-    pending_approvals = _pending_grade_approvals_count(year_obj.id, term_obj.id)
-    all_grades_approved = pending_approvals == 0
+    approval_state = grade_approval_publish_readiness(year_obj.id, term_obj.id)
+    pending_approvals = approval_state["pending_count"]
+    rejected_approvals = approval_state["rejected_count"]
+    missing_approvals = approval_state["missing_count"]
+    all_grades_approved = approval_state["ready_for_publish"]
 
     if request.method == "POST":
-        if require_approved_before_publish and grade_approval_enabled and pending_approvals > 0:
+        if require_approved_before_publish and grade_approval_enabled and not all_grades_approved:
             messages.error(
                 request,
-                f"Cannot publish: there are {pending_approvals} pending grade approval(s) for this term. "
-                "Approve them in Evals → Grade approvals, or turn off 'Require approved grades before publish' in Site Settings.",
+                "Cannot publish: grade approvals are incomplete for this term "
+                f"(pending: {pending_approvals}, rejected: {rejected_approvals}, missing: {missing_approvals}). "
+                "Approve or resubmit in Evals -> Grade approvals, or turn off 'Require approved grades before publish' in Site Settings.",
             )
         else:
             now = timezone.now()
@@ -607,6 +597,10 @@ def publish_term_results(request: HttpRequest):
         "school_published": bool(school_status),
         "classroom_states": classroom_states,
         "pending_grade_approvals": pending_approvals,
+        "rejected_grade_approvals": rejected_approvals,
+        "missing_grade_approvals": missing_approvals,
+        "subject_assignments_with_grades": approval_state["subject_assignments_with_grades"],
+        "approved_grade_approvals": approval_state["approved_count"],
         "all_grades_approved": all_grades_approved,
         "grade_approval_enabled": grade_approval_enabled,
         "reports_require_approved_grades_before_publish": require_approved_before_publish,
@@ -813,3 +807,4 @@ def promotion_preview(request: HttpRequest):
             "selected_classroom": classroom_id or "",
         },
     )
+

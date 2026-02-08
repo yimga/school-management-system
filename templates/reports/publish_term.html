@@ -40,9 +40,12 @@
 <div class="alert alert-{% if all_grades_approved %}success{% else %}warning{% endif %} mb-3">
   <strong>Eval status:</strong>
   {% if all_grades_approved %}
-    All grades approved for this term. Safe to publish.
+    All graded subjects are approved for this term ({{ approved_grade_approvals }}/{{ subject_assignments_with_grades }}). Safe to publish.
   {% else %}
-    {{ pending_grade_approvals }} grade approval(s) still pending. {% if reports_require_approved_grades_before_publish %}Publish will be blocked until they are approved.{% endif %}
+    <span>Pending: {{ pending_grade_approvals }}</span>
+    <span class="mx-2">Rejected: {{ rejected_grade_approvals }}</span>
+    <span>Missing request: {{ missing_grade_approvals }}</span>
+    {% if reports_require_approved_grades_before_publish %}Publish will be blocked until all graded subjects are approved.{% endif %}
   {% endif %}
 </div>
 {% endif %}

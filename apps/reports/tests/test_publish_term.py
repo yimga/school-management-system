@@ -7,7 +7,20 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Term
+from apps.academics.models import (
+    AcademicYear,
+    Classroom,
+    Department,
+    Specialty,
+    Subject,
+    SubjectAssignment,
+    Term,
+)
+from apps.evals.models import Evaluation, GradeApprovalRequest
+from apps.people.models import StudentProfile, TeacherProfile
+from apps.reports.models import TermPublishStatus
+from apps.reports.services import term_report_context
+from apps.siteconfig.models import SiteSettings
 
 
 class PublishTermRBACTestCase(TestCase):
@@ -35,6 +48,68 @@ class PublishTermRBACTestCase(TestCase):
             position=1,
             is_active=True,
         )
+        self.department = Department.objects.create(name="Science", code="SCI")
+        self.specialty = Specialty.objects.create(department=self.department, name="Physics", code="PHY")
+        self.classroom = Classroom.objects.create(
+            academic_year=self.year,
+            department=self.department,
+            name="SS1A",
+            code="SS1A",
+        )
+        self.subject = Subject.objects.create(name="Mathematics")
+        self.subject_assignment = SubjectAssignment.objects.create(
+            academic_year=self.year,
+            term=self.term,
+            classroom=self.classroom,
+            specialty=self.specialty,
+            subject=self.subject,
+            coefficient=1,
+        )
+        self.teacher_user = User.objects.create_user(
+            username="teacher_pub",
+            password="testpass123",
+            role=User.Role.TEACHER,
+        )
+        self.teacher_profile = TeacherProfile.objects.create(user=self.teacher_user)
+        self.student = StudentProfile.objects.create(
+            first_name="Jane",
+            last_name="Doe",
+            student_code="STU-PUB-1",
+            academic_year=self.year,
+            classroom=self.classroom,
+            specialty=self.specialty,
+            is_active=True,
+        )
+        self.site = SiteSettings.get_solo()
+        self.site.grade_approval_enabled = True
+        self.site.reports_require_approved_grades_before_publish = True
+        self.site.reports_use_approved_grades_only = True
+        self.site.save()
+
+    def _create_evaluation(self):
+        return Evaluation.objects.create(
+            academic_year=self.year,
+            term=self.term,
+            subject_assignment=self.subject_assignment,
+            student=self.student,
+            teacher=self.teacher_profile,
+            seq1_score=15,
+            seq2_score=14,
+            exam_score=16,
+            remarks="Ready for publish tests",
+        )
+
+    def _create_approval(self, status):
+        return GradeApprovalRequest.objects.create(
+            teacher=self.teacher_profile,
+            academic_year=self.year,
+            term=self.term,
+            subject_assignment=self.subject_assignment,
+            entries=[{"student_id": self.student.id, "scores": {"seq1": "15", "seq2": "14", "exam": "16"}}],
+            summary={"total_students": 1, "submitted_rows": 1},
+            status=status,
+            requested_by=self.teacher_user,
+        )
 
     def test_publish_term_requires_staff(self):
         parent = User.objects.create_user(
@@ -50,3 +125,74 @@ class PublishTermRBACTestCase(TestCase):
         self.client.force_login(self.staff)
         response = self.client.get(reverse("reports:publish_term_results"))
         self.assertEqual(response.status_code, 200)
+
+    def test_publish_blocks_when_approval_request_is_missing(self):
+        self.client.force_login(self.staff)
+        self._create_evaluation()
+
+        response = self.client.post(
+            reverse("reports:publish_term_results"),
+            data={"year": self.year.id, "term": self.term.id, "publish_school": "1"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Cannot publish: grade approvals are incomplete")
+        self.assertFalse(
+            TermPublishStatus.objects.filter(
+                academic_year=self.year,
+                term=self.term,
+                classroom__isnull=True,
+                is_published=True,
+            ).exists()
+        )
+
+    def test_publish_blocks_when_latest_approval_is_not_final(self):
+        self.client.force_login(self.staff)
+        self._create_evaluation()
+        self._create_approval(GradeApprovalRequest.Status.APPROVED)
+        self._create_approval(GradeApprovalRequest.Status.REVISION_REQUESTED)
+
+        response = self.client.post(
+            reverse("reports:publish_term_results"),
+            data={"year": self.year.id, "term": self.term.id, "publish_school": "1"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Pending: 1")
+        self.assertFalse(
+            TermPublishStatus.objects.filter(
+                academic_year=self.year,
+                term=self.term,
+                classroom__isnull=True,
+                is_published=True,
+            ).exists()
+        )
+
+    def test_publish_allows_when_latest_approval_is_approved(self):
+        self.client.force_login(self.staff)
+        self._create_evaluation()
+        self._create_approval(GradeApprovalRequest.Status.APPROVED)
+
+        response = self.client.post(
+            reverse("reports:publish_term_results"),
+            data={"year": self.year.id, "term": self.term.id, "publish_school": "1"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            TermPublishStatus.objects.filter(
+                academic_year=self.year,
+                term=self.term,
+                classroom__isnull=True,
+                is_published=True,
+            ).exists()
+        )
+
+    def test_term_context_uses_latest_approval_status_for_approved_only_filter(self):
+        self._create_evaluation()
+        self._create_approval(GradeApprovalRequest.Status.APPROVED)
+        self._create_approval(GradeApprovalRequest.Status.UNDER_REVIEW)
+
+        context = term_report_context(self.student, self.year, self.term)
+
+        self.assertEqual(len(context["rows"]), 0)
