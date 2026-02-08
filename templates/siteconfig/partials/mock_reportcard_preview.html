@@ -1,88 +1,155 @@
-{% comment %}
-This partial adds a mock report-card preview panel that reuses the shared admin preview assets
-so administrators can see a synthetic PDF preview before applying styles.
-{% endcomment %}
+{% load i18n %}
 
-{% load static %}
-<link rel="stylesheet" href="{% static 'css/site-settings-preview.css' %}">
-<script defer src="{% static 'js/site-settings-preview.js' %}"></script>
-
-<div class="card shadow-sm mt-4">
-  <div class="card-body">
-    <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
-      <div>
-        <h5 class="mb-1">Mock report card / cohort preview</h5>
-        <p class="text-muted small mb-0">
-          Generates a synthetic mock report card before any weight or template change hits production.
-          Synthetic data seeds keep privacy intact and reinforce the sandbox banner.
-        </p>
+<div id="live-report-preview" class="card shadow-sm mb-3">
+  <div class="card-header d-flex flex-wrap align-items-start justify-content-between gap-2">
+    <div>
+      <strong>{% trans "Live report preview" %}</strong>
+      <div class="small text-muted">
+        {% trans "Switch style, report type, and student sample. The preview updates immediately." %}
       </div>
-      <span class="badge bg-primary text-white">Draft-only</span>
     </div>
+    <span class="badge bg-info-subtle text-info-emphasis">{% trans "Live" %}</span>
+  </div>
+  <div class="card-body">
+    {% if styles %}
+      <div class="row g-2 mb-2">
+        <div class="col-lg-5">
+          <label for="livePreviewStyle" class="form-label small mb-1">{% trans "Style" %}</label>
+          <select id="livePreviewStyle" class="form-select form-select-sm">
+            {% for style in styles %}
+              <option value="{{ style.slug }}" {% if style.slug == preview_default_style_slug %}selected{% endif %}>{{ style.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-lg-3">
+          <label for="livePreviewType" class="form-label small mb-1">{% trans "Report type" %}</label>
+          <select id="livePreviewType" class="form-select form-select-sm">
+            <option value="term">{% trans "Term" %}</option>
+            <option value="annual">{% trans "Annual" %}</option>
+          </select>
+        </div>
+        <div class="col-lg-4">
+          <label for="livePreviewStudent" class="form-label small mb-1">{% trans "Student sample" %}</label>
+          <select id="livePreviewStudent" class="form-select form-select-sm">
+            <option value="">{% trans "Auto sample" %}</option>
+            {% for student in preview_students %}
+              <option value="{{ student.id }}" {% if student.id == preview_default_student_id %}selected{% endif %}>
+                {{ student.last_name }} {{ student.first_name }} ({{ student.classroom.name }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
 
-    <div class="mb-3">
-      <label for="mockStyleSelect" class="form-label small fw-semibold">Choose style to mock</label>
-      <select id="mockStyleSelect" class="form-select form-select-sm">
-        {% for style in styles %}
-          <option value="{{ style.slug }}">{{ style.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Preview mode' %}">
+          <button type="button" class="btn btn-outline-secondary active js-report-preview-mode" data-mode="desktop">{% trans "Desktop" %}</button>
+          <button type="button" class="btn btn-outline-secondary js-report-preview-mode" data-mode="tablet">{% trans "Tablet" %}</button>
+          <button type="button" class="btn btn-outline-secondary js-report-preview-mode" data-mode="mobile">{% trans "Mobile" %}</button>
+        </div>
+        <a id="livePreviewOpenTab" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Open in new tab" %}</a>
+      </div>
 
-    <div class="d-flex gap-2 flex-wrap">
-      <button type="button" class="btn btn-sm btn-outline-primary" id="mockRunButton">
-        Open synthetic preview
-      </button>
-      <button type="button" class="btn btn-sm btn-outline-secondary" id="mockRunDownload" disabled>
-        Download PDF (FF preview)
-      </button>
-    </div>
-
-    <div class="alert alert-info mt-3 mb-0 small d-flex align-items-center gap-2">
-      <i class="bi bi-shield-lock-fill"></i>
-      Live data is never used—this preview uses synthetic cohorts and the same palette tokens bound to the preview panel.
-    </div>
-
-    <div id="mockPreviewFrame" class="theme-preview-section d-none">
-      {% include "admin/components/theme_preview_section.html" %}
-    </div>
+      <style>
+        .report-preview-shell { border: 1px solid var(--border-color, #d9dee7); border-radius: 14px; overflow: hidden; background: #f8fafc; }
+        .report-preview-shell[data-mode="desktop"] { max-width: 100%; }
+        .report-preview-shell[data-mode="tablet"] { max-width: 920px; margin: 0 auto; }
+        .report-preview-shell[data-mode="mobile"] { max-width: 430px; margin: 0 auto; }
+        .report-preview-frame { width: 100%; border: 0; min-height: 680px; background: #ffffff; }
+      </style>
+      <div id="reportPreviewShell" class="report-preview-shell" data-mode="desktop">
+        <iframe id="liveReportPreviewFrame" class="report-preview-frame" title="{% trans 'Live report preview frame' %}"></iframe>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">{% trans "Create your first report style to enable live preview." %}</p>
+    {% endif %}
   </div>
 </div>
 
+{% if styles %}
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const styleSelect = document.getElementById("mockStyleSelect");
-    const previewBtn = document.getElementById("mockRunButton");
-    const downloadBtn = document.getElementById("mockRunDownload");
-    const frameWrapper = document.getElementById("mockPreviewFrame");
+  document.addEventListener("DOMContentLoaded", function () {
+    var styleSelect = document.getElementById("livePreviewStyle");
+    var typeSelect = document.getElementById("livePreviewType");
+    var studentSelect = document.getElementById("livePreviewStudent");
+    var frame = document.getElementById("liveReportPreviewFrame");
+    var openTab = document.getElementById("livePreviewOpenTab");
+    var shell = document.getElementById("reportPreviewShell");
+    var modeButtons = document.querySelectorAll(".js-report-preview-mode");
 
-    const buildPreviewUrl = (slug) => {
-      const base = "{% url 'siteconfig:reportcard_style_preview' 'SLUG_PLACEHOLDER' %}";
-      return base.replace("SLUG_PLACEHOLDER", slug);
-    };
+    if (!styleSelect || !typeSelect || !frame || !openTab || !shell) {
+      return;
+    }
 
-    const updateButtons = () => {
-      const slug = styleSelect.value;
-      previewBtn.dataset.url = buildPreviewUrl(slug);
-      downloadBtn.dataset.url = buildPreviewUrl(slug) + "?format=pdf";
-      frameWrapper.classList.remove("d-none");
-    };
+    var termTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'term' %}";
+    var annualTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'annual' %}";
 
-    styleSelect.addEventListener("change", updateButtons);
+    function buildPreviewUrl(styleSlug, reportType, studentId) {
+      var base = reportType === "annual" ? annualTemplate : termTemplate;
+      var url = base.replace("STYLE_PLACEHOLDER", styleSlug);
+      if (studentId) {
+        var joiner = url.indexOf("?") === -1 ? "?" : "&";
+        url += joiner + "student_id=" + encodeURIComponent(studentId);
+      }
+      return url;
+    }
 
-    previewBtn.addEventListener("click", (event) => {
-      const url = event.currentTarget.dataset.url;
-      if (!url) return;
-      window.open(url + "&preview_cohort=synthetic", "_blank");
+    function applyPreview() {
+      var styleSlug = styleSelect.value;
+      if (!styleSlug) {
+        return;
+      }
+      var reportType = typeSelect.value || "term";
+      var studentId = studentSelect ? studentSelect.value : "";
+      var url = buildPreviewUrl(styleSlug, reportType, studentId);
+      frame.src = url;
+      openTab.href = url;
+      openTab.textContent = reportType === "annual" ? "{% trans 'Open annual PDF' %}" : "{% trans 'Open term PDF' %}";
+    }
+
+    function setMode(mode) {
+      shell.setAttribute("data-mode", mode);
+      modeButtons.forEach(function (button) {
+        button.classList.toggle("active", button.dataset.mode === mode);
+      });
+    }
+
+    modeButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        setMode(button.dataset.mode || "desktop");
+      });
     });
 
-    downloadBtn.addEventListener("click", (event) => {
-      const url = event.currentTarget.dataset.url;
-      if (!url) return;
-      window.open(url, "_blank");
-    });
+    styleSelect.addEventListener("change", applyPreview);
+    typeSelect.addEventListener("change", applyPreview);
+    if (studentSelect) {
+      studentSelect.addEventListener("change", applyPreview);
+    }
 
-    downloadBtn.removeAttribute("disabled");
-    updateButtons();
+    window.setReportBuilderPreview = function (options) {
+      if (!options) {
+        return;
+      }
+      if (options.styleSlug) {
+        styleSelect.value = options.styleSlug;
+      }
+      if (options.reportType) {
+        typeSelect.value = options.reportType;
+      }
+      if (studentSelect && options.studentId !== undefined && options.studentId !== null) {
+        studentSelect.value = String(options.studentId);
+      }
+      applyPreview();
+      if (options.mode) {
+        setMode(options.mode);
+      }
+      var card = document.getElementById("live-report-preview");
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    applyPreview();
   });
 </script>
+{% endif %}

@@ -1,0 +1,101 @@
+from datetime import date
+
+from django.test import TestCase
+from django.urls import reverse
+
+from apps.accounts.models import User
+from apps.academics.models import AcademicYear, Classroom, Department, Specialty
+from apps.people.models import StudentProfile
+from apps.siteconfig.models import ReportCardStyle, ReportCardStyleAssignment, SiteSettings
+
+
+class ReportCardBuilderViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_superuser(
+            username="builder_admin",
+            email="builder@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(self.user)
+        self.url = reverse("siteconfig:reportcard_builder")
+
+        self.year = AcademicYear.objects.create(
+            name="2025/2026",
+            start_date=date(2025, 9, 1),
+            end_date=date(2026, 7, 1),
+            is_active=True,
+        )
+        self.department = Department.objects.create(name="Science", code="SCI")
+        self.specialty = Specialty.objects.create(department=self.department, name="General", code="GEN")
+        self.classroom_a = Classroom.objects.create(
+            academic_year=self.year,
+            department=self.department,
+            name="Form 1A",
+            code="F1A",
+        )
+        self.classroom_b = Classroom.objects.create(
+            academic_year=self.year,
+            department=self.department,
+            name="Form 1B",
+            code="F1B",
+        )
+        self.style = ReportCardStyle.objects.create(
+            slug="compact-cameroon",
+            name="Compact Cameroon",
+            description="Compact preset",
+            term_template="reports/term_report_cameroon_modern.html",
+            annual_template="reports/annual_report_cameroon_modern.html",
+            primary_color="#123456",
+            accent_color="#abcdef",
+            is_active=True,
+        )
+        ReportCardStyleAssignment.objects.create(classroom=self.classroom_a, style=self.style)
+        StudentProfile.objects.create(
+            first_name="Ada",
+            last_name="Lovelace",
+            student_code="STU-BUILD-1",
+            academic_year=self.year,
+            classroom=self.classroom_a,
+            specialty=self.specialty,
+            is_active=True,
+        )
+        site = SiteSettings.get_solo()
+        site.default_term_report_style = self.style
+        site.default_annual_report_style = self.style
+        site.save(update_fields=["default_term_report_style", "default_annual_report_style"])
+
+    def test_builder_page_includes_compact_workflow_and_live_preview(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "builder-status-strip")
+        self.assertContains(response, "report-builder-workflow")
+        self.assertContains(response, "live-report-preview")
+        self.assertEqual(response.context["total_classroom_count"], 2)
+        self.assertEqual(response.context["assigned_classroom_count"], 1)
+        self.assertEqual(response.context["unassigned_classroom_count"], 1)
+
+    def test_builder_can_create_style_from_workflow_form(self):
+        response = self.client.post(
+            self.url,
+            data={
+                "form_type": "style",
+                "style-name": "Academic Authority",
+                "style-slug": "academic-authority",
+                "style-description": "Professional admin style",
+                "style-term_template": "reports/term_report_cameroon.html",
+                "style-annual_template": "reports/annual_report_cameroon.html",
+                "style-primary_color": "#0d173b",
+                "style-accent_color": "#007bff",
+                "style-watermark_text": "GTHS",
+                "style-header_tagline": "Knowledge Technology Excellence",
+                "style-css_snippet": "",
+                "style-labels": "{}",
+                "style-layout_config": "{}",
+                "style-is_active": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], self.url)
+        self.assertTrue(ReportCardStyle.objects.filter(slug="academic-authority").exists())

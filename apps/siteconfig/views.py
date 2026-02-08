@@ -207,15 +207,27 @@ def customizer(request):
 @permission_required("settings.manage")
 def reportcard_builder(request):
     settings_obj = SiteSettings.get_solo()
-    styles = ReportCardStyle.objects.order_by("name")
+    styles = list(ReportCardStyle.objects.order_by("name"))
     assignments = list(
         ReportCardStyleAssignment.objects
         .select_related("classroom", "style")
         .order_by("classroom__name")
     )
+    all_classrooms = list(Classroom.objects.order_by("name"))
     for assignment in assignments:
         sample = StudentProfile.objects.filter(classroom=assignment.classroom, is_active=True).order_by("last_name", "first_name").first()
         assignment.sample_student = sample
+    preview_students = list(
+        StudentProfile.objects.filter(is_active=True)
+        .select_related("classroom")
+        .order_by("last_name", "first_name")[:40]
+    )
+    default_style = settings_obj.default_term_report_style or settings_obj.default_annual_report_style
+    preview_default_style_slug = (
+        getattr(default_style, "slug", None) or (styles[0].slug if styles else "")
+    )
+    preview_default_student_id = preview_students[0].id if preview_students else ""
+    assigned_classroom_ids = {assignment.classroom_id for assignment in assignments}
     style_form = ReportCardStyleForm(request.POST or None, prefix="style")
     assignment_form = ReportCardStyleAssignmentForm(request.POST or None, prefix="assign")
     selection_form = ReportCardStyleSelectionForm(
@@ -243,6 +255,12 @@ def reportcard_builder(request):
         "settings": settings_obj,
         "styles": styles,
         "assignments": assignments,
+        "preview_students": preview_students,
+        "preview_default_style_slug": preview_default_style_slug,
+        "preview_default_student_id": preview_default_student_id,
+        "total_classroom_count": len(all_classrooms),
+        "assigned_classroom_count": len(assigned_classroom_ids),
+        "unassigned_classroom_count": max(0, len(all_classrooms) - len(assigned_classroom_ids)),
         "style_form": style_form,
         "assignment_form": assignment_form,
         "selection_form": selection_form,

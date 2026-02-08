@@ -4,213 +4,223 @@
 {% block title %}Report card builder{% endblock %}
 
 {% block content %}
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+  <div class="card shadow-sm mb-3">
+    <div class="card-body py-3">
+      <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3">
         <div class="d-flex align-items-start gap-2">
           <div>
-          <h1 class="h4 mb-1">Report card builder</h1>
-          <p class="text-muted mb-2">
-            Draft branded report card layouts for Gilead Technical High School in Buea, then assign them to classrooms.
-            Each style can use Cameroon/Ministry letterheads or a global default so you can produce multiple variants for term and annual reports.
-          </p>
-          <p class="mb-0 small text-muted">
-            Choose a style, assign it to rooms, and set the default for term vs annual PDFs. Everything happens inside the admin console so teachers and parents always download the right look.
-          </p>
+            <h1 class="h4 mb-1">{% trans "Report card builder" %}</h1>
+            <p class="text-muted mb-1 small">
+              {% trans "Create, assign, and publish report card styles with one workflow." %}
+            </p>
+            <p class="text-muted mb-0 small">
+              {% trans "Use the live preview to verify term and annual layouts before they are assigned to classrooms." %}
+            </p>
           </div>
           <a href="{% url 'kb:kb_home' %}" class="btn btn-sm btn-link text-muted p-0 align-self-center" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
         </div>
         <div class="d-flex flex-wrap gap-2 align-items-center">
           {% include "components/pin_to_quick_access.html" with sidebar_item_id="reportcard_builder" %}
-          <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'siteconfig:customizer' %}"><i class="bi bi-arrow-left me-1"></i>Back to customizer</a>
+          <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'siteconfig:customizer' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to customizer" %}</a>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-        <div>
-          <h5 class="mb-1">Style previews</h5>
-          <p class="small text-muted mb-0">
-            Browse the Cameroon and standard layouts to see how letterheads, watermarks, and summaries render before assigning them to classrooms.
-          </p>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-          {% for style in styles %}
-            <a class="btn btn-outline-primary btn-sm" href="{% url 'siteconfig:reportcard_style_preview' style.slug %}">{{ style.name }}</a>
-          {% empty %}
-            <span class="text-muted small">Create a style to unlock previews.</span>
-          {% endfor %}
-        </div>
+  <div id="builder-status-strip" class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+      <div class="d-flex flex-wrap align-items-center gap-2 small">
+        <span class="badge text-bg-primary">{% trans "Styles" %}: {{ styles|length }}</span>
+        <span class="badge text-bg-secondary">{% trans "Assigned classrooms" %}: {{ assigned_classroom_count }}/{{ total_classroom_count }}</span>
+        <span class="badge text-bg-warning">{% trans "Unassigned" %}: {{ unassigned_classroom_count }}</span>
+        <span class="badge text-bg-info">{% trans "Default term" %}: {% if settings.default_term_report_style %}{{ settings.default_term_report_style.name }}{% else %}{% trans "Not set" %}{% endif %}</span>
+        <span class="badge text-bg-info">{% trans "Default annual" %}: {% if settings.default_annual_report_style %}{{ settings.default_annual_report_style.name }}{% else %}{% trans "Not set" %}{% endif %}</span>
       </div>
     </div>
   </div>
 
   <div class="row g-3">
-    <div class="col-lg-6">
+    <div class="col-xl-7">
       <div class="card shadow-sm mb-3">
-        <div class="card-header">
-          <strong>Active styles</strong>
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <strong>{% trans "Catalog & assignments" %}</strong>
+          <ul class="nav nav-pills nav-pills-sm" id="builderTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="styles-tab" data-bs-toggle="pill" data-bs-target="#styles-pane" type="button" role="tab" aria-controls="styles-pane" aria-selected="true">{% trans "Styles" %}</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="assignments-tab" data-bs-toggle="pill" data-bs-target="#assignments-pane" type="button" role="tab" aria-controls="assignments-pane" aria-selected="false">{% trans "Assignments" %}</button>
+            </li>
+          </ul>
         </div>
         <div class="card-body">
-          {% if styles %}
-            <div class="list-group">
-              {% for style in styles %}
-                <div class="list-group-item">
-                <div class="d-flex justify-content-between">
-                  <div>
-                    <strong>{{ style.name }}</strong>
-                    <div class="text-muted small">{{ style.description }}</div>
-                  </div>
-                  {% if style.is_active %}
-                    <span class="badge bg-success rounded-pill">Active</span>
-                  {% else %}
-                    <span class="badge bg-secondary rounded-pill">Inactive</span>
-                  {% endif %}
+          <div class="tab-content" id="builderTabContent">
+            <div class="tab-pane fade show active" id="styles-pane" role="tabpanel" aria-labelledby="styles-tab" tabindex="0">
+              {% if styles %}
+                <div class="d-grid gap-2">
+                  {% for style in styles %}
+                    <article class="border rounded-3 p-3">
+                      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                        <div>
+                          <div class="fw-semibold">{{ style.name }}</div>
+                          {% if style.description %}<div class="small text-muted">{{ style.description }}</div>{% endif %}
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                          {% if style.is_active %}
+                            <span class="badge bg-success-subtle text-success-emphasis">{% trans "Active" %}</span>
+                          {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis">{% trans "Inactive" %}</span>
+                          {% endif %}
+                          {% if settings.default_term_report_style_id == style.id %}
+                            <span class="badge text-bg-primary">{% trans "Default term" %}</span>
+                          {% endif %}
+                          {% if settings.default_annual_report_style_id == style.id %}
+                            <span class="badge text-bg-primary">{% trans "Default annual" %}</span>
+                          {% endif %}
+                        </div>
+                      </div>
+
+                      <div class="d-flex flex-wrap gap-2 mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary js-load-live-preview" data-style-slug="{{ style.slug }}" data-report-type="term">{% trans "Load term in live preview" %}</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary js-load-live-preview" data-style-slug="{{ style.slug }}" data-report-type="annual">{% trans "Load annual in live preview" %}</button>
+                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_preview' style.slug %}" target="_blank" rel="noopener">{% trans "Open HTML preview" %}</a>
+                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_pdf' style.slug 'term' %}" target="_blank" rel="noopener">{% trans "Term PDF" %}</a>
+                        <a class="btn btn-sm btn-outline-dark" href="{% url 'siteconfig:reportcard_style_pdf' style.slug 'annual' %}" target="_blank" rel="noopener">{% trans "Annual PDF" %}</a>
+                      </div>
+                    </article>
+                  {% endfor %}
                 </div>
-                <div class="small text-muted mt-2">
-                  Term template: {{ style.term_template }}, Annual: {{ style.annual_template }}
+              {% else %}
+                <p class="text-muted mb-0">{% trans "No styles yet. Create one in the workflow panel." %}</p>
+              {% endif %}
+            </div>
+
+            <div class="tab-pane fade" id="assignments-pane" role="tabpanel" aria-labelledby="assignments-tab" tabindex="0">
+              {% if assignments %}
+                <div class="small text-muted mb-2">
+                  {% trans "Coverage" %}: {{ assigned_classroom_count }}/{{ total_classroom_count }} {% trans "classrooms assigned" %}.
                 </div>
-                <div class="d-flex flex-wrap gap-2 mt-3">
-                  <button type="button" class="btn btn-outline-primary btn-sm report-preview-trigger"
-                          type="button"
-                          data-preview-type="term"
-                          data-preview-url="{% url 'siteconfig:reportcard_style_pdf' style.slug 'term' %}"
-                          data-report-name="{{ style.name }} (term)">
-                    Preview term PDF
-                  </button>
-                  <button type="button" class="btn btn-outline-secondary btn-sm report-preview-trigger"
-                          type="button"
-                          data-preview-type="annual"
-                          data-preview-url="{% url 'siteconfig:reportcard_style_pdf' style.slug 'annual' %}"
-                          data-report-name="{{ style.name }} (annual)">
-                    Preview annual PDF
-                  </button>
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle">
+                    <thead>
+                      <tr>
+                        <th>{% trans "Classroom" %}</th>
+                        <th>{% trans "Style" %}</th>
+                        <th class="text-end">{% trans "Actions" %}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for assign in assignments %}
+                        <tr>
+                          <td>{{ assign.classroom.name }}</td>
+                          <td>{{ assign.style.name }}</td>
+                          <td class="text-end">
+                            {% if assign.sample_student %}
+                              <button type="button" class="btn btn-sm btn-outline-primary js-load-live-preview"
+                                      data-style-slug="{{ assign.style.slug }}"
+                                      data-report-type="term"
+                                      data-student-id="{{ assign.sample_student.id }}">{% trans "Preview sample" %}</button>
+                            {% else %}
+                              <button type="button" class="btn btn-sm btn-outline-secondary js-load-live-preview"
+                                      data-style-slug="{{ assign.style.slug }}"
+                                      data-report-type="term">{% trans "Preview" %}</button>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
-            {% endfor %}
+              {% else %}
+                <p class="text-muted mb-0">{% trans "No classroom assignments yet." %}</p>
+              {% endif %}
+            </div>
           </div>
-          {% else %}
-            <p class="text-muted mb-0">No styles yet. Create one using the form below.</p>
-          {% endif %}
-        </div>
-      </div>
-      <div class="card shadow-sm mb-3">
-        <div class="card-header">
-          <strong>Assignments</strong>
-        </div>
-        <div class="card-body">
-          {% if assignments %}
-            <ul class="list-unstyled mb-0 small">
-              {% for assign in assignments %}
-                <li class="mb-3">
-                  <strong>{{ assign.classroom.name }}</strong> → {{ assign.style.name }}
-                  {% if assign.sample_student %}
-                    <div class="mt-1 d-flex flex-wrap gap-2">
-                      <button type="button" class="btn btn-outline-primary btn-sm report-preview-trigger"
-                              type="button"
-                              data-preview-url="{% url 'siteconfig:reportcard_style_pdf' assign.style.slug 'term' %}?student_id={{ assign.sample_student.id }}"
-                              data-report-name="{{ assign.sample_student.first_name }} {{ assign.sample_student.last_name }} (term)">
-                        Preview term
-                      </button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm report-preview-trigger"
-                              type="button"
-                              data-preview-url="{% url 'siteconfig:reportcard_style_pdf' assign.style.slug 'annual' %}?student_id={{ assign.sample_student.id }}"
-                              data-report-name="{{ assign.sample_student.first_name }} {{ assign.sample_student.last_name }} (annual)">
-                        Preview annual
-                      </button>
-                    </div>
-                  {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted mb-0">No classrooms assigned to a specific style yet.</p>
-          {% endif %}
         </div>
       </div>
     </div>
 
-    <div class="col-lg-6">
-      <div class="card shadow-sm mb-3">
+    <div class="col-xl-5">
+      {% include "siteconfig/partials/mock_reportcard_preview.html" %}
+
+      <div id="report-builder-workflow" class="card shadow-sm">
         <div class="card-header">
-          <strong>Create / edit a style</strong>
+          <strong>{% trans "Builder workflow" %}</strong>
         </div>
         <div class="card-body">
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="style">
-            {% for field in style_form %}
-              <div class="mb-3">
-                {{ field.label_tag }}{{ field }}
-                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-                {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+          <div class="accordion" id="reportBuilderAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="workflow-style-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-style" aria-expanded="true" aria-controls="workflow-style">
+                  {% trans "1) Create or edit style" %}
+                </button>
+              </h2>
+              <div id="workflow-style" class="accordion-collapse collapse show" aria-labelledby="workflow-style-header" data-bs-parent="#reportBuilderAccordion">
+                <div class="accordion-body">
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="style">
+                    {% for field in style_form %}
+                      <div class="mb-2">
+                        {{ field.label_tag }}{{ field }}
+                        {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+                        {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                      </div>
+                    {% endfor %}
+                    <button class="btn btn-primary btn-sm" type="submit">{% trans "Save style" %}</button>
+                  </form>
+                </div>
               </div>
-            {% endfor %}
-            <button class="btn btn-primary btn-sm" type="submit">Save style</button>
-          </form>
-        </div>
-      </div>
+            </div>
 
-      <div class="card shadow-sm mb-3">
-        <div class="card-header">
-          <strong>Assign classrooms</strong>
-        </div>
-        <div class="card-body">
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="assignment">
-            {% for field in assignment_form %}
-              <div class="mb-3">
-                {{ field.label_tag }}{{ field }}
-                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-                {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="workflow-assignment-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-assignment" aria-expanded="false" aria-controls="workflow-assignment">
+                  {% trans "2) Assign style to classrooms" %}
+                </button>
+              </h2>
+              <div id="workflow-assignment" class="accordion-collapse collapse" aria-labelledby="workflow-assignment-header" data-bs-parent="#reportBuilderAccordion">
+                <div class="accordion-body">
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="assignment">
+                    {% for field in assignment_form %}
+                      <div class="mb-2">
+                        {{ field.label_tag }}{{ field }}
+                        {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+                        {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                      </div>
+                    {% endfor %}
+                    <button class="btn btn-secondary btn-sm" type="submit">{% trans "Save assignments" %}</button>
+                  </form>
+                </div>
               </div>
-            {% endfor %}
-            <button class="btn btn-secondary btn-sm" type="submit">Assign style</button>
-          </form>
-        </div>
-      </div>
+            </div>
 
-      <div class="card shadow-sm">
-        <div class="card-header">
-          <strong>Default mapping</strong>
-        </div>
-        <div class="card-body">
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="selection">
-            {% for field in selection_form %}
-              <div class="mb-3">
-                {{ field.label_tag }}{{ field }}
-                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
-                {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="workflow-defaults-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-defaults" aria-expanded="false" aria-controls="workflow-defaults">
+                  {% trans "3) Set default mappings" %}
+                </button>
+              </h2>
+              <div id="workflow-defaults" class="accordion-collapse collapse" aria-labelledby="workflow-defaults-header" data-bs-parent="#reportBuilderAccordion">
+                <div class="accordion-body">
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="selection">
+                    {% for field in selection_form %}
+                      <div class="mb-2">
+                        {{ field.label_tag }}{{ field }}
+                        {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+                        {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                      </div>
+                    {% endfor %}
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">{% trans "Save defaults" %}</button>
+                  </form>
+                </div>
               </div>
-            {% endfor %}
-            <button class="btn btn-outline-secondary btn-sm" type="submit">Save defaults</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-  {% include "siteconfig/partials/mock_reportcard_preview.html" %}
-
-  <!-- Preview modal -->
-  <div class="modal fade" id="reportPreviewModal" tabindex="-1" aria-labelledby="reportPreviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-lg-down">
-      <div class="modal-content border-0 shadow">
-        <div class="modal-header bg-dark text-white">
-          <h5 class="modal-title" id="reportPreviewModalLabel">Report preview</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-0">
-          <iframe id="reportPreviewFrame" class="w-100 h-100 border-0" style="min-height: 600px;"></iframe>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-          <a id="reportPreviewDownload" class="btn btn-primary btn-sm" target="_blank" rel="noopener" download>Open in new tab</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -218,38 +228,16 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const previewModalEl = document.getElementById("reportPreviewModal");
-      const previewFrame = document.getElementById("reportPreviewFrame");
-      const downloadLink = document.getElementById("reportPreviewDownload");
-      let bootstrapModal;
-      if (typeof bootstrap !== "undefined") {
-        bootstrapModal = new bootstrap.Modal(previewModalEl);
-      }
-
-      document.querySelectorAll(".report-preview-trigger").forEach(function (button) {
-        button.addEventListener("click", function (event) {
-          event.preventDefault();
-          const url = this.dataset.previewUrl;
-          const label = this.dataset.reportName || "Report preview";
-          if (!url) {
+      document.querySelectorAll(".js-load-live-preview").forEach(function (button) {
+        button.addEventListener("click", function () {
+          if (typeof window.setReportBuilderPreview !== "function") {
             return;
           }
-          if (previewFrame) {
-            previewFrame.src = url;
-          }
-          if (downloadLink) {
-            downloadLink.href = url;
-            downloadLink.textContent = "Download " + label;
-          }
-          const title = document.getElementById("reportPreviewModalLabel");
-          if (title) {
-            title.textContent = label;
-          }
-          if (bootstrapModal) {
-            bootstrapModal.show();
-          } else {
-            previewModalEl.classList.add("show", "d-block");
-          }
+          window.setReportBuilderPreview({
+            styleSlug: button.dataset.styleSlug,
+            reportType: button.dataset.reportType || "term",
+            studentId: button.dataset.studentId || "",
+          });
         });
       });
     });
