@@ -21,6 +21,7 @@ This checklist is the execution contract for the approved plan:
   - Standardize export/import of SiteSettings and ThemePack config.
 - File edits:
   - `scripts/release/sync_ui_config.ps1`
+  - `scripts/release/sync_ui_config.sh`
   - `docs/execution/DEV_LIVE_PARITY_RUNBOOK.md`
   - `render.yaml` (if needed for predeploy consistency)
 - Verification:

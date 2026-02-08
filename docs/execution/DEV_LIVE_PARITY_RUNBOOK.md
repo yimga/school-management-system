@@ -13,7 +13,8 @@ Keep local development UI and Render production UI consistent for theme, layout,
 2. Run migrations:
    - `python manage.py migrate`
 3. Sync UI config fixture roundtrip:
-   - `powershell -ExecutionPolicy Bypass -File scripts/release/sync_ui_config.ps1 -Mode roundtrip`
+   - `bash scripts/release/sync_ui_config.sh roundtrip`
+   - PowerShell fallback: `powershell -ExecutionPolicy Bypass -File scripts/release/sync_ui_config.ps1 -Mode roundtrip`
 4. Seed curated admin packs:
    - `python manage.py seed_admin_dashboard_palettes`
 5. Start local server:
@@ -31,11 +32,13 @@ Render predeploy command should include:
    - `python manage.py export_ui_config /tmp/ui_config_prod.json`
 2. Download or copy JSON into local repo as `fixtures/ui_config.prod.json`.
 3. Import locally:
-   - `powershell -ExecutionPolicy Bypass -File scripts/release/sync_ui_config.ps1 -Mode import -ConfigPath fixtures/ui_config.prod.json`
+   - `CONFIG_PATH=fixtures/ui_config.prod.json bash scripts/release/sync_ui_config.sh import`
+   - PowerShell fallback: `powershell -ExecutionPolicy Bypass -File scripts/release/sync_ui_config.ps1 -Mode import -ConfigPath fixtures/ui_config.prod.json`
 
 ## Local-to-production push (Git-driven)
 1. Export local desired config:
-   - `powershell -ExecutionPolicy Bypass -File scripts/release/sync_ui_config.ps1 -Mode export -ConfigPath fixtures/ui_config.json`
+   - `CONFIG_PATH=fixtures/ui_config.json bash scripts/release/sync_ui_config.sh export`
+   - PowerShell fallback: `powershell -ExecutionPolicy Bypass -File scripts/release/sync_ui_config.ps1 -Mode export -ConfigPath fixtures/ui_config.json`
 2. Commit `fixtures/ui_config.json`.
 3. Push and deploy; predeploy imports the fixture.
 
@@ -53,6 +56,6 @@ Render predeploy command should include:
 - Different branch commit than expected.
 
 ## Permanent controls
-- Always run sync script before local UI verification.
+- Always run `sync_ui_config.sh` before local UI verification.
 - Keep predeploy import/normalize enabled.
 - Commit fixture changes explicitly when UI config should change in production.
