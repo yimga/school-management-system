@@ -109,6 +109,11 @@
   box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.18);
 }
 
+.admin-dashboard-palette-card.is-active-unified {
+  border-color: rgba(8, 145, 178, 0.85);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+}
+
 .admin-dashboard-palette-swatches {
   display: flex;
   gap: 4px;

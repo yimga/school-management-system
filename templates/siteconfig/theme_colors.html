@@ -45,6 +45,18 @@
             </strong>
           </span>
         </div>
+        <div
+          id="theme-pack-parity-note"
+          class="small mt-1 {% if site_settings.theme_pack_id and site_settings.theme_pack_id == site_settings.admin_theme_pack_id %}text-success{% else %}text-warning{% endif %}"
+          data-unified-label="{% trans 'Unified pack active across site and admin.' %}"
+          data-split-label="{% trans 'Site and admin packs differ. Visual style may diverge.' %}"
+        >
+          {% if site_settings.theme_pack_id and site_settings.theme_pack_id == site_settings.admin_theme_pack_id %}
+            {% trans "Unified pack active across site and admin." %}
+          {% else %}
+            {% trans "Site and admin packs differ. Visual style may diverge." %}
+          {% endif %}
+        </div>
         <div id="theme-last-saved-meta" class="small text-muted mt-1">
           {% trans "Last saved:" %} {{ site_settings.updated_at|date:"Y-m-d H:i" }} -
           {% trans "Preview mode:" %} {% if preview_mode_active %}{% trans "ON" %}{% else %}{% trans "OFF" %}{% endif %}
@@ -266,6 +278,22 @@
     activeSource.textContent = text;
   }
 
+  function updatePackParityNote() {
+    var note = document.getElementById('theme-pack-parity-note');
+    var siteField = document.getElementById('id_theme_pack');
+    var adminField = document.getElementById('id_admin_theme_pack');
+    if (!note || !siteField || !adminField) return;
+
+    var sitePack = String(siteField.value || '');
+    var adminPack = String(adminField.value || '');
+    var unified = sitePack !== '' && sitePack === adminPack;
+    note.textContent = unified
+      ? (note.dataset.unifiedLabel || 'Unified pack active across site and admin.')
+      : (note.dataset.splitLabel || 'Site and admin packs differ. Visual style may diverge.');
+    note.classList.toggle('text-success', unified);
+    note.classList.toggle('text-warning', !unified);
+  }
+
   function updateDraftState() {
     if (!draftBadge) return;
     var dirty = trackedFieldNames.some(function(name) {
@@ -334,6 +362,7 @@
     syncAdminPrimaryGuard();
     writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
     writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
+    updatePackParityNote();
     updateDraftState();
 
     var adminUseSitePrimary = document.getElementById('id_admin_use_site_primary');
@@ -350,6 +379,7 @@
         updateDraftState();
         writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
         writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
+        updatePackParityNote();
         var previewConfirmedField = document.getElementById('theme-preview-confirmed');
         if (previewConfirmedField) previewConfirmedField.value = '0';
       });
@@ -364,6 +394,7 @@
       setSource(name ? ('{% trans "Source: selected theme pack" %} ' + name) : '{% trans "Source: selected theme pack" %}');
       writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
       writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
+      updatePackParityNote();
       updateDraftState();
     });
 

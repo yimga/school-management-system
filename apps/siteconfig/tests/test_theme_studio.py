@@ -87,6 +87,7 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "theme-active-source")
         self.assertContains(response, "theme-active-site-pack")
         self.assertContains(response, "theme-active-admin-pack")
+        self.assertContains(response, "theme-pack-parity-note")
         self.assertContains(response, "theme-last-saved-meta")
         self.assertContains(response, "theme-preview-confirmed")
         self.assertContains(response, "cps-keep-theme-pack")

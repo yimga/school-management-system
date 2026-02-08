@@ -147,16 +147,17 @@
   function syncCardStatusBadges() {
     var activeSiteId = sitePackField ? String(sitePackField.value || '') : '';
     var activeAdminId = String(field.value || '');
-    cards.forEach(function(card) {
-      var packId = String(card.dataset.packId || '');
-      var siteActive = activeSiteId && packId === activeSiteId;
-      var adminActive = activeAdminId && packId === activeAdminId;
-      setCardBadgeState(card, 'site-active', siteActive);
-      setCardBadgeState(card, 'admin-active', adminActive);
-      card.classList.toggle('is-site-active', !!siteActive);
-      card.classList.toggle('is-admin-active', !!adminActive);
-    });
-  }
+      cards.forEach(function(card) {
+        var packId = String(card.dataset.packId || '');
+        var siteActive = activeSiteId && packId === activeSiteId;
+        var adminActive = activeAdminId && packId === activeAdminId;
+        setCardBadgeState(card, 'site-active', siteActive);
+        setCardBadgeState(card, 'admin-active', adminActive);
+        card.classList.toggle('is-site-active', !!siteActive);
+        card.classList.toggle('is-admin-active', !!adminActive);
+        card.classList.toggle('is-active-unified', !!siteActive && !!adminActive);
+      });
+    }
 
   function applyCard(card) {
     if (!card) return;
