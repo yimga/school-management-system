@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="{% static 'css/admin-color-preview.css' %}">
 
     {% if admin_theme_packs %}
-    <div id="admin-dashboard-palette-selector" class="theme-pack-catalog-body">
+    <div id="admin-dashboard-palette-selector" class="theme-pack-catalog-body theme-pack-catalog-scroll">
       {% if admin_theme_packs_by_group %}
         {% for group_label, packs in admin_theme_packs_by_group %}
         <div class="admin-dashboard-palette-group" data-group-label="{{ group_label }}">
@@ -104,6 +104,7 @@
         </div>
       {% endif %}
     </div>
+    <p class="small text-muted mb-0 theme-pack-catalog-hint">{% trans "Scroll inside catalog to browse all packs without stretching the full page." %}</p>
     {% else %}
       <p class="text-muted">{% trans "No admin theme packs available." %}</p>
     {% endif %}

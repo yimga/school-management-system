@@ -91,6 +91,13 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "theme-preview-confirmed")
         self.assertContains(response, "cps-keep-theme-pack")
 
+    def test_theme_studio_catalog_uses_compact_scroll_region(self):
+        self.client.login(username="theme-manager", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "theme-pack-catalog-scroll")
+        self.assertContains(response, "theme-pack-catalog-hint")
+
     def test_theme_studio_auto_seeds_catalog_when_admin_packs_missing(self):
         ThemePack.objects.all().delete()
         ThemePack.objects.create(
