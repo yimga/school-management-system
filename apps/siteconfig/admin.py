@@ -5,7 +5,7 @@ from unfold.admin import ModelAdmin
 from django.template.loader import render_to_string
 from django.utils.html import format_html
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.db import models
 import csv
@@ -878,6 +878,18 @@ class ThemePackAdmin(ModelAdmin):
 
     def get_model_perms(self, request):
         return {}
+
+    def _studio_redirect(self):
+        return HttpResponseRedirect(reverse("siteconfig:theme_colors"))
+
+    def changelist_view(self, request, extra_context=None):
+        return self._studio_redirect()
+
+    def add_view(self, request, form_url="", extra_context=None):
+        return self._studio_redirect()
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        return self._studio_redirect()
 
     def palette_preview(self, obj):
         start, end = obj.gradient_colors

@@ -15,6 +15,7 @@ from .views import (
     user_preferences,
     set_default_dashboard_view,
     theme_colors_page,
+    theme_experience_redirect,
     toggle_preview_mode,
     set_act_as_role,
 )
@@ -36,6 +37,7 @@ urlpatterns = [
     path("customizer/", customizer, name="customizer"),
     path("customizer/clear-preview/", clear_preview, name="clear_preview"),
     path("theme-colors/", theme_colors_page, name="theme_colors"),
+    path("theme-experience/", theme_experience_redirect, name="theme_experience_redirect"),
     path("preview-from-form/", preview_from_form, name="preview_from_form"),
     path("preferences/", user_preferences, name="user_preferences"),
     path("preferences/set-default-view/", set_default_dashboard_view, name="set_default_dashboard_view"),

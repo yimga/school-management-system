@@ -6,6 +6,7 @@ import logging
 import os
 import tempfile
 import zipfile
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -662,6 +663,19 @@ def theme_colors_page(request):
             "back_url": back_url,
         },
     )
+
+
+@permission_required("settings.manage")
+def theme_experience_redirect(request):
+    """
+    Legacy route redirector so all theme editing lands on the canonical
+    Theme & Experience studio.
+    """
+    target = reverse("siteconfig:theme_colors")
+    next_url = request.GET.get("next")
+    if next_url and next_url.startswith("/"):
+        target = f"{target}?{urlencode({'next': next_url})}"
+    return redirect(target)
 
 
 @staff_member_required

@@ -97,6 +97,16 @@ class ThemeStudioAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         mocked_call_command.assert_called_once_with("seed_admin_dashboard_palettes")
 
+    def test_legacy_theme_experience_route_redirects_to_theme_studio(self):
+        self.client.login(username="theme-manager", password="password")
+        response = self.client.get(
+            reverse("siteconfig:theme_experience_redirect"),
+            {"next": "/admin/siteconfig/sitesettings/1/change/#section-theme-experience"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("siteconfig:theme_colors"), response.url)
+        self.assertIn("next=%2Fadmin%2Fsiteconfig%2Fsitesettings%2F1%2Fchange%2F%23section-theme-experience", response.url)
+
 
 class ThemeResolutionTests(TestCase):
     def setUp(self):
@@ -197,6 +207,13 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         request = RequestFactory().get("/admin/")
         perms = model_admin.get_model_perms(request)
         self.assertEqual(perms, {})
+
+    def test_themepack_admin_changeform_redirects_to_theme_studio(self):
+        model_admin = admin_site._registry[ThemePack]
+        request = RequestFactory().get("/admin/siteconfig/themepack/1/change/")
+        response = model_admin.changeform_view(request, object_id="1")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("siteconfig:theme_colors"))
 
 
 class ThemeStudioApplyScriptTests(SimpleTestCase):
