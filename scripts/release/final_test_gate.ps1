@@ -1,10 +1,22 @@
 $ErrorActionPreference = "Stop"
 
+function Invoke-StrictCommand {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string[]]$CommandParts
+  )
+
+  & $CommandParts[0] $CommandParts[1..($CommandParts.Length - 1)]
+  if ($LASTEXITCODE -ne 0) {
+    throw "Command failed with exit code ${LASTEXITCODE}: $($CommandParts -join ' ')"
+  }
+}
+
 Write-Host "[Phase 15] Running Django system checks..."
-python manage.py check
+Invoke-StrictCommand -CommandParts @("python", "manage.py", "check")
 
 Write-Host "[Phase 15] Verifying migrations are in sync..."
-python manage.py makemigrations --check --dry-run
+Invoke-StrictCommand -CommandParts @("python", "manage.py", "makemigrations", "--check", "--dry-run")
 
 $testModules = @(
   "apps.portal.tests.test_generate_kb_odt_command",
@@ -19,6 +31,6 @@ $testModules = @(
 )
 
 Write-Host "[Phase 15] Running targeted regression suite..."
-python manage.py test $testModules --verbosity 1
+Invoke-StrictCommand -CommandParts (@("python", "manage.py", "test") + $testModules + @("--verbosity", "1"))
 
 Write-Host "[Phase 15] Final gate passed."
