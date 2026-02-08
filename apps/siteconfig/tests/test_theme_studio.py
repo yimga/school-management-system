@@ -182,6 +182,7 @@ class ThemePackSelectorTemplateTests(TestCase):
 
         self.assertIn("theme-pack-auto-apply", html)
         self.assertIn("theme-pack-apply-site", html)
+        self.assertIn("theme-pack-filter", html)
         self.assertIn("data-success=\"#22c55e\"", html)
         self.assertIn("data-warning=\"#f59e0b\"", html)
         self.assertIn("data-danger=\"#ef4444\"", html)

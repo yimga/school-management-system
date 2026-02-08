@@ -4,6 +4,15 @@
     <summary class="admin-dashboard-palette-group-title mb-2">{% trans "Theme pack catalog" %}</summary>
     <p class="help">{% trans "Choose a pack to style admin/backend consistently. Click a card to select the admin pack and optionally apply its colors to Theme & Experience fields." %}</p>
 
+    <div class="theme-pack-filter-row mb-2">
+      <input
+        type="search"
+        id="theme-pack-filter"
+        class="form-control form-control-sm"
+        placeholder="{% trans 'Filter packs by name, group, or description' %}"
+        aria-label="{% trans 'Filter theme packs' %}">
+    </div>
+
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <label class="form-check d-inline-flex align-items-center gap-2 mb-0">
         <input id="theme-pack-auto-apply" class="form-check-input" type="checkbox" checked>
@@ -19,7 +28,7 @@
     <link rel="stylesheet" href="{% static 'css/admin-color-preview.css' %}">
 
     {% if admin_theme_packs %}
-    <div id="admin-dashboard-palette-selector">
+    <div id="admin-dashboard-palette-selector" class="theme-pack-catalog-body">
       {% if admin_theme_packs_by_group %}
         {% for group_label, packs in admin_theme_packs_by_group %}
         <div class="admin-dashboard-palette-group" data-group-label="{{ group_label }}">
@@ -99,6 +108,11 @@
   var autoApply = document.getElementById('theme-pack-auto-apply');
   var applySite = document.getElementById('theme-pack-apply-site');
   var cards = Array.prototype.slice.call(container.querySelectorAll('.admin-dashboard-palette-card'));
+  var filterInput = document.getElementById('theme-pack-filter');
+
+  function normalizeText(value) {
+    return String(value || '').toLowerCase();
+  }
 
   function setSelected(id) {
     cards.forEach(function(card) {
@@ -138,5 +152,47 @@
   });
 
   if (field.value) setSelected(field.value);
+
+  function applyFilter(value) {
+    var query = normalizeText(value).trim();
+    var visible = 0;
+
+    cards.forEach(function(card) {
+      var group = card.closest('.admin-dashboard-palette-group');
+      var haystack = [
+        card.dataset.packSlug || '',
+        card.dataset.packId || '',
+        card.querySelector('.admin-dashboard-palette-name') ? card.querySelector('.admin-dashboard-palette-name').textContent : '',
+        card.querySelector('.admin-dashboard-palette-desc') ? card.querySelector('.admin-dashboard-palette-desc').textContent : '',
+        group ? (group.getAttribute('data-group-label') || '') : ''
+      ].join(' ');
+      var match = query.length === 0 || normalizeText(haystack).indexOf(query) !== -1;
+      card.classList.toggle('d-none', !match);
+      if (match) visible += 1;
+    });
+
+    Array.prototype.slice.call(container.querySelectorAll('.admin-dashboard-palette-group')).forEach(function(group) {
+      var groupCards = group.querySelectorAll('.admin-dashboard-palette-card:not(.d-none)');
+      group.classList.toggle('d-none', groupCards.length === 0);
+    });
+
+    var counter = document.getElementById('theme-pack-filter-count');
+    if (!counter) {
+      counter = document.createElement('span');
+      counter.id = 'theme-pack-filter-count';
+      counter.className = 'badge text-bg-secondary-subtle';
+      if (filterInput && filterInput.parentElement) {
+        filterInput.parentElement.appendChild(counter);
+      }
+    }
+    counter.textContent = visible + ' shown';
+  }
+
+  if (filterInput) {
+    filterInput.addEventListener('input', function() {
+      applyFilter(filterInput.value);
+    });
+    applyFilter(filterInput.value);
+  }
 })();
 </script>

@@ -58,6 +58,31 @@
   gap: 12px;
 }
 
+.theme-pack-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-pack-filter-row .form-control {
+  max-width: 360px;
+}
+
+.theme-pack-catalog[open] .theme-pack-catalog-body {
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+.theme-pack-catalog[open] .theme-pack-catalog-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.theme-pack-catalog[open] .theme-pack-catalog-body::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+  border-radius: 999px;
+}
+
 .admin-dashboard-palette-card {
   border: 2px solid transparent;
   border-radius: 10px;
