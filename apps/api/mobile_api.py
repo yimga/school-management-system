@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 import uuid
+from django.utils.dateparse import parse_datetime
 
 User = get_user_model()
 
@@ -269,6 +270,108 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             device__user=self.request.user,
             status__in=['PENDING', 'CONFLICT']
         )
+
+    def _parse_client_timestamp(self, raw_value):
+        """Best-effort parser for client timestamps."""
+        if hasattr(raw_value, "tzinfo"):
+            return raw_value
+        if isinstance(raw_value, str):
+            parsed = parse_datetime(raw_value)
+            if parsed:
+                if timezone.is_naive(parsed):
+                    return timezone.make_aware(parsed, timezone.get_current_timezone())
+                return parsed
+        return timezone.now()
+
+    def _process_eval_sync(self, sync_item, user):
+        """
+        Process evaluation sync items through OfflineMarkEntry + conflict resolver.
+        """
+        from apps.academics.models import SubjectAssignment, AcademicYear, Term
+        from apps.evals.models import OfflineMarkEntry
+        from apps.evals.offline_sync import OfflineSyncService
+        from apps.people.models import TeacherProfile, StudentProfile
+
+        payload = sync_item.data or {}
+        teacher = TeacherProfile.objects.filter(user=user).first()
+        if not teacher:
+            sync_item.status = 'FAILED'
+            sync_item.error_message = "Authenticated user has no teacher profile."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        subject_assignment_id = payload.get("subject_assignment_id") or payload.get("subject_assignment")
+        student_id = payload.get("student_id") or payload.get("student")
+        academic_year_id = payload.get("academic_year_id") or payload.get("academic_year")
+        term_id = payload.get("term_id") or payload.get("term")
+
+        if not all([subject_assignment_id, student_id, academic_year_id, term_id]):
+            sync_item.status = 'FAILED'
+            sync_item.error_message = (
+                "Missing required identifiers: subject_assignment_id, student_id, academic_year_id, term_id."
+            )
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        if not SubjectAssignment.objects.filter(id=subject_assignment_id).exists():
+            sync_item.status = 'FAILED'
+            sync_item.error_message = f"SubjectAssignment {subject_assignment_id} not found."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        if not StudentProfile.objects.filter(id=student_id).exists():
+            sync_item.status = 'FAILED'
+            sync_item.error_message = f"StudentProfile {student_id} not found."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        if not AcademicYear.objects.filter(id=academic_year_id).exists():
+            sync_item.status = 'FAILED'
+            sync_item.error_message = f"AcademicYear {academic_year_id} not found."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        if not Term.objects.filter(id=term_id).exists():
+            sync_item.status = 'FAILED'
+            sync_item.error_message = f"Term {term_id} not found."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        offline_entry = OfflineMarkEntry.objects.create(
+            teacher=teacher,
+            subject_assignment_id=subject_assignment_id,
+            student_id=student_id,
+            academic_year_id=academic_year_id,
+            term_id=term_id,
+            seq1_score=payload.get("seq1_score"),
+            seq2_score=payload.get("seq2_score"),
+            exam_score=payload.get("exam_score"),
+            mock_score=payload.get("mock_score"),
+            practical_score=payload.get("practical_score"),
+            remarks=payload.get("remarks", ""),
+            created_offline_at=self._parse_client_timestamp(sync_item.client_timestamp),
+            status='pending',
+        )
+
+        success, message = OfflineSyncService.sync_offline_entry(offline_entry, teacher=teacher)
+        sync_item.synced_at = timezone.now()
+        if success:
+            sync_item.status = 'COMPLETED'
+            sync_item.error_message = ""
+            sync_item.conflict_data = {"offline_entry_id": offline_entry.id, "message": message}
+        else:
+            is_conflict = "conflict" in (message or "").lower()
+            sync_item.status = 'CONFLICT' if is_conflict else 'FAILED'
+            sync_item.error_message = message
+            sync_item.conflict_data = {"offline_entry_id": offline_entry.id, "message": message}
+        sync_item.save(update_fields=["status", "error_message", "conflict_data", "synced_at"])
+        return {"status": sync_item.status, "message": message, "offline_entry_id": offline_entry.id}
     
     def perform_create(self, serializer):
         """Queue offline changes for sync"""
@@ -311,27 +414,58 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             )
         
         results = []
+        synced_count = 0
+        conflict_count = 0
+        failed_count = 0
+
         for change in changes:
+            entity_type = (change.get('entity_type') or '').lower()
+            entity_id = change.get('entity_id', 0) or 0
+            action = (change.get('action') or 'UPDATE').upper()
+            payload = change.get('data') or {}
+            client_timestamp = self._parse_client_timestamp(change.get('client_timestamp'))
+
             sync_item = OfflineSyncQueue.objects.create(
                 device=device,
-                entity_type=change['entity_type'],
-                entity_id=change['entity_id'],
-                action=change['action'],
-                data=change['data'],
-                client_timestamp=change['client_timestamp']
+                entity_type=entity_type,
+                entity_id=entity_id,
+                action=action,
+                data=payload,
+                client_timestamp=client_timestamp,
+                status='SYNCING',
             )
-            
-            # Process sync (simplified - implement actual sync logic)
-            sync_item.status = 'COMPLETED'
-            sync_item.synced_at = timezone.now()
-            sync_item.save()
-            
+
+            if entity_type in ('evaluation', 'grade', 'offline_mark_entry') and action in ('CREATE', 'UPDATE'):
+                result = self._process_eval_sync(sync_item, request.user)
+            else:
+                sync_item.status = 'FAILED'
+                sync_item.error_message = f"Unsupported sync item: {entity_type}/{action}"
+                sync_item.synced_at = timezone.now()
+                sync_item.save(update_fields=["status", "error_message", "synced_at"])
+                result = {"status": sync_item.status, "error": sync_item.error_message}
+
+            if result.get("status") == "COMPLETED":
+                synced_count += 1
+            elif result.get("status") == "CONFLICT":
+                conflict_count += 1
+            else:
+                failed_count += 1
+
             results.append({
                 'id': sync_item.id,
-                'status': sync_item.status
+                'entity_type': entity_type,
+                'action': action,
+                'status': sync_item.status,
+                'error': sync_item.error_message,
+                'conflict_data': sync_item.conflict_data,
             })
-        
-        return Response({'synced': len(results), 'results': results})
+
+        return Response({
+            'synced': synced_count,
+            'conflicts': conflict_count,
+            'failed': failed_count,
+            'results': results,
+        })
     
     @action(detail=True, methods=['post'])
     def resolve_conflict(self, request, pk=None):
