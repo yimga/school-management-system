@@ -1305,13 +1305,28 @@ class SiteSettings(models.Model):
         return "contain"
 
     def save(self, *args, **kwargs):
-        if self.theme_pack_id:
-            try:
-                ThemePackModel = django_apps.get_model("siteconfig", "ThemePack")
-                if not ThemePackModel.objects.filter(pk=self.theme_pack_id).exists():
-                    self.theme_pack = None
-            except OperationalError:
-                self.theme_pack = None
+        fk_guards = (
+            ("theme_pack", "siteconfig", "ThemePack"),
+            ("admin_theme_pack", "siteconfig", "ThemePack"),
+            ("default_term_report_style", "siteconfig", "ReportCardStyle"),
+            ("default_annual_report_style", "siteconfig", "ReportCardStyle"),
+            ("compliance_profile", "finance", "ComplianceProfile"),
+        )
+        model_cache: dict[tuple[str, str], object | None] = {}
+
+        for field_name, app_label, model_name in fk_guards:
+            field_id = getattr(self, f"{field_name}_id", None)
+            if not field_id:
+                continue
+            cache_key = (app_label, model_name)
+            if cache_key not in model_cache:
+                try:
+                    model_cache[cache_key] = django_apps.get_model(app_label, model_name)
+                except OperationalError:
+                    model_cache[cache_key] = None
+            related_model = model_cache[cache_key]
+            if related_model is None or not related_model.objects.filter(pk=field_id).exists():
+                setattr(self, field_name, None)
         super().save(*args, **kwargs)
 
     @property
