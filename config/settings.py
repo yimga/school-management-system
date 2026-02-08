@@ -408,6 +408,16 @@ CELERY_BEAT_SCHEDULE = {
         "options": {"expires": 3600},
         "kwargs": {"days_old": 30},  # Only retry receipts older than 30 days
     },
+    "auto-generate-fee-invoices": {
+        "task": "finance.auto_generate_fee_invoices",
+        "schedule": 86400.0,  # Daily; task self-checks SiteSettings schedule mode
+        "options": {"expires": 3600},
+    },
+    "auto-copy-fee-plans": {
+        "task": "finance.auto_copy_fee_plans",
+        "schedule": 86400.0,  # Daily; task self-checks SiteSettings mode/enable flags
+        "options": {"expires": 3600},
+    },
     "send-deadline-reminders": {
         "task": "analytics.send_deadline_reminders",
         "schedule": 86400.0,  # Daily; uses SiteSettings.teacher_deadline_reminder_days

@@ -11,6 +11,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.core.cache import cache
 from django.utils import timezone
 from django.db import transaction
 
@@ -110,148 +111,161 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
     notification_service = NotificationService()
 
     for reminder in reminders:
-        invoice = reminder.invoice
-        guardians = StudentGuardian.objects.filter(
-            student=invoice.student,
-            can_view_finance=True,
-            guardian_user__is_active=True,
-        ).select_related("guardian_user", "guardian_user__preferences")
-
-        if not guardians:
-            logger.info("No guardians configured for invoice %s.", invoice)
+        lock_key = f"finance:payment-reminder:lock:{reminder.id}"
+        if not cache.add(lock_key, "1", timeout=300):
+            logger.info("Skipping reminder %s because another worker is already processing it.", reminder.id)
             continue
+        try:
+            invoice = reminder.invoice
+            guardians = StudentGuardian.objects.filter(
+                student=invoice.student,
+                can_view_finance=True,
+                guardian_user__is_active=True,
+            ).select_related("guardian_user", "guardian_user__preferences")
 
-        payment_link = generate_payment_link(invoice)
-        link_display = payment_link["url"] if payment_link else default_link
-        due_display = invoice.due_date or timezone.localdate(now)
-        
-        # Get reminder channels (per-reminder override or SiteSettings default)
-        channels = reminder.get_reminder_channels()
-
-        for guardian in guardians:
-            guardian_user = guardian.guardian_user
-            guardian_name = guardian_user.get_full_name() or guardian_user.username
-            
-            # Get user-specific channels (respects UserPreference)
-            user_channels = get_notification_channels(guardian_user, "payment_reminder")
-            # Use intersection: only send via channels both reminder and user support
-            active_channels = [ch for ch in channels if ch in user_channels] if user_channels else channels
-
-            # No contact: prefer StudentGuardian.email/phone, then guardian_user (see docs/DATA_PARENT_CONTACT.md)
-            has_contact = bool(
-                (getattr(guardian, "email", None) or "").strip()
-                or (guardian_user.email or "").strip()
-                or getattr(guardian_user, "phone", None)
-                or getattr(guardian, "phone", None)
-                or getattr(guardian, "whatsapp_number", None)
-            )
-            if not has_contact:
-                no_contact_action = getattr(
-                    SiteSettings.get_solo(),
-                    "finance_reminder_no_contact_action",
-                    "warn_only",
-                )
-                logger.warning(
-                    "Payment reminder: no contact for guardian %s, invoice %s (student: %s)",
-                    guardian_name,
-                    invoice.reference or invoice.id,
-                    invoice.student,
-                )
-                if no_contact_action == "create_task":
-                    from apps.finance.models import Notification
-                    from apps.accounts.models import User
-                    finance_user = User.objects.filter(
-                        is_staff=True,
-                        groups__name__in=["Finance", "Bursar", "Accountant"],
-                    ).first() or User.objects.filter(is_staff=True).first()
-                    if finance_user:
-                        Notification.objects.create(
-                            title="Payment reminder: no contact for guardian",
-                            message=f"Invoice {invoice.reference or invoice.id} ({invoice.student}). Guardian: {guardian_name}. Add email/phone or contact manually.",
-                            link=f"/admin/finance/invoice/{invoice.id}/change/",
-                            severity=Notification.Severity.WARNING,
-                            recipient=finance_user,
-                        )
+            if not guardians:
+                logger.info("No guardians configured for invoice %s.", invoice)
                 continue
-            if not active_channels:
-                continue
-            
-            # Get payment instructions from bank accounts
-            payment_instructions = _get_payment_instructions(invoice)
-            
-            context = {
-                "guardian": guardian_name,
-                "amount": invoice.balance_amount,
-                "invoice": invoice.reference or invoice.id,
-                "due_date": due_display,
-                "link": link_display,
-                "payment_code": getattr(invoice, "payment_code", "") or "",
-                "receipt_upload_link": f"{default_link}finance/invoices/{invoice.id}/",
-                **payment_instructions,  # Include bank/MoMo numbers, etc.
-            }
 
-            for channel in active_channels:
-                try:
-                    template = reminder.get_message_template(channel)
-                    # Format template with payment instructions
-                    try:
-                        body = template.format(**context)
-                    except KeyError as e:
-                        # If template variable missing, use default value
-                        logger.warning(f"Missing template variable {e} in reminder template, using defaults")
-                        # Fill missing variables with empty strings
-                        safe_context = {k: v or "" for k, v in context.items()}
-                        body = template.format(**safe_context)
-                    subject = f"[Reminder] Pay {invoice.reference or invoice.id}"
-                    
-                    if channel == "email":
-                        to_email = (getattr(guardian, "email", None) or "").strip() or guardian_user.email or ""
-                        if to_email:
-                            _send_payment_email(to_email, subject, body, integration)
-                            PaymentReminderLog.objects.create(
-                                reminder=reminder,
-                                status="SENT",
-                                note=f"Email sent to {to_email}",
-                            )
-                            channel_counts["email"] += 1
-                            sent_count += 1
-                    
-                    elif channel == "sms":
-                        phone = getattr(guardian, "phone", None) or getattr(guardian_user, "phone", None)
-                        if phone:
-                            notification_service.send_sms(phone, body)
-                            PaymentReminderLog.objects.create(
-                                reminder=reminder,
-                                status="SENT",
-                                note=f"SMS sent to {phone}",
-                            )
-                            channel_counts["sms"] += 1
-                            sent_count += 1
-                    
-                    elif channel == "whatsapp":
-                        phone = getattr(guardian, "phone", None) or getattr(guardian, "whatsapp_number", None) or getattr(guardian_user, "phone", None)
-                        if phone:
-                            whatsapp_url = notification_service.send_whatsapp(guardian_user, "GENERIC", context)
-                            PaymentReminderLog.objects.create(
-                                reminder=reminder,
-                                status="SENT",
-                                note=f"WhatsApp link generated for {phone}: {whatsapp_url}",
-                            )
-                            channel_counts["whatsapp"] += 1
-                            sent_count += 1
-                
-                except Exception as e:
-                    logger.error("Error sending %s reminder for invoice %s: %s", channel, invoice.reference or invoice.id, str(e))
-                    PaymentReminderLog.objects.create(
-                        reminder=reminder,
-                        status="FAILED",
-                        note=f"Failed to send {channel}: {str(e)}",
+            payment_link = generate_payment_link(invoice)
+            link_display = payment_link["url"] if payment_link else default_link
+            due_display = invoice.due_date or timezone.localdate(now)
+
+            # Get reminder channels (per-reminder override or SiteSettings default)
+            channels = reminder.get_reminder_channels()
+            reminder_active_channels = set()
+
+            for guardian in guardians:
+                guardian_user = guardian.guardian_user
+                guardian_name = guardian_user.get_full_name() or guardian_user.username
+
+                # Get user-specific channels (respects UserPreference)
+                user_channels = get_notification_channels(guardian_user, "payment_reminder")
+                # Use intersection: only send via channels both reminder and user support
+                active_channels = [ch for ch in channels if ch in user_channels] if user_channels else channels
+
+                # No contact: prefer StudentGuardian.email/phone, then guardian_user (see docs/DATA_PARENT_CONTACT.md)
+                has_contact = bool(
+                    (getattr(guardian, "email", None) or "").strip()
+                    or (guardian_user.email or "").strip()
+                    or getattr(guardian_user, "phone", None)
+                    or getattr(guardian, "phone", None)
+                    or getattr(guardian, "whatsapp_number", None)
+                )
+                if not has_contact:
+                    no_contact_action = getattr(
+                        SiteSettings.get_solo(),
+                        "finance_reminder_no_contact_action",
+                        "warn_only",
                     )
+                    logger.warning(
+                        "Payment reminder: no contact for guardian %s, invoice %s (student: %s)",
+                        guardian_name,
+                        invoice.reference or invoice.id,
+                        invoice.student,
+                    )
+                    if no_contact_action == "create_task":
+                        from apps.finance.models import Notification
+                        from apps.accounts.models import User
+                        finance_user = User.objects.filter(
+                            is_staff=True,
+                            groups__name__in=["Finance", "Bursar", "Accountant"],
+                        ).first() or User.objects.filter(is_staff=True).first()
+                        if finance_user:
+                            Notification.objects.create(
+                                title="Payment reminder: no contact for guardian",
+                                message=f"Invoice {invoice.reference or invoice.id} ({invoice.student}). Guardian: {guardian_name}. Add email/phone or contact manually.",
+                                link=f"/admin/finance/invoice/{invoice.id}/change/",
+                                severity=Notification.Severity.WARNING,
+                                recipient=finance_user,
+                            )
+                    continue
+                if not active_channels:
+                    continue
 
-        reminder.last_sent_at = now
-        reminder.schedule_next()
-        reminder.save(update_fields=["last_sent_at", "next_send_at"])
-        logger.info("Sent reminder for invoice %s via %s.", invoice.reference or invoice.id, ", ".join(active_channels))
+                # Get payment instructions from bank accounts
+                payment_instructions = _get_payment_instructions(invoice)
+
+                context = {
+                    "guardian": guardian_name,
+                    "amount": invoice.balance_amount,
+                    "invoice": invoice.reference or invoice.id,
+                    "due_date": due_display,
+                    "link": link_display,
+                    "payment_code": getattr(invoice, "payment_code", "") or "",
+                    "receipt_upload_link": f"{default_link}finance/invoices/{invoice.id}/",
+                    **payment_instructions,  # Include bank/MoMo numbers, etc.
+                }
+
+                for channel in active_channels:
+                    reminder_active_channels.add(channel)
+                    try:
+                        template = reminder.get_message_template(channel)
+                        # Format template with payment instructions
+                        try:
+                            body = template.format(**context)
+                        except KeyError as e:
+                            # If template variable missing, use default value
+                            logger.warning(f"Missing template variable {e} in reminder template, using defaults")
+                            # Fill missing variables with empty strings
+                            safe_context = {k: v or "" for k, v in context.items()}
+                            body = template.format(**safe_context)
+                        subject = f"[Reminder] Pay {invoice.reference or invoice.id}"
+
+                        if channel == "email":
+                            to_email = (getattr(guardian, "email", None) or "").strip() or guardian_user.email or ""
+                            if to_email:
+                                _send_payment_email(to_email, subject, body, integration)
+                                PaymentReminderLog.objects.create(
+                                    reminder=reminder,
+                                    status="SENT",
+                                    note=f"Email sent to {to_email}",
+                                )
+                                channel_counts["email"] += 1
+                                sent_count += 1
+
+                        elif channel == "sms":
+                            phone = getattr(guardian, "phone", None) or getattr(guardian_user, "phone", None)
+                            if phone:
+                                notification_service.send_sms(phone, body)
+                                PaymentReminderLog.objects.create(
+                                    reminder=reminder,
+                                    status="SENT",
+                                    note=f"SMS sent to {phone}",
+                                )
+                                channel_counts["sms"] += 1
+                                sent_count += 1
+
+                        elif channel == "whatsapp":
+                            phone = getattr(guardian, "phone", None) or getattr(guardian, "whatsapp_number", None) or getattr(guardian_user, "phone", None)
+                            if phone:
+                                whatsapp_url = notification_service.send_whatsapp(guardian_user, "GENERIC", context)
+                                PaymentReminderLog.objects.create(
+                                    reminder=reminder,
+                                    status="SENT",
+                                    note=f"WhatsApp link generated for {phone}: {whatsapp_url}",
+                                )
+                                channel_counts["whatsapp"] += 1
+                                sent_count += 1
+
+                    except Exception as e:
+                        logger.error("Error sending %s reminder for invoice %s: %s", channel, invoice.reference or invoice.id, str(e))
+                        PaymentReminderLog.objects.create(
+                            reminder=reminder,
+                            status="FAILED",
+                            note=f"Failed to send {channel}: {str(e)}",
+                        )
+
+            reminder.last_sent_at = now
+            reminder.schedule_next()
+            reminder.save(update_fields=["last_sent_at", "next_send_at"])
+            logger.info(
+                "Processed reminder for invoice %s via %s.",
+                invoice.reference or invoice.id,
+                ", ".join(sorted(reminder_active_channels)) or "no-channels",
+            )
+        finally:
+            cache.delete(lock_key)
 
     return {"sent": sent_count, "count": len(reminders), "channels": channel_counts}
 
@@ -528,6 +542,143 @@ def auto_generate_fee_invoices_task(self, dry_run: bool = False) -> dict:
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
             error_message=str(e)
+        )
+        raise
+
+@shared_task(bind=True, name="finance.auto_copy_fee_plans", autoretry_for=(Exception,), max_retries=3, retry_backoff=True)
+def auto_copy_fee_plans_task(self, dry_run: bool = False) -> dict:
+    """
+    Copy active fee plans from a source academic year to the next year based on SiteSettings mode.
+    """
+    from apps.academics.models import AcademicYear
+    from apps.finance.services import copy_fee_plan_to_year
+
+    execution_log = AutomationExecutionLog.objects.create(
+        task_name="finance.auto_copy_fee_plans",
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        status=AutomationExecutionLog.Status.PENDING,
+    )
+    try:
+        site = get_cached_site_settings()
+        enabled = getattr(site, "finance_fee_plan_auto_copy_enabled", False)
+        mode = getattr(site, "finance_fee_plan_auto_copy_mode", "manual")
+        increase_pct = getattr(site, "finance_fee_plan_copy_increase_percentage", Decimal("0.00"))
+        if not enabled or mode == "manual":
+            execution_log.mark_completed(
+                AutomationExecutionLog.Status.SUCCESS,
+                summary={"message": "Fee plan auto-copy disabled or manual mode."},
+            )
+            return {"status": "disabled"}
+
+        today = timezone.now().date()
+        source_year = None
+        if mode == "year_start":
+            source_year = get_current_academic_year()
+        elif mode == "year_end":
+            source_year = AcademicYear.objects.filter(end_date__lt=today).order_by("-end_date").first()
+
+        if not source_year:
+            execution_log.mark_completed(
+                AutomationExecutionLog.Status.SUCCESS,
+                summary={"message": "No source academic year found for auto-copy.", "mode": mode},
+            )
+            return {"status": "no_source_year", "mode": mode}
+
+        target_year = AcademicYear.objects.filter(start_date__gt=source_year.end_date).order_by("start_date").first()
+        if not target_year:
+            execution_log.mark_completed(
+                AutomationExecutionLog.Status.SUCCESS,
+                summary={
+                    "message": "No target academic year found after source year.",
+                    "source_year": source_year.name,
+                },
+            )
+            return {"status": "no_target_year", "source_year": source_year.name}
+
+        source_plans = FeePlan.objects.filter(academic_year=source_year, is_active=True).select_related(
+            "classroom", "specialty", "academic_year"
+        )
+        if not source_plans.exists():
+            execution_log.mark_completed(
+                AutomationExecutionLog.Status.SUCCESS,
+                summary={
+                    "message": "No active fee plans to copy.",
+                    "source_year": source_year.name,
+                    "target_year": target_year.name,
+                },
+            )
+            return {
+                "status": "no_plans",
+                "source_year": source_year.name,
+                "target_year": target_year.name,
+            }
+
+        copied = 0
+        skipped = 0
+        errors = 0
+        for plan in source_plans:
+            candidate_name = f"{plan.name} ({target_year.name})"
+            exists = FeePlan.objects.filter(
+                academic_year=target_year,
+                classroom=plan.classroom,
+                specialty=plan.specialty,
+                name=candidate_name,
+            ).exists()
+            if exists:
+                skipped += 1
+                continue
+
+            if dry_run:
+                copied += 1
+                continue
+
+            try:
+                copy_fee_plan_to_year(plan, target_year, increase_pct)
+                copied += 1
+            except Exception as e:
+                errors += 1
+                logger.error(
+                    "Error auto-copying fee plan %s from %s to %s: %s",
+                    plan.id,
+                    source_year.name,
+                    target_year.name,
+                    str(e),
+                )
+
+        task_status = (
+            AutomationExecutionLog.Status.SUCCESS
+            if errors == 0
+            else AutomationExecutionLog.Status.PARTIAL
+        )
+        execution_log.mark_completed(
+            task_status,
+            records_processed=copied,
+            records_failed=errors,
+            summary={
+                "mode": mode,
+                "source_year": source_year.name,
+                "target_year": target_year.name,
+                "copied": copied,
+                "skipped_existing": skipped,
+                "errors": errors,
+                "dry_run": dry_run,
+            },
+        )
+        return {
+            "status": "success",
+            "mode": mode,
+            "source_year": source_year.name,
+            "target_year": target_year.name,
+            "copied": copied,
+            "skipped_existing": skipped,
+            "errors": errors,
+            "dry_run": dry_run,
+        }
+    except Exception as e:
+        logger.error("Error in auto_copy_fee_plans_task: %s", str(e))
+        execution_log.mark_completed(
+            AutomationExecutionLog.Status.FAILED,
+            error_message=str(e),
         )
         raise
 

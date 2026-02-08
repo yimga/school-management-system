@@ -913,19 +913,54 @@ class PaymentReminder(models.Model):
         return self.message_template_email
 
     def schedule_next(self):
-        """Schedule next reminder based on earliest day in reminder_days_before."""
+        """
+        Schedule the next pending reminder slot.
+
+        The reminder list is interpreted as "days before due date" milestones
+        (for example [7, 3, 1]). After each send we move forward to the next
+        future slot instead of reusing the first milestone again.
+        """
         if not self.invoice.due_date:
+            self.next_send_at = None
+            self.save(update_fields=["next_send_at"])
             return
-        days = self.get_reminder_days()
-        if not days:
+
+        raw_days = self.get_reminder_days()
+        if not raw_days:
+            self.next_send_at = None
+            self.save(update_fields=["next_send_at"])
             return
-        # Schedule for the earliest reminder day (max days before = earliest)
-        earliest_day = max(days) if isinstance(days, list) else days
-        if isinstance(earliest_day, list):
-            earliest_day = max(earliest_day)
-        target = datetime.combine(self.invoice.due_date, datetime.min.time())
-        remind_at = target - timedelta(days=int(earliest_day))
-        self.next_send_at = timezone.make_aware(remind_at, timezone=timezone.get_current_timezone())
+
+        if isinstance(raw_days, (list, tuple)):
+            day_values = raw_days
+        else:
+            day_values = [raw_days]
+
+        milestones = []
+        for day in day_values:
+            try:
+                parsed = float(day)
+            except (TypeError, ValueError):
+                continue
+            if parsed < 0:
+                continue
+            milestones.append(parsed)
+
+        if not milestones:
+            self.next_send_at = None
+            self.save(update_fields=["next_send_at"])
+            return
+
+        due_at = datetime.combine(self.invoice.due_date, datetime.min.time())
+        due_at = timezone.make_aware(due_at, timezone=timezone.get_current_timezone())
+        now = timezone.now()
+
+        candidates = [
+            due_at - timedelta(days=day)
+            for day in sorted(set(milestones), reverse=True)
+        ]
+        future_candidates = [candidate for candidate in candidates if candidate > now]
+        self.next_send_at = min(future_candidates) if future_candidates else None
         self.save(update_fields=["next_send_at"])
 
 
