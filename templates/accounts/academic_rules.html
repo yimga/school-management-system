@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load i18n static %}
 
 {% block title %}Academic rules{% endblock %}
 
@@ -76,7 +76,11 @@
 
   <div class="mt-3">
     <a href="{% url 'accounts:workflow_center' %}" class="btn btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Workflow Center</a>
+    {% if is_backend_context %}
+    <a href="{% url 'admin:index' %}" class="btn btn-outline-primary" title="{% trans 'Promotion rules in Configuration Engine' %}">Promotion rules (Configuration Engine)</a>
+    {% else %}
     <a href="{% url 'admin:reports_promotionrule_changelist' %}" class="btn btn-outline-primary">Promotion rules (admin)</a>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

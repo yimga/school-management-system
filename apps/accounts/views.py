@@ -968,21 +968,22 @@ def backend_dashboard(request):
     workflow_progress = _workflow_progress(year)
     recommended_next_steps = []
     try:
+        # Backend dashboard: keep navigation in backend; only Configuration Engine links to /admin
         if not year:
-            recommended_next_steps.append({"label": "Set up academic year", "url": reverse("admin:academics_academicyear_changelist"), "icon": "bi-calendar-event"})
+            recommended_next_steps.append({"label": "Set up academic year", "url": reverse("accounts:workflow_center"), "icon": "bi-calendar-event"})
         else:
             if workflow_progress.get("classrooms", 0) == 0:
-                recommended_next_steps.append({"label": "Create classrooms", "url": reverse("admin:academics_classroom_changelist"), "icon": "bi-door-open"})
+                recommended_next_steps.append({"label": "Create classrooms", "url": reverse("accounts:workflow_center"), "icon": "bi-door-open"})
             if workflow_progress.get("students", 0) == 0:
                 try:
                     recommended_next_steps.append({"label": "Add student", "url": reverse("accounts:backend_student_create"), "icon": "bi-person-plus"})
                 except Exception:
-                    recommended_next_steps.append({"label": "Add student", "url": reverse("admin:people_studentprofile_add"), "icon": "bi-person-plus"})
+                    recommended_next_steps.append({"label": "Add student", "url": reverse("admin:index"), "icon": "bi-person-plus"})
             if workflow_progress.get("teachers", 0) == 0:
                 try:
                     recommended_next_steps.append({"label": "Add teacher", "url": reverse("accounts:backend_teacher_create"), "icon": "bi-person-badge"})
                 except Exception:
-                    recommended_next_steps.append({"label": "Add teacher", "url": reverse("admin:people_teacherprofile_add"), "icon": "bi-person-badge"})
+                    recommended_next_steps.append({"label": "Add teacher", "url": reverse("admin:index"), "icon": "bi-person-badge"})
         if not recommended_next_steps:
             recommended_next_steps.append({"label": "Workflow Center", "url": reverse("accounts:workflow_center"), "icon": "bi-diagram-3"})
             recommended_next_steps.append({"label": "Publish results", "url": reverse("reports:publish_term_results"), "icon": "bi-award"})

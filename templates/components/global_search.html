@@ -51,6 +51,35 @@
           </div>
           <div class="search-items">
             {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+            {% if is_backend_context %}
+            <a href="{% url 'accounts:backend_student_create' %}" class="search-item">
+              <div class="search-item-icon bg-primary">
+                <i class="bi bi-person-plus"></i>
+              </div>
+              <div class="search-item-content">
+                <div class="search-item-title">Add New Student</div>
+                <div class="search-item-desc">Register a new student</div>
+              </div>
+            </a>
+            <a href="{% url 'accounts:backend_teacher_create' %}" class="search-item">
+              <div class="search-item-icon bg-success">
+                <i class="bi bi-person-badge"></i>
+              </div>
+              <div class="search-item-content">
+                <div class="search-item-title">Add New Teacher</div>
+                <div class="search-item-desc">Register a new teacher</div>
+              </div>
+            </a>
+            <a href="{% url 'finance:dashboard' %}" class="search-item">
+              <div class="search-item-icon bg-warning">
+                <i class="bi bi-receipt"></i>
+              </div>
+              <div class="search-item-content">
+                <div class="search-item-title">Create Invoice</div>
+                <div class="search-item-desc">Finance dashboard</div>
+              </div>
+            </a>
+            {% else %}
             <a href="{% url 'admin:people_studentprofile_add' %}" class="search-item">
               <div class="search-item-icon bg-primary">
                 <i class="bi bi-person-plus"></i>
@@ -78,6 +107,7 @@
                 <div class="search-item-desc">Generate new invoice</div>
               </div>
             </a>
+            {% endif %}
             {% endif %}
           </div>
         </div>

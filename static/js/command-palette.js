@@ -45,106 +45,54 @@ class CommandPalette {
   }
 
   registerCommands() {
-    // System commands
-    this.commands.push(
-      {
-        id: 'dashboard',
-        name: 'Dashboard',
-        description: 'Go to admin dashboard',
-        category: 'Navigation',
-        action: () => window.location.href = '/admin/',
-        keywords: ['home', 'dashboard', 'admin']
-      },
-      {
-        id: 'users',
-        name: 'Users Management',
-        description: 'Manage system users',
-        category: 'Navigation',
-        action: () => window.location.href = '/admin/accounts/user/',
-        keywords: ['users', 'accounts', 'staff']
-      },
-      {
-        id: 'students',
-        name: 'Students',
-        description: 'View and manage students',
-        category: 'Navigation',
-        action: () => window.location.href = '/admin/evals/student/',
-        keywords: ['students', 'pupils', 'learners']
-      },
-      {
-        id: 'teachers',
-        name: 'Teachers',
-        description: 'View and manage teachers',
-        category: 'Navigation',
-        action: () => window.location.href = '/admin/accounts/staffmember/',
-        keywords: ['teachers', 'staff', 'educators']
-      },
-      {
-        id: 'reports',
-        name: 'Reports',
-        description: 'Generate and view reports',
-        category: 'Navigation',
-        action: () => window.location.href = '/admin/reports/',
-        keywords: ['reports', 'analytics', 'statistics']
-      },
-      {
-        id: 'settings',
-        name: 'Settings',
-        description: 'System configuration',
-        category: 'Navigation',
-        action: () => window.location.href = '/siteconfig/customizer/',
-        keywords: ['settings', 'config', 'customize']
-      },
-      
-      // Quick actions
-      {
-        id: 'refresh',
-        name: 'Refresh Page',
-        description: 'Reload current page',
-        category: 'Actions',
-        action: () => window.location.reload(),
-        keywords: ['refresh', 'reload', 'r']
-      },
-      {
-        id: 'logout',
-        name: 'Logout',
-        description: 'Sign out of admin panel',
-        category: 'Actions',
-        action: () => window.location.href = '/admin/logout/',
-        keywords: ['logout', 'exit', 'sign out']
-      },
-      {
-        id: 'search_docs',
-        name: 'Search Documentation',
-        description: 'Open documentation search',
-        category: 'Help',
-        action: () => this.openExternalSearch('https://docs.example.com'),
-        keywords: ['docs', 'documentation', 'help']
-      },
-      {
-        id: 'keyboard_shortcuts',
-        name: 'Keyboard Shortcuts',
-        description: 'Show all available shortcuts',
-        category: 'Help',
-        action: () => this.showKeyboardShortcuts(),
-        keywords: ['shortcuts', 'hotkeys', 'help']
-      }
-    );
+    const pathname = window.location.pathname || '';
+    const isBackend = pathname.startsWith('/backend') || pathname.includes('/authentication/backend');
 
-    // Register model shortcuts from MODEL_COUNTS if available
-    if (typeof MODEL_COUNTS !== 'undefined') {
-      Object.keys(MODEL_COUNTS).forEach(key => {
-        const [appLabel, modelName] = key.split('.');
-        const count = MODEL_COUNTS[key];
-        this.commands.push({
-          id: key,
-          name: `${this.formatModelName(modelName)} (${count})`,
-          description: `Manage ${modelName} records`,
-          category: 'Models',
-          action: () => window.location.href = `/admin/${appLabel}/${modelName}/`,
-          keywords: [modelName, appLabel, modelName.toLowerCase()]
+    if (isBackend) {
+      // Backend context: all nav stays in backend; only Configuration Engine goes to admin; logout = portal
+      this.commands.push(
+        { id: 'dashboard', name: 'Dashboard', description: 'Go to backend dashboard', category: 'Navigation', action: () => { window.location.href = '/authentication/backend/'; }, keywords: ['home', 'dashboard', 'backend'] },
+        { id: 'students', name: 'Students', description: 'View and manage students', category: 'Navigation', action: () => { window.location.href = '/authentication/backend/students/'; }, keywords: ['students', 'pupils', 'learners'] },
+        { id: 'teachers', name: 'Teachers', description: 'View and manage teachers', category: 'Navigation', action: () => { window.location.href = '/authentication/backend/teachers/'; }, keywords: ['teachers', 'staff', 'educators'] },
+        { id: 'users', name: 'RBAC & Access Control', description: 'Manage users and permissions', category: 'Navigation', action: () => { window.location.href = '/authentication/rbac/'; }, keywords: ['users', 'accounts', 'rbac', 'staff'] },
+        { id: 'reports', name: 'Report Library', description: 'Generate and view reports', category: 'Navigation', action: () => { window.location.href = '/siteconfig/reports/'; }, keywords: ['reports', 'analytics', 'statistics'] },
+        { id: 'config_engine', name: 'Configuration Engine', description: 'Open admin (config & settings)', category: 'Navigation', action: () => { window.location.href = '/admin/'; }, keywords: ['admin', 'config', 'configuration', 'settings'] },
+        { id: 'settings', name: 'Settings', description: 'Customizer', category: 'Navigation', action: () => { window.location.href = '/siteconfig/customizer/'; }, keywords: ['settings', 'config', 'customize'] },
+        { id: 'refresh', name: 'Refresh Page', description: 'Reload current page', category: 'Actions', action: () => window.location.reload(), keywords: ['refresh', 'reload', 'r'] },
+        { id: 'logout', name: 'Logout', description: 'Sign out', category: 'Actions', action: () => { window.location.href = '/authentication/logout/'; }, keywords: ['logout', 'exit', 'sign out'] },
+        { id: 'search_docs', name: 'Search Documentation', description: 'Open documentation search', category: 'Help', action: () => this.openExternalSearch('https://docs.example.com'), keywords: ['docs', 'documentation', 'help'] },
+        { id: 'keyboard_shortcuts', name: 'Keyboard Shortcuts', description: 'Show all available shortcuts', category: 'Help', action: () => this.showKeyboardShortcuts(), keywords: ['shortcuts', 'hotkeys', 'help'] }
+      );
+      // Do not register MODEL_COUNTS when in backend (no admin model shortcuts)
+    } else {
+      // Non-backend: original admin-oriented commands
+      this.commands.push(
+        { id: 'dashboard', name: 'Dashboard', description: 'Go to admin dashboard', category: 'Navigation', action: () => { window.location.href = '/admin/'; }, keywords: ['home', 'dashboard', 'admin'] },
+        { id: 'users', name: 'Users Management', description: 'Manage system users', category: 'Navigation', action: () => { window.location.href = '/admin/accounts/user/'; }, keywords: ['users', 'accounts', 'staff'] },
+        { id: 'students', name: 'Students', description: 'View and manage students', category: 'Navigation', action: () => { window.location.href = '/admin/evals/student/'; }, keywords: ['students', 'pupils', 'learners'] },
+        { id: 'teachers', name: 'Teachers', description: 'View and manage teachers', category: 'Navigation', action: () => { window.location.href = '/admin/accounts/staffmember/'; }, keywords: ['teachers', 'staff', 'educators'] },
+        { id: 'reports', name: 'Reports', description: 'Generate and view reports', category: 'Navigation', action: () => { window.location.href = '/admin/reports/'; }, keywords: ['reports', 'analytics', 'statistics'] },
+        { id: 'settings', name: 'Settings', description: 'System configuration', category: 'Navigation', action: () => { window.location.href = '/siteconfig/customizer/'; }, keywords: ['settings', 'config', 'customize'] },
+        { id: 'refresh', name: 'Refresh Page', description: 'Reload current page', category: 'Actions', action: () => window.location.reload(), keywords: ['refresh', 'reload', 'r'] },
+        { id: 'logout', name: 'Logout', description: 'Sign out of admin panel', category: 'Actions', action: () => { window.location.href = '/authentication/logout/'; }, keywords: ['logout', 'exit', 'sign out'] },
+        { id: 'search_docs', name: 'Search Documentation', description: 'Open documentation search', category: 'Help', action: () => this.openExternalSearch('https://docs.example.com'), keywords: ['docs', 'documentation', 'help'] },
+        { id: 'keyboard_shortcuts', name: 'Keyboard Shortcuts', description: 'Show all available shortcuts', category: 'Help', action: () => this.showKeyboardShortcuts(), keywords: ['shortcuts', 'hotkeys', 'help'] }
+      );
+
+      if (typeof MODEL_COUNTS !== 'undefined') {
+        Object.keys(MODEL_COUNTS).forEach(key => {
+          const [appLabel, modelName] = key.split('.');
+          const count = MODEL_COUNTS[key];
+          this.commands.push({
+            id: key,
+            name: `${this.formatModelName(modelName)} (${count})`,
+            description: `Manage ${modelName} records`,
+            category: 'Models',
+            action: () => { window.location.href = `/admin/${appLabel}/${modelName}/`; },
+            keywords: [modelName, appLabel, modelName.toLowerCase()]
+          });
         });
-      });
+      }
     }
   }
 

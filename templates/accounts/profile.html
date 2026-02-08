@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load i18n static %}
 
 {% block title %}My Profile - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -200,7 +200,7 @@
                   <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.backend_url }}">Backend Console</a>
                 {% endif %}
                 {% if admin_context.admin_url %}
-                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.admin_url }}">Admin Panel</a>
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.admin_url }}">{% if is_backend_context %}{% trans "Configuration Engine" %}{% else %}Admin Panel{% endif %}</a>
                 {% endif %}
                 {% if admin_context.rbac_url %}
                   <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.rbac_url }}">User management (RBAC)</a>

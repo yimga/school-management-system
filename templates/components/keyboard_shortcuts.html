@@ -137,29 +137,54 @@
   let commandMode = false;
   let lastKeyTime = 0;
   const COMMAND_TIMEOUT = 1000; // 1 second for compound commands
-  
-  // Keyboard shortcuts configuration
+  const pathname = window.location.pathname || '';
+  const isBackend = pathname.startsWith('/backend') || pathname.includes('/authentication/backend');
+
+  // Base URLs: when in backend context, navigation stays in backend; only 'a' goes to Configuration Engine
+  const nav = isBackend ? {
+    home: '/',
+    admin: '/admin/',
+    backend: '/authentication/backend/',
+    portal: '/portal/',
+    users: '/authentication/rbac/',
+    students: '/authentication/backend/students/',
+    teachers: '/authentication/backend/teachers/',
+    invoice: '/finance/',
+    reports: '/siteconfig/reports/',
+    addUser: '/authentication/rbac/',
+    addStudent: '/authentication/backend/students/create/',
+    addTeacher: '/authentication/backend/teachers/create/',
+    addInvoice: '/finance/',
+  } : {
+    home: '/',
+    admin: '/admin/',
+    backend: '/backend/',
+    portal: '/portal/',
+    users: '/admin/accounts/user/',
+    students: '/admin/people/studentprofile/',
+    teachers: '/admin/people/teacherprofile/',
+    invoice: '/admin/finance/invoice/',
+    reports: '/admin/reports/reportcard/',
+    addUser: '/admin/accounts/user/add/',
+    addStudent: '/admin/people/studentprofile/add/',
+    addTeacher: '/admin/people/teacherprofile/add/',
+    addInvoice: '/admin/finance/invoice/add/',
+  };
+
   const shortcuts = {
-    // Navigation
-    'h': () => window.location.href = '/',
-    'a': () => window.location.href = '/admin/',
-    'b': () => window.location.href = '/backend/',
-    'p': () => window.location.href = '/portal/',
-    
-    // Quick access
-    'u': () => window.location.href = '/admin/accounts/user/',
-    's': () => window.location.href = '/admin/people/studentprofile/',
-    't': () => window.location.href = '/admin/people/teacherprofile/',
-    'i': () => window.location.href = '/admin/finance/invoice/',
-    'r': () => window.location.href = '/admin/reports/reportcard/',
-    
-    // Help
+    'h': () => window.location.href = nav.home,
+    'a': () => window.location.href = nav.admin,
+    'b': () => window.location.href = (isBackend ? '/authentication/backend/' : '/backend/'),
+    'p': () => window.location.href = nav.portal,
+    'u': () => window.location.href = nav.users,
+    's': () => window.location.href = nav.students,
+    't': () => window.location.href = nav.teachers,
+    'i': () => window.location.href = nav.invoice,
+    'r': () => window.location.href = nav.reports,
     '?': () => {
       const modal = new bootstrap.Modal(document.getElementById('keyboardShortcutsModal'));
       modal.show();
     },
-    
-    // Focus search
     'f': () => {
       const searchInput = document.querySelector('.nav-search, input[type="search"]');
       if (searchInput) {
@@ -168,13 +193,12 @@
       }
     }
   };
-  
-  // Compound shortcuts (n + key)
+
   const compoundShortcuts = {
-    'u': () => window.location.href = '/admin/accounts/user/add/',
-    's': () => window.location.href = '/admin/people/studentprofile/add/',
-    't': () => window.location.href = '/admin/people/teacherprofile/add/',
-    'i': () => window.location.href = '/admin/finance/invoice/add/',
+    'u': () => window.location.href = nav.addUser,
+    's': () => window.location.href = nav.addStudent,
+    't': () => window.location.href = nav.addTeacher,
+    'i': () => window.location.href = nav.addInvoice,
   };
   
   document.addEventListener('keydown', (e) => {
