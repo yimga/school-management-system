@@ -872,6 +872,13 @@ class ThemePackAdmin(ModelAdmin):
         ("Options", {"fields": ("applies_to_admin", "is_active", "is_default", "custom_css")}),
     )
 
+    # Theme packs are managed from Theme & Experience studio; hide standalone model page.
+    def has_module_permission(self, request):
+        return False
+
+    def get_model_perms(self, request):
+        return {}
+
     def palette_preview(self, obj):
         start, end = obj.gradient_colors
         style = f"background: linear-gradient(135deg, {start}, {end}); width: 160px; height: 36px; border-radius: 12px;"

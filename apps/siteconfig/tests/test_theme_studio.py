@@ -8,6 +8,7 @@ from apps.accounts.models import Permission
 from config.admin import admin_site
 from apps.siteconfig.context_processors import site_settings
 from apps.siteconfig.models import SiteSettings, ThemePack
+from apps.siteconfig.admin import ThemePackAdmin
 
 
 User = get_user_model()
@@ -144,3 +145,10 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         site = SiteSettings.get_solo()
         html = model_admin.theme_color_tools_link_block(site)
         self.assertIn("stay_theme%3D1", html)
+
+    def test_themepack_admin_hidden_from_system_configuration_menu(self):
+        model_admin = admin_site._registry[ThemePack]
+        self.assertIsInstance(model_admin, ThemePackAdmin)
+        request = RequestFactory().get("/admin/")
+        perms = model_admin.get_model_perms(request)
+        self.assertEqual(perms, {})
