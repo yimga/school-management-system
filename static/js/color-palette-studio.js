@@ -15,7 +15,8 @@
   var state = {
     baseColor: '#0d6efd',
     harmonyType: 'complement',
-    pickrInstance: null
+    pickrInstance: null,
+    selectedPreset: ''
   };
 
   function $(selector, parent) {
@@ -138,6 +139,39 @@
       container.appendChild(swatch);
     });
     renderStudioMeta(harmonyInfo);
+  }
+
+  function shouldKeepThemePackAssignments() {
+    var keep = $('#cps-keep-theme-pack');
+    return !keep || !!keep.checked;
+  }
+
+  function clearThemePackAssignments() {
+    if (shouldKeepThemePackAssignments()) return;
+    if (window.ThemeStudio && typeof window.ThemeStudio.clearPack === 'function') {
+      window.ThemeStudio.clearPack({ clearAdmin: true, clearSite: true });
+      return;
+    }
+    var adminSelect = $('#id_admin_theme_pack');
+    var siteSelect = $('#id_theme_pack');
+    if (adminSelect) {
+      adminSelect.value = '';
+      adminSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (siteSelect) {
+      siteSelect.value = '';
+      siteSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  function notifyStudioApplied(source, data) {
+    if (typeof document.dispatchEvent !== 'function' || typeof CustomEvent !== 'function') return;
+    document.dispatchEvent(new CustomEvent('theme-studio:applied', {
+      detail: Object.assign({
+        source: source || 'manual',
+        mode: shouldKeepThemePackAssignments() ? 'keep-pack-selection' : 'clear-pack-selection'
+      }, data || {})
+    }));
   }
 
   function renderPresets(container) {
@@ -282,6 +316,7 @@
   function applyPreset(presetKey) {
     var preset = colorHarmony.getPreset(presetKey);
     if (!preset || !preset.colors.length) return;
+    state.selectedPreset = presetKey;
 
     state.baseColor = colorHarmony.normalizeHex(preset.colors[0]);
 
@@ -303,8 +338,14 @@
       presetSelect.value = presetKey;
     }
 
-    applyColorsToForm(preset.colors);
+    applyColorsToForm(preset.colors, colorHarmony.getPresetFieldMap(presetKey));
+    clearThemePackAssignments();
+    notifyStudioApplied('preset', {
+      presetKey: presetKey,
+      presetName: preset.name || presetKey
+    });
     refreshPaletteViews();
+    showToast('Applied preset: ' + (preset.name || presetKey));
   }
 
   function applyToField(fieldName, hex, options) {
@@ -349,8 +390,17 @@
     return colors[0];
   }
 
-  function applyColorsToForm(colors) {
+  function applyColorsToForm(colors, fieldMap) {
     if (!colors || !colors.length) return;
+
+    if (fieldMap && typeof fieldMap === 'object') {
+      Object.keys(fieldMap).forEach(function (fieldName) {
+        if (!fieldExists(fieldName)) return;
+        var mapped = fieldMap[fieldName];
+        if (mapped) applyToField(fieldName, mapped, { silent: true });
+      });
+      return;
+    }
 
     var mapping = [
       { field: 'primary_color', index: 0 },
@@ -371,7 +421,12 @@
 
   function applyPalette() {
     var colors = colorHarmony.generate(state.harmonyType, state.baseColor);
-    applyColorsToForm(colors);
+    applyColorsToForm(colors, colorHarmony.buildFieldMapFromColors(colors));
+    clearThemePackAssignments();
+    notifyStudioApplied('harmony', {
+      harmonyType: state.harmonyType,
+      baseColor: state.baseColor
+    });
     showToast('Applied palette to form');
   }
 

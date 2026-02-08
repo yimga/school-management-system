@@ -87,6 +87,7 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "theme-active-source")
         self.assertContains(response, "theme-active-site-pack")
         self.assertContains(response, "theme-active-admin-pack")
+        self.assertContains(response, "cps-keep-theme-pack")
 
     def test_theme_studio_auto_seeds_catalog_when_admin_packs_missing(self):
         ThemePack.objects.all().delete()

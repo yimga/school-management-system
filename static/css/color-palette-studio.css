@@ -168,6 +168,35 @@
   margin-bottom: 1rem;
 }
 
+.cps-pack-sync-row {
+  margin: -0.35rem 0 1rem;
+}
+
+.cps-pack-sync-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.dark .cps-pack-sync-check,
+[data-theme="dark"] .cps-pack-sync-check {
+  color: #e2e8f0;
+}
+
+.cps-pack-sync-note {
+  margin-top: 0.25rem;
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.dark .cps-pack-sync-note,
+[data-theme="dark"] .cps-pack-sync-note {
+  color: #94a3b8;
+}
+
 .cps-preset-select {
   min-width: 220px;
   max-width: 100%;

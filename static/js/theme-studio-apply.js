@@ -43,6 +43,13 @@
     return true;
   }
 
+  function clearSelectPack(select) {
+    if (!select) return false;
+    select.value = '';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+
   function setPack(packId) {
     var select = document.getElementById('id_admin_theme_pack');
     return setSelectPack(select, packId);
@@ -51,6 +58,31 @@
   function setSitePack(packId) {
     var select = document.getElementById('id_theme_pack');
     return setSelectPack(select, packId);
+  }
+
+  function clearPack(options) {
+    options = options || {};
+    var cleared = false;
+    if (options.clearAdmin !== false) {
+      cleared = clearSelectPack(document.getElementById('id_admin_theme_pack')) || cleared;
+    }
+    if (options.clearSite) {
+      cleared = clearSelectPack(document.getElementById('id_theme_pack')) || cleared;
+    }
+    if (
+      cleared &&
+      document &&
+      typeof document.dispatchEvent === 'function' &&
+      typeof CustomEvent === 'function'
+    ) {
+      document.dispatchEvent(new CustomEvent('theme-pack-clear-selection', {
+        detail: {
+          clearSite: !!options.clearSite,
+          clearAdmin: options.clearAdmin !== false
+        }
+      }));
+    }
+    return cleared;
   }
 
   function buildTokenMap(dataset) {
@@ -114,5 +146,6 @@
   window.ThemeStudio.setField = setField;
   window.ThemeStudio.setPack = setPack;
   window.ThemeStudio.setSitePack = setSitePack;
+  window.ThemeStudio.clearPack = clearPack;
   window.ThemeStudio.applyFromDataset = applyFromDataset;
 })(window, document);

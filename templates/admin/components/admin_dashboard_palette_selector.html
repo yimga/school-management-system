@@ -238,5 +238,10 @@
     });
     applyFilter(filterInput.value);
   }
+
+  document.addEventListener('theme-pack-clear-selection', function() {
+    setSelected('');
+    syncCardStatusBadges();
+  });
 })();
 </script>

@@ -850,6 +850,35 @@
     return Object.keys(HARMONIES);
   };
 
+  function buildFieldMapFromColors(colors) {
+    var safe = Array.isArray(colors) ? colors : [];
+    function pick(index, fallback) {
+      if (!safe.length) return fallback || '';
+      if (safe[index]) return safe[index];
+      return safe[safe.length - 1] || fallback || '';
+    }
+    return {
+      primary_color: pick(0, ''),
+      accent_color: pick(1, pick(0, '')),
+      header_bg_color: pick(0, ''),
+      footer_bg_color: pick(2, pick(0, '')),
+      success_color: pick(3, ''),
+      warning_color: pick(4, ''),
+      danger_color: pick(5, '')
+    };
+  }
+
+  colorHarmony.buildFieldMapFromColors = buildFieldMapFromColors;
+
+  colorHarmony.getPresetFieldMap = function (key) {
+    var preset = PRESETS[key];
+    if (!preset) return null;
+    if (preset.fields && typeof preset.fields === 'object') {
+      return Object.assign({}, preset.fields);
+    }
+    return buildFieldMapFromColors(preset.colors || []);
+  };
+
   // Export
   global.colorHarmony = colorHarmony;
 
