@@ -99,13 +99,13 @@
             <td class="center">{{ row.seq1|default_if_none:"" }}</td>
             <td class="center">{{ row.seq2|default_if_none:"" }}</td>
             <td class="center">
-              {% if row.complete %}{{ row.total|format_number:2 }}{% endif %}
+              {% if row.complete %}{{ row.average|format_number:2 }}{% endif %}
             </td>
             <td class="center">{{ row.coef }}</td>
             <td class="center">{% if row.complete %}{{ row.total|format_number:2 }}{% endif %}</td>
-            <td class="center"></td>
+            <td class="center">{{ row.subject_rank_display|default:"- / -" }}</td>
             <td>{{ row.remark }}</td>
-            <td></td>
+            <td>{{ row.teacher_name|default:"" }}</td>
           </tr>
         {% empty %}
           <tr><td colspan="9" class="muted">{% report_style_label report_style "no_data" "No marks recorded yet." %}</td></tr>
@@ -116,9 +116,9 @@
 
   <div class="kpi-grid">
     <div class="boxed">
-      <div><b>{% report_style_label report_style "best_avg" "Best Average" %}</b> —</div>
-      <div><b>{% report_style_label report_style "worst_avg" "Worst Average" %}</b> —</div>
-      <div><b>{% report_style_label report_style "class_avg" "Class Average" %}</b> —</div>
+      <div><b>{% report_style_label report_style "best_avg" "Best Average" %}</b> {{ summary.best_average|format_number:2|default:"-" }}</div>
+      <div><b>{% report_style_label report_style "worst_avg" "Worst Average" %}</b> {{ summary.worst_average|format_number:2|default:"-" }}</div>
+      <div><b>{% report_style_label report_style "class_avg" "Class Average" %}</b> {{ summary.class_average|format_number:2|default:"-" }}</div>
     </div>
     <div class="boxed center">
       <div class="muted">{% report_style_label report_style "student_avg" "Student's Average" %}</div>
@@ -132,6 +132,13 @@
         <div class="muted">{% report_style_label report_style "specialty_rank_label" "Specialty Rank" %}</div>
         <div style="font-weight:800;">
           {{ summary.specialty_rank_display|default:"-" }}
+        </div>
+      {% endif %}
+      {% report_style_flag report_style "show_school_rank" True as show_school_rank %}
+      {% if show_school_rank %}
+        <div class="muted">{% report_style_label report_style "school_rank_label" "School Rank" %}</div>
+        <div style="font-weight:800;">
+          {{ summary.school_rank_display|default:"-" }}
         </div>
       {% endif %}
     </div>

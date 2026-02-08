@@ -80,10 +80,20 @@
       <div class="muted">{% report_style_label report_style "class_rank_label" "Class Rank" %}</div>
       <div style="font-size:16px; font-weight:900;">{{ class_rank_display|default:"-" }}</div>
     </div>
-    <div class="boxed center">
-      <div class="muted">{% report_style_label report_style "specialty_rank_label" "Specialty Rank" %}</div>
-      <div style="font-size:16px; font-weight:900;">{{ specialty_rank_display|default:"-" }}</div>
-    </div>
+    {% report_style_flag report_style "show_specialty_rank" True as show_specialty_rank %}
+    {% if show_specialty_rank %}
+      <div class="boxed center">
+        <div class="muted">{% report_style_label report_style "specialty_rank_label" "Specialty Rank" %}</div>
+        <div style="font-size:16px; font-weight:900;">{{ specialty_rank_display|default:"-" }}</div>
+      </div>
+    {% endif %}
+    {% report_style_flag report_style "show_school_rank" True as show_school_rank %}
+    {% if show_school_rank %}
+      <div class="boxed center">
+        <div class="muted">{% report_style_label report_style "school_rank_label" "School Rank" %}</div>
+        <div style="font-size:16px; font-weight:900;">{{ school_rank_display|default:"-" }}</div>
+      </div>
+    {% endif %}
   </div>
 
   <div class="boxed" style="margin-top:10px;">

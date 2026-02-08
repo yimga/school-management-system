@@ -98,6 +98,14 @@ class CameroonReportContextTests(TestCase):
         self.assertTrue(any(item["key"] == "seq1" for item in context["sequence_cues"]))
         self.assertIn("class_rank_display", context["summary"])
         self.assertIn(" / ", context["summary"]["class_rank_display"])
+        self.assertIn("best_average", context["summary"])
+        self.assertIn("worst_average", context["summary"])
+        self.assertIn("class_average", context["summary"])
+        self.assertTrue(context["rows"])
+        first_row = context["rows"][0]
+        self.assertIn("subject_rank_display", first_row)
+        self.assertIn(" / ", first_row["subject_rank_display"])
+        self.assertIn("teacher_name", first_row)
 
     def test_annual_context_provides_consistent_rank_display(self):
         context = annual_report_context(self.student_a, self.year)

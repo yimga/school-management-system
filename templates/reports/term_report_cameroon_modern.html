@@ -111,8 +111,10 @@
         <th class="text-center">{{ labels.exam|default:"Exam / Examen" }}</th>
         <th class="text-center">{{ labels.mock|default:"Mock / Probatoire" }}</th>
         <th class="text-center">{{ labels.practical|default:"Practical / Pratique" }}</th>
+        <th class="text-center">{% report_style_label report_style "rank_header" "Rank / Rang" %}</th>
         <th class="text-center">{{ labels.total|default:"Total / Total" }}</th>
         <th>{% report_style_label report_style "remark_header" "Remark / Observation" %}</th>
+        <th>{% report_style_label report_style "teacher_header" "Teacher / Professeur" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -125,13 +127,15 @@
           <td class="text-center">{{ row.exam|default_if_none:"-" }}</td>
           <td class="text-center">{{ row.mock|default_if_none:"-" }}</td>
           <td class="text-center">{{ row.practical|default_if_none:"-" }}</td>
+          <td class="text-center">{{ row.subject_rank_display|default:"- / -" }}</td>
           <td class="text-center">
             {% if row.complete %}{{ row.total|format_number:2 }}{% else %}Pending{% endif %}
           </td>
           <td>{{ row.remark }}</td>
+          <td>{{ row.teacher_name|default:"" }}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="9" class="text-center small text-muted">No marks yet.</td></tr>
+        <tr><td colspan="11" class="text-center small text-muted">No marks yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>

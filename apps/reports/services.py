@@ -350,6 +350,42 @@ def _rank_display(position: Optional[int], size: int) -> str:
     return f"{pos} / {total}"
 
 
+def _subject_rankings_for_student(student: StudentProfile, academic_year, term: Term, subject_assignment_ids: list[int]) -> dict[int, str]:
+    if not subject_assignment_ids:
+        return {}
+
+    evaluations = (
+        Evaluation.objects.filter(
+            academic_year=academic_year,
+            term=term,
+            subject_assignment_id__in=subject_assignment_ids,
+            student__classroom=student.classroom,
+            student__is_active=True,
+        )
+        .select_related("student")
+        .order_by("subject_assignment_id", "student__last_name", "student__first_name")
+    )
+
+    grouped: dict[int, list[Evaluation]] = {}
+    for evaluation in evaluations:
+        grouped.setdefault(evaluation.subject_assignment_id, []).append(evaluation)
+
+    ranking_map: dict[int, str] = {}
+    for subject_assignment_id, rows in grouped.items():
+        eligible = [row for row in rows if row.is_complete_for_ranking]
+        if not eligible:
+            ranking_map[subject_assignment_id] = _rank_display(None, 0)
+            continue
+        ranked = sorted(eligible, key=lambda row: float(row.total_score), reverse=True)
+        position = None
+        for index, ranked_row in enumerate(ranked, start=1):
+            if ranked_row.student_id == student.id:
+                position = index
+                break
+        ranking_map[subject_assignment_id] = _rank_display(position, len(ranked))
+    return ranking_map
+
+
 def _sequence_weight_cues(weights) -> list[dict]:
     fields = [
         ("seq1", CAMEROON_REPORT_LABELS["sequence_1"], getattr(weights, "seq1_weight", 0)),
@@ -425,11 +461,12 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         qs = qs.filter(
             Q(subject_assignment_id__in=approved_ids) | ~Q(subject_assignment_id__in=any_request_ids)
         )
-    evaluations = qs.select_related(
+    evaluations = list(qs.select_related(
         "subject_assignment__subject",
         "subject_assignment__classroom",
         "subject_assignment__specialty",
-    ).order_by("subject_assignment__subject__name")
+        "teacher__user",
+    ).order_by("subject_assignment__subject__name"))
 
     weights = AssessmentWeights.get_for(
         academic_year=academic_year,
@@ -440,10 +477,20 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
     rows = []
     total_weighted = 0.0
     total_coef = 0.0
+    subject_rankings = _subject_rankings_for_student(
+        student=student,
+        academic_year=academic_year,
+        term=term,
+        subject_assignment_ids=[evaluation.subject_assignment_id for evaluation in evaluations],
+    )
 
     for e in evaluations:
         coef = float(e.subject_assignment.coefficient or 1)
-        total = float(e.total_score)
+        average_score = float(e.total_score)
+        total_score = average_score * coef
+        teacher_name = ""
+        if getattr(e, "teacher", None):
+            teacher_name = e.teacher.user.get_full_name() or e.teacher.user.username
         rows.append({
             "subject": e.subject_assignment.subject.name,
             "coef": coef,
@@ -452,11 +499,14 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
             "exam": e.exam_score,
             "mock": e.mock_score,
             "practical": e.practical_score,
-            "total": total,
+            "average": average_score,
+            "total": total_score,
+            "subject_rank_display": subject_rankings.get(e.subject_assignment_id, "- / -"),
+            "teacher_name": teacher_name,
             "remark": e.remarks,
             "complete": e.is_complete_for_ranking,
         })
-        total_weighted += total * coef
+        total_weighted += average_score * coef
         total_coef += coef
 
     overall_average = (total_weighted / total_coef) if total_coef else None
@@ -474,6 +524,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
     specialty_position = _rank_position(specialty_rankings, student.id)
 
     promotion_status = get_promotion_status(student, academic_year, overall_average)
+    class_averages = [aggregate.average for aggregate in class_rankings]
 
     summary = {
         "average": overall_average,
@@ -488,6 +539,9 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "school_rank_display": _rank_display(school_position, len(school_rankings)),
         "promotion_status": promotion_status,
         "teacher_remark": _auto_teacher_remark(overall_average),
+        "best_average": max(class_averages) if class_averages else None,
+        "worst_average": min(class_averages) if class_averages else None,
+        "class_average": (sum(class_averages) / len(class_averages)) if class_averages else None,
     }
 
     ctx = {

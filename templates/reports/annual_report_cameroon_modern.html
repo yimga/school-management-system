@@ -86,7 +86,14 @@
     <div class="summary-card">
       <strong>{{ labels.class_rank|default:"Class Rank / Rang Classe" }}</strong>
       <p class="mb-0">{{ class_rank_display|default:"-" }}</p>
-      <p class="small text-muted">{{ labels.school_rank|default:"School Rank / Rang Etablissement" }}: {{ school_rank_display|default:"-" }}</p>
+      {% report_style_flag report_style "show_school_rank" True as show_school_rank %}
+      {% if show_school_rank %}
+        <p class="small text-muted">{{ labels.school_rank|default:"School Rank / Rang Etablissement" }}: {{ school_rank_display|default:"-" }}</p>
+      {% endif %}
+      {% report_style_flag report_style "show_specialty_rank" True as show_specialty_rank %}
+      {% if show_specialty_rank %}
+        <p class="small text-muted">{{ labels.specialty_rank|default:"Specialty Rank / Rang Specialite" }}: {{ specialty_rank_display|default:"-" }}</p>
+      {% endif %}
     </div>
   </div>
 
