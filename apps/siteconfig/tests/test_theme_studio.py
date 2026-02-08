@@ -53,6 +53,20 @@ class ThemeStudioAccessTests(TestCase):
             "User with settings.manage should not be redirected to login.",
         )
 
+    def test_theme_studio_catalog_includes_active_non_admin_pack(self):
+        ThemePack.objects.create(
+            name="Portal Pack",
+            slug="portal-pack-theme-studio",
+            primary_color="#3366ff",
+            accent_color="#22aa88",
+            is_active=True,
+            applies_to_admin=False,
+        )
+        self.client.login(username="theme-manager", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Portal Pack")
+
 
 class ThemeResolutionTests(TestCase):
     def setUp(self):

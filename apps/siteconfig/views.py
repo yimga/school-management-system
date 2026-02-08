@@ -10,6 +10,7 @@ import zipfile
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.management import call_command
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -589,9 +590,20 @@ def theme_colors_page(request):
     """Standalone Color & harmony page: palette studio, presets, preview; save colors to SiteSettings."""
     site = SiteSettings.get_solo()
     all_packs = list(
-        ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name")
+        ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
     )
-    # Show all admin theme packs (template falls back to primary/accent/background if no palette.admin_dashboard)
+    # Safety net for environments where predeploy seed command was skipped.
+    if len(all_packs) <= 1 and not ThemePack.objects.filter(slug="admin-academic-slate").exists():
+        try:
+            call_command("seed_admin_dashboard_palettes")
+            all_packs = list(
+                ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
+            )
+            logger.info("Theme catalog auto-seeded from Theme & Experience page.")
+        except Exception:
+            logger.exception("Unable to auto-seed admin dashboard palettes.")
+
+    # Show all active packs (admin and portal) so the catalog does not collapse to a single card.
     admin_theme_packs = all_packs
     admin_theme_packs_by_group = build_theme_pack_groups(admin_theme_packs, THEME_PALETTE_GROUPS)
 
