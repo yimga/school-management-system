@@ -1,6 +1,6 @@
-/* Preview panel that mirrors the admin sidebar/cards for small screens */
+/* Preview panel that mirrors the admin sidebar/cards across desktop/tablet/mobile */
 .theme-preview-section {
-  margin-top: 2rem;
+  margin-top: 0.75rem;
 }
 
 .theme-preview-card {
@@ -25,8 +25,35 @@
   color: rgba(248, 250, 252, 0.72);
 }
 
+.preview-mode-switch {
+  display: inline-flex;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.preview-mode-btn {
+  border: none;
+  background: transparent;
+  color: rgba(248, 250, 252, 0.85);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.preview-mode-btn.active {
+  background: rgba(56, 189, 248, 0.24);
+  color: #e0f2fe;
+}
+
 .preview-device {
-  width: clamp(260px, 84vw, 330px);
+  width: 100%;
+  max-width: 680px;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   overflow: hidden;
@@ -34,7 +61,7 @@
   background: var(--preview-sidebar-bg, #0b0f14);
   min-height: 360px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -49,6 +76,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+  width: 190px;
+  flex: 0 0 190px;
 }
 
 .preview-logo {
@@ -85,6 +114,39 @@
   flex-direction: column;
   gap: 0.65rem;
   background: var(--preview-content-bg, rgba(2, 6, 23, 0.9));
+}
+
+.preview-device[data-preview-mode="desktop"] {
+  max-width: 680px;
+  min-height: 360px;
+  flex-direction: row;
+}
+
+.preview-device[data-preview-mode="desktop"] .preview-sidebar {
+  width: 190px;
+  flex: 0 0 190px;
+}
+
+.preview-device[data-preview-mode="tablet"] {
+  max-width: 520px;
+  min-height: 380px;
+  flex-direction: column;
+}
+
+.preview-device[data-preview-mode="tablet"] .preview-sidebar {
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.preview-device[data-preview-mode="mobile"] {
+  max-width: 320px;
+  min-height: 420px;
+  flex-direction: column;
+}
+
+.preview-device[data-preview-mode="mobile"] .preview-sidebar {
+  width: 100%;
+  flex: 0 0 auto;
 }
 
 .preview-card {
@@ -196,7 +258,14 @@
     padding: 1rem;
   }
   .preview-device {
-    width: 220px;
-    min-height: 320px;
+    max-width: 100%;
+    min-height: 340px;
+  }
+  .preview-device[data-preview-mode="desktop"] {
+    flex-direction: column;
+  }
+  .preview-device[data-preview-mode="desktop"] .preview-sidebar {
+    width: 100%;
+    flex: 0 0 auto;
   }
 }

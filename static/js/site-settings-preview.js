@@ -13,6 +13,9 @@
   const contrastHint = document.getElementById("contrastHint");
   const roleSelect = document.getElementById("previewRoleSelect");
   const roleLabel = document.getElementById("previewRoleLabel");
+  const modeButtons = Array.from(document.querySelectorAll(".preview-mode-btn"));
+
+  const VALID_MODES = new Set(["desktop", "tablet", "mobile"]);
 
   const getField = (name) => document.getElementById(`id_${name}`);
 
@@ -77,6 +80,15 @@
     const fallback = roleSelect.dataset.currentRole || "Administrator";
     const value = roleSelect.value || fallback;
     roleLabel.textContent = `Inherits ${value} access.`;
+  };
+
+  const setPreviewMode = (mode) => {
+    if (!previewDevice) return;
+    const normalized = VALID_MODES.has(mode) ? mode : "desktop";
+    previewDevice.dataset.previewMode = normalized;
+    modeButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.previewMode === normalized);
+    });
   };
 
   const updateContrastHint = (primaryHex, previewTextHex) => {
@@ -167,6 +179,7 @@
           input.dispatchEvent(new Event("input", { bubbles: true }));
           input.dispatchEvent(new Event("change", { bubbles: true }));
         });
+        setPreviewMode(resetButton.dataset.defaultMode || "desktop");
         if (resetButton.dataset.resetMessage) {
           resetButton.textContent = resetButton.dataset.resetMessage;
         }
@@ -180,6 +193,14 @@
     }
 
     document.addEventListener("theme-pack-selected", updatePreview);
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setPreviewMode(button.dataset.previewMode || "desktop");
+      });
+    });
+
+    setPreviewMode(previewDevice ? previewDevice.dataset.previewMode : "desktop");
 
     updatePreview();
   });

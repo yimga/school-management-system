@@ -6,8 +6,8 @@
 <section class="theme-preview-section">
   <div class="theme-preview-card" data-current-role="{{ current_role }}">
     <header>
-      <h2>Small screen preview</h2>
-      <p>Auto-updates while you edit Theme & Experience fields.</p>
+      <h2>Live screen preview</h2>
+      <p>Auto-updates while you edit Theme & Experience fields. Switch between desktop, tablet, and mobile layouts.</p>
     </header>
 
     <div class="preview-role-selector">
@@ -22,7 +22,13 @@
       <span class="preview-role-note" id="previewRoleLabel">Inherits {{ current_role }} access.</span>
     </div>
 
-    <div class="preview-device" aria-live="polite">
+    <div class="preview-mode-switch" role="group" aria-label="{% trans 'Preview device mode' %}">
+      <button type="button" class="preview-mode-btn active" data-preview-mode="desktop">{% trans "Desktop" %}</button>
+      <button type="button" class="preview-mode-btn" data-preview-mode="tablet">{% trans "Tablet" %}</button>
+      <button type="button" class="preview-mode-btn" data-preview-mode="mobile">{% trans "Mobile" %}</button>
+    </div>
+
+    <div class="preview-device" data-preview-mode="desktop" aria-live="polite">
       <div class="preview-sidebar">
         <div class="preview-logo">Logo</div>
         <div class="preview-nav">
@@ -51,7 +57,7 @@
       Live preview reads values from this form only. Save to apply globally.
     </div>
     <footer>
-      <button type="button" class="btn btn-sm btn-outline-primary" id="preview-reset" data-reset-message="Preview reset">
+      <button type="button" class="btn btn-sm btn-outline-primary" id="preview-reset" data-reset-message="Preview reset" data-default-mode="desktop">
         Reset preview
       </button>
     </footer>
