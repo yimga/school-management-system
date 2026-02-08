@@ -7,8 +7,9 @@
   <div class="theme-preview-card" data-current-role="{{ current_role }}">
     <header>
       <h2>Small screen preview</h2>
-      <p>Auto-updates as you adjust colors so the sidebar/cards stay readable on a narrow viewport.</p>
+      <p>Auto-updates while you edit Theme & Experience fields.</p>
     </header>
+
     <div class="preview-role-selector">
       <label for="previewRoleSelect"><strong>Preview as:</strong></label>
       <select id="previewRoleSelect" data-current-role="{{ current_role }}">
@@ -20,6 +21,7 @@
       </select>
       <span class="preview-role-note" id="previewRoleLabel">Inherits {{ current_role }} access.</span>
     </div>
+
     <div class="preview-device" aria-live="polite">
       <div class="preview-sidebar">
         <div class="preview-logo">Logo</div>
@@ -32,57 +34,27 @@
       </div>
       <div class="preview-content">
         <div class="preview-card">
-          <strong>Active</strong>
-          <p>Status information</p>
+          <strong>Attendance</strong>
+          <p>Daily summary card</p>
         </div>
         <div class="preview-card">
-          <strong>Alerts</strong>
-          <p>System notifications</p>
+          <strong>Approvals</strong>
+          <p>Pending workflow card</p>
         </div>
       </div>
     </div>
-    <div class="preview-documents" aria-live="polite">
-      <span>
-        <svg viewBox="0 0 24 24">
-          <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" />
-          <path d="M13 2v5h5" />
-        </svg>
-        Document library cards respect the same palette and stack nicely.
-      </span>
-    </div>
-    <div class="preview-layers">
-      <div class="preview-layer">
-        <span class="layer-label">Course Preview</span>
-        <p>Teachers can verify student view + assignments.</p>
-      </div>
-      <div class="preview-layer">
-        <span class="layer-label">Assessment Sandbox</span>
-        <p>Test question randomization and timing before release.</p>
-      </div>
-      <div class="preview-layer">
-        <span class="layer-label">Report Card Mockup</span>
-        <p>Validate templates & weighted averages safely.</p>
-      </div>
-      <div class="preview-layer">
-        <span class="layer-label">Workflows & Documents</span>
-        <p>Ensure notifications, compliance notices, and documents render correctly.</p>
-      </div>
-    </div>
+
     <div id="contrastHint" class="contrast-hint" aria-live="polite">
-      <strong>Contrast check</strong> Running color ratios for each sidebar token…
+      <strong>Contrast check</strong> Running color ratios for sidebar tokens...
+    </div>
+    <div class="preview-note" aria-live="polite">
+      Live preview reads values from this form only. Save to apply globally.
     </div>
     <footer>
       <button type="button" class="btn btn-sm btn-outline-primary" id="preview-reset" data-reset-message="Preview reset">
         Reset preview
       </button>
     </footer>
-  </div>
-  <p class="small text-muted mt-1 mb-0">
-    Need details? Consult the <a href="/documents/theme-guide.md" target="_blank">Documented Theme Guide</a> for the workflow,
-    including the Documents section that mirrors this preview.
-  </p>
-  <div class="preview-note theme-preview-end-note" aria-live="polite">
-    Ephemeral previews & compliance checks keep synthetic data isolated—run sandboxed builds before deploying live changes.
   </div>
 </section>
 {% endwith %}

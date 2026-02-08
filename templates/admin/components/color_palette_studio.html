@@ -1,5 +1,5 @@
 {% load i18n static %}
-{# Color & Harmony: Studio (base color, harmony, apply) + Color Combinations reference #}
+{# Color & Harmony: single integrated studio (presets + harmonies + generated reference) #}
 
 <noscript>
   <p class="alert alert-info mb-2">{% trans "Color Palette Studio requires JavaScript. Use the color inputs in the form above to change theme colors." %}</p>
@@ -10,251 +10,63 @@
       <span class="material-symbols-outlined">palette</span>
       {% trans "Color & harmony" %}
     </div>
-    <span id="cps-toggle-icon" class="material-symbols-outlined">expand_more</span>
+    <span id="cps-toggle-icon" class="material-symbols-outlined">expand_less</span>
   </div>
 
-  <div id="cps-body" style="display: none;">
-    {# Base Color Section #}
+  <div id="cps-body" style="display: block;">
     <div class="cps-base-section">
       <span class="cps-base-label">{% trans "Base color:" %}</span>
       <button type="button" id="cps-base-swatch" aria-label="{% trans 'Open color picker for base color' %}" title="{% trans 'Click to open color picker' %}"></button>
       <input type="text" id="cps-base-color-input" placeholder="#000000" autocomplete="off">
     </div>
 
-    {# Presets Section #}
+    <div class="cps-preset-picker-row">
+      <label for="cps-preset-select" class="cps-base-label">{% trans "Preset:" %}</label>
+      <select id="cps-preset-select" class="cps-preset-select">
+        <option value="">{% trans "Choose a preset..." %}</option>
+      </select>
+    </div>
+
     <div class="cps-presets-section">
       <div class="cps-section-title">{% trans "Quick Presets" %}</div>
-      <div id="cps-presets">
-        {# Populated by JS #}
-      </div>
+      <div id="cps-presets"></div>
     </div>
 
-    {# Harmonies Section #}
     <div class="cps-harmonies-section">
       <div class="cps-section-title">{% trans "Harmony Type" %}</div>
-      <div id="cps-harmonies">
-        {# Populated by JS #}
-      </div>
+      <div id="cps-harmonies"></div>
     </div>
 
-    {# Swatches Section #}
     <div class="cps-swatches-section">
       <div class="cps-section-title">{% trans "Generated Palette" %}</div>
-      <div id="cps-swatches">
-        {# Populated by JS #}
-      </div>
+      <div id="cps-swatches"></div>
     </div>
 
-    {# Info Section #}
     <div class="cps-info-section">
       <div id="cps-harmony-description"></div>
       <div id="cps-best-for"></div>
     </div>
 
-    {# Actions Section #}
     <div class="cps-actions-section">
       <button type="button" id="cps-apply-palette" class="cps-btn cps-btn-primary">
         {% trans "Apply Palette to Form" %}
       </button>
+      <span class="cps-inline-hint">{% trans "Click any swatch to copy its hex value." %}</span>
     </div>
 
-    {# Color Theory Tips #}
-    <div class="cps-tips">
-      <strong>{% trans "Color Theory Tips:" %}</strong>
-      {% trans "Balance: Use one dominant color, support with secondary, accent sparingly." %}
-      {% trans "Contrast: Ensure sufficient contrast for readability." %}
-      {% trans "Harmony: Colors should work together for a unified experience." %}
-    </div>
-
-    {# Color Combinations reference (inside Studio) #}
-    <div id="cps-combo-ref" class="cps-combo-ref mt-4 pt-3 border-top">
-      <div id="cps-combo-ref-header" class="cps-combo-ref-header" role="button" tabindex="0" aria-expanded="false" aria-controls="cps-combo-ref-body" title="{% trans 'Expand to view harmony reference' %}">
-        <div class="cps-combo-ref-header-title">
-          <span class="material-symbols-outlined">color_lens</span>
-          {% trans "Color combinations reference" %}
-        </div>
-        <span id="cps-combo-ref-icon" class="material-symbols-outlined">expand_more</span>
+    <div class="cps-reference-section">
+      <div class="cps-section-title cps-section-title-row">
+        <span class="material-symbols-outlined">color_lens</span>
+        {% trans "Combination reference" %}
       </div>
-      <div id="cps-combo-ref-body" style="display: none;">
-        <p class="text-muted small mb-1 mt-2">{% trans "Each harmony has its own mood. Use harmonies to brainstorm color combos that work well together." %}</p>
-        <p class="small mb-1"><strong>{% trans "How to Use" %}</strong> {% trans "Click on any color to copy its hex value. These combinations are mathematically proven to create visual harmony." %}</p>
-        <p class="small mb-3"><strong>{% trans "Why It Matters" %}</strong> {% trans "Color harmonies create balance and evoke specific emotions in your designs." %}</p>
-        <div class="color-combo-cards">
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Complement" %}</h4>
-            <p class="color-combo-desc small">{% trans "A color and its opposite on the color wheel, +180 degrees of hue. High contrast." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;" title="{% trans 'Click to copy' %}">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#be4d25" style="background-color:#be4d25;">#be4d25</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: High-impact designs, CTAs, logos" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Split-complementary" %}</h4>
-            <p class="color-combo-desc small">{% trans "A color and two adjacent to its complement, +/-30 degrees of hue from the value opposite the main color. Bold like a straight complement, but more versatile." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#6c25be" style="background-color:#6c25be;">#6c25be</span>
-              <span class="color-combo-swatch" data-hex="#bea925" style="background-color:#bea925;">#bea925</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Vibrant yet balanced layouts" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Triadic" %}</h4>
-            <p class="color-combo-desc small">{% trans "Three colors spaced evenly along the color wheel, each 120 degrees of hue apart. Best to allow one color to dominate and use the others as accents." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#be2596" style="background-color:#be2596;">#be2596</span>
-              <span class="color-combo-swatch" data-hex="#96be25" style="background-color:#96be25;">#96be25</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Playful, energetic designs" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Analogous" %}</h4>
-            <p class="color-combo-desc small">{% trans "Three colors of the same luminance and saturation with hues that are adjacent on the color wheel, 30 degrees apart. Smooth transitions." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#25a5be" style="background-color:#25a5be;">#25a5be</span>
-              <span class="color-combo-swatch" data-hex="#2587be" style="background-color:#2587be;">#2587be</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Nature-inspired, calming interfaces" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Monochromatic" %}</h4>
-            <p class="color-combo-desc small">{% trans "Three colors of the same hue with luminance values +/-50%. Subtle and refined." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#041014" style="background-color:#041014;">#041014</span>
-              <span class="color-combo-swatch" data-hex="#145369" style="background-color:#145369;">#145369</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Minimalist, sophisticated designs" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Tetradic" %}</h4>
-            <p class="color-combo-desc small">{% trans "Two sets of complementary colors, separated by 60 degrees of hue." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#9925be" style="background-color:#9925be;">#9925be</span>
-              <span class="color-combo-swatch" data-hex="#be4d25" style="background-color:#be4d25;">#be4d25</span>
-              <span class="color-combo-swatch" data-hex="#49be25" style="background-color:#49be25;">#49be25</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Rich, diverse color schemes" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Square" %}</h4>
-            <p class="color-combo-desc small">{% trans "Four colors at 90-degree spacing on the wheel. Balanced and bold." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#9925be" style="background-color:#9925be;">#9925be</span>
-              <span class="color-combo-swatch" data-hex="#be4d25" style="background-color:#be4d25;">#be4d25</span>
-              <span class="color-combo-swatch" data-hex="#49be25" style="background-color:#49be25;">#49be25</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Vibrant, balanced palettes" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Achromatic" %}</h4>
-            <p class="color-combo-desc small">{% trans "Neutrals only: black, white, and grays. No hue." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#141414" style="background-color:#141414;">#141414</span>
-              <span class="color-combo-swatch" data-hex="#3d3d3d" style="background-color:#3d3d3d;">#3d3d3d</span>
-              <span class="color-combo-swatch" data-hex="#666666" style="background-color:#666666;">#666666</span>
-              <span class="color-combo-swatch" data-hex="#8f8f8f" style="background-color:#8f8f8f;">#8f8f8f</span>
-              <span class="color-combo-swatch" data-hex="#c2c2c2" style="background-color:#c2c2c2; color:#333;">#c2c2c2</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Minimal, high-contrast, or typography-focused designs" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Polychromatic" %}</h4>
-            <p class="color-combo-desc small">{% trans "Five colors evenly spaced (72 degrees apart). Same saturation and lightness." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#6c25be" style="background-color:#6c25be;">#6c25be</span>
-              <span class="color-combo-swatch" data-hex="#be2596" style="background-color:#be2596;">#be2596</span>
-              <span class="color-combo-swatch" data-hex="#be8025" style="background-color:#be8025;">#be8025</span>
-              <span class="color-combo-swatch" data-hex="#25be58" style="background-color:#25be58;">#25be58</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Diverse, energetic palettes" %}</p>
-          </div>
-          <div class="color-combo-card">
-            <h4 class="color-combo-name">{% trans "Diad" %}</h4>
-            <p class="color-combo-desc small">{% trans "Two colors separated by 60 degrees on the wheel." %}</p>
-            <div class="color-combo-swatches">
-              <span class="color-combo-swatch" data-hex="#2596be" style="background-color:#2596be;">#2596be</span>
-              <span class="color-combo-swatch" data-hex="#25be58" style="background-color:#25be58;">#25be58</span>
-            </div>
-            <p class="color-combo-best small mb-0">{% trans "Best for: Simple two-color schemes with harmony" %}</p>
-          </div>
-        </div>
-        <div class="color-theory-principles mt-4 pt-3 border-top">
-          <h4 class="mb-2">{% trans "Color Theory Principles" %}</h4>
-          <ul class="small mb-0">
-            <li><strong>{% trans "Balance" %}</strong> {% trans "Use one dominant color, support with secondary, and accent sparingly." %}</li>
-            <li><strong>{% trans "Contrast" %}</strong> {% trans "Ensure sufficient contrast for readability and accessibility." %}</li>
-            <li><strong>{% trans "Harmony" %}</strong> {% trans "Colors should work together to create a unified visual experience." %}</li>
-          </ul>
-        </div>
-      </div>
+      <p class="cps-reference-note">
+        {% trans "Generated from your current base color. Click a harmony card to use it, or click a swatch to copy the hex." %}
+      </p>
+      <div id="cps-combo-reference" class="cps-combo-grid"></div>
     </div>
   </div>
 </div>
 
-{# Load Studio Assets #}
 <link rel="stylesheet" href="{% static 'css/color-palette-studio.css' %}">
-<style>
-.cps-combo-ref { max-width: 100%; }
-.cps-combo-ref-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; background: #f1f5f9 !important; cursor: pointer; user-select: none; color: #1e293b !important; }
-.cps-combo-ref-header:hover { background: #e2e8f0 !important; }
-.cps-combo-ref-header-title { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.95rem; color: #1e293b !important; }
-.cps-combo-ref-header .material-symbols-outlined { font-size: 1.2rem; color: #1e293b !important; }
-.color-combo-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-.color-combo-card { padding: 0.75rem; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; background: var(--color-surface, #fff); }
-.color-combo-name { font-size: 1rem; font-weight: 600; margin: 0 0 0.25rem 0; }
-.color-combo-desc { color: var(--color-text-muted, #6b7280); margin: 0 0 0.5rem 0; }
-.color-combo-swatches { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0.5rem; }
-.color-combo-swatch { display: inline-block; min-width: 70px; padding: 6px 8px; border-radius: 6px; font-size: 11px; font-family: ui-monospace, monospace; cursor: pointer; border: 1px solid rgba(0,0,0,0.15); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.3); }
-.color-combo-swatch[data-hex="#041014"], .color-combo-swatch[data-hex="#145369"] { color: #fff; }
-#color-palette-studio .color-combo-swatch[data-hex="#96be25"], #color-palette-studio .color-combo-swatch[data-hex="#49be25"], #color-palette-studio .color-combo-swatch[data-hex="#bea925"], #color-palette-studio .color-combo-swatch[data-hex="#25be58"] { color: #000; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
-#color-palette-studio .color-combo-swatch[data-hex="#c2c2c2"], #color-palette-studio .color-combo-swatch[data-hex="#8f8f8f"] { color: #333; text-shadow: none; }
-.color-combo-swatch:hover { filter: brightness(1.1); }
-.color-combo-best { color: var(--color-text-muted, #6b7280); }
-.color-theory-principles ul { padding-left: 1.25rem; }
-</style>
 <script src="{% static 'js/color-harmony-engine.js' %}"></script>
 <script src="{% static 'js/color-palette-studio.js' %}"></script>
-<script>
-(function() {
-  document.addEventListener('DOMContentLoaded', function() {
-    var refHeader = document.getElementById('cps-combo-ref-header');
-    var refBody = document.getElementById('cps-combo-ref-body');
-    var refIcon = document.getElementById('cps-combo-ref-icon');
-    if (refHeader && refBody && refIcon) {
-      refHeader.addEventListener('click', function() {
-        var open = refBody.style.display !== 'none';
-        refBody.style.display = open ? 'none' : 'block';
-        refIcon.textContent = open ? 'expand_more' : 'expand_less';
-        refHeader.setAttribute('aria-expanded', !open);
-      });
-      refHeader.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); refHeader.click(); }
-      });
-    }
-    var studio = document.getElementById('color-palette-studio');
-    if (studio) {
-      studio.querySelectorAll('.color-combo-swatch').forEach(function(el) {
-        el.addEventListener('click', function(e) { e.stopPropagation();
-          var hex = el.getAttribute('data-hex');
-          if (!hex) return;
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(hex).then(function() {
-              if (typeof window.showToast === 'function') window.showToast(hex + ' copied', 'success', 1500);
-              else { var t = document.createElement('input'); t.value = hex; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); }
-            });
-          } else if (document.execCommand) {
-            var t = document.createElement('input'); t.value = hex; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
-          }
-        });
-      });
-    }
-  });
-})();
-</script>

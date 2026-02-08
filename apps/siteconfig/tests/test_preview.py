@@ -6,6 +6,8 @@ Ensures redirect URL includes preview_section and preview_keep when provided.
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from apps.siteconfig.models import ThemePack
+from apps.siteconfig.views import SESSION_KEY
 
 User = get_user_model()
 
@@ -91,3 +93,38 @@ class PreviewFromFormTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("preview_section=sidebar", data["redirect_url"])
+
+    def test_theme_pack_and_checkbox_false_values_are_stored_in_preview_session(self):
+        self.client.login(username="previewtest", password="password")
+        site_pack = ThemePack.objects.create(
+            name="Site Preview Pack",
+            slug="site-preview-pack",
+            primary_color="#0d6efd",
+            accent_color="#198754",
+            is_active=True,
+            applies_to_admin=False,
+        )
+        admin_pack = ThemePack.objects.create(
+            name="Admin Preview Pack",
+            slug="admin-preview-pack",
+            primary_color="#111827",
+            accent_color="#38bdf8",
+            is_active=True,
+            applies_to_admin=True,
+        )
+
+        response = self._post(
+            {
+                "preview_section": "theme-experience",
+                "theme_pack": str(site_pack.pk),
+                "admin_theme_pack": str(admin_pack.pk),
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = self.client.session.get(SESSION_KEY, {})
+        self.assertEqual(payload.get("theme_pack"), site_pack.pk)
+        self.assertEqual(payload.get("admin_theme_pack"), admin_pack.pk)
+        self.assertIn("use_dark_mode", payload)
+        self.assertIn("admin_use_site_primary", payload)
+        self.assertFalse(payload.get("use_dark_mode"))
+        self.assertFalse(payload.get("admin_use_site_primary"))

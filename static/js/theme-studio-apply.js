@@ -34,12 +34,23 @@
     return true;
   }
 
-  function setPack(packId) {
-    var select = document.getElementById('id_admin_theme_pack');
+  function setSelectPack(select, packId) {
     if (!select || !packId) return false;
-    select.value = String(packId);
+    var desired = String(packId);
+    select.value = desired;
+    if (String(select.value) !== desired) return false;
     select.dispatchEvent(new Event('change', { bubbles: true }));
     return true;
+  }
+
+  function setPack(packId) {
+    var select = document.getElementById('id_admin_theme_pack');
+    return setSelectPack(select, packId);
+  }
+
+  function setSitePack(packId) {
+    var select = document.getElementById('id_theme_pack');
+    return setSelectPack(select, packId);
   }
 
   function buildTokenMap(dataset) {
@@ -53,7 +64,6 @@
     return [
       ['primary_color', primary],
       ['accent_color', accent],
-      ['background_color', background],
       ['header_bg_color', header],
       ['footer_bg_color', footer],
       ['success_color', dataset.success || ''],
@@ -77,6 +87,9 @@
 
     if (options.setPack !== false && dataset && dataset.packId) {
       setPack(dataset.packId);
+      if (options.setSitePack) {
+        setSitePack(dataset.packId);
+      }
     }
 
     return applied;
@@ -86,5 +99,6 @@
   window.ThemeStudio.findField = findField;
   window.ThemeStudio.setField = setField;
   window.ThemeStudio.setPack = setPack;
+  window.ThemeStudio.setSitePack = setSitePack;
   window.ThemeStudio.applyFromDataset = applyFromDataset;
 })(window, document);

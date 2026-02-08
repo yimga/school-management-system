@@ -193,15 +193,19 @@ if DATABASE_URL:
         _default_db["ENGINE"] = "django.db.backends.postgresql"
     DATABASES = {"default": _default_db}
 else:
-    # ✅ Local fallback (no DATABASE_URL) = sqlite
-    # Use DB_FILE to point at a different file when db.sqlite3 is corrupted/locked.
-    # Use an absolute path (e.g. %TEMP%\gilead_db.sqlite3 on Windows) to avoid cloud-sync/antivirus corruption.
-    raw_db_file = os.getenv("DB_FILE", "db.sqlite3")
-    if raw_db_file == "db.sqlite3":
-        db_path = BASE_DIR / "db_working.sqlite3"
+    # Local fallback (no DATABASE_URL) = sqlite.
+    # Use DB_FILE to override path explicitly.
+    # Default on Windows uses LOCALAPPDATA to avoid cloud-sync corruption under Documents.
+    raw_db_file = (os.getenv("DB_FILE") or "").strip()
+    if not raw_db_file:
+        if os.name == "nt" and os.getenv("LOCALAPPDATA"):
+            db_path = Path(os.getenv("LOCALAPPDATA")) / "GileadTechHigh" / "db_working.sqlite3"
+        else:
+            db_path = BASE_DIR / "db_working.sqlite3"
     else:
         sqlite_name = os.path.expanduser(os.path.expandvars(raw_db_file))
         db_path = Path(sqlite_name) if os.path.isabs(sqlite_name) else (BASE_DIR / sqlite_name)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",

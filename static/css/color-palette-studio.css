@@ -161,6 +161,31 @@
   color: #f1f5f9;
 }
 
+.cps-preset-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cps-preset-select {
+  min-width: 220px;
+  max-width: 100%;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.dark .cps-preset-select,
+[data-theme="dark"] .cps-preset-select {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
 /* ============================================================
    Presets Section – visible section title and preset names
    ============================================================ */
@@ -442,6 +467,7 @@
 .cps-actions-section {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid #e2e8f0;
@@ -450,6 +476,16 @@
 .dark .cps-actions-section,
 [data-theme="dark"] .cps-actions-section {
   border-top-color: #334155;
+}
+
+.cps-inline-hint {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.dark .cps-inline-hint,
+[data-theme="dark"] .cps-inline-hint {
+  color: #94a3b8;
 }
 
 /* ============================================================
@@ -525,6 +561,162 @@
 }
 
 /* ============================================================
+   Combination Reference (generated from active base color)
+   ============================================================ */
+
+.cps-reference-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dark .cps-reference-section,
+[data-theme="dark"] .cps-reference-section {
+  border-top-color: #334155;
+}
+
+.cps-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cps-section-title-row .material-symbols-outlined {
+  font-size: 1rem;
+  color: #2563eb;
+}
+
+.dark .cps-section-title-row .material-symbols-outlined,
+[data-theme="dark"] .cps-section-title-row .material-symbols-outlined {
+  color: #60a5fa;
+}
+
+.cps-reference-note {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.dark .cps-reference-note,
+[data-theme="dark"] .cps-reference-note {
+  color: #94a3b8;
+}
+
+.cps-combo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.6rem;
+}
+
+.cps-combo-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.cps-combo-card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+  transform: translateY(-1px);
+}
+
+.cps-combo-card.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.dark .cps-combo-card,
+[data-theme="dark"] .cps-combo-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark .cps-combo-card:hover,
+[data-theme="dark"] .cps-combo-card:hover {
+  border-color: #60a5fa;
+}
+
+.dark .cps-combo-card.active,
+[data-theme="dark"] .cps-combo-card.active {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+}
+
+.cps-combo-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.cps-combo-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dark .cps-combo-name,
+[data-theme="dark"] .cps-combo-name {
+  color: #f1f5f9;
+}
+
+.cps-combo-use {
+  padding: 0.2rem 0.45rem;
+  font-size: 0.68rem;
+}
+
+.cps-combo-desc {
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  color: #475569;
+  line-height: 1.3;
+}
+
+.dark .cps-combo-desc,
+[data-theme="dark"] .cps-combo-desc {
+  color: #cbd5e1;
+}
+
+.cps-combo-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.cps-combo-swatch {
+  position: relative;
+  width: 42px;
+  height: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.28);
+  border-radius: 6px;
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+}
+
+.cps-combo-swatch-label {
+  position: absolute;
+  left: -9999px;
+}
+
+.cps-combo-best {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.dark .cps-combo-best,
+[data-theme="dark"] .cps-combo-best {
+  color: #93c5fd;
+}
+
+/* ============================================================
    Toast Notification
    ============================================================ */
 
@@ -567,31 +759,7 @@
     max-height: 120px;
     overflow-y: auto;
   }
-}
-
-/* ============================================================
-   Color Theory Tips (optional bottom section)
-   ============================================================ */
-
-.cps-tips {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px dashed #e2e8f0;
-  font-size: 0.75rem;
-  color: #64748b;
-}
-
-.dark .cps-tips,
-[data-theme="dark"] .cps-tips {
-  border-top-color: #334155;
-  color: #94a3b8;
-}
-
-.cps-tips strong {
-  color: #334155;
-}
-
-.dark .cps-tips strong,
-[data-theme="dark"] .cps-tips strong {
-  color: #e2e8f0;
+  .cps-combo-grid {
+    grid-template-columns: 1fr;
+  }
 }

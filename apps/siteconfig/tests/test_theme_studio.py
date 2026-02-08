@@ -1,7 +1,13 @@
+import shutil
+import subprocess
+from pathlib import Path
+from unittest.mock import patch
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Permission
@@ -66,6 +72,30 @@ class ThemeStudioAccessTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Portal Pack")
+
+    def test_theme_studio_renders_admin_use_site_primary_guard(self):
+        self.client.login(username="theme-manager", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "admin-use-site-primary-guard")
+
+    def test_theme_studio_auto_seeds_catalog_when_admin_packs_missing(self):
+        ThemePack.objects.all().delete()
+        ThemePack.objects.create(
+            name="Minimal Starter",
+            slug="minimal-starter-pack",
+            primary_color="#1d4ed8",
+            accent_color="#0ea5e9",
+            is_active=True,
+            applies_to_admin=False,
+        )
+        self.client.login(username="theme-manager", password="password")
+
+        with patch("apps.siteconfig.views.call_command") as mocked_call_command:
+            response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        mocked_call_command.assert_called_once_with("seed_admin_dashboard_palettes")
 
 
 class ThemeResolutionTests(TestCase):
@@ -141,6 +171,7 @@ class ThemePackSelectorTemplateTests(TestCase):
         )
 
         self.assertIn("theme-pack-auto-apply", html)
+        self.assertIn("theme-pack-apply-site", html)
         self.assertIn("data-success=\"#22c55e\"", html)
         self.assertIn("data-warning=\"#f59e0b\"", html)
         self.assertIn("data-danger=\"#ef4444\"", html)
@@ -166,3 +197,90 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         request = RequestFactory().get("/admin/")
         perms = model_admin.get_model_perms(request)
         self.assertEqual(perms, {})
+
+
+class ThemeStudioApplyScriptTests(SimpleTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.node_binary = shutil.which("node")
+        cls.script_path = Path(settings.BASE_DIR) / "static" / "js" / "theme-studio-apply.js"
+
+    def test_apply_from_dataset_sets_admin_and_site_pack_when_enabled(self):
+        if not self.node_binary:
+            self.skipTest("Node.js is required for JS behavior regression tests.")
+
+        node_test_script = r"""
+const fs = require('fs');
+const vm = require('vm');
+
+const scriptPath = process.argv[1];
+
+function makeSelect(id) {
+  return {
+    id,
+    value: '',
+    events: [],
+    dispatchEvent(ev) {
+      this.events.push(ev && ev.type ? ev.type : 'unknown');
+      return true;
+    }
+  };
+}
+
+const elements = {
+  id_admin_theme_pack: makeSelect('id_admin_theme_pack'),
+  id_theme_pack: makeSelect('id_theme_pack')
+};
+
+const document = {
+  getElementById(id) {
+    return elements[id] || null;
+  },
+  querySelector() {
+    return null;
+  }
+};
+
+const window = {};
+function Event(type, opts) {
+  this.type = type;
+  this.bubbles = !!(opts && opts.bubbles);
+}
+
+const context = { window, document, Event, console };
+vm.createContext(context);
+vm.runInContext(fs.readFileSync(scriptPath, 'utf8'), context);
+
+context.window.ThemeStudio.applyFromDataset(
+  { packId: '42' },
+  { setPack: true, setSitePack: true }
+);
+
+if (elements.id_admin_theme_pack.value !== '42') {
+  throw new Error('Admin theme pack was not set by applyFromDataset');
+}
+if (elements.id_theme_pack.value !== '42') {
+  throw new Error('Site theme pack was not set by setSitePack');
+}
+if (!elements.id_admin_theme_pack.events.includes('change')) {
+  throw new Error('Admin theme pack change event was not dispatched');
+}
+if (!elements.id_theme_pack.events.includes('change')) {
+  throw new Error('Site theme pack change event was not dispatched');
+}
+
+console.log('ok');
+"""
+        completed = subprocess.run(
+            [self.node_binary, "-e", node_test_script, str(self.script_path)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(
+            completed.returncode,
+            0,
+            f"Node regression test failed.\nSTDOUT:\n{completed.stdout}\nSTDERR:\n{completed.stderr}",
+        )
+        self.assertIn("ok", completed.stdout.strip())

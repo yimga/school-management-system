@@ -6,7 +6,6 @@
 (function () {
   'use strict';
 
-  // Wait for colorHarmony to be available
   if (typeof colorHarmony === 'undefined') {
     console.warn('Color Palette Studio: colorHarmony not loaded');
     return;
@@ -18,10 +17,6 @@
     harmonyType: 'complement',
     pickrInstance: null
   };
-
-  // ============================================================
-  // DOM Helpers
-  // ============================================================
 
   function $(selector, parent) {
     return (parent || document).querySelector(selector);
@@ -60,11 +55,9 @@
     return el;
   }
 
-  // Field names and labels: Studio can apply to any that exist on the form (Site Settings has more than Theme Pack / Report Card Style).
   var FIELD_LABELS = {
     primary_color: 'Primary',
     accent_color: 'Accent',
-    background_color: 'Background',
     header_bg_color: 'Header',
     footer_bg_color: 'Footer',
     success_color: 'Success',
@@ -72,8 +65,18 @@
     danger_color: 'Danger'
   };
 
+  function getPresetKeysSorted() {
+    return colorHarmony.listPresets().sort(function (a, b) {
+      var pa = colorHarmony.getPreset(a);
+      var pb = colorHarmony.getPreset(b);
+      var na = pa && pa.name ? pa.name : a;
+      var nb = pb && pb.name ? pb.name : b;
+      return na.localeCompare(nb);
+    });
+  }
+
   function getApplicableFields() {
-    var order = ['primary_color', 'accent_color', 'background_color', 'header_bg_color', 'footer_bg_color', 'success_color', 'warning_color', 'danger_color'];
+    var order = ['primary_color', 'accent_color', 'header_bg_color', 'footer_bg_color', 'success_color', 'warning_color', 'danger_color'];
     var out = [];
     order.forEach(function (name) {
       var input = $('[name="' + name + '"]') || $('#id_' + name);
@@ -84,9 +87,17 @@
     return out;
   }
 
-  // ============================================================
-  // Render Functions
-  // ============================================================
+  function renderStudioMeta(harmonyInfo) {
+    var bestForEl = $('#cps-best-for');
+    if (bestForEl && harmonyInfo) {
+      bestForEl.textContent = 'Best for: ' + harmonyInfo.bestFor;
+    }
+
+    var descEl = $('#cps-harmony-description');
+    if (descEl && harmonyInfo) {
+      descEl.textContent = harmonyInfo.description;
+    }
+  }
 
   function renderSwatches(container) {
     if (!container) return;
@@ -102,7 +113,7 @@
       ];
     }
 
-    colors.forEach(function (hex, index) {
+    colors.forEach(function (hex) {
       var actions = applicableFields.map(function (f) {
         return createElement('button', {
           type: 'button',
@@ -116,7 +127,9 @@
           style: { backgroundColor: hex },
           title: 'Click to copy',
           onClick: function () { copyToClipboard(hex); }
-        }),
+        }, [
+          createElement('span', { className: 'cps-swatch-hex-on-color' }, hex)
+        ]),
         createElement('div', { className: 'cps-swatch-info' }, [
           createElement('span', { className: 'cps-swatch-hex' }, hex),
           createElement('div', { className: 'cps-swatch-actions' }, actions)
@@ -124,25 +137,14 @@
       ]);
       container.appendChild(swatch);
     });
-
-    // Best for text
-    var bestForEl = $('#cps-best-for');
-    if (bestForEl && harmonyInfo) {
-      bestForEl.textContent = 'Best for: ' + harmonyInfo.bestFor;
-    }
-
-    // Description
-    var descEl = $('#cps-harmony-description');
-    if (descEl && harmonyInfo) {
-      descEl.textContent = harmonyInfo.description;
-    }
+    renderStudioMeta(harmonyInfo);
   }
 
   function renderPresets(container) {
     if (!container) return;
     container.innerHTML = '';
 
-    var presetKeys = colorHarmony.listPresets();
+    var presetKeys = getPresetKeysSorted();
     presetKeys.forEach(function (key) {
       var preset = colorHarmony.getPreset(key);
       if (!preset) return;
@@ -167,6 +169,25 @@
     });
   }
 
+  function renderPresetSelect(selectEl) {
+    if (!selectEl) return;
+    var current = selectEl.value || '';
+    while (selectEl.options.length > 1) {
+      selectEl.remove(1);
+    }
+
+    getPresetKeysSorted().forEach(function (key) {
+      var preset = colorHarmony.getPreset(key);
+      if (!preset) return;
+      var option = createElement('option', { value: key }, preset.name);
+      selectEl.appendChild(option);
+    });
+
+    if (current) {
+      selectEl.value = current;
+    }
+  }
+
   function renderHarmonySelector(container) {
     if (!container) return;
     container.innerHTML = '';
@@ -184,29 +205,86 @@
     });
   }
 
-  // ============================================================
-  // Actions
-  // ============================================================
+  function renderComboReference(container) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    var harmonies = colorHarmony.listHarmonies();
+    harmonies.forEach(function (key) {
+      var harmony = colorHarmony.HARMONIES[key];
+      if (!harmony) return;
+      var colors = colorHarmony.generate(key, state.baseColor).slice(0, 5);
+
+      var swatches = createElement('div', { className: 'cps-combo-swatches' },
+        colors.map(function (hex) {
+          return createElement('button', {
+            type: 'button',
+            className: 'cps-combo-swatch',
+            style: { backgroundColor: hex },
+            title: 'Copy ' + hex,
+            onClick: function (event) {
+              event.stopPropagation();
+              copyToClipboard(hex);
+            }
+          }, [
+            createElement('span', { className: 'cps-combo-swatch-label' }, hex)
+          ]);
+        })
+      );
+
+      var card = createElement('div', {
+        className: 'cps-combo-card' + (state.harmonyType === key ? ' active' : ''),
+        role: 'button',
+        tabIndex: 0,
+        onClick: function () { selectHarmony(key); },
+        onKeydown: function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            selectHarmony(key);
+          }
+        }
+      }, [
+        createElement('div', { className: 'cps-combo-head' }, [
+          createElement('span', { className: 'cps-combo-name' }, harmony.name),
+          createElement('button', {
+            type: 'button',
+            className: 'cps-btn cps-btn-sm cps-combo-use',
+            onClick: function (event) {
+              event.stopPropagation();
+              selectHarmony(key);
+            }
+          }, 'Use')
+        ]),
+        createElement('p', { className: 'cps-combo-desc' }, harmony.description),
+        swatches,
+        createElement('p', { className: 'cps-combo-best' }, 'Best for: ' + harmony.bestFor)
+      ]);
+
+      container.appendChild(card);
+    });
+  }
+
+  function refreshPaletteViews() {
+    renderSwatches($('#cps-swatches'));
+    renderComboReference($('#cps-combo-reference'));
+  }
 
   function selectHarmony(harmonyType) {
     state.harmonyType = harmonyType;
 
-    // Update active button
     $$('.cps-harmony-btn').forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.harmony === harmonyType);
     });
 
-    renderSwatches($('#cps-swatches'));
+    refreshPaletteViews();
   }
 
   function applyPreset(presetKey) {
     var preset = colorHarmony.getPreset(presetKey);
     if (!preset || !preset.colors.length) return;
 
-    // Apply first color as base
     state.baseColor = colorHarmony.normalizeHex(preset.colors[0]);
 
-    // Update base color input and picker
     var baseInput = $('#cps-base-color-input');
     if (baseInput) {
       baseInput.value = state.baseColor;
@@ -215,25 +293,26 @@
       state.pickrInstance.setColor(state.baseColor);
     }
 
-    // Update base swatch
     var baseSwatch = $('#cps-base-swatch');
     if (baseSwatch) {
       baseSwatch.style.backgroundColor = state.baseColor;
     }
 
-    applyColorsToForm(preset.colors);
+    var presetSelect = $('#cps-preset-select');
+    if (presetSelect) {
+      presetSelect.value = presetKey;
+    }
 
-    renderSwatches($('#cps-swatches'));
+    applyColorsToForm(preset.colors);
+    refreshPaletteViews();
   }
 
   function applyToField(fieldName, hex, options) {
     options = options || {};
     hex = colorHarmony.normalizeHex(hex);
 
-    // Try to find the field by name
     var input = $('[name="' + fieldName + '"]');
     if (!input) {
-      // Try with id
       input = $('#id_' + fieldName);
     }
     if (!input) {
@@ -243,11 +322,9 @@
 
     input.value = hex;
 
-    // Dispatch change event for Pickr sync
     input.dispatchEvent(new Event('change', { bubbles: true }));
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Update the adjacent swatch if it's a ColorInputWithPreview
     var wrapper = input.closest('.color-input-with-preview');
     if (wrapper) {
       var trigger = wrapper.querySelector('.color-pickr-trigger');
@@ -278,7 +355,6 @@
     var mapping = [
       { field: 'primary_color', index: 0 },
       { field: 'accent_color', index: 1 },
-      { field: 'background_color', index: 2 },
       { field: 'header_bg_color', index: 0 },
       { field: 'footer_bg_color', index: 2 },
       { field: 'success_color', index: 3 },
@@ -303,17 +379,22 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(function () {
         showToast('Copied: ' + text);
+      }).catch(function () {
+        copyToClipboardFallback(text);
       });
     } else {
-      // Fallback
-      var textarea = document.createElement('textarea');
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      showToast('Copied: ' + text);
+      copyToClipboardFallback(text);
     }
+  }
+
+  function copyToClipboardFallback(text) {
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast('Copied: ' + text);
   }
 
   function showToast(message) {
@@ -338,10 +419,6 @@
       }, 300);
     }, 2000);
   }
-
-  // ============================================================
-  // Base Color Picker
-  // ============================================================
 
   function initBasePicker() {
     var trigger = $('#cps-base-swatch');
@@ -381,7 +458,7 @@
       state.baseColor = hex;
       if (input) input.value = hex;
       trigger.style.backgroundColor = hex;
-      renderSwatches($('#cps-swatches'));
+      refreshPaletteViews();
     });
 
     state.pickrInstance.on('save', function (color) {
@@ -397,78 +474,88 @@
         if (state.pickrInstance) {
           state.pickrInstance.setColor(hex);
         }
-        renderSwatches($('#cps-swatches'));
+        refreshPaletteViews();
       });
     }
   }
-
-  // ============================================================
-  // Collapse Toggle
-  // ============================================================
 
   function initCollapse() {
     var header = $('#cps-header');
     var body = $('#cps-body');
     var toggle = $('#cps-toggle-icon');
     if (!header || !body) return;
+    header.setAttribute('role', 'button');
+    header.setAttribute('tabindex', '0');
+    header.setAttribute('aria-expanded', 'false');
+
+    function setOpen(open) {
+      body.style.display = open ? 'block' : 'none';
+      header.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (toggle) {
+        toggle.textContent = open ? 'expand_less' : 'expand_more';
+      }
+    }
 
     header.addEventListener('click', function () {
       var isOpen = body.style.display !== 'none';
-      body.style.display = isOpen ? 'none' : 'block';
-      if (toggle) {
-        toggle.textContent = isOpen ? 'expand_more' : 'expand_less';
+      setOpen(!isOpen);
+    });
+
+    header.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        var isOpen = body.style.display !== 'none';
+        setOpen(!isOpen);
       }
     });
-  }
 
-  // ============================================================
-  // Initialize
-  // ============================================================
+    setOpen(body.style.display !== 'none');
+  }
 
   function init() {
     var container = $('#color-palette-studio');
     if (!container) return;
 
-    // Get initial color from primary_color field if available
     var primaryInput = $('[name="primary_color"]') || $('#id_primary_color');
     if (primaryInput && primaryInput.value) {
       state.baseColor = colorHarmony.normalizeHex(primaryInput.value);
     }
 
-    // Set initial base color display
     var baseSwatch = $('#cps-base-swatch');
     var baseInput = $('#cps-base-color-input');
     if (baseSwatch) baseSwatch.style.backgroundColor = state.baseColor;
     if (baseInput) baseInput.value = state.baseColor;
 
-    // Render components
     renderPresets($('#cps-presets'));
+    renderPresetSelect($('#cps-preset-select'));
     renderHarmonySelector($('#cps-harmonies'));
-    renderSwatches($('#cps-swatches'));
+    refreshPaletteViews();
 
-    // Initialize picker
     initBasePicker();
-
-    // Initialize collapse
     initCollapse();
 
-    // Apply palette button
     var applyPaletteBtn = $('#cps-apply-palette');
     if (applyPaletteBtn) {
       applyPaletteBtn.addEventListener('click', applyPalette);
     }
 
+    var presetSelect = $('#cps-preset-select');
+    if (presetSelect) {
+      presetSelect.addEventListener('change', function () {
+        if (!this.value) return;
+        applyPreset(this.value);
+      });
+    }
+
     console.log('Color Palette Studio initialized');
   }
 
-  // Auto-init on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
 
-  // Export for manual init if needed
   studio.init = init;
   studio.applyToField = applyToField;
   studio.applyPreset = applyPreset;

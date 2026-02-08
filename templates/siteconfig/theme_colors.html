@@ -6,6 +6,7 @@
 {% block body_extra_class %}theme-experience-full-width{% endblock %}
 
 {% block content %}
+{% include "admin/components/theme_preview_assets.html" %}
 <div class="theme-experience-page container-fluid py-2">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
     <h1 class="h4 mb-0">{% trans "Theme & Experience" %}</h1>
@@ -32,7 +33,6 @@
         </div>
         {% include "admin/components/color_palette_studio.html" %}
         {% include "admin/components/admin_dashboard_palette_selector.html" %}
-        {% include "admin/components/admin_theme_preset.html" %}
       </div>
 
       {# Right: Theme & Experience form (no spill) + preview + actions at end #}
@@ -54,12 +54,25 @@
 
             {# Theme + checkboxes in one row #}
             <div class="row g-1 mb-1">
-              <div class="col-md-4"><div class="mb-0">{{ form.theme_brightness.label_tag }}{{ form.theme_brightness }}</div></div>
-              <div class="col-md-4"><div class="mb-0">{{ form.backend_console_theme.label_tag }}{{ form.backend_console_theme }}</div></div>
-              <div class="col-md-4"><div class="mb-0">{{ form.admin_theme_pack.label_tag }}{{ form.admin_theme_pack }}</div></div>
+              <div class="col-md-3"><div class="mb-0">{{ form.theme_brightness.label_tag }}{{ form.theme_brightness }}</div></div>
+              <div class="col-md-3"><div class="mb-0">{{ form.backend_console_theme.label_tag }}{{ form.backend_console_theme }}</div></div>
+              <div class="col-md-3"><div class="mb-0">{{ form.theme_pack.label_tag }}{{ form.theme_pack }}</div></div>
+              <div class="col-md-3"><div class="mb-0">{{ form.admin_theme_pack.label_tag }}{{ form.admin_theme_pack }}</div></div>
               <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
                 <div class="form-check mb-0">{{ form.use_dark_mode }}<label class="form-check-label" for="id_use_dark_mode">{{ form.use_dark_mode.label }}</label></div>
                 <div class="form-check mb-0">{{ form.admin_use_site_primary }}<label class="form-check-label" for="id_admin_use_site_primary">{{ form.admin_use_site_primary.label }}</label></div>
+              </div>
+              <div class="col-12">
+                <small class="text-muted">
+                  {% trans "For a unified look across portal, backend, and admin, set Site theme pack and Admin theme pack to the same pack." %}
+                </small>
+                <br>
+                <small class="text-muted">
+                  {% trans "If 'Admin use site primary' is enabled, admin primary/accent will follow site primary/accent even when an admin pack is selected." %}
+                </small>
+                <div id="admin-use-site-primary-guard" class="alert alert-info py-1 px-2 mt-1 mb-0 small d-none" role="status">
+                  {% trans "Admin/site color lock is ON: pack clicks will keep Site theme pack aligned so admin primary/accent stay consistent." %}
+                </div>
               </div>
             </div>
 
@@ -147,50 +160,20 @@
   .theme-experience-form-body .row { margin-left: 0; margin-right: 0; }
   .theme-experience-form-body [class^="col-"] { max-width: 100%; padding-left: 0.5rem; }
   .theme-experience-form-body .form-check { padding-left: 0.5rem; }
-  /* Small screen preview: same space, but zoomed in so window + text are readable */
+  /* Preview wrapper */
   .theme-experience-preview-wrap {
-    width: 55%;
-    max-width: 420px;
+    width: 100%;
+    max-width: 560px;
     margin-left: auto;
     margin-right: auto;
-    overflow: hidden;
     min-width: 0;
   }
   .theme-experience-preview-wrap .theme-preview-section { margin-top: 0; margin-bottom: 0; }
   .theme-experience-preview-wrap .theme-preview-card { max-width: none; }
-  /* Scale up so preview window and text are larger in same viewport (no extra page space) */
-  .theme-experience-preview-wrap .theme-preview-section,
-  .theme-experience-preview-wrap .theme-preview-card {
-    transform: scale(0.78);
-    transform-origin: top center;
-    width: 128.2%;
-    margin-left: -14.1%;
-    box-sizing: border-box;
-  }
-  /* Larger base font so title, labels, and device text are readable */
-  .theme-experience-preview-wrap .theme-preview-section,
-  .theme-experience-preview-wrap .theme-preview-card { font-size: 1.35rem; }
-  .theme-experience-preview-wrap .theme-preview-card header h2 { font-size: 1.05em; }
-  .theme-experience-preview-wrap .theme-preview-card header p { font-size: 0.9em; }
-  .theme-experience-preview-wrap .preview-note,
-  .theme-experience-preview-wrap .theme-preview-end-note { font-size: 0.95em; }
-  .theme-experience-preview-wrap .preview-role-selector label,
-  .theme-experience-preview-wrap .preview-role-selector .preview-role-note { font-size: 0.9em; }
-  .theme-experience-preview-wrap .preview-layer .layer-label,
-  .theme-experience-preview-wrap .contrast-hint { font-size: 0.85em; }
-  .theme-experience-preview-wrap .preview-device,
-  .theme-experience-preview-wrap .preview-sidebar,
-  .theme-experience-preview-wrap .preview-content { font-size: 0.9em; }
-  /* Last content before buttons = Ephemeral note; page ends at actions */
-  .theme-experience-preview-wrap .theme-preview-end-note { margin-bottom: 0; }
   .theme-experience-page { padding-bottom: 0.5rem; }
   @media (max-width: 991px) {
     .theme-experience-grid { grid-template-columns: 1fr; }
     .theme-experience-preview-wrap { width: 100%; max-width: none; margin-left: 0; margin-right: 0; }
-    .theme-experience-preview-wrap .theme-preview-section,
-    .theme-experience-preview-wrap .theme-preview-card { transform: none; width: 100%; margin-left: 0; }
-    .theme-experience-preview-wrap .theme-preview-section *,
-    .theme-experience-preview-wrap .theme-preview-card * { font-size: inherit !important; }
   }
 </style>
 <script>
@@ -218,7 +201,40 @@
     if (reverted > 0 && typeof window.showToast === 'function') window.showToast('Colors reverted to saved values', 'success', 2500);
   }
   document.addEventListener('DOMContentLoaded', function() {
+    function syncAdminPrimaryGuard() {
+      var lockToggle = document.getElementById('id_admin_use_site_primary');
+      var applySite = document.getElementById('theme-pack-apply-site');
+      var guard = document.getElementById('admin-use-site-primary-guard');
+      if (!lockToggle) return;
+
+      var locked = !!lockToggle.checked;
+      if (guard) guard.classList.toggle('d-none', !locked);
+
+      if (applySite) {
+        if (locked) {
+          applySite.dataset.prevChecked = applySite.checked ? '1' : '0';
+          applySite.checked = true;
+          applySite.disabled = true;
+          applySite.title = 'Locked while Admin use site primary is enabled.';
+        } else {
+          if (applySite.dataset.prevChecked !== undefined) {
+            applySite.checked = applySite.dataset.prevChecked === '1';
+            delete applySite.dataset.prevChecked;
+          }
+          applySite.disabled = false;
+          applySite.title = '';
+        }
+      }
+    }
+
     snapshot();
+    syncAdminPrimaryGuard();
+
+    var adminUseSitePrimary = document.getElementById('id_admin_use_site_primary');
+    if (adminUseSitePrimary) {
+      adminUseSitePrimary.addEventListener('change', syncAdminPrimaryGuard);
+    }
+
     var btn = document.getElementById('theme-revert-to-saved');
     if (btn) btn.addEventListener('click', function() { revert(); });
     var previewBtn = document.getElementById('theme-colors-live-preview');

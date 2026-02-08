@@ -142,10 +142,11 @@ def site_settings(request):
 
     if preview_settings:
         for key, value in preview_settings.items():
-            if key == "admin_theme_pack" and value is not None:
-                if hasattr(site, "admin_theme_pack_id"):
+            if key in {"admin_theme_pack", "theme_pack"} and value is not None:
+                id_attr = f"{key}_id"
+                if hasattr(site, id_attr):
                     try:
-                        site.admin_theme_pack_id = int(value)
+                        setattr(site, id_attr, int(value))
                     except (TypeError, ValueError):
                         pass
             elif hasattr(site, key):

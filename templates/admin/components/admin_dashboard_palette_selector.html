@@ -9,6 +9,10 @@
         <input id="theme-pack-auto-apply" class="form-check-input" type="checkbox" checked>
         <span class="form-check-label small">{% trans "Auto-apply selected pack colors" %}</span>
       </label>
+      <label class="form-check d-inline-flex align-items-center gap-2 mb-0">
+        <input id="theme-pack-apply-site" class="form-check-input" type="checkbox" checked>
+        <span class="form-check-label small">{% trans "Also set Site theme pack" %}</span>
+      </label>
       <span class="badge text-bg-light">{{ admin_theme_packs|length }} {% trans "packs" %}</span>
     </div>
 
@@ -93,6 +97,7 @@
   if (!container || !field) return;
 
   var autoApply = document.getElementById('theme-pack-auto-apply');
+  var applySite = document.getElementById('theme-pack-apply-site');
   var cards = Array.prototype.slice.call(container.querySelectorAll('.admin-dashboard-palette-card'));
 
   function setSelected(id) {
@@ -107,7 +112,10 @@
     setSelected(card.dataset.packId);
     if (!autoApply || autoApply.checked) {
       if (window.ThemeStudio && typeof window.ThemeStudio.applyFromDataset === 'function') {
-        window.ThemeStudio.applyFromDataset(card.dataset, { setPack: true });
+        window.ThemeStudio.applyFromDataset(card.dataset, {
+          setPack: true,
+          setSitePack: !!(applySite && applySite.checked),
+        });
       }
     }
     document.dispatchEvent(new CustomEvent('theme-pack-selected', {

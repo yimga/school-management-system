@@ -1,35 +1,26 @@
 (function () {
-  const contrastCombos = [
-    {
-      label: "Sidebar background vs text",
-      bg: "admin_sidebar_bg_color",
-      fg: "admin_sidebar_text_color",
-    },
-    {
-      label: "Surface color vs text",
-      bg: "admin_sidebar_surface_color",
-      fg: "admin_sidebar_text_color",
-    },
-    {
-      label: "Child background vs border",
-      bg: "admin_sidebar_child_bg_start",
-      fg: "admin_sidebar_child_border_color",
-    },
+  const TRACKED_COLOR_FIELDS = [
+    "primary_color",
+    "accent_color",
+    "header_bg_color",
+    "footer_bg_color",
+    "success_color",
+    "warning_color",
+    "danger_color",
   ];
 
-  const colorInputSelector = 'input[type="color"]';
   const previewDevice = document.querySelector(".preview-device");
   const contrastHint = document.getElementById("contrastHint");
-  const previewCards = document.querySelectorAll(".preview-card strong");
   const roleSelect = document.getElementById("previewRoleSelect");
   const roleLabel = document.getElementById("previewRoleLabel");
 
-  const getColorValue = (name) => {
-    const field = document.getElementById(`id_${name}`);
-    if (field && field.value) {
-      return field.value;
-    }
-    return "";
+  const getField = (name) => document.getElementById(`id_${name}`);
+
+  const getColorValue = (name, fallback = "") => {
+    const field = getField(name);
+    if (!field) return fallback;
+    const value = (field.value || "").trim();
+    return value || fallback;
   };
 
   const toRgb = (hex) => {
@@ -44,6 +35,7 @@
         : normalized;
     if (expanded.length !== 6) return null;
     const value = parseInt(expanded, 16);
+    if (Number.isNaN(value)) return null;
     return {
       r: (value >> 16) & 255,
       g: (value >> 8) & 255,
@@ -63,29 +55,21 @@
   };
 
   const contrastRatio = (a, b) => {
+    if (!a || !b) return null;
     const lumA = luminance(a);
     const lumB = luminance(b);
     const lighter = Math.max(lumA, lumB);
     const darker = Math.min(lumA, lumB);
-    if (darker === 0) {
-      return lighter === 0 ? 1 : 1 / darker;
-    }
     return (lighter + 0.05) / (darker + 0.05);
   };
 
-  const updatePreview = () => {
-    if (!previewDevice) return;
-    const sidebarBg = getColorValue("admin_sidebar_bg_color") || "#0b0f14";
-    const sidebarSurface = getColorValue("admin_sidebar_surface_color") || "#111827";
-    const text = getColorValue("admin_sidebar_text_color") || "#e2e8f0";
-    const accent = getColorValue("admin_sidebar_child_active_color") || "#38bdf8";
-    previewDevice.style.setProperty("--preview-sidebar-bg", sidebarBg);
-    previewDevice.style.setProperty("--preview-sidebar-surface", sidebarSurface);
-    previewDevice.style.setProperty("--preview-text-color", text);
-    previewDevice.style.setProperty("--preview-accent-color", accent);
-    if (contrastHint) {
-      updateContrastHint();
-    }
+  const pickReadableText = (backgroundHex) => {
+    const bg = toRgb(backgroundHex);
+    const white = toRgb("#ffffff");
+    const dark = toRgb("#0f172a");
+    const whiteRatio = contrastRatio(bg, white) || 0;
+    const darkRatio = contrastRatio(bg, dark) || 0;
+    return whiteRatio >= darkRatio ? "#ffffff" : "#0f172a";
   };
 
   const updateRoleLabel = () => {
@@ -95,27 +79,44 @@
     roleLabel.textContent = `Inherits ${value} access.`;
   };
 
-  const updateContrastHint = () => {
+  const updateContrastHint = (primaryHex, previewTextHex) => {
     if (!contrastHint) return;
-    const messages = contrastCombos.map(({ label, bg, fg }) => {
-      const bgValue = toRgb(getColorValue(bg));
-      const fgValue = toRgb(getColorValue(fg));
-      let ratioText = "n/a";
-      let status = "good";
-      if (bgValue && fgValue) {
-        const ratio = contrastRatio(bgValue, fgValue);
-        ratioText = `${ratio.toFixed(1)}:1`;
-        if (ratio < 4.5) {
-          status = "warn";
-        }
+
+    const metrics = [
+      {
+        label: "Primary vs preview text",
+        bgHex: primaryHex,
+        fgHex: previewTextHex,
+      },
+      {
+        label: "Accent vs preview text",
+        bgHex: getColorValue("accent_color", "#38bdf8"),
+        fgHex: previewTextHex,
+      },
+      {
+        label: "Header vs preview text",
+        bgHex: getColorValue("header_bg_color", primaryHex),
+        fgHex: previewTextHex,
+      },
+    ];
+
+    const lines = metrics.map(({ label, bgHex, fgHex }) => {
+      const ratio = contrastRatio(toRgb(bgHex), toRgb(fgHex));
+      if (ratio === null) {
+        return { label, ratio: "n/a", status: "warn" };
       }
-      return { label, ratio: ratioText, status };
+      return {
+        label,
+        ratio: `${ratio.toFixed(1)}:1`,
+        status: ratio < 4.5 ? "warn" : "good",
+      };
     });
-    const hasWarning = messages.some((message) => message.status === "warn");
+
+    const hasWarning = lines.some((line) => line.status === "warn");
     contrastHint.classList.toggle("unsafe", hasWarning);
     contrastHint.innerHTML = `
       <strong>${hasWarning ? "Contrast check" : "Contrast OK"}</strong>
-      ${messages
+      ${lines
         .map(
           ({ label, ratio, status }) =>
             `<span class="contrast-line ${status}"><em>${label}:</em> ${ratio}</span>`
@@ -124,27 +125,62 @@
     `;
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const inputs = Array.from(document.querySelectorAll(colorInputSelector));
-    if (!inputs.length) return;
-    inputs.forEach((input) => {
-      input.addEventListener("input", () => {
-        updatePreview();
-      });
+  const updatePreview = () => {
+    if (!previewDevice) return;
+
+    const primary = getColorValue("primary_color", "#0b0f14");
+    const headerSurface = getColorValue("header_bg_color", primary);
+    const contentSurface = getColorValue("footer_bg_color", headerSurface);
+    const accent = getColorValue("accent_color", "#38bdf8");
+    const text = pickReadableText(primary);
+
+    previewDevice.style.setProperty("--preview-sidebar-bg", primary);
+    previewDevice.style.setProperty("--preview-sidebar-surface", headerSurface);
+    previewDevice.style.setProperty("--preview-content-bg", contentSurface);
+    previewDevice.style.setProperty("--preview-text-color", text);
+    previewDevice.style.setProperty("--preview-accent-color", accent);
+    updateContrastHint(primary, text);
+  };
+
+  const collectTrackedInputs = () => {
+    const inputs = [];
+    TRACKED_COLOR_FIELDS.forEach((name) => {
+      const field = getField(name);
+      if (field) inputs.push(field);
     });
+    if (inputs.length) return inputs;
+    return Array.from(document.querySelectorAll('input[type="color"]'));
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const inputs = collectTrackedInputs();
+
+    inputs.forEach((input) => {
+      input.addEventListener("input", updatePreview);
+      input.addEventListener("change", updatePreview);
+    });
+
     const resetButton = document.getElementById("preview-reset");
     if (resetButton) {
       resetButton.addEventListener("click", () => {
-        inputs.forEach((input) => input.dispatchEvent(new Event("input")));
+        inputs.forEach((input) => {
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        });
         if (resetButton.dataset.resetMessage) {
           resetButton.textContent = resetButton.dataset.resetMessage;
         }
+        updatePreview();
       });
     }
+
     if (roleSelect) {
       roleSelect.addEventListener("change", updateRoleLabel);
       updateRoleLabel();
     }
+
+    document.addEventListener("theme-pack-selected", updatePreview);
+
     updatePreview();
   });
 })();

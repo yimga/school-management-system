@@ -427,6 +427,48 @@
   // ============================================================
 
   var PRESETS = {
+    'lively-slate': {
+      name: 'Lively Slate',
+      type: 'Balanced',
+      colors: ['#1e293b', '#0ea5e9', '#f8fafc', '#22c55e', '#f59e0b'],
+      bestFor: 'Professional admin dashboards with crisp accents'
+    },
+    'refined-beautified': {
+      name: 'Refined (beautified)',
+      type: 'Elegant',
+      colors: ['#0f172a', '#7c3aed', '#e2e8f0', '#334155', '#c084fc'],
+      bestFor: 'Premium school branding and executive pages'
+    },
+    'dark-minimal': {
+      name: 'Dark minimal',
+      type: 'Minimal',
+      colors: ['#0b1120', '#1f2937', '#3b82f6', '#94a3b8', '#f8fafc'],
+      bestFor: 'Low-glare staff interfaces and night operation'
+    },
+    'light-card': {
+      name: 'Light card',
+      type: 'Soft',
+      colors: ['#0d6efd', '#14b8a6', '#f8fafc', '#ffffff', '#64748b'],
+      bestFor: 'Clean parent portal and document-heavy screens'
+    },
+    'ink-and-onyx': {
+      name: 'Ink & Onyx',
+      type: 'Monochrome',
+      colors: ['#020617', '#111827', '#334155', '#cbd5e1', '#f8fafc'],
+      bestFor: 'Contrast-safe analytics and compliance views'
+    },
+    'sunrise-warm': {
+      name: 'Sunrise Warm',
+      type: 'Warm',
+      colors: ['#dc2626', '#f59e0b', '#fde68a', '#7c2d12', '#fff7ed'],
+      bestFor: 'Admissions and action-focused workflows'
+    },
+    'emerald-focus': {
+      name: 'Emerald Focus',
+      type: 'Growth',
+      colors: ['#14532d', '#22c55e', '#86efac', '#0f172a', '#f0fdf4'],
+      bestFor: 'Progress tracking and teacher productivity pages'
+    },
     'blue-orange': {
       name: 'Blue & Orange',
       type: 'Complementary',

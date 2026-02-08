@@ -68,9 +68,16 @@ PREVIEW_FROM_FORM_KEYS = [
     "danger_color",
     "theme_brightness",
     "use_dark_mode",
+    "admin_use_site_primary",
     "backend_console_theme",
+    "theme_pack",
     "admin_theme_pack",
 ]
+
+PREVIEW_BOOLEAN_KEYS = frozenset({
+    "use_dark_mode",
+    "admin_use_site_primary",
+})
 
 
 # Color field names for optional hex validation in preview.
@@ -92,12 +99,16 @@ def _is_valid_hex(s):
 
 def _normalize_preview_value(key, val):
     """Coerce POST values for preview payload (theme and booleans)."""
+    if key in PREVIEW_BOOLEAN_KEYS:
+        return val in ("on", "true", "1", 1, True)
     if val is None or val == "":
         return None
-    if key == "use_dark_mode":
-        return val in ("on", "true", "1", 1, True)
-    if key == "admin_theme_pack" and isinstance(val, str) and val.strip().isdigit():
-        return int(val.strip())
+    if key in ("admin_theme_pack", "theme_pack"):
+        if isinstance(val, str) and val.strip().isdigit():
+            return int(val.strip())
+        if isinstance(val, int):
+            return val
+        return None
     if isinstance(val, str):
         return val.strip()
     return val
@@ -592,8 +603,17 @@ def theme_colors_page(request):
     all_packs = list(
         ThemePack.objects.filter(is_active=True).order_by("-applies_to_admin", "-is_default", "name")
     )
+    canonical_admin_slugs = {
+        slug
+        for _group_name, slugs in THEME_PALETTE_GROUPS
+        for slug in slugs
+        if slug.startswith("admin-")
+    }
+    active_admin_count = sum(1 for pack in all_packs if getattr(pack, "applies_to_admin", False))
+    has_seeded_admin_catalog = any(pack.slug in canonical_admin_slugs for pack in all_packs)
     # Safety net for environments where predeploy seed command was skipped.
-    if len(all_packs) <= 1 and not ThemePack.objects.filter(slug="admin-academic-slate").exists():
+    # We expect several distinct admin packs so the catalog does not collapse.
+    if active_admin_count < 6 or not has_seeded_admin_catalog:
         try:
             call_command("seed_admin_dashboard_palettes")
             all_packs = list(
