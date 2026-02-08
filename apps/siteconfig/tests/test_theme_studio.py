@@ -79,6 +79,15 @@ class ThemeStudioAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "admin-use-site-primary-guard")
 
+    def test_theme_studio_renders_active_state_strip(self):
+        self.client.login(username="theme-manager", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "theme-draft-status-badge")
+        self.assertContains(response, "theme-active-source")
+        self.assertContains(response, "theme-active-site-pack")
+        self.assertContains(response, "theme-active-admin-pack")
+
     def test_theme_studio_auto_seeds_catalog_when_admin_packs_missing(self):
         ThemePack.objects.all().delete()
         ThemePack.objects.create(
@@ -171,18 +180,27 @@ class ThemePackSelectorTemplateTests(TestCase):
                 }
             },
         )
+        site = SiteSettings.get_solo()
+        site.theme_pack = pack
+        site.admin_theme_pack = pack
+        site.save(update_fields=["theme_pack", "admin_theme_pack"])
 
         html = render_to_string(
             "admin/components/admin_dashboard_palette_selector.html",
             {
                 "admin_theme_packs": [pack],
                 "admin_theme_packs_by_group": [("Test Group", [pack])],
+                "site_settings": site,
             },
         )
 
         self.assertIn("theme-pack-auto-apply", html)
         self.assertIn("theme-pack-apply-site", html)
         self.assertIn("theme-pack-filter", html)
+        self.assertIn('data-site-active="1"', html)
+        self.assertIn('data-admin-active="1"', html)
+        self.assertIn("Site active", html)
+        self.assertIn("Admin active", html)
         self.assertIn("data-success=\"#22c55e\"", html)
         self.assertIn("data-warning=\"#f59e0b\"", html)
         self.assertIn("data-danger=\"#ef4444\"", html)

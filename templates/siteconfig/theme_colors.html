@@ -20,6 +20,32 @@
 
   <form method="post" id="theme-colors-form">
     {% csrf_token %}
+    <div class="card border theme-state-strip mb-2">
+      <div class="card-body py-2">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+          <span id="theme-draft-status-badge" class="badge text-bg-success-subtle">
+            {% trans "Saved state" %}
+          </span>
+          <span id="theme-active-source" class="small text-muted">
+            {% trans "Source: saved values" %}
+          </span>
+        </div>
+        <div class="d-flex flex-wrap gap-2 small">
+          <span class="badge text-bg-light border">
+            {% trans "Site pack:" %}
+            <strong id="theme-active-site-pack" class="ms-1" data-empty-label="{% trans 'None selected' %}">
+              {% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}
+            </strong>
+          </span>
+          <span class="badge text-bg-light border">
+            {% trans "Admin pack:" %}
+            <strong id="theme-active-admin-pack" class="ms-1" data-empty-label="{% trans 'None selected' %}">
+              {% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}
+            </strong>
+          </span>
+        </div>
+      </div>
+    </div>
 
     <div class="theme-experience-grid">
       {# Left: Color & harmony tools #}
@@ -148,6 +174,9 @@
     align-items: center;
     gap: 0.5rem;
   }
+  .theme-state-strip .badge.border {
+    background: rgba(255, 255, 255, 0.72);
+  }
   /* Form: no spill — everything stays inside card */
   .theme-experience-form-card .card-body { border-radius: 0.25rem; padding-left: 0.75rem; padding-right: 0.5rem; }
   .theme-experience-form-body .form-label,
@@ -184,18 +213,76 @@
 <script>
 (function() {
   var colorFieldNames = ['primary_color', 'accent_color', 'header_bg_color', 'footer_bg_color', 'success_color', 'warning_color', 'danger_color'];
+  var trackedFieldNames = colorFieldNames.concat([
+    'theme_pack',
+    'admin_theme_pack',
+    'theme_brightness',
+    'backend_console_theme',
+    'use_dark_mode',
+    'admin_use_site_primary',
+    'secondary_font',
+    'base_font_size',
+    'use_secondary_font_for_headings',
+    'default_dashboard_view',
+    'default_refresh_rate',
+    'default_term_report_style',
+    'default_annual_report_style',
+    'report_downloads_enabled'
+  ]);
   var savedSnapshot = {};
+  var draftBadge = null;
+  var activeSource = null;
+  var form = null;
+
+  function fieldByName(name) {
+    return document.querySelector('#theme-colors-form [name="' + name + '"]');
+  }
+
+  function readFieldValue(name) {
+    var input = fieldByName(name);
+    if (!input) return '';
+    if (input.type === 'checkbox') return input.checked ? '1' : '0';
+    return input.value || '';
+  }
+
+  function writeActiveLabel(labelId, selectId) {
+    var label = document.getElementById(labelId);
+    var select = document.getElementById(selectId);
+    if (!label || !select) return;
+    var selectedText = '';
+    if (select.options && select.selectedIndex >= 0 && select.options[select.selectedIndex]) {
+      selectedText = select.options[select.selectedIndex].text || '';
+    }
+    label.textContent = selectedText || label.getAttribute('data-empty-label') || 'None selected';
+  }
+
+  function setSource(text) {
+    if (!activeSource || !text) return;
+    activeSource.textContent = text;
+  }
+
+  function updateDraftState() {
+    if (!draftBadge) return;
+    var dirty = trackedFieldNames.some(function(name) {
+      return readFieldValue(name) !== (savedSnapshot[name] || '');
+    });
+    draftBadge.textContent = dirty ? '{% trans "Draft changes pending" %}' : '{% trans "Saved state" %}';
+    draftBadge.classList.toggle('text-bg-warning', dirty);
+    draftBadge.classList.toggle('text-bg-warning-subtle', dirty);
+    draftBadge.classList.toggle('text-bg-success-subtle', !dirty);
+  }
+
   function snapshot() {
-    colorFieldNames.forEach(function(name) {
-      var input = document.querySelector('#theme-colors-form [name="' + name + '"]');
-      if (input) savedSnapshot[name] = input.value || '';
+    trackedFieldNames.forEach(function(name) {
+      savedSnapshot[name] = readFieldValue(name);
     });
   }
+
   function revert() {
     var reverted = 0;
     colorFieldNames.forEach(function(name) {
       if (savedSnapshot[name] === undefined) return;
-      var input = document.querySelector('#theme-colors-form [name="' + name + '"]');
+      var input = fieldByName(name);
       if (input && input.value !== savedSnapshot[name]) {
         input.value = savedSnapshot[name];
         input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -203,9 +290,15 @@
         reverted++;
       }
     });
+    updateDraftState();
     if (reverted > 0 && typeof window.showToast === 'function') window.showToast('Colors reverted to saved values', 'success', 2500);
   }
+
   document.addEventListener('DOMContentLoaded', function() {
+    form = document.getElementById('theme-colors-form');
+    draftBadge = document.getElementById('theme-draft-status-badge');
+    activeSource = document.getElementById('theme-active-source');
+
     function syncAdminPrimaryGuard() {
       var lockToggle = document.getElementById('id_admin_use_site_primary');
       var applySite = document.getElementById('theme-pack-apply-site');
@@ -234,6 +327,9 @@
 
     snapshot();
     syncAdminPrimaryGuard();
+    writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
+    writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
+    updateDraftState();
 
     var adminUseSitePrimary = document.getElementById('id_admin_use_site_primary');
     if (adminUseSitePrimary) {
@@ -242,8 +338,39 @@
 
     var btn = document.getElementById('theme-revert-to-saved');
     if (btn) btn.addEventListener('click', function() { revert(); });
+
+    if (form) {
+      form.addEventListener('input', updateDraftState);
+      form.addEventListener('change', function() {
+        updateDraftState();
+        writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
+        writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
+      });
+      form.addEventListener('submit', function() {
+        setSource('{% trans "Source: saving current form values..." %}');
+      });
+    }
+
+    document.addEventListener('theme-pack-selected', function(event) {
+      if (!event || !event.detail) return;
+      var name = event.detail.packName || event.detail.packSlug || event.detail.packId || '';
+      setSource(name ? ('{% trans "Source: selected theme pack" %} ' + name) : '{% trans "Source: selected theme pack" %}');
+      writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
+      writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
+      updateDraftState();
+    });
+
+    document.addEventListener('theme-studio:applied', function(event) {
+      if (!event || !event.detail) return;
+      if (event.detail.source === 'theme-pack') {
+        setSource('{% trans "Source: theme pack colors applied to form" %}');
+      } else {
+        setSource('{% trans "Source: manual edit" %}');
+      }
+      updateDraftState();
+    });
+
     var previewBtn = document.getElementById('theme-colors-live-preview');
-    var form = document.getElementById('theme-colors-form');
     if (previewBtn && form) {
       previewBtn.addEventListener('click', function() {
         var fd = new FormData(form);

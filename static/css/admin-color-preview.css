@@ -101,6 +101,14 @@
   box-shadow: 0 0 0 2px rgba(255, 106, 136, 0.2);
 }
 
+.admin-dashboard-palette-card.is-site-active {
+  border-color: rgba(37, 99, 235, 0.55);
+}
+
+.admin-dashboard-palette-card.is-admin-active {
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.18);
+}
+
 .admin-dashboard-palette-swatches {
   display: flex;
   gap: 4px;
@@ -125,6 +133,15 @@
   font-size: 11px;
   color: var(--color-text-muted, #6b7280);
   margin-top: 2px;
+}
+
+.admin-dashboard-palette-meta {
+  margin-top: 0.35rem;
+}
+
+.theme-pack-pill {
+  font-size: 0.64rem;
+  letter-spacing: 0.01em;
 }
 
 /* Grouped palette applets (Theme & Experience) */

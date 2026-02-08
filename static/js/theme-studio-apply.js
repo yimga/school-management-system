@@ -92,6 +92,20 @@
       }
     }
 
+    if (
+      document &&
+      typeof document.dispatchEvent === 'function' &&
+      typeof CustomEvent === 'function'
+    ) {
+      document.dispatchEvent(new CustomEvent('theme-studio:applied', {
+        detail: {
+          source: options.source || 'theme-pack',
+          packId: dataset && dataset.packId ? String(dataset.packId) : '',
+          appliedFields: applied.slice()
+        }
+      }));
+    }
+
     return applied;
   }
 

@@ -657,6 +657,7 @@ def theme_colors_page(request):
         "siteconfig/theme_colors.html",
         {
             "form": form,
+            "site_settings": site,
             "admin_theme_packs": admin_theme_packs,
             "admin_theme_packs_by_group": admin_theme_packs_by_group,
             "admin_change_url": admin_change_url,
