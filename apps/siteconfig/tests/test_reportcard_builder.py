@@ -66,12 +66,14 @@ class ReportCardBuilderViewTests(TestCase):
         site.default_annual_report_style = self.style
         site.save(update_fields=["default_term_report_style", "default_annual_report_style"])
 
-    def test_builder_page_includes_compact_workflow_and_live_preview(self):
+    def test_builder_page_places_workflow_with_catalog_and_assignments(self):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "builder-status-strip")
         self.assertContains(response, "report-builder-workflow")
+        self.assertContains(response, "workflow-tab")
+        self.assertContains(response, "workflow-pane")
         self.assertContains(response, "live-report-preview")
         self.assertEqual(response.context["total_classroom_count"], 2)
         self.assertEqual(response.context["assigned_classroom_count"], 1)
