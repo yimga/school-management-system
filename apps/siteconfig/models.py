@@ -1634,6 +1634,19 @@ class ReportCardStyleQuerySet(models.QuerySet):
 
 
 class ReportCardStyle(models.Model):
+    class WatermarkMode(models.TextChoices):
+        TEXT = "TEXT", "Text watermark"
+        SITE_LOGO = "SITE_LOGO", "Use site logo"
+        STYLE_LOGO = "STYLE_LOGO", "Use style logo"
+        NONE = "NONE", "Disabled"
+
+    class WatermarkPosition(models.TextChoices):
+        CENTER = "CENTER", "Center"
+        TOP_LEFT = "TOP_LEFT", "Top left"
+        TOP_RIGHT = "TOP_RIGHT", "Top right"
+        BOTTOM_LEFT = "BOTTOM_LEFT", "Bottom left"
+        BOTTOM_RIGHT = "BOTTOM_RIGHT", "Bottom right"
+
     TERM_TEMPLATE_CHOICES = [
         ("reports/term_report.html", "Standard term template"),
         ("reports/term_report_cameroon.html", "Cameroon term template"),
@@ -1653,6 +1666,34 @@ class ReportCardStyle(models.Model):
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
     watermark_text = models.CharField(max_length=150, blank=True)
+    watermark_mode = models.CharField(
+        max_length=20,
+        choices=WatermarkMode.choices,
+        default=WatermarkMode.TEXT,
+        help_text="Choose how watermark is rendered in report templates.",
+    )
+    watermark_logo = models.ImageField(
+        upload_to="branding/reportcard/watermarks/",
+        blank=True,
+        null=True,
+        help_text="Optional custom watermark logo used when mode is 'Use style logo'.",
+    )
+    watermark_opacity = models.FloatField(
+        default=0.08,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text="Watermark opacity from 0.0 to 1.0.",
+    )
+    watermark_scale = models.PositiveSmallIntegerField(
+        default=55,
+        validators=[MinValueValidator(20), MaxValueValidator(180)],
+        help_text="Watermark size as percentage (20-180).",
+    )
+    watermark_position = models.CharField(
+        max_length=20,
+        choices=WatermarkPosition.choices,
+        default=WatermarkPosition.CENTER,
+        help_text="Watermark placement in the report canvas.",
+    )
     header_tagline = models.CharField(max_length=200, blank=True)
     css_snippet = models.TextField(blank=True)
     labels = models.JSONField(

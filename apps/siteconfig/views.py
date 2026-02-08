@@ -255,7 +255,7 @@ def reportcard_builder(request):
     )
     preview_default_student_id = preview_students[0].id if preview_students else ""
     assigned_classroom_ids = {assignment.classroom_id for assignment in assignments}
-    style_form = ReportCardStyleForm(request.POST or None, prefix="style")
+    style_form = ReportCardStyleForm(request.POST or None, request.FILES or None, prefix="style")
     assignment_form = ReportCardStyleAssignmentForm(request.POST or None, prefix="assign")
     selection_form = ReportCardStyleSelectionForm(
         request.POST or None,

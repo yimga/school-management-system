@@ -96,6 +96,10 @@ class ReportCardBuilderViewTests(TestCase):
                 "style-primary_color": "#0d173b",
                 "style-accent_color": "#007bff",
                 "style-watermark_text": "GTHS",
+                "style-watermark_mode": "SITE_LOGO",
+                "style-watermark_opacity": "0.12",
+                "style-watermark_scale": "68",
+                "style-watermark_position": "TOP_RIGHT",
                 "style-header_tagline": "Knowledge Technology Excellence",
                 "style-css_snippet": "",
                 "style-labels": "{}",
@@ -106,7 +110,9 @@ class ReportCardBuilderViewTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], self.url)
-        self.assertTrue(ReportCardStyle.objects.filter(slug="academic-authority").exists())
+        created = ReportCardStyle.objects.get(slug="academic-authority")
+        self.assertEqual(created.watermark_mode, "SITE_LOGO")
+        self.assertEqual(created.watermark_position, "TOP_RIGHT")
 
     def test_live_preview_html_endpoint_allows_same_origin_iframe(self):
         response = self.client.get(
