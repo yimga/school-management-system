@@ -165,7 +165,27 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.cps-active-preset-note {
+  margin: 0 0 0.75rem;
+  font-size: 0.76rem;
+  color: #475569;
+}
+
+.cps-active-preset-note-warning {
+  color: #b45309;
+}
+
+.dark .cps-active-preset-note,
+[data-theme="dark"] .cps-active-preset-note {
+  color: #cbd5e1;
+}
+
+.dark .cps-active-preset-note.cps-active-preset-note-warning,
+[data-theme="dark"] .cps-active-preset-note.cps-active-preset-note-warning {
+  color: #fbbf24;
 }
 
 .cps-pack-sync-row {
@@ -275,6 +295,19 @@
 [data-theme="dark"] .cps-preset-btn:hover {
   background: #334155;
   color: #f1f5f9;
+}
+
+.cps-preset-btn.active {
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.dark .cps-preset-btn.active,
+[data-theme="dark"] .cps-preset-btn.active {
+  border-color: #60a5fa;
+  background: #1e3a8a;
+  color: #dbeafe;
 }
 
 .cps-preset-swatches {

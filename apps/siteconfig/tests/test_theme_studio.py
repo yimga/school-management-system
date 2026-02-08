@@ -91,6 +91,7 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "theme-last-saved-meta")
         self.assertContains(response, "theme-preview-confirmed")
         self.assertContains(response, "cps-keep-theme-pack")
+        self.assertContains(response, "cps-active-preset-note")
 
     def test_theme_studio_catalog_uses_compact_scroll_region(self):
         self.client.login(username="theme-manager", password="password")

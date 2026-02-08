@@ -185,7 +185,8 @@
 
       var presetBtn = createElement('button', {
         type: 'button',
-        className: 'cps-preset-btn',
+        className: 'cps-preset-btn' + (state.selectedPreset === key ? ' active' : ''),
+        'data-preset-key': key,
         title: preset.bestFor,
         onClick: function () { applyPreset(key); }
       }, [
@@ -220,6 +221,30 @@
     if (current) {
       selectEl.value = current;
     }
+  }
+
+  function setActivePresetUI() {
+    var presetKey = state.selectedPreset || '';
+    var preset = presetKey ? colorHarmony.getPreset(presetKey) : null;
+    var keepPacks = shouldKeepThemePackAssignments();
+
+    $$('.cps-preset-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-preset-key') === presetKey);
+    });
+
+    var presetSelect = $('#cps-preset-select');
+    if (presetSelect) {
+      presetSelect.value = presetKey;
+    }
+
+    var note = $('#cps-active-preset-note');
+    if (!note) return;
+    if (preset && preset.name) {
+      note.textContent = 'Active preset: ' + preset.name + (keepPacks ? ' (ThemePack assignments preserved)' : ' (ThemePack assignments cleared on apply)');
+    } else {
+      note.textContent = keepPacks ? 'No preset selected. ThemePack assignments will be preserved.' : 'No preset selected. ThemePack assignments will be cleared on apply.';
+    }
+    note.classList.toggle('cps-active-preset-note-warning', !keepPacks);
   }
 
   function renderHarmonySelector(container) {
@@ -337,6 +362,7 @@
     if (presetSelect) {
       presetSelect.value = presetKey;
     }
+    setActivePresetUI();
 
     applyColorsToForm(preset.colors, colorHarmony.getPresetFieldMap(presetKey));
     clearThemePackAssignments();
@@ -351,6 +377,15 @@
   function applyToField(fieldName, hex, options) {
     options = options || {};
     hex = colorHarmony.normalizeHex(hex);
+
+    if (window.ThemeStudio && typeof window.ThemeStudio.setField === 'function') {
+      if (window.ThemeStudio.setField(fieldName, hex)) {
+        if (!options.silent) {
+          showToast('Applied ' + hex + ' to ' + fieldName.replace(/_/g, ' '));
+        }
+        return;
+      }
+    }
 
     var input = $('[name="' + fieldName + '"]');
     if (!input) {
@@ -421,6 +456,8 @@
 
   function applyPalette() {
     var colors = colorHarmony.generate(state.harmonyType, state.baseColor);
+    state.selectedPreset = '';
+    setActivePresetUI();
     applyColorsToForm(colors, colorHarmony.buildFieldMapFromColors(colors));
     clearThemePackAssignments();
     notifyStudioApplied('harmony', {
@@ -584,6 +621,7 @@
     renderPresets($('#cps-presets'));
     renderPresetSelect($('#cps-preset-select'));
     renderHarmonySelector($('#cps-harmonies'));
+    setActivePresetUI();
     refreshPaletteViews();
 
     initBasePicker();
@@ -597,10 +635,25 @@
     var presetSelect = $('#cps-preset-select');
     if (presetSelect) {
       presetSelect.addEventListener('change', function () {
-        if (!this.value) return;
+        if (!this.value) {
+          state.selectedPreset = '';
+          setActivePresetUI();
+          return;
+        }
         applyPreset(this.value);
       });
     }
+
+    var keepPackToggle = $('#cps-keep-theme-pack');
+    if (keepPackToggle) {
+      keepPackToggle.addEventListener('change', setActivePresetUI);
+    }
+
+    document.addEventListener('theme-pack-selected', function () {
+      if (!state.selectedPreset) return;
+      state.selectedPreset = '';
+      setActivePresetUI();
+    });
 
     console.log('Color Palette Studio initialized');
   }
