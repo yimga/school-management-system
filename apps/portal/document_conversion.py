@@ -140,3 +140,16 @@ def convert_html_to_odt(html_content: str, title: str = "Document") -> bytes:
             encoding="utf-8",
         )
         return convert_to_odt(str(html_path))
+
+
+def convert_html_to_docx(html_content: str, title: str = "Document") -> bytes:
+    """
+    Convert HTML content directly to DOCX using LibreOffice headless.
+    """
+    with tempfile.TemporaryDirectory(prefix="portal_convert_html_") as tmp_dir:
+        html_path = Path(tmp_dir) / "input.html"
+        html_path.write_text(
+            f"<!doctype html><html><head><meta charset='utf-8'><title>{title}</title></head><body>{html_content}</body></html>",
+            encoding="utf-8",
+        )
+        return convert_to_docx(str(html_path))

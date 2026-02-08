@@ -1,285 +1,230 @@
 """
-Generate LibreOffice ODT documents for KB articles from their Markdown content.
+Generate KB documents (ODT and/or DOCX) from article Markdown content.
 
-Engines:
-- LibreOffice headless (default when available) for MD -> HTML -> ODT.
-- Pandoc for direct MD -> ODT with optional reference.odt.
+- ODT is saved on KBArticle.odt_file (optional if format selected).
+- ODT/DOCX artifacts can be exported to a filesystem folder for distribution.
 """
-import os
-import re
-import shutil
-import subprocess
-import tempfile
 from pathlib import Path
 
-from django.core.files import File
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
-from django.conf import settings
 
-from apps.portal.document_conversion import convert_html_to_odt, find_soffice
+from apps.portal.document_generation import markdown_to_document
 from apps.portal.models_kb import KBArticle
-
-# Optional: markdown library for higher quality HTML conversion
-try:
-    import markdown
-    MARKDOWN_AVAILABLE = True
-except ImportError:
-    MARKDOWN_AVAILABLE = False
 
 
 class Command(BaseCommand):
-    help = "Convert KB articles (Markdown content) to LibreOffice ODT; set article.odt_file."
+    help = "Convert KB articles to ODT/DOCX from Markdown content."
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--all",
             action="store_true",
-            help="Process all published articles with content (default: all if no --article-slug).",
+            help="Process all published articles with content (default when no --article-slug).",
         )
         parser.add_argument(
             "--article-slug",
             type=str,
-            help="Process only this article slug.",
-        )
-        parser.add_argument(
-            "--reference-doc",
-            type=str,
-            default="",
-            help="Path to reference ODT for Pandoc (optional).",
+            help="Process only one article by slug.",
         )
         parser.add_argument(
             "--engine",
             type=str,
             default="auto",
-            choices=["auto", "libreoffice", "pandoc"],
-            help="Conversion engine to use (auto prefers LibreOffice when available).",
+            choices=["auto", "pandoc", "libreoffice"],
+            help="Conversion engine.",
+        )
+        parser.add_argument(
+            "--formats",
+            type=str,
+            default="odt,docx",
+            help="Comma-separated target formats: odt,docx",
+        )
+        parser.add_argument(
+            "--reference-doc",
+            type=str,
+            default="",
+            help="Reference ODT path for ODT generation (Pandoc engine).",
+        )
+        parser.add_argument(
+            "--reference-docx",
+            type=str,
+            default="",
+            help="Reference DOCX path for DOCX generation (Pandoc engine).",
         )
         parser.add_argument(
             "--toc",
             action="store_true",
-            help="Add table of contents to ODT.",
+            help="Add table of contents (Pandoc engine).",
         )
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Only report what would be converted.",
+            help="Show actions without converting files.",
         )
         parser.add_argument(
             "--overwrite",
             action="store_true",
-            help="Regenerate ODT even when odt_file already exists.",
+            help="Regenerate even when ODT is already attached.",
+        )
+        parser.add_argument(
+            "--export-dir",
+            type=str,
+            default="",
+            help="Optional folder for writing generated .odt/.docx artifacts.",
         )
 
     def handle(self, *args, **options):
-        engine = self._resolve_engine(options.get("engine", "auto"))
-        if not engine:
+        formats = self._parse_formats(options.get("formats", "odt,docx"))
+        if not formats:
+            self.stdout.write(self.style.ERROR("No valid formats selected. Use --formats odt,docx"))
             return
 
-        reference_doc = options.get("reference_doc") or self._find_reference_doc()
-        add_toc = options.get("toc", False)
-        dry_run = options.get("dry_run", False)
-        overwrite = options.get("overwrite", False)
+        reference_odt = options.get("reference_doc") or self._find_reference_doc("odt")
+        reference_docx = options.get("reference_docx") or self._find_reference_doc("docx")
+        export_dir = self._resolve_export_dir(options.get("export_dir"))
 
-        if engine == "libreoffice":
-            if add_toc:
-                self.stdout.write(self.style.WARNING("Note: --toc is only supported with Pandoc; ignored for LibreOffice."))
-            if reference_doc:
-                self.stdout.write(self.style.WARNING("Note: --reference-doc is only supported with Pandoc; ignored for LibreOffice."))
-
-        slug = options.get("article_slug")
+        slug = (options.get("article_slug") or "").strip()
         if slug:
             articles = KBArticle.objects.filter(slug=slug)
             if not articles.exists():
-                self.stdout.write(self.style.ERROR(f"No article with slug: {slug}"))
+                self.stdout.write(self.style.ERROR(f"No article found with slug: {slug}"))
                 return
         else:
             articles = KBArticle.objects.filter(status="PUBLISHED").exclude(content="").exclude(content__isnull=True)
 
         if not articles.exists():
-            self.stdout.write(self.style.WARNING("No articles to process."))
+            self.stdout.write(self.style.WARNING("No KB articles to process."))
             return
+
+        dry_run = bool(options.get("dry_run"))
+        overwrite = bool(options.get("overwrite"))
 
         if dry_run:
-            self.stdout.write(f"Would process {articles.count()} article(s).")
-            for a in articles:
-                self.stdout.write(f"  - {a.slug}: {a.title}")
+            self.stdout.write(
+                f"Would process {articles.count()} article(s) -> formats: {', '.join(formats)}"
+            )
+            for article in articles:
+                self.stdout.write(f"  - {article.slug}: {article.title}")
+            if export_dir:
+                self.stdout.write(f"  Export dir: {export_dir}")
             return
 
-        success = 0
-        errors = 0
+        if export_dir:
+            export_dir.mkdir(parents=True, exist_ok=True)
+
+        stats = {
+            "odt_generated": 0,
+            "odt_skipped": 0,
+            "docx_generated": 0,
+            "docx_skipped": 0,
+            "errors": 0,
+        }
+
         for article in articles:
-            if article.odt_file and not overwrite:
-                self.stdout.write(f"  [SKIP] {article.slug} (already has ODT; use --overwrite to regenerate)")
-                continue
             try:
-                self._generate_odt(
-                    article,
-                    reference_doc=reference_doc,
-                    add_toc=add_toc,
-                    engine=engine,
+                self._generate_for_article(
+                    article=article,
+                    formats=formats,
+                    engine=options.get("engine", "auto"),
+                    toc=bool(options.get("toc")),
+                    overwrite=overwrite,
+                    export_dir=export_dir,
+                    reference_odt=reference_odt,
+                    reference_docx=reference_docx,
+                    stats=stats,
                 )
-                success += 1
                 self.stdout.write(self.style.SUCCESS(f"  [OK] {article.slug}"))
-            except Exception as e:
-                errors += 1
-                self.stdout.write(self.style.ERROR(f"  [ERROR] {article.slug}: {e}"))
+            except Exception as exc:
+                stats["errors"] += 1
+                self.stdout.write(self.style.ERROR(f"  [ERROR] {article.slug}: {exc}"))
 
         self.stdout.write("")
-        self.stdout.write(self.style.SUCCESS(f"Done. Generated: {success}, Errors: {errors}"))
+        self.stdout.write(self.style.SUCCESS("KB document conversion completed."))
+        self.stdout.write(f"  ODT generated: {stats['odt_generated']}")
+        self.stdout.write(f"  ODT skipped:   {stats['odt_skipped']}")
+        self.stdout.write(f"  DOCX generated:{stats['docx_generated']}")
+        self.stdout.write(f"  DOCX skipped:  {stats['docx_skipped']}")
+        self.stdout.write(f"  Errors:        {stats['errors']}")
 
-    def _pandoc_available(self):
-        return shutil.which("pandoc") is not None
+    def _generate_for_article(
+        self,
+        *,
+        article,
+        formats,
+        engine,
+        toc,
+        overwrite,
+        export_dir: Path | None,
+        reference_odt: str | None,
+        reference_docx: str | None,
+        stats: dict,
+    ):
+        content = (article.content or "").strip()
+        if not content:
+            raise ValueError("article has no Markdown content")
 
-    def _libreoffice_available(self):
-        return find_soffice() is not None
-
-    def _resolve_engine(self, engine: str | None) -> str | None:
-        engine = (engine or "auto").lower().strip()
-        if engine == "auto":
-            if self._libreoffice_available():
-                return "libreoffice"
-            if self._pandoc_available():
-                return "pandoc"
-            self.stdout.write(
-                self.style.ERROR(
-                    "Neither LibreOffice nor Pandoc is available. Install LibreOffice (soffice) "
-                    "or Pandoc to generate ODT files."
+        if "odt" in formats:
+            if article.odt_file and not overwrite:
+                stats["odt_skipped"] += 1
+            else:
+                odt_bytes = markdown_to_document(
+                    content,
+                    output_format="odt",
+                    title=article.title,
+                    reference_doc=reference_odt,
+                    engine=engine,
+                    toc=toc,
                 )
-            )
-            return None
-        if engine == "libreoffice":
-            if not self._libreoffice_available():
-                self.stdout.write(
-                    self.style.ERROR(
-                        "LibreOffice not found. Install it (soffice/libreoffice) or use --engine pandoc."
-                    )
-                )
-                return None
-            return "libreoffice"
-        if engine == "pandoc":
-            if not self._pandoc_available():
-                self.stdout.write(
-                    self.style.ERROR(
-                        "Pandoc not found. Install it from https://pandoc.org/ or use --engine libreoffice."
-                    )
-                )
-                return None
-            return "pandoc"
-        self.stdout.write(self.style.ERROR(f"Unknown engine: {engine}"))
-        return None
+                if article.odt_file:
+                    try:
+                        article.odt_file.delete(save=False)
+                    except Exception:
+                        pass
+                article.odt_file.save(f"{article.slug}.odt", ContentFile(odt_bytes), save=True)
+                stats["odt_generated"] += 1
+                if export_dir:
+                    (export_dir / f"{article.slug}.odt").write_bytes(odt_bytes)
 
-    def _find_reference_doc(self):
-        """Look for reference.odt in docs/templates/ or static/kb/."""
+        if "docx" in formats:
+            docx_path = (export_dir / f"{article.slug}.docx") if export_dir else None
+            if docx_path and docx_path.exists() and not overwrite:
+                stats["docx_skipped"] += 1
+            else:
+                docx_bytes = markdown_to_document(
+                    content,
+                    output_format="docx",
+                    title=article.title,
+                    reference_doc=reference_docx,
+                    engine=engine,
+                    toc=toc,
+                )
+                stats["docx_generated"] += 1
+                if export_dir:
+                    docx_path.write_bytes(docx_bytes)
+
+    def _parse_formats(self, raw_formats: str) -> list[str]:
+        valid = []
+        for item in (raw_formats or "").split(","):
+            fmt = item.strip().lower()
+            if fmt in {"odt", "docx"} and fmt not in valid:
+                valid.append(fmt)
+        return valid
+
+    def _resolve_export_dir(self, raw_export_dir: str | None) -> Path | None:
+        if raw_export_dir:
+            return Path(raw_export_dir).expanduser().resolve()
+        media_root = Path(getattr(settings, "MEDIA_ROOT", "") or settings.BASE_DIR / "media")
+        return media_root / "kb" / "generated"
+
+    def _find_reference_doc(self, extension: str) -> str | None:
         base = Path(settings.BASE_DIR)
-        for candidate in [
-            base / "docs" / "templates" / "reference.odt",
-            base / "static" / "kb" / "reference.odt",
-        ]:
+        candidates = [
+            base / "docs" / "templates" / f"reference.{extension}",
+            base / "static" / "kb" / f"reference.{extension}",
+        ]
+        for candidate in candidates:
             if candidate.exists():
                 return str(candidate)
         return None
-
-    def _generate_odt(self, article, reference_doc=None, add_toc=False, engine="pandoc"):
-        if not (article.content or "").strip():
-            raise ValueError("Article has no content")
-
-        # Delete old file if replacing (Django does not auto-delete)
-        if article.odt_file:
-            try:
-                article.odt_file.delete(save=False)
-            except Exception:
-                pass
-
-        filename = f"{article.slug}.odt"
-
-        if engine == "libreoffice":
-            html_content = self._markdown_to_html(article.content)
-            odt_bytes = convert_html_to_odt(html_content, title=article.title)
-            article.odt_file.save(filename, ContentFile(odt_bytes), save=True)
-            return
-
-        # Pandoc engine (default)
-        with tempfile.TemporaryDirectory() as tmp:
-            md_path = os.path.join(tmp, "article.md")
-            odt_path = os.path.join(tmp, "article.odt")
-
-            with open(md_path, "w", encoding="utf-8") as f:
-                f.write(article.content)
-
-            cmd = [
-                "pandoc",
-                md_path,
-                "-o",
-                odt_path,
-                "--from=markdown",
-                "--to=odt",
-                "--metadata",
-                f"title={article.title}",
-            ]
-            if add_toc:
-                cmd.extend(["--toc"])
-            if reference_doc:
-                cmd.extend(["--reference-doc", reference_doc])
-
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-            if result.returncode != 0:
-                raise RuntimeError(result.stderr or result.stdout or "Pandoc failed")
-
-            if not os.path.exists(odt_path):
-                raise RuntimeError("Pandoc did not produce output file")
-
-            with open(odt_path, "rb") as f:
-                article.odt_file.save(filename, File(f), save=True)
-
-    def _markdown_to_html(self, content: str) -> str:
-        if MARKDOWN_AVAILABLE:
-            try:
-                md = markdown.Markdown(extensions=[
-                    "fenced_code",
-                    "tables",
-                    "codehilite",
-                    "nl2br",
-                    "sane_lists",
-                ])
-                return md.convert(content)
-            except Exception:
-                pass
-        return self._simple_markdown_to_html(content)
-
-    def _simple_markdown_to_html(self, content: str) -> str:
-        html = content
-
-        # Headers
-        html = re.sub(r"^# (.+)$", r"<h1>\\1</h1>", html, flags=re.MULTILINE)
-        html = re.sub(r"^## (.+)$", r"<h2>\\1</h2>", html, flags=re.MULTILINE)
-        html = re.sub(r"^### (.+)$", r"<h3>\\1</h3>", html, flags=re.MULTILINE)
-        html = re.sub(r"^#### (.+)$", r"<h4>\\1</h4>", html, flags=re.MULTILINE)
-
-        # Bold and italic
-        html = re.sub(r"\\*\\*(.+?)\\*\\*", r"<strong>\\1</strong>", html)
-        html = re.sub(r"\\*(.+?)\\*", r"<em>\\1</em>", html)
-
-        # Code blocks and inline code
-        html = re.sub(r"```(\\w+)?\\n(.*?)```", r"<pre><code class=\"language-\\1\">\\2</code></pre>", html, flags=re.DOTALL)
-        html = re.sub(r"`(.+?)`", r"<code>\\1</code>", html)
-
-        # Links
-        html = re.sub(r"\\[(.+?)\\]\\((.+?)\\)", r"<a href=\"\\2\">\\1</a>", html)
-
-        # Lists
-        html = re.sub(r"^\\* (.+)$", r"<li>\\1</li>", html, flags=re.MULTILINE)
-        html = re.sub(r"^- (.+)$", r"<li>\\1</li>", html, flags=re.MULTILINE)
-        html = re.sub(r"^\\d+\\. (.+)$", r"<li>\\1</li>", html, flags=re.MULTILINE)
-        html = re.sub(r"(<li>.*?</li>)", r"<ul>\\1</ul>", html, flags=re.DOTALL)
-
-        # Paragraphs
-        lines = html.split("\\n")
-        result = []
-        for line in lines:
-            line = line.strip()
-            if line and not line.startswith("<"):
-                result.append(f"<p>{line}</p>")
-            else:
-                result.append(line)
-        return "\\n".join(result)
