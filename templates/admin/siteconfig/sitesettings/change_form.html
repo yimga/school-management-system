@@ -328,6 +328,17 @@
       if (hash && hash.indexOf('section-') === 0) return hash.replace('section-', '');
       return null;
     }
+    function shouldRedirectThemeAnchor(slug) {
+      if (slug !== 'theme-experience') return false;
+      var params = new URLSearchParams(window.location.search || '');
+      if (params.get('stay_theme') === '1') return false;
+      return true;
+    }
+    function redirectThemeAnchorToStudio() {
+      var nextPath = window.location.pathname + window.location.search + window.location.hash;
+      var url = '{% url "siteconfig:theme_colors" %}?next=' + encodeURIComponent(nextPath);
+      window.location.replace(url);
+    }
     function setActiveSection(slug) {
       if (!slug) return;
       sections.forEach(function(s) {
@@ -365,6 +376,10 @@
     var initialSlug = getSectionFromHash() || (function() {
       try { return sessionStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
     })();
+    if (shouldRedirectThemeAnchor(initialSlug)) {
+      redirectThemeAnchorToStudio();
+      return;
+    }
     if (initialSlug) {
       setActiveSection(initialSlug);
     } else if (sections.length) {

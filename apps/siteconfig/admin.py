@@ -417,29 +417,8 @@ class SiteSettingsAdmin(ModelAdmin):
         }),
         ("Theme & Experience", {
             "classes": ("tab",),
-            "description": "Color Picker — Searching for that perfect color? Use our hex color picker to browse millions of colors and harmonies, and export Hex, RGB, HSL and OKLCH codes.",
+            "description": "Theme editing is centralized in the dedicated Theme & Experience studio to keep one source of truth.",
             "fields": (
-                "primary_color",
-                "accent_color",
-                "header_bg_color",
-                "footer_bg_color",
-                "success_color",
-                "warning_color",
-                "danger_color",
-                "theme_brightness",
-                "use_dark_mode",
-                "admin_theme_pack",
-                "admin_use_site_primary",
-                "backend_console_theme",
-                "secondary_font",
-                "use_secondary_font_for_headings",
-                "base_font_size",
-                "default_widgets_per_role",
-                "report_downloads_enabled",
-                "default_dashboard_view",
-                "default_refresh_rate",
-                "default_term_report_style",
-                "default_annual_report_style",
                 "theme_color_tools_link_block",
             )
         }),
@@ -748,16 +727,16 @@ class SiteSettingsAdmin(ModelAdmin):
     site_summary.short_description = "Summary"
 
     def theme_color_tools_link_block(self, obj):
-        """Link to the combined Theme & Experience page (no sidebars; back returns here)."""
+        """Launcher to the canonical Theme & Experience page."""
         try:
             url = reverse("siteconfig:theme_colors")
-            next_path = reverse("admin:siteconfig_sitesettings_change", args=[obj.pk]) + "#section-theme-experience"
+            next_path = reverse("admin:siteconfig_sitesettings_change", args=[obj.pk]) + "?stay_theme=1#section-theme-experience"
             url += "?next=" + quote(next_path, safe="/#")
         except Exception:
             url = "/siteconfig/theme-colors/"
         return format_html(
-            '<p class="mb-2 text-muted">{}</p><a href="{}" class="btn btn-primary" target="_blank" rel="noopener">{}</a>',
-            "Open the Theme & Experience page to pick colors, harmonies, and edit all theme settings in one place. Back button returns here.",
+            '<p class="mb-2 text-muted">{}</p><a href="{}" class="btn btn-primary">{}</a>',
+            "Theme editing is managed on a single page. Use the button below to open the Theme & Experience studio.",
             url,
             "Open Theme & Experience",
         )

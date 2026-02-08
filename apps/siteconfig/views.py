@@ -584,7 +584,7 @@ def bulk_letters(request):
     return response
 
 
-@staff_member_required
+@permission_required("settings.manage")
 def theme_colors_page(request):
     """Standalone Color & harmony page: palette studio, presets, preview; save colors to SiteSettings."""
     site = SiteSettings.get_solo()

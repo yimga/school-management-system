@@ -1,97 +1,134 @@
 {% load i18n static %}
 <div class="admin-dashboard-palette-selector-wrapper module">
-  <h3>{% trans "Theme packs & color combinations" %}</h3>
-  <p class="help">{% trans "Pick a theme pack for /admin and /backend, or use the color harmony reference below to inspire custom colors. Click a pack card to select; then Save." %}</p>
-  <link rel="stylesheet" href="{% static 'css/admin-color-preview.css' %}">
-  {% if admin_theme_packs %}
-  <div id="admin-dashboard-palette-selector">
-    {% if admin_theme_packs_by_group %}
-      {% for group_label, packs in admin_theme_packs_by_group %}
-      <div class="admin-dashboard-palette-group">
-        <h4 class="admin-dashboard-palette-group-title">{{ group_label }}</h4>
-        <div class="admin-dashboard-palette-selector">
-          {% for pack in packs %}
-            {% if pack.palette and pack.palette.admin_dashboard %}
-              {% with pal=pack.palette.admin_dashboard %}
-              <div class="admin-dashboard-palette-card" data-pack-id="{{ pack.pk }}" data-pack-slug="{{ pack.slug }}" title="{{ pack.name }}">
-                <div class="admin-dashboard-palette-swatches">
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.primary|default:'#ff6a88' }};"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.accent|default:'#9b6bff' }};"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.surface|default:'#ffffff' }}; border: 1px solid #ccc;"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.dashboard_bg|default:'#f8fafc' }};"></span>
-                </div>
-                <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
-                {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:8 }}</div>{% endif %}
-              </div>
-              {% endwith %}
-            {% else %}
-              <div class="admin-dashboard-palette-card" data-pack-id="{{ pack.pk }}" data-pack-slug="{{ pack.slug }}" title="{{ pack.name }}">
-                <div class="admin-dashboard-palette-swatches">
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.primary_color|default:'#ff6a88' }};"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.accent_color|default:'#9b6bff' }};"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.background_color|default:'#ffffff' }}; border: 1px solid #ccc;"></span>
-                  <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.background_color|default:'#f8fafc' }};"></span>
-                </div>
-                <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
-                {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:8 }}</div>{% endif %}
-              </div>
-            {% endif %}
-          {% endfor %}
-        </div>
-      </div>
-      {% endfor %}
-    {% else %}
-    <div class="admin-dashboard-palette-selector">
-      {% for pack in admin_theme_packs %}
-        {% if pack.palette and pack.palette.admin_dashboard %}
-          {% with pal=pack.palette.admin_dashboard %}
-          <div class="admin-dashboard-palette-card" data-pack-id="{{ pack.pk }}" data-pack-slug="{{ pack.slug }}" title="{{ pack.name }}">
-            <div class="admin-dashboard-palette-swatches">
-              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.primary|default:'#ff6a88' }};"></span>
-              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.accent|default:'#9b6bff' }};"></span>
-              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.surface|default:'#ffffff' }}; border: 1px solid #ccc;"></span>
-              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pal.dashboard_bg|default:'#f8fafc' }};"></span>
-            </div>
-            <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
-            {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:8 }}</div>{% endif %}
-          </div>
-          {% endwith %}
-        {% else %}
-          <div class="admin-dashboard-palette-card" data-pack-id="{{ pack.pk }}" data-pack-slug="{{ pack.slug }}" title="{{ pack.name }}">
-            <div class="admin-dashboard-palette-swatches">
-              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.primary_color|default:'#ff6a88' }};"></span>
-              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.accent_color|default:'#9b6bff' }};"></span>
-              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.background_color|default:'#ffffff' }}; border: 1px solid #ccc;"></span>
-              <span class="admin-dashboard-palette-swatch" style="background-color: {{ pack.background_color|default:'#f8fafc' }};"></span>
-            </div>
-            <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
-            {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:8 }}</div>{% endif %}
-          </div>
-        {% endif %}
-      {% endfor %}
+  <details class="theme-pack-catalog" open>
+    <summary class="admin-dashboard-palette-group-title mb-2">{% trans "Theme pack catalog" %}</summary>
+    <p class="help">{% trans "Choose a pack to style admin/backend consistently. Click a card to select the admin pack and optionally apply its colors to Theme & Experience fields." %}</p>
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <label class="form-check d-inline-flex align-items-center gap-2 mb-0">
+        <input id="theme-pack-auto-apply" class="form-check-input" type="checkbox" checked>
+        <span class="form-check-label small">{% trans "Auto-apply selected pack colors" %}</span>
+      </label>
+      <span class="badge text-bg-light">{{ admin_theme_packs|length }} {% trans "packs" %}</span>
     </div>
+
+    <link rel="stylesheet" href="{% static 'css/admin-color-preview.css' %}">
+
+    {% if admin_theme_packs %}
+    <div id="admin-dashboard-palette-selector">
+      {% if admin_theme_packs_by_group %}
+        {% for group_label, packs in admin_theme_packs_by_group %}
+        <div class="admin-dashboard-palette-group" data-group-label="{{ group_label }}">
+          <h4 class="admin-dashboard-palette-group-title">{{ group_label }}</h4>
+          <div class="admin-dashboard-palette-selector">
+            {% for pack in packs %}
+              <div class="admin-dashboard-palette-card"
+                   data-pack-id="{{ pack.pk }}"
+                   data-pack-slug="{{ pack.slug }}"
+                   data-primary="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:'#0d6efd' }}{% endif %}"
+                   data-accent="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:'#198754' }}{% endif %}"
+                   data-background="{{ pack.background_color|default:'#f8fafc' }}"
+                   data-dashboard-bg="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:'#f8fafc' }}{% endif %}"
+                   data-surface="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}#ffffff{% endif %}"
+                   data-success="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.success %}{{ pack.palette.admin_dashboard.success }}{% else %}#22c55e{% endif %}"
+                   data-warning="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.warning %}{{ pack.palette.admin_dashboard.warning }}{% else %}#f59e0b{% endif %}"
+                   data-danger="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.danger %}{{ pack.palette.admin_dashboard.danger }}{% else %}#ef4444{% endif %}"
+                   title="{{ pack.name }}">
+                <div class="admin-dashboard-palette-swatches">
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:'#0d6efd' }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:'#198754' }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}#ffffff{% endif %}; border: 1px solid #ccc;"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:'#f8fafc' }}{% endif %};"></span>
+                </div>
+                <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
+                {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:9 }}</div>{% endif %}
+                <div class="admin-dashboard-palette-meta"><span class="badge text-bg-secondary-subtle">{{ group_label }}</span></div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="admin-dashboard-palette-group" data-group-label="All">
+          <h4 class="admin-dashboard-palette-group-title">{% trans "All packs" %}</h4>
+          <div class="admin-dashboard-palette-selector">
+            {% for pack in admin_theme_packs %}
+              <div class="admin-dashboard-palette-card"
+                   data-pack-id="{{ pack.pk }}"
+                   data-pack-slug="{{ pack.slug }}"
+                   data-primary="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:'#0d6efd' }}{% endif %}"
+                   data-accent="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:'#198754' }}{% endif %}"
+                   data-background="{{ pack.background_color|default:'#f8fafc' }}"
+                   data-dashboard-bg="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:'#f8fafc' }}{% endif %}"
+                   data-surface="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}#ffffff{% endif %}"
+                   data-success="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.success %}{{ pack.palette.admin_dashboard.success }}{% else %}#22c55e{% endif %}"
+                   data-warning="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.warning %}{{ pack.palette.admin_dashboard.warning }}{% else %}#f59e0b{% endif %}"
+                   data-danger="{% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.danger %}{{ pack.palette.admin_dashboard.danger }}{% else %}#ef4444{% endif %}"
+                   title="{{ pack.name }}">
+                <div class="admin-dashboard-palette-swatches">
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.primary %}{{ pack.palette.admin_dashboard.primary }}{% else %}{{ pack.primary_color|default:'#0d6efd' }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.accent %}{{ pack.palette.admin_dashboard.accent }}{% else %}{{ pack.accent_color|default:'#198754' }}{% endif %};"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.surface %}{{ pack.palette.admin_dashboard.surface }}{% else %}#ffffff{% endif %}; border: 1px solid #ccc;"></span>
+                  <span class="admin-dashboard-palette-swatch" style="background-color: {% if pack.palette and pack.palette.admin_dashboard and pack.palette.admin_dashboard.dashboard_bg %}{{ pack.palette.admin_dashboard.dashboard_bg }}{% else %}{{ pack.background_color|default:'#f8fafc' }}{% endif %};"></span>
+                </div>
+                <div class="admin-dashboard-palette-name">{{ pack.name }}</div>
+                {% if pack.description %}<div class="admin-dashboard-palette-desc">{{ pack.description|truncatewords:9 }}</div>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+    {% else %}
+      <p class="text-muted">{% trans "No admin theme packs available." %}</p>
     {% endif %}
-  </div>
-  <script>
-  (function() {
-    var container = document.getElementById('admin-dashboard-palette-selector');
-    var field = document.getElementById('id_admin_theme_pack');
-    if (!container || !field) return;
-    var cards = container.querySelectorAll('.admin-dashboard-palette-card');
-    function setSelected(id) {
-      cards.forEach(function(c) {
-        c.classList.toggle('selected', String(c.dataset.packId) === String(id));
-      });
-      if (field.tagName === 'SELECT') field.value = id || '';
-    }
-    cards.forEach(function(card) {
-      card.addEventListener('click', function() { setSelected(card.dataset.packId); });
-    });
-    if (field.value) setSelected(field.value);
-  })();
-  </script>
-  {% endif %}
-  <h4 class="admin-dashboard-palette-group-title mt-4 mb-2">{% trans "Color harmonies" %}</h4>
-  <p class="help text-muted small">{% trans "Click a swatch to copy its hex. Use these combinations to inspire custom colors." %}</p>
-  {% include "admin/components/color_combinations_reference.html" %}
+  </details>
 </div>
+
+<script src="{% static 'js/theme-studio-apply.js' %}"></script>
+<script>
+(function() {
+  var container = document.getElementById('admin-dashboard-palette-selector');
+  var field = document.getElementById('id_admin_theme_pack');
+  if (!container || !field) return;
+
+  var autoApply = document.getElementById('theme-pack-auto-apply');
+  var cards = Array.prototype.slice.call(container.querySelectorAll('.admin-dashboard-palette-card'));
+
+  function setSelected(id) {
+    cards.forEach(function(card) {
+      card.classList.toggle('selected', String(card.dataset.packId) === String(id));
+    });
+    if (field.tagName === 'SELECT') field.value = id || '';
+  }
+
+  function applyCard(card) {
+    if (!card) return;
+    setSelected(card.dataset.packId);
+    if (!autoApply || autoApply.checked) {
+      if (window.ThemeStudio && typeof window.ThemeStudio.applyFromDataset === 'function') {
+        window.ThemeStudio.applyFromDataset(card.dataset, { setPack: true });
+      }
+    }
+    document.dispatchEvent(new CustomEvent('theme-pack-selected', {
+      detail: {
+        packId: card.dataset.packId,
+        packSlug: card.dataset.packSlug || '',
+        dataset: card.dataset,
+      }
+    }));
+  }
+
+  cards.forEach(function(card) {
+    card.addEventListener('click', function() {
+      applyCard(card);
+    });
+  });
+
+  field.addEventListener('change', function() {
+    if (field.value) setSelected(field.value);
+  });
+
+  if (field.value) setSelected(field.value);
+})();
+</script>

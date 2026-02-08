@@ -100,7 +100,7 @@
       --brand-warning: {{ ADMIN_RESOLVED_WARNING|default:"#fbbf24" }};
       --brand-danger: {{ ADMIN_RESOLVED_DANGER|default:"#ef4444" }};
       --surface-deep: {{ ADMIN_RESOLVED_BACKGROUND|default:"#1a1a1a" }};
-      {% if SITE and SITE.admin_sidebar_use_site_primary %}
+      {% if SITE and SITE.admin_use_site_primary %}
       --admin-sidebar-active-border: {{ SITE.primary_color|default:"#0d6efd" }};
       {% else %}
       --admin-sidebar-active-border: {{ ADMIN_RESOLVED_PRIMARY|default:"#0d6efd" }};

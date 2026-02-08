@@ -217,13 +217,18 @@ def site_settings(request):
             is_read=False,
         ).count()
     admin_theme = site.get_admin_theme()
+    use_site_primary_for_admin = bool(getattr(site, "admin_use_site_primary", False))
     admin_background_url = _resolve_media_url(admin_theme.background_image if admin_theme else None)
     admin_logo = _resolve_media_url(admin_theme.logo if admin_theme else None, "images/logo.png")
     favicon_url = _resolve_media_url(getattr(site, "favicon", None), "favicon.ico")
     sidebar_icon_url = _resolve_media_url(getattr(site, "sidebar_icon", None))
-    # Resolved admin theme: brand from ThemePack or SITE; semantic colors always from SITE (no conflict).
-    admin_primary = (admin_theme.primary_color if admin_theme else getattr(site, "primary_color", None)) or "#0d6efd"
-    admin_accent = (admin_theme.accent_color if admin_theme else getattr(site, "accent_color", None)) or "#198754"
+    # Resolved admin theme: optionally force primary/accent from site-level colors.
+    if use_site_primary_for_admin:
+        admin_primary = getattr(site, "primary_color", None) or (admin_theme.primary_color if admin_theme else None) or "#0d6efd"
+        admin_accent = getattr(site, "accent_color", None) or (admin_theme.accent_color if admin_theme else None) or "#198754"
+    else:
+        admin_primary = (admin_theme.primary_color if admin_theme else getattr(site, "primary_color", None)) or "#0d6efd"
+        admin_accent = (admin_theme.accent_color if admin_theme else getattr(site, "accent_color", None)) or "#198754"
     admin_background = getattr(admin_theme, "background_color", None) if admin_theme else None
     admin_background = admin_background or "#1a1a1a"
     admin_success = getattr(site, "success_color", None) or "#22c55e"

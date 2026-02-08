@@ -5,54 +5,87 @@ from __future__ import annotations
 from typing import Iterable, List, Sequence, Tuple
 
 
-# Canonical theme pack groups used by Site Settings and Theme & Experience pages.
+# Canonical theme groups for distinct visual feel (avoid near-duplicate catalog rows).
 THEME_PALETTE_GROUPS: Sequence[Tuple[str, Sequence[str]]] = (
     (
-        "School (Admin)",
+        "Leadership & Academic",
         (
             "admin-academic-authority",
             "admin-executive-ivy",
             "admin-modern-chancellor",
-            "admin-sophisticated-slate",
-            "admin-digital-lavender",
-            "admin-modern-sage",
             "admin-focused-classroom",
-            "admin-verdant-growth",
-            "admin-sensory-room",
+            "admin-academic-slate",
+            "admin-slate-gray",
         ),
     ),
-    ("Neutrals", ("admin-academic-slate", "admin-slate-gray")),
-    ("Blues", ("admin-campus-blue", "admin-sky-blue", "admin-ocean-blue", "admin-indigo-lecture")),
-    ("Greens", ("admin-forest-academy", "admin-forest-green")),
-    ("Warm", ("admin-gilead-warm-pink", "admin-sunset-study", "admin-sunset-warm")),
     (
-        "Dark",
-        ("admin-midnight-scholar", "admin-gilead-dark-neutral", "admin-deep-space-midnight", "admin-the-midnight-scholar"),
+        "Campus Warmth",
+        (
+            "admin-gilead-warm-pink",
+            "admin-sunset-study",
+            "admin-sunset-warm",
+            "admin-modern-sage",
+            "admin-verdant-growth",
+            "admin-digital-lavender",
+        ),
     ),
     (
-        "Niche (STEM / Specialized / Boutique)",
+        "Blue Spectrum",
         (
+            "admin-campus-blue",
+            "admin-sky-blue",
+            "admin-ocean-blue",
+            "admin-indigo-lecture",
+            "admin-sophisticated-slate",
+        ),
+    ),
+    (
+        "STEM & Technical",
+        (
+            "admin-tech-pioneer",
             "admin-cyber-lab",
             "admin-blueprint",
-            "admin-tech-pioneer",
-            "admin-high-contrast-accessible",
-            "admin-focus-mode",
-            "admin-conservatory",
-            "admin-modern-gallery",
-        ),
-    ),
-    (
-        "Contemporary",
-        (
-            "admin-glassmorphism",
-            "admin-neo-brutalist",
-            "admin-eco-digital",
-            "admin-monochrome-pro",
             "admin-retro-future",
             "admin-bento-box",
         ),
     ),
-    ("Accessibility", ("admin-high-contrast-light", "admin-high-contrast-dark")),
+    (
+        "Accessibility & Inclusion",
+        (
+            "admin-high-contrast-light",
+            "admin-high-contrast-dark",
+            "admin-high-contrast-accessible",
+            "admin-sensory-room",
+            "admin-focus-mode",
+        ),
+    ),
+    (
+        "Boutique & Conservatory",
+        (
+            "admin-conservatory",
+            "admin-modern-gallery",
+            "admin-forest-academy",
+            "admin-forest-green",
+            "admin-eco-digital",
+        ),
+    ),
+    (
+        "Contemporary Experimental",
+        (
+            "admin-glassmorphism",
+            "admin-neo-brutalist",
+            "admin-monochrome-pro",
+        ),
+    ),
+    (
+        "Dark Focus",
+        (
+            "admin-midnight-scholar",
+            "admin-the-midnight-scholar",
+            "admin-gilead-dark-neutral",
+            "admin-deep-space-midnight",
+        ),
+    ),
 )
 
 

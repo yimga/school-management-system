@@ -221,15 +221,13 @@
       baseSwatch.style.backgroundColor = state.baseColor;
     }
 
-    // Apply preset colors directly to form
-    if (preset.colors[0]) applyToField('primary_color', preset.colors[0]);
-    if (preset.colors[1]) applyToField('accent_color', preset.colors[1]);
-    if (preset.colors[2]) applyToField('background_color', preset.colors[2]);
+    applyColorsToForm(preset.colors);
 
     renderSwatches($('#cps-swatches'));
   }
 
-  function applyToField(fieldName, hex) {
+  function applyToField(fieldName, hex, options) {
+    options = options || {};
     hex = colorHarmony.normalizeHex(hex);
 
     // Try to find the field by name
@@ -258,14 +256,46 @@
       }
     }
 
-    showToast('Applied ' + hex + ' to ' + fieldName.replace(/_/g, ' '));
+    if (!options.silent) {
+      showToast('Applied ' + hex + ' to ' + fieldName.replace(/_/g, ' '));
+    }
+  }
+
+  function fieldExists(fieldName) {
+    return Boolean($('[name="' + fieldName + '"]') || $('#id_' + fieldName));
+  }
+
+  function colorAt(colors, index) {
+    if (!colors || !colors.length) return '';
+    if (colors[index]) return colors[index];
+    if (colors.length > 1) return colors[colors.length - 1];
+    return colors[0];
+  }
+
+  function applyColorsToForm(colors) {
+    if (!colors || !colors.length) return;
+
+    var mapping = [
+      { field: 'primary_color', index: 0 },
+      { field: 'accent_color', index: 1 },
+      { field: 'background_color', index: 2 },
+      { field: 'header_bg_color', index: 0 },
+      { field: 'footer_bg_color', index: 2 },
+      { field: 'success_color', index: 3 },
+      { field: 'warning_color', index: 4 },
+      { field: 'danger_color', index: 5 }
+    ];
+
+    mapping.forEach(function (entry) {
+      if (!fieldExists(entry.field)) return;
+      var color = colorAt(colors, entry.index);
+      if (color) applyToField(entry.field, color, { silent: true });
+    });
   }
 
   function applyPalette() {
     var colors = colorHarmony.generate(state.harmonyType, state.baseColor);
-    if (colors[0]) applyToField('primary_color', colors[0]);
-    if (colors[1]) applyToField('accent_color', colors[1]);
-    if (colors[2]) applyToField('background_color', colors[2]);
+    applyColorsToForm(colors);
     showToast('Applied palette to form');
   }
 
