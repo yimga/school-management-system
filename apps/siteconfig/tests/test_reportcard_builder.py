@@ -120,6 +120,7 @@ class ReportCardBuilderViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers.get("X-Frame-Options"), "SAMEORIGIN")
+        self.assertContains(response, "Text watermark")
 
     def test_live_preview_pdf_endpoint_allows_same_origin_iframe(self):
         with patch("apps.siteconfig.views.render_pdf") as mocked_render_pdf:

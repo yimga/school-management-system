@@ -101,7 +101,18 @@
         </div>
         <div class="text-end">
           <div class="small text-uppercase opacity-75">Watermark</div>
-          <div class="watermark">{{ report_style.watermark_text|default:SITE.school_code|default:SITE.site_name }}</div>
+          <div class="small opacity-75">
+            {{ report_style.get_watermark_mode_display }} · {{ report_style.get_watermark_position_display }} · {{ report_style.watermark_scale }}%
+          </div>
+          {% if report_style.watermark_mode == "STYLE_LOGO" and report_style.watermark_logo %}
+            <img src="{{ report_style.watermark_logo.url }}" alt="Style watermark" width="38" height="38" style="height:38px; width:auto; object-fit:contain; opacity:{{ report_style.watermark_opacity }};">
+          {% elif report_style.watermark_mode == "SITE_LOGO" and SITE_LOGO_URL %}
+            <img src="{{ SITE_LOGO_URL }}" alt="Site watermark" width="38" height="38" style="height:38px; width:auto; object-fit:contain; opacity:{{ report_style.watermark_opacity }};">
+          {% elif report_style.watermark_mode == "NONE" %}
+            <div class="watermark">Disabled</div>
+          {% else %}
+            <div class="watermark">{{ report_style.watermark_text|default:SITE.school_code|default:SITE.site_name }}</div>
+          {% endif %}
         </div>
       </div>
       <p class="small mb-0 text-white-75">
