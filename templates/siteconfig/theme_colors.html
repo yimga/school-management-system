@@ -20,6 +20,7 @@
 
   <form method="post" id="theme-colors-form">
     {% csrf_token %}
+    <input type="hidden" name="preview_confirmed" id="theme-preview-confirmed" value="0">
     <div class="card border theme-state-strip mb-2">
       <div class="card-body py-2">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
@@ -43,6 +44,10 @@
               {% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}
             </strong>
           </span>
+        </div>
+        <div id="theme-last-saved-meta" class="small text-muted mt-1">
+          {% trans "Last saved:" %} {{ site_settings.updated_at|date:"Y-m-d H:i" }} -
+          {% trans "Preview mode:" %} {% if preview_mode_active %}{% trans "ON" %}{% else %}{% trans "OFF" %}{% endif %}
         </div>
       </div>
     </div>
@@ -345,6 +350,8 @@
         updateDraftState();
         writeActiveLabel('theme-active-site-pack', 'id_theme_pack');
         writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
+        var previewConfirmedField = document.getElementById('theme-preview-confirmed');
+        if (previewConfirmedField) previewConfirmedField.value = '0';
       });
       form.addEventListener('submit', function() {
         setSource('{% trans "Source: saving current form values..." %}');
@@ -381,6 +388,8 @@
         fd.append('preview_section', 'theme-experience');
         var keepEl = document.getElementById('theme-colors-preview-keep');
         if (keepEl && keepEl.checked) fd.append('preview_keep', '1');
+        var previewConfirmedField = document.getElementById('theme-preview-confirmed');
+        if (previewConfirmedField) previewConfirmedField.value = '1';
         var csrf = form.querySelector('input[name="csrfmiddlewaretoken"]');
         var url = '{% url "siteconfig:preview_from_form" %}';
         fetch(url, { method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf ? csrf.value : '', 'Accept': 'application/json' }, credentials: 'same-origin' })

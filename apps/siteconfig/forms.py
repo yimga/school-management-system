@@ -649,3 +649,33 @@ class ThemeColorsForm(forms.ModelForm):
             "default_term_report_style": forms.Select(attrs={"class": "form-select"}),
             "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+
+        for field_name, label in (
+            ("primary_color", "Primary color"),
+            ("header_bg_color", "Header background"),
+            ("footer_bg_color", "Footer background"),
+        ):
+            value = cleaned.get(field_name)
+            if not value:
+                continue
+            max_ratio = max(contrast_ratio(value, "#ffffff"), contrast_ratio(value, "#0f172a"))
+            if max_ratio < 4.5:
+                self.add_error(
+                    field_name,
+                    f"{label} needs stronger contrast for readability (best ratio {max_ratio:.1f}:1).",
+                )
+
+        primary = cleaned.get("primary_color")
+        accent = cleaned.get("accent_color")
+        if primary and accent:
+            pair_ratio = contrast_ratio(primary, accent)
+            if pair_ratio < 1.6:
+                self.add_error(
+                    "accent_color",
+                    f"Primary vs accent contrast is too low ({pair_ratio:.1f}:1). Pick more distinct colors.",
+                )
+
+        return cleaned

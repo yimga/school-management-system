@@ -627,12 +627,31 @@ def theme_colors_page(request):
     # Show all active packs (admin and portal) so the catalog does not collapse to a single card.
     admin_theme_packs = all_packs
     admin_theme_packs_by_group = build_theme_pack_groups(admin_theme_packs, THEME_PALETTE_GROUPS)
+    tracked_theme_fields = list(ThemeColorsForm.Meta.fields)
 
     if request.method == "POST":
         form = ThemeColorsForm(request.POST, instance=site)
         if form.is_valid():
+            changed_fields = []
+            for field_name in tracked_theme_fields:
+                previous_value = getattr(site, field_name, None)
+                next_value = form.cleaned_data.get(field_name)
+                if hasattr(previous_value, "pk"):
+                    previous_value = previous_value.pk
+                if hasattr(next_value, "pk"):
+                    next_value = next_value.pk
+                if str(previous_value) != str(next_value):
+                    changed_fields.append(field_name)
+
             form.save()
-            messages.success(request, "Theme & experience settings saved.")
+            preview_confirmed = request.POST.get("preview_confirmed") in ("1", "true", "on")
+            if changed_fields and not preview_confirmed:
+                messages.warning(
+                    request,
+                    "Theme saved without live preview confirmation. Open Live preview before publish for safer rollout.",
+                )
+            else:
+                messages.success(request, "Theme & experience settings saved.")
             back_url = request.GET.get("next") or request.META.get("HTTP_REFERER")
             if back_url and back_url.startswith("/"):
                 return redirect(back_url)
@@ -651,6 +670,7 @@ def theme_colors_page(request):
     back_url = request.GET.get("next") or admin_change_url
     if back_url and not back_url.startswith("/"):
         back_url = admin_change_url
+    preview_mode_active = bool(request.session.get("preview_mode_enabled") or site.preview_mode_enabled)
 
     return render(
         request,
@@ -658,6 +678,7 @@ def theme_colors_page(request):
         {
             "form": form,
             "site_settings": site,
+            "preview_mode_active": preview_mode_active,
             "admin_theme_packs": admin_theme_packs,
             "admin_theme_packs_by_group": admin_theme_packs_by_group,
             "admin_change_url": admin_change_url,
