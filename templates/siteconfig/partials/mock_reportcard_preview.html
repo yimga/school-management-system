@@ -55,10 +55,42 @@
         .report-preview-shell[data-mode="desktop"] { max-width: 100%; }
         .report-preview-shell[data-mode="tablet"] { max-width: 920px; margin: 0 auto; }
         .report-preview-shell[data-mode="mobile"] { max-width: 430px; margin: 0 auto; }
-        .report-preview-frame { width: 100%; border: 0; min-height: 680px; background: #ffffff; }
+        .report-preview-frame { width: 100%; border: 0; min-height: 760px; background: #ffffff; }
+        .report-preview-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(15, 23, 42, 0.03);
+          z-index: 2;
+          pointer-events: none;
+        }
+        .report-preview-overlay[hidden] { display: none !important; }
+        .report-preview-shell-inner { position: relative; min-height: 760px; }
+        .report-preview-fallback {
+          margin-top: 10px;
+          border-radius: 10px;
+          border: 1px solid #d7e2f0;
+          background: #f8fbff;
+          padding: 10px 12px;
+        }
+        .report-preview-fallback[hidden] { display: none !important; }
       </style>
       <div id="reportPreviewShell" class="report-preview-shell" data-mode="desktop">
-        <iframe id="liveReportPreviewFrame" class="report-preview-frame" title="{% trans 'Live report preview frame' %}"></iframe>
+        <div class="report-preview-shell-inner">
+          <div id="reportPreviewLoadingOverlay" class="report-preview-overlay" hidden>
+            <div class="badge text-bg-dark">{% trans "Loading preview..." %}</div>
+          </div>
+          <iframe id="liveReportPreviewFrame" class="report-preview-frame" title="{% trans 'Live report preview frame' %}"></iframe>
+        </div>
+      </div>
+      <div id="reportPreviewFallback" class="report-preview-fallback" hidden>
+        <div class="small text-muted mb-2">{% trans "Preview frame failed or timed out. Use a direct tab and retry after save." %}</div>
+        <div class="d-flex flex-wrap gap-2">
+          <button id="reportPreviewRetryButton" type="button" class="btn btn-sm btn-outline-secondary">{% trans "Retry preview" %}</button>
+          <a id="reportPreviewFallbackOpenTab" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Open preview in new tab" %}</a>
+        </div>
       </div>
     {% else %}
       <p class="text-muted mb-0">{% trans "Create your first report style to enable live preview." %}</p>
@@ -76,6 +108,12 @@
     var openTab = document.getElementById("livePreviewOpenTab");
     var shell = document.getElementById("reportPreviewShell");
     var modeButtons = document.querySelectorAll(".js-report-preview-mode");
+    var loadingOverlay = document.getElementById("reportPreviewLoadingOverlay");
+    var fallback = document.getElementById("reportPreviewFallback");
+    var fallbackOpenTab = document.getElementById("reportPreviewFallbackOpenTab");
+    var retryButton = document.getElementById("reportPreviewRetryButton");
+    var loadTimeout = null;
+    var latestUrl = "";
 
     if (!styleSelect || !typeSelect || !frame || !openTab || !shell) {
       return;
@@ -94,6 +132,42 @@
       return url;
     }
 
+    function clearLoadTimeout() {
+      if (loadTimeout) {
+        window.clearTimeout(loadTimeout);
+        loadTimeout = null;
+      }
+    }
+
+    function setLoading(isLoading) {
+      if (!loadingOverlay) {
+        return;
+      }
+      loadingOverlay.hidden = !isLoading;
+    }
+
+    function showFallback(show) {
+      if (!fallback) {
+        return;
+      }
+      fallback.hidden = !show;
+      if (show && fallbackOpenTab && latestUrl) {
+        fallbackOpenTab.href = latestUrl;
+      }
+    }
+
+    frame.addEventListener("load", function () {
+      clearLoadTimeout();
+      setLoading(false);
+      showFallback(false);
+    });
+
+    frame.addEventListener("error", function () {
+      clearLoadTimeout();
+      setLoading(false);
+      showFallback(true);
+    });
+
     function applyPreview() {
       var styleSlug = styleSelect.value;
       if (!styleSlug) {
@@ -102,9 +176,20 @@
       var reportType = typeSelect.value || "term";
       var studentId = studentSelect ? studentSelect.value : "";
       var url = buildPreviewUrl(styleSlug, reportType, studentId);
+      latestUrl = url;
+      setLoading(true);
+      showFallback(false);
+      clearLoadTimeout();
+      loadTimeout = window.setTimeout(function () {
+        setLoading(false);
+        showFallback(true);
+      }, 12000);
       frame.src = url;
       openTab.href = url;
       openTab.textContent = reportType === "annual" ? "{% trans 'Open annual PDF' %}" : "{% trans 'Open term PDF' %}";
+      if (fallbackOpenTab) {
+        fallbackOpenTab.href = url;
+      }
     }
 
     function setMode(mode) {
@@ -124,6 +209,23 @@
     typeSelect.addEventListener("change", applyPreview);
     if (studentSelect) {
       studentSelect.addEventListener("change", applyPreview);
+    }
+    if (retryButton) {
+      retryButton.addEventListener("click", function () {
+        setLoading(false);
+        if (latestUrl) {
+          frame.src = latestUrl;
+          setLoading(true);
+          showFallback(false);
+          clearLoadTimeout();
+          loadTimeout = window.setTimeout(function () {
+            setLoading(false);
+            showFallback(true);
+          }, 12000);
+          return;
+        }
+        applyPreview();
+      });
     }
 
     window.setReportBuilderPreview = function (options) {
