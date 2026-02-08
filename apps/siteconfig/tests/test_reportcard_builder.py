@@ -74,6 +74,8 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertContains(response, "report-builder-workflow")
         self.assertContains(response, "workflow-tab")
         self.assertContains(response, "workflow-pane")
+        self.assertContains(response, "builder-live-style-badge")
+        self.assertContains(response, "builder-draft-state")
         self.assertContains(response, "live-report-preview")
         self.assertEqual(response.context["total_classroom_count"], 2)
         self.assertEqual(response.context["assigned_classroom_count"], 1)
