@@ -80,6 +80,7 @@ from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wiza
 from apps.communication.models import Message
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {
@@ -773,6 +774,7 @@ def portal_syllabus(request: HttpRequest):
 
 
 @role_required(User.Role.ADMIN)
+@xframe_options_sameorigin
 def preview_student_syllabus(request: HttpRequest):
     synthetic_items = [
         {"title": "Physics Lab Experience", "description": "Hands-on labs with sensors and robotics demos.", "created_at": timezone.now()},

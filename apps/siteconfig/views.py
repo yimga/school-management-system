@@ -18,6 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
@@ -407,6 +408,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
 
 
 @permission_required("settings.manage")
+@xframe_options_sameorigin
 def reportcard_style_preview(request, slug: str):
     style = get_object_or_404(ReportCardStyle, slug=slug)
     site = SiteSettings.get_solo()
@@ -476,6 +478,7 @@ def reportcard_style_preview(request, slug: str):
 
 
 @permission_required("settings.manage")
+@xframe_options_sameorigin
 def reportcard_style_pdf(request, slug: str, report_type: str):
     style = get_object_or_404(ReportCardStyle, slug=slug)
     report_type = report_type.upper()

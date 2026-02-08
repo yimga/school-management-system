@@ -1,5 +1,7 @@
 from datetime import date
+from unittest.mock import patch
 
+from django.http import HttpResponse
 from django.test import TestCase
 from django.urls import reverse
 
@@ -99,3 +101,22 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], self.url)
         self.assertTrue(ReportCardStyle.objects.filter(slug="academic-authority").exists())
+
+    def test_live_preview_html_endpoint_allows_same_origin_iframe(self):
+        response = self.client.get(
+            reverse("siteconfig:reportcard_style_preview", args=[self.style.slug])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("X-Frame-Options"), "SAMEORIGIN")
+
+    def test_live_preview_pdf_endpoint_allows_same_origin_iframe(self):
+        with patch("apps.siteconfig.views.render_pdf") as mocked_render_pdf:
+            mocked_render_pdf.return_value = HttpResponse(
+                b"%PDF-1.4 mock",
+                content_type="application/pdf",
+            )
+            response = self.client.get(
+                reverse("siteconfig:reportcard_style_pdf", args=[self.style.slug, "term"])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("X-Frame-Options"), "SAMEORIGIN")
