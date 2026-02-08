@@ -609,6 +609,7 @@ def _resolve_admin_portal_stats(section_stats, config):
 
 
 @login_required
+@permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def rbac_dashboard(request):
     roles_qs = AccessRole.objects.prefetch_related("permissions").order_by("code")
