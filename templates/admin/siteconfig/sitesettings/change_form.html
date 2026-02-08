@@ -373,13 +373,14 @@
       var slug = getSectionFromHash();
       if (slug) setActiveSection(slug);
     });
-    var initialSlug = getSectionFromHash() || (function() {
-      try { return sessionStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
-    })();
-    if (shouldRedirectThemeAnchor(initialSlug)) {
+    var hashSlug = getSectionFromHash();
+    if (shouldRedirectThemeAnchor(hashSlug)) {
       redirectThemeAnchorToStudio();
       return;
     }
+    var initialSlug = hashSlug || (function() {
+      try { return sessionStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+    })();
     if (initialSlug) {
       setActiveSection(initialSlug);
     } else if (sections.length) {
