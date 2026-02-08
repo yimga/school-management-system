@@ -1,5 +1,8 @@
+import re
 from dataclasses import dataclass
+from pathlib import Path
 
+from django.conf import settings
 from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
 
@@ -43,6 +46,14 @@ class ThemePaletteGroupingTests(SimpleTestCase):
         self.assertIn("admin-academic-slate", slugs)
         self.assertIn("admin-midnight-scholar", slugs)
         self.assertIn("admin-high-contrast-accessible", slugs)
+
+    def test_curated_preset_list_is_locked_to_twelve_distinct_entries(self):
+        source = (Path(settings.BASE_DIR) / "static" / "js" / "color-harmony-engine.js").read_text(encoding="utf-8")
+        match = re.search(r"var CURATED_PRESET_KEYS = \[(.*?)\];", source, flags=re.S)
+        self.assertIsNotNone(match)
+        keys = re.findall(r"'([^']+)'", match.group(1))
+        self.assertEqual(len(keys), 12)
+        self.assertEqual(len(keys), len(set(keys)))
 
 
 class ThemePaletteSeedCommandTests(TestCase):
