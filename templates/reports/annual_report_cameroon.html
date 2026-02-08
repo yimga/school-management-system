@@ -78,11 +78,11 @@
     </div>
     <div class="boxed center">
       <div class="muted">{% report_style_label report_style "class_rank_label" "Class Rank" %}</div>
-      <div style="font-size:16px; font-weight:900;">{{ class_position|default:"-" }} {% report_style_label report_style "of" "of" %} {{ class_size|default:"-" }}</div>
+      <div style="font-size:16px; font-weight:900;">{{ class_rank_display|default:"-" }}</div>
     </div>
     <div class="boxed center">
       <div class="muted">{% report_style_label report_style "specialty_rank_label" "Specialty Rank" %}</div>
-      <div style="font-size:16px; font-weight:900;">{{ specialty_position|default:"-" }} {% report_style_label report_style "of" "of" %} {{ specialty_size|default:"-" }}</div>
+      <div style="font-size:16px; font-weight:900;">{{ specialty_rank_display|default:"-" }}</div>
     </div>
   </div>
 
@@ -101,7 +101,7 @@
           <tr>
             <td>{{ row.term }}</td>
             <td class="center">{{ row.avg|format_number:2|default:"-" }}</td>
-            <td class="center">{{ row.pos|default:"-" }} / {{ row.class_size|default:"-" }}</td>
+            <td class="center">{{ row.rank_display|default:"-" }}</td>
           </tr>
         {% empty %}
           <tr><td colspan="3" class="muted">{% report_style_label report_style "no_data" "No term data." %}</td></tr>

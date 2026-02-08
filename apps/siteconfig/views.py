@@ -22,7 +22,7 @@ from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile
 from apps.reports.models import ReportCard
-from apps.reports.services import annual_report_context, term_report_context
+from apps.reports.services import CAMEROON_REPORT_LABELS, annual_report_context, term_report_context
 from apps.reports.weasy import render_pdf
 
 from types import SimpleNamespace
@@ -321,15 +321,62 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
         "preview_mode": True,
         "student": student,
         "student_name": f"{student.last_name} {student.first_name}",
+        "labels": CAMEROON_REPORT_LABELS,
     }
-    if report_type == ReportCard.Type.TERM and year and term:
-        term_ctx = term_report_context(student, year, term)
-        context.update(term_ctx)
-        context.update({"year": year, "term": term})
+    if report_type == ReportCard.Type.TERM:
+        if year and term:
+            term_ctx = term_report_context(student, year, term)
+            context.update(term_ctx)
+            context.update({"year": year, "term": term})
+        else:
+            context.update(
+                {
+                    "year": SimpleNamespace(name="2025/2026"),
+                    "term": _PreviewTerm(name="First Term"),
+                    "rows": [],
+                    "summary": {
+                        "average": None,
+                        "class_position": None,
+                        "class_size": 0,
+                        "class_rank_display": "- / -",
+                        "specialty_position": None,
+                        "specialty_size": 0,
+                        "specialty_rank_display": "- / -",
+                        "school_position": None,
+                        "school_size": 0,
+                        "school_rank_display": "- / -",
+                        "promotion_status": "PENDING",
+                        "teacher_remark": "Pending results.",
+                    },
+                    "weights": SimpleNamespace(seq1_weight=20, seq2_weight=20, exam_weight=60, mock_weight=0, practical_weight=0),
+                    "sequence_cues": [
+                        {"key": "seq1", "label": CAMEROON_REPORT_LABELS["sequence_1"], "weight": 20},
+                        {"key": "seq2", "label": CAMEROON_REPORT_LABELS["sequence_2"], "weight": 20},
+                        {"key": "exam", "label": CAMEROON_REPORT_LABELS["exam"], "weight": 60},
+                    ],
+                }
+            )
     else:
-        annual_ctx = annual_report_context(student, year) if year else {"term_rows": [], "annual_average": None}
+        annual_ctx = annual_report_context(student, year) if year else {
+            "term_rows": [],
+            "annual_average": None,
+            "class_position": None,
+            "class_size": 0,
+            "class_rank_display": "- / -",
+            "specialty_position": None,
+            "specialty_size": 0,
+            "specialty_rank_display": "- / -",
+            "school_position": None,
+            "school_size": 0,
+            "school_rank_display": "- / -",
+            "promotion_status": "PENDING",
+            "promotion_average": None,
+            "demotion_average": None,
+            "teacher_remark": "Pending results.",
+            "labels": CAMEROON_REPORT_LABELS,
+        }
         context.update(annual_ctx)
-        context.update({"year": year})
+        context.update({"year": year or SimpleNamespace(name="2025/2026")})
     return context
 
 
@@ -346,6 +393,8 @@ def reportcard_style_preview(request, slug: str):
         rows = base_ctx["rows"][:6]
         summary = base_ctx["summary"]
         weights = base_ctx["weights"]
+        labels = base_ctx.get("labels", CAMEROON_REPORT_LABELS)
+        sequence_cues = base_ctx.get("sequence_cues", [])
         student_obj = student
         student_name = f"{student.last_name} {student.first_name}"
         year_obj = year
@@ -367,12 +416,20 @@ def reportcard_style_preview(request, slug: str):
             "average": 13.21,
             "class_position": 2,
             "class_size": 28,
+            "class_rank_display": "2 / 28",
             "school_position": 5,
             "school_size": 120,
+            "school_rank_display": "5 / 120",
             "promotion_status": "PROMOTED",
             "teacher_remark": "Consistent dedication.",
         }
         weights = SimpleNamespace(seq1_weight=20, seq2_weight=20, exam_weight=60, mock_weight=0, practical_weight=0)
+        labels = CAMEROON_REPORT_LABELS
+        sequence_cues = [
+            {"key": "seq1", "label": CAMEROON_REPORT_LABELS["sequence_1"], "weight": 20},
+            {"key": "seq2", "label": CAMEROON_REPORT_LABELS["sequence_2"], "weight": 20},
+            {"key": "exam", "label": CAMEROON_REPORT_LABELS["exam"], "weight": 60},
+        ]
 
     context = {
         "report_style": style,
@@ -383,6 +440,8 @@ def reportcard_style_preview(request, slug: str):
         "rows": rows,
         "summary": summary,
         "weights": weights,
+        "labels": labels,
+        "sequence_cues": sequence_cues,
         "metadata": metadata,
         "generated_at": timezone.now(),
         "preview_mode": True,

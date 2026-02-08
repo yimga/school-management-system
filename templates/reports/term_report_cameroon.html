@@ -125,13 +125,13 @@
       <div style="font-size:18px; font-weight:900;">{{ summary.average|format_number:2|default:"-" }}</div>
       <div class="muted">{% report_style_label report_style "rank_label" "Rank" %}</div>
       <div style="font-size:16px; font-weight:900;">
-        {{ summary.class_position|default:"-" }} {% report_style_label report_style "of" "of" %} {{ summary.class_size|default:"-" }}
+        {{ summary.class_rank_display|default:"-" }}
       </div>
       {% report_style_flag report_style "show_specialty_rank" True as show_specialty_rank %}
       {% if show_specialty_rank %}
         <div class="muted">{% report_style_label report_style "specialty_rank_label" "Specialty Rank" %}</div>
         <div style="font-weight:800;">
-          {{ summary.specialty_position|default:"-" }} {% report_style_label report_style "of" "of" %} {{ summary.specialty_size|default:"-" }}
+          {{ summary.specialty_rank_display|default:"-" }}
         </div>
       {% endif %}
     </div>

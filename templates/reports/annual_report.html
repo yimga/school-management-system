@@ -33,9 +33,9 @@
     <div class="ms-auto" style="text-align:right;">
       <div class="pill">AVERAGE: {{ annual_average|format_number:2|default:"-" }}</div>
       <div style="margin-top:6px;font-size:10pt;">
-        Class Rank: {{ class_position|default:"-" }} / {{ class_size|default:"-" }} |
-        Specialty Rank: {{ specialty_position|default:"-" }} / {{ specialty_size|default:"-" }} |
-        School Rank: {{ school_position|default:"-" }} / {{ school_size|default:"-" }}
+        Class Rank: {{ class_rank_display|default:"-" }} |
+        Specialty Rank: {{ specialty_rank_display|default:"-" }} |
+        School Rank: {{ school_rank_display|default:"-" }}
       </div>
     </div>
   </div>
@@ -70,7 +70,7 @@
         <tr>
           <td>{{ row.term }}</td>
           <td class="text-end">{{ row.avg|format_number:2|default:"-" }}</td>
-          <td class="text-end">{{ row.pos|default:"-" }} / {{ row.class_size|default:"-" }}</td>
+          <td class="text-end">{{ row.rank_display|default:"-" }}</td>
         </tr>
       {% empty %}
         <tr><td colspan="3">No term data.</td></tr>

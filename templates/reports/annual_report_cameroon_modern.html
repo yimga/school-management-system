@@ -1,4 +1,4 @@
-{% load region_format %}
+{% load region_format report_style_tags %}
 <!doctype html>
 <html>
 <head>
@@ -6,63 +6,63 @@
   {% include "reports/_report_styles.html" %}
   <style>
     body { background: #f7f8fb; }
-    
-    .cameroon-head { 
+
+    .cameroon-head {
       margin-bottom: 18px;
       position: relative;
       z-index: 1;
     }
-    .cameroon-head h1 { 
-      font-size: 20pt; 
-      color: var(--report-accent); 
-      margin-bottom: 0; 
+    .cameroon-head h1 {
+      font-size: 20pt;
+      color: var(--report-accent);
+      margin-bottom: 0;
     }
-    .cameroon-table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      background: #fff; 
-      border-radius: 14px; 
-      overflow: hidden; 
+    .cameroon-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
       box-shadow: 0 8px 20px rgba(0,0,0,.08);
       position: relative;
       z-index: 1;
     }
-    .cameroon-table th, .cameroon-table td { 
-      padding: 8px 6px; 
-      border-bottom: 1px solid #e6e6e9; 
+    .cameroon-table th,
+    .cameroon-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e6e6e9;
     }
-    .cameroon-table th { 
-      background: #f0f3fb; 
-      text-transform: uppercase; 
-      font-size: 9pt; 
+    .cameroon-table th {
+      background: #f0f3fb;
+      text-transform: uppercase;
+      font-size: 9pt;
     }
-    .summary-panel { 
-      margin-top: 12px; 
-      display: flex; 
-      gap: 12px; 
+    .summary-panel {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
       flex-wrap: wrap;
       position: relative;
       z-index: 1;
     }
-    .summary-card { 
-      flex: 1; 
-      min-width: 200px; 
-      background: #fff; 
-      border-radius: 12px; 
-      padding: 12px; 
-      border: 1px solid #e0e2e9; 
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.03); 
+    .summary-card {
+      flex: 1;
+      min-width: 200px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #e0e2e9;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.03);
     }
   </style>
 </head>
 <body>
   <div class="cameroon-head">
     <h1>{{ SITE.site_name|default:"Gilead School System" }}</h1>
-    <p class="small text-muted">{{ SITE.region|default:"Small Soppo Buea" }} · {{ SITE.ministry|default:"Ministry of Secondary Education" }}</p>
+    <p class="small text-muted">{{ SITE.region|default:"Small Soppo Buea" }} | {{ SITE.ministry|default:"Ministry of Secondary Education" }}</p>
     {% if report_style and report_style.header_tagline %}
       <p class="small text-uppercase text-muted">{{ report_style.header_tagline }}</p>
     {% endif %}
-    <!-- School Contact -->
     {% if SITE.company_email or SITE.company_phone %}
       <div style="margin-top: 6px; font-size: 8pt; color: #666;">
         {% if SITE.company_email %}<span>{{ SITE.company_email }}</span>{% endif %}
@@ -74,29 +74,29 @@
 
   <div class="summary-panel">
     <div class="summary-card">
-      <strong>Student</strong>
+      <strong>{{ labels.student|default:"Student / Eleve" }}</strong>
       <p class="mb-0">{{ student_name }}</p>
       <p class="small text-muted mb-0">{{ student.classroom.name }} / {{ student.specialty.name }}</p>
     </div>
     <div class="summary-card">
-      <strong>Current year</strong>
+      <strong>Current year / Annee</strong>
       <p class="mb-0">{{ year.name }}</p>
-      <p class="small text-muted">Annual average: {{ annual_average|format_number:2|default:"-" }}</p>
+      <p class="small text-muted">{{ labels.average|default:"Average / Moyenne" }}: {{ annual_average|format_number:2|default:"-" }}</p>
     </div>
     <div class="summary-card">
-      <strong>Class rank</strong>
-      <p class="mb-0">{{ class_position|default:"-" }} / {{ class_size|default:"-" }}</p>
-      <p class="small text-muted">School: {{ school_position|default:"-" }} / {{ school_size|default:"-" }}</p>
+      <strong>{{ labels.class_rank|default:"Class Rank / Rang Classe" }}</strong>
+      <p class="mb-0">{{ class_rank_display|default:"-" }}</p>
+      <p class="small text-muted">{{ labels.school_rank|default:"School Rank / Rang Etablissement" }}: {{ school_rank_display|default:"-" }}</p>
     </div>
   </div>
 
   <table class="cameroon-table mt-3">
     <thead>
       <tr>
-        <th>Term</th>
-        <th>Average</th>
-        <th>Class rank</th>
-        <th>Promotion</th>
+        <th>{{ labels.term|default:"Term / Trimestre" }}</th>
+        <th>{{ labels.average|default:"Average / Moyenne" }}</th>
+        <th>{{ labels.class_rank|default:"Class Rank / Rang Classe" }}</th>
+        <th>{{ labels.promotion|default:"Promotion / Decision" }}</th>
       </tr>
     </thead>
     <tbody>
@@ -104,7 +104,7 @@
         <tr>
           <td>{{ row.term }}</td>
           <td>{{ row.avg|format_number:2|default:"-" }}</td>
-          <td>{{ row.pos|default:"-" }} / {{ row.class_size|default:"-" }}</td>
+          <td>{{ row.rank_display|default:"-" }}</td>
           <td>{{ promotion_status }}</td>
         </tr>
       {% empty %}
@@ -115,13 +115,13 @@
 
   <div class="summary-panel">
     <div class="summary-card">
-      <strong>Teacher remark</strong>
+      <strong>{{ labels.teacher_remark|default:"Teacher Remark / Appreciation" }}</strong>
       <p class="mb-0">{{ teacher_remark }}</p>
     </div>
     <div class="summary-card">
       <strong>Promotion thresholds</strong>
       <p class="mb-0 small">
-        Promote ≥ {{ promotion_average|default:"-" }} · Demote < {{ demotion_average|default:"-" }}
+        Promote >= {{ promotion_average|default:"-" }} | Demote < {{ demotion_average|default:"-" }}
       </p>
     </div>
     <div class="summary-card">

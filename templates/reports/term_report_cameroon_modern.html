@@ -1,4 +1,4 @@
-{% load region_format %}
+{% load region_format report_style_tags %}
 <!doctype html>
 <html>
 <head>
@@ -6,7 +6,7 @@
   {% include "reports/_report_styles.html" %}
   <style>
     body { background: #f8f9fb; }
-    
+
     .cameroon-letterhead {
       background: #fff;
       border-radius: 18px;
@@ -72,7 +72,6 @@
         {% if report_style and report_style.header_tagline %}
           <p class="sub text-uppercase small">{{ report_style.header_tagline }}</p>
         {% endif %}
-        <!-- School Contact Info -->
         <div style="margin-top: 8px; font-size: 9pt; color: #555;">
           {% if SITE.company_email %}
             <p style="margin: 2px 0;"><strong>Email:</strong> {{ SITE.company_email }}</p>
@@ -85,7 +84,6 @@
           {% endif %}
         </div>
       </div>
-      <!-- Logo -->
       {% if SITE.logo %}
         <div style="text-align:center; position: relative;">
           <img src="{{ SITE.logo.url }}" alt="School Logo" width="80" height="80" decoding="async" style="height:80px; width: auto; object-fit: contain; opacity: 1;"/>
@@ -94,10 +92,10 @@
       {% endif %}
     </div>
     <div class="info-grid mt-2">
-      <div><strong>Student</strong><br>{{ student_name }}</div>
-      <div><strong>Class</strong><br>{{ student.classroom.name }}</div>
-      <div><strong>Academic Year</strong><br>{{ year.name }}</div>
-      <div><strong>Term</strong><br>{{ term.get_name_display }}</div>
+      <div><strong>{{ labels.student|default:"Student / Eleve" }}</strong><br>{{ student_name }}</div>
+      <div><strong>{{ labels.classroom|default:"Class / Classe" }}</strong><br>{{ student.classroom.name }}</div>
+      <div><strong>Academic Year / Annee</strong><br>{{ year.name }}</div>
+      <div><strong>{{ labels.term|default:"Term / Trimestre" }}</strong><br>{{ term.get_name_display }}</div>
       <div><strong>Pass mark</strong><br>{{ weights.pass_mark|default_if_none:10 }}</div>
       <div><strong>School code</strong><br>{{ SITE.school_code|default:"GIL" }}</div>
     </div>
@@ -106,15 +104,15 @@
   <table class="cameroon-mark-table">
     <thead>
       <tr>
-        <th>Subject</th>
-        <th class="text-center">Coef</th>
-        <th class="text-center">Seq1</th>
-        <th class="text-center">Seq2</th>
-        <th class="text-center">Exam</th>
-        <th class="text-center">Mock</th>
-        <th class="text-center">Pract</th>
-        <th class="text-center">Total</th>
-        <th>Remark</th>
+        <th>{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
+        <th class="text-center">{% report_style_label report_style "coef_header" "Coef" %}</th>
+        <th class="text-center">{{ labels.sequence_1|default:"Sequence 1 / Sequence 1" }}</th>
+        <th class="text-center">{{ labels.sequence_2|default:"Sequence 2 / Sequence 2" }}</th>
+        <th class="text-center">{{ labels.exam|default:"Exam / Examen" }}</th>
+        <th class="text-center">{{ labels.mock|default:"Mock / Probatoire" }}</th>
+        <th class="text-center">{{ labels.practical|default:"Practical / Pratique" }}</th>
+        <th class="text-center">{{ labels.total|default:"Total / Total" }}</th>
+        <th>{% report_style_label report_style "remark_header" "Remark / Observation" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -140,14 +138,14 @@
 
   <div class="summary-grid">
     <div class="summary-card">
-      <strong>Term overview</strong>
-      <p class="mb-1">Average: <strong>{{ summary.average|format_number:2|default:"-" }}</strong></p>
-      <p class="mb-1">Class rank: <strong>{{ summary.class_position|default:"-" }}/{{ summary.class_size|default:"-" }}</strong></p>
-      <p class="mb-1">School rank: <strong>{{ summary.school_position|default:"-" }}/{{ summary.school_size|default:"-" }}</strong></p>
-      <p class="mb-0">Status: <strong>{{ summary.promotion_status }}</strong></p>
+      <strong>Term overview / Resume</strong>
+      <p class="mb-1">{{ labels.average|default:"Average / Moyenne" }}: <strong>{{ summary.average|format_number:2|default:"-" }}</strong></p>
+      <p class="mb-1">{{ labels.class_rank|default:"Class Rank / Rang Classe" }}: <strong>{{ summary.class_rank_display|default:"-" }}</strong></p>
+      <p class="mb-1">{{ labels.school_rank|default:"School Rank / Rang Etablissement" }}: <strong>{{ summary.school_rank_display|default:"-" }}</strong></p>
+      <p class="mb-0">{{ labels.promotion|default:"Promotion / Decision" }}: <strong>{{ summary.promotion_status }}</strong></p>
     </div>
     <div class="summary-card">
-      <strong>Teacher remarks</strong>
+      <strong>{{ labels.teacher_remark|default:"Teacher Remark / Appreciation" }}</strong>
       <p class="mb-0">{{ summary.teacher_remark }}</p>
     </div>
     <div class="summary-card">
@@ -156,7 +154,13 @@
     </div>
     <div class="summary-card">
       <strong>Weights</strong>
-      <p class="mb-0 small">Sequence 1 {{ weights.seq1_weight }}% · Sequence 2 {{ weights.seq2_weight }}% · Exam {{ weights.exam_weight }}%</p>
+      <p class="mb-0 small">
+        {% for cue in sequence_cues %}
+          {{ cue.label }} {{ cue.weight }}%{% if not forloop.last %} | {% endif %}
+        {% empty %}
+          Sequence 1 {{ weights.seq1_weight }}% | Sequence 2 {{ weights.seq2_weight }}% | Exam {{ weights.exam_weight }}%
+        {% endfor %}
+      </p>
     </div>
   </div>
 

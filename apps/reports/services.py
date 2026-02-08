@@ -325,6 +325,47 @@ def _rank_position(rankings, student_id: int) -> Optional[int]:
     return None
 
 
+CAMEROON_REPORT_LABELS = {
+    "student": "Student / Eleve",
+    "classroom": "Class / Classe",
+    "term": "Term / Trimestre",
+    "average": "Average / Moyenne",
+    "class_rank": "Class Rank / Rang Classe",
+    "specialty_rank": "Specialty Rank / Rang Specialite",
+    "school_rank": "School Rank / Rang Etablissement",
+    "promotion": "Promotion / Decision",
+    "teacher_remark": "Teacher Remark / Appreciation",
+    "sequence_1": "Sequence 1 / Sequence 1",
+    "sequence_2": "Sequence 2 / Sequence 2",
+    "exam": "Exam / Examen",
+    "mock": "Mock / Probatoire",
+    "practical": "Practical / Pratique",
+    "total": "Total / Total",
+}
+
+
+def _rank_display(position: Optional[int], size: int) -> str:
+    pos = position if position is not None else "-"
+    total = size if size else "-"
+    return f"{pos} / {total}"
+
+
+def _sequence_weight_cues(weights) -> list[dict]:
+    fields = [
+        ("seq1", CAMEROON_REPORT_LABELS["sequence_1"], getattr(weights, "seq1_weight", 0)),
+        ("seq2", CAMEROON_REPORT_LABELS["sequence_2"], getattr(weights, "seq2_weight", 0)),
+        ("exam", CAMEROON_REPORT_LABELS["exam"], getattr(weights, "exam_weight", 0)),
+        ("mock", CAMEROON_REPORT_LABELS["mock"], getattr(weights, "mock_weight", 0)),
+        ("practical", CAMEROON_REPORT_LABELS["practical"], getattr(weights, "practical_weight", 0)),
+    ]
+    cues = []
+    for key, label, weight in fields:
+        if not weight:
+            continue
+        cues.append({"key": key, "label": label, "weight": int(weight)})
+    return cues
+
+
 def _auto_teacher_remark(average: Optional[float]) -> str:
     if average is None:
         return "Pending results."
@@ -438,10 +479,13 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "average": overall_average,
         "class_position": class_position,
         "class_size": len(class_rankings),
+        "class_rank_display": _rank_display(class_position, len(class_rankings)),
         "specialty_position": specialty_position,
         "specialty_size": len(specialty_rankings),
+        "specialty_rank_display": _rank_display(specialty_position, len(specialty_rankings)),
         "school_position": school_position,
         "school_size": len(school_rankings),
+        "school_rank_display": _rank_display(school_position, len(school_rankings)),
         "promotion_status": promotion_status,
         "teacher_remark": _auto_teacher_remark(overall_average),
     }
@@ -450,6 +494,8 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "rows": rows,
         "summary": summary,
         "weights": weights,
+        "sequence_cues": _sequence_weight_cues(weights),
+        "labels": CAMEROON_REPORT_LABELS,
         "metadata": _school_report_metadata(),
     }
     ctx.update(_region_display_context())
@@ -504,6 +550,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
             "avg": term_avg,
             "pos": class_position,
             "class_size": len(class_rankings),
+            "rank_display": _rank_display(class_position, len(class_rankings)),
         })
 
     annual_average = _annual_average_for_student(student, terms)
@@ -562,14 +609,18 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "annual_average": annual_average,
         "class_position": class_position,
         "class_size": len(class_rankings),
+        "class_rank_display": _rank_display(class_position, len(class_rankings)),
         "specialty_position": specialty_position,
         "specialty_size": len(specialty_rankings),
+        "specialty_rank_display": _rank_display(specialty_position, len(specialty_rankings)),
         "school_position": school_position,
         "school_size": len(school_rankings),
+        "school_rank_display": _rank_display(school_position, len(school_rankings)),
         "promotion_status": promotion_status,
         "promotion_average": thresholds.get("promotion_average"),
         "demotion_average": thresholds.get("demotion_average"),
         "teacher_remark": _auto_teacher_remark(annual_average),
+        "labels": CAMEROON_REPORT_LABELS,
         "metadata": _school_report_metadata(),
     }
     ctx.update(_region_display_context())

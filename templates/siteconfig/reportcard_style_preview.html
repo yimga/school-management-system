@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 
-{% load i18n region_format %}
+{% load i18n region_format report_style_tags %}
 
 {% block title %}{{ report_style.name }} preview{% endblock %}
 
@@ -116,12 +116,12 @@
       <table class="report-table">
         <thead>
           <tr>
-            <th>Subject</th>
-            <th class="text-center">Coef</th>
-            <th class="text-center">Seq1</th>
-            <th class="text-center">Seq2</th>
-            <th class="text-center">Exam</th>
-            <th class="text-center">Total</th>
+            <th>{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
+            <th class="text-center">{% report_style_label report_style "coef_header" "Coef" %}</th>
+            <th class="text-center">{{ labels.sequence_1|default:"Sequence 1 / Sequence 1" }}</th>
+            <th class="text-center">{{ labels.sequence_2|default:"Sequence 2 / Sequence 2" }}</th>
+            <th class="text-center">{{ labels.exam|default:"Exam / Examen" }}</th>
+            <th class="text-center">{{ labels.total|default:"Total / Total" }}</th>
           </tr>
         </thead>
         <tbody>
@@ -140,28 +140,38 @@
 
       <div class="summary-grid">
         <div class="summary-card">
-          <strong>Average</strong>
+          <strong>{{ labels.average|default:"Average / Moyenne" }}</strong>
           <p class="mb-0">{{ summary.average|format_number:2|default:"-" }}</p>
         </div>
         <div class="summary-card">
-          <strong>Class rank</strong>
-          <p class="mb-0">{{ summary.class_position }}/{{ summary.class_size }}</p>
+          <strong>{{ labels.class_rank|default:"Class Rank / Rang Classe" }}</strong>
+          <p class="mb-0">{{ summary.class_rank_display|default:"-" }}</p>
         </div>
         <div class="summary-card">
-          <strong>School rank</strong>
-          <p class="mb-0">{{ summary.school_position }}/{{ summary.school_size }}</p>
+          <strong>{{ labels.school_rank|default:"School Rank / Rang Etablissement" }}</strong>
+          <p class="mb-0">{{ summary.school_rank_display|default:"-" }}</p>
         </div>
         <div class="summary-card">
-          <strong>Promotion</strong>
+          <strong>{{ labels.promotion|default:"Promotion / Decision" }}</strong>
           <p class="mb-0">{{ summary.promotion_status }}</p>
         </div>
         <div class="summary-card">
-          <strong>Teacher remark</strong>
+          <strong>{{ labels.teacher_remark|default:"Teacher Remark / Appreciation" }}</strong>
           <p class="mb-0">{{ summary.teacher_remark }}</p>
         </div>
         <div class="summary-card">
           <strong>Generated</strong>
           <p class="mb-0">{{ generated_at|format_date }}</p>
+        </div>
+        <div class="summary-card">
+          <strong>Sequence cues</strong>
+          <p class="mb-0 small">
+            {% for cue in sequence_cues %}
+              {{ cue.label }} {{ cue.weight }}%{% if not forloop.last %} | {% endif %}
+            {% empty %}
+              No sequence weights configured.
+            {% endfor %}
+          </p>
         </div>
       </div>
     </div>

@@ -49,17 +49,22 @@
     <div class="box">
       <b>Summary</b><br>
       Average: <b>{{ summary.average|format_number:2|default:"-" }}</b><br>
-      Class Rank: <b>{{ summary.class_position|default:"-" }}</b> / {{ summary.class_size|default:"-" }}<br>
-      Specialty Rank: <b>{{ summary.specialty_position|default:"-" }}</b> / {{ summary.specialty_size|default:"-" }}<br>
-      School Rank: <b>{{ summary.school_position|default:"-" }}</b> / {{ summary.school_size|default:"-" }}<br>
+      Class Rank: <b>{{ summary.class_rank_display|default:"-" }}</b><br>
+      Specialty Rank: <b>{{ summary.specialty_rank_display|default:"-" }}</b><br>
+      School Rank: <b>{{ summary.school_rank_display|default:"-" }}</b><br>
       Status: <b>{{ summary.promotion_status|default:"-" }}</b>
     </div>
   </div>
 
   <div class="box" style="margin-top:10px;">
     <div class="sub">
-      Weights: Sequence 1 {{ weights.seq1_weight }}% | Sequence 2 {{ weights.seq2_weight }}% | Exam {{ weights.exam_weight }}%
-      | Mock {{ weights.mock_weight }}% | Practical {{ weights.practical_weight }}%
+      Weights:
+      {% for cue in sequence_cues %}
+        {{ cue.label }} {{ cue.weight }}%{% if not forloop.last %} | {% endif %}
+      {% empty %}
+        Sequence 1 {{ weights.seq1_weight }}% | Sequence 2 {{ weights.seq2_weight }}% | Exam {{ weights.exam_weight }}%
+        | Mock {{ weights.mock_weight }}% | Practical {{ weights.practical_weight }}%
+      {% endfor %}
     </div>
     <table>
       <thead>
