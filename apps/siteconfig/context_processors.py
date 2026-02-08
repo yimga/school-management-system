@@ -235,7 +235,14 @@ def site_settings(request):
     admin_success = getattr(site, "success_color", None) or "#22c55e"
     admin_warning = getattr(site, "warning_color", None) or "#fbbf24"
     admin_danger = getattr(site, "danger_color", None) or "#ef4444"
-    return {
+    can_manage_settings = False
+    if request.user.is_authenticated:
+        can_manage_settings = bool(
+            getattr(request.user, "is_superuser", False)
+            or getattr(request.user, "has_feature_permission", lambda _code: False)("settings.manage")
+        )
+
+    ctx = {
         "SITE": site,
         "SITE_SETTINGS": site,
         "SITE_THEME": site.active_theme,
@@ -283,12 +290,14 @@ def site_settings(request):
         "FINANCE_REQUEST_LINK": finance_request_url,
         "NOTIFICATIONS_UNREAD_COUNT": notifications_unread_count,
         "SIDEBAR_COLLAPSED": sidebar_collapsed,
+        "CAN_MANAGE_SETTINGS": can_manage_settings,
         "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
     }
     portal_items = ctx["PORTAL_SIDEBAR_ITEMS"]
     pinned_list, pinned_ids = _get_pinned_sidebar_items(request, portal_items)
     ctx["PINNED_SIDEBAR_ITEMS"] = pinned_list
     ctx["PINNED_SIDEBAR_IDS"] = pinned_ids
+    return ctx
 
 
 def region_settings(request):

@@ -16,7 +16,7 @@
           {% trans "Dashboard" %}
         </a>
       </li>
-      {% if request.user.is_superuser %}
+      {% if CAN_MANAGE_SETTINGS %}
       <li>
         {% if SITE and SITE.pk %}
         <a href="{% url 'admin:siteconfig_sitesettings_change' SITE.pk %}" class="admin-sidebar-link {% if 'siteconfig/sitesettings' in request.path %}active{% endif %}"
