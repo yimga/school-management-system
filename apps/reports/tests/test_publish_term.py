@@ -19,7 +19,7 @@ from apps.academics.models import (
 from apps.evals.models import Evaluation, GradeApprovalRequest
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.reports.models import TermPublishStatus
-from apps.reports.services import term_report_context
+from apps.reports.services import grade_approval_publish_readiness, term_report_context
 from apps.siteconfig.models import SiteSettings
 
 
@@ -295,3 +295,25 @@ class PublishTermRBACTestCase(TestCase):
         context = term_report_context(self.student, self.year, self.term)
 
         self.assertEqual(len(context["rows"]), 0)
+
+    def test_publish_readiness_respects_empty_classroom_scope(self):
+        self._create_evaluation()
+        self._create_approval(GradeApprovalRequest.Status.APPROVED)
+
+        scoped_state = grade_approval_publish_readiness(
+            self.year.id,
+            self.term.id,
+            classroom_ids=[],
+        )
+        self.assertEqual(scoped_state["subject_assignments_with_grades"], 0)
+        self.assertEqual(scoped_state["approved_count"], 0)
+        self.assertTrue(scoped_state["ready_for_publish"])
+
+        included_state = grade_approval_publish_readiness(
+            self.year.id,
+            self.term.id,
+            classroom_ids=[self.classroom.id],
+        )
+        self.assertEqual(included_state["subject_assignments_with_grades"], 1)
+        self.assertEqual(included_state["approved_count"], 1)
+        self.assertTrue(included_state["ready_for_publish"])

@@ -38,6 +38,20 @@ def _approved_or_unrequested_subject_assignment_filter(
     return approved_ids, any_request_ids
 
 
+def _normalize_classroom_scope(
+    classroom_ids: Optional[Iterable[int]],
+) -> Optional[set[int]]:
+    if classroom_ids is None:
+        return None
+    normalized: set[int] = set()
+    for classroom_id in classroom_ids:
+        try:
+            normalized.add(int(classroom_id))
+        except (TypeError, ValueError):
+            continue
+    return normalized
+
+
 def _latest_grade_approval_status_by_subject_assignment(
     academic_year_id: int,
     term_id: int,
@@ -49,12 +63,13 @@ def _latest_grade_approval_status_by_subject_assignment(
     from apps.evals.models import GradeApprovalRequest
 
     latest_status_by_sa: dict[int, str] = {}
+    classroom_scope = _normalize_classroom_scope(classroom_ids)
     approvals = GradeApprovalRequest.objects.filter(
         academic_year_id=academic_year_id,
         term_id=term_id,
     )
-    if classroom_ids:
-        approvals = approvals.filter(subject_assignment__classroom_id__in=set(classroom_ids))
+    if classroom_scope is not None:
+        approvals = approvals.filter(subject_assignment__classroom_id__in=classroom_scope)
     rows = (
         approvals
         .order_by("subject_assignment_id", "-requested_at", "-id")
@@ -77,19 +92,20 @@ def grade_approval_publish_readiness(
     """
     from apps.evals.models import GradeApprovalRequest
 
+    classroom_scope = _normalize_classroom_scope(classroom_ids)
     evaluations = Evaluation.objects.filter(
         academic_year_id=academic_year_id,
         term_id=term_id,
     )
-    if classroom_ids:
-        evaluations = evaluations.filter(subject_assignment__classroom_id__in=set(classroom_ids))
+    if classroom_scope is not None:
+        evaluations = evaluations.filter(subject_assignment__classroom_id__in=classroom_scope)
     evaluated_subject_assignment_ids = set(
         evaluations.values_list("subject_assignment_id", flat=True).distinct()
     )
     latest_status_by_sa = _latest_grade_approval_status_by_subject_assignment(
         academic_year_id=academic_year_id,
         term_id=term_id,
-        classroom_ids=classroom_ids,
+        classroom_ids=classroom_scope,
     )
 
     pending_statuses = {
