@@ -12,6 +12,9 @@ Minimize release risk by creating rollback points, validating migration safety, 
    - Standalone parity check:
    - `powershell -ExecutionPolicy Bypass -File scripts/release/check_ui_parity.ps1 -ConfigPath fixtures/ui_config.json`
    - `./scripts/release/check_ui_parity.sh fixtures/ui_config.json`
+   - Standalone KB export verification:
+   - `powershell -ExecutionPolicy Bypass -File scripts/release/verify_kb_exports.ps1 -Formats odt,docx`
+   - `./scripts/release/verify_kb_exports.sh odt,docx`
 2. Run release dry-run:
    - `powershell -ExecutionPolicy Bypass -File scripts/release/release_hardening_dry_run.ps1`
    - `./scripts/release/release_hardening_dry_run.sh`

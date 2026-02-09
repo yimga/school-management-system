@@ -22,7 +22,9 @@ Or from Git Bash:
 1. `python manage.py check`
 2. `python manage.py makemigrations --check --dry-run`
 3. `python manage.py check_ui_parity --input-file fixtures/ui_config.json --strict`
-4. Targeted regression suite:
+4. `python manage.py verify_kb_exports --formats odt,docx --strict`
+5. Targeted regression suite:
+   - `apps.portal.tests.test_verify_kb_exports_command`
    - `apps.portal.tests.test_generate_kb_odt_command`
    - `apps.siteconfig.tests.test_theme_studio`
    - `apps.siteconfig.tests.test_preview`

@@ -29,7 +29,11 @@ run_cmd "${PYTHON_BIN}" manage.py makemigrations --check --dry-run
 echo "[Phase 15] Verifying UI parity fixture matches DB..."
 run_cmd "${PYTHON_BIN}" manage.py check_ui_parity --input-file fixtures/ui_config.json --strict
 
+echo "[Phase 15] Verifying KB exports (ODT + DOCX) are present..."
+run_cmd "${PYTHON_BIN}" manage.py verify_kb_exports --formats odt,docx --strict
+
 test_modules=(
+  "apps.portal.tests.test_verify_kb_exports_command"
   "apps.portal.tests.test_generate_kb_odt_command"
   "apps.siteconfig.tests.test_theme_studio"
   "apps.siteconfig.tests.test_preview"

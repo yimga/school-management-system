@@ -21,7 +21,11 @@ Invoke-StrictCommand -CommandParts @("python", "manage.py", "makemigrations", "-
 Write-Host "[Phase 15] Verifying UI parity fixture matches DB..."
 Invoke-StrictCommand -CommandParts @("python", "manage.py", "check_ui_parity", "--input-file", "fixtures/ui_config.json", "--strict")
 
+Write-Host "[Phase 15] Verifying KB exports (ODT + DOCX) are present..."
+Invoke-StrictCommand -CommandParts @("python", "manage.py", "verify_kb_exports", "--formats", "odt,docx", "--strict")
+
 $testModules = @(
+  "apps.portal.tests.test_verify_kb_exports_command",
   "apps.portal.tests.test_generate_kb_odt_command",
   "apps.siteconfig.tests.test_theme_studio",
   "apps.siteconfig.tests.test_preview",

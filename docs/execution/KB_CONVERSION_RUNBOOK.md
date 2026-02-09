@@ -55,6 +55,24 @@ python manage.py generate_kb_odt \
   --toc
 ```
 
+### 6) Strict verification (release-safe)
+
+```bash
+python manage.py verify_kb_exports --formats odt,docx --strict
+```
+
+Git Bash helper:
+
+```bash
+./scripts/release/verify_kb_exports.sh odt,docx
+```
+
+PowerShell helper:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/release/verify_kb_exports.ps1 -Formats odt,docx
+```
+
 ## Validation checklist
 
 - Command exits with `Errors: 0`.
@@ -74,5 +92,6 @@ python manage.py generate_kb_odt \
 
 1. `import_docs_to_kb --overwrite` (if source markdown changed)
 2. `generate_kb_odt --all --formats odt,docx --engine auto --overwrite`
-3. Sanity-check downloads from KB article pages
-4. Archive generated artifacts with release tag
+3. `verify_kb_exports --formats odt,docx --strict`
+4. Sanity-check downloads from KB article pages
+5. Archive generated artifacts with release tag
