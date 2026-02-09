@@ -24,6 +24,16 @@
       </label>
       <span class="badge text-bg-light">{{ admin_theme_packs|length }} {% trans "packs" %}</span>
     </div>
+    <div class="theme-pack-active-legend mb-3">
+      <span class="badge text-bg-primary-subtle" id="theme-pack-active-site-label">
+        {% trans "Site active:" %}
+        {% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}
+      </span>
+      <span class="badge text-bg-success-subtle" id="theme-pack-active-admin-label">
+        {% trans "Admin active:" %}
+        {% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}
+      </span>
+    </div>
 
     <link rel="stylesheet" href="{% static 'css/admin-color-preview.css' %}">
 
@@ -123,6 +133,8 @@
   var sitePackField = document.getElementById('id_theme_pack');
   var cards = Array.prototype.slice.call(container.querySelectorAll('.admin-dashboard-palette-card'));
   var filterInput = document.getElementById('theme-pack-filter');
+  var siteActiveLabel = document.getElementById('theme-pack-active-site-label');
+  var adminActiveLabel = document.getElementById('theme-pack-active-admin-label');
 
   function normalizeText(value) {
     return String(value || '').toLowerCase();
@@ -157,7 +169,27 @@
         card.classList.toggle('is-admin-active', !!adminActive);
         card.classList.toggle('is-active-unified', !!siteActive && !!adminActive);
       });
+      updateActiveLegend(activeSiteId, activeAdminId);
     }
+
+  function activePackNameById(packId) {
+    if (!packId) return '{% trans "None selected" %}';
+    var activeCard = cards.find(function(card) {
+      return String(card.dataset.packId || '') === String(packId);
+    });
+    if (!activeCard) return '{% trans "None selected" %}';
+    var nameNode = activeCard.querySelector('.admin-dashboard-palette-name');
+    return (nameNode && nameNode.textContent ? nameNode.textContent.trim() : '') || '{% trans "None selected" %}';
+  }
+
+  function updateActiveLegend(siteId, adminId) {
+    if (siteActiveLabel) {
+      siteActiveLabel.textContent = '{% trans "Site active:" %} ' + activePackNameById(siteId);
+    }
+    if (adminActiveLabel) {
+      adminActiveLabel.textContent = '{% trans "Admin active:" %} ' + activePackNameById(adminId);
+    }
+  }
 
   function applyCard(card) {
     if (!card) return;

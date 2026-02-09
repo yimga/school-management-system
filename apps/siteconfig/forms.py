@@ -740,13 +740,17 @@ class ThemeColorsForm(forms.ModelForm):
             "-is_default", "name"
         )
         if instance and instance.admin_theme_pack_id:
-            admin_qs = (
-                ThemePack.objects.filter(
-                    Q(is_active=True, applies_to_admin=True) | Q(pk=instance.admin_theme_pack_id)
+            selected_admin = ThemePack.objects.filter(
+                pk=instance.admin_theme_pack_id, applies_to_admin=True
+            ).first()
+            if selected_admin:
+                admin_qs = (
+                    ThemePack.objects.filter(
+                        Q(is_active=True, applies_to_admin=True) | Q(pk=selected_admin.pk)
+                    )
+                    .order_by("-is_default", "name")
+                    .distinct()
                 )
-                .order_by("-is_default", "name")
-                .distinct()
-            )
         self.fields["admin_theme_pack"].queryset = admin_qs
 
     def clean(self):

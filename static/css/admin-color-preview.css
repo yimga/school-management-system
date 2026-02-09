@@ -69,7 +69,7 @@
 }
 
 .theme-pack-catalog[open] .theme-pack-catalog-body {
-  max-height: 440px;
+  max-height: 360px;
   overflow-y: auto;
   padding-right: 0.35rem;
 }
@@ -157,7 +157,7 @@
 }
 
 .theme-pack-catalog-scroll {
-  max-height: 440px;
+  max-height: 360px;
   overflow: auto;
   padding-right: 0.25rem;
   scrollbar-gutter: stable both-edges;
@@ -176,6 +176,17 @@
   margin-top: 0.35rem;
 }
 
+.theme-pack-active-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.theme-pack-active-legend .badge {
+  font-size: 0.72rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
 /* Grouped palette applets (Theme & Experience) */
 .admin-dashboard-palette-group {
   margin-bottom: 1.5rem;
@@ -189,6 +200,6 @@
 
 @media (max-width: 991px) {
   .theme-pack-catalog-scroll {
-    max-height: 54vh;
+    max-height: 50vh;
   }
 }

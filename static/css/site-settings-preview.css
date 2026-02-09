@@ -53,13 +53,13 @@
 
 .preview-device {
   width: 100%;
-  max-width: 860px;
+  max-width: 940px;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   overflow: hidden;
   margin: 1rem auto;
   background: var(--preview-sidebar-bg, #0b0f14);
-  min-height: 460px;
+  min-height: 520px;
   display: flex;
   flex-direction: row;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -117,8 +117,8 @@
 }
 
 .preview-device[data-preview-mode="desktop"] {
-  max-width: 860px;
-  min-height: 460px;
+  max-width: 940px;
+  min-height: 520px;
   flex-direction: row;
 }
 
@@ -129,7 +129,7 @@
 
 .preview-device[data-preview-mode="tablet"] {
   max-width: 680px;
-  min-height: 500px;
+  min-height: 540px;
   flex-direction: column;
 }
 
@@ -140,7 +140,7 @@
 
 .preview-device[data-preview-mode="mobile"] {
   max-width: 360px;
-  min-height: 500px;
+  min-height: 540px;
   flex-direction: column;
 }
 

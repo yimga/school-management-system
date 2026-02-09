@@ -199,6 +199,14 @@ class ThemeStudioAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-pack-catalog-scroll")
         self.assertContains(response, "theme-pack-catalog-hint")
+        self.assertContains(response, "min(44vh, 340px)")
+
+    def test_theme_studio_catalog_shows_active_site_and_admin_labels(self):
+        self.client.login(username="theme-manager", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "theme-pack-active-site-label")
+        self.assertContains(response, "theme-pack-active-admin-label")
 
     def test_theme_studio_renders_enhanced_device_preview_layout(self):
         self.client.login(username="theme-manager", password="password")

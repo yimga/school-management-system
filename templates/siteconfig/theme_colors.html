@@ -219,8 +219,14 @@
     position: sticky;
     top: 0.75rem;
   }
+  .theme-state-strip {
+    position: sticky;
+    top: 0.35rem;
+    z-index: 7;
+    backdrop-filter: blur(6px);
+  }
   .theme-experience-left .theme-pack-catalog[open] .theme-pack-catalog-body {
-    max-height: min(52vh, 420px);
+    max-height: min(44vh, 340px);
   }
   .theme-experience-left #color-palette-studio {
     margin-bottom: 0.75rem;
@@ -253,13 +259,14 @@
   /* Preview wrapper */
   .theme-experience-preview-wrap {
     width: 100%;
-    max-width: 1040px;
+    max-width: 1120px;
     margin-left: auto;
     margin-right: auto;
     min-width: 0;
   }
   .theme-experience-preview-wrap .theme-preview-section { margin-top: 0; margin-bottom: 0; }
   .theme-experience-preview-wrap .theme-preview-card { max-width: none; }
+  .theme-experience-preview-wrap .preview-device { max-width: 100%; min-height: 520px; }
   .theme-experience-page { padding-bottom: 0.5rem; }
   @media (max-width: 991px) {
     .theme-experience-grid { grid-template-columns: 1fr; }
