@@ -363,7 +363,6 @@ class SiteSettingsAdmin(ModelAdmin):
                 "svg_background",
                 "brand_font",
                 "custom_css",
-                "theme_pack",
             )
         }),
         ("Preview & Draft", {

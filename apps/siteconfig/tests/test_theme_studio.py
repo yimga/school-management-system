@@ -342,6 +342,13 @@ class ThemeStudioSingleSurfaceTests(TestCase):
         )
         self.assertEqual(theme_fieldset["fields"], ("theme_color_tools_link_block",))
 
+    def test_sitesettings_branding_fieldset_does_not_expose_theme_pack_editor(self):
+        model_admin = admin_site._registry[SiteSettings]
+        branding_fieldset = next(
+            config for title, config in model_admin.fieldsets if title == "Branding"
+        )
+        self.assertNotIn("theme_pack", branding_fieldset["fields"])
+
     def test_theme_launcher_uses_back_link_with_stay_theme_flag(self):
         model_admin = admin_site._registry[SiteSettings]
         site = SiteSettings.get_solo()
