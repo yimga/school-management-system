@@ -90,6 +90,7 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "latestPreviewUrl")
         self.assertContains(response, "latestPdfUrl")
+        self.assertContains(response, "/siteconfig/reports/embed-preview/")
         self.assertContains(response, "frame.src = latestPreviewUrl")
         self.assertContains(response, "fallbackOpenTab.href = latestPdfUrl")
 
@@ -138,6 +139,15 @@ class ReportCardBuilderViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers.get("X-Frame-Options"), "SAMEORIGIN")
+        self.assertContains(response, "cameroon-letterhead")
+
+    def test_embed_preview_endpoint_uses_csp_self_without_xfo_header(self):
+        response = self.client.get(
+            reverse("siteconfig:reportcard_style_embed_preview", args=[self.style.slug, "term"])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.headers.get("X-Frame-Options"))
+        self.assertIn("frame-ancestors 'self'", response.headers.get("Content-Security-Policy", ""))
         self.assertContains(response, "cameroon-letterhead")
 
     def test_live_preview_pdf_endpoint_allows_same_origin_iframe(self):

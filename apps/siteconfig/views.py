@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.clickjacking import xframe_options_exempt, xframe_options_sameorigin
 
 from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
@@ -516,6 +516,29 @@ def reportcard_style_live_preview(request, slug: str, report_type: str):
     context = _build_report_context_for_pdf(style, report_type_value, student)
     template_name = style.template_for(report_type_value)
     return render(request, template_name, context)
+
+
+@permission_required("settings.manage")
+@xframe_options_exempt
+def reportcard_style_embed_preview(request, slug: str, report_type: str):
+    """
+    Iframe-focused preview endpoint used only by the report builder.
+
+    We intentionally exempt X-Frame-Options on this one route and enforce
+    a same-origin framing policy via CSP to avoid browser-level embed refusals
+    while keeping framing locked to this site.
+    """
+    style = get_object_or_404(ReportCardStyle, slug=slug)
+    report_type_value = (report_type or "").upper()
+    if report_type_value not in ReportCard.Type.values:
+        return HttpResponseBadRequest("Unknown report type.")
+
+    student = _resolve_preview_student(request) or _mock_preview_student()
+    context = _build_report_context_for_pdf(style, report_type_value, student)
+    template_name = style.template_for(report_type_value)
+    response = render(request, template_name, context)
+    response["Content-Security-Policy"] = "frame-ancestors 'self'"
+    return response
 @permission_required("settings.manage")
 def clear_preview(request):
     request.session.pop(SESSION_KEY, None)

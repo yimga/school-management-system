@@ -120,13 +120,13 @@
       return;
     }
 
-    var liveTermTemplate = "{% url 'siteconfig:reportcard_style_live_preview' 'STYLE_PLACEHOLDER' 'term' %}";
-    var liveAnnualTemplate = "{% url 'siteconfig:reportcard_style_live_preview' 'STYLE_PLACEHOLDER' 'annual' %}";
+    var embedTermTemplate = "{% url 'siteconfig:reportcard_style_embed_preview' 'STYLE_PLACEHOLDER' 'term' %}";
+    var embedAnnualTemplate = "{% url 'siteconfig:reportcard_style_embed_preview' 'STYLE_PLACEHOLDER' 'annual' %}";
     var pdfTermTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'term' %}";
     var pdfAnnualTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'annual' %}";
 
     function buildPreviewUrl(styleSlug, reportType, studentId) {
-      var base = reportType === "annual" ? liveAnnualTemplate : liveTermTemplate;
+      var base = reportType === "annual" ? embedAnnualTemplate : embedTermTemplate;
       var url = base.replace("STYLE_PLACEHOLDER", styleSlug);
       if (studentId) {
         var joiner = url.indexOf("?") === -1 ? "?" : "&";
