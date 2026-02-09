@@ -4,6 +4,7 @@ import pytz
 
 from django import forms
 from django.conf import settings
+from django.db.models import Q
 
 from apps.academics.models import Classroom
 
@@ -12,6 +13,7 @@ from .models import (
     PORTAL_FEATURE_DEFAULTS,
     PORTAL_FEATURE_OPTIONS,
     RegionConfig,
+    ThemePack,
     ReportCardStyle,
     ReportCardStyleAssignment,
     SiteSettings,
@@ -721,6 +723,32 @@ class ThemeColorsForm(forms.ModelForm):
             "default_annual_report_style": forms.Select(attrs={"class": "form-select"}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, "instance", None)
+
+        theme_qs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
+        if instance and instance.theme_pack_id:
+            theme_qs = (
+                ThemePack.objects.filter(Q(is_active=True) | Q(pk=instance.theme_pack_id))
+                .order_by("-is_default", "name")
+                .distinct()
+            )
+        self.fields["theme_pack"].queryset = theme_qs
+
+        admin_qs = ThemePack.objects.filter(is_active=True, applies_to_admin=True).order_by(
+            "-is_default", "name"
+        )
+        if instance and instance.admin_theme_pack_id:
+            admin_qs = (
+                ThemePack.objects.filter(
+                    Q(is_active=True, applies_to_admin=True) | Q(pk=instance.admin_theme_pack_id)
+                )
+                .order_by("-is_default", "name")
+                .distinct()
+            )
+        self.fields["admin_theme_pack"].queryset = admin_qs
+
     def clean(self):
         cleaned = super().clean()
 
@@ -743,6 +771,12 @@ class ThemeColorsForm(forms.ModelForm):
                     "accent_color",
                     f"Primary vs accent contrast is too low ({pair_ratio:.1f}:1). Pick more distinct colors.",
                 )
+
+        admin_pack = cleaned.get("admin_theme_pack")
+        if admin_pack and not admin_pack.applies_to_admin:
+            self.add_error("admin_theme_pack", "Selected pack is not admin-capable.")
+        if admin_pack and not admin_pack.is_active:
+            self.add_error("admin_theme_pack", "Selected admin pack is inactive.")
 
         self._contrast_report = contrast_report
         return cleaned

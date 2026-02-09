@@ -100,6 +100,40 @@ class ThemeStudioAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Portal Pack")
 
+    def test_theme_colors_form_admin_pack_queryset_excludes_non_admin_packs(self):
+        non_admin_pack = ThemePack.objects.create(
+            name="Non Admin Pack",
+            slug="non-admin-pack-theme-studio",
+            primary_color="#334155",
+            accent_color="#22d3ee",
+            is_active=True,
+            applies_to_admin=False,
+        )
+        form = ThemeColorsForm(instance=SiteSettings.get_solo())
+        admin_ids = set(form.fields["admin_theme_pack"].queryset.values_list("id", flat=True))
+        theme_ids = set(form.fields["theme_pack"].queryset.values_list("id", flat=True))
+        self.assertNotIn(non_admin_pack.id, admin_ids)
+        self.assertIn(non_admin_pack.id, theme_ids)
+
+    def test_theme_studio_rejects_non_admin_pack_for_admin_theme_field(self):
+        non_admin_pack = ThemePack.objects.create(
+            name="Non Admin Submit Pack",
+            slug="non-admin-submit-pack-theme-studio",
+            primary_color="#0f172a",
+            accent_color="#ef4444",
+            is_active=True,
+            applies_to_admin=False,
+        )
+        self.client.login(username="theme-manager", password="password")
+        payload = self._theme_form_payload(
+            admin_theme_pack=str(non_admin_pack.id),
+            preview_confirmed="1",
+        )
+        response = self.client.post(self.url, payload, follow=True)
+        self.assertEqual(response.status_code, 200)
+        site = SiteSettings.get_solo()
+        self.assertNotEqual(site.admin_theme_pack_id, non_admin_pack.id)
+
     def test_theme_studio_renders_admin_use_site_primary_guard(self):
         self.client.login(username="theme-manager", password="password")
         response = self.client.get(self.url)
