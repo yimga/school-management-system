@@ -86,10 +86,10 @@
         </div>
       </div>
       <div id="reportPreviewFallback" class="report-preview-fallback" hidden>
-        <div class="small text-muted mb-2">{% trans "Preview frame failed or timed out. Use a direct tab and retry after save." %}</div>
+        <div class="small text-muted mb-2">{% trans "Preview frame failed, was blocked, or timed out. Use a direct PDF tab and retry after save." %}</div>
         <div class="d-flex flex-wrap gap-2">
           <button id="reportPreviewRetryButton" type="button" class="btn btn-sm btn-outline-secondary">{% trans "Retry preview" %}</button>
-          <a id="reportPreviewFallbackOpenTab" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Open preview in new tab" %}</a>
+          <a id="reportPreviewFallbackOpenTab" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">{% trans "Open PDF in new tab" %}</a>
         </div>
       </div>
     {% else %}
@@ -119,11 +119,23 @@
       return;
     }
 
-    var termTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'term' %}";
-    var annualTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'annual' %}";
+    var liveTermTemplate = "{% url 'siteconfig:reportcard_style_live_preview' 'STYLE_PLACEHOLDER' 'term' %}";
+    var liveAnnualTemplate = "{% url 'siteconfig:reportcard_style_live_preview' 'STYLE_PLACEHOLDER' 'annual' %}";
+    var pdfTermTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'term' %}";
+    var pdfAnnualTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'annual' %}";
 
     function buildPreviewUrl(styleSlug, reportType, studentId) {
-      var base = reportType === "annual" ? annualTemplate : termTemplate;
+      var base = reportType === "annual" ? liveAnnualTemplate : liveTermTemplate;
+      var url = base.replace("STYLE_PLACEHOLDER", styleSlug);
+      if (studentId) {
+        var joiner = url.indexOf("?") === -1 ? "?" : "&";
+        url += joiner + "student_id=" + encodeURIComponent(studentId);
+      }
+      return url;
+    }
+
+    function buildPdfUrl(styleSlug, reportType, studentId) {
+      var base = reportType === "annual" ? pdfAnnualTemplate : pdfTermTemplate;
       var url = base.replace("STYLE_PLACEHOLDER", styleSlug);
       if (studentId) {
         var joiner = url.indexOf("?") === -1 ? "?" : "&";
@@ -157,9 +169,16 @@
     }
 
     frame.addEventListener("load", function () {
+      var loaded = false;
+      try {
+        var doc = frame.contentDocument;
+        loaded = Boolean(doc && doc.body && doc.body.childNodes.length > 0);
+      } catch (error) {
+        loaded = false;
+      }
       clearLoadTimeout();
       setLoading(false);
-      showFallback(false);
+      showFallback(!loaded);
     });
 
     frame.addEventListener("error", function () {
@@ -176,7 +195,8 @@
       var reportType = typeSelect.value || "term";
       var studentId = studentSelect ? studentSelect.value : "";
       var url = buildPreviewUrl(styleSlug, reportType, studentId);
-      latestUrl = url;
+      var pdfUrl = buildPdfUrl(styleSlug, reportType, studentId);
+      latestUrl = pdfUrl;
       setLoading(true);
       showFallback(false);
       clearLoadTimeout();
@@ -185,10 +205,10 @@
         showFallback(true);
       }, 12000);
       frame.src = url;
-      openTab.href = url;
+      openTab.href = pdfUrl;
       openTab.textContent = reportType === "annual" ? "{% trans 'Open annual PDF' %}" : "{% trans 'Open term PDF' %}";
       if (fallbackOpenTab) {
-        fallbackOpenTab.href = url;
+        fallbackOpenTab.href = pdfUrl;
       }
     }
 

@@ -487,11 +487,25 @@ def reportcard_style_pdf(request, slug: str, report_type: str):
     if report_type not in ReportCard.Type.values:
         return HttpResponseBadRequest("Unknown report type.")
 
-    student = _resolve_preview_student(request) or _sample_preview_student()
+    student = _resolve_preview_student(request) or _mock_preview_student()
     context = _build_report_context_for_pdf(style, report_type, student)
     template_name = style.template_for(report_type)
     filename = f"{report_type.lower()}_preview_{style.slug}.pdf"
     return render_pdf(request, template_name, context, filename=filename)
+
+
+@permission_required("settings.manage")
+@xframe_options_sameorigin
+def reportcard_style_live_preview(request, slug: str, report_type: str):
+    style = get_object_or_404(ReportCardStyle, slug=slug)
+    report_type_value = (report_type or "").upper()
+    if report_type_value not in ReportCard.Type.values:
+        return HttpResponseBadRequest("Unknown report type.")
+
+    student = _resolve_preview_student(request) or _mock_preview_student()
+    context = _build_report_context_for_pdf(style, report_type_value, student)
+    template_name = style.template_for(report_type_value)
+    return render(request, template_name, context)
 @permission_required("settings.manage")
 def clear_preview(request):
     request.session.pop(SESSION_KEY, None)
