@@ -575,10 +575,10 @@
     var header = $('#cps-header');
     var body = $('#cps-body');
     var toggle = $('#cps-toggle-icon');
+    var storageKey = 'themeStudio.colorPalette.open';
     if (!header || !body) return;
     header.setAttribute('role', 'button');
     header.setAttribute('tabindex', '0');
-    header.setAttribute('aria-expanded', 'false');
 
     function setOpen(open) {
       body.style.display = open ? 'block' : 'none';
@@ -586,6 +586,22 @@
       if (toggle) {
         toggle.textContent = open ? 'expand_less' : 'expand_more';
       }
+      try {
+        window.localStorage.setItem(storageKey, open ? '1' : '0');
+      } catch (error) {
+        // Ignore storage errors (private mode / blocked storage).
+      }
+    }
+
+    function readStoredOpenState() {
+      try {
+        var stored = window.localStorage.getItem(storageKey);
+        if (stored === '1') return true;
+        if (stored === '0') return false;
+      } catch (error) {
+        // Ignore storage errors and use default.
+      }
+      return false;
     }
 
     header.addEventListener('click', function () {
@@ -601,7 +617,7 @@
       }
     });
 
-    setOpen(body.style.display !== 'none');
+    setOpen(readStoredOpenState());
   }
 
   function init() {

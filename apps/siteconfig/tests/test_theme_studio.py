@@ -123,6 +123,12 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "cps-keep-theme-pack")
         self.assertContains(response, "cps-active-preset-note")
 
+    def test_theme_studio_color_palette_starts_collapsed_for_compact_layout(self):
+        self.client.login(username="theme-manager", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="cps-body" style="display: none;"')
+
     def test_theme_studio_blocks_publish_without_preview_for_governed_changes(self):
         self.client.login(username="theme-manager", password="password")
         site = SiteSettings.get_solo()
