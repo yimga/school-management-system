@@ -33,6 +33,9 @@ nul
 .vscode/
 .idea/
 
+# Local release artifacts
+.tmp/
+
 # Frontend build artifacts
 node_modules/
 package-lock.json

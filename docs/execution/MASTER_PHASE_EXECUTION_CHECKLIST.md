@@ -198,6 +198,7 @@ This checklist is the execution contract for the approved plan:
 - File edits:
   - `docs/execution/RELEASE_HARDENING_CHECKLIST.md`
   - `docs/execution/POST_DEPLOY_MONITORING.md`
+  - `scripts/release/release_hardening_dry_run.sh`
   - optional release scripts under `scripts/release/`
 - Verification:
   - dry-run release checklist and parity checks.

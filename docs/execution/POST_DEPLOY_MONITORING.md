@@ -42,3 +42,5 @@ Date: 2026-02-08
 - `python manage.py export_ui_config <path>`
 - `python manage.py import_ui_config <path>`
 - `powershell -ExecutionPolicy Bypass -File scripts/release/final_test_gate.ps1`
+- `./scripts/release/final_test_gate.sh`
+- `./scripts/release/release_hardening_dry_run.sh`

@@ -8,8 +8,10 @@ Minimize release risk by creating rollback points, validating migration safety, 
 ## Pre-Deploy Hardening
 1. Confirm final gate passes:
    - `powershell -ExecutionPolicy Bypass -File scripts/release/final_test_gate.ps1`
+   - `./scripts/release/final_test_gate.sh`
 2. Run release dry-run:
    - `powershell -ExecutionPolicy Bypass -File scripts/release/release_hardening_dry_run.ps1`
+   - `./scripts/release/release_hardening_dry_run.sh`
 3. Save deploy metadata:
    - `git rev-parse HEAD`
    - deployment timestamp
