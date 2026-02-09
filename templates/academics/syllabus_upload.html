@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Upload syllabus – {{ subject_assignment.subject.name }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Upload syllabus</h1>
+        <div class="text-muted small">{{ subject_assignment.subject.name }} · {{ subject_assignment.classroom.name }}</div>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post" action="" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="id_file" class="form-label">PDF or Word document</label>
+            <input type="file" name="file" id="id_file" class="form-control" accept=".pdf,.doc,.docx">
+          </div>
+          {% if syllabus.uploaded_file %}
+            <p class="text-muted small">Current file: {{ syllabus.uploaded_file.name }}</p>
+          {% endif %}
+          <button type="submit" class="btn btn-primary">Upload</button>
+          <a class="btn btn-outline-secondary" href="{% url 'academics:teacher_syllabus_hub' %}">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

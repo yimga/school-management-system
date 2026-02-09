@@ -428,6 +428,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 86400.0,  # Daily; no-op when SiteSettings.requests_reminder_interval_hours == 0
         "options": {"expires": 600},
     },
+    "expire-past-delegations": {
+        "task": "accounts.expire_past_delegations",
+        "schedule": 86400.0,  # Daily; respects SiteSettings.delegation_auto_revoke
+        "options": {"expires": 600},
+    },
     "update-invoice-statuses": {
         "task": "finance.update_invoice_statuses",
         "schedule": 86400.0,  # Daily

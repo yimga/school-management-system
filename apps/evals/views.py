@@ -52,8 +52,12 @@ from apps.portal.services import (
     teacher_scope,
     class_announcements_for_teacher,
     class_threads_for_teacher,
+    _upcoming_deadlines,
 )
+from apps.portal.models import PortalFeatureItem
+from .services import ews_students_needing_attention
 from apps.communication.models import MessageThread
+from apps.communication.views_announcements import _can_create_department_announcement
 from apps.siteconfig.models import resolve_dashboard_widgets, SiteSettings, default_backend_feature_flags
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
@@ -458,12 +462,13 @@ def teacher_dashboard(request: HttpRequest):
         ],
     }
     
-    # Add communication actions if teacher has department
+    # Add communication actions if teacher has department; only HOD/leadership can create department announcements
     if teacher_profile and teacher_profile.department:
         hero["actions"].extend([
             {"label": "Department Chat", "url": reverse("communication:group_list")},
-            {"label": "Dept Announcement", "url": reverse("communication:department_announcement_create")},
         ])
+        if _can_create_department_announcement(request.user):
+            hero["actions"].append({"label": "Dept Announcement", "url": reverse("communication:department_announcement_create")})
 
     preference = getattr(request.user, "preferences", None)
     display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
@@ -612,6 +617,55 @@ def teacher_dashboard(request: HttpRequest):
         not assignments
         or (widget_data.get("completion_pct", 0) == 0 and widget_data.get("assignments_count", 0) > 0)
     )
+
+    # Alerts for dashboard body (pending leave, EWS, etc.)
+    teacher_alerts = []
+    if teacher_profile:
+        pending_leave = teacher_profile.leave_requests.filter(status=TeacherLeaveRequest.Status.PENDING).count()
+        if pending_leave:
+            teacher_alerts.append({
+                "type": "leave",
+                "message": f"You have {pending_leave} pending leave request(s).",
+                "url": reverse("portal:teacher_leave"),
+                "cta": "View leave",
+            })
+    ews_list = ews_students_needing_attention(
+        teacher_profile, year, term, list(assignments), scale=20.0, drop_threshold_pct=10.0
+    )
+    if ews_list:
+        teacher_alerts.append({
+            "type": "ews",
+            "message": f"{len(ews_list)} student(s) need attention (grade drop >10% vs previous term).",
+            "url": reverse("evals:teacher_marks_entry"),
+            "cta": "Enter marks",
+            "ews_list": ews_list[:5],
+        })
+
+    # Phase 3: Curriculum map (syllabus covered vs remaining per class)
+    curriculum_map = []
+    for a in assignments[:8]:
+        sa = getattr(a, "subject_assignment", None)
+        if not sa:
+            continue
+        p = progress.get(a.id, {})
+        covered = p.get("width", 0)
+        curriculum_map.append({
+            "label": f"{getattr(sa.classroom, 'name', '')} — {getattr(sa.subject, 'name', '')}",
+            "covered": covered,
+            "remaining": max(0, 100 - covered),
+        })
+
+    # Phase 3: Unified calendar events (upcoming deadlines)
+    dashboard_events = _upcoming_deadlines(year) if year else []
+
+    # Phase 3: Resource library (syllabus items)
+    syllabus_items = list(
+        PortalFeatureItem.objects.filter(
+            feature=PortalFeatureItem.Feature.SYLLABUS,
+            is_active=True,
+        ).order_by("-created_at")[:5]
+    )
+
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -640,6 +694,10 @@ def teacher_dashboard(request: HttpRequest):
         "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
         "chart_completion_bar_json": chart_completion_bar_json,
         "chart_marks_donut_json": chart_marks_donut_json,
+        "teacher_alerts": teacher_alerts,
+        "curriculum_map": curriculum_map,
+        "dashboard_events": dashboard_events,
+        "syllabus_items": syllabus_items,
     })
 
 
@@ -667,7 +725,7 @@ def teacher_workflow_center(request: HttpRequest):
 
     teacher_profile, assignments, students_qs, classrooms = teacher_scope(request.user, academic_year=year)
     if teacher_profile is None:
-        return error
+        return HttpResponseForbidden("Teacher profile or assignments missing. Contact an administrator.")
 
     progress = {}
     for a in assignments:
@@ -754,8 +812,7 @@ def teacher_workflow_center(request: HttpRequest):
             "tip": "After approval, admin publishes reports; use messages for parent alerts.",
             "links": _filter_links([
                 _teacher_workflow_link("Department Chat", "communication:group_list"),
-                _teacher_workflow_link("Create announcement", "communication:department_announcement_create"),
-            ]),
+            ] + ([_teacher_workflow_link("Create announcement", "communication:department_announcement_create")] if _can_create_department_announcement(request.user) else [])),
         },
         {
             "title": "5) My attendance & pay",

@@ -1,0 +1,35 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "HR & Status" %}{% endblock %}
+
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Employment details" %}</h5>
+    </div>
+    <div class="card-body">
+      <ul class="list-unstyled mb-0">
+        <li><strong>{% trans "Position" %}:</strong> {{ teacher_profile.position_title|default:"—" }}</li>
+        <li><strong>{% trans "Department" %}:</strong> {{ teacher_profile.department.name|default:"—" }}</li>
+        <li><strong>{% trans "Staff ID" %}:</strong> {{ teacher_profile.staff_id|default:"—" }}</li>
+        <li><strong>{% trans "Pay grade" %}:</strong> {{ teacher_profile.pay_grade|default:"—" }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Attestation" %}</h5>
+    </div>
+    <div class="card-body">
+      {% if attestation_valid %}
+        <span class="badge bg-success fs-6">{% trans "VALID – Attestation of Effective Presence" %}</span>
+      {% else %}
+        <span class="badge bg-secondary">{% trans "Pending or N/A" %}</span>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

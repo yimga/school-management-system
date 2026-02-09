@@ -25,6 +25,13 @@ from .views import (
     user_profile,
     workflow_center,
 )
+from .views_delegation import (
+    my_delegations,
+    delegation_add,
+    delegation_edit,
+    delegation_revoke,
+    delegation_catch_up,
+)
 from .views_certification import (
     certification_home,
     certification_session_detail,
@@ -56,6 +63,11 @@ urlpatterns = [
     path("redirect/", redirect_view, name="redirect"),
     path("profile/", user_profile, name="user_profile"),
     path("profile/edit/", profile_edit, name="profile_edit"),
+    path("profile/delegations/", my_delegations, name="my_delegations"),
+    path("profile/delegations/add/", delegation_add, name="delegation_add"),
+    path("profile/delegations/<int:pk>/edit/", delegation_edit, name="delegation_edit"),
+    path("profile/delegations/<int:pk>/revoke/", delegation_revoke, name="delegation_revoke"),
+    path("profile/delegations/catch-up/", delegation_catch_up, name="delegation_catch_up"),
     path("profile/password/", PasswordChangeView.as_view(
         template_name="accounts/password_change_form.html",
         success_url=reverse_lazy("accounts:password_change_done"),

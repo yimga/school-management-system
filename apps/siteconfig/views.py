@@ -577,6 +577,7 @@ def set_default_dashboard_view(request):
 
 @login_required
 def user_preferences(request):
+    # RBAC: each user controls only their own preferences (preference is always for request.user)
     preference, _ = UserPreference.objects.get_or_create(user=request.user)
 
     if request.method == "GET":

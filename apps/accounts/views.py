@@ -342,8 +342,14 @@ def user_messages(request):
     from apps.portal.services import threads_for_user
 
     active_tab = request.GET.get("tab", "groups")
-    threads = threads_for_user(request.user, limit=12)
-    direct_list = _direct_conversations(request.user)
+    try:
+        threads = threads_for_user(request.user, limit=12)
+    except Exception:
+        threads = []
+    try:
+        direct_list = _direct_conversations(request.user)
+    except Exception:
+        direct_list = []
 
     context = {
         "threads": threads,

@@ -463,24 +463,38 @@
       {% if request.user.role == 'TEACHER' %}
         <div class="sidebar-section-title">My Workflow</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
-        <div class="sidebar-section-title">Learning Management</div>
+        <div class="sidebar-section-title">Pedagogical Dashboard</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_dashboard_alias' %}"><i class="bi bi-grid me-2"></i>Assigned Classes</a>
+        <a class="nav-link nav-pill" href="{% url 'academics:teacher_syllabus_hub' %}"><i class="bi bi-journal-richtext me-2"></i>Course Syllabi</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-bookmark me-2"></i>Syllabus Coverage</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_lesson_notes' %}"><i class="bi bi-journal-text me-2"></i>Lesson Notes</a>
         <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pencil-square me-2"></i>Enter Marks</a>
-        <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_list' %}"><i class="bi bi-table me-2"></i>Marks History</a>
+        <a class="nav-link nav-pill" href="{% url 'evals:teacher_marks_list' %}"><i class="bi bi-table me-2"></i>Gradebook / Marks</a>
+        <div class="sidebar-section-title">Operational Tasks</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_timetable' %}"><i class="bi bi-calendar-week me-2"></i>Timetable</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-clipboard-check me-2"></i>Attendance</a>
-        <div class="sidebar-section-title">Human Resources</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_disciplinary' %}"><i class="bi bi-shield-exclamation me-2"></i>Disciplinary</a>
+        <div class="sidebar-section-title">HR &amp; Professional Growth</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_hr_status' %}"><i class="bi bi-person-badge me-2"></i>HR &amp; Status</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_training_log' %}"><i class="bi bi-journal-check me-2"></i>Training Log</a>
         <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}"><i class="bi bi-wallet2 me-2"></i>Payslips</a>
         <a class="nav-link nav-pill" href="{% url 'payroll:employee_leave' %}"><i class="bi bi-calendar-check me-2"></i>Leave Requests</a>
-        <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}"><i class="bi bi-receipt me-2"></i>Pay History</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_pay_history' %}"><i class="bi bi-receipt me-2"></i>Pay History</a>
       {% elif request.user.role == 'PARENT' %}
         <div class="sidebar-section-title">My Workflow</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
-        <div class="sidebar-section-title">Children & Learning</div>
+        <div class="sidebar-section-title">Student Overview</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-people me-2"></i>My Children</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}"><i class="bi bi-cash-coin me-2"></i>Finance & Fees</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_medal_case' %}"><i class="bi bi-award me-2"></i>Medal case</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_attendance_discipline' %}"><i class="bi bi-clipboard-check me-2"></i>Attendance &amp; Discipline</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Academic Stats</a>
+        <div class="sidebar-section-title">Financial Center</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}"><i class="bi bi-cash-coin me-2"></i>Finance &amp; Fees</a>
         <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-person-plus me-2"></i>Link Child</a>
         <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>Claim Invite</a>
-        <div class="sidebar-section-title">Performance Tracking</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Academic Stats</a>
+        <div class="sidebar-section-title">School Communication</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>Contact School</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-megaphone me-2"></i>Announcements &amp; Homework</a>
       {% elif request.user.role != 'TEACHER' %}
         {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' or request.user.role == 'IT_ADMIN' %}
         {% comment %}RBAC: staff sections; Admin Panel last (includes Site Settings, Region Configuration). No duplicate sections.{% endcomment %}
@@ -526,6 +540,7 @@
         <a class="nav-link nav-pill" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-gear-fill me-2"></i>Backend Console</a>
         <a class="nav-link nav-pill" href="{% url 'accounts:workflow_center' %}"><i class="bi bi-diagram-3 me-2"></i>Workflow Center</a>
         <a class="nav-link nav-pill" href="{% url 'accounts:approval_workflow_hub' %}"><i class="bi bi-clipboard-check me-2"></i>Approval Hub</a>
+        <a class="nav-link nav-pill" href="{% url 'academics:syllabus_approval_queue' %}"><i class="bi bi-journal-check me-2"></i>Syllabus Approvals</a>
         <a class="nav-link nav-pill" href="{% url 'accounts:import_hub' %}"><i class="bi bi-upload me-2"></i>Import Hub</a>
         {% if request.user.is_superuser or request.user|has_feature_permission:"settings.feature_control" %}
         <a class="nav-link nav-pill" href="{% url 'siteconfig:feature_control_panel' %}"><i class="bi bi-toggle-on me-2"></i>Feature Control</a>

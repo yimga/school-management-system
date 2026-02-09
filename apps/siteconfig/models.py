@@ -165,6 +165,22 @@ def default_grade_post_roles():
     return ["DEAN", "PRINCIPAL", "LEADERSHIP"]
 
 
+def default_syllabus_approval_roles():
+    return ["DEAN", "HOD"]
+
+
+def default_delegation_role_mapping():
+    """Who can delegate to whom: {delegator_role: [allowed_delegate_roles]}."""
+    return {
+        "PRINCIPAL": ["VICE_PRINCIPAL", "HOD"],
+        "VICE_PRINCIPAL": ["HOD", "DEAN"],
+        "DEAN": ["HOD", "ACADEMICS_STAFF"],
+        "HOD": ["DEPT_LEAD", "TEACHER"],
+        "TEACHER": ["TEACHER"],
+        "BURSAR": ["FINANCE_STAFF"],
+    }
+
+
 _SITE_SETTINGS_CACHE: "SiteSettings | None" = None
 
 def filter_portal_items(items, role: str | None) -> list[dict]:
@@ -800,6 +816,45 @@ class SiteSettings(models.Model):
         default=default_grade_post_roles,
         blank=True,
         help_text="Roles that can finalize/post grade approvals (post/extract).",
+    )
+    syllabus_approval_roles = models.JSONField(
+        default=default_syllabus_approval_roles,
+        blank=True,
+        help_text="List of role codes allowed to approve syllabi (e.g. DEAN, HOD). Used with delegation: when approver is OOO, their delegate receives requests.",
+    )
+
+    # Delegation (Out of Office / Acting) – configurable from admin
+    delegation_max_days = models.PositiveSmallIntegerField(
+        default=14,
+        help_text="Maximum duration in days for a single delegation period.",
+    )
+    delegation_auto_revoke = models.BooleanField(
+        default=True,
+        help_text="When True, proxy access is automatically revoked at end of return date.",
+    )
+    delegation_notify_delegate_on_start = models.CharField(
+        max_length=20,
+        choices=[
+            ("off", "Off"),
+            ("email", "Email"),
+            ("sms", "SMS"),
+            ("both", "Email and SMS"),
+        ],
+        default="email",
+        help_text="Notify the delegate when a delegation starts.",
+    )
+    delegation_block_delegator_while_ooo = models.BooleanField(
+        default=True,
+        help_text="When True, block the delegator from taking delegated actions while OOO (avoid double-approvals).",
+    )
+    delegation_role_mapping = models.JSONField(
+        default=default_delegation_role_mapping,
+        blank=True,
+        help_text="Who can delegate to whom: {\"PRINCIPAL\": [\"VICE_PRINCIPAL\", \"HOD\"], ...}. Empty or missing role = no restriction.",
+    )
+    delegation_summary_report_on_return = models.BooleanField(
+        default=True,
+        help_text="When True, generate 'While You Were Away' summary for the returning user when delegation ends.",
     )
 
     # Feature toggles

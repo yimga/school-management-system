@@ -153,6 +153,7 @@ urlpatterns = [
     path('siteconfig/', include(('apps.siteconfig.urls', 'siteconfig'), namespace='siteconfig')),
     path('authentication/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('evals/', include(('apps.evals.urls', 'evals'), namespace='evals')),
+    path('academics/', include(('apps.academics.urls', 'academics'), namespace='academics')),
     path('portal/', include(('apps.portal.urls', 'portal'), namespace='portal')),
     path('portal', lambda request: redirect('portal:parent_dashboard')),
     path('kb/', include(('apps.portal.urls_kb', 'kb'), namespace='kb')),

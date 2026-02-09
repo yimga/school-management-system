@@ -1,0 +1,38 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}Medal case – {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Digital medal case</h1>
+        <div class="text-muted small">Badges and achievements earned by your children</div>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back to dashboard</a>
+    </div>
+
+    {% for student, badges in student_badges %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-transparent fw-semibold">{{ student.get_full_name|default:student.admission_number }}</div>
+        <div class="card-body">
+          {% if badges %}
+            <ul class="list-unstyled mb-0">
+              {% for badge in badges %}
+                <li class="d-flex align-items-center gap-2 mb-2">
+                  <span class="badge bg-primary">{{ badge.badge_type.label }}</span>
+                  <span class="text-muted small">{{ badge.issued_at|date }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted small mb-0">No badges yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="alert alert-info">Link a child to see their badges here.</div>
+    {% endfor %}
+  </div>
+{% endblock %}

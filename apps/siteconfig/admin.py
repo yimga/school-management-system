@@ -536,8 +536,21 @@ class SiteSettingsAdmin(ModelAdmin):
                 "grade_approval_deadline_days",
                 "grade_approval_deadline_note",
                 "grade_post_roles",
+                "syllabus_approval_roles",
                 "reports_require_approved_grades_before_publish",
                 "reports_use_approved_grades_only",
+            )
+        }),
+        ("Delegation (Out of Office / Acting)", {
+            "classes": ("tab",),
+            "description": "When staff are away, they can assign a delegate. Configure max duration, auto-revoke at end date, who can delegate to whom, and notifications.",
+            "fields": (
+                "delegation_max_days",
+                "delegation_auto_revoke",
+                "delegation_notify_delegate_on_start",
+                "delegation_block_delegator_while_ooo",
+                "delegation_summary_report_on_return",
+                "delegation_role_mapping",
             )
         }),
         ("Finance Automation", {

@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load admin_health evals_extras static region_format %}
+{% load admin_health evals_extras static region_format i18n %}
 {% block title %}Teacher Dashboard{% endblock %}
 
 {% block extrastyle %}
@@ -136,6 +136,33 @@
     border-top: 1px dashed #e2e8f0;
     margin-top: 0.75rem;
     padding-top: 0.75rem;
+  }
+
+  /* Workbench: KPI strip and Quick Actions */
+  .teacher-kpi-strip .teacher-kpi-card {
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    transition: box-shadow 0.2s ease;
+  }
+  .teacher-kpi-strip .teacher-kpi-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  .teacher-kpi-icon { font-size: 1.25rem; }
+  .teacher-kpi-value { font-weight: 700; font-size: 1.1rem; color: var(--admin-content-text, #0f172a); }
+  .teacher-kpi-label { font-size: 0.7rem; letter-spacing: 0.04em; }
+  .teacher-quick-actions-card {
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.98);
+  }
+  .teacher-quick-actions-card .btn-primary { font-weight: 600; }
+  .dashboard-workbench .card {
+    border-radius: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+  }
+  @media (max-width: 767px) {
+    .teacher-kpi-strip .teacher-kpi-value { font-size: 1rem; }
+    .dashboard-workbench .btn { min-height: 44px; min-width: 44px; }
   }
 </style>
 {% endblock %}
@@ -321,8 +348,57 @@
     </div>
   </div>
 
+  <!-- KPI strip: Attendance | Completion % | Pending | Schedule (workbench) -->
+  <div class="teacher-kpi-strip row g-2 mb-3" data-dashboard-column="kpi">
+    <div class="col-6 col-md-3" data-widget-id="teacher-kpi-attendance">
+      <div class="teacher-kpi-card card border-0 shadow-sm h-100">
+        <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
+          <span class="teacher-kpi-icon text-success"><i class="bi bi-calendar-check"></i></span>
+          <div class="min-w-0">
+            <div class="teacher-kpi-value">{{ widget_data.attendance.overall|default:"0" }}%</div>
+            <div class="teacher-kpi-label text-uppercase small text-muted">Attendance</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3" data-widget-id="teacher-kpi-completion">
+      <div class="teacher-kpi-card card border-0 shadow-sm h-100">
+        <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
+          <span class="teacher-kpi-icon text-primary"><i class="bi bi-pie-chart"></i></span>
+          <div class="min-w-0">
+            <div class="teacher-kpi-value">{{ widget_data.completion_pct|default:"0" }}%</div>
+            <div class="teacher-kpi-label text-uppercase small text-muted">Completion</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3" data-widget-id="teacher-kpi-pending">
+      <div class="teacher-kpi-card card border-0 shadow-sm h-100">
+        <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
+          <span class="teacher-kpi-icon text-warning"><i class="bi bi-clock-history"></i></span>
+          <div class="min-w-0">
+            <div class="teacher-kpi-value">{{ widget_data.tasks.pending_evaluations|default:"0" }}</div>
+            <div class="teacher-kpi-label text-uppercase small text-muted">Pending</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3" data-widget-id="teacher-kpi-schedule">
+      <div class="teacher-kpi-card card border-0 shadow-sm h-100">
+        <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
+          <span class="teacher-kpi-icon text-info"><i class="bi bi-calendar3"></i></span>
+          <div class="min-w-0">
+            <div class="teacher-kpi-value">Today</div>
+            <div class="teacher-kpi-label text-uppercase small text-muted">Schedule</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Compact grid: charts and other cards -->
-  <div id="dashboard-layout" class="dashboard-compact-grid" data-dashboard-column="main"
+  <div id="dashboard-layout" class="dashboard-compact-grid dashboard-workbench" data-dashboard-column="main"
+       role="main" aria-label="Teacher dashboard content"
        data-save-url="{{ dashboard_layout_url }}" data-load-url="{{ dashboard_layout_url }}"
        data-custom-drag-enabled="true"
        data-widget-config="{{ widget_meta_json|default:'{}' }}">
@@ -341,35 +417,94 @@
   </div>
   {% endif %}
 
-  <div class="row g-3 mb-3" data-dashboard-column="main">
-    <div class="col-md-6">
-      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-attendance">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="donut" style="--value: {{ widget_data.attendance.overall|default:'0' }}; --accent: #22c55e;">
-            <span>{{ widget_data.attendance.overall|default:"0" }}%</span>
-          </div>
-          <div>
-            <div class="text-uppercase small text-muted mb-1">Attendance</div>
-            <div class="fw-semibold">Today vs. week</div>
-            <div class="small text-muted">Late: {{ widget_data.attendance.late|default:"0" }} | Missing: {{ widget_data.attendance.missing|default:"0" }}</div>
+  <!-- Quick Actions card (workbench) -->
+  <div class="row g-3 mb-3" data-dashboard-column="actions">
+    <div class="col-12" data-widget-id="teacher-quick-actions">
+      <div class="card border-0 shadow-sm teacher-quick-actions-card">
+        <div class="card-body py-3 px-3">
+          <h6 class="text-uppercase small text-muted mb-2">Quick Actions</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary btn-sm" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-calendar-check me-1"></i>Start Attendance</a>
+            <a class="btn btn-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}"><i class="bi bi-pencil-square me-1"></i>Enter marks</a>
+            <a class="btn btn-outline-primary btn-sm" href="{{ grade_import_upload_url }}"><i class="bi bi-upload me-1"></i>Upload grades</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_leave' %}"><i class="bi bi-door-open me-1"></i>Leave requests</a>
           </div>
         </div>
       </div>
     </div>
-    <div class="col-md-6">
-      <div class="card h-100 border-0 shadow-sm" data-widget-id="teacher-completion">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="donut" style="--value: {{ widget_data.completion_pct|default:'0' }}; --accent: #6d28d9;">
-            <span>{{ widget_data.completion_pct|default:"0" }}%</span>
-          </div>
-          <div class="flex-grow-1">
-            <div class="text-uppercase small text-muted mb-1">Marks completion</div>
-            <div class="fw-semibold">{{ assignments|length }} classes · {{ progress|length }} students</div>
-            <div class="small text-muted">Pending evals: {{ widget_data.tasks.pending_evaluations|default:"0" }}</div>
-            <div class="d-flex gap-2 mt-2">
-              <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
+  </div>
+
+  <!-- Alerts card (workbench) -->
+  <div class="row g-3 mb-3" data-dashboard-column="alerts">
+    <div class="col-12" data-widget-id="teacher-alerts">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-3 px-3">
+          <h6 class="text-uppercase small text-muted mb-2">Alerts</h6>
+          {% if teacher_alerts %}
+            <ul class="list-unstyled mb-0">
+              {% for alert in teacher_alerts %}
+                <li class="d-flex flex-column align-items-start py-2 border-bottom {% if forloop.last %}border-0{% endif %}">
+                  <div class="d-flex align-items-center justify-content-between w-100">
+                    <span><i class="bi {% if alert.type == 'ews' %}bi-exclamation-triangle text-warning{% else %}bi-info-circle text-primary{% endif %} me-2"></i>{{ alert.message }}</span>
+                    {% if alert.url %}<a class="btn btn-sm btn-outline-primary ms-2" href="{{ alert.url }}">{{ alert.cta|default:"View" }}</a>{% endif %}
+                  </div>
+                  {% if alert.ews_list %}
+                  <ul class="small text-muted mt-1 mb-0 ps-3">
+                    {% for e in alert.ews_list %}
+                    <li>{{ e.student_name }} — {{ e.subject }} ({{ e.classroom }}): −{{ e.drop_points }}</li>
+                    {% endfor %}
+                  </ul>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted small mb-0">No alerts at the moment.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Curriculum Map + Resource Library -->
+  <div class="row g-3 mb-3" data-dashboard-column="curriculum">
+    {% if curriculum_map %}
+    <div class="col-md-6" data-widget-id="teacher-curriculum-map">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="text-uppercase small text-muted mb-2">Curriculum Map</h6>
+          <p class="small text-muted mb-3">Syllabus covered vs remaining per class.</p>
+          {% for item in curriculum_map %}
+          <div class="mb-2">
+            <div class="d-flex justify-content-between small mb-1">
+              <span>{{ item.label|truncatewords:8 }}</span>
+              <span>{{ item.covered }}%</span>
+            </div>
+            <div class="progress" style="height: 6px;" role="progressbar" aria-valuenow="{{ item.covered }}" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar" style="width: {{ item.covered }}%;"></div>
             </div>
           </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="col-md-6" data-widget-id="teacher-resource-library">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <h6 class="text-uppercase small text-muted mb-2">Resource Library</h6>
+          <p class="small text-muted mb-2">Syllabus and subject resources.</p>
+          {% if syllabus_items %}
+          <ul class="list-unstyled small mb-2">
+            {% for item in syllabus_items %}
+            <li class="d-flex justify-content-between align-items-center py-1">
+              <span>{{ item.title|truncatewords:5 }}</span>
+              {% if item.link %}<a class="btn btn-sm btn-link p-0" href="{{ item.link }}" target="_blank" rel="noreferrer">Read now</a>{% else %}<span class="text-muted">—</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <a class="btn btn-sm btn-primary mt-2" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-text me-1"></i>Open syllabus</a>
         </div>
       </div>
     </div>
@@ -433,8 +568,10 @@
                     {% with p=progress|get_item:a.id %}
                       {% if p %}
                         <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ p.filled }}/{{ p.total }}</span>
+                        <span class="badge ms-1 {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{% if p.filled == p.total %}Complete{% else %}Needs entry{% endif %}</span>
                       {% else %}
                         <span class="badge bg-secondary">0/0</span>
+                        <span class="badge ms-1 bg-secondary">Pending</span>
                       {% endif %}
                     {% endwith %}
                   </td>
@@ -463,6 +600,17 @@
             </div>
           </div>
           <p class="small text-muted mb-2">Upcoming classes and tasks.</p>
+          {% if dashboard_events %}
+          <ul class="list-unstyled small mb-2">
+            {% for ev in dashboard_events|slice:":3" %}
+            <li class="d-flex justify-content-between py-1">
+              <span>{{ ev.title|truncatewords:6 }}</span>
+              <span class="text-muted">{{ ev.when|date:"M j" }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <a class="btn btn-sm btn-primary" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-calendar-check me-1"></i>Take attendance</a>
         </div>
       </div>
       {% if widget_data.finance %}
@@ -601,28 +749,24 @@
   <div class="row g-3 mb-4">
     {% if not widgets or "links" in widgets or "communications" in widgets %}
     <div class="col-xl-3 col-lg-4 order-lg-1 order-2" data-dashboard-column="tertiary">
-      <div class="dashboard-quick-panel h-100" data-widget-id="teacher-quick-links">
-        <h6 class="text-uppercase small mb-2 text-muted">Quick links</h6>
-        <div class="d-flex flex-column gap-2 mb-3">
-          <a class="btn btn-sm btn-primary w-100" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
-          <a class="btn btn-sm btn-outline-primary w-100" href="{% url 'evals:teacher_marks_list' %}">View marks</a>
-          <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'portal:teacher_attendance' %}">Attendance</a>
-          <a class="btn btn-sm btn-outline-secondary w-100" href="{% url 'portal:teacher_leave' %}">Leave requests</a>
-        </div>
-        <div class="mb-2">
-          <div class="text-uppercase small text-muted mb-1">Contact</div>
-          {% if SITE.company_phone %}<div class="small text-dark">Phone: {{ SITE.company_phone }}</div>{% endif %}
-          {% if SITE.company_email %}<div class="small text-dark">Email: {{ SITE.company_email }}</div>{% endif %}
-        </div>
-        <div>
-          <div class="text-uppercase small text-muted mb-2">Socials</div>
-          {% for link in SITE.active_social_links %}
-            <span class="social-chip">
-              <i class="{{ link.icon }}"></i> {{ link.platform }}
-            </span>
-          {% empty %}
-            <div class="small text-muted">No social links available.</div>
-          {% endfor %}
+      <div class="dashboard-quick-panel h-100 card border-0 shadow-sm" data-widget-id="teacher-quick-links">
+        <div class="card-body">
+          <h6 class="text-uppercase small mb-2 text-muted">Contact &amp; Socials</h6>
+          <div class="mb-3">
+            {% if SITE.company_phone %}<div class="small text-dark">Phone: {{ SITE.company_phone }}</div>{% endif %}
+            {% if SITE.company_email %}<div class="small text-dark">Email: {{ SITE.company_email }}</div>{% endif %}
+            {% if not SITE.company_phone and not SITE.company_email %}<div class="small text-muted">No contact set.</div>{% endif %}
+          </div>
+          <div>
+            <div class="text-uppercase small text-muted mb-1">Socials</div>
+            {% for link in SITE.active_social_links %}
+              <span class="social-chip">
+                <i class="{{ link.icon }}"></i> {{ link.platform }}
+              </span>
+            {% empty %}
+              <div class="small text-muted">No social links available.</div>
+            {% endfor %}
+          </div>
         </div>
       </div>
     </div>

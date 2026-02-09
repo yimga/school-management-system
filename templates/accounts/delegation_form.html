@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if is_edit %}Edit delegation{% else %}Add delegation{% endif %} - {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h1 class="h4 mb-3">{% if is_edit %}Edit delegation{% else %}Add delegation{% endif %}</h1>
+            <form method="post" action="">
+              {% csrf_token %}
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+              {% endif %}
+              <div class="mb-3">
+                <label for="id_delegate" class="form-label">{{ form.delegate.label }}</label>
+                {{ form.delegate }}
+                {% if form.delegate.help_text %}<div class="form-text">{{ form.delegate.help_text }}</div>{% endif %}
+                {% if form.delegate.errors %}<div class="invalid-feedback d-block">{{ form.delegate.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="id_start_date" class="form-label">{{ form.start_date.label }}</label>
+                  {{ form.start_date }}
+                  {% if form.start_date.help_text %}<div class="form-text">{{ form.start_date.help_text }}</div>{% endif %}
+                  {% if form.start_date.errors %}<div class="invalid-feedback d-block">{{ form.start_date.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="id_end_date" class="form-label">{{ form.end_date.label }}</label>
+                  {{ form.end_date }}
+                  {% if form.end_date.help_text %}<div class="form-text">{{ form.end_date.help_text }}</div>{% endif %}
+                  {% if form.end_date.errors %}<div class="invalid-feedback d-block">{{ form.end_date.errors.0 }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Scope (leave empty for all)</label>
+                {% for choice in form.scope.field.widget.choices %}
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="scope" value="{{ choice.0 }}" id="scope_{{ choice.0 }}"
+                      {% if choice.0 in form.scope.value %}checked{% endif %}
+                      {% if form.scope.field.disabled %}disabled{% endif %}>
+                    <label class="form-check-label" for="scope_{{ choice.0 }}">{{ choice.1 }}</label>
+                  </div>
+                {% endfor %}
+                {% if form.scope.help_text %}<div class="form-text">{{ form.scope.help_text }}</div>{% endif %}
+                {% if form.scope.errors %}<div class="invalid-feedback d-block">{{ form.scope.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="id_reason" class="form-label">{{ form.reason.label }}</label>
+                {{ form.reason }}
+                {% if form.reason.errors %}<div class="invalid-feedback d-block">{{ form.reason.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="mb-3">
+                <label for="id_notes" class="form-label">{{ form.notes.label }}</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}<div class="invalid-feedback d-block">{{ form.notes.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">{% if is_edit %}Save changes{% else %}Create delegation{% endif %}</button>
+                <a class="btn btn-outline-secondary" href="{% url 'accounts:my_delegations' %}">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

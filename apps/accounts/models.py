@@ -152,3 +152,126 @@ class User(AbstractUser):
             except Exception:
                 pass
             return False
+
+
+class Delegation(models.Model):
+    """
+    Out of Office / Acting: delegator assigns a delegate to act on their behalf for a date range.
+    When end_date (or extended_end_date) is reached, proxy access is revoked (via task or on-request check).
+    All behaviour is configurable from SiteSettings (max days, auto-revoke, role mapping).
+    """
+    delegator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="delegations_made",
+        help_text="User who is away (Principal, Dean, Teacher, etc.).",
+    )
+    delegate = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="delegations_received",
+        help_text="User who will act on their behalf (e.g. Vice-Principal).",
+    )
+    start_date = models.DateTimeField(help_text="When the delegation becomes active.")
+    end_date = models.DateTimeField(help_text="When the delegation is scheduled to end.")
+    extended_end_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="If set, effective end is this date instead of end_date.",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="When False, delegation is no longer in effect (e.g. revoked or returned early).",
+    )
+    scope = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Which workflows this applies to: list of keys e.g. ["syllabus_approval", "grade_approval"] or empty for "all".',
+    )
+    reason = models.CharField(max_length=255, blank=True, help_text="Optional: e.g. Annual leave, Training.")
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_delegations",
+        help_text="User who created this (delegator or admin for emergency override).",
+    )
+
+    class Meta:
+        ordering = ["-start_date"]
+        indexes = [
+            models.Index(fields=["delegator", "is_active"]),
+            models.Index(fields=["delegate", "is_active"]),
+            models.Index(fields=["end_date", "extended_end_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.delegator.username} → {self.delegate.username} until {self.effective_end_date}"
+
+    @property
+    def effective_end_date(self):
+        if self.extended_end_date:
+            return self.extended_end_date
+        return self.end_date
+
+    @property
+    def is_current(self):
+        """True if delegation is active and today is within [start_date, effective_end_date]."""
+        if not self.is_active:
+            return False
+        now = timezone.now()
+        if now < self.start_date:
+            return False
+        if now > self.effective_end_date:
+            return False
+        return True
+
+
+class DelegationActionLog(models.Model):
+    """
+    Log of an action performed by a delegate (proxy) on behalf of the delegator.
+    Used for "While You Were Away" catch-up and audit.
+    """
+    delegation = models.ForeignKey(
+        Delegation,
+        on_delete=models.CASCADE,
+        related_name="action_logs",
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="delegation_actions_performed",
+        help_text="The delegate who performed the action.",
+    )
+    acting_for = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="delegation_actions_received",
+        help_text="The delegator on whose behalf the action was taken.",
+    )
+    action_taken = models.CharField(max_length=100, help_text="e.g. syllabus_approved, grade_approved.")
+    object_repr = models.CharField(max_length=255, blank=True, help_text="Short description of the object (e.g. Physics Form 3).")
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_type = models.ForeignKey(
+        "contenttypes.ContentType",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Optional: link to the affected object.",
+    )
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["acting_for", "created_at"]),
+            models.Index(fields=["delegation", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.actor.username} (for {self.acting_for.username}): {self.action_taken} @ {self.created_at}"

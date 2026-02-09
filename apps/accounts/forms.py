@@ -4,7 +4,9 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .models import AccessRole, Permission, User, UserPreference
+from .delegation import get_allowed_delegate_queryset, SCOPE_CHOICES
 from apps.portal.models import PendingGuardianInvite
+from apps.siteconfig.models import SiteSettings
 
 
 # User preference form for background logo and opacity
@@ -231,3 +233,61 @@ class ClaimInviteAccountForm(forms.Form):
             password=data["password1"],
         )
         return user
+
+
+# Delegation (Out of Office) form – used in views_delegation
+class DelegationForm(forms.Form):
+    delegate = forms.ModelChoiceField(
+        queryset=User.objects.none(),
+        required=True,
+        empty_label="Select who will act on your behalf",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    start_date = forms.DateTimeField(
+        required=True,
+        widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
+        help_text="When the delegation becomes active.",
+    )
+    end_date = forms.DateTimeField(
+        required=True,
+        widget=forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
+        help_text="When the delegation ends (max duration set by admin).",
+    )
+    scope = forms.MultipleChoiceField(
+        choices=SCOPE_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
+        help_text="Leave empty for “all” workflows.",
+    )
+    reason = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Annual leave"}),
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+    )
+
+    def __init__(self, delegator, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.delegator = delegator
+        self.fields["delegate"].queryset = get_allowed_delegate_queryset(delegator)
+
+    def clean_end_date(self):
+        start = self.cleaned_data.get("start_date")
+        end = self.cleaned_data.get("end_date")
+        if start and end and end <= start:
+            raise ValidationError("End date must be after start date.")
+        if start and end and self.delegator:
+            max_days = getattr(SiteSettings.get_solo(), "delegation_max_days", 14) or 14
+            from datetime import timedelta
+            if (end - start).days > max_days:
+                raise ValidationError(f"Duration cannot exceed {max_days} days (admin setting).")
+        return end
+
+    def clean_delegate(self):
+        delegate = self.cleaned_data.get("delegate")
+        if delegate and self.delegator and delegate.pk == self.delegator.pk:
+            raise ValidationError("You cannot delegate to yourself.")
+        return delegate

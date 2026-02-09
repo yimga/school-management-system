@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Syllabus approval queue – {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Syllabus approval queue</h1>
+        <div class="text-muted small">Pending syllabi awaiting your approval</div>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:workflow_center' %}">Workflow center</a>
+    </div>
+
+    {% if pending %}
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Class</th>
+                  <th>Term</th>
+                  <th>Submitted</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in pending %}
+                  <tr>
+                    <td>{{ s.subject_assignment.subject.name }}</td>
+                    <td>{{ s.subject_assignment.classroom.name }}</td>
+                    <td>{{ s.subject_assignment.term.label }}</td>
+                    <td>{{ s.submitted_at|date:"M j, Y H:i" }}</td>
+                    <td>
+                      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:syllabus_preview' s.subject_assignment_id %}">Preview</a>
+                      <form method="post" action="{% url 'academics:syllabus_approve' s.subject_assignment_id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="notes" value="">
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                      </form>
+                      <form method="post" action="{% url 'academics:syllabus_reject' s.subject_assignment_id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="text" name="notes" placeholder="Reason (optional)" class="form-control form-control-sm d-inline-block w-auto">
+                        <button type="submit" class="btn btn-warning btn-sm">Return for revision</button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="alert alert-info">No syllabi pending approval.</div>
+    {% endif %}
+  </div>
+{% endblock %}

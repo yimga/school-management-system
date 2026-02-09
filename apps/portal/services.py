@@ -146,16 +146,16 @@ def class_threads_for_teacher(user: User, limit: int = 6, include_department: bo
     Includes department threads if teacher has a department.
     """
     threads_qs = MessageThread.objects.filter(members=user, is_archived=False)
-    
-    # Also include department threads if teacher has a department
-    if include_department and hasattr(user, 'teacher_profile') and user.teacher_profile.department:
+    # Use filter().first() to avoid DoesNotExist when user has no TeacherProfile
+    teacher_profile = TeacherProfile.objects.filter(user=user).select_related("department").first()
+    if include_department and teacher_profile and getattr(teacher_profile, "department", None):
         dept_threads = MessageThread.objects.filter(
             scope=MessageThread.Scope.DEPARTMENT,
-            department=user.teacher_profile.department,
+            department=teacher_profile.department,
             is_archived=False
         )
         threads_qs = threads_qs | dept_threads
-    
+
     threads = (
         threads_qs.distinct()
         .prefetch_related("members")
@@ -177,8 +177,9 @@ def threads_for_user(user: User, limit: int = 12) -> List[dict]:
         return class_threads_for_teacher(user, limit=limit)
     # Admin, staff, other: threads they are members of (or department if applicable)
     threads_qs = MessageThread.objects.filter(members=user, is_archived=False)
-    if hasattr(user, "teacher_profile") and user.teacher_profile and getattr(user.teacher_profile, "department", None):
-        dept = user.teacher_profile.department
+    teacher_profile = TeacherProfile.objects.filter(user=user).select_related("department").first()
+    if teacher_profile and getattr(teacher_profile, "department", None):
+        dept = teacher_profile.department
         if dept:
             dept_threads = MessageThread.objects.filter(
                 scope=MessageThread.Scope.DEPARTMENT,

@@ -83,6 +83,7 @@
             <div class="d-flex flex-wrap gap-2">
               <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">Notifications</a>
               <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_home' %}">Knowledge base</a>
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:my_delegations' %}">Out of Office / Delegation</a>
               {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'IT_ADMIN' %}
                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:backend_dashboard' %}">Backend Console</a>
               {% endif %}
