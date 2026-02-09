@@ -12,6 +12,12 @@ From project root:
 powershell -ExecutionPolicy Bypass -File scripts/release/final_test_gate.ps1
 ```
 
+Or from Git Bash:
+
+```bash
+./scripts/release/final_test_gate.sh
+```
+
 ## What It Enforces
 1. `python manage.py check`
 2. `python manage.py makemigrations --check --dry-run`

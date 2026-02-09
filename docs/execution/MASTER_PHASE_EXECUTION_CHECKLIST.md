@@ -186,6 +186,7 @@ This checklist is the execution contract for the approved plan:
   - Verify migrations/static/deploy commands.
 - File edits:
   - `docs/execution/FINAL_TEST_GATE.md`
+  - `scripts/release/final_test_gate.sh`
   - optional test runner scripts under `scripts/release/`
 - Verification:
   - final test suite selected for touched scope.
