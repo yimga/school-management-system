@@ -9,6 +9,9 @@ Minimize release risk by creating rollback points, validating migration safety, 
 1. Confirm final gate passes:
    - `powershell -ExecutionPolicy Bypass -File scripts/release/final_test_gate.ps1`
    - `./scripts/release/final_test_gate.sh`
+   - Standalone parity check:
+   - `powershell -ExecutionPolicy Bypass -File scripts/release/check_ui_parity.ps1 -ConfigPath fixtures/ui_config.json`
+   - `./scripts/release/check_ui_parity.sh fixtures/ui_config.json`
 2. Run release dry-run:
    - `powershell -ExecutionPolicy Bypass -File scripts/release/release_hardening_dry_run.ps1`
    - `./scripts/release/release_hardening_dry_run.sh`

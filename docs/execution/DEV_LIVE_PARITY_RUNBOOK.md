@@ -17,7 +17,9 @@ Keep local development UI and Render production UI consistent for theme, layout,
    - PowerShell fallback: `powershell -ExecutionPolicy Bypass -File scripts/release/sync_ui_config.ps1 -Mode roundtrip`
 4. Seed curated admin packs:
    - `python manage.py seed_admin_dashboard_palettes`
-5. Start local server:
+5. Verify fixture parity against DB:
+   - `python manage.py check_ui_parity --input-file fixtures/ui_config.json --strict`
+6. Start local server:
    - `python manage.py runserver`
 
 ## Standard Render predeploy workflow
@@ -47,6 +49,8 @@ Render predeploy command should include:
   - `echo $RENDER_GIT_COMMIT`
 - Check active theme IDs and key colors:
   - `python manage.py shell -c "from apps.siteconfig.models import SiteSettings; s=SiteSettings.get_solo(); print(s.theme_pack_id, s.admin_theme_pack_id, s.primary_color, s.accent_color)"`
+- Run strict parity command against deployed fixture:
+  - `python manage.py check_ui_parity --input-file fixtures/ui_config.json --strict`
 - Verify Theme studio renders expected catalog and active badge states.
 
 ## Common mismatch causes

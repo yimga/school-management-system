@@ -18,6 +18,9 @@ Invoke-StrictCommand -CommandParts @("python", "manage.py", "check")
 Write-Host "[Phase 15] Verifying migrations are in sync..."
 Invoke-StrictCommand -CommandParts @("python", "manage.py", "makemigrations", "--check", "--dry-run")
 
+Write-Host "[Phase 15] Verifying UI parity fixture matches DB..."
+Invoke-StrictCommand -CommandParts @("python", "manage.py", "check_ui_parity", "--input-file", "fixtures/ui_config.json", "--strict")
+
 $testModules = @(
   "apps.portal.tests.test_generate_kb_odt_command",
   "apps.siteconfig.tests.test_theme_studio",

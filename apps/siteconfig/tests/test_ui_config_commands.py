@@ -1,5 +1,6 @@
 import tempfile
 from pathlib import Path
+from io import StringIO
 
 from django.core.management import CommandError, call_command
 from django.test import TestCase
@@ -46,3 +47,21 @@ class UIConfigCommandTests(TestCase):
             [{"model": "siteconfig.sitesettings", "fields": {"compliance_profile": 321}}]
         )
         self.assertTrue(ComplianceProfile.objects.filter(pk=321).exists())
+
+    def test_check_ui_parity_passes_for_fresh_export(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "ui_export.json"
+            call_command("export_ui_config", "--output", str(output))
+            stdout = StringIO()
+            call_command("check_ui_parity", "--input-file", str(output), "--strict", stdout=stdout)
+            self.assertIn("UI parity check passed", stdout.getvalue())
+
+    def test_check_ui_parity_strict_detects_drift(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "ui_export.json"
+            call_command("export_ui_config", "--output", str(output))
+            site = SiteSettings.objects.order_by("pk").first()
+            site.primary_color = "#ffffff"
+            site.save(update_fields=["primary_color"])
+            with self.assertRaises(CommandError):
+                call_command("check_ui_parity", "--input-file", str(output), "--strict")

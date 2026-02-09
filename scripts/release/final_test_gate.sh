@@ -26,6 +26,9 @@ run_cmd "${PYTHON_BIN}" manage.py check
 echo "[Phase 15] Verifying migrations are in sync..."
 run_cmd "${PYTHON_BIN}" manage.py makemigrations --check --dry-run
 
+echo "[Phase 15] Verifying UI parity fixture matches DB..."
+run_cmd "${PYTHON_BIN}" manage.py check_ui_parity --input-file fixtures/ui_config.json --strict
+
 test_modules=(
   "apps.portal.tests.test_generate_kb_odt_command"
   "apps.siteconfig.tests.test_theme_studio"
