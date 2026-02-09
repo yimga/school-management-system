@@ -74,12 +74,24 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertContains(response, "report-builder-workflow")
         self.assertContains(response, "builder-live-style-badge")
         self.assertContains(response, "builder-draft-state")
+        self.assertContains(response, "builderStyleFilter")
+        self.assertContains(response, "builderStyleFilterEmpty")
+        self.assertContains(response, "Assigned")
+        self.assertContains(response, "builderStylesList")
         self.assertContains(response, "live-report-preview")
         self.assertContains(response, "reportPreviewFallback")
         self.assertContains(response, "reportPreviewRetryButton")
         self.assertEqual(response.context["total_classroom_count"], 2)
         self.assertEqual(response.context["assigned_classroom_count"], 1)
         self.assertEqual(response.context["unassigned_classroom_count"], 1)
+
+    def test_live_preview_script_tracks_html_and_pdf_urls_separately(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "latestPreviewUrl")
+        self.assertContains(response, "latestPdfUrl")
+        self.assertContains(response, "frame.src = latestPreviewUrl")
+        self.assertContains(response, "fallbackOpenTab.href = latestPdfUrl")
 
     def test_builder_can_create_style_from_workflow_form(self):
         response = self.client.post(

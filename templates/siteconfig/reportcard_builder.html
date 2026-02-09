@@ -59,10 +59,17 @@
           <div class="tab-content" id="builderTabContent">
             <div class="tab-pane fade show active" id="styles-pane" role="tabpanel" aria-labelledby="styles-tab" tabindex="0">
               {% if styles %}
-                <div class="builder-scroll-panel d-grid gap-2">
+                <div class="mb-2">
+                  <label for="builderStyleFilter" class="form-label small mb-1">{% trans "Filter styles" %}</label>
+                  <input id="builderStyleFilter" type="search" class="form-control form-control-sm" placeholder="{% trans 'Search by name, slug, or description' %}">
+                </div>
+                <div id="builderStylesList" class="builder-scroll-panel d-grid gap-2">
                   {% for style in styles %}
                     <article class="border rounded-3 p-3 js-style-card {% if settings.default_term_report_style_id == style.id or settings.default_annual_report_style_id == style.id %}border-primary-subtle{% endif %}"
-                             data-style-slug="{{ style.slug }}">
+                             data-style-slug="{{ style.slug }}"
+                             data-style-name="{{ style.name|lower }}"
+                             data-style-slug-text="{{ style.slug|lower }}"
+                             data-style-description="{{ style.description|default:''|lower }}">
                       <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
                         <div>
                           <div class="fw-semibold">{{ style.name }}</div>
@@ -80,6 +87,7 @@
                           {% if settings.default_annual_report_style_id == style.id %}
                             <span class="badge text-bg-primary">{% trans "Default annual" %}</span>
                           {% endif %}
+                          <span class="badge text-bg-light border">{% trans "Assigned" %}: {{ style.assignment_count }}</span>
                         </div>
                       </div>
 
@@ -93,6 +101,7 @@
                     </article>
                   {% endfor %}
                 </div>
+                <p id="builderStyleFilterEmpty" class="small text-muted mt-2 d-none">{% trans "No styles match this filter." %}</p>
               {% else %}
                 <p class="text-muted mb-0">{% trans "No styles yet. Create one in the workflow tab." %}</p>
               {% endif %}
@@ -232,6 +241,8 @@
       var draftBadge = document.getElementById("builder-draft-state");
       var liveStyleBadge = document.getElementById("builder-live-style-badge");
       var styleCards = document.querySelectorAll(".js-style-card");
+      var styleFilter = document.getElementById("builderStyleFilter");
+      var styleFilterEmpty = document.getElementById("builderStyleFilterEmpty");
       var dirty = false;
 
       function setDraftState(isDirty) {
@@ -262,6 +273,29 @@
           card.classList.toggle("border-primary", active);
           card.classList.toggle("border-2", active);
         });
+      }
+
+      function applyStyleFilter() {
+        if (!styleFilter) {
+          return;
+        }
+        var query = (styleFilter.value || "").trim().toLowerCase();
+        var visibleCount = 0;
+        styleCards.forEach(function (card) {
+          var haystack = [
+            card.dataset.styleName || "",
+            card.dataset.styleSlugText || "",
+            card.dataset.styleDescription || "",
+          ].join(" ");
+          var matches = !query || haystack.indexOf(query) !== -1;
+          card.classList.toggle("d-none", !matches);
+          if (matches) {
+            visibleCount += 1;
+          }
+        });
+        if (styleFilterEmpty) {
+          styleFilterEmpty.classList.toggle("d-none", visibleCount > 0);
+        }
       }
 
       document.querySelectorAll(".js-load-live-preview").forEach(function (button) {
@@ -301,7 +335,13 @@
         event.returnValue = "";
       });
 
+      if (styleFilter) {
+        styleFilter.addEventListener("input", applyStyleFilter);
+        styleFilter.addEventListener("change", applyStyleFilter);
+      }
+
       updateLiveStyle("{{ preview_default_style_slug|escapejs }}");
+      applyStyleFilter();
       setDraftState(false);
     });
   </script>

@@ -113,7 +113,8 @@
     var fallbackOpenTab = document.getElementById("reportPreviewFallbackOpenTab");
     var retryButton = document.getElementById("reportPreviewRetryButton");
     var loadTimeout = null;
-    var latestUrl = "";
+    var latestPreviewUrl = "";
+    var latestPdfUrl = "";
 
     if (!styleSelect || !typeSelect || !frame || !openTab || !shell) {
       return;
@@ -163,8 +164,8 @@
         return;
       }
       fallback.hidden = !show;
-      if (show && fallbackOpenTab && latestUrl) {
-        fallbackOpenTab.href = latestUrl;
+      if (show && fallbackOpenTab && latestPdfUrl) {
+        fallbackOpenTab.href = latestPdfUrl;
       }
     }
 
@@ -194,9 +195,8 @@
       }
       var reportType = typeSelect.value || "term";
       var studentId = studentSelect ? studentSelect.value : "";
-      var url = buildPreviewUrl(styleSlug, reportType, studentId);
-      var pdfUrl = buildPdfUrl(styleSlug, reportType, studentId);
-      latestUrl = pdfUrl;
+      latestPreviewUrl = buildPreviewUrl(styleSlug, reportType, studentId);
+      latestPdfUrl = buildPdfUrl(styleSlug, reportType, studentId);
       setLoading(true);
       showFallback(false);
       clearLoadTimeout();
@@ -204,11 +204,11 @@
         setLoading(false);
         showFallback(true);
       }, 12000);
-      frame.src = url;
-      openTab.href = pdfUrl;
+      frame.src = latestPreviewUrl;
+      openTab.href = latestPdfUrl;
       openTab.textContent = reportType === "annual" ? "{% trans 'Open annual PDF' %}" : "{% trans 'Open term PDF' %}";
       if (fallbackOpenTab) {
-        fallbackOpenTab.href = pdfUrl;
+        fallbackOpenTab.href = latestPdfUrl;
       }
     }
 
@@ -233,8 +233,8 @@
     if (retryButton) {
       retryButton.addEventListener("click", function () {
         setLoading(false);
-        if (latestUrl) {
-          frame.src = latestUrl;
+        if (latestPreviewUrl) {
+          frame.src = latestPreviewUrl;
           setLoading(true);
           showFallback(false);
           clearLoadTimeout();

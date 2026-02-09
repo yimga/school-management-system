@@ -228,6 +228,16 @@ def customizer(request):
 def reportcard_builder(request):
     settings_obj = SiteSettings.get_solo()
     styles = list(ReportCardStyle.objects.order_by("name"))
+    style_assignment_counts = {
+        row["style_id"]: row["total"]
+        for row in (
+            ReportCardStyleAssignment.objects.values("style_id")
+            .annotate(total=Count("classroom_id"))
+            .order_by()
+        )
+    }
+    for style in styles:
+        style.assignment_count = style_assignment_counts.get(style.id, 0)
     assignments = list(
         ReportCardStyleAssignment.objects
         .select_related("classroom", "style")
