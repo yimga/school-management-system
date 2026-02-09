@@ -1,5 +1,5 @@
-# Render Blueprint: Web Service + PostgreSQL
-# Set DATABASE_URL in Dashboard → Environment (Internal DB URL from your Postgres).
+# Render Blueprint: Web Service + PostgreSQL + Redis + Celery Worker + Beat
+# Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Dashboard for real SMTP (delegate/summary emails).
 services:
   - type: web
     name: school-management-system
@@ -9,6 +9,10 @@ services:
     preDeployCommand: ".venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py seed_admin_dashboard_palettes && if [ \"${APPLY_UI_FIXTURE_ON_DEPLOY:-1}\" = \"1\" ] && [ -f fixtures/ui_config.json ]; then .venv/bin/python manage.py import_ui_config fixtures/ui_config.json; fi && .venv/bin/python manage.py normalize_ui_config"
     startCommand: ".venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: school-management-db
+          property: connectionString
       - key: DEBUG
         value: "0"
       - key: PYTHON_VERSION
@@ -29,6 +33,19 @@ services:
           type: redis
           name: school-management-redis
           property: connectionString
+      # Email (delegate notifications, delegation summary on return). Set in Dashboard if sending real email.
+      - key: EMAIL_BACKEND
+        value: "django.core.mail.backends.smtp.EmailBackend"
+      - key: EMAIL_HOST
+        value: "smtp.gmail.com"
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: DEFAULT_FROM_EMAIL
+        value: "noreply@gileadschool.com"
+      # Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Dashboard (secrets) for real SMTP.
+
   - type: worker
     name: school-management-system-worker
     env: python
