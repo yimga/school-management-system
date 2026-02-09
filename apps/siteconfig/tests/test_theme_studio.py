@@ -14,8 +14,8 @@ from django.urls import reverse
 from apps.accounts.models import Permission
 from config.admin import admin_site
 from apps.siteconfig.context_processors import site_settings
-from apps.siteconfig.forms import ThemeColorsForm
-from apps.siteconfig.models import SiteSettings, ThemePack
+from apps.siteconfig.forms import THEME_PUBLISH_GUARDED_FIELDS, ThemeColorsForm
+from apps.siteconfig.models import ReportCardStyle, SiteSettings, ThemePack
 from apps.siteconfig.admin import ThemePackAdmin
 
 
@@ -192,6 +192,51 @@ class ThemeStudioAccessTests(TestCase):
         self.assertContains(response, "theme-last-change-audit")
 
         self.assertContains(response, "theme-last-change-audit")
+
+    def test_theme_studio_blocks_report_style_default_change_without_preview_confirmation(self):
+        style_a = ReportCardStyle.objects.create(
+            slug="report-style-a-theme-guard",
+            name="Report Style A",
+            term_template="reports/term_report_cameroon_modern.html",
+            annual_template="reports/annual_report_cameroon_modern.html",
+            primary_color="#0d173b",
+            accent_color="#007bff",
+            is_active=True,
+        )
+        style_b = ReportCardStyle.objects.create(
+            slug="report-style-b-theme-guard",
+            name="Report Style B",
+            term_template="reports/term_report_cameroon_modern.html",
+            annual_template="reports/annual_report_cameroon_modern.html",
+            primary_color="#2d4739",
+            accent_color="#76a665",
+            is_active=True,
+        )
+        site = SiteSettings.get_solo()
+        site.default_term_report_style = style_a
+        site.save(update_fields=["default_term_report_style"])
+
+        self.client.login(username="theme-manager", password="password")
+        payload = self._theme_form_payload(
+            default_term_report_style=str(style_b.id),
+            primary_color="#0d173b",
+            accent_color="#007bff",
+            header_bg_color="#0d173b",
+            footer_bg_color="#0f172a",
+            success_color="#22c55e",
+            warning_color="#fbbf24",
+            danger_color="#ef4444",
+        )
+        response = self.client.post(self.url, payload, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        site.refresh_from_db()
+        self.assertEqual(site.default_term_report_style_id, style_a.id)
+        self.assertContains(response, "Live preview confirmation is required")
+
+    def test_theme_publish_guarded_fields_include_report_style_defaults(self):
+        self.assertIn("default_term_report_style", THEME_PUBLISH_GUARDED_FIELDS)
+        self.assertIn("default_annual_report_style", THEME_PUBLISH_GUARDED_FIELDS)
 
     def test_theme_studio_catalog_uses_compact_scroll_region(self):
         self.client.login(username="theme-manager", password="password")

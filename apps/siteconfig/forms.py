@@ -68,6 +68,9 @@ THEME_PUBLISH_GUARDED_FIELDS = frozenset(
         "backend_console_theme",
         "use_dark_mode",
         "admin_use_site_primary",
+        # Report-output impacting controls should also require explicit live-preview confirmation.
+        "default_term_report_style",
+        "default_annual_report_style",
     }
 )
 
