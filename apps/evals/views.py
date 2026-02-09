@@ -666,6 +666,56 @@ def teacher_dashboard(request: HttpRequest):
         ).order_by("-created_at")[:5]
     )
 
+    # Teacher dashboard: syllabus status per assignment, workflow counts, proxy/certification badges
+    from apps.academics.models import CourseSyllabus
+    from apps.accounts.delegation import (
+        get_active_delegation_for_delegate,
+        get_effective_approvers,
+        WORKFLOW_SYLLABUS_APPROVAL,
+    )
+    from apps.accounts.models import Delegation
+
+    sa_ids = [a.subject_assignment_id for a in assignments]
+    syllabi_by_sa = {
+        s.subject_assignment_id: s
+        for s in CourseSyllabus.objects.filter(subject_assignment_id__in=sa_ids)
+    }
+    assignment_syllabus_statuses = []
+    syllabus_pending_count = 0
+    for a in assignments:
+        prog = progress.get(a.id, {})
+        student_count = prog.get("total", 0)
+        syllabus = syllabi_by_sa.get(a.subject_assignment_id)
+        if syllabus:
+            status_slug = syllabus.status.lower()
+            status_label = syllabus.get_status_display()
+            if syllabus.status == CourseSyllabus.Status.PENDING:
+                syllabus_pending_count += 1
+        else:
+            status_slug = "draft"
+            status_label = "Draft"
+        assignment_syllabus_statuses.append({
+            "assignment": a,
+            "student_count": student_count,
+            "status_slug": status_slug,
+            "status_label": status_label,
+        })
+    active_delegations_count = Delegation.objects.filter(
+        delegator=request.user, is_active=True
+    ).count()
+    syllabus_approvers = get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL)
+    can_approve_syllabus = request.user.pk in [u.pk for u in syllabus_approvers]
+    acting_delegation = get_active_delegation_for_delegate(request.user)
+    if acting_delegation:
+        delegator_role = getattr(acting_delegation.delegator, "role", "") or "User"
+        acting_role_label = delegator_role.replace("_", " ").title()
+    else:
+        acting_role_label = None
+    certification_badge = None
+    if certification_stats and certification_stats.get("verified_candidates", 0) > 0:
+        certification_badge = "CBA Certified"
+    items_requiring_review = widget_data.get("tasks", {}).get("pending_evaluations", 0) + syllabus_pending_count
+
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -698,6 +748,14 @@ def teacher_dashboard(request: HttpRequest):
         "curriculum_map": curriculum_map,
         "dashboard_events": dashboard_events,
         "syllabus_items": syllabus_items,
+        "assignment_syllabus_statuses": assignment_syllabus_statuses,
+        "syllabus_pending_count": syllabus_pending_count,
+        "active_delegations_count": active_delegations_count,
+        "acting_delegation": acting_delegation,
+        "acting_role_label": acting_role_label,
+        "can_approve_syllabus": can_approve_syllabus,
+        "certification_badge": certification_badge,
+        "items_requiring_review": items_requiring_review,
     })
 
 
