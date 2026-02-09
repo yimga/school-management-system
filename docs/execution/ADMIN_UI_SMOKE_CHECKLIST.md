@@ -8,6 +8,7 @@ Ensure `/admin` navigation (sidebar + header actions) is reliable, and keep `/ad
 ## Automated Checks
 - `apps/siteconfig/tests/test_admin_ui_smoke.py`
   - Verifies quick-access links used in admin sidebar are resolvable (not 404/500).
+  - Verifies sidebar child links rendered from app/model groups are resolvable (not 404/500).
   - Verifies admin header bridge shows `Back to Backend`.
   - Verifies settings managers (non-superuser) still receive configuration quick-access links.
 
