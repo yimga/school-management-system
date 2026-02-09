@@ -7,6 +7,7 @@ from django.contrib.auth.views import redirect_to_login
 from collections import Counter
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django import forms
 import uuid
@@ -64,7 +65,13 @@ from apps.analytics.services import (
     subject_weaknesses,
     term_rankings,
 )
-from .models import PortalFeatureItem, PendingGuardianInvite
+from .models import (
+    PortalFeatureItem,
+    PendingGuardianInvite,
+    LessonPlan,
+    TeacherTrainingEntry,
+    AttendanceJustification,
+)
 from .services import (
     parent_dashboard_widget_data,
     award_referral_reward,
@@ -75,7 +82,16 @@ from .services import (
     class_threads_for_parent,
     parent_onboarding_score,
 )
-from .forms import LinkChildForm, ClaimInviteForm, TeacherLeaveForm, TeacherOnboardingForm, StudentOnboardingForm
+from .forms import (
+    LinkChildForm,
+    ClaimInviteForm,
+    TeacherLeaveForm,
+    TeacherOnboardingForm,
+    StudentOnboardingForm,
+    LessonPlanUploadForm,
+    TeacherTrainingEntryForm,
+    AttendanceJustificationForm,
+)
 from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wizard
 from apps.communication.models import Message
 from django.views.decorators.http import require_POST
@@ -204,6 +220,21 @@ def parent_dashboard(request: HttpRequest):
     fin_map = {row.get("student_id"): row for row in widget_data.get("finance", {}).get("per_student", [])}
 
     onboarding = parent_onboarding_score(request.user, students)
+    # Phase 3: Student 360 – resource return pending count per student
+    from django.db.models import Count
+    from apps.people.models import StudentResourceReturn
+    student_ids = [s.id for s in students] if students else []
+    year, _term = get_active_year_and_term()
+    resource_pending_map = {}
+    if year and student_ids:
+        for row in (
+            StudentResourceReturn.objects.filter(
+                student_id__in=student_ids,
+                academic_year=year,
+                returned_at__isnull=True,
+            ).values("student_id").annotate(cnt=Count("id"))
+        ):
+            resource_pending_map[row["student_id"]] = row["cnt"]
     child_cards = []
     for link in links:
         student_id = link.student.id
@@ -218,6 +249,7 @@ def parent_dashboard(request: HttpRequest):
             "finance_total": fin.get("total_due"),
             "finance_paid": fin.get("paid"),
             "finance_balance": fin.get("balance"),
+            "resource_pending": resource_pending_map.get(student_id, 0),
         })
     
     preference = getattr(request.user, "preferences", None)
@@ -373,6 +405,9 @@ def parent_dashboard(request: HttpRequest):
         return redirect("portal:parent_dashboard")
     show_parent_dashboard_hint = not links and not request.session.get("hint_parent_link_child_dismissed")
 
+    finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
+    has_fees_due = can_view_finance and (finance_balance > 0)
+
     return render(request, "parent/dashboard.html", {
         "links": links,
         "show_parent_dashboard_hint": show_parent_dashboard_hint,
@@ -395,6 +430,7 @@ def parent_dashboard(request: HttpRequest):
         "class_announcements": class_announcements,
         "class_threads": class_threads,
         "attendance_pct": attendance_pct,
+        "has_fees_due": has_fees_due,
         "finance_paid_pct": finance_paid_pct,
         "finance_total": finance_total,
         "finance_paid": finance_paid,
@@ -772,6 +808,22 @@ def portal_syllabus(request: HttpRequest):
     })
 
 
+@parent_portal_required
+def parent_medal_case(request: HttpRequest):
+    """Digital medal case: badges earned by each linked student."""
+    from apps.people.models import Badge
+    students = list(guardian_students(request.user))
+    student_badges = []
+    for s in students:
+        badges = list(
+            Badge.objects.filter(student=s).select_related("badge_type").order_by("-issued_at")
+        )
+        student_badges.append((s, badges))
+    return render(request, "parent/medal_case.html", {
+        "student_badges": student_badges,
+    })
+
+
 @role_required(User.Role.ADMIN)
 def preview_student_syllabus(request: HttpRequest):
     synthetic_items = [
@@ -939,8 +991,9 @@ def teacher_workflow_alias(request: HttpRequest):
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_pay_history(request: HttpRequest):
-    profile = getattr(request.user, "teacher_profile", None)
-    if not profile:
+    # RBAC: only the logged-in teacher's pay history (strict data isolation)
+    profile = TeacherProfile.objects.filter(user=request.user).first()
+    if not profile or profile.user_id != request.user.id:
         messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
         return redirect("evals:teacher_dashboard")
 
@@ -1029,8 +1082,9 @@ def _compute_attendance_streak(logs):
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_leave(request: HttpRequest):
-    profile = getattr(request.user, "teacher_profile", None)
-    if not profile:
+    # RBAC: only the logged-in teacher's leave requests (strict data isolation)
+    profile = TeacherProfile.objects.filter(user=request.user).first()
+    if not profile or profile.user_id != request.user.id:
         messages.error(request, "No teacher profile found. Ask an admin to complete your profile.")
         return redirect("evals:teacher_dashboard")
 
@@ -1158,6 +1212,117 @@ def teacher_timetable(request: HttpRequest):
             "term": term,
         },
     )
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_lesson_notes(request: HttpRequest):
+    """Lesson notes upload and list. RBAC: current teacher only."""
+    profile = TeacherProfile.objects.filter(user=request.user).first()
+    if not profile:
+        messages.error(request, "No teacher profile found.")
+        return redirect("portal:teacher_dashboard_alias")
+    plans = LessonPlan.objects.filter(teacher=profile).order_by("-week_start_date")[:50]
+    form = LessonPlanUploadForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        obj = form.save(commit=False)
+        obj.teacher = profile
+        obj.save()
+        messages.success(request, "Lesson plan uploaded.")
+        return redirect("portal:teacher_lesson_notes")
+    hero = {"title": "Lesson Notes", "subtitle": "Upload weekly lesson plans (PDF)", "actions": []}
+    return render(request, "teacher/lesson_notes.html", {"hero": hero, "plans": plans, "form": form})
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_hr_status(request: HttpRequest):
+    """HR & Status: employment details and attestation. RBAC: current teacher only."""
+    profile = TeacherProfile.objects.filter(user=request.user).first()
+    if not profile:
+        messages.error(request, "No teacher profile found.")
+        return redirect("portal:teacher_dashboard_alias")
+    attestation_valid = getattr(profile, "attestation_valid", None)
+    if attestation_valid is None:
+        attestation_valid = True
+    hero = {"title": "HR & Status", "subtitle": "Employment and attestation", "actions": []}
+    return render(request, "teacher/hr_status.html", {
+        "hero": hero,
+        "teacher_profile": profile,
+        "attestation_valid": attestation_valid,
+    })
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_disciplinary(request: HttpRequest):
+    """Disciplinary portal: refer incidents to discipline master. RBAC: teacher only."""
+    profile = TeacherProfile.objects.filter(user=request.user).first()
+    if not profile:
+        messages.error(request, "No teacher profile found.")
+        return redirect("portal:teacher_dashboard_alias")
+    hero = {"title": "Disciplinary", "subtitle": "Refer incidents to the Discipline Master", "actions": []}
+    return render(request, "teacher/disciplinary.html", {"hero": hero, "teacher_profile": profile})
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_training_log(request: HttpRequest):
+    """Training log: in-service / professional development. RBAC: current teacher only."""
+    profile = TeacherProfile.objects.filter(user=request.user).first()
+    if not profile:
+        messages.error(request, "No teacher profile found.")
+        return redirect("portal:teacher_dashboard_alias")
+    entries = TeacherTrainingEntry.objects.filter(teacher=profile).order_by("-date")[:50]
+    form = TeacherTrainingEntryForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        obj = form.save(commit=False)
+        obj.teacher = profile
+        obj.save()
+        messages.success(request, "Training entry added.")
+        return redirect("portal:teacher_training_log")
+    hero = {"title": "Training Log", "subtitle": "In-service training and professional development", "actions": []}
+    return render(request, "teacher/training_log.html", {"hero": hero, "entries": entries, "form": form})
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_attendance_discipline(request: HttpRequest):
+    """Attendance & Discipline: list absences/tardies and submit justification. RBAC: linked children only."""
+    from apps.academics.models import Attendance
+    links = guardian_student_links(request.user, results_only=False)
+    student_ids = [link.student_id for link in links]
+    absences = []
+    if student_ids:
+        absences = list(
+            Attendance.objects.filter(
+                student_id__in=student_ids,
+                status__in=[Attendance.Status.ABSENT, Attendance.Status.LATE],
+            )
+            .select_related("student", "classroom")
+            .order_by("-date")[:100]
+        )
+    justifications = AttendanceJustification.objects.filter(guardian=request.user).select_related("student").order_by("-attendance_date")[:50]
+    form = AttendanceJustificationForm(request.POST or None, request.FILES or None)
+    form.fields["student"].queryset = StudentProfile.objects.filter(id__in=student_ids)
+    form.fields["student"].required = True
+    if request.method == "POST" and form.is_valid():
+        obj = form.save(commit=False)
+        obj.guardian = request.user
+        obj.student = form.cleaned_data["student"]
+        if obj.student_id not in student_ids:
+            return HttpResponseForbidden("You can only submit for your linked children.")
+        obj.save()
+        messages.success(request, "Justification submitted.")
+        return redirect("portal:parent_attendance_discipline")
+    hero = {"title": "Attendance & Discipline", "subtitle": "View absences and submit justifications", "actions": []}
+    return render(request, "parent/attendance_discipline.html", {
+        "hero": hero,
+        "absences": absences,
+        "justifications": justifications,
+        "form": form,
+        "children": [link.student for link in links],
+    })
 
 
 @parent_portal_required

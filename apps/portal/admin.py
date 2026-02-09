@@ -1,13 +1,20 @@
 from django.contrib import admin
 from config.admin import admin_site
 
-from .models import PortalFeatureItem, PendingGuardianInvite, Announcement, FormSignature
+from .models import DocumentCategory, Event, PortalFeatureItem, PendingGuardianInvite, Announcement, FormSignature
 from .models_kb import FAQCategory, FAQ, KBCategory, KBArticle, KBArticleAttachment, KBComment, UserContribution
 
 
+class DocumentCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "parent", "order", "is_active")
+    list_filter = ("is_active",)
+    prepopulated_fields = {"slug": ("name",)}
+    ordering = ("order", "name")
+
+
 class PortalFeatureItemAdmin(admin.ModelAdmin):
-    list_display = ("title", "feature", "is_active", "created_by", "created_at")
-    list_filter = ("feature", "is_active")
+    list_display = ("title", "feature", "category", "is_active", "created_by", "created_at")
+    list_filter = ("feature", "category", "is_active")
     search_fields = ("title", "description")
     ordering = ("-created_at",)
     autocomplete_fields = ("created_by",)
@@ -58,8 +65,17 @@ class AnnouncementAdmin(admin.ModelAdmin):
     change_form_template = "admin/portal/announcement/change_form.html"
 
 
+class EventAdmin(admin.ModelAdmin):
+    list_display = ("title", "start_at", "end_at", "location", "is_public", "created_at")
+    list_filter = ("is_public",)
+    search_fields = ("title", "description")
+    ordering = ("-start_at",)
+
+
 # Register all models with custom admin site
+admin_site.register(DocumentCategory, DocumentCategoryAdmin)
 admin_site.register(PortalFeatureItem, PortalFeatureItemAdmin)
+admin_site.register(Event, EventAdmin)
 admin_site.register(PendingGuardianInvite, PendingGuardianInviteAdmin)
 admin_site.register(Announcement, AnnouncementAdmin)
 

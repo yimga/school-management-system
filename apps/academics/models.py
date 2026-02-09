@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.core.exceptions import ValidationError
@@ -637,3 +638,103 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student} – {self.date} – {self.get_status_display()}"
+
+
+class CourseSyllabus(models.Model):
+    """
+    One syllabus per SubjectAssignment (class + subject + term/year).
+    Teacher is determined via TeacherAssignment; approvers use get_effective_approvers(syllabus_approval).
+    """
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        PENDING = "PENDING", "Pending approval"
+        NEEDS_REVISION = "NEEDS_REVISION", "Needs revision"
+        APPROVED = "APPROVED", "Approved"
+
+    subject_assignment = models.OneToOneField(
+        SubjectAssignment,
+        on_delete=models.CASCADE,
+        related_name="course_syllabus",
+        unique=True,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT,
+    )
+    builder_data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Structured data from the syllabus builder (e.g. CBA sections).",
+    )
+    uploaded_file = models.FileField(
+        upload_to="syllabi/%Y/%m/",
+        null=True,
+        blank=True,
+        help_text="Optional uploaded PDF/Word instead of or in addition to builder data.",
+    )
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_syllabi",
+    )
+    reviewer_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_syllabi",
+    )
+    portal_item = models.OneToOneField(
+        "portal.PortalFeatureItem",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="course_syllabus",
+        help_text="Synced to Document Library / syllabus feature on approval.",
+    )
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = "Course syllabus"
+        verbose_name_plural = "Course syllabi"
+
+    def __str__(self):
+        return f"{self.subject_assignment} – {self.get_status_display()}"
+
+
+class ClassBooklist(models.Model):
+    """Booklist per class (academic year; optional term). Configurable list of required books."""
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="class_booklists")
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name="booklists")
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="class_booklists",
+        help_text="Optional: leave blank for full-year list.",
+    )
+    items = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of {title, author, isbn, notes} or similar.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["classroom__name", "term__position"]
+        verbose_name = "Class booklist"
+        verbose_name_plural = "Class booklists"
+        unique_together = [("academic_year", "classroom", "term")]
+
+    def __str__(self):
+        return f"{self.classroom.name} ({self.academic_year.name})"

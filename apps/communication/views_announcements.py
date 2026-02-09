@@ -74,17 +74,37 @@ def announcement_detail(request: HttpRequest, announcement_id: int):
     })
 
 
+def _can_create_department_announcement(user) -> bool:
+    """Only HOD and leadership (and admin) can create department announcements; other teachers only get notified."""
+    if user.is_staff or user.is_superuser:
+        return True
+    role = getattr(user, "role", None)
+    return role in (
+        User.Role.HOD,
+        User.Role.LEADERSHIP,
+        User.Role.ADMIN,
+        User.Role.PRINCIPAL,
+        User.Role.VICE_PRINCIPAL,
+    )
+
+
 @login_required
-@role_required(User.Role.TEACHER, User.Role.ADMIN, User.Role.LEADERSHIP, User.Role.DEPT_LEAD, User.Role.HOD)
 def department_announcement_create(request: HttpRequest):
-    """Create a department-specific announcement."""
+    """Create a department-specific announcement. Only HOD and leadership can create; other teachers see list/feed only."""
     user = request.user
-    
+    if not _can_create_department_announcement(user):
+        return HttpResponseForbidden(
+            "Only Heads of Department and leadership can create department announcements. You can view and receive them."
+        )
+
     # Get user's department
     user_department = None
-    if hasattr(user, 'teacher_profile') and user.teacher_profile.department:
-        user_department = user.teacher_profile.department
-    
+    try:
+        if hasattr(user, "teacher_profile") and user.teacher_profile and getattr(user.teacher_profile, "department", None):
+            user_department = user.teacher_profile.department
+    except TeacherProfile.DoesNotExist:
+        pass
+
     if not user_department and not user.is_staff:
         return HttpResponseForbidden("You must be assigned to a department to create department announcements.")
     

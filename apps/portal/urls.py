@@ -3,7 +3,9 @@ from django.urls import path
 from .views import (
     parent_dashboard,
     parent_workflow_center,
+    parent_medal_case,
     parent_child_results,
+    parent_attendance_discipline,
     portal_feature_page,
     portal_stats,
     parent_finance,
@@ -17,6 +19,10 @@ from .views import (
     teacher_leave,
     teacher_attendance_export,
     teacher_timetable,
+    teacher_lesson_notes,
+    teacher_hr_status,
+    teacher_disciplinary,
+    teacher_training_log,
     student_portal_grades,
     admissions_application_status,
     portal_syllabus,
@@ -66,6 +72,7 @@ urlpatterns = [
     path("parent/claim-invite/<str:token>/", claim_invite, name="claim_invite_token"),
     path("parent/finance/", parent_finance, name="parent_finance"),
     path("parent/contact-school/", parent_contact_school, name="parent_contact_school"),
+    path("parent/medal-case/", parent_medal_case, name="parent_medal_case"),
     path("support/", support_request, name="support_request"),
     # Backwards compatibility: older templates and tests expect 'parent_performance'
     path("parent/performance/", parent_child_results, name="parent_performance"),
@@ -84,6 +91,11 @@ urlpatterns = [
     path("teacher/pay-history/", teacher_pay_history, name="teacher_pay_history"),
     path("teacher/leave/", teacher_leave, name="teacher_leave"),
     path("teacher/timetable/", teacher_timetable, name="teacher_timetable"),
+    path("teacher/lesson-notes/", teacher_lesson_notes, name="teacher_lesson_notes"),
+    path("teacher/hr-status/", teacher_hr_status, name="teacher_hr_status"),
+    path("teacher/disciplinary/", teacher_disciplinary, name="teacher_disciplinary"),
+    path("teacher/training-log/", teacher_training_log, name="teacher_training_log"),
+    path("parent/attendance-discipline/", parent_attendance_discipline, name="parent_attendance_discipline"),
     
     # Student onboarding
     path("student/onboarding/", student_onboarding_wizard, name="student_onboarding"),

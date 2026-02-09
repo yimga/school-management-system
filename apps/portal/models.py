@@ -9,6 +9,29 @@ import os
 from apps.accounts.validators import validate_document_file, validate_file_size_10mb
 
 
+class DocumentCategory(models.Model):
+    """Configurable folder/category for Document Library (e.g. Essential Student Records, Administrative, Pedagogical)."""
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=80, unique=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+    )
+    order = models.PositiveSmallIntegerField(default=0, help_text="Display order within same level.")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["order", "name"]
+        verbose_name = "Document category"
+        verbose_name_plural = "Document categories"
+
+    def __str__(self):
+        return self.name
+
+
 class PortalFeatureItem(models.Model):
     class Feature(models.TextChoices):
         MESSAGING = "messaging", "Messaging"
@@ -49,6 +72,14 @@ class PortalFeatureItem(models.Model):
         help_text="If checked, this form requires electronic signature from parents/students"
     )
     is_active = models.BooleanField(default=True)
+    category = models.ForeignKey(
+        DocumentCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="documents",
+        help_text="Optional folder/category (Document Library structure).",
+    )
     # Access control
     visible_to_roles = models.JSONField(
         default=list,
@@ -398,6 +429,115 @@ class FormSignature(models.Model):
         else:
             ip = request.META.get("REMOTE_ADDR")
         return ip
+
+
+class LessonPlan(models.Model):
+    """Teacher weekly lesson notes (PDF upload). RBAC: teacher sees only their own."""
+    teacher = models.ForeignKey(
+        "people.TeacherProfile",
+        on_delete=models.CASCADE,
+        related_name="lesson_plans",
+    )
+    title = models.CharField(max_length=200)
+    week_start_date = models.DateField(help_text="Start of the teaching week")
+    file = models.FileField(
+        upload_to="portal/lesson_notes/%Y/%m/",
+        validators=[validate_document_file, validate_file_size_10mb],
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-week_start_date", "-created_at"]
+        verbose_name = "Lesson plan"
+        verbose_name_plural = "Lesson plans"
+        indexes = [models.Index(fields=["teacher", "-week_start_date"])]
+
+    def __str__(self):
+        return f"{self.title} – {self.week_start_date}"
+
+
+class Event(models.Model):
+    """School event calendar (configurable)."""
+    title = models.CharField(max_length=200)
+    start_at = models.DateTimeField()
+    end_at = models.DateTimeField(null=True, blank=True)
+    description = models.TextField(blank=True)
+    location = models.CharField(max_length=120, blank=True)
+    is_public = models.BooleanField(default=True, help_text="Visible to portal users.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["start_at"]
+        verbose_name = "Event"
+        verbose_name_plural = "Events"
+
+    def __str__(self):
+        return f"{self.title} ({self.start_at.date()})"
+
+
+class TeacherTrainingEntry(models.Model):
+    """In-service training / professional development log. RBAC: teacher sees only their own."""
+    teacher = models.ForeignKey(
+        "people.TeacherProfile",
+        on_delete=models.CASCADE,
+        related_name="training_entries",
+    )
+    title = models.CharField(max_length=255)
+    date = models.DateField()
+    description = models.TextField(blank=True)
+    document = models.FileField(
+        upload_to="portal/training/%Y/%m/",
+        blank=True,
+        null=True,
+        validators=[validate_document_file, validate_file_size_10mb],
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+        verbose_name = "Training log entry"
+        verbose_name_plural = "Training log entries"
+        indexes = [models.Index(fields=["teacher", "-date"])]
+
+    def __str__(self):
+        return f"{self.title} – {self.date}"
+
+
+class AttendanceJustification(models.Model):
+    """Parent-submitted justification for a student absence (excuse/medical)."""
+    guardian = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="attendance_justifications",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="attendance_justifications",
+    )
+    attendance_date = models.DateField()
+    reason = models.TextField(help_text="Reason for absence/lateness")
+    document = models.FileField(
+        upload_to="portal/justifications/%Y/%m/",
+        blank=True,
+        null=True,
+        validators=[validate_document_file, validate_file_size_10mb],
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-attendance_date", "-created_at"]
+        verbose_name = "Attendance justification"
+        verbose_name_plural = "Attendance justifications"
+        indexes = [
+            models.Index(fields=["guardian", "student"]),
+            models.Index(fields=["student", "attendance_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.student} – {self.attendance_date}"
 
 
 # Register portal enhancement models so migrations/admin discover them.

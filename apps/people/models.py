@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.apps import apps as django_apps
@@ -565,3 +566,69 @@ class StudentResourceReturn(models.Model):
     def __str__(self):
         status = "Returned" if self.returned_at else "Outstanding"
         return f"{self.student} – {self.item_label} ({self.academic_year.name}) – {status}"
+
+
+class BadgeType(models.Model):
+    """Configurable badge type (e.g. Syllabus Master, Honor Roll, Acting Principal)."""
+    class Audience(models.TextChoices):
+        STAFF = "STAFF", "Staff"
+        STUDENT = "STUDENT", "Student"
+
+    code = models.CharField(max_length=60, unique=True)
+    label = models.CharField(max_length=120)
+    audience = models.CharField(max_length=20, choices=Audience.choices, default=Audience.STAFF)
+    criteria_rule = models.JSONField(default=dict, blank=True, help_text="Optional rule config (e.g. threshold, trigger).")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["audience", "code"]
+        verbose_name = "Badge type"
+        verbose_name_plural = "Badge types"
+
+    def __str__(self):
+        return f"{self.label} ({self.get_audience_display()})"
+
+
+class Badge(models.Model):
+    """Awarded badge (staff or student). Trigger-based; optional QR for verification."""
+    badge_type = models.ForeignKey(BadgeType, on_delete=models.CASCADE, related_name="badges")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="badges",
+        help_text="Staff member (for staff badges).",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="badges",
+        help_text="Student (for student badges).",
+    )
+    criteria_met = models.JSONField(default=dict, blank=True)
+    issued_at = models.DateTimeField(auto_now_add=True)
+    expiry_at = models.DateTimeField(null=True, blank=True, help_text="When badge is automatically revoked (e.g. delegation end).")
+    is_physical_printed = models.BooleanField(default=False)
+    qr_data = models.CharField(max_length=255, blank=True, help_text="Signed token or payload for QR verification.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-issued_at"]
+        verbose_name = "Badge"
+        verbose_name_plural = "Badges"
+
+    def __str__(self):
+        if self.user_id:
+            return f"{self.badge_type.label} – {self.user}"
+        return f"{self.badge_type.label} – {self.student}"
+
+    def clean(self):
+        super().clean()
+        if not self.user_id and not self.student_id:
+            raise ValidationError("Set either user (staff) or student.")
+        if self.user_id and self.student_id:
+            raise ValidationError("Set either user or student, not both.")

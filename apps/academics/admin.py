@@ -4,6 +4,7 @@ from config.admin import admin_site
 from unfold.admin import ModelAdmin
 from .models import (
     AcademicYear, Term, Department, Specialty, Classroom, ClassroomPromotionMapping, Subject, SubjectAssignment,
+    CourseSyllabus, ClassBooklist,
     CertificationExamSession, CertificationCandidate, CertificationAuditLog,
     CertificationExamPreset,
     CertificationFeeTemplate,
@@ -61,6 +62,20 @@ class SubjectAssignmentAdmin(ModelAdmin):
     list_display = ("academic_year", "term", "classroom", "specialty", "subject", "coefficient")
     list_filter = ("academic_year", "term", "classroom", "specialty", "subject")
     search_fields = ("classroom__name", "specialty__name", "subject__name", "academic_year__name")
+
+
+class CourseSyllabusAdmin(ModelAdmin):
+    list_display = ("subject_assignment", "status", "submitted_at", "reviewed_by", "reviewed_at", "updated_at")
+    list_filter = ("status",)
+    search_fields = ("subject_assignment__subject__name", "subject_assignment__classroom__name")
+    raw_id_fields = ("reviewed_by", "created_by")
+    readonly_fields = ("created_at", "updated_at", "submitted_at", "reviewed_at")
+
+
+class ClassBooklistAdmin(ModelAdmin):
+    list_display = ("classroom", "academic_year", "term", "updated_at")
+    list_filter = ("academic_year", "term")
+    search_fields = ("classroom__name",)
 
 
 class CertificationExamSessionAdmin(ModelAdmin):
@@ -199,6 +214,8 @@ admin_site.register(Classroom, ClassroomAdmin)
 admin_site.register(ClassroomPromotionMapping, ClassroomPromotionMappingAdmin)
 admin_site.register(Subject, SubjectAdmin)
 admin_site.register(SubjectAssignment, SubjectAssignmentAdmin)
+admin_site.register(CourseSyllabus, CourseSyllabusAdmin)
+admin_site.register(ClassBooklist, ClassBooklistAdmin)
 admin_site.register(CertificationExamSession, CertificationExamSessionAdmin)
 admin_site.register(CertificationCandidate, CertificationCandidateAdmin)
 admin_site.register(CertificationAuditLog, CertificationAuditLogAdmin)

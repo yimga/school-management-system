@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}Syllabus builder – {{ subject_assignment.subject.name }}{% endblock %}
+
+{% block content %}
+  <div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-1">Syllabus builder</h1>
+        <div class="text-muted small">{{ subject_assignment.subject.name }} · {{ subject_assignment.classroom.name }} · {{ subject_assignment.term.label }}</div>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">Back to syllabi</a>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post" action="">
+          {% csrf_token %}
+          <p class="text-muted small">Builder data (JSON). In a full implementation this would be a guided form; for now you can edit the JSON.</p>
+          <textarea name="builder_data" class="form-control font-monospace" rows="12">{{ builder_data_json }}</textarea>
+          <div class="mt-2">
+            <button type="submit" class="btn btn-primary">Save draft</button>
+            <a class="btn btn-outline-secondary" href="{% url 'academics:teacher_syllabus_hub' %}">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

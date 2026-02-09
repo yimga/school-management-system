@@ -154,3 +154,80 @@ def completion_for_assignment(subject_assignment, term) -> CompletionStats:
         pending=pending,
         completion_pct=pct,
     )
+
+
+def ews_students_needing_attention(teacher_profile, year, term, assignments, scale: float = 20.0, drop_threshold_pct: float = 10.0):
+    """
+    Early warning: students with grade drop > threshold (e.g. 10% of scale) vs previous term.
+    Returns list of dicts: {student_name, subject, classroom, drop_points}.
+    """
+    if not teacher_profile or not year or not term or not assignments:
+        return []
+    prev_term = (
+        Term.objects.filter(academic_year=year, position=term.position - 1)
+        .order_by("position")
+        .first()
+    )
+    if not prev_term:
+        return []
+    from apps.academics.models import SubjectAssignment
+    from decimal import Decimal
+
+    drop_min = scale * (drop_threshold_pct / 100.0)  # e.g. 2 on 20 scale for 10%
+    result = []
+    seen = set()  # (student_id, subject_id) to avoid duplicates
+
+    for ta in assignments:
+        sa = getattr(ta, "subject_assignment", None)
+        if not sa or not getattr(sa, "classroom", None) or not getattr(sa, "subject", None):
+            continue
+        prev_sa = (
+            SubjectAssignment.objects.filter(
+                academic_year=year,
+                term=prev_term,
+                classroom=sa.classroom,
+                subject=sa.subject,
+            )
+            .first()
+        )
+        if not prev_sa:
+            continue
+        curr_evals = {
+            e.student_id: (e.final_score or e.total_score)
+            for e in Evaluation.objects.filter(
+                subject_assignment=sa, term=term
+            ).select_related("student")
+        }
+        prev_evals = {
+            e.student_id: (e.final_score or e.total_score)
+            for e in Evaluation.objects.filter(
+                subject_assignment=prev_sa, term=prev_term
+            )
+        }
+        for sid, curr_val in curr_evals.items():
+            if sid not in prev_evals:
+                continue
+            prev_val = prev_evals[sid]
+            if prev_val is None or curr_val is None:
+                continue
+            try:
+                prev_f = float(prev_val)
+                curr_f = float(curr_val)
+            except (TypeError, ValueError):
+                continue
+            drop = prev_f - curr_f
+            if drop < drop_min:
+                continue
+            key = (sid, sa.subject_id)
+            if key in seen:
+                continue
+            seen.add(key)
+            ev = Evaluation.objects.filter(subject_assignment=sa, term=term, student_id=sid).select_related("student").first()
+            student_name = ev.student.get_full_name() if ev and ev.student else f"Student {sid}"
+            result.append({
+                "student_name": student_name,
+                "subject": sa.subject.name,
+                "classroom": sa.classroom.name,
+                "drop_points": round(drop, 1),
+            })
+    return result[:20]  # cap for dashboard

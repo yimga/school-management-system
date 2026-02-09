@@ -1,0 +1,69 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Attendance & Discipline" %}{% endblock %}
+
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Absences & tardies" %}</h5>
+    </div>
+    <div class="card-body">
+      {% if absences %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Student" %}</th><th>{% trans "Status" %}</th><th>{% trans "Remarks" %}</th></tr></thead>
+            <tbody>
+              {% for a in absences %}
+                <tr>
+                  <td>{{ a.date|date }}</td>
+                  <td>{{ a.student.get_full_name|default:a.student }}</td>
+                  <td>{{ a.get_status_display }}</td>
+                  <td>{{ a.remarks|default:"—" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">{% trans "No absences or tardies recorded." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Submit justification" %}</h5>
+    </div>
+    <div class="card-body">
+      {% if children %}
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+        </form>
+      {% else %}
+        <p class="text-muted mb-0">{% trans "Link a child to submit justifications." %}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">{% trans "Your justifications" %}</h5>
+    </div>
+    <div class="card-body">
+      {% if justifications %}
+        <ul class="list-group list-group-flush">
+          {% for j in justifications %}
+            <li class="list-group-item">{{ j.student }} – {{ j.attendance_date|date }}: {{ j.reason|truncatewords:15 }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mb-0">{% trans "No justifications submitted yet." %}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

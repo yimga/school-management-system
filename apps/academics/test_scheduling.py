@@ -163,7 +163,9 @@ class ScheduleEntryTestCase(TestCase):
     """Test schedule entry model"""
     
     def setUp(self):
-        from apps.academics.models import AcademicYear, Term, Classroom, Subject
+        from apps.academics.models import AcademicYear, Term, Classroom, Subject, Department
+        
+        self.department = Department.objects.create(name="Science", code="SCI")
         
         self.user = User.objects.create_user(
             username='admin',
@@ -199,13 +201,13 @@ class ScheduleEntryTestCase(TestCase):
         
         self.classroom = Classroom.objects.create(
             name='Class A',
-            academic_year=self.academic_year
+            code='CLA',
+            academic_year=self.academic_year,
+            department=self.department,
         )
         
         self.subject = Subject.objects.create(
             name='Mathematics',
-            code='MATH101',
-            teacher=self.teacher
         )
         
         self.room = Room.objects.create(
@@ -343,8 +345,9 @@ class TimetableGeneratorTestCase(TestCase):
     
     def test_detect_conflicts(self):
         """Test conflict detection"""
-        from apps.academics.models import Classroom, Subject
+        from apps.academics.models import Classroom, Subject, Department
         
+        department = Department.objects.create(name="Science", code="SCI-CONFLICT")
         teacher = User.objects.create_user(
             username='teacher1',
             email='teacher1@example.com',
@@ -353,13 +356,13 @@ class TimetableGeneratorTestCase(TestCase):
         
         classroom = Classroom.objects.create(
             name='Class A',
-            academic_year=self.academic_year
+            code='CLA-CONFLICT',
+            academic_year=self.academic_year,
+            department=department,
         )
         
         subject = Subject.objects.create(
             name='Mathematics',
-            code='MATH101',
-            teacher=teacher
         )
         
         room = Room.objects.create(

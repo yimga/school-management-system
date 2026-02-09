@@ -16,6 +16,8 @@ from .models import (
     TeacherPayRecord,
     TeacherLeaveRequest,
     TeacherAttendance,
+    BadgeType,
+    Badge,
 )
 
 
@@ -502,4 +504,21 @@ class StudentResourceReturnAdmin(ModelAdmin):
 
 
 admin_site.register(StudentResourceReturn, StudentResourceReturnAdmin)
+
+
+class BadgeTypeAdmin(ModelAdmin):
+    list_display = ("code", "label", "audience", "is_active", "created_at")
+    list_filter = ("audience", "is_active")
+    search_fields = ("code", "label")
+
+
+class BadgeAdmin(ModelAdmin):
+    list_display = ("badge_type", "user", "student", "issued_at", "expiry_at", "is_physical_printed")
+    list_filter = ("badge_type",)
+    search_fields = ("badge_type__label", "user__username", "student__admission_number")
+    raw_id_fields = ("user", "student")
+
+
+admin_site.register(BadgeType, BadgeTypeAdmin)
+admin_site.register(Badge, BadgeAdmin)
 

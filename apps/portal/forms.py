@@ -2,6 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
+from .models import LessonPlan, TeacherTrainingEntry, AttendanceJustification
 from apps.siteconfig.models import SiteSettings
 from apps.academics.models import Term, AcademicYear
 
@@ -586,3 +587,36 @@ class StudentOnboardingForm(forms.Form):
                 raise forms.ValidationError(_("This admission number is already in use."))
         
         return admission
+
+
+class LessonPlanUploadForm(forms.ModelForm):
+    class Meta:
+        model = LessonPlan
+        fields = ("title", "week_start_date", "file")
+        widgets = {
+            "week_start_date": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["file"].required = True
+
+
+class TeacherTrainingEntryForm(forms.ModelForm):
+    class Meta:
+        model = TeacherTrainingEntry
+        fields = ("title", "date", "description", "document")
+        widgets = {
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "document": forms.FileInput(attrs={"accept": ".pdf,.doc,.docx"}),
+        }
+
+
+class AttendanceJustificationForm(forms.ModelForm):
+    class Meta:
+        model = AttendanceJustification
+        fields = ("student", "attendance_date", "reason", "document")
+        widgets = {
+            "attendance_date": forms.DateInput(attrs={"type": "date"}),
+            "document": forms.FileInput(attrs={"accept": ".pdf,.doc,.docx,.jpg,.jpeg,.png"}),
+        }
