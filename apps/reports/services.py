@@ -14,7 +14,11 @@ from apps.people.models import StudentProfile
 from apps.reports.models import PromotionRule, TermPublishStatus
 
 
-def _approved_or_unrequested_subject_assignment_filter(academic_year_id: int, term_id: int):
+def _approved_or_unrequested_subject_assignment_filter(
+    academic_year_id: int,
+    term_id: int,
+    classroom_ids: Optional[Iterable[int]] = None,
+):
     """
     When reports_use_approved_grades_only is True: return (approved_sa_ids, any_request_sa_ids).
     Include Evaluation if subject_assignment_id in approved_sa_ids OR subject_assignment_id not in any_request_sa_ids.
@@ -23,6 +27,7 @@ def _approved_or_unrequested_subject_assignment_filter(academic_year_id: int, te
     latest_status_by_sa = _latest_grade_approval_status_by_subject_assignment(
         academic_year_id=academic_year_id,
         term_id=term_id,
+        classroom_ids=classroom_ids,
     )
     approved_ids = {
         sa_id
@@ -33,18 +38,25 @@ def _approved_or_unrequested_subject_assignment_filter(academic_year_id: int, te
     return approved_ids, any_request_ids
 
 
-def _latest_grade_approval_status_by_subject_assignment(academic_year_id: int, term_id: int) -> dict[int, str]:
+def _latest_grade_approval_status_by_subject_assignment(
+    academic_year_id: int,
+    term_id: int,
+    classroom_ids: Optional[Iterable[int]] = None,
+) -> dict[int, str]:
     """
     Return latest GradeApprovalRequest status per subject assignment for one year/term.
     """
     from apps.evals.models import GradeApprovalRequest
 
     latest_status_by_sa: dict[int, str] = {}
+    approvals = GradeApprovalRequest.objects.filter(
+        academic_year_id=academic_year_id,
+        term_id=term_id,
+    )
+    if classroom_ids:
+        approvals = approvals.filter(subject_assignment__classroom_id__in=set(classroom_ids))
     rows = (
-        GradeApprovalRequest.objects.filter(
-            academic_year_id=academic_year_id,
-            term_id=term_id,
-        )
+        approvals
         .order_by("subject_assignment_id", "-requested_at", "-id")
         .values_list("subject_assignment_id", "status")
     )
@@ -54,22 +66,30 @@ def _latest_grade_approval_status_by_subject_assignment(academic_year_id: int, t
     return latest_status_by_sa
 
 
-def grade_approval_publish_readiness(academic_year_id: int, term_id: int) -> dict[str, int | bool]:
+def grade_approval_publish_readiness(
+    academic_year_id: int,
+    term_id: int,
+    classroom_ids: Optional[Iterable[int]] = None,
+) -> dict[str, int | bool]:
     """
     Evaluate whether a term is ready for publishing under approval governance rules.
     Only subject assignments that already have evaluations are considered.
     """
     from apps.evals.models import GradeApprovalRequest
 
+    evaluations = Evaluation.objects.filter(
+        academic_year_id=academic_year_id,
+        term_id=term_id,
+    )
+    if classroom_ids:
+        evaluations = evaluations.filter(subject_assignment__classroom_id__in=set(classroom_ids))
     evaluated_subject_assignment_ids = set(
-        Evaluation.objects.filter(
-            academic_year_id=academic_year_id,
-            term_id=term_id,
-        ).values_list("subject_assignment_id", flat=True).distinct()
+        evaluations.values_list("subject_assignment_id", flat=True).distinct()
     )
     latest_status_by_sa = _latest_grade_approval_status_by_subject_assignment(
         academic_year_id=academic_year_id,
         term_id=term_id,
+        classroom_ids=classroom_ids,
     )
 
     pending_statuses = {

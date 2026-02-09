@@ -522,9 +522,42 @@ def publish_term_results(request: HttpRequest):
     rejected_approvals = approval_state["rejected_count"]
     missing_approvals = approval_state["missing_count"]
     all_grades_approved = approval_state["ready_for_publish"]
+    subject_assignments_with_grades = approval_state["subject_assignments_with_grades"]
+    approved_grade_approvals = approval_state["approved_count"]
 
     if request.method == "POST":
-        if require_approved_before_publish and grade_approval_enabled and not all_grades_approved:
+        publish_school = request.POST.get("publish_school") == "1"
+        valid_classroom_ids = {str(c.id) for c in classrooms}
+        selected_classrooms = {
+            classroom_id
+            for classroom_id in request.POST.getlist("classroom_ids")
+            if classroom_id in valid_classroom_ids
+        }
+        publish_intent = publish_school or bool(selected_classrooms)
+
+        scoped_approval_state = approval_state
+        if publish_intent:
+            scoped_classroom_ids = None
+            if not publish_school:
+                scoped_classroom_ids = [int(classroom_id) for classroom_id in selected_classrooms]
+            scoped_approval_state = grade_approval_publish_readiness(
+                year_obj.id,
+                term_obj.id,
+                classroom_ids=scoped_classroom_ids,
+            )
+            pending_approvals = scoped_approval_state["pending_count"]
+            rejected_approvals = scoped_approval_state["rejected_count"]
+            missing_approvals = scoped_approval_state["missing_count"]
+            all_grades_approved = scoped_approval_state["ready_for_publish"]
+            subject_assignments_with_grades = scoped_approval_state["subject_assignments_with_grades"]
+            approved_grade_approvals = scoped_approval_state["approved_count"]
+
+        if (
+            require_approved_before_publish
+            and grade_approval_enabled
+            and publish_intent
+            and not all_grades_approved
+        ):
             messages.error(
                 request,
                 "Cannot publish: grade approvals are incomplete for this term "
@@ -533,8 +566,6 @@ def publish_term_results(request: HttpRequest):
             )
         else:
             now = timezone.now()
-            publish_school = request.POST.get("publish_school") == "1"
-            selected_classrooms = set(request.POST.getlist("classroom_ids"))
             TermPublishStatus.objects.update_or_create(
                 academic_year=year_obj,
                 term=term_obj,
@@ -599,8 +630,8 @@ def publish_term_results(request: HttpRequest):
         "pending_grade_approvals": pending_approvals,
         "rejected_grade_approvals": rejected_approvals,
         "missing_grade_approvals": missing_approvals,
-        "subject_assignments_with_grades": approval_state["subject_assignments_with_grades"],
-        "approved_grade_approvals": approval_state["approved_count"],
+        "subject_assignments_with_grades": subject_assignments_with_grades,
+        "approved_grade_approvals": approved_grade_approvals,
         "all_grades_approved": all_grades_approved,
         "grade_approval_enabled": grade_approval_enabled,
         "reports_require_approved_grades_before_publish": require_approved_before_publish,

@@ -188,6 +188,105 @@ class PublishTermRBACTestCase(TestCase):
             ).exists()
         )
 
+    def test_unpublish_is_allowed_even_when_approvals_are_not_ready(self):
+        self.client.force_login(self.staff)
+        self._create_evaluation()
+        TermPublishStatus.objects.create(
+            academic_year=self.year,
+            term=self.term,
+            classroom=None,
+            is_published=True,
+            published_by=self.staff,
+        )
+
+        response = self.client.post(
+            reverse("reports:publish_term_results"),
+            data={"year": self.year.id, "term": self.term.id},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        school_status = TermPublishStatus.objects.get(
+            academic_year=self.year,
+            term=self.term,
+            classroom__isnull=True,
+        )
+        self.assertFalse(school_status.is_published)
+
+    def test_class_scope_publish_checks_only_selected_classrooms(self):
+        self.client.force_login(self.staff)
+        self._create_evaluation()
+        self._create_approval(GradeApprovalRequest.Status.APPROVED)
+
+        classroom_b = Classroom.objects.create(
+            academic_year=self.year,
+            department=self.department,
+            name="SS1B",
+            code="SS1B",
+        )
+        subject_assignment_b = SubjectAssignment.objects.create(
+            academic_year=self.year,
+            term=self.term,
+            classroom=classroom_b,
+            specialty=self.specialty,
+            subject=self.subject,
+            coefficient=1,
+        )
+        student_b = StudentProfile.objects.create(
+            first_name="John",
+            last_name="Scope",
+            student_code="STU-PUB-2",
+            academic_year=self.year,
+            classroom=classroom_b,
+            specialty=self.specialty,
+            is_active=True,
+        )
+        Evaluation.objects.create(
+            academic_year=self.year,
+            term=self.term,
+            subject_assignment=subject_assignment_b,
+            student=student_b,
+            teacher=self.teacher_profile,
+            seq1_score=9,
+            seq2_score=10,
+            exam_score=11,
+            remarks="No approval yet in other class",
+        )
+
+        response = self.client.post(
+            reverse("reports:publish_term_results"),
+            data={
+                "year": self.year.id,
+                "term": self.term.id,
+                "classroom_ids": [str(self.classroom.id)],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            TermPublishStatus.objects.filter(
+                academic_year=self.year,
+                term=self.term,
+                classroom=self.classroom,
+                is_published=True,
+            ).exists()
+        )
+        self.assertFalse(
+            TermPublishStatus.objects.filter(
+                academic_year=self.year,
+                term=self.term,
+                classroom=classroom_b,
+                is_published=True,
+            ).exists()
+        )
+        self.assertFalse(
+            TermPublishStatus.objects.filter(
+                academic_year=self.year,
+                term=self.term,
+                classroom__isnull=True,
+                is_published=True,
+            ).exists()
+        )
+
     def test_term_context_uses_latest_approval_status_for_approved_only_filter(self):
         self._create_evaluation()
         self._create_approval(GradeApprovalRequest.Status.APPROVED)
