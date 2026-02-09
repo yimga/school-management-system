@@ -541,6 +541,8 @@ def reportcard_style_embed_preview(request, slug: str, report_type: str):
 
     student = _resolve_preview_student(request) or _mock_preview_student()
     context = _build_report_context_for_pdf(style, report_type_value, student)
+    context["embed_preview"] = True
+    context["preview_token"] = (request.GET.get("preview_token") or "").strip()
     template_name = style.template_for(report_type_value)
     response = render(request, template_name, context)
     response["Content-Security-Policy"] = "frame-ancestors 'self'"
