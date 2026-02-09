@@ -72,8 +72,6 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "builder-status-strip")
         self.assertContains(response, "report-builder-workflow")
-        self.assertContains(response, "workflow-tab")
-        self.assertContains(response, "workflow-pane")
         self.assertContains(response, "builder-live-style-badge")
         self.assertContains(response, "builder-draft-state")
         self.assertContains(response, "live-report-preview")
@@ -89,7 +87,7 @@ class ReportCardBuilderViewTests(TestCase):
             data={
                 "form_type": "style",
                 "style-name": "Academic Authority",
-                "style-slug": "academic-authority",
+                "style-slug": "academic-authority-custom",
                 "style-description": "Professional admin style",
                 "style-term_template": "reports/term_report_cameroon.html",
                 "style-annual_template": "reports/annual_report_cameroon.html",
@@ -110,7 +108,7 @@ class ReportCardBuilderViewTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], self.url)
-        created = ReportCardStyle.objects.get(slug="academic-authority")
+        created = ReportCardStyle.objects.get(slug="academic-authority-custom")
         self.assertEqual(created.watermark_mode, "SITE_LOGO")
         self.assertEqual(created.watermark_position, "TOP_RIGHT")
 

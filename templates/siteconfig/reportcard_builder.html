@@ -53,16 +53,13 @@
             <li class="nav-item" role="presentation">
               <button class="nav-link" id="assignments-tab" data-bs-toggle="pill" data-bs-target="#assignments-pane" type="button" role="tab" aria-controls="assignments-pane" aria-selected="false">{% trans "Assignments" %}</button>
             </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="workflow-tab" data-bs-toggle="pill" data-bs-target="#workflow-pane" type="button" role="tab" aria-controls="workflow-pane" aria-selected="false">{% trans "Workflow" %}</button>
-            </li>
           </ul>
         </div>
         <div class="card-body">
           <div class="tab-content" id="builderTabContent">
             <div class="tab-pane fade show active" id="styles-pane" role="tabpanel" aria-labelledby="styles-tab" tabindex="0">
               {% if styles %}
-                <div class="d-grid gap-2">
+                <div class="builder-scroll-panel d-grid gap-2">
                   {% for style in styles %}
                     <article class="border rounded-3 p-3 js-style-card {% if settings.default_term_report_style_id == style.id or settings.default_annual_report_style_id == style.id %}border-primary-subtle{% endif %}"
                              data-style-slug="{{ style.slug }}">
@@ -106,7 +103,7 @@
                 <div class="small text-muted mb-2">
                   {% trans "Coverage" %}: {{ assigned_classroom_count }}/{{ total_classroom_count }} {% trans "classrooms assigned" %}.
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive builder-scroll-panel">
                   <table class="table table-sm align-middle">
                     <thead>
                       <tr>
@@ -141,80 +138,81 @@
                 <p class="text-muted mb-0">{% trans "No classroom assignments yet." %}</p>
               {% endif %}
             </div>
-
-            <div class="tab-pane fade" id="workflow-pane" role="tabpanel" aria-labelledby="workflow-tab" tabindex="0">
-              <div id="report-builder-workflow">
-                <div class="accordion" id="reportBuilderAccordion">
-                  <div class="accordion-item">
-                    <h2 class="accordion-header" id="workflow-style-header">
-                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-style" aria-expanded="true" aria-controls="workflow-style">
-                        {% trans "1) Create or edit style" %}
-                      </button>
-                    </h2>
-                    <div id="workflow-style" class="accordion-collapse collapse show" aria-labelledby="workflow-style-header" data-bs-parent="#reportBuilderAccordion">
-                      <div class="accordion-body">
-                        <form method="post" enctype="multipart/form-data">
-                          {% csrf_token %}
-                          <input type="hidden" name="form_type" value="style">
-                          {% for field in style_form %}
-                            <div class="mb-2">
-                              {{ field.label_tag }}{{ field }}
-                              {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
-                              {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
-                            </div>
-                          {% endfor %}
-                          <button class="btn btn-primary btn-sm" type="submit">{% trans "Save style" %}</button>
-                        </form>
-                      </div>
-                    </div>
+          </div>
+          <div id="report-builder-workflow" class="mt-3 pt-3 border-top">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+              <strong>{% trans "Builder workflow" %}</strong>
+              <span class="badge text-bg-light border">{% trans "3-step flow" %}</span>
+            </div>
+            <div class="accordion" id="reportBuilderAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="workflow-style-header">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-style" aria-expanded="true" aria-controls="workflow-style">
+                    {% trans "1) Create or edit style" %}
+                  </button>
+                </h2>
+                <div id="workflow-style" class="accordion-collapse collapse show" aria-labelledby="workflow-style-header" data-bs-parent="#reportBuilderAccordion">
+                  <div class="accordion-body">
+                    <form method="post" enctype="multipart/form-data">
+                      {% csrf_token %}
+                      <input type="hidden" name="form_type" value="style">
+                      {% for field in style_form %}
+                        <div class="mb-2">
+                          {{ field.label_tag }}{{ field }}
+                          {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+                          {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                      {% endfor %}
+                      <button class="btn btn-primary btn-sm" type="submit">{% trans "Save style" %}</button>
+                    </form>
                   </div>
+                </div>
+              </div>
 
-                  <div class="accordion-item">
-                    <h2 class="accordion-header" id="workflow-assignment-header">
-                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-assignment" aria-expanded="false" aria-controls="workflow-assignment">
-                        {% trans "2) Assign style to classrooms" %}
-                      </button>
-                    </h2>
-                    <div id="workflow-assignment" class="accordion-collapse collapse" aria-labelledby="workflow-assignment-header" data-bs-parent="#reportBuilderAccordion">
-                      <div class="accordion-body">
-                        <form method="post">
-                          {% csrf_token %}
-                          <input type="hidden" name="form_type" value="assignment">
-                          {% for field in assignment_form %}
-                            <div class="mb-2">
-                              {{ field.label_tag }}{{ field }}
-                              {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
-                              {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
-                            </div>
-                          {% endfor %}
-                          <button class="btn btn-secondary btn-sm" type="submit">{% trans "Save assignments" %}</button>
-                        </form>
-                      </div>
-                    </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="workflow-assignment-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-assignment" aria-expanded="false" aria-controls="workflow-assignment">
+                    {% trans "2) Assign style to classrooms" %}
+                  </button>
+                </h2>
+                <div id="workflow-assignment" class="accordion-collapse collapse" aria-labelledby="workflow-assignment-header" data-bs-parent="#reportBuilderAccordion">
+                  <div class="accordion-body">
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="form_type" value="assignment">
+                      {% for field in assignment_form %}
+                        <div class="mb-2">
+                          {{ field.label_tag }}{{ field }}
+                          {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+                          {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                      {% endfor %}
+                      <button class="btn btn-secondary btn-sm" type="submit">{% trans "Save assignments" %}</button>
+                    </form>
                   </div>
+                </div>
+              </div>
 
-                  <div class="accordion-item">
-                    <h2 class="accordion-header" id="workflow-defaults-header">
-                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-defaults" aria-expanded="false" aria-controls="workflow-defaults">
-                        {% trans "3) Set default mappings" %}
-                      </button>
-                    </h2>
-                    <div id="workflow-defaults" class="accordion-collapse collapse" aria-labelledby="workflow-defaults-header" data-bs-parent="#reportBuilderAccordion">
-                      <div class="accordion-body">
-                        <form method="post">
-                          {% csrf_token %}
-                          <input type="hidden" name="form_type" value="selection">
-                          {% for field in selection_form %}
-                            <div class="mb-2">
-                              {{ field.label_tag }}{{ field }}
-                              {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
-                              {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
-                            </div>
-                          {% endfor %}
-                          <button class="btn btn-outline-secondary btn-sm" type="submit">{% trans "Save defaults" %}</button>
-                        </form>
-                      </div>
-                    </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="workflow-defaults-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-defaults" aria-expanded="false" aria-controls="workflow-defaults">
+                    {% trans "3) Set default mappings" %}
+                  </button>
+                </h2>
+                <div id="workflow-defaults" class="accordion-collapse collapse" aria-labelledby="workflow-defaults-header" data-bs-parent="#reportBuilderAccordion">
+                  <div class="accordion-body">
+                    <form method="post">
+                      {% csrf_token %}
+                      <input type="hidden" name="form_type" value="selection">
+                      {% for field in selection_form %}
+                        <div class="mb-2">
+                          {{ field.label_tag }}{{ field }}
+                          {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+                          {% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                      {% endfor %}
+                      <button class="btn btn-outline-secondary btn-sm" type="submit">{% trans "Save defaults" %}</button>
+                    </form>
                   </div>
                 </div>
               </div>
@@ -280,7 +278,7 @@
         });
       });
 
-      var workflowForms = document.querySelectorAll("#workflow-pane form");
+      var workflowForms = document.querySelectorAll("#report-builder-workflow form");
       workflowForms.forEach(function (form) {
         form.querySelectorAll("input, select, textarea").forEach(function (field) {
           field.addEventListener("change", function () {
@@ -307,4 +305,11 @@
       setDraftState(false);
     });
   </script>
+  <style>
+    .builder-scroll-panel {
+      max-height: 38vh;
+      overflow: auto;
+      padding-right: 0.25rem;
+    }
+  </style>
 {% endblock %}
