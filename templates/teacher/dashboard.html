@@ -339,11 +339,11 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="mb-0">Your Classes at a Glance</h5>
-            <span class="text-uppercase small text-muted">{{ assignment_syllabus_statuses|default:[]|length }} classes</span>
+            <span class="text-uppercase small text-muted">{{ assignment_syllabus_statuses|length }} classes</span>
           </div>
-          {% if assignment_syllabus_statuses|default:[] %}
+          {% if assignment_syllabus_statuses %}
           <div class="d-flex flex-column gap-2">
-            {% for item in assignment_syllabus_statuses|default:[] %}
+            {% for item in assignment_syllabus_statuses %}
             <div class="d-flex align-items-center justify-content-between rounded-3 px-3 py-2 border teacher-class-row-bg">
               <div class="d-flex align-items-center gap-2 flex-wrap">
                 <span class="fw-medium">
