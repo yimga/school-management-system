@@ -1,5 +1,5 @@
-# Render Blueprint: Web Service + PostgreSQL
-# Set DATABASE_URL in Dashboard → Environment (Internal DB URL from your Postgres).
+# Render Blueprint: Web Service + PostgreSQL + Redis + Celery Worker
+# Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Dashboard for real SMTP (delegate/summary emails).
 services:
   - type: web
     name: school-management-system
@@ -9,6 +9,10 @@ services:
     preDeployCommand: ".venv/bin/python manage.py migrate --noinput && .venv/bin/python manage.py seed_admin_dashboard_palettes && if [ \"${APPLY_UI_FIXTURE_ON_DEPLOY:-1}\" = \"1\" ] && [ -f fixtures/ui_config.json ]; then .venv/bin/python manage.py import_ui_config fixtures/ui_config.json; fi && .venv/bin/python manage.py normalize_ui_config"
     startCommand: ".venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: school-management-db
+          property: connectionString
       - key: DEBUG
         value: "0"
       - key: PYTHON_VERSION
@@ -19,6 +23,53 @@ services:
         generateValue: true
       - key: APPLY_UI_FIXTURE_ON_DEPLOY
         value: "1"
+      - key: REDIS_URL
+        fromService:
+          name: school-management-redis
+          type: keyvalue
+          property: connectionString
+      # Email (delegate notifications, delegation summary on return). Set in Dashboard if sending real email.
+      - key: EMAIL_BACKEND
+        value: "django.core.mail.backends.smtp.EmailBackend"
+      - key: EMAIL_HOST
+        value: "smtp.gmail.com"
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: DEFAULT_FROM_EMAIL
+        value: "noreply@gileadschool.com"
+      # Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Dashboard (secrets) for real SMTP.
+
+  # Redis (Celery broker and cache). Required for background worker.
+  - type: keyvalue
+    name: school-management-redis
+    plan: starter
+    ipAllowList:
+      - cidr: 0.0.0.0/0
+        description: Allow internal and external (set to empty list to block external).
+
+  # Celery worker + beat: delegation auto-expiry, scheduled tasks.
+  - type: worker
+    name: school-management-celery
+    env: python
+    plan: starter
+    buildCommand: "./build.sh"
+    startCommand: ".venv/bin/celery -A config worker --beat -l info"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: school-management-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: school-management-redis
+          type: keyvalue
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: "config.settings"
 
 databases:
   - name: school-management-db
