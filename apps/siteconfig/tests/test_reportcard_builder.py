@@ -125,6 +125,34 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertEqual(created.watermark_mode, "SITE_LOGO")
         self.assertEqual(created.watermark_position, "TOP_RIGHT")
 
+    def test_builder_keeps_assignment_workflow_open_on_assignment_form_error(self):
+        response = self.client.post(
+            self.url,
+            data={
+                "form_type": "assignment",
+                "assign-style": str(self.style.id),
+                # No classrooms selected -> invalid assignment form.
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="workflow-assignment" class="accordion-collapse collapse show"')
+        self.assertContains(response, 'id="workflow-style" class="accordion-collapse collapse"')
+
+    def test_builder_keeps_default_mapping_workflow_open_on_selection_form_error(self):
+        response = self.client.post(
+            self.url,
+            data={
+                "form_type": "selection",
+                "selection-default_term_report_style": "999999",
+                "selection-default_annual_report_style": str(self.style.id),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="workflow-defaults" class="accordion-collapse collapse show"')
+        self.assertContains(response, 'id="workflow-style" class="accordion-collapse collapse"')
+
     def test_live_preview_html_endpoint_allows_same_origin_iframe(self):
         response = self.client.get(
             reverse("siteconfig:reportcard_style_preview", args=[self.style.slug])

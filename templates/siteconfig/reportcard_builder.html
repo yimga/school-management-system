@@ -156,11 +156,11 @@
             <div class="accordion" id="reportBuilderAccordion">
               <div class="accordion-item">
                 <h2 class="accordion-header" id="workflow-style-header">
-                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-style" aria-expanded="true" aria-controls="workflow-style">
+                  <button class="accordion-button{% if workflow_step != 'style' %} collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-style" aria-expanded="{% if workflow_step == 'style' %}true{% else %}false{% endif %}" aria-controls="workflow-style">
                     {% trans "1) Create or edit style" %}
                   </button>
                 </h2>
-                <div id="workflow-style" class="accordion-collapse collapse show" aria-labelledby="workflow-style-header" data-bs-parent="#reportBuilderAccordion">
+                <div id="workflow-style" class="accordion-collapse collapse{% if workflow_step == 'style' %} show{% endif %}" aria-labelledby="workflow-style-header" data-bs-parent="#reportBuilderAccordion">
                   <div class="accordion-body">
                     <form method="post" enctype="multipart/form-data">
                       {% csrf_token %}
@@ -180,11 +180,11 @@
 
               <div class="accordion-item">
                 <h2 class="accordion-header" id="workflow-assignment-header">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-assignment" aria-expanded="false" aria-controls="workflow-assignment">
+                  <button class="accordion-button{% if workflow_step != 'assignment' %} collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-assignment" aria-expanded="{% if workflow_step == 'assignment' %}true{% else %}false{% endif %}" aria-controls="workflow-assignment">
                     {% trans "2) Assign style to classrooms" %}
                   </button>
                 </h2>
-                <div id="workflow-assignment" class="accordion-collapse collapse" aria-labelledby="workflow-assignment-header" data-bs-parent="#reportBuilderAccordion">
+                <div id="workflow-assignment" class="accordion-collapse collapse{% if workflow_step == 'assignment' %} show{% endif %}" aria-labelledby="workflow-assignment-header" data-bs-parent="#reportBuilderAccordion">
                   <div class="accordion-body">
                     <form method="post">
                       {% csrf_token %}
@@ -204,11 +204,11 @@
 
               <div class="accordion-item">
                 <h2 class="accordion-header" id="workflow-defaults-header">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-defaults" aria-expanded="false" aria-controls="workflow-defaults">
+                  <button class="accordion-button{% if workflow_step != 'selection' %} collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#workflow-defaults" aria-expanded="{% if workflow_step == 'selection' %}true{% else %}false{% endif %}" aria-controls="workflow-defaults">
                     {% trans "3) Set default mappings" %}
                   </button>
                 </h2>
-                <div id="workflow-defaults" class="accordion-collapse collapse" aria-labelledby="workflow-defaults-header" data-bs-parent="#reportBuilderAccordion">
+                <div id="workflow-defaults" class="accordion-collapse collapse{% if workflow_step == 'selection' %} show{% endif %}" aria-labelledby="workflow-defaults-header" data-bs-parent="#reportBuilderAccordion">
                   <div class="accordion-body">
                     <form method="post">
                       {% csrf_token %}

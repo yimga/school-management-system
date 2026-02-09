@@ -274,9 +274,14 @@ def reportcard_builder(request):
         prefix="selection",
         instance=settings_obj,
     )
+    workflow_step = (request.GET.get("step") or "style").strip().lower()
+    if workflow_step not in {"style", "assignment", "selection"}:
+        workflow_step = "style"
 
     if request.method == "POST":
-        form_type = request.POST.get("form_type")
+        form_type = (request.POST.get("form_type") or "").strip().lower()
+        if form_type in {"style", "assignment", "selection"}:
+            workflow_step = form_type
         if form_type == "style" and style_form.is_valid():
             style_form.save()
             messages.success(request, "Report card style saved.")
@@ -303,6 +308,7 @@ def reportcard_builder(request):
         "style_form": style_form,
         "assignment_form": assignment_form,
         "selection_form": selection_form,
+        "workflow_step": workflow_step,
     })
 
 def _build_style_metadata(site: SiteSettings) -> dict:
