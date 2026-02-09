@@ -54,6 +54,67 @@ def contrast_ratio(color1: str, color2: str) -> float:
     return (lighter + 0.05) / (darker + 0.05)
 
 
+THEME_PUBLISH_GUARDED_FIELDS = frozenset(
+    {
+        "primary_color",
+        "accent_color",
+        "header_bg_color",
+        "footer_bg_color",
+        "theme_pack",
+        "admin_theme_pack",
+        "theme_brightness",
+        "backend_console_theme",
+        "use_dark_mode",
+        "admin_use_site_primary",
+    }
+)
+
+
+THEME_COLOR_CONTRAST_TARGETS = {
+    "primary_color": {"label": "Primary color", "target": "#ffffff", "min_ratio": 4.5},
+    "accent_color": {"label": "Accent color", "target": "#ffffff", "min_ratio": 3.0},
+    "header_bg_color": {"label": "Header background", "target": "#ffffff", "min_ratio": 4.5},
+    "footer_bg_color": {"label": "Footer background", "target": "#ffffff", "min_ratio": 4.5},
+    "success_color": {"label": "Success color", "target": "#ffffff", "min_ratio": 3.0},
+    "warning_color": {"label": "Warning color", "target": "#0f172a", "min_ratio": 3.0},
+    "danger_color": {"label": "Danger color", "target": "#ffffff", "min_ratio": 3.0},
+}
+
+
+def build_theme_contrast_report(values: dict) -> dict:
+    checks = []
+    failures = []
+    min_ratio = 21.0
+    for field_name, config in THEME_COLOR_CONTRAST_TARGETS.items():
+        source = values.get(field_name)
+        color = str(source).strip() if source else ""
+        if not color:
+            continue
+        ratio = contrast_ratio(color, config["target"])
+        min_ratio = min(min_ratio, ratio)
+        passed = ratio >= config["min_ratio"]
+        check = {
+            "field": field_name,
+            "label": config["label"],
+            "ratio": ratio,
+            "target": config["target"],
+            "min_ratio": config["min_ratio"],
+            "passed": passed,
+        }
+        checks.append(check)
+        if not passed:
+            failures.append(check)
+
+    if not checks:
+        min_ratio = 0.0
+    return {
+        "status": "ok" if not failures else "warn",
+        "checks": checks,
+        "failures": failures,
+        "min_ratio": min_ratio,
+    }
+
+
 SITESETTINGS_FIELD_ORDER = [
     # Branding
     "site_name",
@@ -663,20 +724,15 @@ class ThemeColorsForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
 
-        for field_name, label in (
-            ("primary_color", "Primary color"),
-            ("header_bg_color", "Header background"),
-            ("footer_bg_color", "Footer background"),
-        ):
-            value = cleaned.get(field_name)
-            if not value:
-                continue
-            max_ratio = max(contrast_ratio(value, "#ffffff"), contrast_ratio(value, "#0f172a"))
-            if max_ratio < 4.5:
-                self.add_error(
-                    field_name,
-                    f"{label} needs stronger contrast for readability (best ratio {max_ratio:.1f}:1).",
-                )
+        contrast_report = build_theme_contrast_report(cleaned)
+        for failure in contrast_report["failures"]:
+            self.add_error(
+                failure["field"],
+                (
+                    f"{failure['label']} needs stronger contrast ({failure['ratio']:.1f}:1). "
+                    f"Minimum {failure['min_ratio']:.1f}:1 against {failure['target']}."
+                ),
+            )
 
         primary = cleaned.get("primary_color")
         accent = cleaned.get("accent_color")
@@ -688,4 +744,5 @@ class ThemeColorsForm(forms.ModelForm):
                     f"Primary vs accent contrast is too low ({pair_ratio:.1f}:1). Pick more distinct colors.",
                 )
 
+        self._contrast_report = contrast_report
         return cleaned

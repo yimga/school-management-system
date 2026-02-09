@@ -27,9 +27,22 @@
           <span id="theme-draft-status-badge" class="badge text-bg-success-subtle">
             {% trans "Saved state" %}
           </span>
-          <span id="theme-active-source" class="small text-muted">
-            {% trans "Source: saved values" %}
-          </span>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span
+              id="theme-contrast-status-badge"
+              class="badge {% if theme_contrast_report.status == 'ok' %}text-bg-success-subtle{% else %}text-bg-warning{% endif %}"
+              data-status="{{ theme_contrast_report.status }}"
+            >
+              {% if theme_contrast_report.status == "ok" %}
+                {% trans "Contrast safety: pass" %}
+              {% else %}
+                {% trans "Contrast safety: needs attention" %}
+              {% endif %}
+            </span>
+            <span id="theme-active-source" class="small text-muted">
+              {% trans "Source: saved values" %}
+            </span>
+          </div>
         </div>
         <div class="d-flex flex-wrap gap-2 small">
           <span class="badge text-bg-light border">
@@ -60,6 +73,27 @@
         <div id="theme-last-saved-meta" class="small text-muted mt-1">
           {% trans "Last saved:" %} {{ site_settings.updated_at|date:"Y-m-d H:i" }} -
           {% trans "Preview mode:" %} {% if preview_mode_active %}{% trans "ON" %}{% else %}{% trans "OFF" %}{% endif %}
+        </div>
+        <div id="theme-publish-governor-note" class="small text-muted mt-1">
+          {% blocktrans with count=theme_publish_guarded_count %}Live preview confirmation is required when any of {{ count }} high-impact theme controls change.{% endblocktrans %}
+        </div>
+        <div
+          id="theme-last-change-audit"
+          class="small mt-1 {% if theme_recent_change_meta.status == 'blocked' %}text-warning{% else %}text-muted{% endif %}"
+          data-status="{{ theme_recent_change_meta.status|default:'none' }}"
+        >
+          {% if theme_recent_change_meta %}
+            {% if theme_recent_change_meta.status == "blocked" %}
+              {% trans "Last attempt blocked:" %}
+            {% else %}
+              {% trans "Last publish:" %}
+            {% endif %}
+            {{ theme_recent_change_meta.timestamp|default:"-" }} -
+            {{ theme_recent_change_meta.actor|default:"-" }} -
+            {% trans "fields:" %} {{ theme_recent_change_meta.changed_count|default:0 }}
+          {% else %}
+            {% trans "No recent theme publish audit for this session." %}
+          {% endif %}
         </div>
       </div>
     </div>

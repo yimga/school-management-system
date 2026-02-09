@@ -1,3 +1,4 @@
+import json
 import shutil
 import subprocess
 from pathlib import Path
@@ -13,6 +14,7 @@ from django.urls import reverse
 from apps.accounts.models import Permission
 from config.admin import admin_site
 from apps.siteconfig.context_processors import site_settings
+from apps.siteconfig.forms import ThemeColorsForm
 from apps.siteconfig.models import SiteSettings, ThemePack
 from apps.siteconfig.admin import ThemePackAdmin
 
@@ -39,6 +41,31 @@ class ThemeStudioAccessTests(TestCase):
             defaults={"name": "Manage settings"},
         )
         self.manager.feature_permissions.add(manage_perm)
+
+    def _theme_form_payload(self, **overrides):
+        site = SiteSettings.get_solo()
+        payload = {}
+        form = ThemeColorsForm(instance=site)
+        for field_name in ThemeColorsForm.Meta.fields:
+            value = form.initial.get(field_name, getattr(site, field_name, ""))
+            if hasattr(value, "pk"):
+                value = value.pk
+            if isinstance(value, bool):
+                if value:
+                    payload[field_name] = "on"
+                continue
+            if isinstance(value, (dict, list)):
+                payload[field_name] = json.dumps(value)
+            elif value in (None, ""):
+                payload[field_name] = ""
+            else:
+                payload[field_name] = str(value)
+
+        payload.update(overrides)
+        for field_name, value in list(payload.items()):
+            if value is False:
+                payload.pop(field_name, None)
+        return payload
 
     def test_theme_studio_requires_settings_manage_permission(self):
         self.client.login(username="theme-user", password="password")
@@ -84,14 +111,47 @@ class ThemeStudioAccessTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "theme-draft-status-badge")
+        self.assertContains(response, "theme-contrast-status-badge")
         self.assertContains(response, "theme-active-source")
         self.assertContains(response, "theme-active-site-pack")
         self.assertContains(response, "theme-active-admin-pack")
         self.assertContains(response, "theme-pack-parity-note")
         self.assertContains(response, "theme-last-saved-meta")
+        self.assertContains(response, "theme-publish-governor-note")
+        self.assertContains(response, "theme-last-change-audit")
         self.assertContains(response, "theme-preview-confirmed")
         self.assertContains(response, "cps-keep-theme-pack")
         self.assertContains(response, "cps-active-preset-note")
+
+    def test_theme_studio_blocks_publish_without_preview_for_governed_changes(self):
+        self.client.login(username="theme-manager", password="password")
+        site = SiteSettings.get_solo()
+        payload = self._theme_form_payload(
+            primary_color="#111111",
+            accent_color="#047857",
+        )
+        response = self.client.post(self.url, payload, follow=True)
+        self.assertEqual(response.status_code, 200)
+        site.refresh_from_db()
+        self.assertNotEqual(site.primary_color, "#111111")
+
+        self.assertContains(response, "theme-last-change-audit")
+
+    def test_theme_studio_allows_publish_when_preview_confirmed(self):
+        self.client.login(username="theme-manager", password="password")
+        payload = self._theme_form_payload(
+            primary_color="#1e3a8a",
+            accent_color="#047857",
+            preview_confirmed="1",
+        )
+        response = self.client.post(self.url, payload, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        site = SiteSettings.get_solo()
+        self.assertEqual(site.primary_color, "#1e3a8a")
+        self.assertContains(response, "theme-last-change-audit")
+
+        self.assertContains(response, "theme-last-change-audit")
 
     def test_theme_studio_catalog_uses_compact_scroll_region(self):
         self.client.login(username="theme-manager", password="password")

@@ -33,8 +33,10 @@ from .forms import (
     ReportCardStyleAssignmentForm,
     ReportCardStyleForm,
     ReportCardStyleSelectionForm,
+    THEME_PUBLISH_GUARDED_FIELDS,
     ThemeColorsForm,
     UserPreferenceForm,
+    build_theme_contrast_report,
 )
 from .models import (
     DashboardView,
@@ -750,21 +752,69 @@ def theme_colors_page(request):
                     next_value = next_value.pk
                 if str(previous_value) != str(next_value):
                     changed_fields.append(field_name)
-
-            form.save()
             preview_confirmed = request.POST.get("preview_confirmed") in ("1", "true", "on")
-            if changed_fields and not preview_confirmed:
-                messages.warning(
+
+            changed_labels = []
+            for field_name in changed_fields:
+                field_obj = form.fields.get(field_name)
+                label = field_obj.label if field_obj else field_name.replace("_", " ").title()
+                changed_labels.append(str(label))
+            governed_changes = [name for name in changed_fields if name in THEME_PUBLISH_GUARDED_FIELDS]
+            governed_labels = []
+            for field_name in governed_changes:
+                field_obj = form.fields.get(field_name)
+                label = field_obj.label if field_obj else field_name.replace("_", " ").title()
+                governed_labels.append(str(label))
+
+            now_label = timezone.localtime().strftime("%Y-%m-%d %H:%M")
+            actor_label = request.user.get_username() if request.user.is_authenticated else "system"
+            if governed_changes and not preview_confirmed:
+                request.session["theme_recent_change_meta"] = {
+                    "status": "blocked",
+                    "actor": actor_label,
+                    "timestamp": now_label,
+                    "changed_count": len(changed_fields),
+                    "changed_fields": changed_labels,
+                    "governed_count": len(governed_changes),
+                    "governed_fields": governed_labels,
+                }
+                request.session.modified = True
+                preview_hint = ", ".join(governed_labels[:4])
+                if len(governed_labels) > 4:
+                    preview_hint += ", ..."
+                messages.error(
                     request,
-                    "Theme saved without live preview confirmation. Open Live preview before publish for safer rollout.",
+                    "Live preview confirmation is required before publishing high-impact theme changes: "
+                    f"{preview_hint}",
                 )
             else:
-                messages.success(request, "Theme & experience settings saved.")
-            back_url = _safe_next_url(request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "")
-            if back_url:
-                return redirect(back_url)
-            return redirect("siteconfig:theme_colors")
-        messages.error(request, "Please fix the errors below.")
+                form.save()
+                request.session["theme_recent_change_meta"] = {
+                    "status": "saved",
+                    "actor": actor_label,
+                    "timestamp": now_label,
+                    "changed_count": len(changed_fields),
+                    "changed_fields": changed_labels,
+                    "governed_count": len(governed_changes),
+                    "governed_fields": governed_labels,
+                    "preview_confirmed": bool(preview_confirmed),
+                }
+                request.session.modified = True
+                if changed_fields and governed_changes:
+                    messages.success(
+                        request,
+                        "Theme & experience settings published after live preview confirmation.",
+                    )
+                elif changed_fields:
+                    messages.success(request, "Theme & experience settings saved.")
+                else:
+                    messages.info(request, "No theme changes detected.")
+                back_url = _safe_next_url(request, request.GET.get("next") or request.META.get("HTTP_REFERER"), "")
+                if back_url:
+                    return redirect(back_url)
+                return redirect("siteconfig:theme_colors")
+        else:
+            messages.error(request, "Please fix the errors below.")
     else:
         form = ThemeColorsForm(instance=site)
 
@@ -777,6 +827,23 @@ def theme_colors_page(request):
         admin_change_url = None
     back_url = _safe_next_url(request, request.GET.get("next"), admin_change_url)
     preview_mode_active = bool(request.session.get("preview_mode_enabled") or site.preview_mode_enabled)
+    theme_recent_change_meta = request.session.get("theme_recent_change_meta")
+
+    contrast_values = {}
+    for field_name in (
+        "primary_color",
+        "accent_color",
+        "header_bg_color",
+        "footer_bg_color",
+        "success_color",
+        "warning_color",
+        "danger_color",
+    ):
+        incoming = form.data.get(field_name) if form.is_bound else None
+        if incoming in (None, ""):
+            incoming = getattr(site, field_name, "")
+        contrast_values[field_name] = incoming
+    contrast_report = build_theme_contrast_report(contrast_values)
 
     return render(
         request,
@@ -789,6 +856,9 @@ def theme_colors_page(request):
             "admin_theme_packs_by_group": admin_theme_packs_by_group,
             "admin_change_url": admin_change_url,
             "back_url": back_url,
+            "theme_recent_change_meta": theme_recent_change_meta,
+            "theme_contrast_report": contrast_report,
+            "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
         },
     )
 
