@@ -14,6 +14,30 @@
   });
 </script>
 <style>
+  /* Theme-driven colors for injected sections (from themepack: --school-primary, --school-accent) */
+  .teacher-workflow-strip {
+    background: linear-gradient(to right, var(--school-primary, #0d6efd), var(--school-accent, #198754));
+    color: #fff;
+  }
+  .teacher-workflow-card-inner {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .teacher-proxy-pill {
+    color: var(--school-primary, #0d6efd);
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 15%, transparent);
+  }
+  .teacher-class-row-bg {
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 6%, transparent);
+    border-color: color-mix(in srgb, var(--school-primary, #0d6efd) 20%, transparent) !important;
+  }
+  .teacher-quick-actions-card {
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--school-primary, #0d6efd) 20%, transparent);
+  }
+  .teacher-quick-actions-heading {
+    color: var(--school-primary, #0d6efd);
+  }
+
   .teacher-shell {
     max-width: 1160px;
     margin: 0 auto;
@@ -240,6 +264,12 @@
       <div class="text-muted">Welcome back{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}.</div>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
+      {% if acting_role_label %}
+      <span class="px-3 py-1 rounded-pill small text-nowrap teacher-proxy-pill" role="status" aria-label="Acting as {{ acting_role_label }}">Proxy: Acting {{ acting_role_label }}</span>
+      {% endif %}
+      {% if certification_badge %}
+      <span class="px-3 py-1 rounded-pill small text-nowrap bg-success bg-opacity-25 text-success" role="status" aria-label="Certification: {{ certification_badge }}">{{ certification_badge }}</span>
+      {% endif %}
       {% if allow_custom_layout %}
       {% include "components/dashboard_customize_ui.html" %}
       {% endif %}
@@ -259,6 +289,34 @@
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
+  <!-- Today's Workflow strip (injected above My Workflow; colors from themepack) -->
+  <section class="rounded-3 shadow-sm mb-3 p-4 border-0 teacher-workflow-strip" aria-labelledby="todays-workflow-heading">
+    <h3 id="todays-workflow-heading" class="h6 fw-semibold mb-3 text-white">Today's Workflow</h3>
+    <div class="row g-3" role="list">
+      <div class="col-md-4" role="listitem">
+        <div class="rounded-3 p-3 d-flex justify-content-between align-items-center teacher-workflow-card-inner" aria-label="Syllabi pending approval: {{ syllabus_pending_count|default:0 }}">
+          <span class="small text-white">Syllabi Pending</span>
+          <span class="fw-bold">{{ syllabus_pending_count|default:0 }}</span>
+        </div>
+        <div class="small opacity-90">Approval</div>
+      </div>
+      <div class="col-md-4" role="listitem">
+        <div class="rounded-3 p-3 d-flex justify-content-between align-items-center teacher-workflow-card-inner" aria-label="Active delegations: {{ active_delegations_count|default:0 }}">
+          <span class="small text-white">Delegations Active</span>
+          <span class="fw-bold">{{ active_delegations_count|default:0 }}</span>
+        </div>
+        <div class="small opacity-90">OOO Proxy</div>
+      </div>
+      <div class="col-md-4" role="listitem">
+        <div class="rounded-3 p-3 d-flex justify-content-between align-items-center teacher-workflow-card-inner" aria-label="Items requiring review: {{ items_requiring_review|default:0 }}">
+          <span class="small text-white">Items Requiring Review</span>
+          <span class="fw-bold">{{ items_requiring_review|default:0 }}</span>
+        </div>
+        <div class="small opacity-90">Pending</div>
+      </div>
+    </div>
+  </section>
+
   <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
     <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
@@ -274,77 +332,54 @@
     </div>
   </div>
 
-  <!-- Your Classes at a Glance: full-width block, always visible (outside grid) -->
-  <div id="teacher-classes-at-a-glance" class="card border-0 shadow-sm mb-3 classes-glance-card" data-widget-id="teacher-assignments">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">Your Classes at a Glance</h5>
-        <span class="text-uppercase small text-muted">{{ assignments|length }} classes</span>
-      </div>
-      <div class="row g-2 mb-3">
-        {% for assign in assignments|slice:":3" %}
-        <div class="col-12">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <div class="fw-semibold">{{ assign.classroom }}</div>
-              <div class="small text-muted">{{ assign.subject }}</div>
-            </div>
-            {% with prog=progress|get_item:assign.id %}
-              {% if prog %}
-              <span class="badge {% if prog.filled == prog.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ prog.filled }}/{{ prog.total }}</span>
-              {% else %}
-              <span class="badge bg-secondary">0/0</span>
-              {% endif %}
-            {% endwith %}
+  <!-- Your Classes at a Glance + Quick Actions (injected: class list with syllabus status + right column) -->
+  <div class="row g-3 mb-3">
+    <div class="col-lg-9">
+      <div id="teacher-classes-at-a-glance" class="card border-0 shadow-sm h-100 classes-glance-card" data-widget-id="teacher-assignments">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Your Classes at a Glance</h5>
+            <span class="text-uppercase small text-muted">{{ assignment_syllabus_statuses|default:[]|length }} classes</span>
           </div>
-          <div class="progress mt-1" style="height:6px;">
-            {% with prog=progress|get_item:assign.id %}
-              <div class="progress-bar" role="progressbar" style="width: {% if prog %}{{ prog.width }}{% else %}0{% endif %}%;" aria-valuenow="{% if prog %}{{ prog.filled }}{% else %}0{% endif %}" aria-valuemin="0" aria-valuemax="{% if prog %}{{ prog.total }}{% else %}0{% endif %}"></div>
-            {% endwith %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      <div class="mt-2">
-        {% if assignments %}
-        <div class="table-responsive">
-          <table class="table align-middle mb-0 table-sm" aria-label="Your classes: class, subject, marks progress, and actions">
-            <thead class="table-light">
-              <tr>
-                <th scope="col">Class</th>
-                <th scope="col">Subject</th>
-                <th scope="col" class="text-end">Marks</th>
-                <th scope="col" class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for a in assignments|slice:':5' %}
-              <tr>
-                <td>{{ a.classroom }}</td>
-                <td>{{ a.subject }}</td>
-                <td class="text-end">
-                  {% with p=progress|get_item:a.id %}
-                    {% if p %}
-                    <span class="badge {% if p.filled == p.total %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ p.filled }}/{{ p.total }}</span>
-                    {% else %}
-                    <span class="badge bg-secondary">0/0</span>
-                    {% endif %}
+          {% if assignment_syllabus_statuses|default:[] %}
+          <div class="d-flex flex-column gap-2">
+            {% for item in assignment_syllabus_statuses|default:[] %}
+            <div class="d-flex align-items-center justify-content-between rounded-3 px-3 py-2 border teacher-class-row-bg">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="fw-medium">
+                  {% with sa=item.assignment.subject_assignment %}
+                  {{ sa.subject.name }} — {{ sa.classroom.name }}
                   {% endwith %}
-                </td>
-                <td class="text-end">
-                  <a class="btn btn-sm btn-outline-primary" href="{% url 'evals:teacher_marks_entry' %}?subject_assignment_id={{ a.subject_assignment_id }}">Enter</a>
-                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'evals:teacher_marks_list' %}?assignment={{ a.id }}">View</a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                </span>
+                <span class="badge rounded-pill {% if item.status_slug == 'approved' %}bg-success{% elif item.status_slug == 'pending' %}bg-warning text-dark{% elif item.status_slug == 'needs_revision' %}bg-warning text-dark{% else %}bg-secondary{% endif %}" aria-label="Syllabus status: {{ item.status_label }}">{{ item.status_label }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-3">
+                <span class="small text-muted">{{ item.student_count }} students</span>
+                <a class="btn btn-sm btn-primary rounded-2" href="{% url 'academics:syllabus_builder' item.assignment.subject_assignment_id %}" aria-label="View syllabus for this class">View Syllabus</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <a class="btn btn-sm btn-outline-primary mt-3" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
+          {% else %}
+          <div class="small text-muted">No classes assigned yet. <a href="{% url 'accounts:workflow_center' %}">View workflow</a> or ask your admin to assign you to a class.</div>
+          {% endif %}
         </div>
-        <a class="btn btn-sm btn-outline-primary mt-2" href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a>
-        {% else %}
-        <div class="small text-muted">No classes assigned yet. <a href="{% url 'accounts:workflow_center' %}">View workflow</a> or ask your admin to assign you to a class.</div>
-        {% endif %}
       </div>
+    </div>
+    <div class="col-lg-3">
+      <aside class="card border-0 shadow-sm h-100 rounded-3 teacher-quick-actions-card" role="complementary" aria-labelledby="quick-actions-heading">
+        <div class="card-body">
+          <h5 id="quick-actions-heading" class="h6 fw-semibold mb-3 teacher-quick-actions-heading">Quick Actions</h5>
+          <nav class="d-flex flex-column gap-2" aria-label="Teacher dashboard quick actions">
+            <a class="btn btn-outline-primary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'accounts:my_delegations' %}" aria-label="Manage delegations and out-of-office proxy"><i class="bi bi-people" aria-hidden="true"></i> Manage Delegations</a>
+            {% if can_approve_syllabus %}
+            <a class="btn btn-outline-primary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'academics:syllabus_approval_queue' %}" aria-label="Approve pending syllabi"><i class="bi bi-journal-check" aria-hidden="true"></i> Approve Syllabi</a>
+            {% endif %}
+            <a class="btn btn-outline-secondary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="#" aria-label="Print ID cards (coming soon)"><i class="bi bi-printer" aria-hidden="true"></i> Print ID Cards</a>
+          </nav>
+        </div>
+      </aside>
     </div>
   </div>
 
