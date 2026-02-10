@@ -32,6 +32,7 @@ from apps.api.entity_api import (
     TeacherProfileViewSet,
     TeacherRosterView,
 )
+from apps.api.digital_id_api import DigitalIDAPI, DigitalIDChildrenAPI
 
 router = DefaultRouter()
 router.register(r'devices', MobileDeviceViewSet, basename='mobile-device')
@@ -60,7 +61,10 @@ urlpatterns = [
     path('dashboard/academic/', AcademicDashboardAPI.as_view(), name='academic-dashboard'),
     path('dashboard/layout/<str:page>/', DashboardLayoutAPI.as_view(), name='dashboard-layout'),
     path('portal-preferences/', PortalPreferencesAPI.as_view(), name='portal-preferences'),
-    
+    # Phase 5: Digital ID for wallet / partner apps
+    path('portal/digital-id/', DigitalIDAPI.as_view(), name='digital-id'),
+    path('portal/digital-id/children/', DigitalIDChildrenAPI.as_view(), name='digital-id-children'),
+
     # Search APIs
     path('search/', GlobalSearchAPI.as_view(), name='global-search'),
     path('search/suggestions/', SearchSuggestionsAPI.as_view(), name='search-suggestions'),

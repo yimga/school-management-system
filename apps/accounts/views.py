@@ -15,7 +15,7 @@ from config.admin import admin_site
 from apps.finance.models import Invoice, ReferralReward, PaymentReminder, Notification as FinanceNotification
 from apps.finance.services import finance_dashboard_data
 from apps.portal.models import PendingGuardianInvite
-from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance, TeacherProfile
+from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance, TeacherProfile, Badge, BadgeType
 from apps.academics.models import AcademicYear, Classroom
 from apps.reports.models import TermPublishStatus
 from apps.siteconfig.models import SiteSettings
@@ -178,6 +178,16 @@ def user_profile(request):
     role = getattr(request.user, "role", None)
     if role == "TEACHER":
         context["teacher_org_tree"] = _teacher_org_tree(request.user)
+        # Phase 1: Staff badges (non-expired, STAFF audience only)
+        from django.utils import timezone as tz
+        context["staff_badges"] = list(
+            Badge.objects.filter(
+                user=request.user,
+                badge_type__audience=BadgeType.Audience.STAFF,
+            ).filter(
+                Q(expiry_at__isnull=True) | Q(expiry_at__gt=tz.now())
+            ).select_related("badge_type").order_by("-issued_at")[:20]
+        )
     if role == "PARENT":
         context["parent_children_tree"] = _parent_children_tree(request.user)
     admin_ctx = _admin_context(request.user)

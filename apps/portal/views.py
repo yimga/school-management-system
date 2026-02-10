@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 from django import forms
 import uuid
 from decimal import Decimal
@@ -26,6 +27,7 @@ from apps.evals.views import (
     teacher_workflow_center as evals_teacher_workflow_center,
 )
 from apps.accounts.models import User
+from django.db.models import Q
 from apps.people.models import (
     StudentGuardian,
     StudentProfile,
@@ -33,11 +35,13 @@ from apps.people.models import (
     TeacherPayRecord,
     TeacherLeaveRequest,
     TeacherAttendance,
+    Badge,
+    BadgeType,
 )
 from apps.academics.models import Term
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
-from apps.finance.models import Invoice, PaymentReminder, ReferralReward, Notification
+from apps.finance.models import Invoice, Payment, PaymentReminder, ReferralReward, Notification
 from apps.finance.services import generate_payment_link
 from apps.evals.services import classroom_term_rankings
 from apps.reports.services import (
@@ -81,6 +85,7 @@ from .services import (
     class_announcements_for_parent,
     class_threads_for_parent,
     parent_onboarding_score,
+    _merged_upcoming_events,
 )
 from .forms import (
     LinkChildForm,
@@ -236,6 +241,35 @@ def parent_dashboard(request: HttpRequest):
             ).values("student_id").annotate(cnt=Count("id"))
         ):
             resource_pending_map[row["student_id"]] = row["cnt"]
+    # Phase 1: Student badges per child (non-expired, up to 10 per student)
+    badges_qs = (
+        Badge.objects.filter(student__in=students)
+        .filter(
+            Q(expiry_at__isnull=True) | Q(expiry_at__gt=timezone.now())
+        )
+        .select_related("badge_type")
+        .order_by("-issued_at")
+    )
+    badges_by_student = {}
+    for b in badges_qs:
+        sid = b.student_id
+        if sid not in badges_by_student:
+            badges_by_student[sid] = []
+        if len(badges_by_student[sid]) < 10:
+            badges_by_student[sid].append(b)
+    # Per-student missing work (incomplete evaluations this term)
+    missing_work_by_student = {}
+    if year and _term and student_ids:
+        evals_this_term = list(
+            Evaluation.objects.filter(
+                student_id__in=student_ids,
+                academic_year=year,
+                term=_term,
+            ).select_related("academic_year", "term")
+        )
+        for e in evals_this_term:
+            if not e.is_complete_for_ranking:
+                missing_work_by_student[e.student_id] = missing_work_by_student.get(e.student_id, 0) + 1
     child_cards = []
     for link in links:
         student_id = link.student.id
@@ -251,6 +285,9 @@ def parent_dashboard(request: HttpRequest):
             "finance_paid": fin.get("paid"),
             "finance_balance": fin.get("balance"),
             "resource_pending": resource_pending_map.get(student_id, 0),
+            "badges": badges_by_student.get(student_id, []),
+            "missing_work": missing_work_by_student.get(student_id, 0),
+            "unread_messages": unread_messages_aggregate,
         })
     
     preference = getattr(request.user, "preferences", None)
@@ -409,6 +446,26 @@ def parent_dashboard(request: HttpRequest):
     finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     has_fees_due = can_view_finance and (finance_balance > 0)
 
+    # Phase 6: Verified Parent pill (e.g. email present and not placeholder)
+    parent_verified = bool(
+        getattr(request.user, "email", None)
+        and str(request.user.email).strip()
+        and not str(request.user.email).lower().startswith("pending")
+    )
+    # Aggregate unread messages from class threads for WorkflowChip "Unread Msgs"
+    unread_messages_aggregate = sum(t.get("unread_count", 0) for t in class_threads)
+    # Missing work count for workflow chip (tasks pending)
+    missing_work_count = widget_data.get("tasks", {}).get("pending_evaluations", 0)
+
+    # Phase 8: Latest transactions for parent (recent payments)
+    recent_payments = []
+    if can_view_finance and finance_students:
+        recent_payments = list(
+            Payment.objects.filter(invoice__student__in=finance_students)
+            .select_related("invoice", "invoice__student")
+            .order_by("-paid_at")[:5]
+        )
+
     return render(request, "parent/dashboard.html", {
         "links": links,
         "show_parent_dashboard_hint": show_parent_dashboard_hint,
@@ -445,6 +502,10 @@ def parent_dashboard(request: HttpRequest):
         "gce_enabled": year and getattr(year, "enable_gce_registration", False) if year else False,
         "signature_stats": signature_stats,
         "site": site,
+        "parent_verified": parent_verified,
+        "unread_messages_aggregate": unread_messages_aggregate,
+        "missing_work_count": missing_work_count,
+        "recent_payments": recent_payments,
     })
 
 
@@ -803,25 +864,215 @@ def portal_syllabus(request: HttpRequest):
         is_active=True,
     ).select_related("created_by").order_by("-created_at")
 
+    role = (getattr(request.user, "role", None) or "").upper() if request.user.is_authenticated else ""
     return render(request, "portal/syllabus.html", {
         "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
         "items": items,
+        "is_teacher": role == User.Role.TEACHER,
+    })
+
+
+@never_cache
+def badge_verify(request: HttpRequest):
+    """
+    Public badge verification (Phase 2). GET ?token=... or ?t=...
+    Token is a signed payload 'badge:<pk>'. Returns Valid/Invalid page and optional JSON.
+    Rate-limited by IP per minute.
+    """
+    from django.core.signing import Signer, BadSignature
+    from django.core.cache import cache
+
+    token = request.GET.get("token") or request.GET.get("t", "").strip()
+    want_json = request.GET.get("format") == "json"
+    valid = False
+    badge = None
+    message = "Invalid or missing token."
+
+    if token:
+        # Rate limit: 30 requests per IP per minute
+        ip = request.META.get("REMOTE_ADDR", "")[:64]
+        minute = timezone.now().strftime("%Y%m%d%H%M")
+        cache_key = f"badge_verify:{ip}:{minute}"
+        try:
+            count = cache.get(cache_key, 0)
+            if count >= 30:
+                message = "Too many requests. Try again later."
+            else:
+                cache.set(cache_key, count + 1, 120)
+                signer = Signer(salt="badge.verify")
+                payload = signer.unsign(token)
+                if payload.startswith("badge:"):
+                    pk = int(payload.split(":")[1])
+                    badge = Badge.objects.filter(pk=pk).select_related("badge_type", "user", "student").first()
+                    if badge:
+                        if badge.expiry_at and badge.expiry_at <= timezone.now():
+                            message = "Badge has expired."
+                        else:
+                            valid = True
+                            message = f"Valid — {badge.badge_type.label}"
+                elif payload.startswith("staff:"):
+                    from apps.accounts.models import User
+                    uid = int(payload.split(":")[1])
+                    user = User.objects.filter(pk=uid).first()
+                    if user and getattr(user, "teacher_profile", None):
+                        valid = True
+                        message = _("Valid — Staff ID")
+                        badge = type("IDHolder", (), {"user": user, "student": None, "badge_type": type("BT", (), {"label": "Staff ID"})()})()
+                    else:
+                        message = _("Staff member not found or inactive.")
+                elif payload.startswith("student:"):
+                    sid = int(payload.split(":")[1])
+                    student = StudentProfile.objects.filter(pk=sid).first()
+                    if student and student.is_active:
+                        valid = True
+                        message = _("Valid — Student ID")
+                        badge = type("IDHolder", (), {"user": None, "student": student, "badge_type": type("BT", (), {"label": "Student ID"})()})()
+                    else:
+                        message = _("Student not found or inactive.")
+                # Phase 5: log scan event for valid verifications (attendance / third-party)
+                if valid and badge:
+                    from apps.people.models import BadgeScanEvent
+                    kind = BadgeScanEvent.KIND_STAFF if getattr(badge, "user", None) else BadgeScanEvent.KIND_STUDENT
+                    if payload.startswith("badge:"):
+                        kind = BadgeScanEvent.KIND_BADGE
+                    ip = request.META.get("REMOTE_ADDR", "")[:45] or None
+                    try:
+                        BadgeScanEvent.objects.create(
+                            badge=badge if kind == BadgeScanEvent.KIND_BADGE and getattr(badge, "pk", None) else None,
+                            token_kind=kind,
+                            user=getattr(badge, "user", None),
+                            student=getattr(badge, "student", None),
+                            verified=True,
+                            ip_address=ip,
+                            user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:255],
+                        )
+                    except Exception:
+                        pass
+        except (BadSignature, ValueError, IndexError):
+            pass
+
+    # Phase 5: JSON response includes role and name for third-party / NFC / access control
+    role = None
+    name = None
+    if valid and badge:
+        if getattr(badge, "user", None):
+            role = "staff"
+            name = getattr(badge.user, "get_full_name", lambda: str(badge.user))() or getattr(badge.user, "username", "")
+        elif getattr(badge, "student", None):
+            role = "student"
+            name = getattr(badge.student, "get_full_name", lambda: str(badge.student))() or getattr(badge.student, "admission_number", "")
+
+    if want_json:
+        return JsonResponse({
+            "valid": valid,
+            "message": message,
+            "badge_type": getattr(badge, "badge_type", None) and getattr(badge.badge_type, "label", None),
+            "holder": str(badge.user or badge.student) if badge else None,
+            "role": role,
+            "name": name,
+        })
+
+    return render(request, "portal/badge_verify.html", {
+        "valid": valid,
+        "message": message,
+        "badge": badge,
     })
 
 
 @parent_portal_required
 def parent_medal_case(request: HttpRequest):
-    """Digital medal case: badges earned by each linked student."""
+    """Digital medal case: badges earned by each linked student (non-expired)."""
     from apps.people.models import Badge
     students = list(guardian_students(request.user))
     student_badges = []
+    now = timezone.now()
     for s in students:
         badges = list(
-            Badge.objects.filter(student=s).select_related("badge_type").order_by("-issued_at")
+            Badge.objects.filter(student=s)
+            .filter(Q(expiry_at__isnull=True) | Q(expiry_at__gt=now))
+            .select_related("badge_type")
+            .order_by("-issued_at")
         )
+        for b in badges:
+            cm = b.criteria_met if isinstance(getattr(b, "criteria_met", None), dict) else {}
+            setattr(b, "_evidence_report_term_id", cm.get("report_term_id"))
+            setattr(b, "_evidence_syllabus_id", cm.get("syllabus_id"))
         student_badges.append((s, badges))
     return render(request, "parent/medal_case.html", {
         "student_badges": student_badges,
+    })
+
+
+@login_required
+def unified_calendar(request: HttpRequest):
+    """Phase 9: Unified calendar – school events and grading deadlines for teachers and parents."""
+    year, _term = get_active_year_and_term()
+    events = _merged_upcoming_events(year)
+    role = (getattr(request.user, "role", None) or "").upper()
+    return render(request, "portal/unified_calendar.html", {
+        "events": events,
+        "site": SiteSettings.get_solo(),
+        "is_teacher": role == User.Role.TEACHER,
+        "is_parent": role == User.Role.PARENT,
+    })
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+@login_required
+def my_digital_id(request: HttpRequest):
+    """Phase 4: Staff digital ID card (My ID) – school branding, photo, name, role, STAFF ID bar, QR."""
+    from apps.people.badge_services import get_signed_id_token
+    site = SiteSettings.get_solo()
+    profile = getattr(request.user, "teacher_profile", None)
+    name = request.user.get_full_name() or request.user.username
+    role_label = "Teacher"
+    if profile and profile.department:
+        role_label = str(profile.department.name)
+    photo = profile.profile_photo if profile and hasattr(profile, "profile_photo") and profile.profile_photo else None
+    qr_token = get_signed_id_token("staff", request.user.pk)
+    verify_url = request.build_absolute_uri(reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token))
+    qr_image_url = "https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=" + quote_plus(verify_url)
+    return render(request, "portal/digital_id_staff.html", {
+        "site_name": getattr(site, "site_name", None) or "School",
+        "name": name,
+        "role_label": role_label,
+        "photo": photo,
+        "qr_token": qr_token,
+        "verify_url": verify_url,
+        "qr_image_url": qr_image_url,
+    })
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+@login_required
+def child_digital_id(request: HttpRequest, student_id: int):
+    """Phase 4: Child's digital ID card – school branding, photo, name, grade/class, STUDENT ID bar, QR."""
+    from apps.people.badge_services import get_signed_id_token
+    link = StudentGuardian.objects.filter(
+        guardian_user=request.user,
+        student_id=student_id,
+    ).select_related("student", "student__classroom", "student__academic_year").first()
+    if not link:
+        return HttpResponseForbidden("You are not authorized to view this student's ID.")
+    student = link.student
+    site = SiteSettings.get_solo()
+    classroom = getattr(student, "classroom", None)
+    grade_label = classroom.name if classroom else (getattr(student, "academic_year", None) and str(student.academic_year) or "—")
+    photo = getattr(student, "profile_photo", None) and student.profile_photo or None
+    qr_token = get_signed_id_token("student", student.pk)
+    verify_url = request.build_absolute_uri(reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token))
+    qr_image_url = "https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=" + quote_plus(verify_url)
+    return render(request, "portal/digital_id_student.html", {
+        "site_name": getattr(site, "site_name", None) or "School",
+        "student": student,
+        "name": student.get_full_name(),
+        "grade_label": grade_label,
+        "photo": photo,
+        "qr_token": qr_token,
+        "verify_url": verify_url,
+        "qr_image_url": qr_image_url,
     })
 
 

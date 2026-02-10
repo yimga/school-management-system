@@ -1,5 +1,22 @@
 # Deployment Verification Checklist
 
+## Canonical URLs (all environments)
+
+Use these paths for documentation and links. Base URL example: `https://school-management-system-2kzk.onrender.com`.
+
+| Label | Path | Django name |
+|-------|------|-------------|
+| Admin (backend) | `/admin/` | `admin:index` |
+| Login | `/authentication/login/` | `accounts:login` |
+| Parent dashboard | `/portal/parent/` | `portal:parent_dashboard` |
+| Teacher dashboard | `/evals/teacher/` | `evals:teacher_dashboard` |
+| Frontend admin | `/backend/` (redirects to `/authentication/backend/`) | `accounts:backend_dashboard` |
+| Backend admin | `/admin/` | same as first row |
+
+Smoke tests: `python manage.py test apps.accounts.tests.test_smoke_urls` (includes `test_six_critical_paths_resolve`).
+
+---
+
 ## ✅ Code Verification (All Present on `main`)
 
 ### 1. Messaging Groups & Department Threads

@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.contrib import admin, messages
-
+from django.db.models import Q
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
@@ -18,6 +18,7 @@ from .models import (
     TeacherAttendance,
     BadgeType,
     Badge,
+    BadgeScanEvent,
 )
 
 
@@ -507,18 +508,57 @@ admin_site.register(StudentResourceReturn, StudentResourceReturnAdmin)
 
 
 class BadgeTypeAdmin(ModelAdmin):
-    list_display = ("code", "label", "audience", "is_active", "created_at")
+    list_display = ("code", "label", "audience", "sort_order", "is_active", "created_at")
+    list_editable = ("sort_order", "is_active")
     list_filter = ("audience", "is_active")
     search_fields = ("code", "label")
+    ordering = ["audience", "sort_order", "code"]
+
+
+class BadgeExpiryFilter(admin.SimpleListFilter):
+    title = _("expiry")
+    parameter_name = "expiry"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("expired", _("Expired")),
+            ("active", _("Active (not expired)")),
+        ]
+
+    def queryset(self, request, queryset):
+        from django.utils import timezone
+        now = timezone.now()
+        if self.value() == "expired":
+            return queryset.filter(expiry_at__isnull=False, expiry_at__lte=now)
+        if self.value() == "active":
+            return queryset.filter(Q(expiry_at__isnull=True) | Q(expiry_at__gt=now))
+        return queryset
 
 
 class BadgeAdmin(ModelAdmin):
     list_display = ("badge_type", "user", "student", "issued_at", "expiry_at", "is_physical_printed")
-    list_filter = ("badge_type",)
+    list_filter = ("badge_type", BadgeExpiryFilter)
     search_fields = ("badge_type__label", "user__username", "student__admission_number")
     raw_id_fields = ("user", "student")
+    actions = ["revoke_selected_badges"]
+
+    def revoke_selected_badges(self, request, queryset):
+        from django.utils import timezone
+        updated = queryset.update(expiry_at=timezone.now())
+        self.message_user(request, _(f"Revoked {updated} badge(s)."))
+    revoke_selected_badges.short_description = _("Revoke selected badges")
+
+
+class BadgeScanEventAdmin(ModelAdmin):
+    list_display = ("verified_at", "token_kind", "user", "student", "verified", "ip_address")
+    list_filter = ("token_kind", "verified")
+    search_fields = ("user__username", "student__admission_number", "ip_address")
+    raw_id_fields = ("badge", "user", "student")
+    readonly_fields = ("verified_at", "ip_address", "user_agent")
+    date_hierarchy = "verified_at"
 
 
 admin_site.register(BadgeType, BadgeTypeAdmin)
 admin_site.register(Badge, BadgeAdmin)
+admin_site.register(BadgeScanEvent, BadgeScanEventAdmin)
 

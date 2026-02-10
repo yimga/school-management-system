@@ -601,6 +601,25 @@ def publish_term_results(request: HttpRequest):
                 )
             except Exception:
                 pass
+            # Phase 3: Award Honor Roll badges for students in published classrooms
+            published_classroom_ids = {str(c.id) for c in classrooms} if publish_school else selected_classrooms
+            if published_classroom_ids:
+                from apps.people.badge_services import create_honor_roll_badge_for_student
+                for classroom in classrooms:
+                    if str(classroom.id) not in published_classroom_ids:
+                        continue
+                    for student in StudentProfile.objects.filter(
+                        classroom=classroom,
+                        academic_year=year_obj,
+                        withdrawn_at__isnull=True,
+                    ):
+                        try:
+                            ctx = term_report_context(student, year_obj, term_obj)
+                            avg = ctx.get("average")
+                            if avg is not None:
+                                create_honor_roll_badge_for_student(student, year_obj, term_obj, avg)
+                        except Exception:
+                            pass
             messages.success(request, "Publish status updated.")
             return redirect(f"{request.path}?year={year_obj.id}&term={term_obj.id}")
 

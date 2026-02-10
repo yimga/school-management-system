@@ -63,6 +63,18 @@ python manage.py runserver
 - [ ] Admin "← Back to dashboard" → `/admin/`.
 - [ ] Backend "Backend dashboard" from Workflow Center → backend dashboard.
 
+### Canonical URLs (all environments)
+
+| Label            | Path                      |
+|------------------|---------------------------|
+| Login            | `/authentication/login/`  |
+| Parent dashboard | `/portal/parent/`         |
+| Teacher dashboard| `/evals/teacher/`         |
+| Frontend admin   | `/backend/` → `/authentication/backend/` |
+| Backend admin    | `/admin/`                 |
+
+Run `python validate_urls.py` to verify critical routes resolve.
+
 ---
 
 ## 4. After deployment: backend dashboard not updated?

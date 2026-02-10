@@ -576,13 +576,16 @@ class BadgeType(models.Model):
 
     code = models.CharField(max_length=60, unique=True)
     label = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=60, blank=True, help_text="Icon name/code (e.g. Bootstrap icon class).")
+    sort_order = models.PositiveSmallIntegerField(default=0)
     audience = models.CharField(max_length=20, choices=Audience.choices, default=Audience.STAFF)
     criteria_rule = models.JSONField(default=dict, blank=True, help_text="Optional rule config (e.g. threshold, trigger).")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["audience", "code"]
+        ordering = ["audience", "sort_order", "code"]
         verbose_name = "Badge type"
         verbose_name_plural = "Badge types"
 
@@ -632,3 +635,58 @@ class Badge(models.Model):
             raise ValidationError("Set either user (staff) or student.")
         if self.user_id and self.student_id:
             raise ValidationError("Set either user or student, not both.")
+
+
+class BadgeScanEvent(models.Model):
+    """Phase 5: Optional log of badge/ID scan events for attendance and activity tracking."""
+    KIND_BADGE = "badge"
+    KIND_STAFF = "staff"
+    KIND_STUDENT = "student"
+
+    badge = models.ForeignKey(
+        Badge,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="scan_events",
+        help_text="Set when token was badge:<pk>.",
+    )
+    token_kind = models.CharField(
+        max_length=20,
+        choices=(
+            (KIND_BADGE, "Badge"),
+            (KIND_STAFF, "Staff ID"),
+            (KIND_STUDENT, "Student ID"),
+        ),
+        default=KIND_BADGE,
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="badge_scan_events_as_subject",
+        help_text="Staff member verified (for staff ID).",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="badge_scan_events",
+        help_text="Student verified (for student ID).",
+    )
+    verified_at = models.DateTimeField(auto_now_add=True)
+    verified = models.BooleanField(default=True, help_text="Whether verification succeeded.")
+    ip_address = models.GenericIPAddressField(null=True, blank=True, unpack_ipv4=True)
+    user_agent = models.CharField(max_length=255, blank=True)
+    notes = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["-verified_at"]
+        verbose_name = "Badge scan event"
+        verbose_name_plural = "Badge scan events"
+
+    def __str__(self):
+        subject = self.user or self.student or f"Badge#{self.badge_id}"
+        return f"Scan {self.verified_at.isoformat()} – {subject} ({self.token_kind})"

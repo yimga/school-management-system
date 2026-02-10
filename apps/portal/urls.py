@@ -1,9 +1,13 @@
 from django.urls import path
 
 from .views import (
+    badge_verify,
     parent_dashboard,
     parent_workflow_center,
     parent_medal_case,
+    unified_calendar,
+    my_digital_id,
+    child_digital_id,
     parent_child_results,
     parent_attendance_discipline,
     portal_feature_page,
@@ -73,12 +77,16 @@ urlpatterns = [
     path("parent/finance/", parent_finance, name="parent_finance"),
     path("parent/contact-school/", parent_contact_school, name="parent_contact_school"),
     path("parent/medal-case/", parent_medal_case, name="parent_medal_case"),
+    path("parent/child/<int:student_id>/id/", child_digital_id, name="child_digital_id"),
+    path("teacher/my-id/", my_digital_id, name="my_digital_id"),
+    path("badge/verify/", badge_verify, name="badge_verify"),
     path("support/", support_request, name="support_request"),
     # Backwards compatibility: older templates and tests expect 'parent_performance'
     path("parent/performance/", parent_child_results, name="parent_performance"),
     path("features/<str:feature>/", portal_feature_page, name="portal_feature"),
     path("parent/stats/", portal_stats, name="portal_stats"),
     path("syllabus/", portal_syllabus, name="portal_syllabus"),
+    path("calendar/", unified_calendar, name="unified_calendar"),
     path("preview/syllabus/", preview_student_syllabus, name="preview_syllabus"),
     path("preview/communication/", preview_communication_test, name="preview_communication_test"),
     
