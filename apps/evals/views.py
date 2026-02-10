@@ -621,12 +621,13 @@ def teacher_dashboard(request: HttpRequest):
 
     # Alerts for dashboard body (pending leave, EWS, etc.)
     teacher_alerts = []
+    pending_leaves = 0
     if teacher_profile:
-        pending_leave = teacher_profile.leave_requests.filter(status=TeacherLeaveRequest.Status.PENDING).count()
-        if pending_leave:
+        pending_leaves = teacher_profile.leave_requests.filter(status=TeacherLeaveRequest.Status.PENDING).count()
+        if pending_leaves:
             teacher_alerts.append({
                 "type": "leave",
-                "message": f"You have {pending_leave} pending leave request(s).",
+                "message": f"You have {pending_leaves} pending leave request(s).",
                 "url": reverse("portal:teacher_leave"),
                 "cta": "View leave",
             })
@@ -770,6 +771,7 @@ def teacher_dashboard(request: HttpRequest):
         "certification_badge": certification_badge,
         "items_requiring_review": items_requiring_review,
         "staff_badges": staff_badges,
+        "pending_leaves": pending_leaves,
     })
 
 

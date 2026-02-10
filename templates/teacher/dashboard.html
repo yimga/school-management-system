@@ -225,11 +225,7 @@
             </div>
             <div class="tdm-mini card-glass border-0">
               <div class="tdm-mini-label">{% trans "Leave requests" %}</div>
-              <div class="tdm-mini-value">
-                {% if teacher_profile.leave_requests.all %}
-                  {{ teacher_profile.leave_requests.filter(status='pending').count|default:0 }} {% trans "pending" %}
-                {% else %}0{% endif %}
-              </div>
+              <div class="tdm-mini-value">{{ pending_leaves|default:0 }} {% trans "pending" %}</div>
               <div class="tdm-mini-meta">{% trans "Track approvals and history" %}</div>
               <div class="d-flex gap-1 mt-2">
                 <a class="btn btn-soft btn-sm flex-fill" href="{% url 'portal:teacher_leave' %}">{% trans "Request" %}</a>
