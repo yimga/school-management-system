@@ -119,6 +119,12 @@
   --dashboard-section-size: 1.125rem;
   --dashboard-card-title-size: 1rem;
 
+  /* Teacher dashboard Today's Overview cards (optional; theme pack can override) */
+  --teacher-warning-bg: #d97706;
+  --teacher-warning-border: #b45309;
+  --teacher-warning-alt-bg: #ea580c;
+  --teacher-warning-alt-border: #c2410c;
+
   /* Fluid typography (clamp: min, preferred, max) – smooth scaling, no rigid breakpoint jumps */
   --text-xs: clamp(0.7rem, 1.5vw, 0.75rem);
   --text-sm: clamp(0.8rem, 1.8vw, 0.875rem);

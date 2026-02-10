@@ -54,6 +54,19 @@
               <div class="d-flex justify-content-between"><span class="text-muted">Email</span><span class="fw-semibold">{{ request.user.email|default:"-" }}</span></div>
               <div class="d-flex justify-content-between"><span class="text-muted">Last login</span><span class="fw-semibold">{% if request.user.last_login %}{{ request.user.last_login }}{% else %}-{% endif %}</span></div>
               <div class="d-flex justify-content-between"><span class="text-muted">Member since</span><span class="fw-semibold">{{ request.user.date_joined|date }}</span></div>
+              {% if request.user.role == 'TEACHER' %}
+                {% if staff_id %}
+                  <div class="d-flex justify-content-between align-items-center gap-2">
+                    <span class="text-muted">Staff ID</span>
+                    <span class="fw-semibold">{{ staff_id }}</span>
+                  </div>
+                {% endif %}
+                {% if digital_id_url %}
+                  <div class="mt-2 pt-2 border-top">
+                    <a class="btn btn-outline-primary btn-sm w-100" href="{{ digital_id_url }}"><i class="bi bi-person-badge me-1"></i>{% trans "View / Print my ID card" %}</a>
+                  </div>
+                {% endif %}
+              {% endif %}
               {% if active_sessions_count is not None %}
                 <div class="d-flex justify-content-between"><span class="text-muted">Active sessions</span><span class="fw-semibold">{{ active_sessions_count }} device{{ active_sessions_count|pluralize }}</span></div>
               {% endif %}
@@ -172,7 +185,11 @@
                     <span class="fw-semibold">{{ item.student }}</span>
                     <span class="badge bg-secondary">{{ item.relationship }}</span>
                     <span class="text-muted small">{{ item.classroom }}{% if item.academic_year %} ({{ item.academic_year }}){% endif %}</span>
-                    <a class="btn btn-outline-primary btn-sm ms-auto" href="{% url 'portal:parent_dashboard' %}">View portal</a>
+                    {% if item.student.admission_number %}
+                      <span class="text-muted small">ID: {{ item.student.admission_number }}</span>
+                    {% endif %}
+                    <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:child_digital_id' item.student.id %}"><i class="bi bi-person-badge me-1"></i>{% trans "ID card" %}</a>
+                    <a class="btn btn-outline-secondary btn-sm ms-auto" href="{% url 'portal:parent_dashboard' %}">View portal</a>
                   </li>
                 {% endfor %}
               </ul>

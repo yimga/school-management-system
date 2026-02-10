@@ -14,175 +14,355 @@
   });
 </script>
 <style>
-  /* Theme-driven colors for injected sections (from themepack: --school-primary, --school-accent) */
-  .teacher-workflow-strip {
-    background: linear-gradient(to right, var(--school-primary, #0d6efd), var(--school-accent, #198754));
-    color: #fff;
-  }
-  .teacher-workflow-card-inner {
-    background: rgba(255, 255, 255, 0.2);
-  }
-  .teacher-proxy-pill {
-    color: var(--school-primary, #0d6efd);
-    background: color-mix(in srgb, var(--school-primary, #0d6efd) 15%, transparent);
-  }
-  .teacher-class-row-bg {
-    background: color-mix(in srgb, var(--school-primary, #0d6efd) 6%, transparent);
-    border-color: color-mix(in srgb, var(--school-primary, #0d6efd) 20%, transparent) !important;
-  }
-  .teacher-quick-actions-card {
-    background: color-mix(in srgb, var(--school-primary, #0d6efd) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--school-primary, #0d6efd) 20%, transparent);
-  }
-  .teacher-quick-actions-heading {
-    color: var(--school-primary, #0d6efd);
-  }
-
+  /* High-contrast teacher dashboard – reference layout, themepack colors only */
   .teacher-shell {
     max-width: 1160px;
     margin: 0 auto;
     padding: 0 12px;
+    background: var(--admin-content-bg, #fff);
+  }
+  .teacher-dashboard-title {
+    color: var(--school-primary, #0d6efd);
+    font-weight: 700;
+    font-size: var(--dashboard-title-size, 1.5rem);
+  }
+
+  /* Section title (visible, high contrast) */
+  .teacher-overview-section-title {
+    font-size: var(--dashboard-section-size, 1.125rem);
+    font-weight: 700;
+    color: var(--admin-content-text, #0f172a);
+    margin-bottom: var(--dashboard-gap-md, 16px);
+  }
+
+  /* Today's Overview: three distinct cards (high contrast, themepack) */
+  .teacher-overview-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--dashboard-gap-md, 16px);
+    margin-bottom: var(--dashboard-gap-lg, 24px);
+  }
+  @media (max-width: 767px) { .teacher-overview-strip { grid-template-columns: 1fr; } }
+  .teacher-overview-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    padding: 1rem 1.25rem;
+    border: 2px solid transparent;
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 80px;
+    box-shadow: var(--dashboard-card-shadow, 0 2px 6px rgba(0,0,0,0.12));
+  }
+  .teacher-overview-card--syllabi {
+    background: var(--teacher-warning-bg, #d97706);
+    border-color: var(--teacher-warning-border, #b45309);
+  }
+  .teacher-overview-card--delegations {
+    background: var(--school-primary, #0d6efd);
+    border-color: color-mix(in srgb, var(--school-primary, #0d6efd) 80%, black);
+  }
+  .teacher-overview-card--review {
+    background: var(--teacher-warning-alt-bg, #ea580c);
+    border-color: var(--teacher-warning-alt-border, #c2410c);
+  }
+  .teacher-overview-card .teacher-overview-num-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .teacher-overview-card .teacher-overview-copy { display: flex; flex-direction: column; gap: 0.15rem; }
+  .teacher-overview-card .teacher-overview-sublabel { font-size: 0.8rem; opacity: 0.95; font-weight: 500; }
+  .teacher-overview-card a { color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+  .teacher-overview-card .teacher-overview-arrow { margin-left: auto; flex-shrink: 0; }
+
+  /* Today's Overview detail card (donut + stats + activity labels) */
+  .teacher-overview-detail-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
+    box-shadow: var(--dashboard-card-shadow, 0 1px 3px rgba(0,0,0,0.08));
+  }
+  .teacher-overview-detail-title { color: var(--admin-content-text, #0f172a); }
+  .teacher-overview-donut {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: conic-gradient(var(--school-primary, #0d6efd) calc(var(--value, 0) * 1%), #e2e8f0 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .teacher-overview-donut::after {
+    content: "";
+    position: absolute;
+    width: 72px;
+    height: 72px;
+    background: var(--admin-content-card-bg, #fff);
+    border-radius: 50%;
+  }
+  .teacher-overview-donut span {
+    position: relative;
+    z-index: 1;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--admin-content-text, #0f172a);
+  }
+  .teacher-overview-stat { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem; }
+  .teacher-overview-stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .teacher-overview-stat-dot--orange { background: var(--teacher-warning-bg, #d97706); }
+  .teacher-overview-stat-dot--primary { background: var(--school-primary, #0d6efd); }
+  .teacher-overview-stat-dot--light { background: color-mix(in srgb, var(--school-primary, #0d6efd) 40%, transparent); }
+  .teacher-overview-stat-value { font-weight: 700; color: var(--admin-content-text, #0f172a); }
+  .teacher-overview-stat-label { font-size: 0.8rem; color: var(--admin-content-text-muted, #475569); }
+  .teacher-overview-stat-pct { font-size: 0.75rem; color: var(--admin-content-text-muted, #475569); }
+  .teacher-overview-activity { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .teacher-overview-activity-item { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .teacher-overview-activity-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  .teacher-proxy-pill {
+    color: var(--school-primary, #0d6efd);
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--school-primary, #0d6efd) 40%, transparent);
+  }
+
+  /* Certification badge: primary bg + star (reference) */
+  .teacher-certification-badge {
+    background: var(--school-primary, #0d6efd) !important;
+    color: #fff !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* Filter pills below header (reference) */
+  .teacher-filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: var(--dashboard-gap-md, 16px);
+  }
+  .teacher-filter-pills .btn {
+    border-radius: 999px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.4rem 1rem;
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--school-primary, #0d6efd) 30%, transparent);
+    color: var(--school-primary, #0d6efd);
+  }
+  .teacher-filter-pills .btn:hover {
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 20%, transparent);
+    border-color: var(--school-primary, #0d6efd);
+    color: var(--school-primary, #0d6efd);
+  }
+
+  /* My Workflow CTA card (themed, high contrast) */
+  .teacher-workflow-cta-card {
+    border: 2px solid color-mix(in srgb, var(--school-primary, #0d6efd) 30%, transparent);
+    border-radius: var(--dashboard-card-radius, 12px);
+    background: var(--admin-content-card-bg, #fff);
+  }
+  .teacher-workflow-cta-icon { font-size: 1.5rem; color: var(--school-primary, #0d6efd); }
+  .teacher-workflow-cta-card .btn-primary { background: var(--school-primary, #0d6efd); border-color: var(--school-primary, #0d6efd); }
+
+  /* Your Classes at a Glance – purple header, clear rows (themepack) */
+  .teacher-classes-glance {
+    border: 2px solid color-mix(in srgb, var(--school-primary, #0d6efd) 25%, transparent);
+    border-radius: var(--dashboard-card-radius, 12px);
+    overflow: hidden;
+    background: var(--admin-content-card-bg, #fff);
+    box-shadow: var(--dashboard-card-shadow, 0 1px 3px rgba(0,0,0,0.08));
+  }
+  .teacher-classes-glance .teacher-classes-header {
+    background: var(--school-primary, #0d6efd);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .teacher-classes-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-bg, #fff);
+  }
+  .teacher-classes-tabs .teacher-classes-tab {
+    padding: 0.35rem 0.75rem;
+    border: none;
+    background: none;
+    color: var(--admin-content-text-muted, #475569);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 6px;
+  }
+  .teacher-classes-tabs .teacher-classes-tab:hover { color: var(--school-primary, #0d6efd); }
+  .teacher-classes-tabs .teacher-classes-tab.active {
+    color: var(--school-primary, #0d6efd);
+    box-shadow: inset 0 -2px 0 var(--school-primary, #0d6efd);
+    border-radius: 0;
+  }
+  .teacher-classes-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-bg, #fff);
+    font-size: 0.8rem;
+  }
+  .teacher-classes-footer a { color: var(--school-primary, #0d6efd); text-decoration: none; }
+  .teacher-classes-footer a:hover { text-decoration: underline; }
+  .teacher-classes-glance .card-body { padding: 1rem; }
+  .teacher-class-row-bg {
+    background: var(--admin-content-bg, #fff);
+    border: 1px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+  .teacher-class-row-bg:hover {
+    border-color: color-mix(in srgb, var(--school-primary, #0d6efd) 35%, transparent);
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 6%, transparent);
+  }
+  .teacher-class-row-bg .badge.bg-success { background: var(--school-accent, #198754) !important; color: #fff !important; }
+  .teacher-class-row-bg .badge.bg-warning { background: #d97706 !important; color: #fff !important; }
+  .teacher-class-row-bg .badge.bg-secondary,
+  .teacher-class-row-bg .badge.teacher-badge-draft { background: color-mix(in srgb, var(--school-primary, #0d6efd) 18%, #fff) !important; color: var(--school-primary, #0d6efd) !important; border: 1px solid color-mix(in srgb, var(--school-primary, #0d6efd) 35%, transparent); }
+  .teacher-class-row-bg .btn-primary { background: var(--school-primary, #0d6efd); border-color: var(--school-primary, #0d6efd); color: #fff; font-weight: 600; }
+  .teacher-class-row-bg .btn-primary .bi-arrow-right { font-size: 0.75rem; }
+
+  /* Quick Actions – high contrast card (themepack) */
+  .teacher-quick-actions-card {
+    border: 2px solid color-mix(in srgb, var(--school-primary, #0d6efd) 30%, transparent);
+    border-radius: var(--dashboard-card-radius, 12px);
+    background: var(--admin-content-card-bg, #fff);
+    box-shadow: var(--dashboard-card-shadow, 0 1px 3px rgba(0,0,0,0.08));
+  }
+  .teacher-quick-actions-heading {
+    color: var(--school-primary, #0d6efd);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .teacher-quick-actions-card .btn-outline-primary {
+    border-width: 1.5px;
+    border-color: var(--school-primary, #0d6efd);
+    color: var(--school-primary, #0d6efd);
+    font-weight: 500;
+  }
+  .teacher-quick-actions-card .btn-outline-primary:hover {
+    background: var(--school-primary, #0d6efd);
+    color: #fff;
+  }
+  .teacher-quick-actions-card .teacher-quick-action-delegations { --btn-icon-color: var(--teacher-warning-bg, #d97706); }
+  .teacher-quick-actions-card .teacher-quick-action-delegations .bi { color: var(--btn-icon-color); }
+
+  /* Right column cards (benchmark) */
+  .teacher-right-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
+    box-shadow: var(--dashboard-card-shadow, 0 1px 3px rgba(0,0,0,0.08));
+  }
+  .teacher-resource-link {
+    color: var(--school-primary, #0d6efd);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+  .teacher-resource-link:hover { color: var(--school-primary, #0d6efd); text-decoration: underline; }
+
+  /* Grading & Homework cards (benchmark) */
+  .teacher-grading-card,
+  .teacher-homework-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
+    box-shadow: var(--dashboard-card-shadow, 0 1px 3px rgba(0,0,0,0.08));
+  }
+  .teacher-grading-card .progress-bar { background: var(--school-primary, #0d6efd); }
+
+  .teacher-performance-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
+    box-shadow: var(--dashboard-card-shadow, 0 1px 3px rgba(0,0,0,0.08));
+  }
+
+  /* All workbench cards: clear borders and text (high contrast) */
+  .dashboard-workbench .card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
+    box-shadow: var(--dashboard-card-shadow, 0 1px 3px rgba(0,0,0,0.08));
+  }
+  .dashboard-workbench .card-title,
+  .dashboard-workbench h5, .dashboard-workbench h6 {
+    color: var(--admin-content-text, #0f172a);
+    font-weight: 700;
+  }
+  .teacher-kpi-strip .teacher-kpi-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
+    box-shadow: var(--dashboard-card-shadow, 0 1px 3px rgba(0,0,0,0.08));
+  }
+  .teacher-kpi-strip .teacher-kpi-card:hover {
+    border-color: color-mix(in srgb, var(--school-primary, #0d6efd) 40%, transparent);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .teacher-kpi-value { font-weight: 700; font-size: 1.1rem; color: var(--admin-content-text, #0f172a); }
+  .teacher-kpi-label { font-size: 0.7rem; letter-spacing: 0.04em; color: var(--admin-content-text-muted, #475569); }
+
+  .classes-glance-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
+  }
+  .announcements-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
   }
   .dashboard-quick-panel {
     border-radius: 14px;
-    padding: 0.9rem 1rem;
-    background: rgba(13, 110, 253, 0.05);
-    border: 1px solid rgba(15, 23, 42, 0.08);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 8%, transparent);
   }
-  .dashboard-quick-panel .social-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 10px;
-    font-size: 0.8rem;
-    background: rgba(13, 110, 253, 0.08);
-    border: 1px solid rgba(13, 110, 253, 0.18);
-    color: #0b5ed7;
-  }
-  .mini-sparkline {
-    height: 36px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: rgba(13, 110, 253, 0.08);
-    display: flex;
-    gap: 2px;
-  }
-  .mini-sparkline span {
-    flex: 1;
-    border-radius: 4px;
-    background: linear-gradient(180deg, rgba(13, 110, 253, 0.25), rgba(13, 110, 253, 0.9));
-  }
-  .classes-glance-card {
-    border-radius: 14px;
-    padding: 1rem;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: rgba(255, 255, 255, 0.95);
-  }
-  .classes-glance-card .progress {
-    height: 6px;
-  }
-
-  .announcements-card {
-    border-radius: 14px;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: rgba(255, 255, 255, 0.95);
-    padding: 1rem 1.2rem;
-  }
-
-  .mini-kpis {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.6rem;
-  }
-
   .mini-kpi {
     border-radius: 12px;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: white;
-    padding: 0.8rem 0.95rem;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+    border: 2px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
   }
   .stat-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: 10px;
-    border: 1px solid rgba(15,23,42,0.08);
-    background: #fff;
-    font-weight: 600;
+    border: 1.5px solid var(--admin-content-border, rgba(15,23,42,0.12));
+    background: var(--admin-content-card-bg, #fff);
+    color: var(--admin-content-text, #0f172a);
   }
-  .donut {
-    width: 86px;
-    height: 86px;
-    border-radius: 50%;
-    background: conic-gradient(var(--accent, #0d6efd) calc(var(--value,0) * 1%), #e2e8f0 0);
-    display: grid;
-    place-items: center;
-    position: relative;
-  }
-  .donut::after {
-    content: "";
-    width: 62px;
-    height: 62px;
-    background: #fff;
-    border-radius: 50%;
-  }
-  .donut span {
-    position: absolute;
-    font-weight: 700;
-    color: #0f172a;
-  }
-  .bar-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .bar-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .bar-track {
-    flex: 1;
-    height: 6px;
-    background: #eef2ff;
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #0d6efd, #6d28d9);
-  }
-
+  .bar-fill { background: var(--school-primary, #0d6efd); }
+  .donut { background: conic-gradient(var(--school-primary, #0d6efd) calc(var(--value,0) * 1%), #e2e8f0 0); }
+  .donut span { color: var(--admin-content-text, #0f172a); }
   .announcement-item + .announcement-item {
-    border-top: 1px dashed #e2e8f0;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-  }
-
-  /* Workbench: KPI strip and Quick Actions */
-  .teacher-kpi-strip .teacher-kpi-card {
-    border-radius: 12px;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    transition: box-shadow 0.2s ease;
-  }
-  .teacher-kpi-strip .teacher-kpi-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
-  .teacher-kpi-icon { font-size: 1.25rem; }
-  .teacher-kpi-value { font-weight: 700; font-size: 1.1rem; color: var(--admin-content-text, #0f172a); }
-  .teacher-kpi-label { font-size: 0.7rem; letter-spacing: 0.04em; }
-  .teacher-quick-actions-card {
-    border-radius: 12px;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    background: rgba(255, 255, 255, 0.98);
-  }
-  .teacher-quick-actions-card .btn-primary { font-weight: 600; }
-  .dashboard-workbench .card {
-    border-radius: 12px;
-    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-top: 1px solid var(--admin-content-border, rgba(15,23,42,0.12));
   }
   @media (max-width: 767px) {
     .teacher-kpi-strip .teacher-kpi-value { font-size: 1rem; }
@@ -260,15 +440,15 @@
   {% endif %}
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
     <div>
-      <h2 class="mb-1">Teacher Dashboard</h2>
-      <div class="text-muted">Welcome back{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}.</div>
+      <h2 class="mb-1 teacher-dashboard-title">Teacher Dashboard</h2>
+      <div class="text-muted">Welcome back{% if request.user %}, {{ request.user.get_full_name|default:request.user.username }}{% endif %}. Here's a quick glance at today's activities.</div>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
       {% if acting_role_label %}
       <span class="px-3 py-1 rounded-pill small text-nowrap teacher-proxy-pill" role="status" aria-label="Acting as {{ acting_role_label }}">Proxy: Acting {{ acting_role_label }}</span>
       {% endif %}
       {% if certification_badge %}
-      <span class="px-3 py-1 rounded-pill small text-nowrap bg-success bg-opacity-25 text-success" role="status" aria-label="Certification: {{ certification_badge }}">{{ certification_badge }}</span>
+      <span class="px-3 py-1 rounded-pill small text-nowrap teacher-certification-badge" role="status" aria-label="Certification: {{ certification_badge }}"><i class="bi bi-star-fill" aria-hidden="true"></i> {{ certification_badge }}</span>
       {% endif %}
       {% if staff_badges %}
       <span class="d-inline-flex flex-wrap align-items-center gap-1" role="list" aria-label="Your badges">
@@ -296,38 +476,112 @@
 
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
-  <!-- Today's Workflow strip (injected above My Workflow; colors from themepack) -->
-  <section class="rounded-3 shadow-sm mb-3 p-4 border-0 teacher-workflow-strip" aria-labelledby="todays-workflow-heading">
-    <h3 id="todays-workflow-heading" class="h6 fw-semibold mb-3 text-white">Today's Workflow</h3>
-    <div class="row g-3" role="list">
-      <div class="col-md-4" role="listitem">
-        <div class="rounded-3 p-3 d-flex justify-content-between align-items-center teacher-workflow-card-inner" aria-label="Syllabi pending approval: {{ syllabus_pending_count|default:0 }}">
-          <span class="small text-white">Syllabi Pending</span>
-          <span class="fw-bold">{{ syllabus_pending_count|default:0 }}</span>
-        </div>
-        <div class="small opacity-90">Approval</div>
+  <!-- Filter pills (benchmark: My Classes, Assignments, OOO Active, Reset Demo) -->
+  <nav class="teacher-filter-pills" aria-label="Dashboard filters">
+    <a class="btn btn-sm" href="#teacher-classes-at-a-glance">My Classes</a>
+    <a class="btn btn-sm" href="{% url 'evals:teacher_marks_entry' %}">Assignments</a>
+    <a class="btn btn-sm" href="{% url 'accounts:my_delegations' %}"><i class="bi bi-person-badge me-1" aria-hidden="true"></i>OOO Active</a>
+    <a class="btn btn-sm" href="#" data-teacher-reset-demo aria-label="Reset demo view"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Reset Demo</a>
+  </nav>
+
+  <!-- Today's Overview: three high-contrast cards (themepack colors) -->
+  <h2 id="todays-overview-heading" class="teacher-overview-section-title">Today's Overview</h2>
+  <section class="teacher-overview-strip" aria-labelledby="todays-overview-heading">
+    <div class="teacher-overview-card teacher-overview-card--syllabi" role="article" aria-label="Syllabi pending approval: {{ syllabus_pending_count|default:0 }}">
+      <span class="teacher-overview-num-wrap">{{ syllabus_pending_count|default:0 }}</span>
+      <div class="teacher-overview-copy flex-grow-1">
+        <span>Syllabi Pending</span>
+        <span class="teacher-overview-sublabel">Approval</span>
+        <a href="{% url 'academics:syllabus_approval_queue' %}">View <i class="bi bi-arrow-right teacher-overview-arrow" aria-hidden="true"></i></a>
       </div>
-      <div class="col-md-4" role="listitem">
-        <div class="rounded-3 p-3 d-flex justify-content-between align-items-center teacher-workflow-card-inner" aria-label="Active delegations: {{ active_delegations_count|default:0 }}">
-          <span class="small text-white">Delegations Active</span>
-          <span class="fw-bold">{{ active_delegations_count|default:0 }}</span>
-        </div>
-        <div class="small opacity-90">OOO Proxy</div>
+    </div>
+    <div class="teacher-overview-card teacher-overview-card--delegations" role="article" aria-label="Active delegations: {{ active_delegations_count|default:0 }}">
+      <span class="teacher-overview-num-wrap d-flex align-items-center justify-content-center"><i class="bi bi-person-fill" aria-hidden="true"></i></span>
+      <div class="teacher-overview-copy flex-grow-1">
+        <span>Delegations Active</span>
+        <span class="teacher-overview-sublabel">OOO Proxy</span>
+        <a href="{% url 'accounts:my_delegations' %}">Manage <i class="bi bi-arrow-right teacher-overview-arrow" aria-hidden="true"></i></a>
       </div>
-      <div class="col-md-4" role="listitem">
-        <div class="rounded-3 p-3 d-flex justify-content-between align-items-center teacher-workflow-card-inner" aria-label="Items requiring review: {{ items_requiring_review|default:0 }}">
-          <span class="small text-white">Items Requiring Review</span>
-          <span class="fw-bold">{{ items_requiring_review|default:0 }}</span>
-        </div>
-        <div class="small opacity-90">Pending</div>
+    </div>
+    <div class="teacher-overview-card teacher-overview-card--review" role="article" aria-label="Items requiring review: {{ items_requiring_review|default:0 }}">
+      <span class="teacher-overview-num-wrap">{{ items_requiring_review|default:0 }}</span>
+      <div class="teacher-overview-copy flex-grow-1">
+        <span>Items Requiring Review</span>
+        <span class="teacher-overview-sublabel">Pending</span>
+        <a href="{% url 'portal:teacher_workflow' %}">View <i class="bi bi-arrow-right teacher-overview-arrow" aria-hidden="true"></i></a>
       </div>
     </div>
   </section>
 
-  <div class="card border-primary shadow-sm mb-3" style="border-width:2px !important;">
+  <!-- Today's Overview – detailed progress card (donut + stats + activity) -->
+  <div class="card teacher-overview-detail-card mb-3">
+    <div class="card-body">
+      <h3 class="h6 fw-bold mb-3 teacher-overview-detail-title">Today's Overview</h3>
+      <div class="row align-items-center g-3">
+        <div class="col-auto">
+          <div class="donut teacher-overview-donut" style="--value: {{ widget_data.completion_pct|default:0 }};" role="img" aria-label="Completion {{ widget_data.completion_pct|default:0 }} percent">
+            <span>{{ widget_data.completion_pct|default:0 }}%</span>
+          </div>
+        </div>
+        <div class="col">
+          <div class="row g-2 g-md-3">
+            <div class="col-6 col-md-4">
+              <div class="teacher-overview-stat">
+                <span class="teacher-overview-stat-dot teacher-overview-stat-dot--orange"></span>
+                <span class="teacher-overview-stat-value">{{ widget_data.tasks.pending_evaluations|default:0 }}</span>
+                <span class="teacher-overview-stat-label">Test Today</span>
+                <span class="teacher-overview-stat-pct">({{ widget_data.completion_pct|default:0 }}%)</span>
+              </div>
+            </div>
+            <div class="col-6 col-md-4">
+              <div class="teacher-overview-stat">
+                <span class="teacher-overview-stat-dot teacher-overview-stat-dot--primary"></span>
+                <span class="teacher-overview-stat-value">{{ syllabus_pending_count|default:0 }}</span>
+                <span class="teacher-overview-stat-label">Overdue</span>
+                <span class="teacher-overview-stat-pct">({{ widget_data.tasks.pending_evaluations|default:0 }})</span>
+              </div>
+            </div>
+            <div class="col-6 col-md-4">
+              <div class="teacher-overview-stat">
+                <span class="teacher-overview-stat-dot teacher-overview-stat-dot--light"></span>
+                <span class="teacher-overview-stat-value">{{ dashboard_events|length|default:0 }}</span>
+                <span class="teacher-overview-stat-label">This week</span>
+                <span class="teacher-overview-stat-pct">({{ assignments|length|default:0 }})</span>
+              </div>
+            </div>
+          </div>
+          {% if curriculum_map or assignments %}
+          <div class="teacher-overview-activity mt-3 pt-3 border-top border-secondary border-opacity-25">
+            {% for item in curriculum_map|slice:":3" %}
+            <div class="teacher-overview-activity-item">
+              <span class="teacher-overview-activity-dot" style="background: var(--school-primary, #0d6efd);"></span>
+              <span class="small">{{ item.label|truncatewords:4 }}</span>
+            </div>
+            {% empty %}
+            <div class="teacher-overview-activity-item">
+              <span class="teacher-overview-activity-dot" style="background: var(--school-primary, #0d6efd);"></span>
+              <span class="small">Marks completion</span>
+            </div>
+            <div class="teacher-overview-activity-item">
+              <span class="teacher-overview-activity-dot" style="background: var(--teacher-warning-bg, #d97706);"></span>
+              <span class="small">Tasks trending</span>
+            </div>
+            <div class="teacher-overview-activity-item">
+              <span class="teacher-overview-activity-dot" style="background: color-mix(in srgb, var(--school-primary, #0d6efd) 50%, transparent);"></span>
+              <span class="small">Grading queue</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3 teacher-workflow-cta-card">
     <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
       <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-diagram-3 text-primary" style="font-size:1.5rem;"></i>
+        <i class="bi bi-diagram-3 teacher-workflow-cta-icon" aria-hidden="true"></i>
         <div>
           <strong>My Workflow</strong>
           <span class="text-muted small d-block">Profile, timetable, marks, reports &amp; attendance in one place.</span>
@@ -339,15 +593,21 @@
     </div>
   </div>
 
-  <!-- Your Classes at a Glance + Quick Actions (injected: class list with syllabus status + right column) -->
+  <!-- Your Classes at a Glance + Quick Actions (high-contrast, themepack) -->
   <div class="row g-3 mb-3">
     <div class="col-lg-9">
-      <div id="teacher-classes-at-a-glance" class="card border-0 shadow-sm h-100 classes-glance-card" data-widget-id="teacher-assignments">
+      <div id="teacher-classes-at-a-glance" class="teacher-classes-glance h-100" data-widget-id="teacher-assignments">
+        <div class="teacher-classes-header d-flex justify-content-between align-items-center">
+          <span>Your Classes at a Glance</span>
+          <span class="small opacity-90">{{ assignment_syllabus_statuses|length }} classes</span>
+        </div>
+        <nav class="teacher-classes-tabs" aria-label="Classes view tabs">
+          <a href="#teacher-classes-at-a-glance" class="teacher-classes-tab active">Overview</a>
+          <a href="{% url 'evals:teacher_marks_entry' %}" class="teacher-classes-tab">Homework</a>
+          <a href="{% url 'evals:teacher_marks_entry' %}" class="teacher-classes-tab">Grading Queue</a>
+          <a href="{% url 'portal:portal_syllabus' %}" class="teacher-classes-tab">Shared Progress</a>
+        </nav>
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Your Classes at a Glance</h5>
-            <span class="text-uppercase small text-muted">{{ assignment_syllabus_statuses|length }} classes</span>
-          </div>
           {% if assignment_syllabus_statuses %}
           <div class="d-flex flex-column gap-2">
             {% for item in assignment_syllabus_statuses %}
@@ -358,11 +618,11 @@
                   {{ sa.subject.name }} — {{ sa.classroom.name }}
                   {% endwith %}
                 </span>
-                <span class="badge rounded-pill {% if item.status_slug == 'approved' %}bg-success{% elif item.status_slug == 'pending' %}bg-warning text-dark{% elif item.status_slug == 'needs_revision' %}bg-warning text-dark{% else %}bg-secondary{% endif %}" aria-label="Syllabus status: {{ item.status_label }}">{{ item.status_label }}</span>
+                <span class="badge rounded-pill {% if item.status_slug == 'approved' %}bg-success{% elif item.status_slug == 'pending' %}bg-warning text-white{% elif item.status_slug == 'needs_revision' %}bg-warning text-white{% else %}teacher-badge-draft{% endif %}" aria-label="Syllabus status: {{ item.status_label }}">{{ item.status_label }}</span>
               </div>
               <div class="d-flex align-items-center gap-3">
                 <span class="small text-muted">{{ item.student_count }} students</span>
-                <a class="btn btn-sm btn-primary rounded-2" href="{% url 'academics:syllabus_builder' item.assignment.subject_assignment_id %}" aria-label="View syllabus for this class">View Syllabus</a>
+                <a class="btn btn-sm btn-primary rounded-2" href="{% url 'academics:syllabus_builder' item.assignment.subject_assignment_id %}" aria-label="View syllabus for this class">View <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></a>
               </div>
             </div>
             {% endfor %}
@@ -372,6 +632,13 @@
           <div class="small text-muted">No classes assigned yet. <a href="{% url 'accounts:workflow_center' %}">View workflow</a> or ask your admin to assign you to a class.</div>
           {% endif %}
         </div>
+        <div class="teacher-classes-footer">
+          <a href="#teacher-classes-at-a-glance">Overview</a>
+          <a href="{% url 'evals:teacher_marks_entry' %}">Homework</a>
+          <a href="{% url 'evals:teacher_marks_entry' %}">Grading Queue</a>
+          <a href="{% url 'portal:portal_syllabus' %}">Shared Progress</a>
+          <a href="{% url 'portal:unified_calendar' %}"><i class="bi bi-calendar3 me-1" aria-hidden="true"></i>Show Full Calendar</a>
+        </div>
       </div>
     </div>
     <div class="col-lg-3">
@@ -379,15 +646,139 @@
         <div class="card-body">
           <h5 id="quick-actions-heading" class="h6 fw-semibold mb-3 teacher-quick-actions-heading">Quick Actions</h5>
           <nav class="d-flex flex-column gap-2" aria-label="Teacher dashboard quick actions">
-            <a class="btn btn-outline-primary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'accounts:my_delegations' %}" aria-label="Manage delegations and out-of-office proxy"><i class="bi bi-people" aria-hidden="true"></i> Manage Delegations</a>
+            <a class="btn btn-outline-primary btn-sm rounded-2 text-start d-flex align-items-center gap-2 teacher-quick-action-delegations" href="{% url 'accounts:my_delegations' %}" aria-label="Manage delegations and out-of-office proxy"><i class="bi bi-people" aria-hidden="true"></i> Manage Delegations</a>
+            <a class="btn btn-outline-primary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'communication:announcement_create' %}" aria-label="Create or view announcements"><i class="bi bi-megaphone" aria-hidden="true"></i> Announcements</a>
             {% if can_approve_syllabus %}
             <a class="btn btn-outline-primary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'academics:syllabus_approval_queue' %}" aria-label="Approve pending syllabi"><i class="bi bi-journal-check" aria-hidden="true"></i> Approve Syllabi</a>
             {% endif %}
-            <a class="btn btn-outline-secondary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'portal:my_digital_id' %}?print=1" aria-label="View and print my ID card"><i class="bi bi-printer" aria-hidden="true"></i> Print ID Card</a>
+            <a class="btn btn-outline-primary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'portal:my_digital_id' %}?print=1" aria-label="View and print my ID card"><i class="bi bi-printer" aria-hidden="true"></i> Print ID Cards</a>
             <a class="btn btn-outline-secondary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'portal:unified_calendar' %}" aria-label="{% trans 'View calendar' %}"><i class="bi bi-calendar3" aria-hidden="true"></i> {% trans "Calendar" %}</a>
           </nav>
         </div>
       </aside>
+      <!-- Upcoming Quizzes & Exams (benchmark) -->
+      <div class="card border-0 shadow-sm mt-3 teacher-right-card" data-widget-id="teacher-upcoming">
+        <div class="card-body">
+          <h5 class="h6 fw-bold mb-3 teacher-quick-actions-heading d-flex align-items-center justify-content-between">Upcoming Quizzes &amp; Exams <i class="bi bi-arrow-right small" aria-hidden="true"></i></h5>
+          {% if dashboard_events %}
+          <ul class="list-unstyled small mb-0">
+            {% for ev in dashboard_events|slice:":3" %}
+            <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary border-opacity-25">
+              <span>{{ ev.title|truncatewords:4 }}</span>
+              <a href="{% url 'evals:teacher_marks_entry' %}" class="btn btn-sm btn-primary">View Details</a>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="small text-muted mb-0">No upcoming deadlines. <a href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a></p>
+          {% endif %}
+        </div>
+      </div>
+      <!-- Teacher Resources (benchmark) -->
+      <div class="card border-0 shadow-sm mt-3 teacher-right-card" data-widget-id="teacher-resources">
+        <div class="card-body">
+          <h5 class="h6 fw-bold mb-3 teacher-quick-actions-heading d-flex align-items-center justify-content-between">Teacher Resources <i class="bi bi-arrow-right small" aria-hidden="true"></i></h5>
+          <nav class="d-flex flex-column gap-2" aria-label="Teacher resources">
+            <a class="teacher-resource-link" href="{% url 'portal:portal_syllabus' %}">Sample Lessons <i class="bi bi-arrow-right small ms-1" aria-hidden="true"></i></a>
+            <a class="teacher-resource-link" href="{% url 'evals:teacher_marks_entry' %}">Quiz Generator <i class="bi bi-arrow-right small ms-1" aria-hidden="true"></i></a>
+            <a class="teacher-resource-link" href="{% url 'portal:teacher_workflow' %}">Professional Development <i class="bi bi-arrow-right small ms-1" aria-hidden="true"></i></a>
+            <a class="teacher-resource-link" href="{% url 'portal:teacher_lesson_notes' %}">Lesson Plan Templates <i class="bi bi-arrow-right small ms-1" aria-hidden="true"></i></a>
+          </nav>
+        </div>
+      </div>
+      <!-- Announcements (benchmark) -->
+      <div class="card border-0 shadow-sm mt-3 teacher-right-card announcements-card" data-widget-id="teacher-announcements">
+        <div class="card-body">
+          <h5 class="h6 fw-bold mb-3 teacher-quick-actions-heading d-flex align-items-center justify-content-between">Announcements <i class="bi bi-arrow-right small" aria-hidden="true"></i></h5>
+          {% if class_announcements %}
+          <ul class="list-unstyled small mb-0">
+            {% for ann in class_announcements|slice:":3" %}
+            <li class="announcement-item py-2">
+              <div class="fw-semibold"><i class="bi bi-star-fill text-warning me-1" aria-hidden="true"></i>{{ ann.title|truncatewords:6 }}</div>
+              <div class="text-muted">{{ ann.body|truncatewords:12 }}</div>
+              {% if ann.created_at %}<span class="text-muted">{{ ann.created_at|date:"M j" }}</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="small text-muted mb-0">No announcements. <a href="{% url 'communication:announcement_create' %}">Create one</a></p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grading progress card (benchmark: Galvia Grading style) -->
+  <div class="card teacher-grading-card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="h6 fw-bold mb-0">Grading</h5>
+        <span class="badge bg-primary">{{ widget_data.completion_pct|default:0 }}% Complete</span>
+      </div>
+      <div class="progress mt-2" style="height: 8px;" role="progressbar" aria-valuenow="{{ widget_data.completion_pct|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar" style="width: {{ widget_data.completion_pct|default:0 }}%;"></div>
+      </div>
+      <div class="small text-muted mt-2">{{ widget_data.tasks.pending_evaluations|default:0 }} pending — <a href="{% url 'evals:teacher_marks_entry' %}">Grading Queue</a></div>
+    </div>
+  </div>
+
+  <!-- Homework & Assignments (benchmark: assignment due list) -->
+  <div class="card teacher-homework-card mb-3">
+    <div class="card-body">
+      <h5 class="h6 fw-bold mb-3">Homework &amp; Assignments</h5>
+      {% if dashboard_events or assignments %}
+      <ul class="list-unstyled small mb-0">
+        {% for ev in dashboard_events|slice:":4" %}
+        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary border-opacity-25">
+          <div>
+            <span class="fw-medium">{{ ev.title|truncatewords:5 }}</span>
+            <span class="text-muted d-block">{{ ev.when|date:"M j" }}</span>
+          </div>
+          <a href="{% url 'evals:teacher_marks_entry' %}" class="btn btn-sm btn-primary">View Details</a>
+        </li>
+        {% endfor %}
+        {% for a in assignments|slice:":2" %}
+        <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary border-opacity-25">
+          <div>
+            <span class="fw-medium">{{ a.subject }} — {{ a.classroom }}</span>
+            <span class="text-muted d-block">Marks entry</span>
+          </div>
+          <a href="{% url 'evals:teacher_marks_entry' %}?assignment={{ a.id }}" class="btn btn-sm btn-outline-primary">Grade New</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="small text-muted mb-0">No assignments due. <a href="{% url 'evals:teacher_marks_entry' %}">Enter marks</a></p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Performance Analytics (benchmark) -->
+  <div class="card teacher-performance-card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h5 class="h6 fw-bold mb-0">Performance Analytics</h5>
+        <a href="{% url 'evals:teacher_marks_list' %}" class="btn btn-sm btn-outline-primary">View Classes Progress</a>
+      </div>
+      <p class="small text-muted mb-2">Recent grades and completion by subject.</p>
+      {% if chart_completion_bar_json %}
+      <div class="teacher-performance-chart-wrap mb-2" aria-hidden="true">
+        <a href="{% url 'evals:teacher_marks_list' %}" class="d-block text-decoration-none">
+          <div class="d-flex align-items-center gap-3 small">
+            <span class="text-primary fw-medium"><i class="bi bi-graph-up me-1" aria-hidden="true"></i>Mathematics</span>
+            <span class="text-muted">{{ widget_data.completion_pct|default:0 }}%</span>
+            <i class="bi bi-arrow-right text-primary" aria-hidden="true"></i>
+          </div>
+          <div class="d-flex align-items-center gap-3 small mt-1">
+            <span class="text-primary fw-medium"><i class="bi bi-graph-up me-1" aria-hidden="true"></i>English</span>
+            <span class="text-muted">{{ widget_data.completion_pct|default:0 }}%</span>
+            <i class="bi bi-arrow-right text-primary" aria-hidden="true"></i>
+          </div>
+        </a>
+      </div>
+      {% else %}
+      <a href="{% url 'evals:teacher_marks_list' %}" class="small">Recent Grades <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i></a>
+      {% endif %}
     </div>
   </div>
 
