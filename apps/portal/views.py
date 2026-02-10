@@ -269,6 +269,9 @@ def parent_dashboard(request: HttpRequest):
         for e in evals_this_term:
             if not e.is_complete_for_ranking:
                 missing_work_by_student[e.student_id] = missing_work_by_student.get(e.student_id, 0) + 1
+    # Required before building child_cards (used in each card)
+    class_threads = class_threads_for_parent(request.user, limit=3)
+    unread_messages_aggregate = sum(t.get("unread_count", 0) for t in class_threads)
     child_cards = []
     for link in links:
         student_id = link.student.id
@@ -326,8 +329,8 @@ def parent_dashboard(request: HttpRequest):
     portal_recent_grades = filter_portal_items(site.portal_recent_grades, role)
     portal_upcoming_assessments = filter_portal_items(site.portal_upcoming_assessments, role)
     class_announcements = class_announcements_for_parent(request.user, students)
-    class_threads = class_threads_for_parent(request.user, limit=3)
-    
+    # class_threads and unread_messages_aggregate already set before child_cards
+
     # Single aggregation query for reminders
     if can_view_finance:
         reminders_count = PaymentReminder.objects.filter(
@@ -451,8 +454,7 @@ def parent_dashboard(request: HttpRequest):
         and str(request.user.email).strip()
         and not str(request.user.email).lower().startswith("pending")
     )
-    # Aggregate unread messages from class threads for WorkflowChip "Unread Msgs"
-    unread_messages_aggregate = sum(t.get("unread_count", 0) for t in class_threads)
+    # unread_messages_aggregate already set before child_cards
     # Missing work count for workflow chip (tasks pending)
     missing_work_count = widget_data.get("tasks", {}).get("pending_evaluations", 0)
 
