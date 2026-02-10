@@ -8,21 +8,29 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
         <h1 class="h4 mb-1">Digital medal case</h1>
-        <div class="text-muted small">Badges and achievements earned by your children</div>
+        <p class="text-muted small mb-0">Badges and achievements earned by your children</p>
       </div>
       <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back to dashboard</a>
     </div>
 
     {% for student, badges in student_badges %}
-      <div class="card shadow-sm mb-3">
-        <div class="card-header bg-transparent fw-semibold">{{ student.get_full_name|default:student.admission_number }}</div>
+      <section class="card shadow-sm mb-3" aria-label="{% blocktrans with name=student.get_full_name|default:student.admission_number %}Badges for {{ name }}{% endblocktrans %}">
+        <div class="card-header bg-transparent fw-semibold" style="border-left: 4px solid var(--school-primary, #0d6efd);">{{ student.get_full_name|default:student.admission_number }}</div>
         <div class="card-body">
           {% if badges %}
-            <ul class="list-unstyled mb-0">
+            <ul class="list-unstyled mb-0" role="list">
               {% for badge in badges %}
-                <li class="d-flex align-items-center gap-2 mb-2">
-                  <span class="badge bg-primary">{{ badge.badge_type.label }}</span>
+                <li class="d-flex align-items-center flex-wrap gap-2 mb-2" role="listitem">
+                  <span class="badge rounded-pill" style="background: var(--school-primary, #0d6efd); color: var(--school-primary-inverse, #fff);" aria-label="{% blocktrans with label=badge.badge_type.label %}Badge: {{ label }}{% endblocktrans %}">{{ badge.badge_type.label }}</span>
                   <span class="text-muted small">{{ badge.issued_at|date }}</span>
+                  {% if badge._evidence_report_term_id or badge._evidence_syllabus_id %}
+                    {% if badge._evidence_report_term_id %}
+                      <a class="btn btn-link btn-sm p-0 text-decoration-none" style="color: var(--school-accent, #198754);" href="{% url 'reports:parent_download_term_report' student.id %}"><i class="bi bi-file-earmark-pdf me-1"></i>{% trans "View report" %}</a>
+                    {% endif %}
+                    {% if badge._evidence_syllabus_id %}
+                      <a class="btn btn-link btn-sm p-0 text-decoration-none" style="color: var(--school-accent, #198754);" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-text me-1"></i>{% trans "View syllabus" %}</a>
+                    {% endif %}
+                  {% endif %}
                 </li>
               {% endfor %}
             </ul>
@@ -30,9 +38,9 @@
             <p class="text-muted small mb-0">No badges yet.</p>
           {% endif %}
         </div>
-      </div>
+      </section>
     {% empty %}
-      <div class="alert alert-info">Link a child to see their badges here.</div>
+      <div class="alert alert-info" role="status">Link a child to see their badges here.</div>
     {% endfor %}
   </div>
 {% endblock %}

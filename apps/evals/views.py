@@ -21,7 +21,8 @@ from apps.accounts.decorators import role_required, teacher_portal_required
 from apps.accounts.models import User
 from apps.academics.models import SubjectAssignment, Classroom, AcademicYear, Term, Subject
 from apps.academics.services import get_active_year_and_term
-from apps.people.models import TeacherProfile, StudentProfile, TeacherAttendance, TeacherLeaveRequest
+from django.db.models import Q
+from apps.people.models import TeacherProfile, StudentProfile, TeacherAttendance, TeacherLeaveRequest, BadgeType, Badge
 from apps.evals.models import GradeApprovalRequest, TeacherAssignment, Evaluation, AssessmentWeights
 from apps.evals.importers import preview_import, apply_import, build_template_headers
 from apps.reports.services import is_term_published
@@ -716,6 +717,18 @@ def teacher_dashboard(request: HttpRequest):
         certification_badge = "CBA Certified"
     items_requiring_review = widget_data.get("tasks", {}).get("pending_evaluations", 0) + syllabus_pending_count
 
+    # Phase 1: Staff digital badges (non-expired, STAFF audience only)
+    staff_badges = []
+    if request.user.is_authenticated:
+        staff_badges = list(
+            Badge.objects.filter(
+                user=request.user,
+                badge_type__audience=BadgeType.Audience.STAFF,
+            ).filter(
+                Q(expiry_at__isnull=True) | Q(expiry_at__gt=timezone.now())
+            ).select_related("badge_type").order_by("-issued_at")[:10]
+        )
+
     return render(request, "teacher/dashboard.html", {
         "year": year,
         "term": term,
@@ -756,6 +769,7 @@ def teacher_dashboard(request: HttpRequest):
         "can_approve_syllabus": can_approve_syllabus,
         "certification_badge": certification_badge,
         "items_requiring_review": items_requiring_review,
+        "staff_badges": staff_badges,
     })
 
 

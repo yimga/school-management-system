@@ -20,6 +20,14 @@ def sync_student_parent_phone_from_guardian(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=TeacherProfile)
+def award_onboarding_staff_badge(sender, instance, created, **kwargs):
+    """Phase 3: Award 'Active Member' staff badge when a teacher profile is first created."""
+    if created and instance.user_id:
+        from apps.people.badge_services import create_staff_badge_for_onboarding
+        create_staff_badge_for_onboarding(instance)
+
+
+@receiver(post_save, sender=TeacherProfile)
 def sync_teacher_department_thread(sender, instance, created, **kwargs):
     """
     Auto-add teacher to department thread when department is set or updated.

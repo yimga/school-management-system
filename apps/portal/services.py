@@ -234,7 +234,7 @@ def parent_dashboard_widget_data(
         "finance": _finance_summary(students),
         "fees_breakdown": _fees_breakdown(students),
         "assignment_completion": _assignment_completion(students, year, term),
-        "events": _upcoming_deadlines(year),
+        "events": _merged_upcoming_events(year),
         "tasks": _task_tracker(students, year, term),
         "access": _portal_access_links(),
         "timetable": _timetable_overview(students, year, term),
@@ -745,6 +745,15 @@ def _finance_summary(students):
     }
 
 
+def _merged_upcoming_events(year):
+    """Phase 8: Merge grading deadlines and public school calendar events, sorted by date."""
+    deadlines = _upcoming_deadlines(year)
+    school_events = _upcoming_school_events(limit=15)
+    merged = deadlines + school_events
+    merged.sort(key=lambda x: x["when"])
+    return merged[:25]
+
+
 def _upcoming_deadlines(year):
     """
     Get upcoming grading deadlines for the given academic year.
@@ -766,6 +775,26 @@ def _upcoming_deadlines(year):
             "detail": f"Term {sa.term.label}",
         }
         for sa in qs
+    ]
+
+
+def _upcoming_school_events(limit=15):
+    """Phase 8: Upcoming public school calendar events for School Feed / Unified Calendar."""
+    from django.utils import timezone
+    from apps.portal.models import Event
+    now = timezone.now()
+    qs = Event.objects.filter(
+        is_public=True,
+        start_at__gte=now,
+    ).order_by("start_at")[:limit]
+    return [
+        {
+            "title": e.title,
+            "when": e.start_at,
+            "detail": (e.description or e.location or "").strip() or None,
+            "kind": "event",
+        }
+        for e in qs
     ]
 
 

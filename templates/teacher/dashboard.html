@@ -270,6 +270,13 @@
       {% if certification_badge %}
       <span class="px-3 py-1 rounded-pill small text-nowrap bg-success bg-opacity-25 text-success" role="status" aria-label="Certification: {{ certification_badge }}">{{ certification_badge }}</span>
       {% endif %}
+      {% if staff_badges %}
+      <span class="d-inline-flex flex-wrap align-items-center gap-1" role="list" aria-label="Your badges">
+        {% for b in staff_badges %}
+        <span class="px-2 py-1 rounded-pill small text-nowrap" style="background: var(--school-primary, #6f42c1); color: var(--school-primary-inverse, #fff);" role="listitem">{{ b.badge_type.label }}</span>
+        {% endfor %}
+      </span>
+      {% endif %}
       {% if allow_custom_layout %}
       {% include "components/dashboard_customize_ui.html" %}
       {% endif %}
@@ -376,7 +383,8 @@
             {% if can_approve_syllabus %}
             <a class="btn btn-outline-primary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'academics:syllabus_approval_queue' %}" aria-label="Approve pending syllabi"><i class="bi bi-journal-check" aria-hidden="true"></i> Approve Syllabi</a>
             {% endif %}
-            <a class="btn btn-outline-secondary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="#" aria-label="Print ID cards (coming soon)"><i class="bi bi-printer" aria-hidden="true"></i> Print ID Cards</a>
+            <a class="btn btn-outline-secondary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'portal:my_digital_id' %}?print=1" aria-label="View and print my ID card"><i class="bi bi-printer" aria-hidden="true"></i> Print ID Card</a>
+            <a class="btn btn-outline-secondary btn-sm rounded-2 text-start d-flex align-items-center gap-2" href="{% url 'portal:unified_calendar' %}" aria-label="{% trans 'View calendar' %}"><i class="bi bi-calendar3" aria-hidden="true"></i> {% trans "Calendar" %}</a>
           </nav>
         </div>
       </aside>

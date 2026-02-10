@@ -116,7 +116,7 @@ def main():
     print()
     
     # Get all URL patterns
-    print("✓ Registered URL Patterns:")
+    print("[OK] Registered URL Patterns:")
     print("-" * 80)
     patterns = get_all_url_patterns()
     for pattern in sorted(patterns, key=lambda x: x['path'])[:30]:
@@ -125,34 +125,35 @@ def main():
     print()
     
     # Check template links
-    print("✓ Template Link Validation:")
+    print("[OK] Template Link Validation:")
     print("-" * 80)
     broken, valid = validate_template_links()
     
     print(f"  Valid links found: {len(valid)}")
     for link in sorted(list(valid))[:20]:
-        print(f"    ✓ {link}")
+        print(f"    [OK] {link}")
     
     if broken:
         print(f"\n  ⚠ Potentially broken links found: {len(broken)}")
         for item in broken[:10]:
-            print(f"    ✗ {item['link']} in {item['file']}")
+            print(f"    [FAIL] {item['link']} in {item['file']}")
     else:
-        print("\n  ✓ No obviously broken links detected")
+        print("\n  [OK] No obviously broken links detected")
     
     print()
     print("=" * 80)
     print("KEY ROUTE VALIDATIONS:")
     print("=" * 80)
     
-    # Critical routes
+    # Critical routes (plan Phase 0: six URLs that must resolve)
     critical_routes = [
         ('/', 'home'),
         ('/authentication/login/', 'login'),
-        ('/authentication/logout/', 'logout'),
-        ('/admin/', 'admin'),
+        ('/admin/', 'backend admin'),
         ('/portal/parent/', 'parent dashboard'),
-        ('/portal/teacher/', 'teacher dashboard'),
+        ('/evals/teacher/', 'teacher dashboard'),
+        ('/backend/', 'frontend admin redirect'),
+        ('/authentication/backend/', 'frontend admin dashboard'),
         ('/siteconfig/customizer/', 'site customizer'),
     ]
     
@@ -160,9 +161,9 @@ def main():
         try:
             resolver = get_resolver()
             resolver.resolve(route)
-            print(f"  ✓ {route:<40} [{description}]")
+            print(f"  [OK] {route:<40} [{description}]")
         except Resolver404:
-            print(f"  ✗ {route:<40} [{description}] - NOT FOUND")
+            print(f"  [FAIL] {route:<40} [{description}] - NOT FOUND")
     
     print()
 
