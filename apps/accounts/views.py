@@ -177,7 +177,13 @@ def user_profile(request):
     context = {}
     role = getattr(request.user, "role", None)
     if role == "TEACHER":
+        teacher_profile = TeacherProfile.objects.filter(user=request.user).select_related("department").first()
         context["teacher_org_tree"] = _teacher_org_tree(request.user)
+        context["staff_id"] = getattr(teacher_profile, "staff_id", None) or (f"Staff #{request.user.pk}" if teacher_profile else None)
+        try:
+            context["digital_id_url"] = reverse("portal:my_digital_id")
+        except NoReverseMatch:
+            context["digital_id_url"] = None
         # Phase 1: Staff badges (non-expired, STAFF audience only)
         from django.utils import timezone as tz
         context["staff_badges"] = list(
