@@ -481,20 +481,26 @@
         <a class="nav-link nav-pill" href="{% url 'payroll:employee_leave' %}"><i class="bi bi-calendar-check me-2"></i>Leave Requests</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_pay_history' %}"><i class="bi bi-receipt me-2"></i>Pay History</a>
       {% elif request.user.role == 'PARENT' %}
+        <div class="sidebar-section-title">Home</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-house me-2"></i>Parent Home</a>
         <div class="sidebar-section-title">My Workflow</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
         <div class="sidebar-section-title">Student Overview</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-people me-2"></i>My Children</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}#children"><i class="bi bi-people me-2"></i>My Children</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_medal_case' %}"><i class="bi bi-award me-2"></i>Medal case</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_attendance_discipline' %}"><i class="bi bi-clipboard-check me-2"></i>Attendance &amp; Discipline</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Academic Stats</a>
-        <div class="sidebar-section-title">Financial Center</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}"><i class="bi bi-cash-coin me-2"></i>Finance &amp; Fees</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-person-plus me-2"></i>Link Child</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>Claim Invite</a>
-        <div class="sidebar-section-title">School Communication</div>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>Contact School</a>
-        <a class="nav-link nav-pill" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-megaphone me-2"></i>Announcements &amp; Homework</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Portal Stats</a>
+        <div class="sidebar-section-title">Finance</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}"><i class="bi bi-cash-coin me-2"></i>Finance</a>
+        <div class="sidebar-section-title">Calendar &amp; Homework</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:unified_calendar' %}"><i class="bi bi-calendar3 me-2"></i>Calendar</a>
+        <div class="sidebar-section-title">Communication</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>Messages</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-megaphone me-2"></i>Announcements</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-file-earmark-text me-2"></i>Documents</a>
+        <div class="sidebar-section-title">Account</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-link-45deg me-2"></i>Link a child</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>Claim invite</a>
       {% elif request.user.role != 'TEACHER' %}
         {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' or request.user.role == 'IT_ADMIN' %}
         {% comment %}RBAC: staff sections; Admin Panel last (includes Site Settings, Region Configuration). No duplicate sections.{% endcomment %}

@@ -125,6 +125,16 @@
   --teacher-warning-alt-bg: #ea580c;
   --teacher-warning-alt-border: #c2410c;
 
+  /* Parent dashboard Today at a Glance card tints (optional) */
+  --parent-glance-messages-bg: rgba(13, 110, 253, 0.08);
+  --parent-glance-messages-border: rgba(13, 110, 253, 0.2);
+  --parent-glance-followup-bg: rgba(253, 126, 20, 0.1);
+  --parent-glance-followup-border: rgba(253, 126, 20, 0.25);
+  --parent-glance-outstanding-bg: rgba(220, 53, 69, 0.08);
+  --parent-glance-outstanding-border: rgba(220, 53, 69, 0.2);
+  --parent-glance-good-bg: rgba(25, 135, 84, 0.1);
+  --parent-glance-good-border: rgba(25, 135, 84, 0.2);
+
   /* Fluid typography (clamp: min, preferred, max) – smooth scaling, no rigid breakpoint jumps */
   --text-xs: clamp(0.7rem, 1.5vw, 0.75rem);
   --text-sm: clamp(0.8rem, 1.8vw, 0.875rem);
