@@ -1,6 +1,7 @@
-from django.contrib.admin import ModelAdmin
 from django.urls import reverse
 from django.utils.html import format_html
+from django.contrib.admin import ModelAdmin
+from config.admin import admin_site
 
 from .models import EMISExport, EMISFieldMapping, EMISCompliance
 
@@ -70,9 +71,6 @@ class EMISComplianceAdmin(ModelAdmin):
         }),
     )
 
-
-# Register with custom admin site (deferred to avoid circular import)
-from config.admin import admin_site
 
 admin_site.register(EMISExport, EMISExportAdmin)
 admin_site.register(EMISFieldMapping, EMISFieldMappingAdmin)
