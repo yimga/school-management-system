@@ -198,6 +198,7 @@ def site_settings(request):
     reduced_motion = False
     theme_pref = "system"
     sidebar_collapsed = False
+    user_visual_preset = "soft-glass"
     if request.user.is_authenticated:
         try:
             if hasattr(request.user, "preference"):
@@ -220,9 +221,13 @@ def site_settings(request):
             high_contrast_mode = high_contrast_mode or bool(getattr(dashboard_pref, "high_contrast", False))
             reduced_motion = reduced_motion or bool(getattr(dashboard_pref, "reduced_motion", False))
             sidebar_collapsed = bool(getattr(dashboard_pref, "sidebar_collapsed", False))
+            user_visual_preset = dashboard_pref.get_visual_preset(getattr(request.user, "role", None))
         except DatabaseError:
             _reset_db_state()
             theme_pref = "system"
+        except Exception:
+            # Keep context resilient if dashboard preference schema is mid-migration.
+            user_visual_preset = "soft-glass"
 
     video_bg_url = _resolve_media_url(site.get_theme_background("video_background"))
     svg_bg_url = _resolve_media_url(site.get_theme_background("svg_background"))
@@ -308,6 +313,7 @@ def site_settings(request):
         "HIGH_CONTRAST_MODE": high_contrast_mode,
         "REDUCED_MOTION": reduced_motion,
         "USER_THEME_PREFERENCE": theme_pref,
+        "USER_DASHBOARD_VISUAL_PRESET": user_visual_preset,
         "portal_home_url": portal_home_url,
         "PREVIEW_ACT_AS_ROLE": act_as_role,
         "PREVIEW_ACT_AS_CHOICES": act_as_choices,

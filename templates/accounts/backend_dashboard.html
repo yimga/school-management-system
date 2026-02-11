@@ -7,6 +7,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-polish.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -850,63 +851,6 @@
           </div>
         </div>
       </div>
-      <aside class="d-none d-lg-block backend-right-sidebar flex-shrink-0">
-        {% include 'components/backend_sidebar_calendar_clock.html' %}
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="mb-0">Copilot Usage</h6>
-              <span class="badge bg-light text-dark" id="copilotTotalBadge">0 total</span>
-            </div>
-            <ul class="list-unstyled mb-2 small" id="copilotRoleList">
-              <li class="text-muted">Loading usage...</li>
-            </ul>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="small text-muted">Denied</span>
-              <span class="badge bg-light text-dark" id="copilotDeniedBadge">0</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <span class="small text-muted">Config</span>
-              <span class="badge bg-light text-dark" id="copilotConfigBadge">Disabled</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <span class="small text-muted">Rate limit</span>
-              <span class="badge bg-light text-dark" id="copilotLimitRemaining">0 remaining</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Resets</span>
-              <span class="badge bg-light text-dark" id="copilotLimitReset">--</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Refreshed</span>
-              <span class="badge bg-light text-dark" id="copilotLastRefresh">--</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Errors</span>
-              <span class="badge bg-light text-dark" id="copilotErrorBadge">0</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Last success</span>
-              <span class="badge bg-light text-dark" id="copilotLastSuccess">--</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Last error</span>
-              <span class="badge bg-light text-dark" id="copilotLastError">--</span>
-            </div>
-          </div>
-        </div>
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="mb-0">Copilot Audit</h6>
-              <button type="button" class="btn btn-link btn-sm text-muted p-0" id="copilotAuditRefresh">Refresh</button>
-            </div>
-            <ul class="list-unstyled mb-0 small" id="copilotAuditList">
-              <li class="text-muted">Loading audit...</li>
-            </ul>
-          </div>
-        </div>
-      </aside>
     </div>
   </div>
 
@@ -944,6 +888,8 @@
   {% endif %}
   {% endif %}
 
+  <div class="row g-3 align-items-start backend-command-center-row">
+    <div class="col-12 col-xl-8 backend-command-main">
   <script>
   (function() {
     async function loadCopilotMetrics() {
@@ -1422,6 +1368,67 @@
   {% include 'components/keyboard_shortcuts.html' %}
 
   </div> <!-- /dashboard-layout -->
+    </div>
+    <aside class="col-12 col-xl-4 backend-command-sidebar" data-widget-id="backend-command-sidebar">
+      <div class="sidebar-sticky">
+        {% include 'components/backend_sidebar_calendar_clock.html' %}
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Copilot Usage</h6>
+              <span class="badge bg-light text-dark" id="copilotTotalBadge">0 total</span>
+            </div>
+            <ul class="list-unstyled mb-2 small" id="copilotRoleList">
+              <li class="text-muted">Loading usage...</li>
+            </ul>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="small text-muted">Denied</span>
+              <span class="badge bg-light text-dark" id="copilotDeniedBadge">0</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="small text-muted">Config</span>
+              <span class="badge bg-light text-dark" id="copilotConfigBadge">Disabled</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="small text-muted">Rate limit</span>
+              <span class="badge bg-light text-dark" id="copilotLimitRemaining">0 remaining</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Resets</span>
+              <span class="badge bg-light text-dark" id="copilotLimitReset">--</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Refreshed</span>
+              <span class="badge bg-light text-dark" id="copilotLastRefresh">--</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Errors</span>
+              <span class="badge bg-light text-dark" id="copilotErrorBadge">0</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Last success</span>
+              <span class="badge bg-light text-dark" id="copilotLastSuccess">--</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <span class="small text-muted">Last error</span>
+              <span class="badge bg-light text-dark" id="copilotLastError">--</span>
+            </div>
+          </div>
+        </div>
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Copilot Audit</h6>
+              <button type="button" class="btn btn-link btn-sm text-muted p-0" id="copilotAuditRefresh">Refresh</button>
+            </div>
+            <ul class="list-unstyled mb-0 small" id="copilotAuditList">
+              <li class="text-muted">Loading audit...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
 
 {% endblock %}
 

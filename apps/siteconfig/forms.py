@@ -489,6 +489,13 @@ class UserPreferenceForm(forms.ModelForm):
         label="Theme preference",
         help_text="Select System, Light, Dark, Classic, or High Contrast.",
     )
+    dashboard_visual_preset = forms.ChoiceField(
+        choices=DashboardUserPreference.VISUAL_PRESET_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Dashboard visual style",
+        help_text="Choose how dashboards look for your current role: Soft Glass, Crisp Professional, or High Contrast.",
+    )
     high_contrast = forms.BooleanField(
         required=False,
         label="High contrast mode",
@@ -551,6 +558,7 @@ class UserPreferenceForm(forms.ModelForm):
             )
             self.fields["theme_preference"].initial = dashboard_pref.theme_preference
             self.fields["high_contrast"].initial = dashboard_pref.high_contrast
+            self.fields["dashboard_visual_preset"].initial = dashboard_pref.get_visual_preset(role)
 
     def clean_timezone(self):
         """Allow empty timezone - model default will be used."""
@@ -578,6 +586,7 @@ class UserPreferenceForm(forms.ModelForm):
         preference.dashboard_widgets = self.cleaned_data.get("dashboard_widgets", [])
         theme = self.cleaned_data.get("theme_preference")
         high_contrast = self.cleaned_data.get("high_contrast")
+        visual_preset = self.cleaned_data.get("dashboard_visual_preset")
         if commit:
             preference.save()
             try:
@@ -593,6 +602,8 @@ class UserPreferenceForm(forms.ModelForm):
                     dashboard_pref.theme_preference = theme
                 if high_contrast is not None:
                     dashboard_pref.high_contrast = high_contrast
+                if visual_preset:
+                    dashboard_pref.set_visual_preset(getattr(preference.user, "role", None), visual_preset)
                 dashboard_pref.save()
             except Exception:
                 # Avoid blocking preference updates if dashboard prefs aren't migrated yet.

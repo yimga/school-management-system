@@ -26,7 +26,33 @@
           <form method="post" novalidate>
             {% csrf_token %}
 
+            {% if form.dashboard_visual_preset %}
+            <div class="mb-3 p-3 border rounded-3 bg-light-subtle">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <label class="form-label fw-semibold mb-1" for="{{ form.dashboard_visual_preset.id_for_label }}">
+                    {{ form.dashboard_visual_preset.label }}
+                  </label>
+                  <div class="small text-muted">
+                    Applied to your current role:
+                    <strong>{{ request.user.get_role_display|default:request.user.role|default:"User" }}</strong>
+                  </div>
+                </div>
+              </div>
+              {{ form.dashboard_visual_preset }}
+              {% if form.dashboard_visual_preset.help_text %}
+                <div class="form-text">{{ form.dashboard_visual_preset.help_text }}</div>
+              {% endif %}
+              {% if form.dashboard_visual_preset.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.dashboard_visual_preset.errors|join:", " }}
+                </div>
+              {% endif %}
+            </div>
+            {% endif %}
+
             {% for field in form %}
+              {% if field.name != "dashboard_visual_preset" %}
               {% if field.field.widget.input_type == "checkbox" %}
                 <div class="form-check mb-3">
                   {{ field }}
@@ -53,6 +79,7 @@
                     </div>
                   {% endif %}
                 </div>
+              {% endif %}
               {% endif %}
             {% endfor %}
 
@@ -97,4 +124,3 @@
     })();
   </script>
 {% endblock %}
-

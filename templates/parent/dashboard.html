@@ -6,6 +6,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
+<link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'parent';
@@ -1179,7 +1180,7 @@
     {% if PREVIEW_MODE_ENABLED %}
     <div class="alert alert-warning rounded-3 mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
       <div class="small">
-        <strong class="text-uppercase">Preview mode</strong> — {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Changes are staged and will not persist until preview is cleared." }}
+        <strong class="text-uppercase">Preview mode</strong> - {{ PREVIEW_BANNER_TEXT|default:PREVIEW_NOTE|default:"Changes are staged and will not persist until preview is cleared." }}
       </div>
       <div class="d-flex gap-2">
         <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle preview</a>
@@ -1373,7 +1374,7 @@
                     </div>
                     <div class="child-info flex-grow-1">
                       <h3 class="h6 mb-0">{{ card.link.student.get_full_name }}</h3>
-                      <p class="small text-muted mb-0">{{ card.link.student.grade|default:"N/A" }} · {{ card.link.student.section|default:"N/A" }}</p>
+                      <p class="small text-muted mb-0">{{ card.link.student.grade|default:"N/A" }} - {{ card.link.student.section|default:"N/A" }}</p>
                       {% if card.badges %}
                       <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="Student badges">
                         {% for b in card.badges %}
@@ -1456,24 +1457,15 @@
 
       </div>
 
-      <!-- Right Column - Sidebar (Direct Contact, Recent Announcements, Documents only) -->
+      <!-- Right Column - Sidebar (compressed to 3 stacked modules) -->
       <aside class="col-lg-4 parent-sidebar-col" aria-label="Dashboard sidebar">
         <div class="sidebar-sticky parent-sidebar-cards">
-
-          <!-- Direct Contact -->
-          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-direct-contact">
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-contact-and-messages">
             <div class="card-body">
               <h2 class="h6 card-title mb-2"><i class="bi bi-telephone text-primary" aria-hidden="true"></i> Direct Contact</h2>
-              <p class="small text-muted mb-2">Reach the school quickly.</p>
-              <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-primary w-100"><i class="bi bi-envelope me-2"></i>Message</a>
-            </div>
-          </div>
-
-          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-class-messages">
-            <div class="card-body">
-              <h2 class="h6 card-title mb-2"><i class="bi bi-chat-left-text text-primary" aria-hidden="true"></i> Class Messages Snapshot</h2>
+              <p class="small text-muted mb-2">Reach the school quickly and see the latest class messages.</p>
               {% if class_threads %}
-              <ul class="parent-rail-list mb-0">
+              <ul class="parent-rail-list mb-2">
                 {% for thread in class_threads|slice:":2" %}
                 <li class="parent-rail-item">
                   <div>
@@ -1484,18 +1476,21 @@
                 </li>
                 {% endfor %}
               </ul>
-              <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Open messages</a>
               {% else %}
-              <p class="text-muted small mb-0">No active class threads.</p>
+              <p class="text-muted small mb-2">No active class threads.</p>
               {% endif %}
+              <div class="d-grid gap-2">
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-primary"><i class="bi bi-envelope me-2"></i>Message school</a>
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">Open message center</a>
+              </div>
             </div>
           </div>
-          <!-- Recent Announcements (2-3 + See all) -->
-          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-recent-announcements">
+
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-school-feed">
             <div class="card-body">
-              <h2 class="h6 card-title mb-2"><i class="bi bi-megaphone text-primary" aria-hidden="true"></i> Recent Announcements</h2>
+              <h2 class="h6 card-title mb-2"><i class="bi bi-megaphone text-primary" aria-hidden="true"></i> School Feed</h2>
               {% if class_announcements or portal_announcements %}
-              <ul class="list-unstyled mb-0 small">
+              <ul class="list-unstyled mb-2 small">
                 {% for ann in class_announcements|slice:":2" %}
                 <li class="mb-2 pb-2 border-bottom border-light">
                   <span class="fw-medium d-block">{{ ann.title }}</span>
@@ -1510,18 +1505,31 @@
                 {% endfor %}
                 {% endfor %}
               </ul>
-              <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">See all</a>
               {% else %}
-              <p class="text-muted small mb-0">No announcements. <a href="{% url 'portal:parent_contact_school' %}">Contact school</a></p>
+              <p class="text-muted small mb-2">No announcements right now.</p>
               {% endif %}
+              <div class="parent-rail-kpis mb-2">
+                <div class="parent-rail-metric">
+                  <span>Pending signatures</span>
+                  <strong>{{ signature_stats.pending|default:0 }}</strong>
+                </div>
+                <div class="parent-rail-metric">
+                  <span>Signed</span>
+                  <strong>{{ signature_stats.signed|default:0 }}</strong>
+                </div>
+              </div>
+              <div class="d-grid gap-2">
+                <a href="{% url 'portal:signature_pending_list' %}" class="btn btn-sm btn-outline-primary">Review signatures</a>
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">See all announcements</a>
+              </div>
             </div>
           </div>
 
-          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-recent-payments">
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-finance-docs">
             <div class="card-body">
-              <h2 class="h6 card-title mb-2"><i class="bi bi-credit-card text-primary" aria-hidden="true"></i> Recent Payments</h2>
+              <h2 class="h6 card-title mb-2"><i class="bi bi-wallet2 text-primary" aria-hidden="true"></i> Finance & Documents</h2>
               {% if recent_payments %}
-              <ul class="parent-rail-list mb-0">
+              <ul class="parent-rail-list mb-2">
                 {% for payment in recent_payments|slice:":2" %}
                 <li class="parent-rail-item">
                   <div>
@@ -1532,35 +1540,13 @@
                 </li>
                 {% endfor %}
               </ul>
-              <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Payment history</a>
               {% else %}
-              <p class="text-muted small mb-0">No recent payments recorded.</p>
+              <p class="text-muted small mb-2">No recent payments recorded.</p>
               {% endif %}
-            </div>
-          </div>
-
-          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-signatures">
-            <div class="card-body">
-              <h2 class="h6 card-title mb-2"><i class="bi bi-pen text-primary" aria-hidden="true"></i> Pending Signatures</h2>
-              <div class="parent-rail-kpis">
-                <div class="parent-rail-metric">
-                  <span>Pending</span>
-                  <strong>{{ signature_stats.pending|default:0 }}</strong>
-                </div>
-                <div class="parent-rail-metric">
-                  <span>Signed</span>
-                  <strong>{{ signature_stats.signed|default:0 }}</strong>
-                </div>
+              <div class="d-grid gap-2">
+                <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Payment history</a>
+                <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary">Document library</a>
               </div>
-              <a href="{% url 'portal:signature_pending_list' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Review signatures</a>
-            </div>
-          </div>
-          <!-- Documents (1-2 + See all) -->
-          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-documents">
-            <div class="card-body">
-              <h2 class="h6 card-title mb-2"><i class="bi bi-file-earmark-text text-primary" aria-hidden="true"></i> Documents</h2>
-              <p class="text-muted small mb-0">Report cards and school documents are organized in My Workflow.</p>
-              <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Document library</a>
             </div>
           </div>
 

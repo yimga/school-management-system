@@ -37,6 +37,14 @@ class DashboardUserPreference(models.Model):
     # Dashboard customization
     dashboard_layout = models.JSONField(default=dict, help_text="Legacy widget positions (Phase 7).")
     visible_widgets = models.JSONField(default=list, help_text="List of visible widget IDs on dashboard.")
+    role_visual_presets = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Per-role visual style preferences for dashboards. "
+            "Example: {\"PARENT\": \"soft-glass\", \"TEACHER\": \"crisp-professional\"}."
+        ),
+    )
 
     # Theme preferences (shared across portal pages)
     THEME_CHOICES = [
@@ -116,6 +124,34 @@ class DashboardUserPreference(models.Model):
         else:
             self.visible_widgets.remove(widget_id)
         self.save(update_fields=["visible_widgets", "updated_at"])
+
+    VISUAL_PRESET_CHOICES = [
+        ("soft-glass", "Soft Glass"),
+        ("crisp-professional", "Crisp Professional"),
+        ("high-contrast", "High Contrast"),
+    ]
+    VISUAL_PRESET_DEFAULTS = {
+        "PARENT": "soft-glass",
+        "TEACHER": "soft-glass",
+        "ADMIN": "crisp-professional",
+        "LEADERSHIP": "crisp-professional",
+        "IT_ADMIN": "crisp-professional",
+    }
+
+    def get_visual_preset(self, role: str | None = None) -> str:
+        role_code = (role or getattr(self.user, "role", "") or "").upper()
+        presets = self.role_visual_presets or {}
+        valid_values = {choice[0] for choice in self.VISUAL_PRESET_CHOICES}
+        selected = presets.get(role_code) or self.VISUAL_PRESET_DEFAULTS.get(role_code) or "soft-glass"
+        return selected if selected in valid_values else "soft-glass"
+
+    def set_visual_preset(self, role: str | None, preset: str) -> None:
+        role_code = (role or getattr(self.user, "role", "") or "").upper() or "DEFAULT"
+        valid_values = {choice[0] for choice in self.VISUAL_PRESET_CHOICES}
+        selected = preset if preset in valid_values else "soft-glass"
+        payload = dict(self.role_visual_presets or {})
+        payload[role_code] = selected
+        self.role_visual_presets = payload
 
 
 class DashboardWidget(models.Model):
