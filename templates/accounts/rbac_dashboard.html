@@ -109,6 +109,8 @@
   #rbac-page .rbac-assign-roles-card .card-body { min-width: 0; }
   /* Roles wrapper: full width, contain checkboxes, no horizontal spill */
   #rbac-page .rbac-roles-wrapper { max-width: 100%; }
+  #rbac-page .rbac-perms-cell { max-width: 40%; word-break: break-word; }
+  #rbac-page .max-w-100 { max-width: 100%; }
 
   #rbac-page .rbac-form-check-wrapper.rbac-permissions-wrapper {
     max-height: 350px;
@@ -125,7 +127,7 @@
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
       <h2 class="mb-1">Access Control</h2>
-      <div class="text-muted">Manage roles, permissions, and assignments without the admin panel.</div>
+      <p class="text-muted mb-0">Manage roles, permissions, and user assignments. All changes are additive; existing roles and permissions are not removed.</p>
     </div>
   </div>
 
@@ -149,7 +151,12 @@
                 <button class="btn btn-primary btn-sm" type="submit">Save Roles</button>
               </div>
               <div class="rbac-form-check-wrapper rbac-roles-wrapper" id="rbac-roles-container">
-                {% for role in roles %}
+                {% if roles_by_category %}
+                {% for category_label, role_list in roles_by_category %}
+                <div class="rbac-role-category w-100" style="grid-column: 1 / -1;">
+                  <div class="small fw-semibold text-muted mb-1 mt-2">{{ category_label }}</div>
+                </div>
+                {% for role in role_list %}
                 <div class="form-check rbac-role-item">
                   <input class="form-check-input" type="checkbox" name="user_role-roles" value="{{ role.pk }}" id="id_user_role-roles_{{ role.pk }}"{% if role.pk in selected_role_ids %} checked{% endif %}>
                   <label class="form-check-label" for="id_user_role-roles_{{ role.pk }}">
@@ -160,6 +167,20 @@
                   </label>
                 </div>
                 {% endfor %}
+                {% endfor %}
+                {% else %}
+                {% for role in roles %}
+                <div class="form-check rbac-role-item">
+                  <input class="form-check-input" type="checkbox" name="user_role-roles" value="{{ role.pk }}" id="id_user_role-roles_{{ role.pk }}"{% if role.pk in selected_role_ids %} checked{% endif %}>
+                  <label class="form-check-label" for="id_user_role-roles_{{ role.pk }}">
+                    <span class="fw-medium">{{ role.code }} — {{ role.name }}</span>
+                    {% if role.permissions.all %}
+                    <span class="d-block small text-muted mt-0">{% for p in role.permissions.all %}<span class="badge text-bg-light rbac-badge">{{ p.code }}</span>{% endfor %}</span>
+                    {% endif %}
+                  </label>
+                </div>
+                {% endfor %}
+                {% endif %}
               </div>
               <small class="form-text text-muted">Select one or more roles. Assign only roles needed for this user's job.</small>
             </div>
@@ -334,7 +355,7 @@
                 <th>Code</th>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Permissions</th>
+                <th class="rbac-perms-cell">Permissions</th>
                 <th class="text-end">Actions</th>
               </tr>
             </thead>
@@ -344,9 +365,9 @@
                   <td>{{ role.code }}</td>
                   <td>{{ role.name }}</td>
                   <td>{{ role.description|default:"—" }}</td>
-                  <td>
+                  <td class="rbac-perms-cell">
                     {% if role.permissions.all %}
-                      <div class="d-flex flex-wrap gap-1">
+                      <div class="d-flex flex-wrap gap-1 max-w-100">
                         {% for perm in role.permissions.all %}
                           <span class="badge text-bg-light rbac-badge">{{ perm.code }}</span>
                         {% endfor %}
@@ -364,7 +385,7 @@
           </table>
         </div>
       {% else %}
-        <div class="text-muted">No roles created yet.</div>
+        <p class="text-muted mb-0">No roles created yet.</p>
       {% endif %}
     </div>
   </div>

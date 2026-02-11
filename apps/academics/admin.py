@@ -4,7 +4,7 @@ from config.admin import admin_site
 from unfold.admin import ModelAdmin
 from .models import (
     AcademicYear, Term, Department, Specialty, Classroom, ClassroomPromotionMapping, Subject, SubjectAssignment,
-    CourseSyllabus, ClassBooklist,
+    CourseSyllabus, ClassBooklist, Incident,
     CertificationExamSession, CertificationCandidate, CertificationAuditLog,
     CertificationExamPreset,
     CertificationFeeTemplate,
@@ -213,6 +213,17 @@ admin_site.register(Specialty, SpecialtyAdmin)
 admin_site.register(Classroom, ClassroomAdmin)
 admin_site.register(ClassroomPromotionMapping, ClassroomPromotionMappingAdmin)
 admin_site.register(Subject, SubjectAdmin)
+
+
+class IncidentAdmin(ModelAdmin):
+    list_display = ("date", "incident_type", "student", "teacher", "severity", "status", "notify_parent", "created_at")
+    list_filter = ("incident_type", "severity", "status", "notify_parent")
+    search_fields = ("description", "student__first_name", "student__last_name")
+    raw_id_fields = ("student", "teacher", "created_by")
+    date_hierarchy = "date"
+
+
+admin_site.register(Incident, IncidentAdmin)
 admin_site.register(SubjectAssignment, SubjectAssignmentAdmin)
 admin_site.register(CourseSyllabus, CourseSyllabusAdmin)
 admin_site.register(ClassBooklist, ClassBooklistAdmin)

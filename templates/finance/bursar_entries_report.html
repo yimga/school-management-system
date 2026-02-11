@@ -1,0 +1,46 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Bursar Entries Report{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Bursar Entries Report</h2>
+    <p class="text-muted small mb-0">Read-only view of fee and payment transactions (for Accountant).</p>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Finance</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {% if payments %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Invoice / Student</th>
+            <th>Method</th>
+            <th class="text-end">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pay in payments %}
+          <tr>
+            <td>{{ pay.paid_at|date:"Y-m-d H:i"|default:pay.created_at|date:"Y-m-d" }}</td>
+            <td>{{ pay.invoice.reference|default:pay.invoice_id }} {% if pay.invoice.student %}({{ pay.invoice.student.get_full_name|default:pay.invoice.student }}){% endif %}</td>
+            <td>{{ pay.get_method_display|default:pay.method }}</td>
+            <td class="text-end">{{ pay.amount|format_currency }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="small text-muted mt-2 mb-0">Showing up to 100 most recent completed payments.</p>
+    {% else %}
+    <p class="text-muted mb-0">No completed payments to show.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

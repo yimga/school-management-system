@@ -638,11 +638,41 @@ def _resolve_admin_portal_stats(section_stats, config):
     return fallback
 
 
+def _rbac_roles_by_category(roles_qs):
+    """Group roles by category for RBAC UI (additive; uses ROLE_CATEGORIES)."""
+    from apps.accounts.permissions import ROLE_CATEGORIES
+    role_by_code = {r.code: r for r in roles_qs}
+    result = []
+    for category_label, codes in ROLE_CATEGORIES.items():
+        roles_in_cat = [role_by_code[c] for c in codes if c in role_by_code]
+        if roles_in_cat:
+            result.append((category_label, roles_in_cat))
+    return result
+
+
+def _rbac_permissions_by_group(permissions_qs):
+    """Group permissions by module for RBAC UI (additive; uses PERMISSION_GROUPS)."""
+    from apps.accounts.permissions import PERMISSION_GROUPS
+    perm_by_code = {p.code: p for p in permissions_qs}
+    result = []
+    for group_label, codes in PERMISSION_GROUPS.items():
+        perms_in_group = [perm_by_code[c] for c in codes if c in perm_by_code]
+        if perms_in_group:
+            result.append((group_label, perms_in_group))
+    # Append any permission not in any group (additive)
+    seen_ids = {p.id for _, perms in result for p in perms}
+    other = [p for p in permissions_qs if p.id not in seen_ids]
+    if other:
+        result.append(("Other", other))
+    return result
+
+
 @login_required
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def rbac_dashboard(request):
     roles_qs = AccessRole.objects.prefetch_related("permissions").order_by("code")
+    permissions_qs = Permission.objects.order_by("code")
     initial_user_roles = {}
     if request.method == "GET" and request.GET.get("user"):
         try:
@@ -780,7 +810,9 @@ def rbac_dashboard(request):
 
     context = {
         "roles": roles_qs,
-        "permissions": Permission.objects.order_by("code"),
+        "permissions": permissions_qs,
+        "roles_by_category": _rbac_roles_by_category(roles_qs),
+        "permissions_by_group": _rbac_permissions_by_group(permissions_qs),
         "role_form": role_form,
         "permission_form": permission_form,
         "user_role_form": user_role_form,

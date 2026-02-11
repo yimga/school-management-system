@@ -25,6 +25,7 @@ ROLE_RANK = {
     "SUPERADMIN": 110,
     "ADMIN": 100,
     "LEADERSHIP": 95,
+    "PROPRIETOR": 96,
     "PRINCIPAL": 90,
     "VICE_PRINCIPAL": 85,
     "DEAN": 80,
@@ -32,6 +33,8 @@ ROLE_RANK = {
     "CENSOR": 75,
     "BURSAR": 75,
     "DEPT_LEAD": 74,
+    "ACCOUNTANT": 74,
+    "DISCIPLINE_MASTER": 73,
     "FINANCE_STAFF": 65,
     "ACADEMICS_STAFF": 65,
     "COMMS_STAFF": 60,
@@ -96,23 +99,23 @@ MODULE_ACCESS_DEFAULTS = {
         "write": {"ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
     },
     "people": {
-        "read": {"TEACHER", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
-        "write": {"ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "read": {"TEACHER", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "BURSAR", "SECRETARY", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "BURSAR", "SECRETARY", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
     },
     "evals": {
         "read": {"TEACHER", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
         "write": {"TEACHER", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "CENSOR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
     },
     "reports": {
-        "read": {"TEACHER", "PARENT", "STUDENT", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
-        "write": {"ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "read": {"TEACHER", "PARENT", "STUDENT", "ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "SECRETARY", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "write": {"ACADEMICS_STAFF", "HOD", "DEPT_LEAD", "SECRETARY", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
     },
     "finance": {
-        "read": {"PARENT", "STUDENT", "FINANCE_STAFF", "BURSAR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
+        "read": {"PARENT", "STUDENT", "FINANCE_STAFF", "BURSAR", "ACCOUNTANT", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
         "write": {"FINANCE_STAFF", "BURSAR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL"},
     },
     "analytics": {
-        "read": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "ACADEMICS_STAFF"},
+        "read": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "ACADEMICS_STAFF"},
         "write": {"ADMIN", "SUPERADMIN"},
     },
     "payroll": {
@@ -147,11 +150,50 @@ MODULE_ACCESS_DEFAULTS = {
         "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
         "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
     },
+    "discipline": {
+        "read": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "DISCIPLINE_MASTER", "CENSOR"},
+        "write": {"DISCIPLINE_MASTER", "CENSOR", "ADMIN", "SUPERADMIN"},
+    },
+    "accounting": {
+        "read": {"ACCOUNTANT", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR"},
+        "write": {"ACCOUNTANT", "ADMIN", "SUPERADMIN"},
+    },
+    "stock": {
+        "read": {"ACCOUNTANT", "ADMIN", "SUPERADMIN"},
+        "write": {"ACCOUNTANT", "ADMIN", "SUPERADMIN"},
+    },
     # API is guarded by endpoint-level permissions; allow all authenticated users.
     "api": {
         "read": ALL_AUTHENTICATED,
         "write": ALL_AUTHENTICATED,
     },
+}
+
+# Group permissions by module for RBAC UI (grouped display; additive only, do not remove).
+PERMISSION_GROUPS = {
+    "Discipline": ["discipline.manage"],
+    "Accounting": ["accounting.view", "accounting.manage"],
+    "Stock": ["stock.view", "stock.manage"],
+    "Strategic": ["strategic.report"],
+    "Exam registration": ["exam_registration.manage"],
+    "Attendance": ["attendance.view", "attendance.manage"],
+    "Finance": ["finance.view", "finance.manage"],
+    "Reports": ["reports.manage"],
+    "Settings": ["settings.manage"],
+    "Portal": ["portal.manage"],
+    "Communication": ["communication.manage"],
+    "Student": ["student.manage"],
+    "Data": ["data.access"],
+}
+
+# Role categories for RBAC UI (grouped display; additive only, do not remove).
+ROLE_CATEGORIES = {
+    "Leadership": ["ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL"],
+    "Academic": ["DEAN", "CENSOR", "HOD", "DEPT_LEAD", "ACADEMICS_STAFF"],
+    "Finance": ["BURSAR", "FINANCE_STAFF", "ACCOUNTANT"],
+    "Support": ["SECRETARY", "EXECUTIVE_ASSISTANT", "VIRTUAL_ASSISTANT", "IT_ADMIN"],
+    "Disciplinary": ["DISCIPLINE_MASTER"],
+    "Other": ["TEACHER", "BOARDING_MANAGER", "PARENT", "STUDENT"],
 }
 
 

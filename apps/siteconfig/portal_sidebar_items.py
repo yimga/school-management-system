@@ -174,7 +174,11 @@ def build_portal_sidebar_items(request, site):
     is_staff = getattr(user, "is_staff", False)
     is_superuser = getattr(user, "is_superuser", False)
     messages_unread_count = getattr(request, "messages_unread_count", None)
-    staff_like = is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN")
+    # Staff-like: full or partial backend nav (Principal/VP/Secretary get executive view without finance)
+    staff_like = is_staff or is_superuser or role in (
+        "ADMIN", "LEADERSHIP", "IT_ADMIN",
+        "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER", "SECRETARY",
+    )
     workflow_badge, finance_badge, signatures_badge = _cached_sidebar_badge_counts(
         user, role, staff_like
     )
@@ -195,7 +199,7 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "message_groups", "label": "Message Groups", "url": _safe_reverse("communication:group_list"), "icon": "bi-people", "section": "Communication", "badge": None})
     elif role == "PARENT":
         items.append({"id": "contact_school", "label": "Contact School", "url": _safe_reverse("portal:parent_contact_school"), "icon": "bi-envelope-paper", "section": "Communication", "badge": None})
-    elif is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN"):
+    elif is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "PROPRIETOR", "SECRETARY"):
         items.append({"id": "messages", "label": "Messages", "url": _safe_reverse("accounts:user_messages"), "icon": "bi-chat-dots", "section": "Communication", "badge": messages_unread_count})
         items.append({"id": "message_groups", "label": "Message Groups", "url": _safe_reverse("communication:group_list"), "icon": "bi-people", "section": "Communication", "badge": None})
         items.append({"id": "announcements", "label": "Announcements", "url": _safe_reverse("communication:announcement_create"), "icon": "bi-megaphone", "section": "Communication", "badge": None})
@@ -229,7 +233,7 @@ def build_portal_sidebar_items(request, site):
     if portal_cfg.get("video") and getattr(user, "has_feature_permission", lambda _: False)("portal.video"):
         items.append({"id": "portal_video", "label": "Video Hub", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "video"}), "icon": "bi-camera-video", "section": "Portal Tools", "badge": None})
     # Documents: for teachers/parents add here (one Content & Documents section); for staff add in staff block below
-    staff_gets_content_docs = (is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN")) and role != "TEACHER"
+    staff_gets_content_docs = (is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER")) and role != "TEACHER"
     if portal_cfg.get("documents") and getattr(user, "has_feature_permission", lambda _: False)("portal.documents") and not staff_gets_content_docs:
         items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
 
@@ -239,6 +243,8 @@ def build_portal_sidebar_items(request, site):
         # Support, Content & Documents, People & Access, Academic, Financial, Analytics first; Admin Panel last
         if staff_like:
             items.append({"id": "contact_requests", "label": "Contact Requests", "url": _safe_reverse("portal:staff_contact_request_list"), "icon": "bi-inbox", "section": "Support", "badge": None})
+        if role in ("DISCIPLINE_MASTER", "CENSOR"):
+            items.append({"id": "discipline_incidents", "label": "Disciplinary Incidents", "url": _safe_reverse("portal:discipline_incidents_list"), "icon": "bi-shield-exclamation", "section": "Support", "badge": None})
         # Content & Documents: Document Library Manager, Signature Requests, and portal Documents (single section)
         if can_manage_site:
             items.append({"id": "document_library_manage", "label": "Document Library Manager", "url": _safe_reverse("portal:document_library_manage"), "icon": "bi-folder2-open", "section": "Content & Documents", "badge": None})
@@ -261,9 +267,16 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "class_ranking", "label": "Class Ranking", "url": _safe_reverse("evals:class_ranking"), "icon": "bi-trophy", "section": "Academic Management", "badge": None})
         items.append({"id": "school_ranking", "label": "School Ranking", "url": _safe_reverse("evals:school_ranking"), "icon": "bi-bar-chart-line", "section": "Academic Management", "badge": None})
         items.append({"id": "publish_results", "label": "Publish Results", "url": _safe_reverse("reports:publish_term_results"), "icon": "bi-megaphone", "section": "Academic Management", "badge": None})
-        items.append({"id": "finance_dashboard", "label": "Finance Dashboard", "url": _safe_reverse("finance:dashboard"), "icon": "bi-currency-exchange", "section": "Financial Management", "badge": finance_badge})
-        items.append({"id": "payroll", "label": "Payroll", "url": _safe_reverse("payroll:dashboard"), "icon": "bi-cash-stack", "section": "Financial Management", "badge": None})
+        # Executive dashboard: Principal, Vice Principal, and Secretary do not see Bursar/accounting
+        if role not in ("PRINCIPAL", "VICE_PRINCIPAL", "SECRETARY"):
+            items.append({"id": "finance_dashboard", "label": "Finance Dashboard", "url": _safe_reverse("finance:dashboard"), "icon": "bi-currency-exchange", "section": "Financial Management", "badge": finance_badge})
+            items.append({"id": "payroll", "label": "Payroll", "url": _safe_reverse("payroll:dashboard"), "icon": "bi-cash-stack", "section": "Financial Management", "badge": None})
+        if role == "ACCOUNTANT":
+            items.append({"id": "bursar_entries", "label": "Bursar Entries Report", "url": _safe_reverse("finance:bursar_entries_report"), "icon": "bi-journal-bookmark", "section": "Financial Management", "badge": None})
+            items.append({"id": "expense_vs_budget", "label": "Expense vs Budget", "url": _safe_reverse("finance:expense_vs_budget"), "icon": "bi-pie-chart", "section": "Financial Management", "badge": None})
         items.append({"id": "analytics", "label": "Analytics", "url": _safe_reverse("analytics:dashboard"), "icon": "bi-graph-up-arrow", "section": "Analytics & Reports", "badge": None})
+        if role in ("PROPRIETOR", "LEADERSHIP", "ADMIN"):
+            items.append({"id": "strategic_report", "label": "Strategic Report", "url": _safe_reverse("analytics:strategic_report"), "icon": "bi-flag", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "report_library", "label": "Report Library", "url": _safe_reverse("siteconfig:report_library"), "icon": "bi-journal-text", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "bulk_letters", "label": "Bulk Letters", "url": _safe_reverse("siteconfig:bulk_letters"), "icon": "bi-envelope-paper", "section": "Analytics & Reports", "badge": None})
         items.append({"id": "reportcard_builder", "label": "Report Card Builder", "url": _safe_reverse("siteconfig:reportcard_builder"), "icon": "bi-file-earmark-richtext", "section": "Analytics & Reports", "badge": None})

@@ -640,6 +640,64 @@ class Attendance(models.Model):
         return f"{self.student} – {self.date} – {self.get_status_display()}"
 
 
+class Incident(models.Model):
+    """Disciplinary incident (tardiness, behavior, etc.) for students or teachers. Alerts parents when notify_parent is True."""
+    class Type(models.TextChoices):
+        TARDINESS = "TARDINESS", "Tardiness"
+        BEHAVIOR = "BEHAVIOR", "Behavior"
+        ABSENCE = "ABSENCE", "Unexcused absence"
+        OTHER = "OTHER", "Other"
+
+    class Severity(models.TextChoices):
+        LOW = "LOW", "Low"
+        MEDIUM = "MEDIUM", "Medium"
+        HIGH = "HIGH", "High"
+
+    class Status(models.TextChoices):
+        REFERRED = "REFERRED", "Referred"
+        OPEN = "OPEN", "Open"
+        RESOLVED = "RESOLVED", "Resolved"
+
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="incidents",
+        null=True,
+        blank=True,
+    )
+    teacher = models.ForeignKey(
+        "people.TeacherProfile",
+        on_delete=models.CASCADE,
+        related_name="incidents",
+        null=True,
+        blank=True,
+    )
+    incident_type = models.CharField(max_length=20, choices=Type.choices, default=Type.OTHER)
+    date = models.DateField()
+    description = models.TextField(blank=True)
+    severity = models.CharField(max_length=20, choices=Severity.choices, default=Severity.MEDIUM)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+    notify_parent = models.BooleanField(
+        default=True,
+        help_text="When True, linked guardians are notified (student incidents only).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_incidents",
+    )
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+
+    def __str__(self):
+        who = (self.student or self.teacher) or "—"
+        return f"Incident {self.get_incident_type_display()} – {who} – {self.date}"
+
+
 class CourseSyllabus(models.Model):
     """
     One syllabus per SubjectAssignment (class + subject + term/year).

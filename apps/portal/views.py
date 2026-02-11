@@ -1589,6 +1589,31 @@ def teacher_disciplinary(request: HttpRequest):
     return render(request, "teacher/disciplinary.html", {"hero": hero, "teacher_profile": profile})
 
 
+def _can_manage_discipline(user):
+    if not user or not user.is_authenticated:
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    role = (getattr(user, "role", "") or "").upper()
+    if role in ("DISCIPLINE_MASTER", "CENSOR"):
+        return True
+    return getattr(user, "has_feature_permission", lambda _: False)("discipline.manage")
+
+
+@login_required
+def discipline_incidents_list(request: HttpRequest):
+    """List disciplinary incidents. RBAC: DISCIPLINE_MASTER, CENSOR, or discipline.manage."""
+    if not _can_manage_discipline(request.user):
+        return HttpResponseForbidden("You do not have permission to view disciplinary incidents.")
+    from apps.academics.models import Incident
+    incidents = (
+        Incident.objects.select_related("student", "teacher", "created_by")
+        .order_by("-date", "-created_at")[:100]
+    )
+    hero = {"title": "Disciplinary Incidents", "subtitle": "View and manage incidents (tardiness, behavior). Parents are notified when requested.", "actions": []}
+    return render(request, "staff/discipline_incidents.html", {"hero": hero, "incidents": incidents})
+
+
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 def teacher_training_log(request: HttpRequest):

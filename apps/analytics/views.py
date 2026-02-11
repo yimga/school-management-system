@@ -8,6 +8,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -426,3 +427,34 @@ def grading_deadlines(request: HttpRequest):
         "deadlines": deadlines,
     }
     return render(request, "analytics/deadlines.html", context)
+
+
+def _can_access_strategic_report(user):
+    """Proprietor, Leadership, Admin, or strategic.report permission."""
+    if not user or not user.is_authenticated:
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    role = (getattr(user, "role", "") or "").upper()
+    if role in ("PROPRIETOR", "LEADERSHIP", "ADMIN"):
+        return True
+    return getattr(user, "has_feature_permission", lambda _: False)("strategic.report")
+
+
+@login_required
+def strategic_report(request: HttpRequest):
+    """Strategic reporting and school roadmap. RBAC: PROPRIETOR, LEADERSHIP, ADMIN, or strategic.report."""
+    if not _can_access_strategic_report(request.user):
+        return HttpResponseForbidden("You do not have permission to view strategic reporting.")
+    from apps.people.models import StudentProfile
+    active_year, _ = get_active_year_and_term()
+    total_students = StudentProfile.objects.filter(is_active=True).count()
+    total_teachers = TeacherProfile.objects.filter(is_active=True).count()
+    dashboard_context = get_dashboard_context(request.user, "analytics")
+    context = {
+        "total_students": total_students,
+        "total_teachers": total_teachers,
+        "active_year": active_year,
+        "dashboard_context": dashboard_context,
+    }
+    return render(request, "analytics/strategic_report.html", context)

@@ -1712,3 +1712,48 @@ def finance_requests(request: HttpRequest):
             FinanceRequestAudit.objects.select_related("notification", "user").order_by("-created_at")[:25]
         ),
     })
+
+
+def _can_access_accounting(user):
+    """Accountant role or accounting.view permission (for Bursar entries report, expense vs budget)."""
+    if not user or not user.is_authenticated:
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    role = (getattr(user, "role", "") or "").upper()
+    if role == "ACCOUNTANT":
+        return True
+    return getattr(user, "has_feature_permission", lambda _: False)("accounting.view")
+
+
+@login_required
+def bursar_entries_report(request: HttpRequest):
+    """Read-only report of fee/payment transactions for Accountant. RBAC: accounting.view or ACCOUNTANT."""
+    if not _can_access_accounting(request.user):
+        return HttpResponseForbidden("You do not have permission to view Bursar entries.")
+    from apps.accounts.utils import get_dashboard_context
+    payments = (
+        Payment.objects.select_related("invoice__student", "invoice")
+        .filter(status="completed")
+        .order_by("-created_at")[:100]
+    )
+    dashboard_context = get_dashboard_context(request.user, "finance")
+    return render(request, "finance/bursar_entries_report.html", {
+        "payments": payments,
+        "dashboard_context": dashboard_context,
+    })
+
+
+@login_required
+def expense_vs_budget(request: HttpRequest):
+    """Placeholder: Expense vs approved budget for Accountant. RBAC: accounting.view or ACCOUNTANT."""
+    if not _can_access_accounting(request.user):
+        return HttpResponseForbidden("You do not have permission to view expense vs budget.")
+    from apps.accounts.utils import get_dashboard_context
+    from .models import Budget, BudgetLine
+    budgets = Budget.objects.select_related("academic_year").order_by("-academic_year__start_date")[:5]
+    dashboard_context = get_dashboard_context(request.user, "finance")
+    return render(request, "finance/expense_vs_budget.html", {
+        "budgets": budgets,
+        "dashboard_context": dashboard_context,
+    })

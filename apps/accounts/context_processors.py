@@ -138,28 +138,34 @@ def dashboard_context(request):
         if role_value in ['ADMIN', 'LEADERSHIP', 'PRINCIPAL', 'VICE_PRINCIPAL', 'DEAN']:
             # Admin/Leadership metrics
             from apps.people.models import StudentProfile, TeacherProfile
-            from apps.finance.models import Invoice
             
             context['total_students'] = StudentProfile.objects.filter(is_active=True).count()
             context['total_teachers'] = TeacherProfile.objects.count()
             
-            # Pending invoices -- use aggregate() to avoid SELECTing all columns
-            # (prevents crash if a new column like void_reason hasn't been migrated yet)
-            from django.db.models import Sum, DecimalField
-            from django.db.models.functions import Coalesce
-            _inv_qs = Invoice.objects.filter(status__in=['PENDING', 'PARTIAL'])
-            _inv_agg = _inv_qs.aggregate(
-                total=Coalesce(Sum('balance_amount'), Decimal('0'), output_field=DecimalField())
-            )
-            context['pending_amount'] = _inv_agg['total']
-            context['pending_invoices_count'] = _inv_qs.count()
-
-            context['dashboard_stats_cards'] = [
-                stat_card("Students", context.get('total_students', 0), "blue"),
-                stat_card("Teachers", context.get('total_teachers', 0), "green"),
-                stat_card("Pending", context.get('pending_invoices_count', 0), "pink"),
-                stat_card("Notifications", notifications_unread, "red"),
-            ]
+            # Executive dashboard: Principal (and optionally Vice Principal) see no Bursar/accounting data
+            if role_value not in ('PRINCIPAL', 'VICE_PRINCIPAL'):
+                from apps.finance.models import Invoice
+                from django.db.models import Sum, DecimalField
+                from django.db.models.functions import Coalesce
+                _inv_qs = Invoice.objects.filter(status__in=['PENDING', 'PARTIAL'])
+                _inv_agg = _inv_qs.aggregate(
+                    total=Coalesce(Sum('balance_amount'), Decimal('0'), output_field=DecimalField())
+                )
+                context['pending_amount'] = _inv_agg['total']
+                context['pending_invoices_count'] = _inv_qs.count()
+                context['dashboard_stats_cards'] = [
+                    stat_card("Students", context.get('total_students', 0), "blue"),
+                    stat_card("Teachers", context.get('total_teachers', 0), "green"),
+                    stat_card("Pending", context.get('pending_invoices_count', 0), "pink"),
+                    stat_card("Notifications", notifications_unread, "red"),
+                ]
+            else:
+                # Principal / Vice Principal: executive view without finance
+                context['dashboard_stats_cards'] = [
+                    stat_card("Students", context.get('total_students', 0), "blue"),
+                    stat_card("Teachers", context.get('total_teachers', 0), "green"),
+                    stat_card("Notifications", notifications_unread, "red"),
+                ]
             
         elif role_value == 'TEACHER':
             # Teacher metrics

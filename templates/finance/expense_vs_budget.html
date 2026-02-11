@@ -1,0 +1,42 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Expense vs Budget{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Expense vs Budget</h2>
+    <p class="text-muted small mb-0">View approved budgets and record expenditures (utilities, maintenance).</p>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Finance</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    {% if budgets %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Academic Year</th>
+            <th class="text-end">Budget lines</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in budgets %}
+          <tr>
+            <td>{{ b.academic_year.name }}</td>
+            <td class="text-end">{{ b.lines.count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="small text-muted mt-2 mb-0">Add and edit budget lines in the Configuration Engine (Finance → Budgets). Expenditure recording can be extended here.</p>
+    {% else %}
+    <p class="text-muted mb-0">No budgets configured yet. Create budgets in the Configuration Engine (Finance → Budgets).</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

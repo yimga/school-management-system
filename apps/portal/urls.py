@@ -27,6 +27,7 @@ from .views import (
     teacher_hr_status,
     teacher_disciplinary,
     teacher_training_log,
+    discipline_incidents_list,
     student_portal_grades,
     admissions_application_status,
     portal_syllabus,
@@ -114,6 +115,7 @@ urlpatterns = [
 
     # Staff triage: parent contact requests
     path("staff/contact-requests/", staff_contact_request_list, name="staff_contact_request_list"),
+    path("staff/discipline/incidents/", discipline_incidents_list, name="discipline_incidents_list"),
     path("staff/contact-requests/<uuid:request_id>/", staff_contact_request_detail, name="staff_contact_request_detail"),
     
     # Document Library Management (Backend UI)

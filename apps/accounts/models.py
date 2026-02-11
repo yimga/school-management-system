@@ -110,6 +110,9 @@ class User(AbstractUser):
         TEACHER = "TEACHER", "Teacher"
         IT_ADMIN = "IT_ADMIN", "IT Administrator"
         BOARDING_MANAGER = "BOARDING_MANAGER", "Boarding Manager"
+        ACCOUNTANT = "ACCOUNTANT", "Accountant"
+        PROPRIETOR = "PROPRIETOR", "Proprietor"
+        DISCIPLINE_MASTER = "DISCIPLINE_MASTER", "Discipline Master"
         PARENT = "PARENT", "Parent"
         STUDENT = "STUDENT", "Student"
 

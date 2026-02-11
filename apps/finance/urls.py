@@ -18,6 +18,8 @@ from .views import (
     finance_requests,
     upload_payment_receipt,
     resend_reminder,
+    bursar_entries_report,
+    expense_vs_budget,
 )
 
 app_name = "finance"
@@ -42,4 +44,6 @@ urlpatterns = [
     path("reports/request/", submit_report_request, name="report_request"),
     path("notifications/", notifications, name="notifications"),
     path("requests/", finance_requests, name="requests"),
+    path("accounting/bursar-entries/", bursar_entries_report, name="bursar_entries_report"),
+    path("accounting/expense-vs-budget/", expense_vs_budget, name="expense_vs_budget"),
 ]
