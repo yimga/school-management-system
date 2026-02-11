@@ -30,12 +30,37 @@ def _get_pinned_sidebar_items(request, all_items):
         return [], set()
     try:
         prefs = getattr(request.user, "dashboard_preferences", None)
+        by_id = {str(item.get("id")): item for item in all_items if item.get("id")}
+        prefs_created = False
         if not prefs:
-            return [], set()
-        pinned_ids = list(prefs.pinned_sidebar_items or [])
+            try:
+                prefs, prefs_created = DashboardUserPreference.objects.get_or_create(user=request.user)
+            except Exception:
+                prefs = None
+
+        raw_pinned_ids = getattr(prefs, "pinned_sidebar_items", None) if prefs is not None else None
+        pinned_ids = list(raw_pinned_ids or [])
+        # Seed defaults only for first-time preferences (or legacy null state), not when users intentionally unpin all.
+        if not pinned_ids and (prefs_created or raw_pinned_ids is None):
+            role = (getattr(request.user, "role", "") or "").upper()
+            default_pin_map = {
+                "TEACHER": ["teacher_workflow", "preferences"],
+                "PARENT": ["parent_workflow", "preferences"],
+            }
+            seeded_pins = [
+                item_id for item_id in default_pin_map.get(role, [])
+                if item_id in by_id and by_id[item_id].get("url")
+            ]
+            if seeded_pins:
+                pinned_ids = seeded_pins
+                if prefs is not None:
+                    try:
+                        prefs.pinned_sidebar_items = seeded_pins
+                        prefs.save(update_fields=["pinned_sidebar_items", "updated_at"])
+                    except Exception:
+                        pass
         if not pinned_ids:
             return [], set()
-        by_id = {str(item.get("id")): item for item in all_items if item.get("id")}
         ordered = []
         for pid in pinned_ids:
             if pid in by_id and by_id[pid].get("url"):

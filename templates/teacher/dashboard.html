@@ -45,7 +45,7 @@
           {% endif %}
           <div>
             <div class="tdm-profile-name">{{ request.user.get_full_name|default:request.user.username }}</div>
-            <div class="tdm-profile-meta">{% trans "Teacher" %} • {{ year.name }} · {{ term.label }}</div>
+            <div class="tdm-profile-meta">{% trans "Teacher" %} | {{ year.name }} | {{ term.label }}</div>
           </div>
         </div>
         <div class="tdm-profile-actions">
@@ -146,6 +146,8 @@
             <div class="tdm-chart-wrap">
               {% if chart_completion_bar_json %}
               {% include "components/dashboard_chart.html" with chart_id="teacherCompletionChart" chart_type="bar" chart_title="Completion by class" chart_data=chart_completion_bar_json aria_label="Marks completion by class" %}
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "Completion chart will appear once class data is available." %}</p>
               {% endif %}
             </div>
             <div class="tdm-chart-wrap">
@@ -155,6 +157,62 @@
               <p class="text-muted small mb-0">{% trans "Charts will appear after marks are entered." %}</p>
               {% endif %}
             </div>
+          </div>
+          <div class="tdm-compact-stack">
+            <article class="tdm-compact-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Student attention queue" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ ews_list|length|default:0 }}</span>
+              </div>
+              {% if ews_list %}
+              <ul class="tdm-compact-list">
+                {% for item in ews_list|slice:":3" %}
+                <li>
+                  <div>
+                    <strong>{{ item.student_name|truncatechars:28 }}</strong>
+                    <small>{{ item.subject }} | {{ item.classroom }}</small>
+                  </div>
+                  <span class="badge text-bg-warning">-{{ item.drop_points }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "No at-risk students detected today." %}</p>
+              {% endif %}
+            </article>
+            <article class="tdm-compact-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Syllabus status" %}</h4>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:teacher_syllabus_hub' %}">{% trans "Open" %}</a>
+              </div>
+              <div class="tdm-badge-grid">
+                <div class="tdm-badge-tile"><span>{% trans "Draft" %}</span><strong>{{ syllabus_status_summary.draft|default:0 }}</strong></div>
+                <div class="tdm-badge-tile"><span>{% trans "Pending" %}</span><strong>{{ syllabus_status_summary.pending|default:0 }}</strong></div>
+                <div class="tdm-badge-tile"><span>{% trans "Needs revision" %}</span><strong>{{ syllabus_status_summary.needs_revision|default:0 }}</strong></div>
+                <div class="tdm-badge-tile"><span>{% trans "Approved" %}</span><strong>{{ syllabus_status_summary.approved|default:0 }}</strong></div>
+              </div>
+            </article>
+            <article class="tdm-compact-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Upcoming deadlines" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ dashboard_events|length|default:0 }}</span>
+              </div>
+              {% if dashboard_events %}
+              <ul class="tdm-compact-list">
+                {% for ev in dashboard_events|slice:":3" %}
+                <li>
+                  <div>
+                    <strong>{{ ev.title|truncatechars:30 }}</strong>
+                    <small>{% if ev.detail %}{{ ev.detail }}{% else %}{% trans "Grading deadline" %}{% endif %}</small>
+                  </div>
+                  <span>{{ ev.when|date:"M j" }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "No upcoming deadlines yet." %}</p>
+              {% endif %}
+            </article>
           </div>
         </div>
       </div>
@@ -227,7 +285,7 @@
             <div class="tdm-task tdm-task-inline">
               <div>
                 <div class="tdm-task-title">{% trans "Latest class update" %}</div>
-                <div class="tdm-task-meta">{{ latest_ann.title|truncatewords:8 }} · {{ latest_ann.created_at|date:"M j" }}</div>
+                <div class="tdm-task-meta">{{ latest_ann.title|truncatewords:8 }} | {{ latest_ann.created_at|date:"M j" }}</div>
               </div>
               <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_messages' %}">{% trans "Messages" %}</a>
             </div>
@@ -314,5 +372,4 @@
   }
 })();
 </script>
-<script src="{% static 'js/dashboard-layout.js' %}"></script>
 {% endblock %}

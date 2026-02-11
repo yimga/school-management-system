@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
+{% block body_extra_class %}backend-shell{% endblock %}
 
 {# Staff theme: /backend uses same ThemePack as /admin (admin_theme_pack) #}
 {% block theme_root_variables %}
@@ -23,6 +24,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-spacing-readability.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-shell-parity.css' %}">
 {% with backend_theme=SITE.backend_console_theme|default:'dark' %}
 {% if backend_theme == 'light' or backend_theme == 'sand' or backend_theme == 'snow' or backend_theme == 'cream' or backend_theme == 'lavender' %}
 <link rel="stylesheet" href="{% static 'css/backend-light-theme.css' %}">

@@ -1,0 +1,133 @@
+/* Backend dashboard phase 2 polish:
+   - tighter layout density
+   - stronger contrast consistency
+   - reduced visual gaps / dead whitespace */
+
+body[data-dashboard-page="backend"] .backend-welcome-section {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.45rem !important;
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-row-with-sidebar {
+  gap: 0.75rem !important;
+}
+
+body[data-dashboard-page="backend"] .backend-right-sidebar {
+  position: sticky;
+  top: 78px;
+  align-self: flex-start;
+}
+
+body[data-dashboard-page="backend"] .backend-right-sidebar .card {
+  margin-bottom: 0.55rem !important;
+}
+
+body[data-dashboard-page="backend"] .backend-right-sidebar .card-body {
+  padding: 0.8rem 0.9rem !important;
+}
+
+body[data-dashboard-page="backend"] .backend-quick-actions-card {
+  min-height: 168px;
+}
+
+body[data-dashboard-page="backend"] .backend-quick-actions-grid {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 0.4rem 0.45rem;
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.1rem;
+}
+
+body[data-dashboard-page="backend"] .backend-quick-action-btn {
+  min-height: 2.1rem;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  padding: 0.32rem 0.4rem;
+}
+
+body[data-dashboard-page="backend"] .backend-kpi-grid-2col > [class*="col-"] {
+  margin-bottom: 0.35rem;
+}
+
+body[data-dashboard-page="backend"] .backend-kpi-card .card-body {
+  min-height: 84px;
+}
+
+body[data-dashboard-page="backend"] .backend-operations-row {
+  margin-top: 0.4rem !important;
+}
+
+body[data-dashboard-page="backend"] .backend-operations-row .card-body {
+  gap: 0.35rem;
+}
+
+body[data-dashboard-page="backend"] .btn-xs {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+body[data-dashboard-page="backend"] .backend-operations-row .small.text-muted {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+body[data-dashboard-page="backend"] #dashboard-layout > .row {
+  margin-bottom: 0.55rem !important;
+}
+
+body[data-dashboard-page="backend"] #dashboard-layout .row.g-2 {
+  --bs-gutter-x: 0.55rem;
+  --bs-gutter-y: 0.55rem;
+}
+
+body[data-dashboard-page="backend"] #dashboard-layout .card-title h5,
+body[data-dashboard-page="backend"] #dashboard-layout .card-title h6,
+body[data-dashboard-page="backend"] #dashboard-layout h5,
+body[data-dashboard-page="backend"] #dashboard-layout h6 {
+  color: var(--admin-text, #0f172a);
+}
+
+body[data-dashboard-page="backend"] #dashboard-layout .text-muted,
+body[data-dashboard-page="backend"] #dashboard-layout .small.text-muted {
+  color: var(--admin-subtle, #475569) !important;
+}
+
+body[data-dashboard-page="backend"] .backend-entity-charts-row {
+  min-height: 0;
+}
+
+:root[data-theme="dark"] body[data-dashboard-page="backend"] #dashboard-layout .text-muted,
+:root[data-theme="dark"] body[data-dashboard-page="backend"] #dashboard-layout .small.text-muted {
+  color: #cbd5e1 !important;
+}
+
+:root[data-theme="dark"] body[data-dashboard-page="backend"] #dashboard-layout .badge.bg-light.text-dark {
+  background: rgba(148, 163, 184, 0.24) !important;
+  color: #f8fafc !important;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+@media (max-width: 1199px) {
+  body[data-dashboard-page="backend"] .backend-right-sidebar {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 991px) {
+  body[data-dashboard-page="backend"] .backend-quick-actions-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 575px) {
+  body[data-dashboard-page="backend"] .backend-quick-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

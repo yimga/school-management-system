@@ -6,6 +6,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-polish.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -942,125 +943,6 @@
   </div>
   {% endif %}
   {% endif %}
-
-  <style>
-    /* Welcome row with right sidebar */
-    .backend-welcome-row-with-sidebar {
-      flex-wrap: wrap;
-    }
-    @media (min-width: 992px) {
-      .backend-welcome-row-with-sidebar {
-        flex-wrap: nowrap;
-      }
-    }
-    .backend-welcome-main {
-      flex: 1 1 0;
-      min-width: 0;
-    }
-    .backend-between-sidebars-row {
-      align-items: stretch;
-    }
-    .backend-left-col,
-    .backend-kpi-col {
-      display: flex;
-      flex-direction: column;
-    }
-    .backend-quick-actions-card {
-      flex: 1;
-      min-height: 200px;
-    }
-    .backend-quick-actions-card .card-body {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      padding: 0.75rem 1rem !important;
-    }
-    .backend-quick-actions-grid {
-      flex: 1;
-      align-content: start;
-    }
-    .backend-operations-row {
-      margin-top: 0.5rem !important;
-    }
-    .backend-operations-row > [class*="col-"] {
-      display: flex;
-    }
-    .backend-operations-row .card {
-      margin-bottom: 0;
-      flex: 1;
-    }
-    .backend-operations-row .card-body {
-      padding: 0.75rem 1rem !important;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      flex: 1;
-    }
-    .backend-operations-row .card-title {
-      margin-bottom: 0.5rem;
-    }
-    .backend-operations-row .card-actions {
-      margin-top: auto;
-      padding-top: 0.5rem;
-    }
-    .btn-xs {
-      padding: 0.3rem 0.65rem;
-      font-size: 0.72rem;
-      line-height: 1.3;
-    }
-    .backend-kpi-grid-2col {
-      margin-bottom: 0;
-      flex: 1;
-    }
-    .backend-kpi-grid-2col > [class*="col-"] {
-      margin-bottom: 0.5rem;
-    }
-    .backend-kpi-col .backend-kpi-card {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      flex: 1;
-    }
-    .backend-kpi-col .backend-kpi-card .card-body {
-      padding: 0.75rem 1rem !important;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      flex: 1;
-    }
-    .backend-kpi-col .dashboard-kpi-value {
-      font-size: 1.2rem;
-      line-height: 1.2;
-    }
-    .backend-kpi-col .dashboard-kpi-label {
-      font-size: 0.68rem;
-      margin-bottom: 0.3rem;
-      letter-spacing: 0.03em;
-    }
-    /* Entity Management + Charts row */
-    .backend-entity-charts-row {
-      min-height: 350px;
-    }
-    .backend-entity-charts-row .card {
-      height: 100%;
-    }
-    .backend-entity-charts-row .dashboard-chart-card {
-      height: 100%;
-      min-height: 160px;
-    }
-    .backend-entity-charts-row .flex-fill {
-      flex: 1 1 auto;
-    }
-    .backend-right-sidebar {
-      flex-shrink: 0;
-      width: 320px;
-      min-width: 280px;
-    }
-    .backend-sidebar-calendar-clock {
-      margin-top: 0;
-    }
-  </style>
 
   <script>
   (function() {

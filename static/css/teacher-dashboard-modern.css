@@ -337,6 +337,110 @@
   box-shadow: none;
 }
 
+.tdm-compact-stack {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.tdm-compact-card {
+  padding: 12px;
+  border: 1px solid var(--tdm-border);
+  border-radius: 14px;
+  background: var(--tdm-card);
+}
+
+.tdm-compact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tdm-compact-head h4 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--admin-content-text, #0f172a);
+}
+
+.tdm-compact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tdm-compact-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.tdm-compact-list li:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.tdm-compact-list strong {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  color: var(--admin-content-text, #0f172a);
+}
+
+.tdm-compact-list small {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--admin-content-text-muted, #64748b);
+}
+
+.tdm-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tdm-badge-tile {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(13, 110, 253, 0.06);
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--admin-content-text-muted, #475569);
+}
+
+.tdm-badge-tile strong {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--admin-content-text, #0f172a);
+}
+
+:root[data-theme="dark"] .tdm-compact-card {
+  background: rgba(15, 23, 42, 0.72);
+  border-color: rgba(148, 163, 184, 0.26);
+}
+
+:root[data-theme="dark"] .tdm-compact-list li {
+  border-top-color: rgba(148, 163, 184, 0.24);
+}
+
+:root[data-theme="dark"] .tdm-badge-tile {
+  background: rgba(30, 41, 59, 0.72);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
 .tdm-main-right {
   display: flex;
   flex-direction: column;
@@ -497,5 +601,8 @@
   .tdm-panel-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+  .tdm-compact-stack {
+    grid-template-columns: 1fr;
   }
 }

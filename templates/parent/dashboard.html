@@ -1074,6 +1074,81 @@
     margin-bottom: 0.45rem !important;
   }
 
+  .parent-rail-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .parent-rail-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.65rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+    padding-top: 0.55rem;
+  }
+
+  .parent-rail-item:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .parent-rail-item strong {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--admin-content-text, #0f172a);
+    line-height: 1.25;
+  }
+
+  .parent-rail-item small {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--admin-content-text-muted, #64748b);
+    line-height: 1.3;
+  }
+
+  .parent-rail-kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .parent-rail-metric {
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    background: rgba(99, 102, 241, 0.08);
+    border-radius: 10px;
+    padding: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .parent-rail-metric span {
+    color: var(--admin-content-text-muted, #475569);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .parent-rail-metric strong {
+    color: var(--admin-content-text, #0f172a);
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  :root[data-theme="dark"] .parent-rail-item {
+    border-top-color: rgba(148, 163, 184, 0.3);
+  }
+
+  :root[data-theme="dark"] .parent-rail-metric {
+    background: rgba(30, 41, 59, 0.72);
+    border-color: rgba(148, 163, 184, 0.36);
+  }
+
   @media (max-width: 991px) {
     .parent-glance-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1394,7 +1469,28 @@
             </div>
           </div>
 
-          <!-- Recent Announcements (2–3 + See all) -->
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-class-messages">
+            <div class="card-body">
+              <h2 class="h6 card-title mb-2"><i class="bi bi-chat-left-text text-primary" aria-hidden="true"></i> Class Messages Snapshot</h2>
+              {% if class_threads %}
+              <ul class="parent-rail-list mb-0">
+                {% for thread in class_threads|slice:":2" %}
+                <li class="parent-rail-item">
+                  <div>
+                    <strong>{{ thread.title|default:"Class thread"|truncatechars:34 }}</strong>
+                    <small>{{ thread.snippet|default:thread.description|default:"No new summary."|truncatechars:72 }}</small>
+                  </div>
+                  <span class="badge {% if thread.unread_count %}bg-primary{% else %}bg-light text-muted{% endif %} rounded-pill">{{ thread.unread_count|default:0 }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Open messages</a>
+              {% else %}
+              <p class="text-muted small mb-0">No active class threads.</p>
+              {% endif %}
+            </div>
+          </div>
+          <!-- Recent Announcements (2-3 + See all) -->
           <div class="card parent-sidebar-card mb-2" data-widget-id="parent-recent-announcements">
             <div class="card-body">
               <h2 class="h6 card-title mb-2"><i class="bi bi-megaphone text-primary" aria-hidden="true"></i> Recent Announcements</h2>
@@ -1421,7 +1517,45 @@
             </div>
           </div>
 
-          <!-- Documents (1–2 + See all) -->
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-recent-payments">
+            <div class="card-body">
+              <h2 class="h6 card-title mb-2"><i class="bi bi-credit-card text-primary" aria-hidden="true"></i> Recent Payments</h2>
+              {% if recent_payments %}
+              <ul class="parent-rail-list mb-0">
+                {% for payment in recent_payments|slice:":2" %}
+                <li class="parent-rail-item">
+                  <div>
+                    <strong>{{ payment.invoice.student.get_full_name|default:"Student" }}</strong>
+                    <small>{{ payment.paid_at|date:"M j, Y" }}</small>
+                  </div>
+                  <span class="badge bg-success-subtle text-success-emphasis border">${{ payment.amount|default:"0.00" }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Payment history</a>
+              {% else %}
+              <p class="text-muted small mb-0">No recent payments recorded.</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-signatures">
+            <div class="card-body">
+              <h2 class="h6 card-title mb-2"><i class="bi bi-pen text-primary" aria-hidden="true"></i> Pending Signatures</h2>
+              <div class="parent-rail-kpis">
+                <div class="parent-rail-metric">
+                  <span>Pending</span>
+                  <strong>{{ signature_stats.pending|default:0 }}</strong>
+                </div>
+                <div class="parent-rail-metric">
+                  <span>Signed</span>
+                  <strong>{{ signature_stats.signed|default:0 }}</strong>
+                </div>
+              </div>
+              <a href="{% url 'portal:signature_pending_list' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Review signatures</a>
+            </div>
+          </div>
+          <!-- Documents (1-2 + See all) -->
           <div class="card parent-sidebar-card mb-2" data-widget-id="parent-documents">
             <div class="card-body">
               <h2 class="h6 card-title mb-2"><i class="bi bi-file-earmark-text text-primary" aria-hidden="true"></i> Documents</h2>
@@ -1441,5 +1575,4 @@
 {% endblock %}
 
 {% block extrajs %}
-<script src="{% static 'js/dashboard-layout.js' %}"></script>
 {% endblock %}

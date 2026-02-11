@@ -748,6 +748,12 @@ def teacher_dashboard(request: HttpRequest):
         for s in CourseSyllabus.objects.filter(subject_assignment_id__in=sa_ids)
     }
     assignment_syllabus_statuses = []
+    syllabus_status_summary = {
+        "draft": 0,
+        "pending": 0,
+        "needs_revision": 0,
+        "approved": 0,
+    }
     syllabus_pending_count = 0
     for a in assignments:
         prog = progress.get(a.id, {})
@@ -761,6 +767,8 @@ def teacher_dashboard(request: HttpRequest):
         else:
             status_slug = "draft"
             status_label = "Draft"
+        if status_slug in syllabus_status_summary:
+            syllabus_status_summary[status_slug] += 1
         assignment_syllabus_statuses.append({
             "assignment": a,
             "student_count": student_count,
@@ -824,10 +832,12 @@ def teacher_dashboard(request: HttpRequest):
         "chart_completion_bar_json": chart_completion_bar_json,
         "chart_marks_donut_json": chart_marks_donut_json,
         "teacher_alerts": teacher_alerts,
+        "ews_list": ews_list,
         "curriculum_map": curriculum_map,
         "dashboard_events": dashboard_events,
         "syllabus_items": syllabus_items,
         "assignment_syllabus_statuses": assignment_syllabus_statuses,
+        "syllabus_status_summary": syllabus_status_summary,
         "syllabus_pending_count": syllabus_pending_count,
         "active_delegations_count": active_delegations_count,
         "acting_delegation": acting_delegation,

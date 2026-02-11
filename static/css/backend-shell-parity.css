@@ -1,0 +1,49 @@
+/* Backend shell parity with admin behavior (sidebar controls + collapse ergonomics). */
+
+body.backend-shell .topbar .js-sidebar-toggle {
+  border-radius: 999px;
+  min-height: 34px;
+  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+body.backend-shell .topbar .js-sidebar-toggle:hover,
+body.backend-shell .topbar .js-sidebar-toggle:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+body.backend-shell .portal-sidebar-col .sidebar {
+  border-radius: 14px;
+}
+
+@media (min-width: 992px) {
+  body.backend-shell .portal-sidebar-col {
+    transition: width 0.12s ease, flex-basis 0.12s ease;
+  }
+
+  body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed {
+    flex: 0 0 72px !important;
+    width: 72px !important;
+    min-width: 72px !important;
+    max-width: 72px !important;
+  }
+
+  body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed .sidebar {
+    padding-inline: 0.45rem !important;
+  }
+
+  body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed .nav-link.nav-pill {
+    padding-inline: 0.55rem !important;
+  }
+
+  body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed .nav-link.nav-pill .bi {
+    font-size: 1.1rem;
+  }
+
+  body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed .portal-sidebar-collapse-wrap {
+    justify-content: center;
+  }
+}
