@@ -90,6 +90,10 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "latestPreviewUrl")
         self.assertContains(response, "latestPdfUrl")
+        self.assertContains(response, "latestPreviewToken")
+        self.assertContains(response, "preview_token=")
+        self.assertContains(response, 'window.addEventListener("message"')
+        self.assertContains(response, "reportcard-preview-ready")
         self.assertContains(response, "/siteconfig/reports/embed-preview/")
         self.assertContains(response, "frame.src = latestPreviewUrl")
         self.assertContains(response, "fallbackOpenTab.href = latestPdfUrl")
@@ -177,6 +181,15 @@ class ReportCardBuilderViewTests(TestCase):
         self.assertIsNone(response.headers.get("X-Frame-Options"))
         self.assertIn("frame-ancestors 'self'", response.headers.get("Content-Security-Policy", ""))
         self.assertContains(response, "cameroon-letterhead")
+
+    def test_embed_preview_endpoint_injects_ready_signal_with_preview_token(self):
+        response = self.client.get(
+            reverse("siteconfig:reportcard_style_embed_preview", args=[self.style.slug, "term"]),
+            {"preview_token": "abc123"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "reportcard-preview-ready")
+        self.assertContains(response, "abc123")
 
     def test_live_preview_pdf_endpoint_allows_same_origin_iframe(self):
         with patch("apps.siteconfig.views.render_pdf") as mocked_render_pdf:

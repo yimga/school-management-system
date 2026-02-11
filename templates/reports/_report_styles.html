@@ -135,3 +135,31 @@
     .footer { page-break-inside: avoid; margin-top: 14px; }
   }
 </style>
+{% if embed_preview and preview_token %}
+<script>
+  (function () {
+    var token = "{{ preview_token|escapejs }}";
+    function notifyReady() {
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage(
+            {
+              type: "reportcard-preview-ready",
+              previewToken: token
+            },
+            window.location.origin
+          );
+        }
+      } catch (error) {
+        // Ignore parent messaging failures in print/PDF contexts.
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", notifyReady, { once: true });
+      return;
+    }
+    notifyReady();
+  })();
+</script>
+{% endif %}

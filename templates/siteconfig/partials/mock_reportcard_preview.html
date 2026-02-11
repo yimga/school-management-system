@@ -115,6 +115,8 @@
     var loadTimeout = null;
     var latestPreviewUrl = "";
     var latestPdfUrl = "";
+    var latestPreviewToken = "";
+    var awaitingReadySignal = false;
 
     if (!styleSelect || !typeSelect || !frame || !openTab || !shell) {
       return;
@@ -125,12 +127,19 @@
     var pdfTermTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'term' %}";
     var pdfAnnualTemplate = "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'annual' %}";
 
-    function buildPreviewUrl(styleSlug, reportType, studentId) {
+    function buildPreviewUrl(styleSlug, reportType, studentId, previewToken) {
       var base = reportType === "annual" ? embedAnnualTemplate : embedTermTemplate;
       var url = base.replace("STYLE_PLACEHOLDER", styleSlug);
+      var query = [];
       if (studentId) {
+        query.push("student_id=" + encodeURIComponent(studentId));
+      }
+      if (previewToken) {
+        query.push("preview_token=" + encodeURIComponent(previewToken));
+      }
+      if (query.length) {
         var joiner = url.indexOf("?") === -1 ? "?" : "&";
-        url += joiner + "student_id=" + encodeURIComponent(studentId);
+        url += joiner + query.join("&");
       }
       return url;
     }
@@ -150,6 +159,10 @@
         window.clearTimeout(loadTimeout);
         loadTimeout = null;
       }
+    }
+
+    function generatePreviewToken() {
+      return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
     }
 
     function setLoading(isLoading) {
@@ -177,15 +190,35 @@
       } catch (error) {
         loaded = false;
       }
-      clearLoadTimeout();
-      setLoading(false);
-      showFallback(!loaded);
+      if (loaded) {
+        awaitingReadySignal = false;
+        clearLoadTimeout();
+        setLoading(false);
+        showFallback(false);
+      }
     });
 
     frame.addEventListener("error", function () {
       clearLoadTimeout();
       setLoading(false);
       showFallback(true);
+    });
+
+    window.addEventListener("message", function (event) {
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+      var data = event.data || {};
+      if (data.type !== "reportcard-preview-ready") {
+        return;
+      }
+      if (!latestPreviewToken || data.previewToken !== latestPreviewToken) {
+        return;
+      }
+      awaitingReadySignal = false;
+      clearLoadTimeout();
+      setLoading(false);
+      showFallback(false);
     });
 
     function applyPreview() {
@@ -195,12 +228,15 @@
       }
       var reportType = typeSelect.value || "term";
       var studentId = studentSelect ? studentSelect.value : "";
-      latestPreviewUrl = buildPreviewUrl(styleSlug, reportType, studentId);
+      latestPreviewToken = generatePreviewToken();
+      latestPreviewUrl = buildPreviewUrl(styleSlug, reportType, studentId, latestPreviewToken);
       latestPdfUrl = buildPdfUrl(styleSlug, reportType, studentId);
+      awaitingReadySignal = true;
       setLoading(true);
       showFallback(false);
       clearLoadTimeout();
       loadTimeout = window.setTimeout(function () {
+        awaitingReadySignal = false;
         setLoading(false);
         showFallback(true);
       }, 12000);
@@ -234,11 +270,13 @@
       retryButton.addEventListener("click", function () {
         setLoading(false);
         if (latestPreviewUrl) {
+          awaitingReadySignal = true;
           frame.src = latestPreviewUrl;
           setLoading(true);
           showFallback(false);
           clearLoadTimeout();
           loadTimeout = window.setTimeout(function () {
+            awaitingReadySignal = false;
             setLoading(false);
             showFallback(true);
           }, 12000);
