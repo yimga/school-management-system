@@ -196,6 +196,7 @@ def parent_dashboard(request: HttpRequest):
     finance_total = widget_data["finance"].get("total_due") or Decimal("0.00")
     finance_paid = widget_data["finance"].get("paid") or Decimal("0.00")
     finance_paid_pct = int((finance_paid / finance_total) * 100) if finance_total else 0
+    missing_work_count = widget_data.get("tasks", {}).get("pending_evaluations", 0)
 
     finance_request_url = reverse("finance:finance_request_access")
     finance_summary = (
@@ -242,14 +243,16 @@ def parent_dashboard(request: HttpRequest):
         ):
             resource_pending_map[row["student_id"]] = row["cnt"]
     # Phase 1: Student badges per child (non-expired, up to 10 per student)
-    badges_qs = (
-        Badge.objects.filter(student__in=students)
-        .filter(
-            Q(expiry_at__isnull=True) | Q(expiry_at__gt=timezone.now())
+    badges_qs = Badge.objects.none()
+    if student_ids:
+        badges_qs = (
+            Badge.objects.filter(student_id__in=student_ids)
+            .filter(
+                Q(expiry_at__isnull=True) | Q(expiry_at__gt=timezone.now())
+            )
+            .select_related("badge_type")
+            .order_by("-issued_at")
         )
-        .select_related("badge_type")
-        .order_by("-issued_at")
-    )
     badges_by_student = {}
     for b in badges_qs:
         sid = b.student_id
@@ -292,6 +295,74 @@ def parent_dashboard(request: HttpRequest):
             "missing_work": missing_work_by_student.get(student_id, 0),
             "unread_messages": unread_messages_aggregate,
         })
+
+    workflow_steps = [
+        {
+            "label": "Link children",
+            "done": bool(students),
+            "meta": f"{len(students)} linked",
+            "action": "Link a child",
+            "url": reverse("portal:link_child"),
+        },
+        {
+            "label": "Review results and attendance",
+            "done": can_view_results,
+            "meta": f"Attendance {attendance_pct}%",
+            "action": "Open results",
+            "url": reverse("portal:parent_dashboard"),
+        },
+        {
+            "label": "Clear follow-up work",
+            "done": missing_work_count == 0,
+            "meta": f"{missing_work_count} pending",
+            "action": "Open workflow",
+            "url": reverse("portal:parent_workflow"),
+        },
+        {
+            "label": "Review finance",
+            "done": can_view_finance and (widget_data.get("finance", {}).get("balance") or Decimal("0.00")) <= 0,
+            "meta": (
+                f"Balance {widget_data.get('finance', {}).get('balance') or Decimal('0.00')}"
+                if can_view_finance else "Access needed"
+            ),
+            "action": "Open finance",
+            "url": reverse("portal:parent_finance"),
+        },
+        {
+            "label": "Respond to school messages",
+            "done": unread_messages_aggregate == 0,
+            "meta": f"{unread_messages_aggregate} unread",
+            "action": "Contact school",
+            "url": reverse("portal:parent_contact_school"),
+        },
+    ]
+    workflow_total_steps = len(workflow_steps)
+    workflow_done_steps = sum(1 for step in workflow_steps if step["done"])
+    workflow_completion_pct = int(round((workflow_done_steps / workflow_total_steps) * 100)) if workflow_total_steps else 0
+    workflow_open_steps = [step for step in workflow_steps if not step["done"]]
+    if workflow_open_steps:
+        workflow_focus_step = workflow_open_steps[0]
+        workflow_next_actions = [
+            {"label": step["action"], "url": step["url"]}
+            for step in workflow_open_steps[:2]
+        ]
+    else:
+        workflow_focus_step = {
+            "label": "All core parent tasks completed",
+            "meta": "You're up to date. Open workflow for detailed planning.",
+        }
+        workflow_next_actions = [
+            {"label": "Open workflow", "url": reverse("portal:parent_workflow")},
+            {"label": "View calendar", "url": reverse("portal:unified_calendar")},
+        ]
+    workflow_summary = {
+        "total_steps": workflow_total_steps,
+        "done_steps": workflow_done_steps,
+        "completion_pct": workflow_completion_pct,
+        "focus_label": workflow_focus_step["label"],
+        "focus_meta": workflow_focus_step.get("meta", ""),
+        "next_actions": workflow_next_actions,
+    }
     
     preference = getattr(request.user, "preferences", None)
     display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
@@ -436,7 +507,6 @@ def parent_dashboard(request: HttpRequest):
         {"id": "parent-workflow", "label": "My Workflow", "url": reverse("portal:parent_workflow"), "icon": "bi-diagram-3"},
         {"id": "parent-finance", "label": "Finance", "url": reverse("portal:parent_finance"), "icon": "bi-cash-stack"},
         {"id": "parent-stats", "label": "Portal Stats", "url": reverse("portal:portal_stats"), "icon": "bi-graph-up"},
-        {"id": "parent-links", "label": "Link a Child", "url": reverse("portal:link_child"), "icon": "bi-link-45deg"},
     ]
     site = SiteSettings.get_solo()
 
@@ -456,8 +526,6 @@ def parent_dashboard(request: HttpRequest):
         and not str(request.user.email).lower().startswith("pending")
     )
     # unread_messages_aggregate already set before child_cards
-    # Missing work count for workflow chip (tasks pending)
-    missing_work_count = widget_data.get("tasks", {}).get("pending_evaluations", 0)
 
     # Phase 8: Latest transactions for parent (recent payments)
     recent_payments = []
@@ -508,6 +576,7 @@ def parent_dashboard(request: HttpRequest):
         "unread_messages_aggregate": unread_messages_aggregate,
         "missing_work_count": missing_work_count,
         "recent_payments": recent_payments,
+        "workflow_summary": workflow_summary,
     })
 
 

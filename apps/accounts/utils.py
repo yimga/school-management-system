@@ -39,10 +39,14 @@ def get_dashboard_context(user, page: str) -> dict:
     from apps.siteconfig.dashboard_views import load_dashboard_layout_settings, _can_customize, _can_light_customize
     from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 
+    can_customize = _can_customize(user)
+    can_light_customize = _can_light_customize(user)
+    effective_customize = can_customize or (str(page).strip().lower() == "parent" and can_light_customize)
+
     return {
         "dashboard_settings": load_dashboard_layout_settings(user, page),
-        "allow_custom_layout": _can_customize(user),
-        "allow_light_customize": _can_light_customize(user),
+        "allow_custom_layout": effective_customize,
+        "allow_light_customize": can_light_customize,
         "dashboard_layout_url": reverse("api:dashboard-layout", kwargs={"page": page}),
         "widget_meta_json": mark_safe(json.dumps(get_dashboard_widget_metadata())),
     }

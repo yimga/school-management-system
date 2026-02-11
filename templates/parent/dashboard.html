@@ -958,6 +958,142 @@
   .parent-chart-compact .dashboard-chart-header .card-title {
     font-size: 0.95rem;
   }
+
+  /* Workflow-first compact layout overrides */
+  .parent-dashboard-header {
+    margin-bottom: 0.85rem;
+  }
+
+  .parent-glance-section {
+    margin-bottom: 0.75rem;
+  }
+
+  .parent-glance-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .parent-workflow-strip {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(14, 165, 233, 0.08));
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    border-radius: 14px;
+    box-shadow: var(--dashboard-card-shadow);
+    margin-bottom: 0.85rem;
+  }
+
+  .parent-workflow-strip .card-body {
+    padding: 0.9rem 1rem;
+  }
+
+  .parent-workflow-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .parent-workflow-head h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .parent-workflow-progress {
+    margin-bottom: 0.6rem;
+  }
+
+  .parent-workflow-progress .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #475569;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+  }
+
+  .parent-workflow-progress .track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(99, 102, 241, 0.15);
+    overflow: hidden;
+  }
+
+  .parent-workflow-progress .fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6366f1, #0ea5e9);
+  }
+
+  .parent-workflow-focus {
+    font-size: 0.87rem;
+    color: #334155;
+    margin-bottom: 0.65rem;
+  }
+
+  .parent-workflow-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .parent-workflow-actions .btn {
+    width: 100%;
+    min-height: 38px;
+  }
+
+  .parent-content-row {
+    --bs-gutter-y: 0.8rem;
+  }
+
+  .parent-content-row .metrics-section {
+    margin-bottom: 1rem;
+  }
+
+  .parent-content-row .section-title {
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.45rem;
+  }
+
+  #next-up {
+    margin-top: 0.65rem !important;
+  }
+
+  .parent-sidebar-cards .parent-sidebar-card {
+    margin-bottom: 0.7rem !important;
+  }
+
+  .parent-sidebar-cards .parent-sidebar-card .card-body {
+    padding: 0.9rem 1rem;
+  }
+
+  .parent-sidebar-cards .card-title {
+    margin-bottom: 0.45rem !important;
+  }
+
+  @media (max-width: 991px) {
+    .parent-glance-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .parent-workflow-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 575px) {
+    .parent-glance-grid {
+      grid-template-columns: 1fr;
+    }
+    .parent-workflow-actions {
+      grid-template-columns: 1fr;
+    }
+    .parent-workflow-strip .card-body {
+      padding: 0.85rem;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -1044,7 +1180,7 @@
           <span class="px-3 py-1 rounded-pill small text-nowrap bg-primary bg-opacity-25 text-primary" role="status" aria-label="Verified Parent"><i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>Verified Parent</span>
           {% endif %}
           <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-diagram-3 me-1"></i>My Workflow</a>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:parent_workflow' %}"><i class="bi bi-pin-angle me-1"></i>Use Workflow as default</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-chat-dots me-1"></i>Contact School</a>
           {% if links %}
           <select class="form-select form-select-sm" onchange="if(this.value){ window.location=this.value; }" aria-label="Switch child">
             <option selected disabled>Switch child</option>
@@ -1064,50 +1200,83 @@
               <a class="btn btn-sm btn-outline-success" href="https://wa.me/{{ SITE.whatsapp_admissions_number|urlencode }}?text={{ 'Hello, I have an admissions question for my child.'|urlencode }}" target="_blank" rel="noreferrer"><i class="bi bi-whatsapp me-1"></i>Admissions WhatsApp</a>
             {% endif %}
           {% endif %}
-          {% if hero.actions %}
-            {% for action in hero.actions %}
-            <a href="{{ action.url }}" class="btn btn-sm {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}">{{ action.label }}</a>
-            {% endfor %}
-          {% endif %}
         </div>
       </div>
     </header>
 
-    <!-- Today at a Glance (4 cards) -->
-    <section class="parent-glance-row row g-3 mb-4" style="display: grid; grid-template-columns: repeat(4, 1fr);" aria-labelledby="glance-heading">
-      <h2 id="glance-heading" class="visually-hidden">Today at a Glance</h2>
-      <a href="{% url 'accounts:user_notifications' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-messages-bg); border-color: var(--parent-glance-messages-border);" aria-label="Messages from School: {{ unread_messages_aggregate|default:0 }} unread">
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <i class="bi bi-envelope text-primary" aria-hidden="true"></i>
-          <span class="fw-bold text-primary">{{ unread_messages_aggregate|default:0 }}</span>
+    <!-- Today's Overview -->
+    <section class="parent-glance-section" aria-labelledby="glance-heading">
+      <div class="section-title d-flex align-items-center justify-content-between gap-2 mb-2">
+        <h2 id="glance-heading" class="h6 mb-0"><i class="bi bi-grid-3x3-gap"></i> Today's Overview</h2>
+      </div>
+      <div class="parent-glance-grid">
+        <a href="{% url 'accounts:user_notifications' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-messages-bg); border-color: var(--parent-glance-messages-border);" aria-label="Messages from School: {{ unread_messages_aggregate|default:0 }} unread">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-envelope text-primary" aria-hidden="true"></i>
+            <span class="fw-bold text-primary">{{ unread_messages_aggregate|default:0 }}</span>
+          </div>
+          <div class="small text-muted">Messages from School</div>
+        </a>
+        <a href="{% url 'portal:parent_workflow' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-followup-bg); border-color: var(--parent-glance-followup-border);" aria-label="Items to Follow Up: {{ missing_work_count|default:0 }} due">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-journal-check text-warning" aria-hidden="true"></i>
+            <span class="fw-bold">{{ missing_work_count|default:0 }}</span>
+          </div>
+          <div class="small text-muted">Items to Follow Up</div>
+        </a>
+        <a href="{% url 'portal:parent_finance' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-outstanding-bg); border-color: var(--parent-glance-outstanding-border);" aria-label="Outstanding: ${{ widget_data.finance.balance|default:'0.00' }} due">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-currency-dollar text-danger" aria-hidden="true"></i>
+            <span class="fw-bold text-danger">${{ widget_data.finance.balance|default:"0.00" }}</span>
+          </div>
+          <div class="small text-muted">Outstanding</div>
+        </a>
+        <a href="{% url 'portal:portal_stats' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-good-bg); border-color: var(--parent-glance-good-border);" aria-label="Attendance: {{ widget_data.attendance.overall|default:0 }}%">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi bi-graph-up-arrow text-success" aria-hidden="true"></i>
+            <span class="fw-bold text-success">{{ widget_data.attendance.overall|default:0 }}%</span>
+          </div>
+          <div class="small text-muted">Good (Attendance)</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Workflow focus -->
+    <section class="card parent-workflow-strip" aria-labelledby="workflow-focus-heading">
+      <div class="card-body">
+        <div class="parent-workflow-head">
+          <h2 id="workflow-focus-heading"><i class="bi bi-diagram-3 me-1"></i> Workflow Focus</h2>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'portal:parent_workflow' %}">
+            <i class="bi bi-pin-angle me-1"></i> Use Workflow as default
+          </a>
         </div>
-        <div class="small text-muted">Messages from School</div>
-      </a>
-      <a href="{% url 'portal:parent_workflow' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-followup-bg); border-color: var(--parent-glance-followup-border);" aria-label="Items to Follow Up: {{ missing_work_count|default:0 }} due">
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <i class="bi bi-journal-check text-warning" aria-hidden="true"></i>
-          <span class="fw-bold">{{ missing_work_count|default:0 }}</span>
+        <div class="parent-workflow-progress">
+          <div class="meta">
+            <span>{{ workflow_summary.done_steps|default:0 }}/{{ workflow_summary.total_steps|default:0 }} complete</span>
+            <strong>{{ workflow_summary.completion_pct|default:0 }}%</strong>
+          </div>
+          <div class="track">
+            <div class="fill" style="width: {{ workflow_summary.completion_pct|default:0 }}%;"></div>
+          </div>
         </div>
-        <div class="small text-muted">Items to Follow Up</div>
-      </a>
-      <a href="{% url 'portal:parent_finance' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-outstanding-bg); border-color: var(--parent-glance-outstanding-border);" aria-label="Outstanding: ${{ widget_data.finance.balance|default:'0.00' }} due">
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <i class="bi bi-currency-dollar text-danger" aria-hidden="true"></i>
-          <span class="fw-bold text-danger">${{ widget_data.finance.balance|default:"0.00" }}</span>
+        <div class="parent-workflow-focus">
+          <strong>{{ workflow_summary.focus_label }}</strong>
+          {% if workflow_summary.focus_meta %}
+          <span class="text-muted"> - {{ workflow_summary.focus_meta }}</span>
+          {% endif %}
         </div>
-        <div class="small text-muted">Outstanding</div>
-      </a>
-      <a href="{% url 'portal:portal_stats' %}" class="parent-glance-card text-decoration-none text-reset" style="background: var(--parent-glance-good-bg); border-color: var(--parent-glance-good-border);" aria-label="Attendance: {{ widget_data.attendance.overall|default:0 }}%">
-        <div class="d-flex align-items-center gap-2 mb-1">
-          <i class="bi bi-graph-up-arrow text-success" aria-hidden="true"></i>
-          <span class="fw-bold text-success">{{ widget_data.attendance.overall|default:0 }}%</span>
+        <div class="parent-workflow-actions">
+          {% for action in workflow_summary.next_actions %}
+          <a class="btn {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm" href="{{ action.url }}">{{ action.label }}</a>
+          {% empty %}
+          <a class="btn btn-primary btn-sm" href="{% url 'portal:parent_workflow' %}">Open workflow</a>
+          {% endfor %}
         </div>
-        <div class="small text-muted">Good (Attendance)</div>
-      </a>
+      </div>
     </section>
 
     <!-- Main Content Grid -->
-    <div class="row g-3">
+    <div class="row g-3 parent-content-row">
       <!-- Left Column - Main Content -->
       <div class="col-lg-8" data-dashboard-column="main">
         
@@ -1173,26 +1342,19 @@
             </div>
             {% endif %}
           </div>
-          {% if not child_cards %}
-          <div class="alert alert-info mt-3 d-flex align-items-center flex-wrap gap-2">
-            <i class="bi bi-info-circle me-2"></i>
-            <span>No linked students yet. Add one using your invite code to see attendance, grades, and fees.</span>
-            <a href="{% url 'portal:claim_invite' %}" class="btn btn-sm btn-primary">Add a child</a>
-          </div>
-          {% endif %}
         </section>
 
-        <!-- Next 3: Homework & Upcoming (teaser only) -->
+        <!-- Homework & Upcoming -->
         <section class="metrics-section mt-4" id="next-up" role="region" aria-labelledby="next-up-heading">
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <h2 id="next-up-heading" class="h6 mb-0">Next up</h2>
+            <h2 id="next-up-heading" class="h6 mb-0">Homework & Upcoming</h2>
             <a href="{% url 'portal:unified_calendar' %}" class="btn btn-sm btn-outline-primary">See all</a>
           </div>
           <div class="card border-0 shadow-sm">
             <div class="card-body py-2">
               {% if widget_data.events %}
               <ul class="list-group list-group-flush list-group-flush-sm">
-                {% for item in widget_data.events|slice:":3" %}
+                {% for item in widget_data.events|slice:":4" %}
                 <li class="list-group-item d-flex align-items-center gap-2 px-0 py-2 small">
                   <i class="bi bi-circle-fill text-muted" style="font-size: 0.4rem;" aria-hidden="true"></i>
                   <span class="flex-grow-1">{{ item.title }}</span>
@@ -1202,7 +1364,7 @@
               </ul>
               {% elif portal_upcoming_assessments %}
               <ul class="list-group list-group-flush list-group-flush-sm">
-                {% for item in portal_upcoming_assessments|slice:":3" %}
+                {% for item in portal_upcoming_assessments|slice:":4" %}
                 <li class="list-group-item d-flex align-items-center gap-2 px-0 py-2 small">
                   <i class="bi bi-circle-fill text-muted" style="font-size: 0.4rem;" aria-hidden="true"></i>
                   <span class="flex-grow-1">{{ item.title }}</span>
@@ -1224,27 +1386,27 @@
         <div class="sidebar-sticky parent-sidebar-cards">
 
           <!-- Direct Contact -->
-          <div class="card parent-sidebar-card mb-3" data-widget-id="parent-direct-contact">
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-direct-contact">
             <div class="card-body">
               <h2 class="h6 card-title mb-2"><i class="bi bi-telephone text-primary" aria-hidden="true"></i> Direct Contact</h2>
-              <p class="small text-muted mb-3">Reach the school quickly.</p>
+              <p class="small text-muted mb-2">Reach the school quickly.</p>
               <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-primary w-100"><i class="bi bi-envelope me-2"></i>Message</a>
             </div>
           </div>
 
           <!-- Recent Announcements (2–3 + See all) -->
-          <div class="card parent-sidebar-card mb-3" data-widget-id="parent-recent-announcements">
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-recent-announcements">
             <div class="card-body">
               <h2 class="h6 card-title mb-2"><i class="bi bi-megaphone text-primary" aria-hidden="true"></i> Recent Announcements</h2>
               {% if class_announcements or portal_announcements %}
               <ul class="list-unstyled mb-0 small">
-                {% for ann in class_announcements|slice:":3" %}
+                {% for ann in class_announcements|slice:":2" %}
                 <li class="mb-2 pb-2 border-bottom border-light">
                   <span class="fw-medium d-block">{{ ann.title }}</span>
                   <span class="text-muted">{{ ann.created_at|format_date }}</span>
                 </li>
                 {% empty %}
-                {% for item in portal_announcements|slice:":3" %}
+                {% for item in portal_announcements|slice:":2" %}
                 <li class="mb-2 pb-2 border-bottom border-light">
                   <span class="fw-medium d-block">{{ item.title }}</span>
                   {% if item.meta %}<span class="text-muted">{{ item.meta }}</span>{% endif %}
@@ -1260,10 +1422,10 @@
           </div>
 
           <!-- Documents (1–2 + See all) -->
-          <div class="card parent-sidebar-card mb-3" data-widget-id="parent-documents">
+          <div class="card parent-sidebar-card mb-2" data-widget-id="parent-documents">
             <div class="card-body">
               <h2 class="h6 card-title mb-2"><i class="bi bi-file-earmark-text text-primary" aria-hidden="true"></i> Documents</h2>
-              <p class="text-muted small mb-0">Report cards and documents are in My Workflow.</p>
+              <p class="text-muted small mb-0">Report cards and school documents are organized in My Workflow.</p>
               <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary mt-2 w-100">Document library</a>
             </div>
           </div>

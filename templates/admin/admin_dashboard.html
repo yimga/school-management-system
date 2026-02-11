@@ -30,25 +30,43 @@
   --admin-border-hover: {{ admin_palette.border_hover|default:"#94a3b8" }};
 }
 
+:root[data-theme="dark"] {
+  --admin-dashboard-bg: #0b1220;
+  --admin-surface: #111827;
+  --admin-border: #334155;
+  --admin-border-strong: #475569;
+  --admin-text: #f8fafc;
+  --admin-muted: #cbd5e1;
+  --admin-subtle: #e2e8f0;
+  --admin-shadow: 0 1px 3px rgba(2, 6, 23, 0.65);
+  --admin-shadow-hover: 0 8px 20px rgba(2, 6, 23, 0.72);
+}
+
 /* === Dashboard Layout === */
-.admin-dash { background: var(--admin-dashboard-bg); padding: 24px 16px; min-height: 80vh; }
+.admin-dash { background: var(--admin-dashboard-bg); padding: 18px 14px; min-height: 80vh; }
 .admin-dash__inner { width: 100%; max-width: none; }
-.admin-dash__header { margin-bottom: 32px; border-bottom: 1px solid var(--admin-border); padding-bottom: 24px; }
+.admin-dash__header { margin-bottom: 20px; border-bottom: 1px solid var(--admin-border); padding-bottom: 16px; }
 .admin-dash__header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; }
 .admin-dash__brand { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 280px; }
 .admin-dash__title { margin: 0; font-size: 28px; font-weight: 700; color: var(--admin-text); letter-spacing: -0.5px; }
 .admin-dash__subtitle { margin: 2px 0 0 0; font-size: 12px; color: var(--admin-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .admin-dash__tagline { margin: 8px 0 0 0; font-size: 14px; color: var(--admin-muted); }
+.admin-dash__header-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.admin-dash__header-action { display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; border-radius: 7px; border: 1px solid var(--admin-border-strong); background: var(--admin-surface); color: var(--admin-text); text-decoration: none; font-size: 12px; font-weight: 700; }
+.admin-dash__header-action:hover { border-color: var(--admin-border-hover); color: var(--admin-text); text-decoration: none; transform: translateY(-1px); }
+.admin-dash__header-action:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; }
+.admin-dash__header-action--primary { background: var(--admin-accent); color: #fff; border-color: var(--admin-accent); }
+.admin-dash__header-action--primary:hover { color: #fff; }
 
 /* === KPI Grid === */
-.admin-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 16px; }
-.admin-kpi-card { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease, transform 0.2s ease; }
+.admin-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.admin-kpi-card { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 20px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease, transform 0.2s ease; }
 .admin-kpi-card:hover { box-shadow: var(--admin-shadow-hover); transform: translateY(-2px); }
 .admin-kpi-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .admin-kpi-card__label { font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
 .admin-kpi-card__icon { font-size: 20px; }
 .admin-kpi-card__value { font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px; }
-.admin-kpi-card__details { font-size: 13px; color: var(--admin-subtle); line-height: 1.8; border-top: 1px solid var(--admin-border); padding-top: 12px; overflow: visible; min-height: 0; }
+.admin-kpi-card__details { font-size: 13px; color: var(--admin-subtle); line-height: 1.6; border-top: 1px solid var(--admin-border); padding-top: 12px; overflow: visible; min-height: 0; }
 .admin-kpi-card { overflow: visible; }
 .admin-kpi-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
 .admin-kpi-row:last-child { margin-bottom: 0; }
@@ -57,8 +75,8 @@
 .admin-kpi-card[data-widget-id="admin-system-health"] .admin-kpi-card__value { font-size: 1.25rem; font-weight: 600; }
 
 /* === Security Row === */
-.admin-security-row { display: grid; grid-template-columns: 1fr minmax(240px, 280px); gap: 12px; margin-bottom: 32px; align-items: stretch; }
-.admin-security-card { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); display: flex; flex-direction: column; }
+.admin-security-row { display: grid; grid-template-columns: 1fr minmax(240px, 280px); gap: 10px; margin-bottom: 20px; align-items: stretch; }
+.admin-security-card { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 18px; box-shadow: var(--admin-shadow); display: flex; flex-direction: column; }
 .admin-security-card__body { display: flex; gap: 12px; flex-wrap: wrap; flex: 1; }
 .admin-security-panel { flex: 1 1 260px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 .admin-security-panel__title { font-size: 11px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
@@ -69,15 +87,20 @@
 
 /* === Admin Controls === */
 .admin-controls__title { margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px; }
-.admin-controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-.admin-control-btn { display: flex; align-items: center; justify-content: center; padding: 16px 20px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow); }
+.admin-controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.admin-control-btn { display: flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 12px 14px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow); }
 .admin-control-btn:hover { border-color: var(--admin-border-hover); box-shadow: var(--admin-shadow-hover); transform: translateY(-1px); color: var(--admin-text); text-decoration: none; }
+.admin-control-btn:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; }
+.admin-stat--success { color: #047857; font-weight: 700; }
+.admin-stat--danger { color: #b91c1c; font-weight: 700; }
+:root[data-theme="dark"] .admin-stat--success { color: #34d399; }
+:root[data-theme="dark"] .admin-stat--danger { color: #f87171; }
 
 /* === System Info Table === */
-.admin-sysinfo { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 24px; box-shadow: var(--admin-shadow); }
+.admin-sysinfo { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 18px; box-shadow: var(--admin-shadow); }
 .admin-sysinfo__title { margin: 0 0 20px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px; }
 .admin-sysinfo table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.admin-sysinfo td { padding: 16px 0; }
+.admin-sysinfo td { padding: 12px 0; }
 .admin-sysinfo tr { border-bottom: 1px solid var(--admin-border); }
 .admin-sysinfo tr:last-child { border-bottom: none; }
 .admin-sysinfo__label { color: var(--admin-subtle); font-weight: 600; width: 35%; }
@@ -85,7 +108,7 @@
 .admin-sysinfo__mono { font-family: 'Monaco', 'Menlo', monospace; }
 
 /* === Preview Card === */
-.preview-status-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 18px 22px; box-shadow: var(--admin-shadow); margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.preview-status-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--admin-shadow); margin-bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .preview-status-card__info { flex: 1 1 320px; min-width: 240px; }
 .preview-status-card__info-label { font-size: 13px; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 .preview-status-card__info-title { font-size: 18px; font-weight: 600; color: var(--admin-text); }
@@ -177,6 +200,11 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
             <p class="admin-dash__subtitle">{% trans "Gilead School System Management" %}</p>
           </div>
         </div>
+        <div class="admin-dash__header-actions">
+          <a href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}" class="admin-dash__header-action">{% trans "My Preferences" %}</a>
+          <a href="{% url 'accounts:backend_dashboard' %}" class="admin-dash__header-action">{% trans "Backend Console" %}</a>
+          <a href="{% url 'siteconfig:customizer' %}" class="admin-dash__header-action admin-dash__header-action--primary">{% trans "Customizer" %}</a>
+        </div>
       </div>
       <p class="admin-dash__tagline">{% trans "System monitoring and backend administration" %}</p>
     </div>
@@ -206,7 +234,7 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
           <span class="admin-kpi-card__icon">📊</span>
         </div>
         <div class="admin-kpi-card__details">
-          <div class="admin-kpi-row"><span>{% trans "Connection" %}:</span> <span id="dbConnectionStatus" class="admin-stat admin-stat--success">✓ {% trans "Ready" %}</span></div>
+          <div class="admin-kpi-row"><span>{% trans "Connection" %}:</span> <span id="dbConnectionStatus" class="admin-stat admin-stat--success">{% trans "Ready" %}</span></div>
           <div class="admin-kpi-row"><span>{% trans "Database Health" %}:</span> <span id="dbHealthStatus" class="admin-stat admin-stat--success">{% trans "Optimal" %}</span></div>
           <div class="admin-kpi-row"><span>{% trans "Engine" %}:</span> <span class="admin-kpi-val">{{ db_engine_display|default:"SQLite3" }}</span></div>
           <div class="admin-kpi-row"><span>{% trans "Active Sessions" %}:</span> <span class="admin-kpi-val">{{ active_sessions|default:"0" }}</span></div>
@@ -360,9 +388,9 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
       {# Calendar / Weather Block #}
       <div class="calendar-widget" data-widget-id="admin-calendar-widget">
         <div class="calendar-header">
-          <button type="button" class="calendar-nav-btn" onclick="prevMonth()" aria-label="{% trans 'Previous month' %}">←</button>
+          <button type="button" class="calendar-nav-btn" onclick="prevMonth()" aria-label="{% trans 'Previous month' %}">&larr;</button>
           <span id="monthYear" class="calendar-header__month"></span>
-          <button type="button" class="calendar-nav-btn" onclick="nextMonth()" aria-label="{% trans 'Next month' %}">→</button>
+          <button type="button" class="calendar-nav-btn" onclick="nextMonth()" aria-label="{% trans 'Next month' %}">&rarr;</button>
         </div>
         <div class="calendar-grid" id="calendarGrid"></div>
         <div class="calendar-widget__footer">
@@ -370,7 +398,7 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
           <div class="weather-widget" id="weatherWidget">
             <span class="weather-widget__icon" id="weatherIcon">🌤️</span>
             <div>
-              <div class="weather-widget__temp" id="weatherTemp">--°</div>
+              <div class="weather-widget__temp" id="weatherTemp">--&deg;C</div>
               <div class="weather-widget__desc" id="weatherDesc">{% trans "Loading..." %}</div>
             </div>
           </div>
@@ -390,8 +418,7 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
           <a href="{% url 'siteconfig:report_library' %}" class="admin-control-btn">📄 {% trans "Report Library" %}</a>
           <a href="{% url 'kb:kb_home' %}" class="admin-control-btn">📚 {% trans "Knowledge Base" %}</a>
           <a href="{% url 'api_health' %}" target="_blank" rel="noopener" class="admin-control-btn">⚕️ {% trans "API Health" %}</a>
-          <a href="{% url 'siteconfig:customizer' %}" class="admin-control-btn">🎨 {% trans "Customizer" %}</a>
-          <a href="{% url 'accounts:backend_dashboard' %}" class="admin-cta-backend">🎛️ {% trans "Backend Console" %}</a>
+          <a href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}" class="admin-control-btn">🎛️ {% trans "My Preferences" %}</a>
         </div>
       </div>
 
@@ -440,7 +467,6 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
       </div>
       {% endif %}
 
-      <div style="margin-bottom: 24px;"></div>
     </div>
   </div>
 </div>
@@ -481,7 +507,7 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
       }
       if (dbConn) {
         const dbOk = data && data.database === 'connected';
-        dbConn.textContent = dbOk ? '✓ Ready' : 'Issue';
+        dbConn.textContent = dbOk ? 'Ready' : 'Issue';
         dbConn.className = 'admin-stat ' + (dbOk ? 'admin-stat--success' : 'admin-stat--danger');
       }
       if (dbHealth) {
@@ -510,14 +536,14 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
       if (data.current) {
         var temp = Math.round(data.current.temperature_2m);
         var code = data.current.weather_code;
-        var icons = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',80:'🌦️',81:'🌦️',82:'🌦️',95:'⛈️',96:'⛈️',99:'⛈️'};
+        var icons = {0:'\u2600',1:'\u26C5',2:'\u26C5',3:'\u2601',45:'\u2601',48:'\u2601',51:'\u2614',53:'\u2614',55:'\u2614',61:'\u2614',63:'\u2614',65:'\u2614',71:'\u2744',73:'\u2744',75:'\u2744',80:'\u2614',81:'\u2614',82:'\u2614',95:'\u26A1',96:'\u26A1',99:'\u26A1'};
         var descs = {0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Foggy',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Light showers',81:'Showers',82:'Heavy showers',95:'Thunderstorm',96:'Thunderstorm',99:'Heavy thunderstorm'};
-        document.getElementById('weatherIcon').textContent = icons[code] || '🌤️';
-        document.getElementById('weatherTemp').textContent = temp + '°C';
-        document.getElementById('weatherDesc').textContent = (descs[code] || 'Unknown') + ' — Buea';
+        document.getElementById('weatherIcon').textContent = icons[code] || '\u26C5';
+        document.getElementById('weatherTemp').textContent = temp + '\u00B0C';
+        document.getElementById('weatherDesc').textContent = (descs[code] || 'Unknown') + ' - Buea';
       }
     } catch (e) {
-      document.getElementById('weatherTemp').textContent = '24°C';
+      document.getElementById('weatherTemp').textContent = '24\u00B0C';
       document.getElementById('weatherDesc').textContent = 'Buea, Cameroon';
     }
   }
@@ -525,16 +551,16 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
   // Daily inspirational messages
   function loadDailyMessage() {
     var msgs = [
-      '"Education is the most powerful weapon which you can use to change the world." — Nelson Mandela',
-      '"The beautiful thing about learning is that no one can take it away from you." — B.B. King',
-      '"Great things are done by a series of small things brought together." — Vincent Van Gogh',
-      '"Success is not final, failure is not fatal: it is the courage to continue that counts." — Winston Churchill',
-      '"The only way to do great work is to love what you do." — Steve Jobs',
-      '"Believe you can and you\'re halfway there." — Theodore Roosevelt',
-      '"In the middle of difficulty lies opportunity." — Albert Einstein',
-      '"Quality is not an act, it is a habit." — Aristotle',
-      '"Excellence is not a skill, it\'s an attitude." — Ralph Marston',
-      '"The expert in anything was once a beginner." — Helen Hayes'
+      '"Education is the most powerful weapon which you can use to change the world." - Nelson Mandela',
+      '"The beautiful thing about learning is that no one can take it away from you." - B.B. King',
+      '"Great things are done by a series of small things brought together." - Vincent Van Gogh',
+      '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
+      '"The only way to do great work is to love what you do." - Steve Jobs',
+      '"Believe you can and you are halfway there." - Theodore Roosevelt',
+      '"In the middle of difficulty lies opportunity." - Albert Einstein',
+      '"Quality is not an act, it is a habit." - Aristotle',
+      '"Excellence is not a skill, it is an attitude." - Ralph Marston',
+      '"The expert in anything was once a beginner." - Helen Hayes'
     ];
     var now = new Date();
     var start = new Date(now.getFullYear(), 0, 0);

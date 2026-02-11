@@ -287,7 +287,7 @@ def parent_onboarding_score(user: User, students: Iterable[StudentProfile]) -> d
         }
 
     # Average parent completeness across children (0–100, already normalized)
-    completeness_values = [s.parent_completeness for s in students]
+    completeness_values = [int(getattr(s, "parent_completeness", 0) or 0) for s in students]
     avg_student_completeness = int(
         round(sum(completeness_values) / len(completeness_values))
     ) if completeness_values else 0

@@ -86,10 +86,13 @@
               <p class="tdm-eyebrow">{% trans "My classes" %}</p>
               <h3>{% trans "Today" %}</h3>
             </div>
-            <a class="btn btn-soft" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter class" %}</a>
+            <div class="tdm-panel-actions">
+              <a class="btn btn-soft" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter class" %}</a>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'evals:teacher_marks_list' %}">{% trans "All classes" %}</a>
+            </div>
           </div>
           <div class="tdm-class-grid">
-            {% for a in assignments|slice:":3" %}
+            {% for a in assignments|slice:":2" %}
               {% with p=progress|get_item:a.id %}
               <article class="tdm-class-card card-glass">
                 <header class="tdm-class-top">
@@ -115,6 +118,11 @@
             <p class="text-muted small mb-0">{% trans "No classes assigned yet." %}</p>
             {% endfor %}
           </div>
+          {% if assignments|length > 2 %}
+          <div class="tdm-panel-foot">
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'evals:teacher_marks_list' %}">{% trans "View full class list" %}</a>
+          </div>
+          {% endif %}
         </div>
 
         <div class="card-glass tdm-panel">
@@ -152,14 +160,46 @@
       </div>
 
       <aside class="tdm-main-right">
+        <div class="card-glass tdm-panel tdm-workflow-panel">
+          <div class="tdm-panel-head">
+            <div>
+              <p class="tdm-eyebrow">{% trans "Workflow guide" %}</p>
+              <h3>{% trans "What to do next" %}</h3>
+            </div>
+            <a class="btn btn-soft btn-sm" href="{% url 'portal:teacher_workflow' %}">{% trans "Open full" %}</a>
+          </div>
+          <div class="tdm-workflow-progress">
+            <div class="tdm-workflow-progress-head">
+              <span>{{ workflow_summary.done_steps|default:0 }}/{{ workflow_summary.total_steps|default:0 }} {% trans "complete" %}</span>
+              <strong>{{ workflow_summary.completion_pct|default:0 }}%</strong>
+            </div>
+            <div class="tdm-progress-track">
+              <div class="tdm-progress-fill" style="width: {{ workflow_summary.completion_pct|default:0 }}%;"></div>
+            </div>
+          </div>
+          <div class="tdm-workflow-focus">
+            <div class="tdm-task-title">{{ workflow_summary.focus_label }}</div>
+            {% if workflow_summary.focus_meta %}
+            <div class="tdm-task-meta">{{ workflow_summary.focus_meta }}</div>
+            {% endif %}
+          </div>
+          <div class="tdm-workflow-actions">
+            {% for action in workflow_summary.next_actions %}
+            <a class="btn {% if forloop.first %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm" href="{{ action.url }}">{{ action.label }}</a>
+            {% empty %}
+            <a class="btn btn-primary btn-sm" href="{% url 'portal:teacher_workflow' %}">{% trans "Open workflow" %}</a>
+            {% endfor %}
+          </div>
+        </div>
+
         <div class="card-glass tdm-panel">
           <div class="tdm-panel-head">
             <p class="tdm-eyebrow">{% trans "Today's tasks" %}</p>
-            <h3>{% trans "Mark attendance & follow-ups" %}</h3>
+            <h3>{% trans "Priority items" %}</h3>
           </div>
           <div class="tdm-task-list">
             {% if teacher_alerts %}
-              {% for alert in teacher_alerts|slice:":4" %}
+              {% for alert in teacher_alerts|slice:":3" %}
               <div class="tdm-task">
                 <div>
                   <div class="tdm-task-title">{{ alert.message }}</div>
@@ -169,7 +209,7 @@
               </div>
               {% endfor %}
             {% elif dashboard_events %}
-              {% for ev in dashboard_events|slice:":4" %}
+              {% for ev in dashboard_events|slice:":3" %}
               <div class="tdm-task">
                 <div>
                   <div class="tdm-task-title">{{ ev.title|truncatewords:8 }}</div>
@@ -181,26 +221,19 @@
             {% else %}
             <p class="text-muted small mb-0">{% trans "No tasks for today." %}</p>
             {% endif %}
-          </div>
-        </div>
 
-        <div class="card-glass tdm-panel">
-          <div class="tdm-panel-head">
-            <p class="tdm-eyebrow">{% trans "Announcements" %}</p>
-            <h3>{% trans "Class updates" %}</h3>
+            {% with latest_ann=class_announcements|first %}
+            {% if latest_ann %}
+            <div class="tdm-task tdm-task-inline">
+              <div>
+                <div class="tdm-task-title">{% trans "Latest class update" %}</div>
+                <div class="tdm-task-meta">{{ latest_ann.title|truncatewords:8 }} · {{ latest_ann.created_at|date:"M j" }}</div>
+              </div>
+              <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_messages' %}">{% trans "Messages" %}</a>
+            </div>
+            {% endif %}
+            {% endwith %}
           </div>
-          {% if class_announcements %}
-          <ul class="tdm-announcements">
-            {% for ann in class_announcements|slice:":3" %}
-            <li>
-              <div class="tdm-ann-title">{{ ann.title|truncatewords:8 }}</div>
-              <div class="tdm-ann-meta">{{ ann.created_at|date:"M j" }}</div>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <p class="text-muted small mb-0">{% trans "No announcements yet." %}</p>
-          {% endif %}
         </div>
 
         <div class="card-glass tdm-panel">
@@ -208,7 +241,7 @@
             <p class="tdm-eyebrow">{% trans "Finance & leave" %}</p>
             <h3>{% trans "You" %}</h3>
           </div>
-          <div class="tdm-mini-grid">
+          <div class="tdm-mini-grid tdm-mini-grid-compact">
             <div class="tdm-mini card-glass border-0">
               <div class="tdm-mini-label">{% trans "Pay grade" %}</div>
               <div class="tdm-mini-value">{{ teacher_profile.pay_grade|default:"N/A" }}</div>
@@ -216,20 +249,15 @@
               <a class="btn btn-soft btn-sm w-100 mt-2" href="{% url 'portal:teacher_pay_history' %}">{% trans "Pay history" %}</a>
             </div>
             <div class="tdm-mini card-glass border-0">
-              <div class="tdm-mini-label">{% trans "Method" %}</div>
-              <div class="tdm-mini-value">{{ teacher_profile.get_payment_method_display|default:"-" }}</div>
+              <div class="tdm-mini-label">{% trans "Attendance & leave" %}</div>
+              <div class="tdm-mini-value">{{ pending_leaves|default:0 }} {% trans "pending" %}</div>
+              <div class="tdm-mini-meta">{% trans "Payment method" %}: {{ teacher_profile.get_payment_method_display|default:"-" }}</div>
               {% if finance_access_message %}
               <div class="tdm-mini-meta">{{ finance_access_message }}</div>
               {% endif %}
-              <a class="btn btn-outline-secondary btn-sm w-100 mt-2" href="{% url 'portal:teacher_attendance' %}">{% trans "Attendance" %}</a>
-            </div>
-            <div class="tdm-mini card-glass border-0">
-              <div class="tdm-mini-label">{% trans "Leave requests" %}</div>
-              <div class="tdm-mini-value">{{ pending_leaves|default:0 }} {% trans "pending" %}</div>
-              <div class="tdm-mini-meta">{% trans "Track approvals and history" %}</div>
               <div class="d-flex gap-1 mt-2">
-                <a class="btn btn-soft btn-sm flex-fill" href="{% url 'portal:teacher_leave' %}">{% trans "Request" %}</a>
-                <a class="btn btn-outline-secondary btn-sm flex-fill" href="{% url 'portal:teacher_leave' %}#approvals">{% trans "Approvals" %}</a>
+                <a class="btn btn-outline-secondary btn-sm flex-fill" href="{% url 'portal:teacher_attendance' %}">{% trans "Attendance" %}</a>
+                <a class="btn btn-soft btn-sm flex-fill" href="{% url 'portal:teacher_leave' %}">{% trans "Leave" %}</a>
               </div>
             </div>
           </div>

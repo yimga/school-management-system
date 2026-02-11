@@ -555,6 +555,69 @@
     font-size: 0.85rem;
     display: inline-block;
   }
+
+  /* Final polish: compact spacing + high-contrast readability */
+  .backend-welcome-section {
+    margin-top: 0.85rem !important;
+    margin-bottom: 0.55rem !important;
+  }
+  .backend-welcome-section > p {
+    margin-bottom: 0.45rem;
+  }
+  .backend-welcome-action-row {
+    row-gap: 0.45rem !important;
+  }
+  #dashboard-layout {
+    color: var(--admin-text);
+  }
+  #dashboard-layout .card,
+  #dashboard-layout .alert {
+    border-color: var(--admin-border-strong);
+    background: var(--admin-surface);
+  }
+  #dashboard-layout .text-muted,
+  #dashboard-layout .small.text-muted {
+    color: var(--admin-subtle) !important;
+  }
+  #dashboard-layout .row.g-2,
+  #dashboard-layout .row.g-3 {
+    --bs-gutter-y: 0.55rem;
+  }
+  #dashboard-layout .row.g-3.mb-4 {
+    margin-bottom: 0.7rem !important;
+  }
+  #dashboard-layout .badge.bg-light.text-dark {
+    background: rgba(15, 23, 42, 0.08) !important;
+    color: var(--admin-text) !important;
+    border: 1px solid var(--admin-border);
+  }
+  :root[data-theme="dark"] #dashboard-layout .card,
+  :root[data-theme="dark"] #dashboard-layout .alert {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e5e7eb;
+  }
+  :root[data-theme="dark"] #dashboard-layout .text-muted,
+  :root[data-theme="dark"] #dashboard-layout .small.text-muted {
+    color: #cbd5e1 !important;
+  }
+  :root[data-theme="dark"] #dashboard-layout .badge.bg-light.text-dark {
+    background: rgba(148, 163, 184, 0.22) !important;
+    color: #f8fafc !important;
+    border-color: rgba(148, 163, 184, 0.4);
+  }
+  @media (max-width: 991px) {
+    .backend-welcome-row-with-sidebar {
+      gap: 0.6rem !important;
+    }
+    #dashboard-layout .card .card-body {
+      padding: 0.75rem 0.85rem !important;
+    }
+    .backend-right-sidebar {
+      width: 100%;
+      min-width: 0;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -581,6 +644,9 @@
           </a>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_builder' %}">
             <i class="bi bi-file-earmark-richtext me-1"></i>Report Card Builder
+          </a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}">
+            <i class="bi bi-sliders me-1"></i>My Preferences
           </a>
           {% if allow_custom_layout %}
           {% include "components/dashboard_customize_ui.html" %}
@@ -635,6 +701,9 @@
                   <i class="bi bi-palette me-1"></i>Site Settings
                 </a>
                 {% endif %}
+                <a href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
+                  <i class="bi bi-sliders me-1"></i>Preferences
+                </a>
                 <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
                   <i class="bi bi-eye me-1"></i>Preview Portal
                 </a>
@@ -854,7 +923,7 @@
     </div>
   </div>
   {% if finance_request_notifications %}
-  <div class="card mb-4">
+  <div class="card mb-2">
     <div class="card-body">
       <h6 class="mb-3">Finance access alerts</h6>
       <ul class="list-unstyled mb-0">
@@ -1347,7 +1416,7 @@
   </div>
   {% endif %}
 
-  <div class="row g-3 mb-4">
+  <div class="row g-2 mb-2">
     <div class="col-md-6">
       <div class="card h-100" data-widget-id="backend-rbac-snapshot">
         <div class="card-body">

@@ -49,7 +49,8 @@ def portal_toggle_required(flag_name: str, message: str):
         @wraps(view_func)
         def _wrapped(request, *args, **kwargs):
             site = SiteSettings.get_solo()
-            if not getattr(site, flag_name, True):
+            # Only an explicit False should disable a portal; tolerate missing/None in test doubles.
+            if getattr(site, flag_name, True) is False:
                 return HttpResponseForbidden(message)
             return view_func(request, *args, **kwargs)
         return _wrapped

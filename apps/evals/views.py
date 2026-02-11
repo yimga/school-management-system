@@ -576,10 +576,10 @@ def teacher_dashboard(request: HttpRequest):
             })
     # Marks completion donut: entered vs pending
     chart_marks_donut_json = ""
-    total_slots = sum((p.get("total", 0) for p in progress.values()), 0) or 1
+    total_slots = sum((p.get("total", 0) for p in progress.values()), 0)
     filled_slots = sum((p.get("filled", 0) for p in progress.values()), 0)
     pending_slots = max(0, total_slots - filled_slots)
-    if total_slots > 0 and (filled_slots or pending_slots):
+    if total_slots > 0:
         chart_marks_donut_json = json.dumps({
             "type": "doughnut",
             "data": {
@@ -590,6 +590,74 @@ def teacher_dashboard(request: HttpRequest):
                 }],
             },
         })
+
+    today = timezone.localdate()
+    attendance_today = None
+    if teacher_profile and getattr(teacher_profile, "attendance_logs", None) is not None:
+        attendance_today = teacher_profile.attendance_logs.filter(date=today).first()
+    present_today = bool(attendance_today and attendance_today.status == TeacherAttendance.Status.PRESENT)
+
+    pending_leaves = 0
+    if teacher_profile and getattr(teacher_profile, "leave_requests", None) is not None:
+        pending_leaves = teacher_profile.leave_requests.filter(status=TeacherLeaveRequest.Status.PENDING).count()
+
+    workflow_steps = [
+        {
+            "label": "Profile and timetable",
+            "action": "Open workflow",
+            "url": reverse("portal:teacher_workflow"),
+            "done": bool(assignments),
+            "meta": f"{len(assignments)} classes linked",
+        },
+        {
+            "label": "Attendance check-in",
+            "action": "Mark attendance",
+            "url": reverse("portal:teacher_attendance"),
+            "done": present_today,
+            "meta": "Marked for today" if present_today else "Not checked in today",
+        },
+        {
+            "label": "Marks updates",
+            "action": "Enter marks",
+            "url": reverse("evals:teacher_marks_entry"),
+            "done": pending_slots == 0,
+            "meta": f"{pending_slots} pending",
+        },
+        {
+            "label": "Leave and pay review",
+            "action": "Review leave",
+            "url": reverse("portal:teacher_leave"),
+            "done": pending_leaves == 0,
+            "meta": f"{pending_leaves} pending leave request(s)",
+        },
+    ]
+    workflow_total_steps = len(workflow_steps)
+    workflow_done_steps = sum(1 for step in workflow_steps if step["done"])
+    workflow_completion_pct = int(round((workflow_done_steps / workflow_total_steps) * 100)) if workflow_total_steps else 0
+    workflow_open_steps = [step for step in workflow_steps if not step["done"]]
+    if workflow_open_steps:
+        workflow_focus_step = workflow_open_steps[0]
+        workflow_next_actions = [
+            {"label": step["action"], "url": step["url"]}
+            for step in workflow_open_steps[:2]
+        ]
+    else:
+        workflow_focus_step = {
+            "label": "All key tasks completed",
+            "meta": "You're on track for today. Use full workflow for detailed checks.",
+        }
+        workflow_next_actions = [
+            {"label": "Open workflow", "url": reverse("portal:teacher_workflow")},
+            {"label": "View marks", "url": reverse("evals:teacher_marks_list")},
+        ]
+    workflow_summary = {
+        "total_steps": workflow_total_steps,
+        "done_steps": workflow_done_steps,
+        "completion_pct": workflow_completion_pct,
+        "focus_label": workflow_focus_step["label"],
+        "focus_meta": workflow_focus_step.get("meta", ""),
+        "next_actions": workflow_next_actions,
+    }
 
     # Certification stats (if GCE enabled and teacher teaches exam classes)
     certification_stats = {}
@@ -621,16 +689,13 @@ def teacher_dashboard(request: HttpRequest):
 
     # Alerts for dashboard body (pending leave, EWS, etc.)
     teacher_alerts = []
-    pending_leaves = 0
-    if teacher_profile:
-        pending_leaves = teacher_profile.leave_requests.filter(status=TeacherLeaveRequest.Status.PENDING).count()
-        if pending_leaves:
-            teacher_alerts.append({
-                "type": "leave",
-                "message": f"You have {pending_leaves} pending leave request(s).",
-                "url": reverse("portal:teacher_leave"),
-                "cta": "View leave",
-            })
+    if pending_leaves:
+        teacher_alerts.append({
+            "type": "leave",
+            "message": f"You have {pending_leaves} pending leave request(s).",
+            "url": reverse("portal:teacher_leave"),
+            "cta": "View leave",
+        })
     ews_list = ews_students_needing_attention(
         teacher_profile, year, term, list(assignments), scale=20.0, drop_threshold_pct=10.0
     )
@@ -772,6 +837,7 @@ def teacher_dashboard(request: HttpRequest):
         "items_requiring_review": items_requiring_review,
         "staff_badges": staff_badges,
         "pending_leaves": pending_leaves,
+        "workflow_summary": workflow_summary,
     })
 
 
