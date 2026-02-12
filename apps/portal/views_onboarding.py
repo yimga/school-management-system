@@ -76,9 +76,14 @@ def teacher_onboarding_wizard(request: HttpRequest):
             request.session[session_key] = wizard_data
             return redirect(f"{request.path}?step={step}")
         elif step == 3:
-            # Step 3: Final step - validate and create user + teacher profile
+            # Step 3: Preferences - go to step 4 (photo)
             if form.is_valid():
-                # Create user account
+                step = 4
+                request.session[session_key] = wizard_data
+                return redirect(f"{request.path}?step={step}")
+        elif step == 4:
+            # Step 4: Photo + create user + teacher profile
+            if form.is_valid():
                 email = form.cleaned_data["email"].strip().lower()
                 user = User.objects.create_user(
                     username=email,
@@ -87,8 +92,6 @@ def teacher_onboarding_wizard(request: HttpRequest):
                     last_name=form.cleaned_data["last_name"],
                     role=User.Role.TEACHER,
                 )
-                
-                # Create teacher profile
                 teacher = TeacherProfile.objects.create(
                     user=user,
                     phone=form.cleaned_data.get("phone", ""),
@@ -98,16 +101,15 @@ def teacher_onboarding_wizard(request: HttpRequest):
                     payment_method=form.cleaned_data.get("payment_method") or TeacherProfile.PaymentMethod.BANK_TRANSFER,
                     default_dashboard_view=form.cleaned_data.get("default_dashboard_view") or TeacherProfile.DashboardView.OVERVIEW,
                 )
-                
+                if request.FILES.get("profile_photo"):
+                    teacher.profile_photo = request.FILES["profile_photo"]
+                    teacher.save(update_fields=["profile_photo"])
                 messages.success(
                     request,
-                    f"Teacher profile created successfully. Please contact admin to activate your account and set up login credentials.",
+                    "Teacher profile created successfully. Please contact admin to activate your account and set up login credentials.",
                 )
-                
-                # Clear wizard session
                 if session_key in request.session:
                     del request.session[session_key]
-                
                 return redirect("accounts:login")
     
     # Build form with session data (so re-renders after validation errors show data)
@@ -128,9 +130,9 @@ def teacher_onboarding_wizard(request: HttpRequest):
     if not wizard_data.get("last_name") and request.user.last_name:
         form.fields["last_name"].initial = request.user.last_name
     
-    total_steps = 3
+    total_steps = 4
     progress_pct = int((step / total_steps) * 100)
-    
+
     return render(
         request,
         "teacher/onboarding_wizard.html",
@@ -215,14 +217,17 @@ def student_onboarding_wizard(request: HttpRequest):
             request.session[session_key] = wizard_data
             return redirect(f"{request.path}?step={step}")
         elif step == 4:
-            # Step 4: Final step - validate and create student profile
+            # Step 4: Payment/referral - go to step 5 (photo)
             if form.is_valid():
-                # Get or create academic year
+                step = 5
+                request.session[session_key] = wizard_data
+                return redirect(f"{request.path}?step={step}")
+        elif step == 5:
+            # Step 5: Final - create student (with optional profile_photo from request.FILES)
+            if form.is_valid():
                 academic_year = form.cleaned_data.get("academic_year")
                 if not academic_year:
                     academic_year = AcademicYear.objects.filter(is_active=True).first()
-                
-                # Create student profile
                 student = StudentProfile.objects.create(
                     first_name=form.cleaned_data["first_name"],
                     last_name=form.cleaned_data["last_name"],
@@ -238,8 +243,9 @@ def student_onboarding_wizard(request: HttpRequest):
                     status=StudentProfile.Status.NEW,
                     is_active=True,
                 )
-                
-                # Create parent user if email provided
+                if request.FILES.get("profile_photo"):
+                    student.profile_photo = request.FILES["profile_photo"]
+                    student.save(update_fields=["profile_photo"])
                 parent_email = form.cleaned_data.get("parent_email", "").strip()
                 if parent_email:
                     parent_user, created = User.objects.get_or_create(
@@ -251,8 +257,6 @@ def student_onboarding_wizard(request: HttpRequest):
                             "role": User.Role.PARENT,
                         }
                     )
-                    
-                    # Link parent to student
                     StudentGuardian.objects.create(
                         guardian_user=parent_user,
                         student=student,
@@ -263,16 +267,12 @@ def student_onboarding_wizard(request: HttpRequest):
                         can_view_results=True,
                         can_view_finance=True,
                     )
-                
                 messages.success(
                     request,
                     f"Student pre-registration completed successfully. Admission number: {student.admission_number or 'Pending generation'}. Please contact the school to complete enrollment.",
                 )
-                
-                # Clear wizard session
                 if session_key in request.session:
                     del request.session[session_key]
-                
                 return redirect("portal:home")
     
     # Build form with session data (so re-renders after validation errors show data)
@@ -285,9 +285,9 @@ def student_onboarding_wizard(request: HttpRequest):
             if key in form.fields:
                 form.fields[key].initial = value
     
-    total_steps = 4
+    total_steps = 5
     progress_pct = int((step / total_steps) * 100)
-    
+
     return render(
         request,
         "student/onboarding_wizard.html",

@@ -19,6 +19,8 @@ from .views import (
     teacher_dashboard_alias,
     teacher_workflow_alias,
     teacher_attendance_view,
+    take_student_attendance,
+    record_teacher_attendance,
     teacher_pay_history,
     teacher_leave,
     teacher_attendance_export,
@@ -28,6 +30,10 @@ from .views import (
     teacher_disciplinary,
     teacher_training_log,
     discipline_incidents_list,
+    cahier_list,
+    cahier_verify_list,
+    cahier_visa,
+    cahier_request_revisions,
     student_portal_grades,
     admissions_application_status,
     portal_syllabus,
@@ -114,8 +120,14 @@ urlpatterns = [
     path("admissions/application-status/", admissions_application_status, name="admissions_application_status"),
 
     # Staff triage: parent contact requests
+    path("attendance/student/", take_student_attendance, name="take_student_attendance"),
+    path("attendance/teacher/", record_teacher_attendance, name="record_teacher_attendance"),
     path("staff/contact-requests/", staff_contact_request_list, name="staff_contact_request_list"),
     path("staff/discipline/incidents/", discipline_incidents_list, name="discipline_incidents_list"),
+    path("teacher/cahier/", cahier_list, name="cahier_list"),
+    path("staff/cahier/verify/", cahier_verify_list, name="cahier_verify_list"),
+    path("staff/cahier/visa/<int:entry_id>/", cahier_visa, name="cahier_visa"),
+    path("staff/cahier/revisions/<int:entry_id>/", cahier_request_revisions, name="cahier_request_revisions"),
     path("staff/contact-requests/<uuid:request_id>/", staff_contact_request_detail, name="staff_contact_request_detail"),
     
     # Document Library Management (Backend UI)

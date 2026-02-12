@@ -1,0 +1,59 @@
+{% extends "portal_base.html" %}
+{% block title %}Take teacher attendance{% endblock %}
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="get" action="{% url 'portal:record_teacher_attendance' %}" class="row g-2 align-items-end mb-3">
+        <div class="col-auto">
+          <label class="form-label small mb-0">Date</label>
+          <input type="date" name="date" class="form-control" value="{{ date_value }}">
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">Load</button>
+        </div>
+      </form>
+      {% if teachers_with_status %}
+        <form method="post" action="{% url 'portal:record_teacher_attendance' %}">
+          {% csrf_token %}
+          <input type="hidden" name="date" value="{{ date_value }}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Teachers – {{ date_value }}</h6>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="mark-all-present">Mark all present</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Teacher</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in teachers_with_status %}
+                  <tr>
+                    <td>{{ row.teacher.user.get_full_name|default:row.teacher.user.username }}</td>
+                    <td>
+                      <select name="status_{{ row.teacher.id }}" class="form-select form-select-sm status-select">
+                        {% for value, label in status_choices %}
+                          <option value="{{ value }}" {% if row.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <button type="submit" class="btn btn-primary">Save attendance</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+  <script>
+    document.getElementById('mark-all-present')?.addEventListener('click', function() {
+      var val = '{{ TeacherAttendance.PRESENT }}';
+      document.querySelectorAll('.status-select').forEach(function(s) { s.value = val; });
+    });
+  </script>
+{% endblock %}

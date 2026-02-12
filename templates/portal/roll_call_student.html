@@ -1,0 +1,71 @@
+{% extends "portal_base.html" %}
+{% block title %}Take student attendance{% endblock %}
+{% block content %}
+  {% include "widgets/dashboard_hero.html" with hero=hero %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="get" action="{% url 'portal:take_student_attendance' %}" class="row g-2 align-items-end mb-3">
+        <div class="col-auto">
+          <label class="form-label small mb-0">Date</label>
+          <input type="date" name="date" class="form-control" value="{{ date_value }}">
+        </div>
+        <div class="col-auto">
+          <label class="form-label small mb-0">Class</label>
+          <select name="classroom" class="form-select">
+            <option value="">-- Select class --</option>
+            {% for c in classrooms %}
+              <option value="{{ c.id }}" {% if classroom_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">Load</button>
+        </div>
+      </form>
+      {% if classroom and students_with_status %}
+        <form method="post" action="{% url 'portal:take_student_attendance' %}">
+          {% csrf_token %}
+          <input type="hidden" name="date" value="{{ date_value }}">
+          <input type="hidden" name="classroom" value="{{ classroom.id }}">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">{{ classroom.name }} – {{ date_value }}</h6>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="mark-all-present">Mark all present</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Student</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in students_with_status %}
+                  <tr>
+                    <td>{{ row.student.last_name }}, {{ row.student.first_name }}</td>
+                    <td>
+                      <select name="status_{{ row.student.id }}" class="form-select form-select-sm status-select">
+                        {% for value, label in status_choices %}
+                          <option value="{{ value }}" {% if row.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                      </select>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <button type="submit" class="btn btn-primary">Save attendance</button>
+        </form>
+      {% elif classroom_id and not students_with_status %}
+        <p class="text-muted mb-0">No students in this class.</p>
+      {% endif %}
+    </div>
+  </div>
+  <script>
+    document.getElementById('mark-all-present')?.addEventListener('click', function() {
+      var val = '{{ Attendance.PRESENT }}';
+      document.querySelectorAll('.status-select').forEach(function(s) { s.value = val; });
+    });
+  </script>
+{% endblock %}

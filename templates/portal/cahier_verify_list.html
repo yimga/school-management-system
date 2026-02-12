@@ -1,0 +1,33 @@
+{% extends "portal_base.html" %}
+{% block title %}Cahier de Texte – Verification{% endblock %}
+{% block content %}
+{% include "widgets/dashboard_hero.html" with hero=hero %}
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Submitted entries</h5>
+    {% if entries %}
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead><tr><th>Date</th><th>Teacher</th><th>Class / Subject</th><th>Title</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for e in entries %}
+          <tr>
+            <td>{{ e.entry_date }}</td>
+            <td>{{ e.teacher.user.get_full_name|default:e.teacher.user.username }}</td>
+            <td>{% if e.subject_assignment %}{{ e.subject_assignment.classroom.name }} – {{ e.subject_assignment.subject.name }}{% else %}—{% endif %}</td>
+            <td>{{ e.title|truncatewords:6 }}</td>
+            <td>
+              <form method="post" action="{% url 'portal:cahier_visa' e.pk %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-success">Visa</button></form>
+              <form method="post" action="{% url 'portal:cahier_request_revisions' e.pk %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-warning">Request revisions</button></form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No submitted entries.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

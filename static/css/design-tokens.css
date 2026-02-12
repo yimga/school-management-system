@@ -268,3 +268,26 @@ body.portal-backend-light #nav-sidebar .admin-sidebar-logo-wrap {
   --admin-sidebar-logo-bg: rgba(0, 0, 0, 0.12);
   --admin-sidebar-logo-fg: #1e293b;
 }
+
+/* Focus ring for keyboard and a11y – use school primary */
+button:focus-visible,
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--school-primary);
+  outline-offset: 2px;
+}
+
+/* Tables: use design tokens so lists stay readable in light/dark (Phase 4.2). */
+.table thead th {
+  background: var(--admin-content-thead-bg);
+  color: var(--admin-content-text);
+  border-bottom-color: var(--admin-content-border);
+}
+.table td {
+  color: var(--admin-content-text);
+}
+.table-border-color {
+  border-color: var(--admin-content-border);
+}

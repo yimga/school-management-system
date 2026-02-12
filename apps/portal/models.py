@@ -457,6 +457,65 @@ class LessonPlan(models.Model):
         return f"{self.title} – {self.week_start_date}"
 
 
+class CahierDeTexteEntry(models.Model):
+    """Structured lesson diary entry (Cahier de Texte). Linked to syllabus; supervisor visa workflow."""
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        SUBMITTED = "SUBMITTED", "Submitted"
+        VISED = "VISED", "Vised"
+        REVISIONS_REQUESTED = "REVISIONS_REQUESTED", "Revisions requested"
+
+    teacher = models.ForeignKey(
+        "people.TeacherProfile",
+        on_delete=models.CASCADE,
+        related_name="cahier_entries",
+    )
+    subject_assignment = models.ForeignKey(
+        "academics.SubjectAssignment",
+        on_delete=models.CASCADE,
+        related_name="cahier_entries",
+        null=True,
+        blank=True,
+        help_text="Class and subject (from schedule).",
+    )
+    entry_date = models.DateField(help_text="Date of the lesson")
+    lesson_topic_code = models.CharField(max_length=80, blank=True, help_text="Topic code from syllabus or national progression")
+    title = models.CharField(max_length=300)
+    objectives = models.TextField(blank=True)
+    duration_minutes = models.PositiveSmallIntegerField(null=True, blank=True)
+    content_summary = models.TextField(blank=True)
+    practical_application = models.BooleanField(default=False)
+    integration_activity = models.BooleanField(default=False)
+    attendance_snapshot = models.JSONField(null=True, blank=True)
+    status = models.CharField(
+        max_length=24,
+        choices=Status.choices,
+        default=Status.DRAFT,
+    )
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="vised_cahier_entries",
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-entry_date", "-created_at"]
+        verbose_name = "Cahier de Texte entry"
+        verbose_name_plural = "Cahier de Texte entries"
+        indexes = [
+            models.Index(fields=["teacher", "-entry_date"]),
+            models.Index(fields=["status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.title} – {self.entry_date} ({self.get_status_display()})"
+
+
 class Event(models.Model):
     """School event calendar (configurable)."""
     title = models.CharField(max_length=200)

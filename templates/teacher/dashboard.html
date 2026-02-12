@@ -219,6 +219,21 @@
       </div>
 
       <aside class="tdm-main-right">
+        {% if org_chain %}
+        <div class="card-glass tdm-panel">
+          <div class="tdm-panel-head">
+            <p class="tdm-eyebrow">{% trans "Organization" %}</p>
+            <h3>{% trans "Your place" %}</h3>
+          </div>
+          <p class="small mb-0">
+            {% for node in org_chain %}
+              {% if not forloop.first %}<span class="text-muted mx-1">→</span>{% endif %}
+              {% if node.user_id == request.user.id %}<strong>You</strong>{% else %}{{ node.user.get_full_name|default:node.user.username }}{% if node.position_title %} <span class="text-muted">({{ node.position_title }})</span>{% endif %}{% endif %}
+            {% endfor %}
+          </p>
+          <a class="btn btn-soft btn-sm mt-2" href="{% url 'accounts:user_profile' %}">{% trans "View profile" %}</a>
+        </div>
+        {% endif %}
         <div class="card-glass tdm-panel tdm-workflow-panel">
           <div class="tdm-panel-head">
             <div>

@@ -63,7 +63,22 @@ def _parse_decimal(value: str | None, default: Decimal) -> Decimal:
 
 @staff_member_required
 def dashboard(request: HttpRequest):
+    # Part B.5: Optional response cache (off by default). Set backend_feature_flags["analytics_dashboard_cache_seconds"] > 0 to enable.
     site = SiteSettings.get_solo()
+    flags = getattr(site, "backend_feature_flags", None) or {}
+    cache_ttl = 0
+    try:
+        cache_ttl = int(flags.get("analytics_dashboard_cache_seconds") or 0)
+    except (TypeError, ValueError):
+        pass
+    cache_key = None
+    if cache_ttl > 0:
+        from django.core.cache import cache
+        cache_key = "analytics_dash:" + (request.get_full_path().replace("/", "_") or "default")
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return HttpResponse(cached, content_type="text/html; charset=utf-8")
+
     active_year, active_term = get_active_year_and_term()
     if not active_year or not active_term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
@@ -278,7 +293,11 @@ def dashboard(request: HttpRequest):
     except Exception:
         # Never block the request if logging fails
         pass
-    return render(request, "analytics/dashboard.html", context)
+    response = render(request, "analytics/dashboard.html", context)
+    if cache_ttl > 0 and cache_key and response.status_code == 200:
+        from django.core.cache import cache
+        cache.set(cache_key, response.content, cache_ttl)
+    return response
 
 
 @staff_member_required

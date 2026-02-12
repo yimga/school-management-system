@@ -27,7 +27,7 @@ class StudentCreateForm(forms.ModelForm):
             'first_name', 'last_name', 'admission_number', 'gender',
             'date_of_birth', 'place_of_birth', 'status',
             'academic_year', 'classroom', 'specialty',
-            'parent_phone',
+            'parent_phone', 'profile_photo',
         ]
         widgets = {
             'first_name': forms.TextInput(attrs={
@@ -62,6 +62,10 @@ class StudentCreateForm(forms.ModelForm):
             'parent_email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'parent@example.com'
+            }),
+            'profile_photo': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
             }),
         }
     
@@ -124,7 +128,7 @@ class TeacherCreateForm(forms.ModelForm):
         model = TeacherProfile
         fields = [
             'staff_id', 'phone', 'position_title', 'department',
-            'reports_to', 'pay_grade'
+            'reports_to', 'pay_grade', 'profile_photo'
         ]
         widgets = {
             'staff_id': forms.TextInput(attrs={
@@ -144,6 +148,10 @@ class TeacherCreateForm(forms.ModelForm):
             'pay_grade': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'e.g., Grade 1'
+            }),
+            'profile_photo': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
             }),
         }
     

@@ -1,0 +1,62 @@
+{% extends "portal_base.html" %}
+{% block title %}Cahier de Texte{% endblock %}
+{% block content %}
+{% include "widgets/dashboard_hero.html" with hero=hero %}
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title">New entry</h5>
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-2">
+        <div class="col-md-4">{{ form.subject_assignment.label_tag }}{{ form.subject_assignment }}</div>
+        <div class="col-md-2">{{ form.entry_date.label_tag }}{{ form.entry_date }}</div>
+        <div class="col-md-2">{{ form.duration_minutes.label_tag }}{{ form.duration_minutes }}</div>
+        <div class="col-12">{{ form.title.label_tag }}{{ form.title }}</div>
+        <div class="col-12">
+          {{ form.lesson_topic_code.label_tag }}
+          {% if curriculum_nodes %}
+            <select name="lesson_topic_code" id="id_lesson_topic_code" class="form-select">
+              <option value="">-- Optional topic from progression --</option>
+              {% for code, title in curriculum_nodes %}
+                <option value="{{ code }}">{{ code }} – {{ title }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            {{ form.lesson_topic_code }}
+          {% endif %}
+        </div>
+        <div class="col-12">{{ form.objectives.label_tag }}{{ form.objectives }}</div>
+        <div class="col-12">{{ form.content_summary.label_tag }}{{ form.content_summary }}</div>
+        <div class="col-md-6"><label>{{ form.practical_application }} {{ form.practical_application.label }}</label></div>
+        <div class="col-md-6"><label>{{ form.integration_activity }} {{ form.integration_activity.label }}</label></div>
+      </div>
+      {% if form.errors %}<div class="text-danger small mt-2">{{ form.errors }}</div>{% endif %}
+      <button type="submit" class="btn btn-primary mt-2">Submit for visa</button>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">My entries</h5>
+    {% if entries %}
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead><tr><th>Date</th><th>Class / Subject</th><th>Title</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for e in entries %}
+          <tr>
+            <td>{{ e.entry_date }}</td>
+            <td>{% if e.subject_assignment %}{{ e.subject_assignment.classroom.name }} – {{ e.subject_assignment.subject.name }}{% else %}—{% endif %}</td>
+            <td>{{ e.title|truncatewords:8 }}</td>
+            <td><span class="badge bg-secondary">{{ e.get_status_display }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No entries yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

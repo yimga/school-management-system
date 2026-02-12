@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
-from .models import LessonPlan, TeacherTrainingEntry, AttendanceJustification
+from .models import LessonPlan, TeacherTrainingEntry, AttendanceJustification, CahierDeTexteEntry
 from apps.siteconfig.models import SiteSettings
 from apps.academics.models import Term, AcademicYear
 
@@ -383,7 +383,13 @@ class TeacherOnboardingForm(forms.Form):
         required=False,
         label=_("Default dashboard view"),
     )
-    
+    # Step 4: Profile photo (used on digital ID)
+    profile_photo = forms.ImageField(
+        required=False,
+        label=_("Profile photo"),
+        help_text=_("Photo for your digital ID card. You can update it later."),
+    )
+
     def __init__(self, *args, **kwargs):
         from apps.academics.models import Department
         from apps.people.models import TeacherProfile
@@ -510,7 +516,13 @@ class StudentOnboardingForm(forms.Form):
         required=False,
         help_text=_("Optional: if someone referred you"),
     )
-    
+    # Step 5: Profile photo (for digital ID)
+    profile_photo = forms.ImageField(
+        required=False,
+        label=_("Profile photo"),
+        help_text=_("Photo for the student's digital ID. Can be updated later."),
+    )
+
     def __init__(self, *args, **kwargs):
         from apps.academics.models import AcademicYear, Specialty, Classroom
         from apps.people.models import StudentProfile
@@ -610,6 +622,27 @@ class TeacherTrainingEntryForm(forms.ModelForm):
             "date": forms.DateInput(attrs={"type": "date"}),
             "document": forms.FileInput(attrs={"accept": ".pdf,.doc,.docx"}),
         }
+
+
+class CahierDeTexteEntryForm(forms.ModelForm):
+    class Meta:
+        model = CahierDeTexteEntry
+        fields = (
+            "subject_assignment", "entry_date", "lesson_topic_code", "title",
+            "objectives", "duration_minutes", "content_summary",
+            "practical_application", "integration_activity",
+        )
+        widgets = {
+            "entry_date": forms.DateInput(attrs={"type": "date"}),
+            "objectives": forms.Textarea(attrs={"rows": 3}),
+            "content_summary": forms.Textarea(attrs={"rows": 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ("subject_assignment", "entry_date", "title"):
+            if name in self.fields:
+                self.fields[name].required = True
 
 
 class AttendanceJustificationForm(forms.ModelForm):

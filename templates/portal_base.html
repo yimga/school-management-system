@@ -689,6 +689,9 @@
 
         <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
           {% if request.user.is_authenticated %}
+            {% if SITE and SITE.enable_offline_mode %}
+            {% include 'components/offline_status_bar.html' %}
+            {% endif %}
             <!-- Weather Widget - Scrolling Header -->
             <div class="topbar-weather flex-grow-1" style="max-width: 400px;">
               {% include 'components/header_weather_widget.html' %}
@@ -1088,20 +1091,50 @@
       });
     </script>
 
+    <script>
+      window.SMS_OFFLINE_CONFIG = {
+        enabled: {{ SITE.enable_offline_mode|yesno:"true,false" }},
+        pwaEnabled: {{ SITE.backend_feature_flags.enable_portal_pwa|default:"1"|yesno:"true,false" }},
+        formQueueEnabled: {{ SITE.backend_feature_flags.enable_offline_form_queue|default:"1"|yesno:"true,false" }},
+        attendanceSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_attendance_sync|default:"1"|yesno:"true,false" }},
+        gradeSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_grade_sync|default:"1"|yesno:"true,false" }},
+        backgroundSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_background_sync|default:"1"|yesno:"true,false" }},
+        requestPersistentStorage: {{ SITE.backend_feature_flags.request_persistent_browser_storage|default:"1"|yesno:"true,false" }}
+      };
+    </script>
+
+    {% if SITE and SITE.enable_offline_mode %}
+    <script src="{% static 'js/offline-status-bar.js' %}"></script>
+    {% endif %}
     <!-- PWA Service Worker Registration -->
     <script>
-      if ('serviceWorker' in navigator) {
+      (function() {
+        var cfg = window.SMS_OFFLINE_CONFIG || {};
+        if (!('serviceWorker' in navigator) || !cfg.enabled || !cfg.pwaEnabled) {
+          return;
+        }
+
+        function pushConfigToWorker(registration) {
+          var payload = { type: 'SET_OFFLINE_CONFIG', payload: cfg };
+          if (registration.active) registration.active.postMessage(payload);
+          if (registration.waiting) registration.waiting.postMessage(payload);
+          if (registration.installing) registration.installing.postMessage(payload);
+        }
+
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('{% static "js/service-worker.js" %}')
             .then(function(registration) {
               console.log('Service Worker registered successfully:', registration.scope);
+              pushConfigToWorker(registration);
 
-              // Handle updates
+              if (cfg.requestPersistentStorage && navigator.storage && navigator.storage.persist) {
+                navigator.storage.persist().catch(function() {});
+              }
+
               registration.addEventListener('updatefound', function() {
-                const newWorker = registration.installing;
+                var newWorker = registration.installing;
                 newWorker.addEventListener('statechange', function() {
                   if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    // New version available
                     if (confirm('A new version is available. Reload to update?')) {
                       window.location.reload();
                     }
@@ -1113,7 +1146,7 @@
               console.log('Service Worker registration failed:', error);
             });
         });
-      }
+      })();
     </script>
     
     {# Floating Back to top - visible after scrolling down #}

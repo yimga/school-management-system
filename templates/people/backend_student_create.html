@@ -17,7 +17,7 @@
 
       <div class="card shadow-sm">
         <div class="card-body">
-          <form method="post" novalidate>
+          <form method="post" novalidate enctype="multipart/form-data">
             {% csrf_token %}
             
             <div class="row g-3">
@@ -67,6 +67,15 @@
                 {{ form.place_of_birth }}
                 {% if form.place_of_birth.errors %}
                   <div class="text-danger small">{{ form.place_of_birth.errors }}</div>
+                {% endif %}
+              </div>
+
+              <div class="col-12">
+                <label for="{{ form.profile_photo.id_for_label }}" class="form-label">Profile photo</label>
+                {{ form.profile_photo }}
+                <small class="form-text text-muted">Used on digital ID. Optional.</small>
+                {% if form.profile_photo.errors %}
+                  <div class="text-danger small">{{ form.profile_photo.errors }}</div>
                 {% endif %}
               </div>
 

@@ -59,6 +59,40 @@ def _notify_new_direct_message(sender, recipient, message):
         pass
 
 
+def get_org_chain_to_staff(teacher_profile):
+    """Return ordered list of TeacherProfile from org root down to this staff (walk reports_to up, then reverse)."""
+    if not teacher_profile:
+        return []
+    visited = set()
+    chain = []
+    current = teacher_profile
+    while current and current.id not in visited:
+        visited.add(current.id)
+        chain.append(current)
+        current = getattr(current, "reports_to", None)
+    chain.reverse()
+    return chain
+
+
+def _get_teacher_approved_syllabi(teacher_profile):
+    """Return approved CourseSyllabus entries for this teacher (by class/specialty/subject)."""
+    if not teacher_profile:
+        return []
+    try:
+        from apps.academics.models import CourseSyllabus
+    except ImportError:
+        return []
+    qs = CourseSyllabus.objects.filter(
+        status=CourseSyllabus.Status.APPROVED,
+        subject_assignment__teacher_assignments__teacher=teacher_profile,
+    ).select_related(
+        "subject_assignment__classroom",
+        "subject_assignment__subject",
+        "subject_assignment__specialty",
+    )
+    return list(qs)
+
+
 def _teacher_org_tree(user):
     """Build org tree for teacher: department, reports_to, assignments (year -> classrooms -> subjects)."""
     try:
@@ -176,10 +210,13 @@ def user_profile(request):
     """Profile landing: account overview, org tree (teacher), children tree (parent), change password & edit profile."""
     context = {}
     role = getattr(request.user, "role", None)
-    if role == "TEACHER":
-        teacher_profile = TeacherProfile.objects.filter(user=request.user).select_related("department").first()
+    teacher_profile = TeacherProfile.objects.filter(user=request.user).select_related("department", "reports_to").first()
+    if teacher_profile:
+        context["org_chain"] = get_org_chain_to_staff(teacher_profile)
+    if role == "TEACHER" and teacher_profile:
         context["teacher_org_tree"] = _teacher_org_tree(request.user)
         context["staff_id"] = getattr(teacher_profile, "staff_id", None) or (f"Staff #{request.user.pk}" if teacher_profile else None)
+        context["approved_syllabi"] = _get_teacher_approved_syllabi(teacher_profile)
         try:
             context["digital_id_url"] = reverse("portal:my_digital_id")
         except NoReverseMatch:
@@ -457,9 +494,7 @@ def direct_compose(request):
     if getattr(request.user, "role", None) == User.Role.PARENT:
         return redirect(reverse("portal:parent_contact_school"))
     from apps.communication.models import Message
-    from django.contrib.auth import get_user_model
 
-    User = get_user_model()
     if request.method == "POST":
         recipient_id = request.POST.get("recipient")
         body = (request.POST.get("body") or "").strip()
@@ -1788,8 +1823,10 @@ def academic_rules(request):
 def login_view(request):
     if request.method == "POST":
         next_url = request.POST.get("next") or request.GET.get("next", "").strip()
-        if next_url and (not next_url.startswith("/") or "//" in next_url):
-            next_url = ""
+        if next_url:
+            from django.utils.http import url_has_allowed_host_and_scheme
+            if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                next_url = ""
 
         user = authenticate(
             request,

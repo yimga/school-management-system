@@ -22,7 +22,7 @@ User = get_user_model()
 def backend_student_create(request):
     """Create student via user-friendly backend UI"""
     if request.method == 'POST':
-        form = StudentCreateForm(request.POST)
+        form = StudentCreateForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 with transaction.atomic():
@@ -115,7 +115,7 @@ def backend_student_create(request):
 def backend_teacher_create(request):
     """Create teacher via user-friendly backend UI"""
     if request.method == 'POST':
-        form = TeacherCreateForm(request.POST)
+        form = TeacherCreateForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 with transaction.atomic():

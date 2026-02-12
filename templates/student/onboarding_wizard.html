@@ -191,9 +191,13 @@
         <div class="wizard-step-number">{% if step > 3 %}<i class="bi bi-check"></i>{% else %}3{% endif %}</div>
         <div class="wizard-step-label">Parent</div>
       </div>
-      <div class="wizard-step {% if step >= 4 %}active{% endif %}">
-        <div class="wizard-step-number">4</div>
+      <div class="wizard-step {% if step >= 4 %}active{% endif %} {% if step > 4 %}completed{% endif %}">
+        <div class="wizard-step-number">{% if step > 4 %}<i class="bi bi-check"></i>{% else %}4{% endif %}</div>
         <div class="wizard-step-label">Payment</div>
+      </div>
+      <div class="wizard-step {% if step >= 5 %}active{% endif %}">
+        <div class="wizard-step-number">5</div>
+        <div class="wizard-step-label">Photo</div>
       </div>
     </div>
     <div class="wizard-progress-bar">
@@ -203,7 +207,7 @@
 
   <!-- Step Content -->
   <div class="wizard-step-content">
-    <form method="post" id="wizardForm">
+    <form method="post" id="wizardForm" enctype="multipart/form-data">
       {% csrf_token %}
       <input type="hidden" name="step" value="{{ step }}">
 
@@ -404,9 +408,25 @@
           </div>
         </div>
 
+        <p class="text-muted small mt-3 mb-0">Next: add the student's photo (optional) for their digital ID.</p>
+      {% endif %}
+
+      <!-- Step 5: Profile photo -->
+      {% if step == 5 %}
+        <h3 class="wizard-step-title">Step 5: Student photo</h3>
+        <p class="wizard-step-description">
+          Upload a photo for the student's digital ID card. You can update it later.
+        </p>
+        <div class="mb-3">
+          <label class="form-label">{{ form.profile_photo.label }}</label>
+          <input type="file" name="profile_photo" accept="image/*" class="form-control" id="id_profile_photo">
+          {% if form.profile_photo.help_text %}
+            <div class="form-text">{{ form.profile_photo.help_text }}</div>
+          {% endif %}
+        </div>
         <div class="alert alert-info mt-3">
           <i class="bi bi-info-circle me-2"></i>
-          <strong>Next Steps:</strong> After submitting, please contact the school to complete enrollment and payment processing.
+          <strong>After submitting:</strong> Contact the school to complete enrollment.
           {% if support_email %}
             <br><strong>Email:</strong> <a href="mailto:{{ support_email }}">{{ support_email }}</a>
           {% endif %}

@@ -112,7 +112,7 @@ MODULE_ACCESS_DEFAULTS = {
     },
     "finance": {
         "read": {"PARENT", "STUDENT", "FINANCE_STAFF", "BURSAR", "ACCOUNTANT", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN"},
-        "write": {"FINANCE_STAFF", "BURSAR", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL"},
+        "write": {"FINANCE_STAFF", "BURSAR", "ACCOUNTANT", "ADMIN", "SUPERADMIN", "LEADERSHIP", "PRINCIPAL"},
     },
     "analytics": {
         "read": {"ADMIN", "SUPERADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "ACADEMICS_STAFF"},
@@ -177,6 +177,7 @@ PERMISSION_GROUPS = {
     "Strategic": ["strategic.report"],
     "Exam registration": ["exam_registration.manage"],
     "Attendance": ["attendance.view", "attendance.manage"],
+    "Cahier de Texte": ["cahier.verify"],
     "Finance": ["finance.view", "finance.manage"],
     "Reports": ["reports.manage"],
     "Settings": ["settings.manage"],

@@ -142,6 +142,12 @@ def default_backend_feature_flags():
         "enable_entity_console": True,
         "enable_entity_import": True,
         "enable_api_schema_ui": True,
+        "enable_portal_pwa": True,
+        "enable_offline_form_queue": True,
+        "enable_offline_attendance_sync": True,
+        "enable_offline_grade_sync": True,
+        "enable_offline_background_sync": True,
+        "request_persistent_browser_storage": True,
         "max_bulk_import_rows": 500,
         "allow_bulk_commit": True,
         "allowed_roles_entity_console": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
@@ -154,6 +160,12 @@ def default_backend_feature_flags():
         "block_report_download_if_outstanding_balance": True,
         "block_report_download_if_outstanding_returns": False,
         "carry_forward_arrears_on_rollover": True,
+        "enable_cahier_de_texte": False,
+        "cahier_syllabus_integration": "none",
+        "enable_ocr_scan_teller": False,
+        "enable_ministry_api_cartescolaire": False,
+        "enable_ministry_api_dgi": False,
+        "enable_ministry_live_sync": False,
     }
 
 

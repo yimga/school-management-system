@@ -210,7 +210,12 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "marks_entry", "label": "Enter Marks", "url": _safe_reverse("evals:teacher_marks_entry"), "icon": "bi-pencil-square", "section": "Learning Management", "badge": None})
         items.append({"id": "marks_list", "label": "Marks History", "url": _safe_reverse("evals:teacher_marks_list"), "icon": "bi-table", "section": "Learning Management", "badge": None})
         items.append({"id": "attendance", "label": "Attendance", "url": _safe_reverse("portal:teacher_attendance"), "icon": "bi-clipboard-check", "section": "Learning Management", "badge": None})
+        if getattr(user, "has_feature_permission", lambda _: False)("attendance.manage"):
+            items.append({"id": "take_student_attendance", "label": "Take student attendance", "url": _safe_reverse("portal:take_student_attendance"), "icon": "bi-clipboard-check", "section": "Learning Management", "badge": None})
+            items.append({"id": "take_teacher_attendance", "label": "Take teacher attendance", "url": _safe_reverse("portal:record_teacher_attendance"), "icon": "bi-person-check", "section": "Learning Management", "badge": None})
         items.append({"id": "timetable", "label": "My Timetable", "url": _safe_reverse("portal:teacher_timetable"), "icon": "bi-calendar-week", "section": "Learning Management", "badge": None})
+        if (getattr(site, "backend_feature_flags", None) or {}).get("enable_cahier_de_texte"):
+            items.append({"id": "cahier", "label": "Cahier de Texte", "url": _safe_reverse("portal:cahier_list"), "icon": "bi-journal-text", "section": "Learning Management", "badge": None})
         items.append({"id": "payslips", "label": "Payslips", "url": _safe_reverse("payroll:employee_payslips"), "icon": "bi-wallet2", "section": "Human Resources", "badge": None})
         items.append({"id": "leave", "label": "Leave Requests", "url": _safe_reverse("payroll:employee_leave"), "icon": "bi-calendar-check", "section": "Human Resources", "badge": None})
         items.append({"id": "pay_history", "label": "Pay History", "url": _safe_reverse("portal:teacher_pay_history"), "icon": "bi-receipt", "section": "Human Resources", "badge": None})
@@ -253,6 +258,11 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "portal_documents", "label": "Documents", "url": _safe_reverse("portal:portal_feature", kwargs={"feature": "documents"}), "icon": "bi-file-earmark-text", "section": "Content & Documents", "badge": None})
         # Certification & Exams (GCE): admins get quick access; certification home handles disabled state.
         items.append({"id": "certification", "label": "Certification & Exams", "url": _safe_reverse("accounts:certification_home"), "icon": "bi-award", "section": "Academic Management", "badge": None})
+        if (getattr(site, "backend_feature_flags", None) or {}).get("enable_cahier_de_texte") and (getattr(user, "has_feature_permission", lambda _: False)("cahier.verify") or role == "CENSOR"):
+            items.append({"id": "cahier_verify", "label": "Cahier verification", "url": _safe_reverse("portal:cahier_verify_list"), "icon": "bi-journal-check", "section": "Academic Management", "badge": None})
+        if getattr(user, "has_feature_permission", lambda _: False)("attendance.manage"):
+            items.append({"id": "take_student_attendance", "label": "Take student attendance", "url": _safe_reverse("portal:take_student_attendance"), "icon": "bi-clipboard-check", "section": "Academic Management", "badge": None})
+            items.append({"id": "take_teacher_attendance", "label": "Take teacher attendance", "url": _safe_reverse("portal:record_teacher_attendance"), "icon": "bi-person-check", "section": "Academic Management", "badge": None})
         in_backend = request.path.startswith("/backend") or "/authentication/backend" in request.path
         student_list_url = _safe_reverse("accounts:backend_student_list")
         if not student_list_url and is_superuser and not in_backend:

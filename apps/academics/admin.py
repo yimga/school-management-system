@@ -5,6 +5,7 @@ from unfold.admin import ModelAdmin
 from .models import (
     AcademicYear, Term, Department, Specialty, Classroom, ClassroomPromotionMapping, Subject, SubjectAssignment,
     CourseSyllabus, ClassBooklist, Incident,
+    CurriculumStandard, CurriculumNode,
     CertificationExamSession, CertificationCandidate, CertificationAuditLog,
     CertificationExamPreset,
     CertificationFeeTemplate,
@@ -227,6 +228,32 @@ admin_site.register(Incident, IncidentAdmin)
 admin_site.register(SubjectAssignment, SubjectAssignmentAdmin)
 admin_site.register(CourseSyllabus, CourseSyllabusAdmin)
 admin_site.register(ClassBooklist, ClassBooklistAdmin)
+
+
+class CurriculumNodeInline(admin.TabularInline):
+    model = CurriculumNode
+    fk_name = "standard"
+    extra = 0
+    ordering = ("order", "code")
+
+
+class CurriculumStandardAdmin(ModelAdmin):
+    list_display = ("name", "country_code")
+    list_filter = ("country_code",)
+    search_fields = ("name", "description")
+    inlines = [CurriculumNodeInline]
+
+
+class CurriculumNodeAdmin(ModelAdmin):
+    list_display = ("code", "title", "standard", "parent", "level_type", "order")
+    list_filter = ("standard", "level_type")
+    search_fields = ("code", "title")
+    raw_id_fields = ("parent",)
+    ordering = ("standard", "order", "code")
+
+
+admin_site.register(CurriculumStandard, CurriculumStandardAdmin)
+admin_site.register(CurriculumNode, CurriculumNodeAdmin)
 admin_site.register(CertificationExamSession, CertificationExamSessionAdmin)
 admin_site.register(CertificationCandidate, CertificationCandidateAdmin)
 admin_site.register(CertificationAuditLog, CertificationAuditLogAdmin)

@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "portal_base.html" %}
 
 {% block title %}Portal Preferences - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
+  {% include "components/page_header.html" with title="Portal preferences" subtitle="Pick your dashboard style, theme, timezone, and how often to refresh data." action_url=previous_page action_text="Back to dashboard" %}
   <div class="row justify-content-center">
     <div class="col-lg-8 col-xl-7">
       <div class="alert alert-info d-flex align-items-start gap-2">
@@ -19,11 +20,11 @@
 
       <div class="card shadow-sm">
         <div class="card-header bg-white">
-          <h1 class="h5 mb-0">Portal preferences</h1>
-          <p class="text-muted small mb-0">Pick your dashboard style, theme, timezone, and how often to refresh data.</p>
+          <h2 class="h6 mb-0">Settings</h2>
+          <p class="text-muted small mb-0">Theme, timezone, dashboard view, and refresh options.</p>
         </div>
         <div class="card-body">
-          <form method="post" novalidate>
+          <form method="post" novalidate id="user-preferences-form">
             {% csrf_token %}
 
             {% if form.dashboard_visual_preset %}
@@ -84,7 +85,7 @@
             {% endfor %}
 
             <div class="d-flex flex-wrap gap-2 mt-3">
-              <button type="submit" class="btn btn-primary">Save preferences</button>
+              <button type="submit" class="btn btn-primary" id="preferences-submit-btn">Save preferences</button>
               <a class="btn btn-outline-secondary btn-back-primary" href="{{ previous_page }}"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
               {% if request.user.is_superuser or request.user.role == "ADMIN" %}
                 <a class="btn btn-outline-secondary" href="{% url 'admin:siteconfig_sitesettings_change' SITE_SETTINGS.pk|default_if_none:1 %}">
@@ -120,6 +121,15 @@
         if (hasOption && !timezoneSelect.value) {
           timezoneSelect.value = browserTz;
         }
+      }
+
+      const form = document.getElementById("user-preferences-form");
+      const submitBtn = document.getElementById("preferences-submit-btn");
+      if (form && submitBtn) {
+        form.addEventListener("submit", function () {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Saving…';
+        });
       }
     })();
   </script>

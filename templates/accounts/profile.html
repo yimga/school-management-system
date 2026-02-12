@@ -127,12 +127,22 @@
       </div>
     </div>
 
-    {% if request.user.role == 'TEACHER' and teacher_org_tree %}
+    {% if org_chain or request.user.role == 'TEACHER' and teacher_org_tree %}
       <div class="row g-3 mt-0">
         <div class="col-12">
           <div class="card shadow-sm">
             <div class="card-header bg-transparent fw-semibold">Organization</div>
             <div class="card-body">
+              {% if org_chain %}
+                <p class="mb-2 small"><span class="text-muted">Your place in the organization:</span></p>
+                <p class="mb-3 small">
+                  {% for node in org_chain %}
+                    {% if not forloop.first %}<span class="text-muted mx-1">→</span>{% endif %}
+                    {% if node.user_id == request.user.id %}<strong>You</strong>{% else %}{{ node.user.get_full_name|default:node.user.username }}{% if node.position_title %} ({{ node.position_title }}){% endif %}{% endif %}
+                  {% endfor %}
+                </p>
+              {% endif %}
+              {% if request.user.role == 'TEACHER' and teacher_org_tree %}
               <ul class="list-unstyled mb-0 small">
                 <li><span class="text-muted">Department:</span> {{ teacher_org_tree.department.name|default:"—" }}</li>
                 <li><span class="text-muted">Position:</span> {{ teacher_org_tree.position_title }}</li>
@@ -140,21 +150,40 @@
                   <li><span class="text-muted">Reports to:</span> {{ teacher_org_tree.reports_to.user.get_full_name|default:teacher_org_tree.reports_to.user.username }}</li>
                 {% endif %}
               </ul>
-              {% if teacher_org_tree.assignments %}
-                <div class="mt-3">
-                  <span class="text-muted">Classes ({{ teacher_org_tree.academic_year.name|default:"current year" }}):</span>
-                  <ul class="list-unstyled mt-1 mb-0">
-                    {% for item in teacher_org_tree.assignments %}
+              {% endif %}
+              {% if teacher_org_tree %}
+                {% if teacher_org_tree.assignments %}
+                  <div class="mt-3">
+                    <span class="text-muted">Classes ({{ teacher_org_tree.academic_year.name|default:"current year" }}):</span>
+                    <ul class="list-unstyled mt-1 mb-0">
+                      {% for item in teacher_org_tree.assignments %}
+                        <li class="mb-1">
+                          <strong>{{ item.classroom }}</strong>
+                          <span class="text-muted">—</span>
+                          {{ item.subjects|join:", " }}
+                        </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                {% else %}
+                  <p class="text-muted small mt-2 mb-0">No class assignments for the current year.</p>
+                {% endif %}
+              {% endif %}
+              {% if approved_syllabi %}
+                <div class="mt-3 pt-3 border-top">
+                  <span class="text-muted small">Approved syllabi</span>
+                  <ul class="list-unstyled mt-1 mb-0 small">
+                    {% for s in approved_syllabi %}
                       <li class="mb-1">
-                        <strong>{{ item.classroom }}</strong>
+                        {{ s.subject_assignment.classroom.name|default:"—" }}
                         <span class="text-muted">—</span>
-                        {{ item.subjects|join:", " }}
+                        {{ s.subject_assignment.subject.name|default:"—" }}
+                        {% if s.subject_assignment.specialty %}<span class="text-muted">({{ s.subject_assignment.specialty.name }})</span>{% endif %}
+                        <a href="{% url 'academics:syllabus_preview' s.subject_assignment_id %}" class="ms-1">View</a>
                       </li>
                     {% endfor %}
                   </ul>
                 </div>
-              {% else %}
-                <p class="text-muted small mt-2 mb-0">No class assignments for the current year.</p>
               {% endif %}
             </div>
           </div>

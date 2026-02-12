@@ -19,6 +19,15 @@
   var PENDING_MAX_AGE_MS = 48 * 60 * 60 * 1000; // 48h
   var PENDING_MAX_COUNT = 30; // cap queue to avoid localStorage bloat
 
+  function getOfflineConfig() {
+    var cfg = window.SMS_OFFLINE_CONFIG || {};
+    return {
+      enabled: cfg.enabled !== false,
+      formQueueEnabled: cfg.formQueueEnabled !== false,
+      gradeSyncEnabled: cfg.gradeSyncEnabled !== false
+    };
+  }
+
   function storageKey(key) {
     return STORAGE_PREFIX + (key || '').replace(/[^a-zA-Z0-9_-]/g, '_');
   }
@@ -136,7 +145,8 @@
     form.addEventListener('input', debouncedSave);
     form.addEventListener('change', debouncedSave);
     form.addEventListener('submit', function (e) {
-      if (!navigator.onLine && form.getAttribute('data-draft-key')) {
+      var offlineCfg = getOfflineConfig();
+      if (!navigator.onLine && form.getAttribute('data-draft-key') && offlineCfg.enabled && offlineCfg.formQueueEnabled && offlineCfg.gradeSyncEnabled) {
         e.preventDefault();
         var pending = getPendingSubmissions();
         if (pending.length >= PENDING_MAX_COUNT) {
@@ -208,6 +218,9 @@
       if (done) done(false);
       return;
     }
+    try {
+      document.dispatchEvent(new CustomEvent('sms-sync-start', { bubbles: true }));
+    } catch (e) {}
     var csrf = getCsrf();
     var i = 0;
     var stillPending = [];
@@ -215,6 +228,9 @@
       if (i >= pending.length) {
         setPendingSubmissions(stillPending);
         hideUnsyncedBanner();
+        try {
+          document.dispatchEvent(new CustomEvent('sms-sync-end', { bubbles: true }));
+        } catch (e) {}
         if (done) done(stillPending.length > 0);
         return;
       }
@@ -314,10 +330,16 @@
     window.addEventListener('online', function () {
       hideOfflineBanner();
       showSyncPrompt();
-      showUnsyncedBannerIfAny(form);
+      var offlineCfg = getOfflineConfig();
+      if (offlineCfg.enabled && offlineCfg.formQueueEnabled && offlineCfg.gradeSyncEnabled) {
+        showUnsyncedBannerIfAny(form);
+      }
     });
 
-    showUnsyncedBannerIfAny(form);
+    var offlineCfg = getOfflineConfig();
+    if (offlineCfg.enabled && offlineCfg.formQueueEnabled && offlineCfg.gradeSyncEnabled) {
+      showUnsyncedBannerIfAny(form);
+    }
   }
 
   function showResumeBanner(form, key, data, maxAgeHours) {

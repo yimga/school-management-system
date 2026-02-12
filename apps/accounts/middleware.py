@@ -52,6 +52,7 @@ class ModuleAccessMiddleware:
         "/health/",
         "/healthz/",
         "/metrics/",
+        "/siteconfig/preferences",  # Any authenticated user can manage own preferences (theme, dashboard, etc.)
     )
     BYPASS_PATHS = {
         "/authentication/login/",

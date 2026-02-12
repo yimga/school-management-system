@@ -38,7 +38,7 @@ from apps.people.models import (
     Badge,
     BadgeType,
 )
-from apps.academics.models import Term
+from apps.academics.models import Attendance, Classroom, SubjectAssignment, Term
 from apps.academics.services import get_active_year_and_term
 from apps.evals.models import Evaluation
 from apps.finance.models import Invoice, Payment, PaymentReminder, ReferralReward, Notification
@@ -75,6 +75,7 @@ from .models import (
     LessonPlan,
     TeacherTrainingEntry,
     AttendanceJustification,
+    CahierDeTexteEntry,
 )
 from .services import (
     parent_dashboard_widget_data,
@@ -96,6 +97,7 @@ from .forms import (
     LessonPlanUploadForm,
     TeacherTrainingEntryForm,
     AttendanceJustificationForm,
+    CahierDeTexteEntryForm,
 )
 from .views_onboarding import teacher_onboarding_wizard, student_onboarding_wizard
 from apps.communication.models import Message
@@ -716,6 +718,8 @@ def parent_finance(request: HttpRequest):
     finance_request_url = reverse("finance:finance_request_access")
     links = finance_links if (finance_access_granted or not require_finance_opt_in) else all_links
 
+    status_param = ""
+    order_param = "-issued_date"
     if require_finance_opt_in and not finance_access_granted:
         students = []
         invoices_qs = Invoice.objects.none()
@@ -728,13 +732,28 @@ def parent_finance(request: HttpRequest):
             .exclude(status=Invoice.Status.DRAFT)
             .select_related("student", "academic_year")
             .prefetch_related("payments")
-            .order_by("-issued_date")
         )
         aggregates = invoices_qs.aggregate(
             total_due=Sum("total_amount"),
             balance=Sum("balance_amount"),
         )
         overdue_count = invoices_qs.filter(status=Invoice.Status.OVERDUE).count()
+
+        # Optional sort/filter for list (data-agnostic; hero stats stay on full set)
+        status_param = (request.GET.get("status") or "").strip()
+        if status_param and status_param in [c[0] for c in Invoice.Status.choices]:
+            invoices_qs = invoices_qs.filter(status=status_param)
+        _order_map = {
+            "issued_date": "issued_date",
+            "-issued_date": "-issued_date",
+            "due_date": "due_date",
+            "-due_date": "-due_date",
+            "total_amount": "total_amount",
+            "-total_amount": "-total_amount",
+        }
+        order_param = (request.GET.get("order") or "").strip()
+        order_by = _order_map.get(order_param, "-issued_date")
+        invoices_qs = invoices_qs.order_by(order_by)
 
     total_due = aggregates.get("total_due") or Decimal("0.00")
     balance = aggregates.get("balance") or Decimal("0.00")
@@ -833,6 +852,17 @@ def parent_finance(request: HttpRequest):
             "finance_guardian_count": finance_link_count,
             "can_request_finance_access": can_request_finance_access,
             "finance_request_url": finance_request_url,
+            "invoice_statuses": Invoice.Status.choices,
+            "selected_status": status_param,
+            "order_options": [
+                ("-issued_date", _("Date (newest first)")),
+                ("issued_date", _("Date (oldest first)")),
+                ("-due_date", _("Due date (latest first)")),
+                ("due_date", _("Due date (earliest first)")),
+                ("-total_amount", _("Amount (high to low)")),
+                ("total_amount", _("Amount (low to high)")),
+            ],
+            "selected_order": order_param,
         },
     )
 
@@ -1483,6 +1513,188 @@ def teacher_attendance_export(request: HttpRequest):
             entry.remarks or "",
         ])
     return response
+
+
+@login_required
+def take_student_attendance(request: HttpRequest):
+    """Student roll call: date + classroom, default present, one save. Requires attendance.manage."""
+    if not getattr(request.user, "has_feature_permission", lambda _: False)("attendance.manage"):
+        return HttpResponseForbidden("You do not have permission to take student attendance.")
+    year, _term = get_active_year_and_term()
+    classrooms = list(Classroom.objects.filter(academic_year=year).order_by("name")) if year else []
+    today = timezone.localdate()
+    date_str = request.GET.get("date") or request.POST.get("date") or today.isoformat()
+    classroom_id = request.GET.get("classroom") or request.POST.get("classroom")
+    try:
+        att_date = timezone.datetime.strptime(date_str, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        att_date = today
+    existing = {}
+    students = []
+    classroom_obj = None
+    if classroom_id and classrooms:
+        classroom_obj = next((c for c in classrooms if str(c.id) == str(classroom_id)), None)
+        if classroom_obj:
+            students = list(classroom_obj.students.filter(status__in=(StudentProfile.Status.NEW, StudentProfile.Status.RETURNING, StudentProfile.Status.PROBATION)).order_by("last_name", "first_name"))
+            if students and att_date:
+                for a in Attendance.objects.filter(classroom=classroom_obj, date=att_date).select_related("student"):
+                    existing[a.student_id] = a.status
+    if request.method == "POST" and classroom_obj and students:
+        for s in students:
+            status = (request.POST.get(f"status_{s.id}") or "").strip() or Attendance.Status.PRESENT
+            if status not in {c[0] for c in Attendance.Status.choices}:
+                status = Attendance.Status.PRESENT
+            Attendance.objects.update_or_create(
+                student=s, classroom=classroom_obj, date=att_date,
+                defaults={"status": status},
+            )
+        messages.success(request, f"Attendance saved for {len(students)} students.")
+        return redirect(f"{reverse('portal:take_student_attendance')}?date={att_date.isoformat()}&classroom={classroom_obj.id}")
+    status_choices = list(Attendance.Status.choices)
+    students_with_status = [{"student": s, "status": existing.get(s.id, Attendance.Status.PRESENT)} for s in students]
+    hero = {"title": "Take student attendance", "subtitle": "Select date and class, then mark present/absent/late.", "actions": []}
+    return render(request, "portal/roll_call_student.html", {
+        "hero": hero,
+        "classrooms": classrooms,
+        "date_value": att_date.isoformat(),
+        "classroom_id": classroom_id or "",
+        "classroom": classroom_obj,
+        "students_with_status": students_with_status,
+        "status_choices": status_choices,
+        "Attendance": Attendance,
+    })
+
+
+@login_required
+def record_teacher_attendance(request: HttpRequest):
+    """Teacher roll call: date, list of teachers, default present, one save. Requires attendance.manage."""
+    if not getattr(request.user, "has_feature_permission", lambda _: False)("attendance.manage"):
+        return HttpResponseForbidden("You do not have permission to record teacher attendance.")
+    teachers = list(TeacherProfile.objects.select_related("user").order_by("user__last_name", "user__first_name"))
+    today = timezone.localdate()
+    date_str = request.GET.get("date") or request.POST.get("date") or today.isoformat()
+    try:
+        att_date = timezone.datetime.strptime(date_str, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        att_date = today
+    existing = {e.teacher_id: e.status for e in TeacherAttendance.objects.filter(date=att_date)}
+    if request.method == "POST" and teachers:
+        for t in teachers:
+            status = (request.POST.get(f"status_{t.id}") or "").strip() or TeacherAttendance.Status.PRESENT
+            if status not in {c[0] for c in TeacherAttendance.Status.choices}:
+                status = TeacherAttendance.Status.PRESENT
+            TeacherAttendance.objects.update_or_create(
+                teacher=t, date=att_date,
+                defaults={"status": status},
+            )
+        messages.success(request, f"Attendance saved for {len(teachers)} teachers.")
+        return redirect(f"{reverse('portal:record_teacher_attendance')}?date={att_date.isoformat()}")
+    status_choices = list(TeacherAttendance.Status.choices)
+    teachers_with_status = [{"teacher": t, "status": existing.get(t.id, TeacherAttendance.Status.PRESENT)} for t in teachers]
+    hero = {"title": "Take teacher attendance", "subtitle": "Select date and mark each teacher present, absent, late, or on leave.", "actions": []}
+    return render(request, "portal/roll_call_teacher.html", {
+        "hero": hero,
+        "teachers_with_status": teachers_with_status,
+        "date_value": att_date.isoformat(),
+        "status_choices": status_choices,
+        "TeacherAttendance": TeacherAttendance,
+    })
+
+
+def _cahier_enabled():
+    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
+    return bool(flags.get("enable_cahier_de_texte"))
+
+
+@login_required
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def cahier_list(request: HttpRequest):
+    """List and add Cahier de Texte entries (when feature enabled)."""
+    if not _cahier_enabled():
+        return HttpResponseForbidden("Cahier de Texte is not enabled.")
+    profile = TeacherProfile.objects.filter(user=request.user).first()
+    if not profile:
+        return redirect("portal:teacher_dashboard_alias")
+    from apps.evals.models import TeacherAssignment
+    year, _ = get_active_year_and_term()
+    assignments_qs = SubjectAssignment.objects.none()
+    if year:
+        sa_ids = TeacherAssignment.objects.filter(
+            teacher=profile, is_active=True,
+            subject_assignment__academic_year=year,
+        ).values_list("subject_assignment_id", flat=True)
+        assignments_qs = SubjectAssignment.objects.filter(pk__in=sa_ids).select_related("classroom", "subject", "specialty")
+    entries = CahierDeTexteEntry.objects.filter(teacher=profile).select_related("subject_assignment__classroom", "subject_assignment__subject").order_by("-entry_date")[:50]
+    form = CahierDeTexteEntryForm(request.POST or None)
+    form.fields["subject_assignment"].queryset = assignments_qs
+    if request.method == "POST" and form.is_valid():
+        obj = form.save(commit=False)
+        obj.teacher = profile
+        obj.status = CahierDeTexteEntry.Status.SUBMITTED
+        obj.save()
+        messages.success(request, "Entry submitted for visa.")
+        return redirect("portal:cahier_list")
+    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
+    curriculum_nodes = []
+    if flags.get("cahier_syllabus_integration") == "national_progression":
+        from apps.academics.models import CurriculumNode
+        curriculum_nodes = list(
+            CurriculumNode.objects.filter(level_type=CurriculumNode.LevelType.TOPIC)
+            .order_by("standard", "order", "code")
+            .values_list("code", "title")[:500]
+        )
+    hero = {"title": "Cahier de Texte", "subtitle": "Lesson diary entries", "actions": []}
+    return render(request, "portal/cahier_list.html", {
+        "hero": hero, "entries": entries, "form": form, "curriculum_nodes": curriculum_nodes,
+    })
+
+
+@login_required
+def cahier_verify_list(request: HttpRequest):
+    """List SUBMITTED entries for supervisor visa (cahier.verify or CENSOR)."""
+    if not _cahier_enabled():
+        return HttpResponseForbidden("Cahier de Texte is not enabled.")
+    can_verify = getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or getattr(request.user, "role", None) == "CENSOR"
+    if not can_verify:
+        return HttpResponseForbidden("You do not have permission to verify Cahier entries.")
+    entries = CahierDeTexteEntry.objects.filter(
+        status=CahierDeTexteEntry.Status.SUBMITTED,
+    ).select_related("teacher__user", "subject_assignment__classroom", "subject_assignment__subject").order_by("entry_date")[:100]
+    hero = {"title": "Cahier de Texte – Verification", "subtitle": "Visa or request revisions", "actions": []}
+    return render(request, "portal/cahier_verify_list.html", {"hero": hero, "entries": entries})
+
+
+@require_POST
+@login_required
+def cahier_visa(request: HttpRequest, entry_id: int):
+    """Set entry to VISED."""
+    if not _cahier_enabled():
+        return HttpResponseForbidden("Cahier de Texte is not enabled.")
+    if not (getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or getattr(request.user, "role", None) == "CENSOR"):
+        return HttpResponseForbidden("You do not have permission to verify.")
+    entry = get_object_or_404(CahierDeTexteEntry, pk=entry_id, status=CahierDeTexteEntry.Status.SUBMITTED)
+    entry.status = CahierDeTexteEntry.Status.VISED
+    entry.verified_by = request.user
+    entry.verified_at = timezone.now()
+    entry.save(update_fields=["status", "verified_by", "verified_at", "updated_at"])
+    messages.success(request, "Entry vised.")
+    return redirect("portal:cahier_verify_list")
+
+
+@require_POST
+@login_required
+def cahier_request_revisions(request: HttpRequest, entry_id: int):
+    """Set entry to REVISIONS_REQUESTED."""
+    if not _cahier_enabled():
+        return HttpResponseForbidden("Cahier de Texte is not enabled.")
+    if not (getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or getattr(request.user, "role", None) == "CENSOR"):
+        return HttpResponseForbidden("You do not have permission to verify.")
+    entry = get_object_or_404(CahierDeTexteEntry, pk=entry_id, status=CahierDeTexteEntry.Status.SUBMITTED)
+    entry.status = CahierDeTexteEntry.Status.REVISIONS_REQUESTED
+    entry.save(update_fields=["status", "updated_at"])
+    messages.success(request, "Revisions requested.")
+    return redirect("portal:cahier_verify_list")
 
 
 @teacher_portal_required

@@ -626,6 +626,8 @@ class Attendance(models.Model):
         default=Status.PRESENT,
     )
     remarks = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-date", "student"]
@@ -796,3 +798,53 @@ class ClassBooklist(models.Model):
 
     def __str__(self):
         return f"{self.classroom.name} ({self.academic_year.name})"
+
+
+class CurriculumStandard(models.Model):
+    """Curriculum/progression standard (e.g. MINESEC Physics Form 5, Common Core). Country-agnostic."""
+    name = models.CharField(max_length=200)
+    country_code = models.CharField(max_length=10, blank=True, help_text="e.g. CM, US, GB")
+    description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class CurriculumNode(models.Model):
+    """Hierarchical node (Subject > Unit > Topic) for a standard. Imported via CSV/Excel."""
+    class LevelType(models.TextChoices):
+        SUBJECT = "subject", "Subject"
+        UNIT = "unit", "Unit"
+        CHAPTER = "chapter", "Chapter"
+        TOPIC = "topic", "Topic"
+
+    standard = models.ForeignKey(
+        CurriculumStandard,
+        on_delete=models.CASCADE,
+        related_name="nodes",
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+    )
+    code = models.CharField(max_length=80, help_text="e.g. PHY-F5-U2-L3")
+    title = models.CharField(max_length=300)
+    order = models.PositiveSmallIntegerField(default=0)
+    level_type = models.CharField(
+        max_length=20,
+        choices=LevelType.choices,
+        default=LevelType.TOPIC,
+    )
+
+    class Meta:
+        ordering = ["standard", "order", "code"]
+        unique_together = [("standard", "code")]
+
+    def __str__(self):
+        return f"{self.code} – {self.title}"

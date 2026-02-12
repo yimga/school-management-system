@@ -175,9 +175,13 @@
         <div class="wizard-step-number">{% if step > 2 %}<i class="bi bi-check"></i>{% else %}2{% endif %}</div>
         <div class="wizard-step-label">Professional</div>
       </div>
-      <div class="wizard-step {% if step >= 3 %}active{% endif %}">
-        <div class="wizard-step-number">3</div>
+      <div class="wizard-step {% if step >= 3 %}active{% endif %} {% if step > 3 %}completed{% endif %}">
+        <div class="wizard-step-number">{% if step > 3 %}<i class="bi bi-check"></i>{% else %}3{% endif %}</div>
         <div class="wizard-step-label">Preferences</div>
+      </div>
+      <div class="wizard-step {% if step >= 4 %}active{% endif %}">
+        <div class="wizard-step-number">4</div>
+        <div class="wizard-step-label">Photo</div>
       </div>
     </div>
     <div class="wizard-progress-bar">
@@ -187,7 +191,7 @@
 
   <!-- Step Content -->
   <div class="wizard-step-content">
-    <form method="post" id="wizardForm">
+    <form method="post" id="wizardForm" enctype="multipart/form-data">
       {% csrf_token %}
       <input type="hidden" name="step" value="{{ step }}">
 
@@ -319,9 +323,24 @@
           </div>
         </div>
 
+      {% endif %}
+
+      <!-- Step 4: Profile photo -->
+      {% if step == 4 %}
+        <h3 class="wizard-step-title">Step 4: Your photo</h3>
+        <p class="wizard-step-description">
+          Upload a photo for your digital ID card. You can update it later from your profile.
+        </p>
+        <div class="mb-3">
+          <label class="form-label">{{ form.profile_photo.label }}</label>
+          <input type="file" name="profile_photo" accept="image/*" class="form-control" id="id_profile_photo">
+          {% if form.profile_photo.help_text %}
+            <div class="form-text">{{ form.profile_photo.help_text }}</div>
+          {% endif %}
+        </div>
         <div class="alert alert-info mt-3">
           <i class="bi bi-info-circle me-2"></i>
-          <strong>Next Steps:</strong> After submitting, please contact the school administration to activate your account and set up login credentials.
+          <strong>After submitting:</strong> Contact the school to activate your account and set up login credentials.
           {% if support_email %}
             <br><strong>Email:</strong> <a href="mailto:{{ support_email }}">{{ support_email }}</a>
           {% endif %}
