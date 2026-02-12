@@ -1,0 +1,153 @@
+/* Backend command-center hardening:
+   - keeps colors on active ThemePack tokens
+   - removes faded action row states
+   - aligns quick actions and metrics blocks
+   - compacts right sidebar cards */
+
+body[data-dashboard-page="backend"] .backend-welcome-section {
+  background: linear-gradient(130deg, var(--dashboard-surface), var(--dashboard-surface-soft));
+  border: 1px solid var(--dashboard-border);
+  box-shadow: var(--dashboard-shadow-soft);
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-section h2,
+body[data-dashboard-page="backend"] .backend-welcome-section p {
+  color: var(--dashboard-text-strong);
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-section p.text-muted,
+body[data-dashboard-page="backend"] .backend-welcome-section .text-muted {
+  color: var(--dashboard-text-muted) !important;
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-action-row .btn {
+  opacity: 1;
+  filter: none;
+  font-weight: 600;
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-action-row .btn-outline-secondary,
+body[data-dashboard-page="backend"] .backend-welcome-action-row .btn-outline-primary {
+  color: var(--dashboard-text-strong);
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 35%, #94a3b8 65%);
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 6%, #ffffff 94%);
+}
+
+body[data-dashboard-page="backend"] .backend-welcome-action-row .btn-outline-secondary:hover,
+body[data-dashboard-page="backend"] .backend-welcome-action-row .btn-outline-primary:hover,
+body[data-dashboard-page="backend"] .backend-welcome-action-row .btn-outline-secondary:focus-visible,
+body[data-dashboard-page="backend"] .backend-welcome-action-row .btn-outline-primary:focus-visible {
+  color: #fff;
+  background: linear-gradient(135deg, var(--dashboard-theme-primary), var(--dashboard-theme-accent));
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 70%, #0f172a 30%);
+}
+
+body[data-dashboard-page="backend"] .backend-quick-action-btn {
+  color: var(--dashboard-text-strong);
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 40%, #94a3b8 60%);
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 7%, #ffffff 93%);
+}
+
+body[data-dashboard-page="backend"] .backend-quick-action-btn:hover,
+body[data-dashboard-page="backend"] .backend-quick-action-btn:focus-visible {
+  color: #fff;
+  background: linear-gradient(135deg, var(--dashboard-theme-primary), var(--dashboard-theme-accent));
+  border-color: color-mix(in srgb, var(--dashboard-theme-primary) 70%, #0f172a 30%);
+}
+
+@media (min-width: 992px) {
+  body[data-dashboard-page="backend"] .backend-between-sidebars-row {
+    align-items: stretch;
+  }
+
+  body[data-dashboard-page="backend"] .backend-between-sidebars-row > [class*="col-"] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  body[data-dashboard-page="backend"] .backend-quick-actions-card,
+  body[data-dashboard-page="backend"] .backend-kpi-grid-2col {
+    flex: 1 1 auto;
+    min-height: 238px;
+  }
+
+  body[data-dashboard-page="backend"] .backend-kpi-grid-2col > [class*="col-"] {
+    display: flex;
+  }
+
+  body[data-dashboard-page="backend"] .backend-kpi-grid-2col .backend-kpi-card {
+    height: 100%;
+  }
+
+  body[data-dashboard-page="backend"] .backend-quick-actions-card .card-body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  body[data-dashboard-page="backend"] .backend-quick-actions-grid {
+    flex: 1 1 auto;
+    align-content: start;
+    max-height: 174px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.1rem;
+  }
+}
+
+body[data-dashboard-page="backend"] .backend-command-center-row {
+  --bs-gutter-x: 0.52rem;
+  --bs-gutter-y: 0.52rem;
+}
+
+body[data-dashboard-page="backend"] .backend-command-sidebar .sidebar-sticky {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+body[data-dashboard-page="backend"] .backend-command-sidebar .card {
+  margin-bottom: 0 !important;
+}
+
+body[data-dashboard-page="backend"] .backend-sidebar-calendar-clock .card-body {
+  padding: 0.65rem 0.75rem;
+}
+
+body[data-dashboard-page="backend"] .backend-copilot-usage-card .card-body,
+body[data-dashboard-page="backend"] .backend-copilot-audit-card .card-body {
+  padding: 0.65rem 0.75rem;
+}
+
+body[data-dashboard-page="backend"] .backend-copilot-usage-card ul,
+body[data-dashboard-page="backend"] .backend-copilot-audit-card ul {
+  max-height: 160px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body[data-dashboard-page="backend"] .backend-copilot-usage-card .small.text-muted,
+body[data-dashboard-page="backend"] .backend-copilot-audit-card .small.text-muted {
+  color: var(--dashboard-text-muted) !important;
+}
+
+body[data-dashboard-page="backend"] .backend-ops-watch-card .card-body {
+  padding: 0.65rem 0.75rem;
+}
+
+body[data-dashboard-page="backend"] .backend-ops-watch-card .btn {
+  min-height: 32px;
+  border-radius: 9px;
+}
+
+body[data-dashboard-page="backend"] .backend-command-sidebar .badge.bg-light.text-dark {
+  background: color-mix(in srgb, var(--dashboard-theme-primary) 10%, #ffffff 90%) !important;
+  color: var(--dashboard-text-strong) !important;
+  border: 1px solid var(--dashboard-border);
+}
+
+@media (max-width: 1199px) {
+  body[data-dashboard-page="backend"] .backend-command-sidebar .sidebar-sticky {
+    position: static;
+    top: auto;
+  }
+}
