@@ -105,19 +105,19 @@ self.addEventListener("sync", (event) => {
   }
 });
 
+/** Add any REST write paths for offline queue here. Grade writes currently use form queue (form-draft-save) + sync when online. */
 function isApiWriteRequest(request, url) {
   if (!["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
     return false;
   }
-  return (
-    url.pathname.startsWith("/api/attendance/")
-  );
+  if (url.pathname.startsWith("/api/attendance/")) return true;
+  // if (url.pathname.startsWith("/api/grades/") || url.pathname.startsWith("/api/evals/")) return true;
+  return false;
 }
 
 function inferSyncType(pathname) {
-  if (pathname.startsWith("/api/attendance/")) {
-    return "attendance";
-  }
+  if (pathname.startsWith("/api/attendance/")) return "attendance";
+  // if (pathname.startsWith("/api/grades/") || pathname.startsWith("/api/evals/")) return "grade";
   return null;
 }
 
@@ -287,6 +287,7 @@ function openSyncDb() {
   });
 }
 
+/** Optional: encrypt item.body (and sensitive headers) before storing if policy requires local encryption. */
 async function enqueueSyncItem(item) {
   const db = await openSyncDb();
   return new Promise((resolve, reject) => {

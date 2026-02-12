@@ -16,8 +16,9 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 | **Django as API for sync** | Done | `OfflineSyncViewSet`, `OfflineSyncQueue`, `/api/sync/`; attendance and grade sync in `mobile_api.py` |
 | **Versioning (modified_at)** | Done | Attendance and Evaluation (and others) use `updated_at` / `modified_at`; server compares with client timestamp on sync |
 | **Submit override (offline → queue)** | Done | Form draft save (`form-draft-save.js`) stores pending submissions when offline; sync when online; service worker queues `/api/attendance/` writes |
-| **Connection status UI** | Partial | Offline banner and “Saved for sync” appear on forms that use `FormDraftSave`; **no global “Connected / Offline / Syncing” status bar** in portal header |
-| **Service worker write interception** | Partial | Only **attendance** API writes are queued in SW (`isApiWriteRequest` only checks `/api/attendance/`). Grade writes go via form-draft → `sync_batch` when online, so no SW queue needed for grade POSTs from the web form. |
+| **Connection status UI** | Done | Global status bar in portal header (Connected / Offline – data will sync later / Syncing…); `offline_status_bar.html` + `offline-status-bar.js`; shown when `SITE.enable_offline_mode`. |
+| **Service worker write interception** | Done | Attendance API writes queued; comment in SW for adding grade/eval REST paths if added later. Grade writes use form-draft → sync when online. |
+| **API GET strategy** | Done | Stale-While-Revalidate for `/api/` GET (return cached then revalidate in background). |
 
 ---
 
@@ -58,7 +59,8 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 5. **Encryption of local data**  
    Requirement: “Keep the local database encrypted (CryptoJS) since school data will sit on local hard drives.”  
    **Current:** IndexedDB and localStorage are not encrypted.  
-   **Suggestion:** If policy requires it, add an encryption layer (e.g. encrypt payloads before writing to IndexedDB/localStorage and decrypt when reading/syncing).
+   **Hook points:** In `service-worker.js`, encrypt before `store.add(item)` in `enqueueSyncItem` and decrypt in `getSyncItems` / when building the fetch body in `replayQueue`. For form-draft-save, encrypt `sms_draft_*` and `sms_pending_mark_submissions` in localStorage. Key source could be a short-lived server token or a user-derived key (Web Crypto API or CryptoJS).  
+   **Suggestion:** If policy requires it, implement the above and document key storage (e.g. session-only vs persisted).
 
 6. **Unit test: “Network Down”**  
    Requirement: “Unit test that simulates Network Down so Attendance Save doesn’t fail.”  
@@ -80,16 +82,16 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 | modified_at on models | Yes | Attendance, Evaluation, etc. have updated_at |
 | Submit override (fetch + queue on failure) | Yes | SW queues attendance API; form-draft queues marks |
 | Persistent storage (persist()) | Yes | When flag set |
-| Connection status bar (Connected/Offline/Syncing) | No | Only form-level banners |
+| Connection status bar (Connected/Offline/Syncing) | Yes | Portal header status bar when offline mode enabled |
 | Full local mirror DB + hydrate on login | No | Queue-only; no Dexie/PouchDB mirror |
-| Local encryption (CryptoJS) | No | Not implemented |
+| Local encryption (CryptoJS) | No | Documented hook points in SW and audit |
 | “Network Down” test | No | Not implemented |
 
 ---
 
 ## Recommended next steps (in order)
 
-1. **Add a global connection status indicator** in the portal (e.g. “Connected” / “Offline – data will sync later” / “Syncing…”).
-2. **Optional:** Extend service worker `isApiWriteRequest` to include any direct grade/evaluation write API path if you add such endpoints.
+1. ~~**Add a global connection status indicator**~~ Done: `templates/components/offline_status_bar.html`, `static/js/offline-status-bar.js`; form-draft-save dispatches `sms-sync-start` / `sms-sync-end`.
+2. ~~**Optional: grade/eval write path in SW**~~ Documented; add path in `isApiWriteRequest` / `inferSyncType` if a REST grade/eval write API is added.
 3. **Optional:** Add a test that simulates offline → save attendance (or grade) → online → assert sync.
-4. **If policy requires:** Design and add encryption for queued/local data (e.g. encrypt before IndexedDB/localStorage write).
+4. **If policy requires:** Implement encryption at documented hook points (SW `enqueueSyncItem` / form-draft localStorage).
