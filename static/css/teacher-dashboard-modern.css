@@ -101,6 +101,21 @@
   margin-top: 4px;
 }
 
+.dashboard-page-teacher .tdm-hero__actions .btn-outline-light {
+  background: color-mix(in srgb, var(--tdm-primary) 14%, #ffffff 86%);
+  border-color: color-mix(in srgb, var(--tdm-primary) 42%, #cbd5e1 58%);
+  color: var(--tdm-text);
+  font-weight: 700;
+  opacity: 1;
+}
+
+.dashboard-page-teacher .tdm-hero__actions .btn-outline-light:hover,
+.dashboard-page-teacher .tdm-hero__actions .btn-outline-light:focus-visible {
+  background: color-mix(in srgb, var(--tdm-primary) 20%, #ffffff 80%);
+  border-color: color-mix(in srgb, var(--tdm-primary) 58%, #94a3b8 42%);
+  color: var(--tdm-text);
+}
+
 .tdm-hero__profile {
   padding: 16px;
   display: flex;
@@ -362,11 +377,45 @@
   gap: 10px;
 }
 
+.tdm-action-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .tdm-compact-card {
   padding: 12px;
   border: 1px solid var(--tdm-border);
   border-radius: 14px;
   background: var(--tdm-card);
+}
+
+.tdm-action-card {
+  padding: 12px;
+  border: 1px solid var(--tdm-border);
+  border-radius: 14px;
+  background: var(--tdm-card);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tdm-action-buttons {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tdm-action-buttons .btn {
+  width: 100%;
+}
+
+.tdm-deadline-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .tdm-compact-head {
@@ -595,11 +644,24 @@
   font-size: 0.9rem;
 }
 
+.dashboard-page-teacher .tdm-shell .btn:not(:disabled),
+.dashboard-page-teacher .tdm-shell .tdm-stat-label,
+.dashboard-page-teacher .tdm-shell .tdm-stat-meta,
+.dashboard-page-teacher .tdm-shell .tdm-task-meta,
+.dashboard-page-teacher .tdm-shell .tdm-mini-meta,
+.dashboard-page-teacher .tdm-shell .tdm-progress-label,
+.dashboard-page-teacher .tdm-shell .tdm-compact-list small {
+  opacity: 1;
+}
+
 @media (max-width: 992px) {
   .tdm-hero {
     grid-template-columns: 1fr;
   }
   .tdm-main-grid {
+    grid-template-columns: 1fr;
+  }
+  .tdm-action-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -625,6 +687,12 @@
     justify-content: flex-start;
   }
   .tdm-compact-stack {
+    grid-template-columns: 1fr;
+  }
+  .tdm-action-buttons {
+    grid-template-columns: 1fr;
+  }
+  .tdm-deadline-metrics {
     grid-template-columns: 1fr;
   }
 }

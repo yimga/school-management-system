@@ -222,6 +222,74 @@
               {% endif %}
             </article>
           </div>
+          <div class="tdm-action-grid" aria-label="{% trans 'Teacher action blocks' %}">
+            <article class="tdm-action-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "At-risk follow-up" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ teacher_followup_items|length|default:0 }}</span>
+              </div>
+              {% if teacher_followup_items %}
+              <ul class="tdm-compact-list">
+                {% for item in teacher_followup_items %}
+                <li>
+                  <div>
+                    <strong>{{ item.student_name|truncatechars:30 }}</strong>
+                    <small>{{ item.subject }} | {{ item.classroom }}</small>
+                  </div>
+                  <span class="badge text-bg-warning">-{{ item.drop_points }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "No at-risk students." %}</p>
+              {% endif %}
+              <div class="tdm-action-buttons">
+                <a class="btn btn-soft btn-sm" href="{{ teacher_action_links.message }}">{% trans "Message" %}</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ teacher_action_links.open_marks }}">{% trans "Open marks" %}</a>
+                <a class="btn btn-outline-primary btn-sm" href="{{ teacher_action_links.flag_hod }}">{% trans "Flag for HOD" %}</a>
+              </div>
+            </article>
+            <article class="tdm-action-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "This week deadlines" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ teacher_deadline_items|length|default:0 }}</span>
+              </div>
+              <div class="tdm-deadline-metrics">
+                <div class="tdm-badge-tile">
+                  <span>{% trans "Sequence/CA" %}</span>
+                  <strong>{{ teacher_deadline_counts.sequence_ca_deadlines|default:0 }}</strong>
+                </div>
+                <div class="tdm-badge-tile">
+                  <span>{% trans "Practical pending" %}</span>
+                  <strong>{{ teacher_deadline_counts.practical_workshop_pending|default:0 }}</strong>
+                </div>
+                <div class="tdm-badge-tile">
+                  <span>{% trans "Conflicts" %}</span>
+                  <strong>{{ teacher_deadline_counts.timetable_conflicts|default:0 }}</strong>
+                </div>
+              </div>
+              {% if teacher_deadline_items %}
+              <ul class="tdm-compact-list">
+                {% for ev in teacher_deadline_items %}
+                <li>
+                  <div>
+                    <strong>{{ ev.title|truncatechars:34 }}</strong>
+                    <small>{% if ev.detail %}{{ ev.detail }}{% else %}{% trans "Grading deadline" %}{% endif %}</small>
+                  </div>
+                  <span>{{ ev.when|date:"M j" }}</span>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "No pending deadlines." %}</p>
+              {% endif %}
+              <div class="tdm-action-buttons">
+                <a class="btn btn-primary btn-sm" href="{{ teacher_action_links.enter_marks }}">{% trans "Enter marks" %}</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ teacher_action_links.open_timetable }}">{% trans "Open timetable" %}</a>
+                <a class="btn btn-soft btn-sm" href="{{ teacher_action_links.export_list }}">{% trans "Export list" %}</a>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
 

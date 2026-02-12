@@ -728,6 +728,26 @@ def teacher_dashboard(request: HttpRequest):
 
     # Phase 3: Unified calendar events (upcoming deadlines)
     dashboard_events = _upcoming_deadlines(year) if year else []
+    week_horizon = timezone.now() + timezone.timedelta(days=7)
+    teacher_followup_items = list(ews_list[:5]) if ews_list else []
+    teacher_deadline_items = [
+        ev for ev in dashboard_events
+        if ev.get("when") and ev["when"] <= week_horizon
+    ][:5]
+    teacher_deadline_counts = {
+        "sequence_ca_deadlines": len(teacher_deadline_items),
+        "practical_workshop_pending": widget_data.get("tasks", {}).get("pending_evaluations", 0),
+        # Placeholder until timetable conflict engine is introduced.
+        "timetable_conflicts": 0,
+    }
+    teacher_action_links = {
+        "message": reverse("accounts:user_messages"),
+        "open_marks": reverse("evals:teacher_marks_entry"),
+        "flag_hod": reverse("portal:teacher_workflow"),
+        "enter_marks": reverse("evals:teacher_marks_entry"),
+        "open_timetable": reverse("portal:teacher_timetable"),
+        "export_list": f"{reverse('evals:teacher_marks_list')}?export=csv",
+    }
 
     # Phase 3: Resource library (syllabus items)
     syllabus_items = list(
@@ -839,6 +859,10 @@ def teacher_dashboard(request: HttpRequest):
         "ews_list": ews_list,
         "curriculum_map": curriculum_map,
         "dashboard_events": dashboard_events,
+        "teacher_followup_items": teacher_followup_items,
+        "teacher_deadline_items": teacher_deadline_items,
+        "teacher_deadline_counts": teacher_deadline_counts,
+        "teacher_action_links": teacher_action_links,
         "syllabus_items": syllabus_items,
         "assignment_syllabus_statuses": assignment_syllabus_statuses,
         "syllabus_status_summary": syllabus_status_summary,
