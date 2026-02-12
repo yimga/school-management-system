@@ -1,0 +1,9 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Link expired" %}{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+  <h2>{% trans "Link expired or invalid" %}</h2>
+  <p class="text-muted">{% trans "This photo upload link has expired. Please ask the school for a new link." %}</p>
+</div>
+{% endblock %}

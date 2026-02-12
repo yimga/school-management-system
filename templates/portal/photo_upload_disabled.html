@@ -1,0 +1,9 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Feature unavailable" %}{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+  <h2>{% trans "Photo upload from another device is unavailable" %}</h2>
+  <p class="text-muted">{% trans "Your school has disabled this feature. Please upload a photo on this device or ask the school to enable it." %}</p>
+</div>
+{% endblock %}

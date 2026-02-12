@@ -277,6 +277,7 @@ class StudentProfile(models.Model):
         related_name='students_updated',
         help_text="User who last updated this student record"
     )
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         ordering = ["last_name", "first_name"]

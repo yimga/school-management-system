@@ -232,7 +232,7 @@
       <b>{{ sa.subject.name }}</b> — {{ sa.classroom.name }} / {{ sa.specialty.name }} — coef {{ sa.coefficient }}
     </div>
     <div class="card-body table-responsive">
-      <form method="post" id="marks-entry-form" data-draft-key="marks_{{ sa.id }}" data-draft-max-age-hours="24">
+      <form method="post" id="marks-entry-form" data-draft-key="marks_{{ sa.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced marks">
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
 

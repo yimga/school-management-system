@@ -48,6 +48,15 @@ from .views_contact_requests import (
     staff_contact_request_list,
     staff_contact_request_detail,
 )
+from .views_photo_upload import (
+    photo_upload_generate,
+    photo_upload_generate_for_profile,
+    photo_upload_phone_page,
+    photo_upload_upload,
+    photo_upload_status,
+    photo_upload_qr,
+    photo_upload_send_link_page,
+)
 try:
     from .views_documents import (
         document_library_manage,
@@ -129,7 +138,17 @@ urlpatterns = [
     path("staff/cahier/visa/<int:entry_id>/", cahier_visa, name="cahier_visa"),
     path("staff/cahier/revisions/<int:entry_id>/", cahier_request_revisions, name="cahier_request_revisions"),
     path("staff/contact-requests/<uuid:request_id>/", staff_contact_request_detail, name="staff_contact_request_detail"),
-    
+
+    # Photo upload from another device
+    path("photo-upload/generate/", photo_upload_generate, name="photo_upload_generate"),
+    path("photo-upload/generate-for-profile/", photo_upload_generate_for_profile, name="photo_upload_generate_for_profile"),
+    path("photo-upload/<uuid:token>/", photo_upload_phone_page, name="photo_upload_phone"),
+    path("photo-upload/<uuid:token>/upload/", photo_upload_upload, name="photo_upload_upload"),
+    path("photo-upload/<uuid:token>/status/", photo_upload_status, name="photo_upload_status"),
+    path("photo-upload/<uuid:token>/qr/", photo_upload_qr, name="photo_upload_qr"),
+    path("photo-upload/send-link/student/<int:student_id>/", photo_upload_send_link_page, name="photo_upload_send_link_student"),
+    path("photo-upload/send-link/teacher/<int:teacher_id>/", photo_upload_send_link_page, name="photo_upload_send_link_teacher"),
+
     # Document Library Management (Backend UI)
     path("backend/documents/", document_library_manage, name="document_library_manage"),
     path("backend/documents/upload/", document_upload, name="document_upload"),

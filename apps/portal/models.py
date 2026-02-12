@@ -599,6 +599,40 @@ class AttendanceJustification(models.Model):
         return f"{self.student} – {self.attendance_date}"
 
 
+class PhotoUploadToken(models.Model):
+    """Temporary token for uploading a profile photo from another device (e.g. phone)."""
+    class Purpose(models.TextChoices):
+        REGISTRATION = "registration", "Registration (new student/teacher)"
+        PROFILE_UPDATE = "profile_update", "Profile update (existing)"
+
+    token = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    photo = models.ImageField(upload_to="portal/photo_upload/%Y/%m/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    purpose = models.CharField(max_length=20, choices=Purpose.choices, default=Purpose.REGISTRATION)
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    teacher = models.ForeignKey(
+        "people.TeacherProfile",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Photo upload token"
+        verbose_name_plural = "Photo upload tokens"
+
+    def __str__(self):
+        return str(self.token)
+
+
 # Register portal enhancement models so migrations/admin discover them.
 # These live in a separate module to keep this file focused.
 try:

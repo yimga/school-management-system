@@ -1,5 +1,7 @@
 """Entity CRUD and session-claims APIs for frontend orchestration."""
 from django.db import transaction
+from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -42,6 +44,29 @@ def _is_admin_like(user: User) -> bool:
 def _backend_flags() -> dict:
     site = SiteSettings.get_solo()
     return getattr(site, "backend_feature_flags", {}) or {}
+
+
+def _check_student_offline_conflict(instance, request):
+    """If X-Client-Updated-At is present, compare with instance.updated_at; return 409 Response if client is older."""
+    raw = request.headers.get("X-Client-Updated-At") or request.META.get("HTTP_X_CLIENT_UPDATED_AT")
+    if not raw or not str(raw).strip():
+        return None
+    client_dt = parse_datetime(str(raw).strip())
+    if client_dt is None:
+        return None
+    if timezone.is_naive(client_dt):
+        client_dt = timezone.make_aware(client_dt)
+    server_dt = getattr(instance, "updated_at", None)
+    if server_dt is None:
+        return None
+    if timezone.is_naive(server_dt):
+        server_dt = timezone.make_aware(server_dt)
+    if client_dt < server_dt:
+        return Response(
+            {"error": "conflict", "server_updated_at": server_dt.isoformat()},
+            status=status.HTTP_409_CONFLICT,
+        )
+    return None
 
 
 class StudentProfileViewSet(viewsets.ModelViewSet):
@@ -90,6 +115,21 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.get("partial", False)
+        instance = self.get_object()
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        conflict = _check_student_offline_conflict(instance, request)
+        if conflict:
+            return conflict
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
 
     @action(detail=False, methods=["post"], url_path="bulk-assign")
     def bulk_assign(self, request):
