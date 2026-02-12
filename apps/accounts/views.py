@@ -413,13 +413,40 @@ def user_messages(request):
 
 
 def _is_staff_or_teacher(user):
-    if getattr(user, "role", None) == User.Role.PARENT:
+    if not user or not getattr(user, "is_authenticated", False):
         return False
-    return user.is_staff or user.is_superuser or getattr(user, "role", None) in (
-        User.Role.ADMIN, User.Role.TEACHER, User.Role.LEADERSHIP,
-        User.Role.PRINCIPAL, User.Role.VICE_PRINCIPAL, User.Role.DEPT_LEAD,
-        User.Role.HOD, User.Role.SECRETARY, User.Role.BURSAR,
+    role = getattr(user, "role", None)
+    if role in (User.Role.PARENT, User.Role.STUDENT):
+        return False
+    return user.is_staff or user.is_superuser or role in (
+        User.Role.ADMIN,
+        User.Role.TEACHER,
+        User.Role.LEADERSHIP,
+        User.Role.PRINCIPAL,
+        User.Role.VICE_PRINCIPAL,
+        User.Role.DEPT_LEAD,
+        User.Role.HOD,
+        User.Role.SECRETARY,
+        User.Role.BURSAR,
+        User.Role.IT_ADMIN,
+        User.Role.PROPRIETOR,
+        User.Role.COMMS_STAFF,
+        User.Role.EXECUTIVE_ASSISTANT,
+        User.Role.VIRTUAL_ASSISTANT,
+        User.Role.ACADEMICS_STAFF,
+        User.Role.FINANCE_STAFF,
+        User.Role.ACCOUNTANT,
     )
+
+
+def _can_access_direct_messages(user) -> bool:
+    """Roles allowed to use direct messaging compose/thread endpoints."""
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    role = getattr(user, "role", None)
+    if role in (User.Role.PARENT, User.Role.STUDENT):
+        return False
+    return _is_staff_or_teacher(user)
 
 
 @login_required
@@ -436,9 +463,11 @@ def direct_thread(request, user_id):
     other_is_parent = getattr(other, "role", None) == User.Role.PARENT
     i_am_parent = getattr(request.user, "role", None) == User.Role.PARENT
 
-    # Parent can only chat with staff/teacher (reply to school); not with another parent
-    if i_am_parent and other_is_parent:
+    # Parent can only chat with staff/teacher (reply to school).
+    if i_am_parent and not _is_staff_or_teacher(other):
         return redirect(reverse("portal:parent_contact_school"))
+    if not i_am_parent and not _can_access_direct_messages(request.user):
+        return HttpResponseForbidden("You don't have permission to send direct messages.")
 
     # Staff–parent conversation record (only when one is parent, one is staff/teacher)
     conv = None
@@ -493,6 +522,8 @@ def direct_compose(request):
     """Start a new direct message; staff/teacher only; parents use Contact School (RBAC)."""
     if getattr(request.user, "role", None) == User.Role.PARENT:
         return redirect(reverse("portal:parent_contact_school"))
+    if not _can_access_direct_messages(request.user):
+        return HttpResponseForbidden("You don't have permission to compose direct messages.")
     from apps.communication.models import Message
 
     if request.method == "POST":
@@ -500,9 +531,11 @@ def direct_compose(request):
         body = (request.POST.get("body") or "").strip()
         subject = (request.POST.get("subject") or "").strip() or "Direct message"
         if not body or not recipient_id:
+            messages.error(request, "Select a recipient and enter a message.")
             return redirect("accounts:direct_compose")
         recipient = User.objects.filter(pk=recipient_id, is_active=True).exclude(pk=request.user.pk).first()
         if not recipient:
+            messages.error(request, "Selected recipient is not available.")
             return redirect("accounts:direct_compose")
         from apps.communication.models import DirectConversation
         if getattr(recipient, "role", None) == User.Role.PARENT and _is_staff_or_teacher(request.user):
