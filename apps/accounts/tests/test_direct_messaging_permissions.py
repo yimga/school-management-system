@@ -92,3 +92,10 @@ class DirectMessagingPermissionTests(TestCase):
         )
         self.assertEqual(reply_response.status_code, 302)
         self.assertEqual(Message.objects.count(), count_before)
+
+    def test_messages_page_does_not_render_toast_usage_docs(self):
+        self.client.force_login(self.principal)
+        response = self.client.get(reverse("accounts:user_messages"))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Reusable Toast Notification System Usage")
+        self.assertNotContains(response, "Include this in base templates, then call")

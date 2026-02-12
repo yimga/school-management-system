@@ -1,11 +1,4 @@
 {% load i18n static %}
-{# Reusable Toast Notification System
-   Usage: Include this in base templates, then call:
-   window.showToast('Message', 'success'|'error'|'warning'|'info', duration_ms)
-   Or with options: window.showToast('Message', 'success', { duration: 5000, onUndo: function() { ... } })
-   Or dispatch custom event: document.dispatchEvent(new CustomEvent('showToast', {detail: {message: 'Saved!', type: 'success', onUndo: fn}}))
-   Optional: haptic feedback (navigator.vibrate) is triggered for success/error on supported devices.
-#}
 <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
 <script>

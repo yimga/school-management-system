@@ -169,7 +169,7 @@
       .app-container .table td,
       .app-container .table th,
       .app-container .badge,
-      .app-container .btn {
+      #main-content .btn {
         overflow-wrap: anywhere;
         word-break: break-word;
       }
@@ -311,7 +311,7 @@
 
         <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
           {% if request.user.is_authenticated %}
-            <span class="small d-none d-md-inline">Logged in as {{ request.user.username }}</span>
+            <span class="small d-none d-md-inline topbar-username">Logged in as {{ request.user.username }}</span>
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">Logout</a>
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">Login</a>
