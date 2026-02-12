@@ -37,6 +37,10 @@ FEATURE_CATEGORIES = {
         ("grade_approval_auto_validate", "Grade Auto-Validation", False, "Flag missing/anomalous scores", "No validation before approval", ["grade_approval_enabled"]),
         ("enable_practical_assessment", "Practical Assessment", False, "Evidence upload and practical assessments", "Practical assessment disabled", []),
         ("enable_concurrent_mark_uploads", "Concurrent Mark Uploads", False, "Allow parallel grade uploads", "Sequential uploads only", []),
+        ("reports_require_approved_grades_before_publish", "Reports Require Approved Grades", False, "Block or warn when publishing term results if pending grade approvals exist", "Publish allowed with pending approvals", ["grade_approval_enabled"]),
+        ("reports_use_approved_grades_only", "Reports Use Approved Grades Only", False, "Term/annual report context only includes evaluations with approved subject (or no approval)", "Reports may include unapproved grades", []),
+        ("backend_flags.marksheet_ocr_enabled", "Marksheet OCR", False, "OCR for marksheet uploads (fill grades from scanned sheets)", "Marksheet OCR disabled", []),
+        ("backend_flags.marksheet_ocr_mobile_upload_enabled", "Marksheet OCR Mobile Upload", False, "Allow mobile photo upload for marksheet OCR", "Mobile marksheet upload disabled", ["backend_flags.marksheet_ocr_enabled"]),
     ],
     "administrative": [
         ("enable_parent_portal", "Parent Portal", True, "Parent dashboard and access", "Parents redirected to maintenance", []),
@@ -45,12 +49,18 @@ FEATURE_CATEGORIES = {
         ("report_downloads_enabled", "Report Downloads", False, "Allow report file downloads", "Report downloads disabled", []),
         ("maintenance_mode", "Maintenance Mode", True, "Show maintenance page site-wide", "Site returns to normal", []),
         ("preview_mode_enabled", "Preview Mode (Admin)", False, "Admins can preview portal as users", "Preview disabled", []),
+        ("show_header_search", "Header Search", False, "Show global search (Ctrl+K) in portal header", "Header search hidden", []),
+        ("show_header_notifications", "Header Notifications", False, "Show notifications bell in header", "Notifications icon hidden", []),
+        ("show_header_profile_menu", "Header Profile Menu", False, "Show profile / quick links in header", "Profile menu hidden", []),
+        ("show_header_theme_toggle", "Header Theme Toggle", False, "Show light/dark theme switch in header", "Theme toggle hidden", []),
     ],
     "support": [
         ("portal_features.documents", "Document Library", False, "Document upload and library", "Document library hidden", []),
         ("portal_features.forums", "Community Forums", False, "Community discussion forums", "Forums hidden", []),
         ("portal_features.video", "Video Hub", False, "Video content hub", "Video hub hidden", []),
         ("portal_features.messaging", "Messaging", False, "In-app messaging", "Messaging hidden", []),
+        ("enable_whatsapp_parent_portal", "WhatsApp (Parent Portal)", False, "Show WhatsApp contact in parent portal", "WhatsApp hidden for parents", []),
+        ("enable_whatsapp_staff_portal", "WhatsApp (Staff)", False, "Allow staff WhatsApp shortcuts when contacting guardians", "Staff WhatsApp shortcuts disabled", []),
     ],
     "finance_permissions": [
         ("backend_flags.require_guardian_finance_opt_in", "Guardian Finance Opt-In", False, "Parents must opt in to see finance", "Finance visible by default", ["enable_parent_portal"]),
@@ -69,6 +79,7 @@ FEATURE_CATEGORIES = {
         ("backend_flags.enable_ministry_api_cartescolaire", "Ministry API (Cartescolaire)", False, "Placeholder for Cartescolaire / school map integration", "Ministry API disabled", []),
         ("backend_flags.enable_ministry_api_dgi", "Ministry API (DGI)", False, "Placeholder for DGI / tax integration", "DGI API disabled", []),
         ("backend_flags.enable_ministry_live_sync", "Ministry Live Sync", True, "Allow outbound sync to configured ministry APIs when sync=1 is requested", "Only local payload preview available", ["backend_flags.enable_ministry_api_cartescolaire", "backend_flags.enable_ministry_api_dgi"]),
+        ("backend_flags.enable_analytics_dashboard_cache", "Analytics Dashboard Cache", False, "Cache analytics dashboard HTML to reduce load (TTL from analytics_dashboard_cache_seconds or 60s)", "Analytics dashboard uncached", []),
     ],
     "system": [
         ("backend_flags.enable_portal_pwa", "Portal PWA", False, "Enable service worker and installable portal shell", "PWA disabled (online-only navigation)", []),
@@ -77,6 +88,7 @@ FEATURE_CATEGORIES = {
         ("backend_flags.enable_offline_attendance_sync", "Offline Attendance Sync", False, "Allow attendance write-behind sync when connectivity returns", "Attendance must be submitted online", ["enable_offline_mode"]),
         ("backend_flags.enable_offline_grade_sync", "Offline Grade Sync", False, "Allow mark entry write-behind sync for low-connectivity sites", "Grades must be submitted online", ["enable_offline_mode"]),
         ("backend_flags.enable_offline_background_sync", "Background Sync Retry", False, "Retry queued writes automatically in the background", "Users must manually trigger sync retries", ["enable_offline_mode"]),
+        ("backend_flags.show_offline_status_bar", "Connection Status Bar", False, "Show Connected/Offline/Syncing pill in portal header when offline mode is on", "Status bar hidden in header", ["enable_offline_mode"]),
         ("backend_flags.notify_parent_on_absence", "Notify Parent on Absence", False, "Alert guardians when student absent", "No absence alerts", []),
         ("enable_offline_mode", "Offline Mode", False, "Offline sync for marks and data", "Offline sync disabled", []),
         ("auto_tag_photos_from_exif", "Auto-Tag Photos from EXIF", False, "Extract metadata from evidence photos", "No EXIF tagging", []),
@@ -105,9 +117,11 @@ BULK_PRESETS = {
             "grade_approval_enabled", "grade_approval_auto_validate", "portal_features.syllabus",
             "portal_features.documents", "portal_features.messaging", "enable_practical_assessment",
             "enable_concurrent_mark_uploads", "preview_mode_enabled", "enable_offline_mode",
+            "show_header_search", "show_header_notifications", "show_header_profile_menu", "show_header_theme_toggle",
             "backend_flags.enable_portal_pwa", "backend_flags.request_persistent_browser_storage",
             "backend_flags.enable_offline_form_queue", "backend_flags.enable_offline_attendance_sync",
             "backend_flags.enable_offline_grade_sync", "backend_flags.enable_offline_background_sync",
+            "backend_flags.show_offline_status_bar",
             "auto_tag_photos_from_exif", "backend_flags.enable_entity_console", "backend_flags.enable_entity_import",
             "backend_flags.allow_bulk_commit", "backend_flags.enable_api_schema_ui",
             "backend_flags.notify_parent_on_absence", "backend_flags.allow_finance_access_requests",
@@ -139,6 +153,14 @@ def _get_site_features(site: SiteSettings) -> dict:
         "preview_mode_enabled": site.preview_mode_enabled,
         "enable_offline_mode": site.enable_offline_mode,
         "auto_tag_photos_from_exif": site.auto_tag_photos_from_exif,
+        "show_header_search": getattr(site, "show_header_search", True),
+        "show_header_notifications": getattr(site, "show_header_notifications", True),
+        "show_header_profile_menu": getattr(site, "show_header_profile_menu", True),
+        "show_header_theme_toggle": getattr(site, "show_header_theme_toggle", True),
+        "enable_whatsapp_parent_portal": getattr(site, "enable_whatsapp_parent_portal", False),
+        "enable_whatsapp_staff_portal": getattr(site, "enable_whatsapp_staff_portal", False),
+        "reports_require_approved_grades_before_publish": getattr(site, "reports_require_approved_grades_before_publish", False),
+        "reports_use_approved_grades_only": getattr(site, "reports_use_approved_grades_only", False),
         "backend_flags.enable_entity_console": bool(flags.get("enable_entity_console")),
         "backend_flags.enable_entity_import": bool(flags.get("enable_entity_import")),
         "backend_flags.enable_api_schema_ui": bool(flags.get("enable_api_schema_ui")),
@@ -148,6 +170,7 @@ def _get_site_features(site: SiteSettings) -> dict:
         "backend_flags.enable_offline_attendance_sync": bool(flags.get("enable_offline_attendance_sync", True)),
         "backend_flags.enable_offline_grade_sync": bool(flags.get("enable_offline_grade_sync", True)),
         "backend_flags.enable_offline_background_sync": bool(flags.get("enable_offline_background_sync", True)),
+        "backend_flags.show_offline_status_bar": bool(flags.get("show_offline_status_bar", True)),
         "backend_flags.allow_bulk_commit": bool(flags.get("allow_bulk_commit", True)),
         "backend_flags.require_guardian_finance_opt_in": bool(flags.get("require_guardian_finance_opt_in")),
         "backend_flags.allow_finance_access_requests": bool(flags.get("allow_finance_access_requests", True)),
@@ -161,6 +184,9 @@ def _get_site_features(site: SiteSettings) -> dict:
         "backend_flags.enable_ministry_api_cartescolaire": bool(flags.get("enable_ministry_api_cartescolaire")),
         "backend_flags.enable_ministry_api_dgi": bool(flags.get("enable_ministry_api_dgi")),
         "backend_flags.enable_ministry_live_sync": bool(flags.get("enable_ministry_live_sync")),
+        "backend_flags.enable_analytics_dashboard_cache": bool(flags.get("enable_analytics_dashboard_cache")),
+        "backend_flags.marksheet_ocr_enabled": bool(flags.get("marksheet_ocr_enabled")),
+        "backend_flags.marksheet_ocr_mobile_upload_enabled": bool(flags.get("marksheet_ocr_mobile_upload_enabled", True)),
     }
 
 
@@ -200,6 +226,22 @@ def _apply_form_to_site(site: SiteSettings, form_data: dict) -> None:
             site.enable_offline_mode = bool(val)
         elif key == "auto_tag_photos_from_exif":
             site.auto_tag_photos_from_exif = bool(val)
+        elif key == "show_header_search":
+            site.show_header_search = bool(val)
+        elif key == "show_header_notifications":
+            site.show_header_notifications = bool(val)
+        elif key == "show_header_profile_menu":
+            site.show_header_profile_menu = bool(val)
+        elif key == "show_header_theme_toggle":
+            site.show_header_theme_toggle = bool(val)
+        elif key == "enable_whatsapp_parent_portal":
+            site.enable_whatsapp_parent_portal = bool(val)
+        elif key == "enable_whatsapp_staff_portal":
+            site.enable_whatsapp_staff_portal = bool(val)
+        elif key == "reports_require_approved_grades_before_publish":
+            site.reports_require_approved_grades_before_publish = bool(val)
+        elif key == "reports_use_approved_grades_only":
+            site.reports_use_approved_grades_only = bool(val)
     site.portal_features = portal
     site.backend_feature_flags = flags
     site.save(update_fields=[
@@ -209,6 +251,10 @@ def _apply_form_to_site(site: SiteSettings, form_data: dict) -> None:
         "enable_practical_assessment", "enable_concurrent_mark_uploads",
         "maintenance_mode", "preview_mode_enabled",
         "enable_offline_mode", "auto_tag_photos_from_exif",
+        "show_header_search", "show_header_notifications",
+        "show_header_profile_menu", "show_header_theme_toggle",
+        "enable_whatsapp_parent_portal", "enable_whatsapp_staff_portal",
+        "reports_require_approved_grades_before_publish", "reports_use_approved_grades_only",
         "portal_features", "backend_feature_flags", "updated_at",
     ])
 
@@ -262,6 +308,9 @@ def feature_control_panel(request):
         form_data = {}
         import_data = request.FILES.get("import_file")
         if import_data:
+            if import_data.size > 2 * 1024 * 1024:  # 2MB max
+                messages.error(request, "Import file is too large (max 2 MB).")
+                return redirect("siteconfig:feature_control_panel")
             try:
                 raw = import_data.read().decode("utf-8")
                 data = json.loads(raw)

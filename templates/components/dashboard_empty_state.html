@@ -1,9 +1,15 @@
 {% load i18n %}
 {% comment %}
 Reusable empty state component for dashboards
-Usage: {% include 'components/dashboard_empty_state.html' with icon='bi-inbox' title='No items' message='Get started by creating your first item.' action_url='/create/' action_text='Create Item' %}
+Usage: {% include 'components/dashboard_empty_state.html' with icon='bi-inbox' title='No items' message='...' action_url='...' action_text='...' %}
+Optional: illustration_url='...' for an image above the icon (e.g. empty-state SVG).
 {% endcomment %}
 <div class="dashboard-empty-state">
+  {% if illustration_url %}
+  <div class="dashboard-empty-illustration mb-3">
+    <img src="{{ illustration_url }}" alt="" class="img-fluid" style="max-height: 160px; width: auto;">
+  </div>
+  {% endif %}
   {% if icon %}
   <div class="dashboard-empty-icon">
     <i class="bi {{ icon }}"></i>

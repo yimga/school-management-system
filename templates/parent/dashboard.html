@@ -1,6 +1,7 @@
 {% extends "portal_base.html" %}
 {% load admin_health evals_extras static region_format i18n %}
 {% block title %}Parent Dashboard{% endblock %}
+{% block body_extra_class %}dashboard-page-parent{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -8,9 +9,15 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'parent';
-  });
+  (function () {
+    var apply = function () {
+      if (!document.body) return;
+      document.body.dataset.dashboardPage = 'parent';
+      document.body.classList.add('dashboard-page-parent');
+    };
+    apply();
+    document.addEventListener('DOMContentLoaded', apply, { once: true });
+  })();
 </script>
 
 <style>

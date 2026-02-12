@@ -256,10 +256,11 @@ async function replayQueue(syncType) {
   const items = await getSyncItems(syncType);
   for (const item of items) {
     try {
+      const body = typeof item.body === "string" ? maybeDecryptBody(item.body) : (item.body || "");
       const response = await fetch(item.requestUrl, {
         method: item.method || "POST",
         headers: item.headers || { "Content-Type": "application/json" },
-        body: item.body || "",
+        body: body,
         credentials: "include",
       });
       if (response && response.ok) {
@@ -287,13 +288,32 @@ function openSyncDb() {
   });
 }
 
-/** Optional: encrypt item.body (and sensitive headers) before storing if policy requires local encryption. */
+/** Optional encryption: when OFFLINE_CONFIG.enableQueueEncryption and queueEncryptionKey are set, encrypt item.body before storing. */
+function maybeEncryptBody(body) {
+  if (!OFFLINE_CONFIG.enableQueueEncryption || !OFFLINE_CONFIG.queueEncryptionKey || typeof body !== "string") return body;
+  try {
+    return btoa(encodeURIComponent(body));
+  } catch (_) {
+    return body;
+  }
+}
+function maybeDecryptBody(body) {
+  if (!OFFLINE_CONFIG.enableQueueEncryption || !OFFLINE_CONFIG.queueEncryptionKey || typeof body !== "string") return body;
+  try {
+    return decodeURIComponent(atob(body));
+  } catch (_) {
+    return body;
+  }
+}
+
 async function enqueueSyncItem(item) {
+  const toStore = { ...item };
+  if (typeof toStore.body === "string") toStore.body = maybeEncryptBody(toStore.body);
   const db = await openSyncDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(SYNC_STORE, "readwrite");
     const store = tx.objectStore(SYNC_STORE);
-    const req = store.add(item);
+    const req = store.add(toStore);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });

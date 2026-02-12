@@ -120,7 +120,28 @@ def syllabus_upload(request, subject_assignment_id: int):
         defaults={"status": CourseSyllabus.Status.DRAFT, "created_by": request.user},
     )
     if request.method == "POST" and request.FILES.get("file"):
-        syllabus.uploaded_file = request.FILES["file"]
+        from apps.accounts.validators import FileTypeValidator, FileSizeValidator
+        from django.core.exceptions import ValidationError
+        up = request.FILES["file"]
+        try:
+            FileTypeValidator(
+                allowed_extensions=[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".odt", ".ods"],
+                allowed_types=[
+                    "application/pdf",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "application/vnd.ms-excel",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "application/vnd.oasis.opendocument.text",
+                    "application/vnd.oasis.opendocument.spreadsheet",
+                ],
+                message="Only document files (PDF, Word, Excel, or ODT/ODS) are allowed.",
+            )(up)
+            FileSizeValidator(max_size_mb=10)(up)
+        except ValidationError as e:
+            messages.error(request, e.messages[0] if getattr(e, "messages", None) else str(e))
+            return redirect("academics:syllabus_upload", subject_assignment_id=sa.id)
+        syllabus.uploaded_file = up
         syllabus.status = CourseSyllabus.Status.DRAFT
         syllabus.save()
         messages.success(request, "File uploaded. You can submit for approval when ready.")

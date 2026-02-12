@@ -1904,6 +1904,7 @@ def logout_view(request):
     return redirect(reverse("accounts:login"))
 
 
+@ratelimit(key="ip", rate="10/h", method="POST", block=True)
 def claim_invite(request):
     if request.user.is_authenticated:
         return redirect(reverse("accounts:redirect"))

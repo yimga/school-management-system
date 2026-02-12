@@ -24,6 +24,35 @@
         try { localStorage.setItem(key, pref); } catch (e) {}
       })();
     </script>
+    <script>
+      (function () {
+        var path = (window.location.pathname || "").toLowerCase();
+        var page = "";
+        if (path.indexOf("/compliance/dashboard") !== -1) page = "compliance";
+        else if (path === "/finance" || path.indexOf("/finance/") === 0) page = "finance";
+        else if (path === "/payroll" || path.indexOf("/payroll/") === 0) page = "payroll";
+        else if (path === "/analytics" || path.indexOf("/analytics/") === 0) page = "analytics";
+        else if (path === "/requests" || path.indexOf("/requests/") === 0) page = "requests";
+        else if (path === "/emis" || path.indexOf("/emis/") === 0) page = "emis";
+        else if (path.indexOf("/accounts/rbac-dashboard") !== -1 || path.indexOf("/accounts/rbac/") !== -1 || path.indexOf("/authentication/rbac/") !== -1) page = "rbac";
+
+        if (!page) return;
+        if (!document.documentElement.getAttribute("data-dashboard-page")) {
+          document.documentElement.setAttribute("data-dashboard-page", page);
+        }
+
+        var applyBody = function () {
+          if (!document.body) return;
+          if (!document.body.dataset.dashboardPage) {
+            document.body.dataset.dashboardPage = page;
+          }
+          document.body.classList.add("dashboard-page-" + page);
+        };
+
+        applyBody();
+        document.addEventListener("DOMContentLoaded", applyBody, { once: true });
+      })();
+    </script>
 
     <title>
       {% block title %}
@@ -51,6 +80,9 @@
                               :root {
                                 --school-primary: {{ SITE.primary_color|default:"#0d6efd" }};
                                 --school-accent: {{ SITE.accent_color|default:"#198754" }};
+                                --school-success: {{ SITE.success_color|default:"#22c55e" }};
+                                --school-warning: {{ SITE.warning_color|default:"#f59e0b" }};
+                                --school-danger: {{ SITE.danger_color|default:"#ef4444" }};
                               }
                               {% endif %}
                               {% if HIGH_CONTRAST_MODE %}
@@ -128,6 +160,9 @@
       :root {
         --school-primary: {{ theme.primary_color|default:SITE.primary_color|default:"#0d6efd" }};
         --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#198754" }};
+        --school-success: {{ SITE.success_color|default:"#22c55e" }};
+        --school-warning: {{ SITE.warning_color|default:"#f59e0b" }};
+        --school-danger: {{ SITE.danger_color|default:"#ef4444" }};
         --school-bg: {{ theme.background_color|default:"transparent" }};
         --school-font: {{ theme.font_family|default:SITE.brand_font|default:"Inter, system-ui, sans-serif" }};
         {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
@@ -220,6 +255,7 @@
       }
       {% endif %}
     </style>
+    <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
     {% if SITE and SITE.custom_css %}
     <style data-site-custom-css>
       {{ SITE.custom_css|safe }}

@@ -63,14 +63,20 @@ def _parse_decimal(value: str | None, default: Decimal) -> Decimal:
 
 @staff_member_required
 def dashboard(request: HttpRequest):
-    # Part B.5: Optional response cache (off by default). Set backend_feature_flags["analytics_dashboard_cache_seconds"] > 0 to enable.
+    # Part B.5: Optional response cache. Enable via Feature Control (enable_analytics_dashboard_cache) or analytics_dashboard_cache_seconds > 0.
     site = SiteSettings.get_solo()
     flags = getattr(site, "backend_feature_flags", None) or {}
     cache_ttl = 0
-    try:
-        cache_ttl = int(flags.get("analytics_dashboard_cache_seconds") or 0)
-    except (TypeError, ValueError):
-        pass
+    if flags.get("enable_analytics_dashboard_cache"):
+        try:
+            cache_ttl = int(flags.get("analytics_dashboard_cache_seconds") or 60)
+        except (TypeError, ValueError):
+            cache_ttl = 60
+    else:
+        try:
+            cache_ttl = int(flags.get("analytics_dashboard_cache_seconds") or 0)
+        except (TypeError, ValueError):
+            pass
     cache_key = None
     if cache_ttl > 0:
         from django.core.cache import cache

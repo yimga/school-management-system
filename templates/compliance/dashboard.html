@@ -4,6 +4,12 @@
 {% block title %}Compliance Dashboard{% endblock %}
 
 {% block extrastyle %}
+{{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'compliance';
+  });
+</script>
 {% endblock %}
 
 {% block content %}

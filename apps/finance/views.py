@@ -924,7 +924,28 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         return HttpResponseForbidden("You don't have permission to view this invoice.")
 
     if request.method == "POST" and request.FILES.get("attachment"):
-        invoice.attachment = request.FILES["attachment"]
+        from apps.accounts.validators import FileTypeValidator, FileSizeValidator
+        from django.core.exceptions import ValidationError
+        up = request.FILES["attachment"]
+        try:
+            FileTypeValidator(
+                allowed_extensions=[".pdf", ".doc", ".docx", ".xls", ".xlsx", ".odt", ".ods"],
+                allowed_types=[
+                    "application/pdf",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "application/vnd.ms-excel",
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "application/vnd.oasis.opendocument.text",
+                    "application/vnd.oasis.opendocument.spreadsheet",
+                ],
+                message="Only document files (PDF, Word, Excel, or LibreOffice ODT/ODS) are allowed.",
+            )(up)
+            FileSizeValidator(max_size_mb=5)(up)
+        except ValidationError as e:
+            messages.error(request, e.messages[0] if getattr(e, "messages", None) else str(e))
+            return redirect("finance:invoice_detail", invoice_id=invoice.id)
+        invoice.attachment = up
         invoice.save(update_fields=["attachment"])
         messages.success(request, "Attachment uploaded.")
         return redirect("finance:invoice_detail", invoice_id=invoice.id)

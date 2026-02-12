@@ -70,6 +70,7 @@ class FeatureControlPanelTest(TestCase):
         self.assertIn(b"Portal PWA", response.content)
         self.assertIn(b"Offline Attendance Sync", response.content)
         self.assertIn(b"Offline Grade Sync", response.content)
+        self.assertIn(b"Connection Status Bar", response.content)
 
     def test_offline_feature_flags_persist(self):
         """Posting Feature Control saves new backend offline flags."""
@@ -86,6 +87,7 @@ class FeatureControlPanelTest(TestCase):
             "feature_backend_flags.enable_offline_attendance_sync": "on",
             "feature_backend_flags.enable_offline_grade_sync": "on",
             "feature_backend_flags.enable_offline_background_sync": "on",
+            "feature_backend_flags.show_offline_status_bar": "on",
             "feature_backend_flags.request_persistent_browser_storage": "on",
         }
         response = self.client.post(reverse("siteconfig:feature_control_panel"), data=payload, follow=True)
@@ -95,6 +97,7 @@ class FeatureControlPanelTest(TestCase):
         flags = site.backend_feature_flags or {}
         self.assertTrue(site.enable_offline_mode)
         self.assertTrue(flags.get("enable_portal_pwa"))
+        self.assertTrue(flags.get("show_offline_status_bar", True))
         self.assertTrue(flags.get("enable_offline_form_queue"))
         self.assertTrue(flags.get("enable_offline_attendance_sync"))
         self.assertTrue(flags.get("enable_offline_grade_sync"))

@@ -22,6 +22,7 @@ from apps.accounts.decorators import (
     parent_portal_required,
     teacher_portal_required,
 )
+from apps.accounts.utils import get_user_role
 from apps.evals.views import (
     teacher_dashboard as evals_teacher_dashboard,
     teacher_workflow_center as evals_teacher_workflow_center,
@@ -367,7 +368,7 @@ def parent_dashboard(request: HttpRequest):
     }
     
     preference = getattr(request.user, "preferences", None)
-    display_widgets = resolve_dashboard_widgets(getattr(request.user, "role", None), preference)
+    display_widgets = resolve_dashboard_widgets(get_user_role(request.user) or None, preference)
 
     # Get student IDs for queries
     student_ids = [s.id for s in students] if students else []
@@ -397,7 +398,7 @@ def parent_dashboard(request: HttpRequest):
             }
 
     site = SiteSettings.get_solo()
-    role = getattr(request.user, "role", None)
+    role = get_user_role(request.user)
     portal_quick_actions = filter_portal_items(site.portal_quick_actions, role)
     portal_announcements = filter_portal_items(site.portal_announcements, role)
     portal_recent_grades = filter_portal_items(site.portal_recent_grades, role)
@@ -954,7 +955,7 @@ def portal_feature_page(request: HttpRequest, feature: str):
 @role_required(User.Role.PARENT, User.Role.TEACHER)
 def portal_syllabus(request: HttpRequest):
     site = SiteSettings.get_solo()
-    role = getattr(request.user, "role", None)
+    role = get_user_role(request.user)
     if role == User.Role.PARENT and not site.enable_parent_portal:
         return HttpResponseForbidden("Parent portal is disabled.")
     if role == User.Role.TEACHER and not site.enable_teacher_portal:
@@ -965,7 +966,7 @@ def portal_syllabus(request: HttpRequest):
         is_active=True,
     ).select_related("created_by").order_by("-created_at")
 
-    role = (getattr(request.user, "role", None) or "").upper() if request.user.is_authenticated else ""
+    role = get_user_role(request.user)
     return render(request, "portal/syllabus.html", {
         "feature": {**PORTAL_FEATURES_META["syllabus"], "key": "syllabus"},
         "items": items,
@@ -1109,7 +1110,7 @@ def unified_calendar(request: HttpRequest):
     """Phase 9: Unified calendar – school events and grading deadlines for teachers and parents."""
     year, _term = get_active_year_and_term()
     events = _merged_upcoming_events(year)
-    role = (getattr(request.user, "role", None) or "").upper()
+    role = get_user_role(request.user)
     return render(request, "portal/unified_calendar.html", {
         "events": events,
         "site": SiteSettings.get_solo(),
@@ -1655,7 +1656,7 @@ def cahier_verify_list(request: HttpRequest):
     """List SUBMITTED entries for supervisor visa (cahier.verify or CENSOR)."""
     if not _cahier_enabled():
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
-    can_verify = getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or getattr(request.user, "role", None) == "CENSOR"
+    can_verify = getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or get_user_role(request.user) == "CENSOR"
     if not can_verify:
         return HttpResponseForbidden("You do not have permission to verify Cahier entries.")
     entries = CahierDeTexteEntry.objects.filter(
@@ -1671,7 +1672,7 @@ def cahier_visa(request: HttpRequest, entry_id: int):
     """Set entry to VISED."""
     if not _cahier_enabled():
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
-    if not (getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or getattr(request.user, "role", None) == "CENSOR"):
+    if not (getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or get_user_role(request.user) == "CENSOR"):
         return HttpResponseForbidden("You do not have permission to verify.")
     entry = get_object_or_404(CahierDeTexteEntry, pk=entry_id, status=CahierDeTexteEntry.Status.SUBMITTED)
     entry.status = CahierDeTexteEntry.Status.VISED
@@ -1688,7 +1689,7 @@ def cahier_request_revisions(request: HttpRequest, entry_id: int):
     """Set entry to REVISIONS_REQUESTED."""
     if not _cahier_enabled():
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
-    if not (getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or getattr(request.user, "role", None) == "CENSOR"):
+    if not (getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or get_user_role(request.user) == "CENSOR"):
         return HttpResponseForbidden("You do not have permission to verify.")
     entry = get_object_or_404(CahierDeTexteEntry, pk=entry_id, status=CahierDeTexteEntry.Status.SUBMITTED)
     entry.status = CahierDeTexteEntry.Status.REVISIONS_REQUESTED
@@ -1806,7 +1807,7 @@ def _can_manage_discipline(user):
         return False
     if getattr(user, "is_superuser", False):
         return True
-    role = (getattr(user, "role", "") or "").upper()
+    role = get_user_role(user)
     if role in ("DISCIPLINE_MASTER", "CENSOR"):
         return True
     return getattr(user, "has_feature_permission", lambda _: False)("discipline.manage")

@@ -7,6 +7,47 @@
     <script>
       (function(){var s=localStorage.getItem("gilead-theme-preference")||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
     </script>
+    <script>
+      (function () {
+        var path = (window.location.pathname || "").toLowerCase();
+        var page = "";
+        if (path.indexOf("/portal/parent") !== -1 || path.indexOf("/parent/dashboard") !== -1) page = "parent";
+        else if (path.indexOf("/portal/teacher") !== -1 || path.indexOf("/teacher/dashboard") !== -1 || path.indexOf("/portal/teacher-dashboard") !== -1 || path.indexOf("/evals/teacher") !== -1) page = "teacher";
+        else if (path.indexOf("/accounts/backend") !== -1 || path.indexOf("/accounts/backend-dashboard") !== -1 || path.indexOf("/backend-dashboard") !== -1 || path.indexOf("/authentication/backend") !== -1) page = "backend";
+        else if (path === "/finance" || path.indexOf("/finance/") === 0) page = "finance";
+        else if (path === "/payroll" || path.indexOf("/payroll/") === 0) page = "payroll";
+        else if (path === "/analytics" || path.indexOf("/analytics/") === 0) page = "analytics";
+        else if (path.indexOf("/compliance/dashboard") !== -1) page = "compliance";
+        else if (path === "/requests" || path.indexOf("/requests/") === 0) page = "requests";
+        else if (path === "/emis" || path.indexOf("/emis/") === 0) page = "emis";
+        else if (path.indexOf("/evals/compliance") !== -1) page = "evals-compliance";
+        else if (path.indexOf("/accounts/rbac-dashboard") !== -1 || path.indexOf("/accounts/rbac/") !== -1 || path.indexOf("/authentication/rbac/") !== -1) page = "rbac";
+
+        if (!page) return;
+
+        document.documentElement.setAttribute("data-dashboard-page", page);
+
+        var applyBody = function () {
+          if (!document.body) return;
+          if (!document.body.dataset.dashboardPage) {
+            document.body.dataset.dashboardPage = page;
+          }
+          document.body.classList.add("dashboard-page-" + page);
+        };
+
+        applyBody();
+        if (!document.body) {
+          var observer = new MutationObserver(function () {
+            if (document.body) {
+              applyBody();
+              observer.disconnect();
+            }
+          });
+          observer.observe(document.documentElement, { childList: true });
+        }
+        document.addEventListener("DOMContentLoaded", applyBody, { once: true });
+      })();
+    </script>
     <title>{% block title %}Portal{% endblock %}</title>
     <link rel="icon" href="{{ SITE_FAVICON_URL|default:'/static/favicon.ico' }}" type="image/x-icon">
     <!-- Preconnect to CDNs for faster asset loading -->
@@ -45,6 +86,9 @@
       :root {
         --school-primary: {{ theme.primary_color|default:SITE.primary_color|default:"#0d6efd" }};
         --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#198754" }};
+        --school-success: {{ SITE.success_color|default:"#22c55e" }};
+        --school-warning: {{ SITE.warning_color|default:"#f59e0b" }};
+        --school-danger: {{ SITE.danger_color|default:"#ef4444" }};
         --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
         --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
         {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
@@ -588,6 +632,7 @@
         border: 2px solid #fff;
       }
     </style>
+    <link rel="stylesheet" href="{% static 'css/dashboard-theme-sync.css' %}">
     {% if SITE and SITE.custom_css %}
     <style data-site-custom-css>
       {{ SITE.custom_css|safe }}
@@ -689,7 +734,7 @@
 
         <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
           {% if request.user.is_authenticated %}
-            {% if SITE and SITE.enable_offline_mode %}
+            {% if SITE and SITE.enable_offline_mode and SITE.backend_feature_flags.show_offline_status_bar|default:1 %}
             {% include 'components/offline_status_bar.html' %}
             {% endif %}
             <!-- Weather Widget - Scrolling Header -->
@@ -1103,7 +1148,7 @@
       };
     </script>
 
-    {% if SITE and SITE.enable_offline_mode %}
+    {% if SITE and SITE.enable_offline_mode and SITE.backend_feature_flags.show_offline_status_bar|default:1 %}
     <script src="{% static 'js/offline-status-bar.js' %}"></script>
     {% endif %}
     <!-- PWA Service Worker Registration -->

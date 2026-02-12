@@ -3,6 +3,15 @@
 
 {% block title %}Grading Compliance Dashboard{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.body.dataset.dashboardPage = 'evals-compliance';
+  });
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row">

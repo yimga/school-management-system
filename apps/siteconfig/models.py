@@ -147,6 +147,7 @@ def default_backend_feature_flags():
         "enable_offline_attendance_sync": True,
         "enable_offline_grade_sync": True,
         "enable_offline_background_sync": True,
+        "show_offline_status_bar": True,
         "request_persistent_browser_storage": True,
         "max_bulk_import_rows": 500,
         "allow_bulk_commit": True,
@@ -166,6 +167,9 @@ def default_backend_feature_flags():
         "enable_ministry_api_cartescolaire": False,
         "enable_ministry_api_dgi": False,
         "enable_ministry_live_sync": False,
+        "enable_analytics_dashboard_cache": False,
+        "marksheet_ocr_enabled": False,
+        "marksheet_ocr_mobile_upload_enabled": True,
     }
 
 

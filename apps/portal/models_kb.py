@@ -218,6 +218,9 @@ class KBArticle(models.Model):
             self.slug = slugify(self.title)
         if self.content:
             self.content_html = sanitize_html(self.content)
+        elif self.content_html:
+            # Sanitize when content_html is set directly (e.g. admin) to prevent XSS
+            self.content_html = sanitize_html(self.content_html)
         super().save(*args, **kwargs)
 
     @property

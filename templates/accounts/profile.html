@@ -4,8 +4,8 @@
 {% block title %}My Profile - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
-  <div class="container py-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div class="container py-4 profile-shell">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 profile-header">
       <div>
         <h1 class="h4 mb-1">My Profile</h1>
         <div class="text-muted small">Account overview and shortcuts</div>
@@ -34,7 +34,7 @@
         <div class="card shadow-sm">
           <div class="card-body">
             <div class="d-flex align-items-center gap-3">
-              <div style="width:56px;height:56px;border-radius:16px;overflow:hidden;background:rgba(13,110,253,.12);display:flex;align-items:center;justify-content:center;">
+              <div class="profile-avatar-wrap">
                 {% if request.user.profile_photo %}
                   <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="56" height="56" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;">
                 {% else %}
@@ -212,7 +212,7 @@
                 {% for item in parent_children_tree.children %}
                   <li class="d-flex flex-wrap align-items-center gap-2 py-2 border-bottom border-light">
                     <span class="fw-semibold">{{ item.student }}</span>
-                    <span class="badge bg-secondary">{{ item.relationship }}</span>
+                    <span class="badge bg-secondary profile-chip">{{ item.relationship }}</span>
                     <span class="text-muted small">{{ item.classroom }}{% if item.academic_year %} ({{ item.academic_year }}){% endif %}</span>
                     {% if item.student.admission_number %}
                       <span class="text-muted small">ID: {{ item.student.admission_number }}</span>
@@ -282,4 +282,3 @@
     {% endif %}
   </div>
 {% endblock %}
-

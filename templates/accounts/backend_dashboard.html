@@ -2,6 +2,7 @@
 {% load admin_health i18n static region_format %}
 
 {% block backend_title %}Backend Dashboard{% endblock %}
+{% block body_extra_class %}backend-shell dashboard-page-backend{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -10,9 +11,15 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    document.body.dataset.dashboardPage = 'backend';
-  });
+  (function () {
+    var apply = function () {
+      if (!document.body) return;
+      document.body.dataset.dashboardPage = 'backend';
+      document.body.classList.add('dashboard-page-backend');
+    };
+    apply();
+    document.addEventListener('DOMContentLoaded', apply, { once: true });
+  })();
 </script>
 <style>
   :root {

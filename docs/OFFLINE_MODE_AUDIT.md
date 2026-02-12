@@ -37,19 +37,11 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 
 ## What is not done (or partial)
 
-1. **Global connection status bar**  
-   Requirement: “Connected” (green) / “Offline – data will sync later” (orange) / “Syncing…” spinner in a visible status bar.  
-   **Current:** Banners only on forms that use `FormDraftSave`. No single portal-wide status component.  
-   **Suggestion:** Add a small status bar or pill in the portal header (e.g. next to user menu) that shows online/offline/syncing using `navigator.onLine` and the sync API or service worker messages.
+1. ~~**Global connection status bar**~~ **Done.** See Summary table: `offline_status_bar.html` + `offline-status-bar.js` in portal header when `SITE.enable_offline_mode`.
 
-2. **Service worker: grade API path (optional)**  
-   **Current:** `isApiWriteRequest()` only returns true for `/api/attendance/`. Direct REST calls to a “grade” or “evaluation” write endpoint (if any) are **not** queued by the SW.  
-   **Note:** Web mark entry uses form → draft/pending in localStorage → `sync_batch` when online, so grades are not lost. If you add a direct “PATCH /api/evaluations/” (or similar) used by a client app, add that path to `isApiWriteRequest()` and `inferSyncType()` so those writes are queued when offline.
+2. ~~**Service worker: grade API path (optional)**~~ **Documented.** SW has comment and commented-out branch in `isApiWriteRequest` / `inferSyncType` for future grade/eval REST paths. Web mark entry uses form queue + sync when online.
 
-3. **Stale-While-Revalidate (SWR)**  
-   Requirement: “Stale-While-Revalidate so the portal loads instantly.”  
-   **Current:** NetworkFirst for `/api/` GET (try network, fall back to cache); CacheFirst for navigation/static. No explicit “return stale then revalidate” for HTML dashboard.  
-   **Optional:** For dashboard HTML, you could add a strategy that returns cached response first (if any) and updates cache in the background.
+3. ~~**Stale-While-Revalidate (SWR)**~~ **Done.** API GET uses `staleWhileRevalidateApi` in service worker (return cached then revalidate in background).
 
 4. **Local DB “mirror” (Dexie/PouchDB)**  
    Requirement: “Schema that mirrors Students, Attendance, Grades” and “pre-load when user first logs in.”  
@@ -63,9 +55,7 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
    **Suggestion:** If policy requires it, implement the above and document key storage (e.g. session-only vs persisted).
 
 6. **Unit test: “Network Down”**  
-   Requirement: “Unit test that simulates Network Down so Attendance Save doesn’t fail.”  
-   **Current:** Feature-flag and offline fallback page tests exist; no test that explicitly simulates offline and asserts attendance (or grade) save is queued and later synced.  
-   **Suggestion:** Add a test (e.g. Selenium/Playwright or mocked fetch) that goes offline, “saves” attendance, then goes online and asserts the sync queue is replayed and server has the record.
+   **Done:** `apps/api/tests/test_offline_sync.py` – `OfflineSyncBatchTestCase.test_sync_batch_attendance_creates_record` posts `sync_batch` with attendance data and asserts the server creates the Attendance record (simulates “replay after coming back online”). Full browser-offline simulation would require E2E (Playwright/Selenium).
 
 ---
 
@@ -84,8 +74,8 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 | Persistent storage (persist()) | Yes | When flag set |
 | Connection status bar (Connected/Offline/Syncing) | Yes | Portal header status bar when offline mode enabled |
 | Full local mirror DB + hydrate on login | No | Queue-only; no Dexie/PouchDB mirror |
-| Local encryption (CryptoJS) | No | Documented hook points in SW and audit |
-| “Network Down” test | No | Not implemented |
+| Local encryption (CryptoJS) | Stub | SW has maybeEncryptBody/maybeDecryptBody (base64 when enableQueueEncryption+queueEncryptionKey); use Web Crypto + server key for production |
+| “Network Down” test | Yes | sync_batch attendance test in apps/api/tests/test_offline_sync.py |
 
 ---
 
@@ -93,5 +83,5 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 
 1. ~~**Add a global connection status indicator**~~ Done: `templates/components/offline_status_bar.html`, `static/js/offline-status-bar.js`; form-draft-save dispatches `sms-sync-start` / `sms-sync-end`.
 2. ~~**Optional: grade/eval write path in SW**~~ Documented; add path in `isApiWriteRequest` / `inferSyncType` if a REST grade/eval write API is added.
-3. **Optional:** Add a test that simulates offline → save attendance (or grade) → online → assert sync.
+3. ~~**Optional: Network Down test**~~ Done: `test_sync_batch_attendance_creates_record` asserts sync_batch creates Attendance.
 4. **If policy requires:** Implement encryption at documented hook points (SW `enqueueSyncItem` / form-draft localStorage).
