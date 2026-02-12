@@ -1869,6 +1869,25 @@ def login_view(request):
         if user:
             login(request, user)
 
+            # Tenant-aware: ensure session school_id and membership (Phase 2).
+            school = getattr(request, "school", None)
+            if school:
+                from apps.schools.models import SchoolMembership
+                if not SchoolMembership.objects.filter(user=user, school=school).exists():
+                    request.session.pop("school_id", None)
+                    if not getattr(user, "is_superuser", False) and (getattr(user, "role", "") or "").upper() != "SUPERADMIN":
+                        messages.warning(request, "You do not have access to this school.")
+                        return redirect(reverse("accounts:school_picker"))
+            else:
+                from apps.schools.models import SchoolMembership
+                primary = SchoolMembership.objects.filter(user=user, is_primary=True).select_related("school").first()
+                if primary:
+                    request.session["school_id"] = str(primary.school_id)
+                else:
+                    first_m = SchoolMembership.objects.filter(user=user).select_related("school").first()
+                    if first_m:
+                        request.session["school_id"] = str(first_m.school_id)
+
             # MFA enforcement: if required or configured, route to setup/verify first.
             try:
                 from django_otp import user_has_device
@@ -1935,6 +1954,28 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect(reverse("accounts:login"))
+
+
+@login_required
+def school_picker(request):
+    """Let user pick which school to use when they have multiple or no access on current host."""
+    from apps.schools.models import SchoolMembership
+    memberships = SchoolMembership.objects.filter(user=request.user).select_related("school").order_by("-is_primary", "school__name")
+    if request.method == "POST":
+        school_id = (request.POST.get("school_id") or "").strip()
+        for m in memberships:
+            if str(m.school_id) == school_id:
+                request.session["school_id"] = school_id
+                next_url = request.POST.get("next") or request.GET.get("next") or reverse("accounts:redirect")
+                from django.utils.http import url_has_allowed_host_and_scheme
+                if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                    return redirect(next_url)
+                return redirect("accounts:redirect")
+        messages.warning(request, "Invalid school.")
+    context = {"memberships": memberships}
+    if not memberships:
+        return render(request, "auth/school_picker.html", context)
+    return render(request, "auth/school_picker.html", context)
 
 
 @ratelimit(key="ip", rate="10/h", method="POST", block=True)

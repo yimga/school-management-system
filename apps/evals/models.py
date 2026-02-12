@@ -25,7 +25,13 @@ class AssessmentWeights(models.Model):
 
     We keep it in the evals app because it drives score computation.
     """
-
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="assessment_weights",
+    )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="assessment_weights")
     term = models.ForeignKey(
         Term,
@@ -138,6 +144,13 @@ class TeacherAssignment(models.Model):
     """
     Teacher is allowed to enter marks for a given SubjectAssignment in an AcademicYear.
     """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="teacher_assignments",
+    )
     teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="assignments")
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="teacher_assignments")
     subject_assignment = models.ForeignKey(SubjectAssignment, on_delete=models.CASCADE, related_name="teacher_assignments")
@@ -163,6 +176,13 @@ class Evaluation(models.Model):
     # Phase 4: Enable audit logging for this critical model
     audit_enabled = True
 
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="evaluations",
+    )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="evaluations")
     term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="evaluations")
     subject_assignment = models.ForeignKey(SubjectAssignment, on_delete=models.PROTECT, related_name="evaluations")

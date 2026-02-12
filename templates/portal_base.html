@@ -754,7 +754,7 @@
 
         <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
           {% if request.user.is_authenticated %}
-            {% if SITE and SITE.enable_offline_mode and SITE.backend_feature_flags.show_offline_status_bar|default:1 %}
+            {% if SHOW_OFFLINE_STATUS_BAR %}
             {% include 'components/offline_status_bar.html' %}
             {% endif %}
             <!-- Weather Widget - Scrolling Header -->
@@ -1158,7 +1158,7 @@
 
     <script>
       window.SMS_OFFLINE_CONFIG = {
-        enabled: {{ SITE.enable_offline_mode|yesno:"true,false" }},
+        enabled: {{ OFFLINE_ENABLED_FOR_CURRENT_SCHOOL|yesno:"true,false" }},
         pwaEnabled: {{ SITE.backend_feature_flags.enable_portal_pwa|default:"1"|yesno:"true,false" }},
         formQueueEnabled: {{ SITE.backend_feature_flags.enable_offline_form_queue|default:"1"|yesno:"true,false" }},
         attendanceSyncEnabled: {{ SITE.backend_feature_flags.enable_offline_attendance_sync|default:"1"|yesno:"true,false" }},
@@ -1168,7 +1168,7 @@
       };
     </script>
 
-    {% if SITE and SITE.enable_offline_mode and SITE.backend_feature_flags.show_offline_status_bar|default:1 %}
+    {% if SHOW_OFFLINE_STATUS_BAR %}
     <script src="{% static 'js/offline-status-bar.js' %}"></script>
     {% endif %}
     <!-- PWA Service Worker Registration -->

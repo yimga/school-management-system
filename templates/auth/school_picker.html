@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Select school" %}{% endblock %}
+
+{% block content %}
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow">
+          <div class="card-body">
+            <h1 class="h4 mb-3">{% trans "Select school" %}</h1>
+            {% if memberships %}
+              <p class="text-muted mb-3">{% trans "You have access to the following schools. Choose one to continue." %}</p>
+              <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                {% for m in memberships %}
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="school_id" id="school-{{ m.school_id }}" value="{{ m.school_id }}" {% if forloop.first %}checked{% endif %}>
+                    <label class="form-check-label" for="school-{{ m.school_id }}">
+                      {{ m.school.name }}{% if m.is_primary %} <span class="badge bg-secondary">{% trans "Primary" %}</span>{% endif %}
+                    </label>
+                  </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-primary mt-3">{% trans "Continue" %}</button>
+              </form>
+            {% else %}
+              <p class="text-muted">{% trans "You do not have access to any school. Contact your administrator." %}</p>
+              <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">{% trans "Log out" %}</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

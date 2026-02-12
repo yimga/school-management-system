@@ -1602,9 +1602,13 @@ def record_teacher_attendance(request: HttpRequest):
     })
 
 
-def _cahier_enabled():
+def _cahier_enabled(request=None):
     flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
-    return bool(flags.get("enable_cahier_de_texte"))
+    if not flags.get("enable_cahier_de_texte"):
+        return False
+    if request and getattr(request, "school", None) and not request.school.has_feature("cahier_de_texte"):
+        return False
+    return True
 
 
 @login_required
@@ -1612,7 +1616,7 @@ def _cahier_enabled():
 @role_required(User.Role.TEACHER)
 def cahier_list(request: HttpRequest):
     """List and add Cahier de Texte entries (when feature enabled)."""
-    if not _cahier_enabled():
+    if not _cahier_enabled(request):
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
     profile = TeacherProfile.objects.filter(user=request.user).first()
     if not profile:
@@ -1654,7 +1658,7 @@ def cahier_list(request: HttpRequest):
 @login_required
 def cahier_verify_list(request: HttpRequest):
     """List SUBMITTED entries for supervisor visa (cahier.verify or CENSOR)."""
-    if not _cahier_enabled():
+    if not _cahier_enabled(request):
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
     can_verify = getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or get_user_role(request.user) == "CENSOR"
     if not can_verify:
@@ -1670,7 +1674,7 @@ def cahier_verify_list(request: HttpRequest):
 @login_required
 def cahier_visa(request: HttpRequest, entry_id: int):
     """Set entry to VISED."""
-    if not _cahier_enabled():
+    if not _cahier_enabled(request):
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
     if not (getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or get_user_role(request.user) == "CENSOR"):
         return HttpResponseForbidden("You do not have permission to verify.")
@@ -1687,7 +1691,7 @@ def cahier_visa(request: HttpRequest, entry_id: int):
 @login_required
 def cahier_request_revisions(request: HttpRequest, entry_id: int):
     """Set entry to REVISIONS_REQUESTED."""
-    if not _cahier_enabled():
+    if not _cahier_enabled(request):
         return HttpResponseForbidden("Cahier de Texte is not enabled.")
     if not (getattr(request.user, "has_feature_permission", lambda _: False)("cahier.verify") or get_user_role(request.user) == "CENSOR"):
         return HttpResponseForbidden("You do not have permission to verify.")

@@ -15,6 +15,13 @@ class TeacherProfile(models.Model):
     # Phase 4: Enable audit logging for this model (teacher record changes)
     audit_enabled = True
 
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="teacher_profiles",
+    )
     class DashboardView(models.TextChoices):
         OVERVIEW = "OVERVIEW", "Overview"
         FINANCE = "FINANCE", "Finances"
@@ -58,6 +65,11 @@ class TeacherProfile(models.Model):
     salary_cap = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     next_pay_date = models.DateField(null=True, blank=True)
     paystub_notes = models.TextField(blank=True)
+    custom_attributes = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="School-defined custom fields (key/value). Use in reports and exports.",
+    )
 
     class PaymentMethod(models.TextChoices):
         MTN_MOMO = "MTN_MOMO", "MTN Mobile Money"
@@ -186,6 +198,13 @@ class StudentProfile(models.Model):
     # Phase 4: Enable audit logging for this model (student record changes, grades tied to this)
     audit_enabled = True
 
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="student_profiles",
+    )
     user = models.OneToOneField(
         User,
         on_delete=models.SET_NULL,
@@ -232,7 +251,12 @@ class StudentProfile(models.Model):
         blank=True,
     )
 
-    # Exam system fields (configurable for different countries)
+    # Exam system fields (configurable for different countries    )
+    custom_attributes = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="School-defined custom fields (key/value). Use in reports and exports.",
+    )
     exam_candidate_number = models.CharField(
         max_length=50,
         blank=True,

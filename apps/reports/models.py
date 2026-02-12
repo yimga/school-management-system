@@ -32,6 +32,13 @@ class ReportCard(models.Model):
         TERM = "TERM", "Term"
         ANNUAL = "ANNUAL", "Annual"
 
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="report_cards",
+    )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="report_cards")
     term = models.ForeignKey(Term, null=True, blank=True, on_delete=models.CASCADE, related_name="report_cards")
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name="report_cards")

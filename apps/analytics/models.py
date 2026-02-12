@@ -72,3 +72,31 @@ class GradeImportJob(models.Model):
     
     def __str__(self):
         return f"Import {self.academic_year}/{self.term} - {self.status}"
+
+
+# ========== Phase 4: AI benchmarking (anonymized regional aggregates) ==========
+
+
+class BenchmarkAggregate(models.Model):
+    """
+    Anonymized aggregate metrics per region/sub_system/subject/term.
+    ETL job populates from Evaluation/ReportCard; no school or student identifiers.
+    """
+    region_code = models.CharField(max_length=20, db_index=True)
+    sub_system = models.CharField(max_length=10, db_index=True)
+    subject_id = models.IntegerField(null=True, blank=True, db_index=True)
+    term_id = models.IntegerField(null=True, blank=True, db_index=True)
+    academic_year_id = models.IntegerField(null=True, blank=True, db_index=True)
+    metric = models.CharField(max_length=60)
+    value = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
+    sample_size = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["region_code", "sub_system", "metric"]
+        indexes = [
+            models.Index(fields=["region_code", "sub_system", "metric"]),
+        ]
+
+    def __str__(self):
+        return f"{self.region_code}/{self.sub_system} {self.metric}={self.value} (n={self.sample_size})"

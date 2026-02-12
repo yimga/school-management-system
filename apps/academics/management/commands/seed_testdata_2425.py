@@ -71,6 +71,17 @@ def _clamp(value: int, low: int = 0, high: int = 20) -> int:
     return max(low, min(high, value))
 
 
+def _resolve_school(slug_or_id):
+    """Return School by slug or ID, or None if slug_or_id is empty."""
+    if not slug_or_id:
+        return None
+    from apps.schools.models import School
+    s = str(slug_or_id).strip()
+    if s.isdigit():
+        return School.objects.filter(pk=int(s)).first()
+    return School.objects.filter(slug=s).first()
+
+
 class Command(BaseCommand):
     help = "Seed 2024/2025 test data (users, academics, evaluations, reports)."
 
@@ -80,10 +91,22 @@ class Command(BaseCommand):
             action="store_true",
             help="Deactivate other years/terms and set 2024/2025 + Term 1 active.",
         )
+        parser.add_argument(
+            "--school",
+            type=str,
+            default=None,
+            help="School slug or ID for tenant-scoped seed data. Omit for global (school=None) seed.",
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
         force_active = options.get("force_active", False)
+        self.school = _resolve_school(options.get("school"))
+        if options.get("school") and not self.school:
+            self.stdout.write(self.style.ERROR("School not found for --school=%s" % options.get("school")))
+            return
+        if self.school:
+            self.stdout.write("Seeding for school: %s (slug=%s)" % (self.school.name, self.school.slug))
 
         year = self._ensure_academic_year(force_active=force_active)
         terms = self._ensure_terms(year, force_active=force_active)
@@ -112,6 +135,7 @@ class Command(BaseCommand):
 
     def _ensure_academic_year(self, *, force_active: bool) -> AcademicYear:
         year, _ = AcademicYear.objects.get_or_create(
+            school=self.school,
             name=YEAR_NAME,
             defaults={
                 "start_date": date(2024, 9, 1),
@@ -166,6 +190,7 @@ class Command(BaseCommand):
 
     def _ensure_department(self) -> Department:
         department, _ = Department.objects.get_or_create(
+            school=self.school,
             code="SCI-2425",
             defaults={"name": "Science"},
         )
@@ -224,7 +249,7 @@ class Command(BaseCommand):
     def _ensure_subjects(self) -> dict[str, Subject]:
         subject_map: dict[str, Subject] = {}
         for name, _coef in SUBJECTS:
-            subject, _ = Subject.objects.get_or_create(name=name)
+            subject, _ = Subject.objects.get_or_create(school=self.school, name=name, defaults={})
             subject_map[name] = subject
         return subject_map
 

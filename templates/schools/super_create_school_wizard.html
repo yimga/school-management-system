@@ -1,0 +1,180 @@
+{% extends "backend_base.html" %}
+{% load static %}
+
+{% block title %}Create School – Super Admin{% endblock %}
+{% block backend_title %}Create School{% endblock %}
+
+{% block content %}
+  <div class="container-fluid py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card shadow-sm">
+          <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="step1-tab" data-bs-toggle="tab" data-bs-target="#step1" type="button" role="tab">1. Identity</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="step2-tab" data-bs-toggle="tab" data-bs-target="#step2" type="button" role="tab">2. Region</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="step3-tab" data-bs-toggle="tab" data-bs-target="#step3" type="button" role="tab">3. Branding</button>
+              </li>
+            </ul>
+          </div>
+          <div class="card-body">
+            <form id="wizard-form">
+              {% csrf_token %}
+              <div class="tab-content">
+                <div class="tab-pane fade show active" id="step1" role="tabpanel">
+                  <div class="mb-3">
+                    <label class="form-label" for="name">School name *</label>
+                    <input type="text" class="form-control" id="name" name="name" required placeholder="e.g. GHS Limbe">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="slug">Slug *</label>
+                    <input type="text" class="form-control" id="slug" name="slug" required placeholder="ghs-limbe">
+                    <div class="form-text">URL-friendly identifier; will be used for subdomain if not set.</div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="subdomain">Subdomain</label>
+                    <input type="text" class="form-control" id="subdomain" name="subdomain" placeholder="ghs-limbe">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="contact_email">Contact email</label>
+                    <input type="email" class="form-control" id="contact_email" name="contact_email" placeholder="admin@school.edu">
+                    <div class="form-text">Used to create or link the first admin user.</div>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="step2" role="tabpanel">
+                  <div class="mb-3">
+                    <label class="form-label" for="region_code">Region</label>
+                    <select class="form-select" id="region_code" name="region_code">
+                      <option value="">— Select —</option>
+                      {% for r in regions %}
+                        <option value="{{ r.code }}">{{ r.name }} ({{ r.code }})</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="sub_system">Sub-system</label>
+                    <select class="form-select" id="sub_system" name="sub_system">
+                      <option value="EN">English</option>
+                      <option value="FR">Francophone</option>
+                      <option value="INT">International</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="step3" role="tabpanel">
+                  <div class="mb-3">
+                    <label class="form-label" for="primary_color">Primary color</label>
+                    <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" value="#0d6efd">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="accent_color">Accent color</label>
+                    <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="#198754">
+                  </div>
+                  <p class="text-muted small">Logo upload can be done after creation in school settings.</p>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="button" class="btn btn-primary" id="btn-next">Next</button>
+                <button type="submit" class="btn btn-success d-none" id="btn-submit">Create School</button>
+              </div>
+            </form>
+            <div id="wizard-success" class="alert alert-success mt-3 d-none" role="alert"></div>
+            <div id="wizard-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var form = document.getElementById('wizard-form');
+      var tabs = [document.getElementById('step1'), document.getElementById('step2'), document.getElementById('step3')];
+      var tabButtons = [document.getElementById('step1-tab'), document.getElementById('step2-tab'), document.getElementById('step3-tab')];
+      var btnNext = document.getElementById('btn-next');
+      var btnSubmit = document.getElementById('btn-submit');
+      var successEl = document.getElementById('wizard-success');
+      var errorEl = document.getElementById('wizard-error');
+      var currentStep = 0;
+
+      function showStep(i) {
+        currentStep = i;
+        tabs.forEach(function (t, j) {
+          t.classList.toggle('show', j === i);
+          t.classList.toggle('active', j === i);
+        });
+        tabButtons.forEach(function (b, j) {
+          b.classList.toggle('active', j === i);
+        });
+        btnNext.classList.toggle('d-none', i === 2);
+        btnSubmit.classList.toggle('d-none', i !== 2);
+      }
+
+      btnNext.addEventListener('click', function () {
+        if (currentStep < 2) showStep(currentStep + 1);
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        successEl.classList.add('d-none');
+        errorEl.classList.add('d-none');
+        var name = document.getElementById('name').value.trim();
+        var slug = document.getElementById('slug').value.trim().toLowerCase().replace(/\s+/g, '-');
+        var subdomain = document.getElementById('subdomain').value.trim().toLowerCase() || slug;
+        var contact_email = document.getElementById('contact_email').value.trim();
+        var region_code = document.getElementById('region_code').value.trim();
+        var sub_system = document.getElementById('sub_system').value;
+        var primary_color = document.getElementById('primary_color').value;
+        var accent_color = document.getElementById('accent_color').value;
+        var payload = {
+          name: name,
+          slug: slug,
+          subdomain: subdomain,
+          contact_email: contact_email,
+          region_code: region_code,
+          sub_system: sub_system,
+          primary_color: primary_color,
+          accent_color: accent_color
+        };
+        var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch('{% url "super:api_create_school" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf
+          },
+          body: JSON.stringify(payload),
+          credentials: 'same-origin'
+        })
+          .then(function (r) {
+            return r.json().then(function (data) {
+              if (r.ok) {
+                successEl.textContent = 'School created. Provisioning started. ' + (data.school_id ? 'ID: ' + data.school_id : '');
+                successEl.classList.remove('d-none');
+                form.reset();
+                showStep(0);
+              } else {
+                errorEl.textContent = (data.errors && data.errors.length) ? data.errors.join(' ') : (data.error || 'Request failed');
+                errorEl.classList.remove('d-none');
+              }
+            });
+          })
+          .catch(function () {
+            errorEl.textContent = 'Network error. Try again.';
+            errorEl.classList.remove('d-none');
+          });
+      });
+
+      document.getElementById('name').addEventListener('input', function () {
+        var s = this.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        if (!document.getElementById('slug').value) document.getElementById('slug').value = s;
+        if (!document.getElementById('subdomain').value) document.getElementById('subdomain').value = s;
+      });
+    })();
+  </script>
+{% endblock %}

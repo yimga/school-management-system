@@ -394,7 +394,7 @@ def site_settings_context(request):
     Caches the result to avoid repeated database queries.
     """
     try:
-        site = SiteSettings.get_current()
+        site = SiteSettings.get_solo()
         return {
             'SITE': site,
             'SITE_THEME': site.get_theme_vars() if hasattr(site, 'get_theme_vars') else {},

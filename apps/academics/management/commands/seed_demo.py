@@ -23,6 +23,17 @@ from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 DEMO_PASSWORD = "Test1234"
 
 
+def _resolve_school(slug_or_id):
+    """Return School by slug or ID, or None if slug_or_id is empty."""
+    if not slug_or_id:
+        return None
+    from apps.schools.models import School
+    s = str(slug_or_id).strip()
+    if s.isdigit():
+        return School.objects.filter(pk=int(s)).first()
+    return School.objects.filter(slug=s).first()
+
+
 class Command(BaseCommand):
     help = "Create (and optionally reset) demo data for local testing / staging."
 
@@ -38,10 +49,22 @@ class Command(BaseCommand):
             default=True,
             help="Keep superuser accounts (default: True).",
         )
+        parser.add_argument(
+            "--school",
+            type=str,
+            default=None,
+            help="School slug or ID for tenant-scoped seed data. Omit for global (school=None) seed.",
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
         reset = options.get("reset")
+        school = _resolve_school(options.get("school"))
+        if options.get("school") and not school:
+            self.stdout.write(self.style.ERROR("School not found for --school=%s" % options.get("school")))
+            return
+        if school:
+            self.stdout.write("Seeding for school: %s (slug=%s)" % (school.name, school.slug))
 
         if reset:
             self._reset_domain_data()
@@ -49,6 +72,7 @@ class Command(BaseCommand):
 
         # ---- Academic setup ----
         year, _ = AcademicYear.objects.get_or_create(
+            school=school,
             name="2025/2026",
             defaults={"start_date": date(2025, 9, 1), "end_date": date(2026, 7, 31), "is_active": True},
         )
@@ -76,7 +100,11 @@ class Command(BaseCommand):
         term1.is_active = True
         term1.save(update_fields=["is_active"])
 
-        department, _ = Department.objects.get_or_create(name="General Studies", code="GEN")
+        department, _ = Department.objects.get_or_create(
+            school=school,
+            code="GEN",
+            defaults={"name": "General Studies"},
+        )
 
         form3, _ = Classroom.objects.get_or_create(
             academic_year=year,
@@ -93,9 +121,9 @@ class Command(BaseCommand):
 
         general, _ = Specialty.objects.get_or_create(department=department, name="General", defaults={"code": "GEN"})
 
-        english, _ = Subject.objects.get_or_create(name="English")
-        math, _ = Subject.objects.get_or_create(name="Mathematics")
-        physics, _ = Subject.objects.get_or_create(name="Physics")
+        english, _ = Subject.objects.get_or_create(school=school, name="English", defaults={})
+        math, _ = Subject.objects.get_or_create(school=school, name="Mathematics", defaults={})
+        physics, _ = Subject.objects.get_or_create(school=school, name="Physics", defaults={})
 
         # ---- Users ----
         parent1 = self._get_or_create_user(

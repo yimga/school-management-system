@@ -171,6 +171,8 @@ urlpatterns = [
     path('communication/', include(('apps.communication.urls', 'communication'), namespace='communication')),
     path('emis/', include(('emis.urls', 'emis'), namespace='emis')),
     path('requests/', include(('apps.requests.urls', 'requests'), namespace='requests')),
+    # Super Admin (multi-tenant provisioning)
+    path('super/', include(('apps.schools.super_urls', 'super'), namespace='super')),
 ]
 
 if settings.DEBUG:

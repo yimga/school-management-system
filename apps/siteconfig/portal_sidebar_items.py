@@ -215,7 +215,7 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "take_teacher_attendance", "label": "Take teacher attendance", "url": _safe_reverse("portal:record_teacher_attendance"), "icon": "bi-person-check", "section": "Learning Management", "badge": None})
         items.append({"id": "timetable", "label": "My Timetable", "url": _safe_reverse("portal:teacher_timetable"), "icon": "bi-calendar-week", "section": "Learning Management", "badge": None})
         if (getattr(site, "backend_feature_flags", None) or {}).get("enable_cahier_de_texte"):
-            items.append({"id": "cahier", "label": "Cahier de Texte", "url": _safe_reverse("portal:cahier_list"), "icon": "bi-journal-text", "section": "Learning Management", "badge": None})
+            items.append({"id": "cahier", "label": "Cahier de Texte", "url": _safe_reverse("portal:cahier_list"), "icon": "bi-journal-text", "section": "Learning Management", "badge": None, "feature": "cahier_de_texte"})
         items.append({"id": "payslips", "label": "Payslips", "url": _safe_reverse("payroll:employee_payslips"), "icon": "bi-wallet2", "section": "Human Resources", "badge": None})
         items.append({"id": "leave", "label": "Leave Requests", "url": _safe_reverse("payroll:employee_leave"), "icon": "bi-calendar-check", "section": "Human Resources", "badge": None})
         items.append({"id": "pay_history", "label": "Pay History", "url": _safe_reverse("portal:teacher_pay_history"), "icon": "bi-receipt", "section": "Human Resources", "badge": None})
@@ -308,6 +308,15 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "import_hub", "label": "Import Hub", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
         if can_manage_site:
             items.append({"id": "customizer", "label": "Customizer", "url": _safe_reverse("siteconfig:customizer"), "icon": "bi-palette", "section": "Admin Panel", "badge": None})
+        # Multi-tenant: Modules and Grading are per-school; show only when a school is in context.
+        _school = getattr(request, "school", None)
+        if _school and (role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL") or is_staff or is_superuser):
+            _mm_url = _safe_reverse("siteconfig:module_market")
+            if _mm_url:
+                items.append({"id": "module_market", "label": "Modules", "url": _mm_url, "icon": "bi-puzzle", "section": "Admin Panel", "badge": None})
+            _gs_url = _safe_reverse("siteconfig:grading_settings")
+            if _gs_url:
+                items.append({"id": "grading_settings", "label": "Grading & language", "url": _gs_url, "icon": "bi-translate", "section": "Admin Panel", "badge": None})
         if is_superuser and not in_backend:
             site_pk = getattr(site, "pk", 1)
             items.append({"id": "site_settings", "label": "Site Settings", "url": _safe_reverse("admin:siteconfig_sitesettings_change", args=[site_pk]), "icon": "bi-gear-wide", "section": "Admin Panel", "badge": None})
@@ -346,6 +355,14 @@ def build_portal_sidebar_items(request, site):
             seen_item_ids.add(item_id)
         deduped.append(item)
     items = deduped
+
+    # Multi-tenant: hide items for modules the school has not enabled (Phase 3 feature registry).
+    school = getattr(request, "school", None)
+    if school:
+        items = [
+            it for it in items
+            if it.get("feature") is None or school.has_feature(it.get("feature") or "")
+        ]
 
     # Group by section so each section title appears only once ({% ifchanged item.section %}).
     # Section order = order of first occurrence in current list; items within each section keep relative order.
