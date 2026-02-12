@@ -419,6 +419,125 @@
     align-items: center;
   }
 
+  .child-fill-card {
+    border-radius: var(--dashboard-card-radius, 12px);
+    border: var(--dashboard-card-border);
+    box-shadow: var(--dashboard-card-shadow);
+    background: var(--dashboard-card-bg, #fff);
+  }
+
+  .child-fill-card .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1rem;
+  }
+
+  .child-fill-section {
+    border: 1px solid color-mix(in srgb, var(--school-primary, #0d6efd) 16%, #cbd5e1 84%);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--school-primary, #0d6efd) 6%, #ffffff 94%);
+    padding: 0.75rem;
+  }
+
+  .child-fill-head {
+    margin: 0 0 0.45rem;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--admin-content-text, #0f172a);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .child-fill-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .child-fill-list li {
+    border: 1px solid color-mix(in srgb, var(--school-primary, #0d6efd) 22%, #cbd5e1 78%);
+    border-radius: 10px;
+    background: var(--dashboard-card-bg, #fff);
+    padding: 0.45rem 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .child-fill-list span {
+    color: var(--admin-content-text-muted, #64748b);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .child-fill-list strong {
+    color: var(--admin-content-text, #0f172a);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .child-fill-deadlines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .child-fill-deadlines li {
+    border-top: 1px solid color-mix(in srgb, var(--school-primary, #0d6efd) 14%, #e2e8f0 86%);
+    padding-top: 0.35rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .child-fill-deadlines li:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .child-fill-deadlines strong {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--admin-content-text, #0f172a);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .child-fill-deadlines small {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--admin-content-text-muted, #64748b);
+  }
+
+  .child-fill-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-top: 0.55rem;
+  }
+
+  .child-fill-actions .btn {
+    width: 100%;
+  }
+
   @media (max-width: 479px) {
     .child-metrics-grid {
       grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
@@ -456,6 +575,11 @@
       width: 50px;
       height: 50px;
       margin-bottom: 0.5rem;
+    }
+
+    .child-fill-list,
+    .child-fill-actions {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -1373,7 +1497,7 @@
           <div class="parent-children-grid children-grid row g-3">
             {% for card in child_cards %}
             {% if forloop.counter0 < 2 or child_cards|length <= 2 %}
-            <div class="col-md-6" data-dashboard-column="main" id="child-card-{{ card.link.student.id }}">
+            <div class="{% if child_cards|length == 1 %}col-lg-7 col-md-12{% else %}col-md-6{% endif %}" data-dashboard-column="main" id="child-card-{{ card.link.student.id }}">
               <div class="card h-100 child-card" data-widget-id="parent-child-{{ forloop.counter0 }}">
                 <div class="card-body">
                   <div class="child-header d-flex align-items-center gap-3 mb-3">
@@ -1424,6 +1548,61 @@
             <div class="col-12 text-center py-2">
               <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary">View all children</a>
             </div>
+            {% endif %}
+            {% if child_cards|length == 1 %}
+            {% with focus_child=child_cards.0 %}
+            <div class="col-lg-5 col-md-12" data-dashboard-column="main">
+              <div class="card h-100 child-fill-card" data-widget-id="parent-single-child-fill">
+                <div class="card-body">
+                  <div class="child-fill-section">
+                    <h3 class="child-fill-head">
+                      <span><i class="bi bi-activity me-1"></i>At-risk follow-up</span>
+                      {% if focus_child.missing_work or has_fees_due or focus_child.attendance < 80 %}
+                      <span class="badge text-bg-warning">Action</span>
+                      {% else %}
+                      <span class="badge text-bg-success">Stable</span>
+                      {% endif %}
+                    </h3>
+                    <ul class="child-fill-list">
+                      <li><span>Attendance</span><strong>{{ focus_child.attendance|default:0 }}%</strong></li>
+                      <li><span>Missing work</span><strong>{{ focus_child.missing_work|default:0 }}</strong></li>
+                      <li><span>Fee status</span><strong>{% if can_view_finance %}{% if focus_child.finance_balance and focus_child.finance_balance > 0 %}Pending{% else %}Cleared{% endif %}{% else %}Hidden{% endif %}</strong></li>
+                      <li><span>Unread messages</span><strong>{{ unread_messages_aggregate|default:0 }}</strong></li>
+                    </ul>
+                    <div class="child-fill-actions">
+                      <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_contact_school' %}">Message school</a>
+                      <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_child_results' focus_child.link.student.id %}">Open results</a>
+                    </div>
+                  </div>
+                  <div class="child-fill-section">
+                    <h3 class="child-fill-head">
+                      <span><i class="bi bi-calendar-week me-1"></i>This week deadlines</span>
+                      <span class="badge text-bg-light">{{ widget_data.events|length|default:0 }}</span>
+                    </h3>
+                    {% if widget_data.events %}
+                    <ul class="child-fill-deadlines">
+                      {% for item in widget_data.events|slice:":3" %}
+                      <li>
+                        <div>
+                          <strong>{{ item.title|default:"Upcoming item"|truncatechars:34 }}</strong>
+                          <small>{{ item.when|default:"This week" }}</small>
+                        </div>
+                        <span class="badge rounded-pill text-bg-secondary">{{ forloop.counter }}</span>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="small text-muted mb-0">No pending deadlines this week.</p>
+                    {% endif %}
+                    <div class="child-fill-actions">
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_workflow' %}">Open workflow</a>
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:unified_calendar' %}">View calendar</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endwith %}
             {% endif %}
           </div>
         </section>
