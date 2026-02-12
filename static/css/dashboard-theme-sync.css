@@ -63,6 +63,31 @@ body[data-dashboard-page] #dashboard-layout .card {
   background: var(--dashboard-surface);
   border-color: var(--dashboard-border);
   box-shadow: var(--dashboard-shadow-soft);
+  min-width: 0;
+  overflow: hidden;
+}
+
+body[data-dashboard-page] .card .card-body,
+body[data-dashboard-page] .table-responsive,
+body[data-dashboard-page] .row > [class*="col-"] {
+  min-width: 0;
+}
+
+body[data-dashboard-page] .card-title,
+body[data-dashboard-page] .dashboard-kpi-label,
+body[data-dashboard-page] .section-title,
+body[data-dashboard-page] .small,
+body[data-dashboard-page] .text-muted,
+body[data-dashboard-page] .table td,
+body[data-dashboard-page] .table th {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+body[data-dashboard-page] .dashboard-kpi-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 body[data-dashboard-page] .card-title,
@@ -396,9 +421,7 @@ body.dashboard-preset-high-contrast[data-dashboard-page] .backend-quick-action-b
   background: rgba(30, 64, 175, 0.25);
 }
 
-.profile-shell {
-  max-width: 1240px;
-}
+.profile-shell { width: 100%; }
 
 .profile-shell .profile-header {
   background: linear-gradient(
@@ -460,7 +483,8 @@ body[data-dashboard-page] #main-content {
 
 body[data-dashboard-page] .container-fluid,
 body[data-dashboard-page] .container-lg {
-  max-width: 1260px;
+  max-width: none;
+  width: 100%;
   padding-left: 0.72rem;
   padding-right: 0.72rem;
 }
@@ -516,7 +540,8 @@ body[data-dashboard-page="teacher"] .tdm-bg {
 }
 
 body[data-dashboard-page="teacher"] .tdm-shell {
-  max-width: 1220px;
+  max-width: none;
+  width: 100%;
 }
 
 body[data-dashboard-page="teacher"] .tdm-hero {
@@ -541,7 +566,8 @@ body[data-dashboard-page="teacher"] .tdm-task {
 
 /* Backend command center compact + reduced empty areas */
 body[data-dashboard-page="backend"] .container-fluid {
-  max-width: 1320px;
+  max-width: none;
+  width: 100%;
 }
 
 body[data-dashboard-page="backend"] .backend-welcome-section {

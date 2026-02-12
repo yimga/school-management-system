@@ -760,7 +760,7 @@ input[type="file"][accept*="image"]:hover,
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--school-primary, #0d6efd), var(--school-accent, #198754));
   display: flex;
   align-items: center;
   justify-content: center;

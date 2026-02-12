@@ -15,7 +15,8 @@ body[data-dashboard-page="parent"] .parent-dashboard {
 }
 
 body[data-dashboard-page="parent"] .parent-dashboard .container-lg {
-  max-width: 1220px;
+  max-width: none;
+  width: 100%;
   padding-top: 1rem !important;
   padding-bottom: 1rem !important;
 }
@@ -118,7 +119,8 @@ body[data-dashboard-page="teacher"] .tdm-bg {
 }
 
 body[data-dashboard-page="teacher"] .tdm-shell {
-  max-width: 1240px;
+  max-width: none;
+  width: 100%;
 }
 
 body[data-dashboard-page="teacher"] .card-glass {

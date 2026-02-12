@@ -21,13 +21,13 @@
     document.addEventListener('DOMContentLoaded', apply, { once: true });
   })();
 </script>
-<style>
+  <style>
   :root {
-    --brand-primary: {{ SITE.primary_color|default:"#667eea" }};
-    --brand-accent: {{ SITE.accent_color|default:"#764ba2" }};
-    --brand-success: {{ SITE.success_color|default:"#22c55e" }};
-    --brand-warning: {{ SITE.warning_color|default:"#fbbf24" }};
-    --brand-danger: {{ SITE.danger_color|default:"#ef4444" }};
+    --brand-primary: var(--school-primary, {{ SITE.primary_color|default:"#0d6efd" }});
+    --brand-accent: var(--school-accent, {{ SITE.accent_color|default:"#198754" }});
+    --brand-success: var(--school-success, {{ SITE.success_color|default:"#22c55e" }});
+    --brand-warning: var(--school-warning, {{ SITE.warning_color|default:"#fbbf24" }});
+    --brand-danger: var(--school-danger, {{ SITE.danger_color|default:"#ef4444" }});
     --admin-dashboard-bg: #f8fafc;
     --admin-surface: #ffffff;
     --admin-border: #e2e8f0;

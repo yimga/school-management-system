@@ -138,11 +138,12 @@
         min-height: 100vh;
         z-index: 1;
       }
+      /* Full-width contract: module pages should not be artificially boxed. */
       body.layout-boxed .app-container {
-        max-width: 1280px;
-        margin-left: auto;
-        margin-right: auto;
-        box-shadow: 0 0 24px rgba(0,0,0,0.08);
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+        box-shadow: none;
       }
       .app-container::before {
         content: "";
@@ -155,6 +156,21 @@
         opacity: 0;
         z-index: -1;
         pointer-events: none;
+      }
+      /* Overflow safety contract for base pages. */
+      .app-container [class*="col-"],
+      .app-container .card,
+      .app-container .card .card-body,
+      .app-container .table-responsive {
+        min-width: 0;
+      }
+      .app-container .card-title,
+      .app-container .table td,
+      .app-container .table th,
+      .app-container .badge,
+      .app-container .btn {
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
       {% with theme=SITE_THEME %}
       :root {

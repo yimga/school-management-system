@@ -8,7 +8,8 @@
 .dashboard-layout-unified,
 .parent-dashboard-widgets,
 .teacher-dashboard-widgets {
-  max-width: 1400px;
+  max-width: none;
+  width: 100%;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
@@ -151,7 +152,8 @@
 
 /* ===== Teacher shell alignment ===== */
 .teacher-shell {
-  max-width: 1400px;
+  max-width: none;
+  width: 100%;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
@@ -160,5 +162,6 @@
 
 /* ===== Parent dashboard container ===== */
 .parent-dashboard .container-lg {
-  max-width: 1400px;
+  max-width: none;
+  width: 100%;
 }

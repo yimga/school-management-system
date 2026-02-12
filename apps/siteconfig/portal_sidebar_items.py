@@ -322,9 +322,30 @@ def build_portal_sidebar_items(request, site):
     order = getattr(site, "portal_sidebar_order", None) or []
     if isinstance(order, list) and len(order) > 0:
         id_to_item = {x["id"]: x for x in items}
-        ordered_ids = [x for x in order if isinstance(x, str) and x.strip() and x.strip() in id_to_item]
+        ordered_ids = []
+        seen_order_ids = set()
+        for raw_id in order:
+            if not isinstance(raw_id, str):
+                continue
+            item_id = raw_id.strip()
+            if not item_id or item_id not in id_to_item or item_id in seen_order_ids:
+                continue
+            seen_order_ids.add(item_id)
+            ordered_ids.append(item_id)
         remaining = [x for x in items if x["id"] not in ordered_ids]
         items = [id_to_item[i] for i in ordered_ids] + remaining
+
+    # Global de-duplication safety (id-based) to prevent repeated nav items.
+    deduped = []
+    seen_item_ids = set()
+    for item in items:
+        item_id = item.get("id")
+        if item_id and item_id in seen_item_ids:
+            continue
+        if item_id:
+            seen_item_ids.add(item_id)
+        deduped.append(item)
+    items = deduped
 
     # Group by section so each section title appears only once ({% ifchanged item.section %}).
     # Section order = order of first occurrence in current list; items within each section keep relative order.
