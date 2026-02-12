@@ -1,6 +1,6 @@
 import json
 from django.db import DatabaseError, connection, transaction
-from .models import SiteSettings, RegionConfig
+from .models import SiteSettings, RegionConfig, default_backend_feature_flags
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from django.core.files.storage import default_storage
@@ -247,6 +247,8 @@ def site_settings(request):
             recipient=request.user,
             is_read=False,
         ).count()
+    feature_flags = dict(default_backend_feature_flags())
+    feature_flags.update(site.backend_feature_flags or {})
     admin_theme = site.get_admin_theme()
     use_site_primary_for_admin = bool(getattr(site, "admin_use_site_primary", False))
     admin_background_url = _resolve_media_url(admin_theme.background_image if admin_theme else None)
@@ -297,6 +299,14 @@ def site_settings(request):
         "SHOW_HEADER_NOTIFICATIONS": getattr(site, "show_header_notifications", True),
         "SHOW_HEADER_PROFILE_MENU": getattr(site, "show_header_profile_menu", True),
         "SHOW_HEADER_THEME_TOGGLE": getattr(site, "show_header_theme_toggle", True),
+        "SHOW_HEADER_CONTEXT_STRIP": bool(feature_flags.get("show_header_context_strip", True)),
+        "SHOW_HEADER_CONTEXT_DATETIME": bool(feature_flags.get("show_header_context_datetime", True)),
+        "SHOW_HEADER_CONTEXT_WEATHER": bool(feature_flags.get("show_header_context_weather", True)),
+        "SHOW_HEADER_CONTEXT_QUOTE": bool(feature_flags.get("show_header_context_quote", True)),
+        "HEADER_WEATHER_LATITUDE": feature_flags.get("header_weather_latitude", 4.1527),
+        "HEADER_WEATHER_LONGITUDE": feature_flags.get("header_weather_longitude", 9.2410),
+        "HEADER_WEATHER_TEMPERATURE_UNIT": str(feature_flags.get("header_weather_temperature_unit", "celsius")).lower(),
+        "HEADER_WEATHER_LABEL": feature_flags.get("header_weather_label", "Buea, Cameroon"),
         "SITE_BRANDED_DOMAIN": getattr(site, "branded_domain", "") or "",
         "SITE_SECONDARY_FONT": getattr(site, "secondary_font", "") or "",
         "SITE_USE_SECONDARY_FONT_HEADINGS": getattr(site, "use_secondary_font_for_headings", False),

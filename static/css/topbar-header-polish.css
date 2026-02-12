@@ -1,0 +1,173 @@
+/**
+ * Shared header polish for base + portal/back-end shells.
+ * Goals:
+ * - Keep controls aligned on one baseline
+ * - Prevent button/text spill from the header frame
+ * - Keep layout compact while preserving responsive behavior
+ */
+
+.navbar .navbar-brand,
+.topbar .navbar-brand,
+.base-topbar .navbar-brand {
+  min-width: 0;
+  max-width: min(48vw, 640px);
+}
+
+.navbar .navbar-brand span,
+.topbar .navbar-brand span,
+.base-topbar .navbar-brand span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-actions,
+.base-topbar-actions {
+  min-width: 0;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+}
+
+.topbar-actions > * {
+  min-width: 0;
+}
+
+.topbar-context-strip,
+.base-topbar-weather {
+  flex: 0 1 380px;
+  min-width: 220px;
+  max-width: 440px;
+}
+
+.header-search-container {
+  position: relative;
+  flex: 0 1 240px;
+  min-width: 180px;
+  max-width: 280px;
+}
+
+.header-search-container .topbar-search-input {
+  width: 100% !important;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+}
+
+.header-search-container .topbar-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.header-search-hint {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+
+.topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.topbar-icon-btn {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  font-size: 1.02rem;
+}
+
+.topbar-username {
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar .btn,
+.topbar .btn-link,
+.base-topbar .btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 1399px) {
+  .topbar-context-strip,
+  .base-topbar-weather {
+    flex-basis: 320px;
+    max-width: 360px;
+  }
+}
+
+@media (max-width: 1199px) {
+  .topbar-context-strip,
+  .base-topbar-weather {
+    flex-basis: 280px;
+    min-width: 180px;
+    max-width: 300px;
+  }
+
+  .header-search-container {
+    flex-basis: 210px;
+    min-width: 160px;
+    max-width: 230px;
+  }
+}
+
+@media (max-width: 991px) {
+  .topbar-actions {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .topbar-controls {
+    order: 1;
+    margin-left: auto;
+  }
+
+  .topbar-context-strip,
+  .topbar-search,
+  .header-search-container {
+    order: 2;
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .topbar-context-strip,
+  .base-topbar-weather {
+    display: none !important;
+  }
+
+  .topbar-username {
+    display: none !important;
+  }
+
+  .topbar-icon-btn {
+    width: 1.85rem;
+    height: 1.85rem;
+    min-width: 1.85rem;
+    font-size: 0.95rem;
+  }
+}

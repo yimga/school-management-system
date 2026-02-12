@@ -74,6 +74,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/no-watermark.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
+    <link rel="stylesheet" href="{% static 'css/topbar-header-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-crisp-polish.css' %}">
@@ -186,7 +187,7 @@
       .header-search-dropdown .search-result-error { padding: 0.75rem; color: #64748b; font-size: 0.9rem; }
 
       .topbar-actions {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         justify-content: flex-end;
       }
 
@@ -201,7 +202,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        margin-left: auto;
+        margin-left: 0;
       }
 
       /* Overflow safety contract for all module pages (no text/frame bleed). */
@@ -508,6 +509,7 @@
         }
 
         .topbar-weather,
+        .topbar-context-strip,
         .topbar-search {
           order: 2;
           flex-basis: 100%;
@@ -524,7 +526,8 @@
       }
 
       @media (max-width: var(--bp-extra-narrow, 575px)) {
-        .topbar-weather {
+        .topbar-weather,
+        .topbar-context-strip {
           display: none;
         }
 
@@ -757,14 +760,15 @@
             {% if SITE and SITE.enable_offline_mode and SITE.backend_feature_flags.show_offline_status_bar|default:1 %}
             {% include 'components/offline_status_bar.html' %}
             {% endif %}
-            <!-- Weather Widget - Scrolling Header -->
-            <div class="topbar-weather flex-grow-1" style="max-width: 400px;">
+            {% if SHOW_HEADER_CONTEXT_STRIP %}
+            <div class="topbar-context-strip topbar-weather">
               {% include 'components/header_weather_widget.html' %}
             </div>
+            {% endif %}
 
             {% if SHOW_HEADER_SEARCH %}
             <!-- Global Search Bar (Ctrl+K) - searches students, teachers, invoices, etc. -->
-            <div class="topbar-search search-bar-wrapper header-search-container" style="position: relative;">
+            <div class="topbar-search search-bar-wrapper header-search-container">
               <input 
                 type="text" 
                 class="form-control form-control-sm topbar-search-input nav-search" 
@@ -774,9 +778,8 @@
                 aria-autocomplete="list"
                 aria-expanded="false"
                 aria-controls="headerSearchResults"
-                style="width: 220px; min-width: 180px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff;"
               />
-              <small class="topbar-search-hint" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: rgba(255,255,255,0.85); pointer-events: none;">Ctrl+K</small>
+              <small class="topbar-search-hint">Ctrl+K</small>
               <div id="headerSearchResults" class="header-search-dropdown" role="listbox" aria-label="Search results" style="display: none;"></div>
             </div>
             {% endif %}
@@ -786,7 +789,7 @@
               {% include "partials/language_switcher.html" %}
               {% endif %}
               {% if request.user.is_authenticated %}
-              <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_messages' %}" title="Messages" aria-label="Open Messages" style="font-size: 1.2rem;">
+              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="Messages" aria-label="Open Messages">
                 <i class="bi bi-chat-dots-fill"></i>
                 {% if messages_unread_count %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ messages_unread_count }}</span>
@@ -794,22 +797,21 @@
               </a>
               {% endif %}
               {% if SHOW_HEADER_NOTIFICATIONS %}
-              <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications" style="font-size: 1.2rem;">
+              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications">
                 <i class="bi bi-bell"></i>
                 {% if NOTIFICATIONS_UNREAD_COUNT %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
                 {% endif %}
               </a>
               {% endif %}
-              <a class="btn btn-link text-white p-0" href="{% url 'kb:kb_home' %}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}" style="font-size: 1.2rem;"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
+              <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{% url 'kb:kb_home' %}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
               {% if SHOW_HEADER_THEME_TOGGLE %}
               <button 
                 type="button"
-                class="btn btn-link text-white p-0" 
+                class="btn btn-link text-white p-0 topbar-icon-btn" 
                 id="themeToggle" 
                 title="Toggle Dark/Light Theme"
                 aria-label="Toggle Dark/Light Theme"
-                style="font-size: 1.2rem;"
               >
                 <i class="bi bi-moon-stars" aria-hidden="true"></i>
               </button>
@@ -818,14 +820,13 @@
               {% if SHOW_HEADER_PROFILE_MENU %}
               <div class="dropdown">
                 <button 
-                  class="btn btn-link text-white p-0 dropdown-toggle" 
+                  class="btn btn-link text-white p-0 dropdown-toggle topbar-icon-btn" 
                   type="button" 
                   id="adminMenuDropdown" 
                   data-bs-toggle="dropdown" 
                   aria-expanded="false"
                   title="Admin Menu"
                   aria-label="Admin menu"
-                  style="font-size: 1.2rem;"
                 >
                   <i class="bi bi-gear" aria-hidden="true"></i>
                 </button>
@@ -840,7 +841,7 @@
                 </ul>
               </div>
 
-              <span class="small opacity-75 d-none d-md-inline">{{ request.user.username }}</span>
+              <span class="small opacity-75 d-none d-md-inline topbar-username">{{ request.user.username }}</span>
               <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" href="{% url 'accounts:logout' %}">
                 <i class="bi bi-box-arrow-right"></i>
                 <span class="d-none d-sm-inline">Logout</span>
