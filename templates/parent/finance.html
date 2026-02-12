@@ -108,6 +108,35 @@
     </div>
   </div>
 
+  {% if finance_access_granted %}
+  <form method="get" class="card mb-3 no-print">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small">Status</label>
+          <select class="form-select form-select-sm" name="status">
+            <option value="">All</option>
+            {% for value, label in invoice_statuses %}
+              <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small">Sort by</label>
+          <select class="form-select form-select-sm" name="order">
+            {% for value, label in order_options %}
+              <option value="{{ value }}" {% if selected_order == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
   <div class="card">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">

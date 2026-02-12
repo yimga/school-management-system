@@ -191,8 +191,9 @@
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Upload Payment Receipt</h5>
       </div>
-      <form method="post" action="{% url 'finance:upload_payment_receipt' invoice.id %}" enctype="multipart/form-data">
+      <form id="receipt-upload-form" method="post" action="{% url 'finance:upload_payment_receipt' invoice.id %}" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" id="idempotency_key" name="idempotency_key" value="">
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">Receipt File <span class="text-danger">*</span></label>
@@ -205,6 +206,8 @@
               <option value="">Select method...</option>
               <option value="CASH">Cash</option>
               <option value="BANK">Bank Transfer</option>
+              <option value="MTN_MOMO">MTN MoMo</option>
+              <option value="ORANGE_MOMO">Orange Money</option>
             </select>
           </div>
           <div class="col-md-3">

@@ -1,6 +1,7 @@
 # apps/api/serializers.py
 """Shared serializers for API endpoints (CRUD + dashboard DTOs)."""
 from django.contrib.auth import get_user_model
+from django.db import models
 from rest_framework import serializers
 
 from apps.academics.models import Classroom
@@ -147,9 +148,9 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
 # ==================== FINANCE SERIALIZERS ====================
 
 class InvoiceSerializer(serializers.ModelSerializer):
-    """Invoice with student details"""
-    student_name = serializers.CharField(source='student.user.get_full_name', read_only=True)
-    student_id = serializers.CharField(source='student.student_id', read_only=True)
+    """Invoice serializer aligned to current finance models."""
+    student_name = serializers.SerializerMethodField()
+    student_id = serializers.CharField(source='student.student_code', read_only=True)
     paid_amount = serializers.SerializerMethodField()
     balance = serializers.SerializerMethodField()
     
@@ -157,29 +158,37 @@ class InvoiceSerializer(serializers.ModelSerializer):
         model = Invoice
         fields = [
             'id', 'student', 'student_name', 'student_id',
-            'amount', 'paid_amount', 'balance', 'status',
-            'due_date', 'invoice_date', 'description'
+            'invoice_type', 'status', 'issued_date', 'due_date',
+            'reference', 'payment_code', 'total_amount',
+            'balance_amount', 'paid_amount', 'balance', 'notes'
         ]
+
+    def get_student_name(self, obj):
+        if not obj.student:
+            return ""
+        return obj.student.get_full_name()
     
     def get_paid_amount(self, obj):
-        return obj.payment_set.filter(status='completed').aggregate(
+        return obj.payments.filter(status='completed').aggregate(
             total=models.Sum('amount')
         )['total'] or 0
     
     def get_balance(self, obj):
-        paid = obj.payment_set.filter(status='completed').aggregate(
+        paid = obj.payments.filter(status='completed').aggregate(
             total=models.Sum('amount')
         )['total'] or 0
-        return obj.amount - paid
+        return obj.total_amount - paid
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    """Payment recording"""
+    """Payment recording serializer aligned to current finance models."""
     class Meta:
         model = Payment
         fields = [
-            'id', 'invoice', 'amount', 'payment_method',
-            'status', 'payment_date', 'reference_number'
+            'id', 'invoice', 'student', 'amount', 'method', 'payment_method',
+            'status', 'paid_at', 'reference', 'reference_number',
+            'external_reference', 'receipt_number',
+            'physical_receipt_book_serial', 'physical_receipt_number',
         ]
 
 
@@ -195,6 +204,7 @@ class AttendanceSerializer(serializers.Serializer):
     class_name = serializers.SerializerMethodField()
     date = serializers.DateField()
     status = serializers.CharField()
+    updated_at = serializers.DateTimeField(read_only=True)
 
     def get_student_name(self, obj):
         student = getattr(obj, "student", None)

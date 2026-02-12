@@ -6,18 +6,24 @@ Supports pattern matching (free) and optional OCR integration.
 """
 
 import re
+import subprocess
+import tempfile
 from decimal import Decimal, InvalidOperation
 from typing import Optional, Dict, Any
 from django.core.files.uploadedfile import UploadedFile
-from django.conf import settings
 from PIL import Image
-import io
+
+from .ocr_runtime import get_ocr_runtime_status
 
 
 class ReceiptVerificationService:
     """Service for extracting and verifying payment receipt data."""
     
-    def __init__(self, verification_method: str = "pattern"):
+    def __init__(
+        self,
+        verification_method: str = "pattern",
+        marksheet_ocr_command: str | None = None,
+    ):
         """
         Initialize verification service.
         
@@ -26,6 +32,11 @@ class ReceiptVerificationService:
                                 "ocr_cloud_google" (paid), "ocr_cloud_aws" (paid)
         """
         self.verification_method = verification_method
+        self.marksheet_ocr_command = marksheet_ocr_command or ""
+        self.runtime_status = get_ocr_runtime_status(
+            verification_method,
+            self.marksheet_ocr_command,
+        )
     
     def extract_receipt_data(self, receipt_file: UploadedFile) -> Dict[str, Any]:
         """
@@ -41,6 +52,21 @@ class ReceiptVerificationService:
                 "raw_text": str  # Extracted text (for debugging)
             }
         """
+        # Guard against unavailable OCR runtimes for non-pattern modes.
+        if self.verification_method != "pattern" and not self.runtime_status.get("ready", False):
+            missing = "; ".join(self.runtime_status.get("missing") or [])
+            return {
+                "amount": None,
+                "reference": None,
+                "date": None,
+                "confidence": 0.0,
+                "extraction_method": f"{self.verification_method}_not_ready",
+                "raw_text": (
+                    f"{self.runtime_status.get('message', 'OCR runtime not ready.')}"
+                    + (f" Missing: {missing}" if missing else "")
+                ),
+            }
+
         # Read file content
         if receipt_file.name.endswith('.pdf'):
             # PDF handling would require pdfplumber or PyPDF2
@@ -64,6 +90,10 @@ class ReceiptVerificationService:
                 text = self._extract_text_from_image_simple(image)
             elif self.verification_method == "ocr_tesseract":
                 text = self._extract_text_with_tesseract(image)
+            elif self.verification_method in {"ocr_cloud_google", "ocr_cloud_aws"}:
+                # Cloud OCR call path is intentionally no-op until external provider activation.
+                # Runtime validation and env checks are already handled above.
+                text = ""
             else:
                 text = ""
             
@@ -101,19 +131,55 @@ class ReceiptVerificationService:
     
     def _extract_text_from_image_simple(self, image: Image.Image) -> str:
         """
-        Simple text extraction (placeholder - would need OCR in production).
-        For now, returns empty string. In production, integrate OCR.
+        Best-effort extraction without paid providers.
+        Tries a lightweight preprocessing pass then reuses Tesseract paths.
         """
-        # Placeholder - in production, use OCR library
-        return ""
+        processed = image.convert("L")
+        # Simple threshold improves many paper scans with dark text on bright background.
+        processed = processed.point(lambda x: 0 if x < 165 else 255, mode="1")
+        text = self._extract_text_with_tesseract(processed)
+        if text:
+            return text
+        # Fall back to original image if thresholding removes useful detail.
+        return self._extract_text_with_tesseract(image)
     
     def _extract_text_with_tesseract(self, image: Image.Image) -> str:
         """Extract text using Tesseract OCR."""
         try:
             import pytesseract
-            return pytesseract.image_to_string(image)
+            text = pytesseract.image_to_string(image)
+            if text and text.strip():
+                return text
         except ImportError:
-            return ""
+            pass
+        except Exception:
+            pass
+        return self._extract_text_with_tesseract_cli(image)
+
+    def _extract_text_with_tesseract_cli(self, image: Image.Image) -> str:
+        """
+        CLI fallback when pytesseract is unavailable.
+        Uses system `tesseract` command if installed.
+        """
+        try:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                src_path = f"{tmp_dir}/scan.png"
+                out_base = f"{tmp_dir}/ocr"
+                out_path = f"{out_base}.txt"
+                image.save(src_path, format="PNG")
+                cmd = ["tesseract", src_path, out_base]
+                completed = subprocess.run(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=25,
+                )
+                if completed.returncode != 0:
+                    return ""
+                with open(out_path, "r", encoding="utf-8", errors="ignore") as handle:
+                    text = handle.read()
+                return text.strip()
         except Exception:
             return ""
     

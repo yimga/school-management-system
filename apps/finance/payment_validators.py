@@ -31,33 +31,66 @@ class PaymentValidator:
 class AmountValidator(PaymentValidator):
     """Validates payment amounts."""
 
-    def validate_amount(self, amount, min_amount=None, max_amount=None):
+    def validate_amount(self, amount=None, min_amount=None, max_amount=None):
+        """
+        Validate amount for both instance and class-style calls.
+
+        Supports:
+        - `AmountValidator().validate_amount(...)` (keeps error/warning tracking)
+        - `AmountValidator.validate_amount(...)` (legacy static-style usage)
+        """
+        if isinstance(self, AmountValidator):
+            validator = self
+            amount_value = amount
+        else:
+            # Legacy/class-style call: first positional arg is the amount value.
+            validator = AmountValidator()
+            amount_value = self
+
         try:
-            amount_decimal = Decimal(str(amount))
+            amount_decimal = Decimal(str(amount_value))
         except Exception:
-            self.add_error(_("Invalid amount format"))
+            validator.add_error(_("Invalid amount format"))
             return False
 
         if amount_decimal <= 0:
-            self.add_error(_("Amount must be positive"))
+            validator.add_error(_("Amount must be positive"))
             return False
 
         if amount_decimal < Decimal("0.01"):
-            self.add_error(_("Amount must be at least 0.01"))
+            validator.add_error(_("Amount must be at least 0.01"))
             return False
 
-        if min_amount is not None and amount_decimal < Decimal(str(min_amount)):
-            self.add_error(_(f"Amount below minimum: {min_amount}"))
+        # Keep a practical default floor for operational payments unless explicitly overridden.
+        effective_min = Decimal(str(min_amount)) if min_amount is not None else Decimal("100")
+        if amount_decimal < effective_min:
+            validator.add_error(_(f"Amount below minimum: {effective_min}"))
             return False
 
         if max_amount is not None and amount_decimal > Decimal(str(max_amount)):
-            self.add_error(_(f"Amount exceeds maximum: {max_amount}"))
+            validator.add_error(_(f"Amount exceeds maximum: {max_amount}"))
             return False
 
         if amount_decimal.as_tuple().exponent < -2:
-            self.add_warning(_("Amount has excessive decimal places"))
+            validator.add_warning(_("Amount has excessive decimal places"))
 
         return True
+
+    @staticmethod
+    def get_amount_category(amount):
+        """Categorize amount bands for dashboards and policy rules."""
+        try:
+            amount_decimal = Decimal(str(amount))
+        except Exception:
+            return "invalid"
+
+        if amount_decimal < Decimal("10000"):
+            return "small"
+        if amount_decimal < Decimal("100000"):
+            return "medium"
+        if amount_decimal < Decimal("500000"):
+            return "large"
+        return "very_large"
 
 
 class CurrencyValidator(PaymentValidator):
@@ -318,3 +351,102 @@ class BankValidator:
         "ACCESS": "Access Bank",
         "ZENITH": "Zenith Bank",
     }
+
+    @staticmethod
+    def validate_account_number(account_number):
+        if not account_number:
+            return False
+        normalized = str(account_number).strip().replace(" ", "")
+        return normalized.isdigit() and 10 <= len(normalized) <= 11
+
+    @staticmethod
+    def validate_bank_code(bank_code):
+        if not bank_code:
+            return False
+        return str(bank_code).upper().strip() in BankValidator.BANK_CODES
+
+    @staticmethod
+    def validate_account_name(account_name):
+        if not account_name:
+            return False
+        normalized = str(account_name).strip()
+        return len(normalized) >= 3
+
+
+class MobileMoneyValidator:
+    """Validate mobile money numbers for common Cameroon/Nigeria formats."""
+
+    @staticmethod
+    def validate_phone_number(phone_number):
+        if not phone_number:
+            return False
+
+        normalized = str(phone_number).strip().replace(" ", "").replace("+", "")
+        if not normalized.isdigit():
+            return False
+
+        # Cameroon (237XXXXXXXXX) and Nigeria (234XXXXXXXXXX) patterns.
+        if normalized.startswith("237"):
+            return len(normalized) == 12 and normalized[3] in {"6"}
+        if normalized.startswith("234"):
+            return len(normalized) == 13 and normalized[3:6] in {
+                "703", "704", "705", "706", "708", "709",
+                "803", "805", "806", "807", "808", "809",
+                "810", "811", "812", "813", "814", "815", "816", "817", "818", "819",
+                "901", "902", "903", "904", "905", "906", "907", "908", "909",
+            }
+
+        # Local-format fallback (10-11 digits).
+        return 10 <= len(normalized) <= 11
+
+
+class PaymentDataValidator:
+    """Composite validator for card/bank payment payloads."""
+
+    @staticmethod
+    def validate_card_payment(payment_data):
+        errors = []
+        warnings = []
+
+        if not CardValidator.validate_card_number(str(payment_data.get("card_number", ""))):
+            errors.append("Invalid card number")
+
+        if not CardValidator.validate_expiry_date(
+            payment_data.get("expiry_month"), payment_data.get("expiry_year")
+        ):
+            errors.append("Invalid expiry date")
+
+        if not CardValidator.validate_cvv(str(payment_data.get("cvv", ""))):
+            errors.append("Invalid CVV")
+
+        if not AmountValidator.validate_amount(payment_data.get("amount")):
+            errors.append("Invalid amount")
+
+        return {
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings,
+        }
+
+    @staticmethod
+    def validate_bank_payment(payment_data):
+        errors = []
+        warnings = []
+
+        if not BankValidator.validate_account_number(payment_data.get("account_number")):
+            errors.append("Invalid account number")
+
+        if not BankValidator.validate_bank_code(payment_data.get("bank_code")):
+            errors.append("Invalid bank code")
+
+        if not BankValidator.validate_account_name(payment_data.get("account_name")):
+            errors.append("Invalid account name")
+
+        if not AmountValidator.validate_amount(payment_data.get("amount")):
+            errors.append("Invalid amount")
+
+        return {
+            "valid": len(errors) == 0,
+            "errors": errors,
+            "warnings": warnings,
+        }

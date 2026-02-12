@@ -4,6 +4,7 @@ import csv
 import io
 import json
 import logging
+import uuid
 from calendar import monthrange
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
@@ -27,6 +28,7 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
@@ -43,21 +45,29 @@ from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.accounts.utils import get_dashboard_context
 from apps.evals.notifications import NotificationService
 
-from .forms import ReportRequestForm
+from .forms import CashOfficeClosureForm, ReportRequestForm, SplitAllocationForm, TellerScanForm
+from .bank_statement_import import BankStatementImportService
 from .notifications import notify_guardians_new_invoices_bulk
+from .ohada_reports import build_dsf_report
 from .models import (
     ComplianceProfile,
     FeePlan,
     Invoice,
+    InvoiceLine,
     LedgerAccount,
     Notification,
     FinanceRequestAudit,
+    CashOfficeClosure,
     Payment,
+    PaymentProofUpload,
     PaymentMethodCode,
     ReportRequest,
+    SuspensePayment,
     WebhookLog,
 )
+from .fraud_detection import ReceiptFraudDetector
 from .receipt_verification import ReceiptVerificationService
+from .ocr_runtime import get_ocr_runtime_status
 from .services import (
     apply_payment,
     create_payment_from_receipt,
@@ -171,6 +181,7 @@ def dashboard(request: HttpRequest):
         "actions": [
             {"label": "All Invoices", "url": "/finance/invoices/"},
             {"label": "Payments", "url": "/finance/payments/"},
+            {"label": "Suspense Queue", "url": "/finance/reconciliation/suspense/"},
         ],
     }
     dashboard_context = get_dashboard_context(request.user, "finance")
@@ -182,6 +193,7 @@ def dashboard(request: HttpRequest):
         {"id": "finance-home", "label": "Finance Home", "url": reverse("finance:dashboard"), "icon": "bi-cash-stack"},
         {"id": "finance-invoices", "label": "Invoices", "url": reverse("finance:invoices"), "icon": "bi-receipt"},
         {"id": "finance-payments", "label": "Payments", "url": reverse("finance:payments"), "icon": "bi-wallet2"},
+        {"id": "finance-suspense", "label": "Suspense Queue", "url": reverse("finance:suspense_queue"), "icon": "bi-exclamation-triangle"},
         {"id": "finance-trial", "label": "Trial Balance", "url": reverse("finance:trial_balance"), "icon": "bi-bank"},
         {"id": "finance-reports", "label": "Reports", "url": reverse("finance:reports"), "icon": "bi-graph-up-arrow"},
     ]
@@ -259,7 +271,9 @@ def invoice_list(request: HttpRequest):
     status = request.GET.get("status")
     year_id = request.GET.get("year")
     search = (request.GET.get("q") or "").strip()
-    qs = Invoice.objects.filter(profile=profile).select_related("student", "academic_year")
+    qs = Invoice.objects.filter(profile=profile).select_related(
+        "student", "academic_year", "profile"
+    ).prefetch_related("payments")
     
     # Filter invoices based on user role
     if request.user.role == User.Role.PARENT:
@@ -285,9 +299,20 @@ def invoice_list(request: HttpRequest):
             | models.Q(student__admission_number__icontains=search)
         )
 
-    ordered_qs = qs.order_by("-issued_date")
+    # Part B.4/B.6: sort order (data-agnostic)
+    _invoice_order_map = {
+        "issued_date": "issued_date",
+        "-issued_date": "-issued_date",
+        "due_date": "due_date",
+        "-due_date": "-due_date",
+        "total_amount": "total_amount",
+        "-total_amount": "-total_amount",
+    }
+    order_param = (request.GET.get("order") or "").strip()
+    order_by = _invoice_order_map.get(order_param, "-issued_date")
+    ordered_qs = qs.order_by(order_by)
 
-    # Phase 18.2: One-click export (CSV)
+    # Phase 18.2: One-click export (CSV). Cap 5000 rows; see docs/IMPROVEMENTS_EXECUTABLE_PLAN.md Phase 3.4.
     if request.GET.get("export") == "csv":
         buf = io.StringIO()
         w = csv.writer(buf)
@@ -307,7 +332,7 @@ def invoice_list(request: HttpRequest):
         resp["Content-Disposition"] = 'attachment; filename="invoices_export.csv"'
         return resp
 
-    # Phase 18.3: One-click export (PDF)
+    # Phase 18.3: One-click export (PDF). Cap 500 rows for PDF; CSV uses 5000. See Phase 3.4 in plan.
     if request.GET.get("export") == "pdf":
         try:
             from weasyprint import HTML
@@ -337,6 +362,7 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
         resp["Content-Disposition"] = 'attachment; filename="invoices_export.pdf"'
         return resp
 
+    # Pagination: 25 per page (intentional limit; see docs/IMPROVEMENTS_EXECUTABLE_PLAN.md Phase 3.4).
     paginator = Paginator(ordered_qs, 25)
     page_number = request.GET.get("page") or 1
     try:
@@ -369,6 +395,15 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
         ),
         "can_request_finance_access": access_state["allow_requests"] and access_state["require_opt_in"] and access_state["guardian_count"] > access_state["finance_count"],
         "finance_request_url": reverse("finance:finance_request_access"),
+        "order_options": [
+            ("-issued_date", "Date (newest first)"),
+            ("issued_date", "Date (oldest first)"),
+            ("-due_date", "Due date (latest first)"),
+            ("due_date", "Due date (earliest first)"),
+            ("-total_amount", "Amount (high to low)"),
+            ("total_amount", "Amount (low to high)"),
+        ],
+        "selected_order": order_param or "-issued_date",
     })
 
 
@@ -383,9 +418,30 @@ def payment_list(request: HttpRequest):
         "invoice__student",
         "invoice__academic_year",
     )
-    ordered_qs = qs.order_by("-paid_at")
 
-    # Phase 18.2: One-click export (CSV)
+    # Part B.6: filters (data-agnostic; work with 0 or many rows)
+    method = (request.GET.get("method") or "").strip()
+    if method and method in [c[0] for c in PaymentMethodCode.choices]:
+        qs = qs.filter(method=method)
+    date_from = parse_date(request.GET.get("date_from") or "")
+    date_to = parse_date(request.GET.get("date_to") or "")
+    if date_from:
+        qs = qs.filter(paid_at__date__gte=date_from)
+    if date_to:
+        qs = qs.filter(paid_at__date__lte=date_to)
+
+    # Part B.4/B.6: sort order (data-agnostic)
+    _payment_order_map = {
+        "paid_at": "paid_at",
+        "-paid_at": "-paid_at",
+        "amount": "amount",
+        "-amount": "-amount",
+    }
+    order_param = (request.GET.get("order") or "").strip()
+    order_by = _payment_order_map.get(order_param, "-paid_at")
+    ordered_qs = qs.order_by(order_by)
+
+    # Phase 18.2: One-click export (CSV). Cap 5000 rows; see docs/IMPROVEMENTS_EXECUTABLE_PLAN.md Phase 3.4.
     if request.GET.get("export") == "csv":
         buf = io.StringIO()
         w = csv.writer(buf)
@@ -414,6 +470,7 @@ def payment_list(request: HttpRequest):
         def _d(d):
             return d.strftime("%Y-%m-%d %H:%M") if d else ""
 
+        # PDF export capped at 500 rows; CSV uses 5000. See Phase 3.4 in plan.
         rows_html = "".join(
             f"<tr><td>{pay.invoice.reference or pay.invoice_id}</td><td>{pay.get_method_display()}</td>"
             f"<td>{pay.amount}</td><td>{_d(pay.paid_at)}</td><td>{pay.invoice.student or ''}</td>"
@@ -434,6 +491,7 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
         resp["Content-Disposition"] = 'attachment; filename="payments_export.pdf"'
         return resp
 
+    # Pagination: 25 per page (intentional limit; see Phase 3.4 in plan).
     paginator = Paginator(ordered_qs, 25)
     page_number = request.GET.get("page") or 1
     try:
@@ -446,12 +504,284 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
     q.pop("page", None)
     pagination_extra_query = q.urlencode()
 
+    flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
+    enable_ocr_scan_teller = bool(flags.get("enable_ocr_scan_teller"))
     return render(request, "finance/payments.html", {
         "payments": page_obj,
         "page_obj": page_obj,
         "paginator": paginator,
         "pagination_extra_query": pagination_extra_query,
+        "enable_ocr_scan_teller": enable_ocr_scan_teller,
+        "payment_methods": PaymentMethodCode.choices,
+        "selected_method": method or "",
+        "date_from": request.GET.get("date_from") or "",
+        "date_to": request.GET.get("date_to") or "",
+        "order_options": [
+            ("-paid_at", "Date (newest first)"),
+            ("paid_at", "Date (oldest first)"),
+            ("-amount", "Amount (high to low)"),
+            ("amount", "Amount (low to high)"),
+        ],
+        "selected_order": order_param or "-paid_at",
     })
+
+
+@staff_member_required
+def cash_office_closure(request: HttpRequest):
+    """
+    Daily cash closure:
+    - Recomputes cash collected from completed CASH payments for the selected day.
+    - Stores opening cash, deposited amount, physical cash on hand, and discrepancy.
+    """
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+
+    today = timezone.localdate()
+    date_param = (request.GET.get("date") or "").strip()
+    initial_date = parse_date(date_param) if date_param else today
+    form = CashOfficeClosureForm(
+        request.POST or None,
+        profile=profile,
+        initial={"closure_date": initial_date},
+    )
+
+    closure_date = initial_date
+    if request.method == "POST" and form.is_valid():
+        closure_date = form.cleaned_data["closure_date"]
+
+    cash_collected = (
+        Payment.objects.filter(
+            invoice__profile=profile,
+            method=PaymentMethodCode.CASH,
+            status="completed",
+            paid_at__date=closure_date,
+        ).aggregate(total=Coalesce(Sum("amount"), Decimal("0.00")))["total"]
+        or Decimal("0.00")
+    )
+
+    if request.method == "POST":
+        if form.is_valid():
+            closure, _created = CashOfficeClosure.objects.get_or_create(
+                profile=profile,
+                closure_date=closure_date,
+            )
+            closure.opening_cash = form.cleaned_data["opening_cash"]
+            closure.cash_collected = cash_collected
+            closure.deposited_to_bank = form.cleaned_data["deposited_to_bank"]
+            closure.cash_on_hand = form.cleaned_data["cash_on_hand"]
+            closure.bank_account = form.cleaned_data["bank_account"]
+            closure.deposit_reference = form.cleaned_data["deposit_reference"]
+            closure.notes = form.cleaned_data["notes"]
+            closure.status = CashOfficeClosure.Status.CLOSED
+            closure.closed_by = request.user
+            closure.save()
+            messages.success(
+                request,
+                f"Cash closure saved for {closure.closure_date}. "
+                f"Expected {closure.expected_cash}, discrepancy {closure.discrepancy}.",
+            )
+            return redirect("finance:cash_office_closure")
+        messages.error(request, "Please correct the closure form errors and try again.")
+
+    def _to_decimal_or_zero(raw_value) -> Decimal:
+        try:
+            return Decimal(str(raw_value).strip() or "0")
+        except (InvalidOperation, ValueError, TypeError):
+            return Decimal("0")
+
+    opening_cash = _to_decimal_or_zero(form["opening_cash"].value())
+    deposited_to_bank = _to_decimal_or_zero(form["deposited_to_bank"].value())
+    cash_on_hand = _to_decimal_or_zero(form["cash_on_hand"].value())
+    expected_cash = opening_cash + cash_collected - deposited_to_bank
+    discrepancy_preview = cash_on_hand - expected_cash
+
+    recent_closures = CashOfficeClosure.objects.filter(profile=profile).order_by("-closure_date", "-updated_at")[:10]
+
+    return render(
+        request,
+        "finance/cash_office_closure.html",
+        {
+            "form": form,
+            "cash_collected": cash_collected,
+            "expected_cash": expected_cash,
+            "discrepancy_preview": discrepancy_preview,
+            "recent_closures": recent_closures,
+        },
+    )
+
+
+@staff_member_required
+def split_allocation(request: HttpRequest):
+    """
+    Record a single payment split across fee types (Tuition, Sports, Workshop, etc.).
+    Creates an invoice with multiple lines, one payment for the total, then applies
+    payment and posts to OHADA ledger.
+    """
+    from apps.people.models import StudentProfile
+
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+
+    active_year = AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
+    if not active_year:
+        return render(request, "finance/split_allocation.html", {
+            "form": None,
+            "error": "No active academic year. Set an academic year as active first.",
+        })
+
+    students = StudentProfile.objects.filter(academic_year=active_year).order_by("last_name", "first_name")
+    form = SplitAllocationForm(request.POST or None, student_queryset=students)
+
+    if request.method == "POST" and form.is_valid():
+        student = form.cleaned_data["student"]
+        total_amount = form.cleaned_data["total_amount"]
+        method = form.cleaned_data["method"]
+        allocations = form.get_allocations()
+        today = timezone.now().date()
+        short_id = uuid.uuid4().hex[:8].upper()
+        reference = f"SPLIT-{student.id}-{today.isoformat()}-{short_id}"
+
+        with transaction.atomic():
+            invoice = Invoice.objects.create(
+                profile=profile,
+                academic_year=active_year,
+                student=student,
+                reference=reference,
+                invoice_type=Invoice.InvoiceType.AR,
+                issued_date=today,
+                due_date=today,
+                status=Invoice.Status.ISSUED,
+                total_amount=total_amount,
+                created_by=request.user,
+            )
+            for desc, amount in allocations:
+                InvoiceLine.objects.create(
+                    invoice=invoice,
+                    description=desc,
+                    quantity=Decimal("1.00"),
+                    unit_price=amount,
+                    amount=amount,
+                )
+            payment = Payment.objects.create(
+                invoice=invoice,
+                student=student,
+                amount=total_amount,
+                method=method,
+                paid_at=timezone.now(),
+                created_by=request.user,
+            )
+            apply_payment(payment)
+        messages.success(
+            request,
+            f"Payment of {total_amount} recorded for {student} (invoice {invoice.reference}).",
+        )
+        return redirect("finance:invoice_detail", invoice_id=invoice.id)
+
+    return render(request, "finance/split_allocation.html", {
+        "form": form,
+        "active_year": active_year,
+    })
+
+
+@staff_member_required
+def scan_teller_placeholder(request: HttpRequest):
+    """
+    OCR scan helper for physical teller / receipt uploads.
+    Extracts amount/reference/date and suggests matching suspense transactions.
+    """
+    flags = _backend_flags()
+    if not flags.get("enable_ocr_scan_teller"):
+        return HttpResponseForbidden("Scan Teller is disabled in Feature Control.")
+
+    profile = _active_profile()
+    if not profile:
+        return HttpResponseForbidden("No compliance profile configured.")
+
+    site = SiteSettings.get_solo()
+    verification_method = getattr(site, "finance_receipt_verification_method", "pattern") or "pattern"
+    ocr_runtime_status = get_ocr_runtime_status(
+        verification_method,
+        getattr(site, "marksheet_ocr_command", ""),
+    )
+    form = TellerScanForm(request.POST or None, request.FILES or None)
+
+    extraction = None
+    match_preview = None
+    suspense_matches = []
+    invoice_matches = []
+    suggested_tolerance = Decimal(str(getattr(site, "finance_bank_verification_amount_tolerance", "1.00")))
+
+    if request.method == "POST" and form.is_valid():
+        if verification_method != "pattern" and not ocr_runtime_status.get("ready", False):
+            messages.warning(
+                request,
+                "OCR runtime is not ready for the selected method. "
+                "Extraction may fail until integration credentials/runtime are configured."
+            )
+        verifier = ReceiptVerificationService(
+            verification_method=verification_method,
+            marksheet_ocr_command=getattr(site, "marksheet_ocr_command", ""),
+        )
+        extraction = verifier.extract_receipt_data(form.cleaned_data["receipt_file"])
+
+        extracted_amount = extraction.get("amount")
+        expected_amount = form.cleaned_data.get("expected_amount")
+        reference_hint = (form.cleaned_data.get("transaction_reference") or "").strip()
+        extracted_reference = extraction.get("reference") or reference_hint
+
+        if extracted_amount is not None and expected_amount is not None:
+            amount_diff = abs(extracted_amount - expected_amount)
+            match_preview = {
+                "matches": amount_diff <= suggested_tolerance,
+                "expected_amount": expected_amount,
+                "extracted_amount": extracted_amount,
+                "difference": amount_diff,
+                "tolerance": suggested_tolerance,
+            }
+
+        if extracted_amount is not None:
+            low = max(Decimal("0.00"), extracted_amount - suggested_tolerance)
+            high = extracted_amount + suggested_tolerance
+
+            suspense_matches = list(
+                SuspensePayment.objects.filter(
+                    status__in=[SuspensePayment.Status.OPEN, SuspensePayment.Status.PARTIAL],
+                    amount__gte=low,
+                    amount__lte=high,
+                )
+                .select_related("bank_statement_entry", "suggested_student")
+                .order_by("-created_at")[:8]
+            )
+
+            invoice_qs = Invoice.objects.select_related("student").filter(
+                profile=profile,
+                status__in=[Invoice.Status.ISSUED, Invoice.Status.PARTIAL, Invoice.Status.OVERDUE],
+                balance_amount__gte=low,
+                balance_amount__lte=high,
+            )
+            if extracted_reference:
+                invoice_qs = invoice_qs.filter(
+                    Q(reference__icontains=extracted_reference)
+                    | Q(payment_code__icontains=extracted_reference)
+                )
+            invoice_matches = list(invoice_qs.order_by("due_date", "id")[:8])
+
+    return render(
+        request,
+        "finance/scan_teller_placeholder.html",
+        {
+            "form": form,
+            "verification_method": verification_method,
+            "extraction": extraction,
+            "match_preview": match_preview,
+            "suspense_matches": suspense_matches,
+            "invoice_matches": invoice_matches,
+            "suggested_tolerance": suggested_tolerance,
+            "ocr_runtime_status": ocr_runtime_status,
+        },
+    )
 
 
 SESSION_KEY_LAST_GENERATED_INVOICE_IDS = "finance_last_generated_invoice_ids"
@@ -553,7 +883,9 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         return HttpResponseForbidden("No compliance profile configured.")
 
     invoice = get_object_or_404(
-        Invoice.objects.select_related("student", "academic_year", "counterparty"),
+        Invoice.objects.select_related(
+            "student", "academic_year", "profile", "counterparty"
+        ).prefetch_related("payments", "lines"),
         id=invoice_id,
         profile=profile,
     )
@@ -710,6 +1042,10 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
     
     # Get optional fields
     transaction_reference = request.POST.get("transaction_reference", "").strip()
+    idempotency_key = (request.POST.get("idempotency_key", "") or "").strip()[:64]
+    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    ip_address = (forwarded_for.split(",")[0].strip() if forwarded_for else request.META.get("REMOTE_ADDR", "")) or None
+    user_agent = (request.META.get("HTTP_USER_AGENT", "") or "")[:500]
     uploaded_amount_str = request.POST.get("uploaded_amount", "").strip()
     uploaded_amount = None
     if uploaded_amount_str:
@@ -1520,6 +1856,8 @@ def finance_reports(request: HttpRequest):
     profile = _active_profile()
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
+    start = parse_date(request.GET.get("start") or "")
+    end = parse_date(request.GET.get("end") or "")
 
     today = timezone.localdate()
     arrears_qs = Invoice.objects.filter(
@@ -1553,6 +1891,7 @@ def finance_reports(request: HttpRequest):
     )
 
     report_form = ReportRequestForm()
+    dsf_report = build_dsf_report(profile=profile, start_date=start, end_date=end)
 
     return render(request, "finance/reports.html", {
         "profile": profile,
@@ -1560,6 +1899,9 @@ def finance_reports(request: HttpRequest):
         "collection_rate": collection_rate,
         "liabilities": payroll_liabilities,
         "report_form": report_form,
+        "dsf_report": dsf_report,
+        "report_start": start,
+        "report_end": end,
     })
 
 
@@ -1757,3 +2099,62 @@ def expense_vs_budget(request: HttpRequest):
         "budgets": budgets,
         "dashboard_context": dashboard_context,
     })
+
+
+@staff_member_required
+def suspense_queue(request: HttpRequest):
+    """
+    Queue of unidentified deposits awaiting allocation.
+    """
+    queue = (
+        SuspensePayment.objects.select_related(
+            "bank_statement_entry",
+            "bank_statement_entry__bank_account",
+            "suggested_invoice",
+            "suggested_student",
+            "claimed_student",
+        )
+        .prefetch_related("allocations__invoice", "allocations__payment")
+        .filter(status__in=[SuspensePayment.Status.OPEN, SuspensePayment.Status.PARTIAL])
+        .order_by("-created_at")
+    )
+    return render(request, "finance/suspense_queue.html", {"queue": queue})
+
+
+@staff_member_required
+@require_POST
+def claim_suspense_payment(request: HttpRequest, suspense_id: int):
+    """
+    Claim and allocate an unidentified payment.
+    Expects JSON in `allocations`, e.g.:
+      [{"invoice_id": 12, "amount": "10000"}, {"invoice_id": 13, "amount": "5000"}]
+    """
+    suspense = get_object_or_404(SuspensePayment, pk=suspense_id)
+    raw_allocations = request.POST.get("allocations", "").strip()
+    notes = request.POST.get("notes", "").strip()
+    if not raw_allocations:
+        messages.error(request, "Provide allocation JSON before submitting.")
+        return redirect("finance:suspense_queue")
+
+    try:
+        allocations = json.loads(raw_allocations)
+    except json.JSONDecodeError:
+        messages.error(request, "Allocation payload must be valid JSON.")
+        return redirect("finance:suspense_queue")
+
+    try:
+        result = BankStatementImportService().claim_suspense_payment(
+            suspense_payment=suspense,
+            allocations=allocations,
+            claimed_by=request.user,
+            notes=notes,
+        )
+    except Exception as exc:
+        messages.error(request, f"Failed to allocate suspense payment: {exc}")
+        return redirect("finance:suspense_queue")
+
+    messages.success(
+        request,
+        f"Suspense #{suspense.id} updated to {result['status']}. Remaining: {result['remaining']}.",
+    )
+    return redirect("finance:suspense_queue")

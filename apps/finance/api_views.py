@@ -8,14 +8,24 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from django.db.models import Sum, Count, Q, F
+from django.db.models import Sum, Count
 from django.db.models.functions import ExtractMonth
 from django.utils import timezone
-from datetime import datetime
 
-from apps.finance.models import Invoice, Payment, Notification
+from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
-from apps.api.permissions import IsBursar, IsAdminUser
+from apps.api.permissions import IsAdminUser
+
+
+FINANCE_WRITE_ROLES = {"ADMIN", "BURSAR", "ACCOUNTANT", "FINANCE_STAFF", "LEADERSHIP", "PRINCIPAL"}
+
+
+def _can_write_finance(user) -> bool:
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    return (getattr(user, "role", "") or "").upper() in FINANCE_WRITE_ROLES
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -27,9 +37,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     """
     serializer_class = InvoiceSerializer
     permission_classes = [IsAuthenticated]
-    filterset_fields = ['status', 'student', 'created_at']
-    ordering_fields = ['created_at', 'amount', 'due_date']
-    ordering = ['-created_at']
+    filterset_fields = ['status', 'student', 'issued_date', 'due_date']
+    ordering_fields = ['issued_date', 'due_date', 'total_amount', 'created_at']
+    ordering = ['-issued_date', '-id']
     
     def get_queryset(self):
         user = self.request.user
@@ -57,7 +67,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         List invoices with advanced filtering
         
         Query Parameters:
-        - status: pending, paid, overdue, cancelled
+        - status: DRAFT, ISSUED, PARTIAL, PAID, OVERDUE, VOID
         - from_date: YYYY-MM-DD
         - to_date: YYYY-MM-DD
         - student_id: specific student
@@ -91,7 +101,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Create new invoice"""
-        if not (request.user.is_staff or request.user.role in ['ADMIN', 'BURSAR']):
+        if not _can_write_finance(request.user):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
@@ -102,16 +112,16 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def mark_paid(self, request, pk=None):
         """Mark invoice as fully paid"""
-        if not (request.user.is_staff or request.user.role in ['ADMIN', 'BURSAR']):
+        if not _can_write_finance(request.user):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
             )
         
         invoice = self.get_object()
-        invoice.status = 'paid'
-        invoice.paid_date = timezone.now().date()
-        invoice.save()
+        invoice.status = Invoice.Status.PAID
+        invoice.balance_amount = 0
+        invoice.save(update_fields=["status", "balance_amount", "updated_at"])
         
         Notification.objects.create(
             title="Invoice Marked Paid",
@@ -123,7 +133,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         return Response({
             'status': 'success',
             'invoice_id': invoice.id,
-            'paid_date': invoice.paid_date
+            'marked_at': timezone.now().isoformat()
         })
     
     @action(detail=False, methods=['get'])
@@ -131,16 +141,16 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         """Get invoice summary statistics"""
         queryset = self.get_queryset()
         
-        total_amount = queryset.aggregate(Sum('amount'))['amount__sum'] or 0
+        total_amount = queryset.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
         paid_amount = queryset.filter(
-            status__in=['paid', 'partially_paid']
-        ).aggregate(Sum('amount'))['amount__sum'] or 0
+            status=Invoice.Status.PAID
+        ).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
         pending_amount = queryset.filter(
-            status='pending'
-        ).aggregate(Sum('amount'))['amount__sum'] or 0
+            status__in=[Invoice.Status.ISSUED, Invoice.Status.PARTIAL]
+        ).aggregate(Sum('balance_amount'))['balance_amount__sum'] or 0
         overdue_amount = queryset.filter(
-            status='overdue'
-        ).aggregate(Sum('amount'))['amount__sum'] or 0
+            status=Invoice.Status.OVERDUE
+        ).aggregate(Sum('balance_amount'))['balance_amount__sum'] or 0
         
         count_by_status = queryset.values('status').annotate(
             count=Count('id')
@@ -165,13 +175,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
     """
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
-    ordering_fields = ['created_at', 'amount', 'payment_date']
-    ordering = ['-payment_date']
+    ordering_fields = ['created_at', 'amount', 'paid_at']
+    ordering = ['-paid_at']
     
     def get_queryset(self):
         user = self.request.user
         
-        if user.is_staff or user.role in ['ADMIN', 'BURSAR']:
+        if _can_write_finance(user):
             return Payment.objects.all().select_related('invoice__student__user')
         
         from apps.people.models import StudentProfile
@@ -197,12 +207,12 @@ class PaymentViewSet(viewsets.ModelViewSet):
         {
             "invoice": 1,
             "amount": 25000.00,
-            "payment_method": "bank_transfer",
+            "method": "MTN_MOMO",
             "reference": "REF123456",
-            "payment_date": "2025-01-22"
+            "paid_at": "2025-01-22T08:00:00Z"
         }
         """
-        if not (request.user.is_staff or request.user.role in ['ADMIN', 'BURSAR']):
+        if not _can_write_finance(request.user):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
@@ -214,18 +224,21 @@ class PaymentViewSet(viewsets.ModelViewSet):
         payment = serializer.save()
         
         invoice = payment.invoice
-        if invoice.remaining_balance == 0:
-            invoice.status = 'paid'
-            invoice.paid_date = timezone.now().date()
-            invoice.save()
-        elif invoice.remaining_balance < invoice.amount:
-            invoice.status = 'partially_paid'
-            invoice.save()
+        if invoice:
+            invoice.reconcile_balance()
+            current_balance = invoice.computed_balance
+            if current_balance <= 0:
+                invoice.status = Invoice.Status.PAID
+            elif current_balance < invoice.total_amount:
+                invoice.status = Invoice.Status.PARTIAL
+            else:
+                invoice.status = Invoice.Status.ISSUED
+            invoice.balance_amount = current_balance
+            invoice.save(update_fields=["status", "balance_amount", "updated_at"])
         
-        student_label = (
-            f"{invoice.student.first_name} {invoice.student.last_name}"
-            if invoice.student else "N/A"
-        )
+        student_label = "N/A"
+        if invoice and invoice.student:
+            student_label = f"{invoice.student.first_name} {invoice.student.last_name}"
         Notification.objects.create(
             title="Payment Recorded",
             message=f"Payment of {payment.amount} recorded for {student_label}",
@@ -250,11 +263,11 @@ class PaymentViewSet(viewsets.ModelViewSet):
         
         if from_date and to_date:
             queryset = queryset.filter(
-                payment_date__gte=from_date,
-                payment_date__lte=to_date
+                paid_at__date__gte=from_date,
+                paid_at__date__lte=to_date
             )
         
-        breakdown = queryset.values('payment_method').annotate(
+        breakdown = queryset.values('method').annotate(
             total=Sum('amount'),
             count=Count('id')
         )
@@ -309,17 +322,17 @@ class FinancialAnalyticsAPI(APIView):
         
         collection_rate = (total_collected / total_invoiced * 100) if total_invoiced > 0 else 0
         
-        pending_invoices = Invoice.objects.filter(
+        pending_invoices = queryset_invoices.filter(
             status__in=[Invoice.Status.ISSUED, Invoice.Status.PARTIAL]
         ).aggregate(Sum('balance_amount'))['balance_amount__sum'] or 0
         
-        overdue_invoices = Invoice.objects.filter(
+        overdue_invoices = queryset_invoices.filter(
             status=Invoice.Status.OVERDUE
         ).aggregate(Sum('balance_amount'))['balance_amount__sum'] or 0
         
         outstanding_fees = pending_invoices + overdue_invoices
         
-        payment_methods = queryset_payments.values('payment_method').annotate(
+        payment_methods = queryset_payments.values('method').annotate(
             total=Sum('amount')
         )
         
@@ -339,5 +352,5 @@ class FinancialAnalyticsAPI(APIView):
             'outstanding_fees': float(outstanding_fees),
             'payment_methods': list(payment_methods),
             'monthly_revenue': list(monthly_revenue),
-            'currency': 'GHS'
+            'currency': ComplianceProfile.objects.filter(is_active=True).values_list('currency_code', flat=True).first() or 'XAF'
         })

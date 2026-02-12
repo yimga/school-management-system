@@ -29,6 +29,11 @@ def home(request):
     return redirect("accounts:login")
 
 
+def offline_page(request):
+    """Offline fallback shell served by service-worker navigation fallback."""
+    return render(request, "offline.html", status=200)
+
+
 def _is_schema_allowed(user):
     role = (getattr(user, "role", "") or "").upper()
     return user.is_authenticated and (user.is_staff or user.is_superuser or role in {"ADMIN", "IT_ADMIN", "LEADERSHIP"})
@@ -106,6 +111,7 @@ handler500 = server_error
 
 urlpatterns = [
     path('', home, name='home'),
+    path('offline/', offline_page, name='offline'),
 
     # Admin interfaces - /admin/ only for superuser/staff
     path('admin/', admin_site.urls),

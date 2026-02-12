@@ -8,10 +8,10 @@
 ## Fix on Render: use PostgreSQL and preDeployCommand
 
 1. **Blueprint (render.yaml):** The repo uses a Blueprint with database `school-management-db`. `DATABASE_URL` is set from that database. **You must set `ADMIN_PASSWORD`** in Render Dashboard → Web Service → Environment (e.g. Sch00l_1234).
-2. **preDeployCommand** in render.yaml runs: `migrate --noinput` then `seed_render_users`. That creates or updates **admin**, **teacher1**, **Parent1**, and **principal1** using `ADMIN_PASSWORD`.
+2. **preDeployCommand** in render.yaml runs `./scripts/release/render_predeploy.sh`. That script runs migrate + UI normalization + integration preflight and then `seed_render_users` (if `ADMIN_PASSWORD` is set), creating/updating **admin**, **teacher1**, **Parent1**, and **principal1**.
 3. If you are not using the Blueprint: create a PostgreSQL database, add `DATABASE_URL` and `ADMIN_PASSWORD` to the Web Service Environment, and set **Release Command** (or preDeployCommand) to:
    ```
-   python manage.py migrate --noinput && python manage.py seed_render_users
+   ./scripts/release/render_predeploy.sh
    ```
 4. Redeploy. After each deploy, admin, teacher1, Parent1, and principal1 will be created or updated.
 

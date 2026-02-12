@@ -810,7 +810,10 @@ def process_payment_receipt_upload_task(self, proof_upload_id: int) -> dict:
         amount_tolerance = Decimal(str(getattr(site_settings, "finance_receipt_amount_tolerance", "1.00")))
         
         # Extract receipt data
-        verification_service = ReceiptVerificationService(verification_method=verification_method)
+        verification_service = ReceiptVerificationService(
+            verification_method=verification_method,
+            marksheet_ocr_command=getattr(site_settings, "marksheet_ocr_command", ""),
+        )
         receipt_data = verification_service.extract_receipt_data(proof_upload.receipt_file)
         
         # Update proof upload with extracted data

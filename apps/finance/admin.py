@@ -13,6 +13,7 @@ from .models import (
     BankStatementUpload,
     Budget,
     BudgetLine,
+    CashOfficeClosure,
     ComplianceProfile,
     ContributionRule,
     Counterparty,
@@ -29,6 +30,8 @@ from .models import (
     FinanceRequestAudit,
     Payment,
     PaymentProofUpload,
+    SuspensePayment,
+    SuspensePaymentAllocation,
     ReferralReward,
     TaxBracket,
     PaymentReminder,
@@ -212,7 +215,16 @@ class InvoiceAdmin(ModelAdmin):
 
 
 class PaymentAdmin(ModelAdmin):
-    list_display = ("invoice", "amount", "method", "paid_at", "receipt_number", "receipt_file")
+    list_display = (
+        "invoice",
+        "amount",
+        "method",
+        "paid_at",
+        "receipt_number",
+        "physical_receipt_book_serial",
+        "physical_receipt_number",
+        "receipt_file",
+    )
     list_filter = ("method", "paid_at")
     list_per_page = 50  # PERFORMANCE: Add pagination
     search_fields = ("reference", "receipt_number")
@@ -369,6 +381,23 @@ class ReportRequestAdmin(ModelAdmin):
     search_fields = ("requested_by__username", "description")
 
 
+class CashOfficeClosureAdmin(ModelAdmin):
+    list_display = (
+        "profile",
+        "closure_date",
+        "status",
+        "opening_cash",
+        "cash_collected",
+        "deposited_to_bank",
+        "cash_on_hand",
+        "discrepancy",
+        "closed_by",
+    )
+    list_filter = ("status", "profile", "closure_date")
+    search_fields = ("profile__name", "deposit_reference", "notes")
+    readonly_fields = ("expected_cash", "discrepancy", "closed_at", "created_at", "updated_at")
+
+
 class ReferralRewardAdmin(ModelAdmin):
     list_display = ("student", "guardian", "amount", "status", "awarded_by", "created_at")
     list_filter = ("status",)
@@ -400,6 +429,7 @@ try:
 except AlreadyRegistered:
     pass
 admin_site.register(ReportRequest, ReportRequestAdmin)
+admin_site.register(CashOfficeClosure, CashOfficeClosureAdmin)
 admin_site.register(ReferralReward, ReferralRewardAdmin)
 
 
@@ -580,6 +610,7 @@ class BankStatementUploadAdmin(ModelAdmin):
     list_filter = ("status", "bank_account", "created_at")
     search_fields = ("bank_account__name",)
     readonly_fields = ("status", "entries_imported", "errors", "processed_at")
+    actions = ["process_selected_uploads"]
     fieldsets = (
         ("Statement Information", {
             "fields": ("bank_account", "statement_file", "statement_period_start", "statement_period_end", "uploaded_by")
@@ -589,7 +620,89 @@ class BankStatementUploadAdmin(ModelAdmin):
         }),
     )
 
+    @admin.action(description="Process selected statement uploads")
+    def process_selected_uploads(self, request, queryset):
+        from apps.finance.bank_statement_import import BankStatementImportService
+
+        service = BankStatementImportService()
+        processed = 0
+        failures = 0
+        for upload in queryset:
+            result = service.process_upload(upload)
+            if result["status"] == BankStatementUpload.Status.FAILED:
+                failures += 1
+            else:
+                processed += 1
+        self.message_user(
+            request,
+            f"Processed {processed} upload(s); failures: {failures}.",
+        )
+
+
+class SuspensePaymentAllocationInline(admin.TabularInline):
+    model = SuspensePaymentAllocation
+    extra = 0
+    autocomplete_fields = ("invoice", "payment")
+    readonly_fields = ("created_at",)
+
+
+class SuspensePaymentAdmin(ModelAdmin):
+    list_display = (
+        "id",
+        "transaction_reference",
+        "amount",
+        "currency",
+        "status",
+        "suggested_invoice",
+        "claimed_student",
+        "claimed_by",
+        "created_at",
+    )
+    list_filter = ("status", "currency", "created_at")
+    search_fields = ("transaction_reference", "payer_name", "payer_phone", "description")
+    readonly_fields = ("allocated_amount_display", "remaining_amount_display", "created_at", "updated_at")
+    autocomplete_fields = ("suggested_invoice", "suggested_student", "claimed_student", "claimed_by")
+    inlines = [SuspensePaymentAllocationInline]
+    fieldsets = (
+        ("Transaction", {
+            "fields": (
+                "bank_statement_entry",
+                "transaction_reference",
+                "amount",
+                "currency",
+                "payer_name",
+                "payer_phone",
+                "description",
+            )
+        }),
+        ("Suggestion & Claim", {
+            "fields": (
+                "status",
+                "suggested_invoice",
+                "suggested_student",
+                "claimed_student",
+                "claimed_by",
+                "claimed_at",
+                "resolved_at",
+                "notes",
+            )
+        }),
+        ("Allocation Summary", {
+            "fields": ("allocated_amount_display", "remaining_amount_display")
+        }),
+        ("Meta", {"fields": ("created_at", "updated_at", "raw_payload")}),
+    )
+
+    @admin.display(description="Allocated amount")
+    def allocated_amount_display(self, obj):
+        return obj.allocated_amount
+
+    @admin.display(description="Remaining amount")
+    def remaining_amount_display(self, obj):
+        return obj.remaining_amount
+
 
 admin_site.register(BankAccount, BankAccountAdmin)
 admin_site.register(BankStatementEntry, BankStatementEntryAdmin)
 admin_site.register(BankStatementUpload, BankStatementUploadAdmin)
+admin_site.register(SuspensePayment, SuspensePaymentAdmin)

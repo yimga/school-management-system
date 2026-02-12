@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
-from apps.academics.models import AcademicYear, Classroom, Subject, Term
+from apps.academics.models import AcademicYear, Classroom, SubjectAssignment, Term
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.siteconfig.models import SiteSettings
 
@@ -55,7 +55,12 @@ def emis_dashboard(request):
     if year_for_counts:
         students_count = StudentProfile.objects.filter(academic_year=year_for_counts, is_active=True).count()
         teachers_count = TeacherProfile.objects.filter(is_active=True).count()
-        subjects_count = Subject.objects.filter(academic_year=year_for_counts).count()
+        subjects_count = (
+            SubjectAssignment.objects.filter(academic_year=year_for_counts)
+            .values("subject_id")
+            .distinct()
+            .count()
+        )
         classes_count = Classroom.objects.filter(academic_year=year_for_counts).count()
     else:
         students_count = teachers_count = subjects_count = classes_count = 0
@@ -83,7 +88,7 @@ def emis_dashboard(request):
         'supported_countries': supported_countries,
         'recent_exports': recent_exports,
         'export_types': EMISExport.EXPORT_TYPES,
-        'default_country': site.country_code or 'CMR',
+        'default_country': getattr(site, "country_code", "") or 'CMR',
         'allow_custom_layout': allow_custom_layout,
         'dashboard_settings': dashboard_settings,
         'dashboard_layout_url': dashboard_layout_url,
@@ -140,23 +145,17 @@ def export_emis_data(request):
             raise ValueError(f"Unsupported export type: {export_type}")
 
         # Generate file content
-        if export_type == 'full':
-            # For full export, create JSON with multiple datasets (xlsx not supported for full)
+        if format_type == 'xlsx':
+            file_content_to_save = service.generate_xlsx(export_data)
+            filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        elif format_type == 'csv' and export_type != 'full':
+            output = service.generate_csv(export_data)
+            file_content_to_save = output.getvalue().encode('utf-8')
+            filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        else:  # json (or full export requested as csv)
             file_content = service.generate_json(export_data)
-            filename = f"emis_full_export_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.json"
             file_content_to_save = file_content.encode('utf-8')
-        else:
-            if format_type == 'xlsx':
-                file_content_to_save = service.generate_xlsx(export_data)
-                filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-            elif format_type == 'csv':
-                output = service.generate_csv(export_data)
-                file_content_to_save = output.getvalue().encode('utf-8')
-                filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv"
-            else:  # json
-                file_content = service.generate_json(export_data)
-                file_content_to_save = file_content.encode('utf-8')
-                filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.json"
+            filename = f"emis_{export_type}_{academic_year.name}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.json"
 
         # Create export record
         export_record = service.create_export_record(

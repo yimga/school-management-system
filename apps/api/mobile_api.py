@@ -283,6 +283,16 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
                 return parsed
         return timezone.now()
 
+    @staticmethod
+    def _is_server_newer(server_dt, client_dt):
+        if not server_dt or not client_dt:
+            return False
+        if timezone.is_naive(server_dt):
+            server_dt = timezone.make_aware(server_dt, timezone.get_current_timezone())
+        if timezone.is_naive(client_dt):
+            client_dt = timezone.make_aware(client_dt, timezone.get_current_timezone())
+        return server_dt > client_dt
+
     def _process_eval_sync(self, sync_item, user):
         """
         Process evaluation sync items through OfflineMarkEntry + conflict resolver.
@@ -372,6 +382,150 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             sync_item.conflict_data = {"offline_entry_id": offline_entry.id, "message": message}
         sync_item.save(update_fields=["status", "error_message", "conflict_data", "synced_at"])
         return {"status": sync_item.status, "message": message, "offline_entry_id": offline_entry.id}
+
+    def _process_attendance_sync(self, sync_item, user):
+        """Process attendance sync items with conflict handling based on SiteSettings."""
+        from apps.academics.models import Attendance
+        from apps.evals.models import TeacherAssignment
+        from apps.people.models import TeacherProfile, StudentProfile
+        from apps.siteconfig.models import SiteSettings
+
+        payload = sync_item.data or {}
+        teacher = TeacherProfile.objects.filter(user=user).first()
+        if not teacher and not user.is_staff:
+            sync_item.status = 'FAILED'
+            sync_item.error_message = "Authenticated user has no teacher profile."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        student_id = payload.get("student_id") or payload.get("student")
+        classroom_id = payload.get("classroom_id") or payload.get("classroom")
+        raw_date = payload.get("date")
+        status_value = payload.get("status")
+        remarks = payload.get("remarks", "")
+
+        if not all([student_id, classroom_id, raw_date, status_value]):
+            sync_item.status = 'FAILED'
+            sync_item.error_message = "Missing required fields: student_id, classroom_id, date, status."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        if not StudentProfile.objects.filter(id=student_id).exists():
+            sync_item.status = 'FAILED'
+            sync_item.error_message = f"StudentProfile {student_id} not found."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        if teacher and not user.is_staff:
+            allowed = TeacherAssignment.objects.filter(
+                teacher=teacher,
+                is_active=True,
+                subject_assignment__classroom_id=classroom_id,
+            ).exists()
+            if not allowed:
+                sync_item.status = 'FAILED'
+                sync_item.error_message = "Teacher is not assigned to the specified classroom."
+                sync_item.synced_at = timezone.now()
+                sync_item.save(update_fields=["status", "error_message", "synced_at"])
+                return {"status": sync_item.status, "error": sync_item.error_message}
+
+        try:
+            local_date = timezone.datetime.strptime(str(raw_date)[:10], "%Y-%m-%d").date()
+        except Exception:
+            sync_item.status = 'FAILED'
+            sync_item.error_message = "Invalid date format. Use YYYY-MM-DD."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        allowed_statuses = {choice[0] for choice in Attendance.Status.choices}
+        if status_value not in allowed_statuses:
+            sync_item.status = 'FAILED'
+            sync_item.error_message = f"Invalid attendance status: {status_value}."
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "synced_at"])
+            return {"status": sync_item.status, "error": sync_item.error_message}
+
+        existing = Attendance.objects.filter(
+            student_id=student_id,
+            classroom_id=classroom_id,
+            date=local_date,
+        ).first()
+        client_ts = self._parse_client_timestamp(sync_item.client_timestamp)
+        site = SiteSettings.get_solo()
+        mode = (site.offline_sync_conflict_resolution or "show_both").lower()
+
+        if existing and self._is_server_newer(existing.updated_at, client_ts):
+            if mode == "reject":
+                sync_item.status = "CONFLICT"
+                sync_item.error_message = "Server attendance record is newer than offline update."
+                sync_item.conflict_data = {
+                    "conflict": "server_newer",
+                    "server": {
+                        "status": existing.status,
+                        "remarks": existing.remarks,
+                        "updated_at": existing.updated_at.isoformat() if existing.updated_at else None,
+                    },
+                    "client": {
+                        "status": status_value,
+                        "remarks": remarks,
+                        "client_timestamp": client_ts.isoformat(),
+                    },
+                }
+                sync_item.synced_at = timezone.now()
+                sync_item.save(update_fields=["status", "error_message", "conflict_data", "synced_at"])
+                return {"status": sync_item.status, "message": sync_item.error_message}
+            if mode == "auto_merge":
+                sync_item.status = "COMPLETED"
+                sync_item.error_message = ""
+                sync_item.conflict_data = {
+                    "resolution": "kept_server_newer",
+                    "server_updated_at": existing.updated_at.isoformat() if existing.updated_at else None,
+                }
+                sync_item.synced_at = timezone.now()
+                sync_item.save(update_fields=["status", "error_message", "conflict_data", "synced_at"])
+                return {"status": sync_item.status, "message": "Server version kept (newer record)."}
+            # show_both
+            sync_item.status = "CONFLICT"
+            sync_item.error_message = "Conflict requires review."
+            sync_item.conflict_data = {
+                "conflict": "show_both",
+                "server": {
+                    "status": existing.status,
+                    "remarks": existing.remarks,
+                    "updated_at": existing.updated_at.isoformat() if existing.updated_at else None,
+                },
+                "client": {
+                    "status": status_value,
+                    "remarks": remarks,
+                    "client_timestamp": client_ts.isoformat(),
+                },
+            }
+            sync_item.synced_at = timezone.now()
+            sync_item.save(update_fields=["status", "error_message", "conflict_data", "synced_at"])
+            return {"status": sync_item.status, "message": sync_item.error_message}
+
+        attendance, _created = Attendance.objects.update_or_create(
+            student_id=student_id,
+            classroom_id=classroom_id,
+            date=local_date,
+            defaults={
+                "status": status_value,
+                "remarks": remarks,
+            },
+        )
+        sync_item.status = "COMPLETED"
+        sync_item.error_message = ""
+        sync_item.conflict_data = {
+            "attendance_id": attendance.id,
+            "updated_at": attendance.updated_at.isoformat() if attendance.updated_at else None,
+        }
+        sync_item.synced_at = timezone.now()
+        sync_item.save(update_fields=["status", "error_message", "conflict_data", "synced_at"])
+        return {"status": sync_item.status, "attendance_id": attendance.id}
     
     def perform_create(self, serializer):
         """Queue offline changes for sync"""
@@ -393,6 +547,16 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def sync_batch(self, request):
         """Sync batch of offline changes"""
+        from apps.siteconfig.models import SiteSettings
+
+        site = SiteSettings.get_solo()
+        flags = site.backend_feature_flags or {}
+        if not site.enable_offline_mode:
+            return Response(
+                {'error': 'Offline sync is disabled by system configuration.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         changes = request.data.get('changes', [])
         device_id = request.data.get('device_id')
         
@@ -436,7 +600,23 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             )
 
             if entity_type in ('evaluation', 'grade', 'offline_mark_entry') and action in ('CREATE', 'UPDATE'):
-                result = self._process_eval_sync(sync_item, request.user)
+                if not bool(flags.get("enable_offline_grade_sync", True)):
+                    sync_item.status = 'FAILED'
+                    sync_item.error_message = "Offline grade sync is disabled in Feature Control."
+                    sync_item.synced_at = timezone.now()
+                    sync_item.save(update_fields=["status", "error_message", "synced_at"])
+                    result = {"status": sync_item.status, "error": sync_item.error_message}
+                else:
+                    result = self._process_eval_sync(sync_item, request.user)
+            elif entity_type in ('attendance', 'attendance_record') and action in ('CREATE', 'UPDATE'):
+                if not bool(flags.get("enable_offline_attendance_sync", True)):
+                    sync_item.status = 'FAILED'
+                    sync_item.error_message = "Offline attendance sync is disabled in Feature Control."
+                    sync_item.synced_at = timezone.now()
+                    sync_item.save(update_fields=["status", "error_message", "synced_at"])
+                    result = {"status": sync_item.status, "error": sync_item.error_message}
+                else:
+                    result = self._process_attendance_sync(sync_item, request.user)
             else:
                 sync_item.status = 'FAILED'
                 sync_item.error_message = f"Unsupported sync item: {entity_type}/{action}"

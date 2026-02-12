@@ -7,9 +7,28 @@
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
     <h2 class="mb-0">Finance Intelligence</h2>
-    <div class="text-muted">Reports, overdue insights, and payroll liabilities.</div>
+    <div class="text-muted">Reports, overdue insights, payroll liabilities, and OHADA/DSF summary.</div>
   </div>
   <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:notifications' %}">Notifications</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-md-4">
+        <label class="form-label">From date</label>
+        <input class="form-control" type="date" name="start" value="{{ report_start|date:'Y-m-d' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">To date</label>
+        <input class="form-control" type="date" name="end" value="{{ report_end|date:'Y-m-d' }}">
+      </div>
+      <div class="col-md-4 d-flex gap-2">
+        <button class="btn btn-primary" type="submit">Apply period</button>
+        <a class="btn btn-outline-secondary" href="{% url 'finance:reports' %}">Reset</a>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="row g-3 mb-3">
@@ -37,6 +56,54 @@
           </div>
         </div>
         <div class="text-muted small mt-2">Taxes withheld: {{ liabilities.total_taxes|format_currency|default:"0.00" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="mb-3">OHADA / DSF package summary</h5>
+    <div class="row g-3">
+      <div class="col-lg-3 col-md-6">
+        <div class="border rounded p-3 h-100">
+          <div class="text-muted small">Assets</div>
+          <div class="fw-semibold">{{ dsf_report.balance_sheet.assets_total|format_currency }}</div>
+          <div class="text-muted small mt-2">Liabilities</div>
+          <div class="fw-semibold">{{ dsf_report.balance_sheet.liabilities_total|format_currency }}</div>
+          <div class="text-muted small mt-2">Equity</div>
+          <div class="fw-semibold">{{ dsf_report.balance_sheet.equity_total|format_currency }}</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="border rounded p-3 h-100">
+          <div class="text-muted small">Revenue</div>
+          <div class="fw-semibold">{{ dsf_report.income_statement.revenue_total|format_currency }}</div>
+          <div class="text-muted small mt-2">Expenses</div>
+          <div class="fw-semibold">{{ dsf_report.income_statement.expense_total|format_currency }}</div>
+          <div class="text-muted small mt-2">Net result</div>
+          <div class="fw-semibold">{{ dsf_report.income_statement.net_result|format_currency }}</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="border rounded p-3 h-100">
+          <div class="text-muted small">Cash in</div>
+          <div class="fw-semibold">{{ dsf_report.cash_flow.cash_in|format_currency }}</div>
+          <div class="text-muted small mt-2">Cash out</div>
+          <div class="fw-semibold">{{ dsf_report.cash_flow.cash_out|format_currency }}</div>
+          <div class="text-muted small mt-2">Net cash movement</div>
+          <div class="fw-semibold">{{ dsf_report.cash_flow.net_cash_movement|format_currency }}</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="border rounded p-3 h-100">
+          <div class="text-muted small">Stamp duty estimate</div>
+          <div class="fw-semibold">{{ dsf_report.annexes.estimated_stamp_duty_xaf|format_currency }}</div>
+          <div class="text-muted small mt-2">Unresolved suspense</div>
+          <div class="fw-semibold">{{ dsf_report.annexes.unresolved_suspense_count }}</div>
+          <div class="text-muted small mt-2">Outstanding AR</div>
+          <div class="fw-semibold">{{ dsf_report.annexes.outstanding_ar|format_currency }}</div>
+        </div>
       </div>
     </div>
   </div>

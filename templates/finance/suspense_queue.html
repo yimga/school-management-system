@@ -1,0 +1,81 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Suspense Queue{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-0">Suspense Queue</h2>
+    <div class="text-muted">Unmatched bank/MoMo deposits that require manual claim and split allocation.</div>
+  </div>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:payments' %}">
+    <i class="bi bi-arrow-left me-1"></i>Back to Payments
+  </a>
+</div>
+
+{% if queue %}
+  {% for item in queue %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+          <div>
+            <h5 class="mb-1">Reference: {{ item.transaction_reference|default:"N/A" }}</h5>
+            <div class="small text-muted">
+              Amount: {{ item.amount|format_currency }} {{ item.currency }} |
+              Status: {{ item.get_status_display }} |
+              Created: {{ item.created_at|format_date }} {{ item.created_at|time:"H:i" }}
+            </div>
+            <div class="small text-muted mt-1">
+              Payer: {{ item.payer_name|default:"Unknown" }}
+              {% if item.payer_phone %}({{ item.payer_phone }}){% endif %}
+            </div>
+            {% if item.suggested_invoice %}
+              <div class="mt-2">
+                <span class="badge bg-info">
+                  Suggested invoice: #{{ item.suggested_invoice.id }} ({{ item.suggested_invoice.reference|default:"No ref" }})
+                </span>
+              </div>
+            {% endif %}
+          </div>
+          <div class="text-end">
+            <div class="small text-muted">Allocated</div>
+            <div class="fw-semibold">{{ item.allocated_amount|format_currency }}</div>
+            <div class="small text-muted mt-1">Remaining</div>
+            <div class="fw-semibold">{{ item.remaining_amount|format_currency }}</div>
+          </div>
+        </div>
+
+        {% if item.description %}
+          <div class="small mt-2">
+            <strong>Description:</strong> {{ item.description }}
+          </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'finance:claim_suspense_payment' item.id %}" class="mt-3">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label">Allocation JSON</label>
+            <textarea name="allocations" class="form-control" rows="2" required>[
+  {"invoice_id": {{ item.suggested_invoice.id|default:"0" }}, "amount": "{{ item.remaining_amount }}"}
+]</textarea>
+            <div class="form-text">Use one or many invoice lines to split payment across fees.</div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Notes</label>
+            <input type="text" name="notes" class="form-control" placeholder="Parent proof, teller note, or audit reason">
+          </div>
+          <button class="btn btn-primary btn-sm" type="submit">Claim & Allocate</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="card">
+    <div class="card-body text-center py-5">
+      <p class="lead text-muted mb-1">No open suspense items</p>
+      <p class="text-muted mb-0">Imported deposits are fully reconciled.</p>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

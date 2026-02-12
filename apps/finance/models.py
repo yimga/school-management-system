@@ -19,6 +19,11 @@ from apps.accounts.validators import (
 
 
 class ComplianceProfile(models.Model):
+    """
+    Finance/payroll compliance and regional settings.
+    currency_code and timezone drive display and reporting (e.g. trial balance, payment dates).
+    SiteSettings can link one profile via compliance_profile for invoice/payment flows.
+    """
     class ChartTemplate(models.TextChoices):
         OHADA = "OHADA", "OHADA"
         GENERIC = "GENERIC", "Generic"
@@ -407,9 +412,17 @@ class Invoice(models.Model):
                     })
 
     def save(self, *args, **kwargs):
-        """Call full_clean() before saving to validate."""
+        """
+        Validate invoice and ensure a stable payment_code exists.
+        Uses a post-save update for payment_code to avoid recursive validation calls.
+        """
         self.full_clean()
         super().save(*args, **kwargs)
+        if not self.payment_code:
+            short = uuid.uuid4().hex[:8].upper()
+            code = f"INV-{self.id}-{short}"
+            type(self).objects.filter(pk=self.pk, payment_code="").update(payment_code=code)
+            self.payment_code = code
     
     @property
     def computed_balance(self) -> Decimal:
@@ -444,18 +457,6 @@ class Invoice(models.Model):
 
     def __str__(self) -> str:
         return f"{self.invoice_type} {self.reference or self.id}"
-
-    def save(self, *args, **kwargs):
-        if not self.payment_code:
-            # Unique code for MoMo/payment quote: INV-<id>-<short> (set after first save if needed)
-            super().save(*args, **kwargs)
-            if not self.payment_code:
-                short = uuid.uuid4().hex[:8].upper()
-                self.payment_code = f"INV-{self.id}-{short}"
-                super().save(update_fields=["payment_code"])
-            return
-        super().save(*args, **kwargs)
-
 
 class InvoiceLine(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="lines")
@@ -505,6 +506,16 @@ class Payment(models.Model):
     )
     paid_at = models.DateTimeField(default=timezone.now)
     receipt_number = models.CharField(max_length=64, blank=True)
+    physical_receipt_book_serial = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="Physical receipt book serial used at the bursar desk (for paper audit trail).",
+    )
+    physical_receipt_number = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Receipt number from the physical receipt book.",
+    )
     external_reference = models.CharField(
         max_length=128,
         blank=True,
@@ -567,6 +578,28 @@ class Payment(models.Model):
         """Validate payment data before saving."""
         if self.amount < Decimal("0.01"):
             raise ValidationError({"amount": "Payment amount must be at least 0.01"})
+        has_book = bool((self.physical_receipt_book_serial or "").strip())
+        has_number = self.physical_receipt_number is not None
+        if has_book != has_number:
+            raise ValidationError({
+                "physical_receipt_book_serial": "Provide both receipt book serial and receipt number.",
+                "physical_receipt_number": "Provide both receipt book serial and receipt number.",
+            })
+        if (has_book or has_number) and self.method != PaymentMethodCode.CASH:
+            raise ValidationError({
+                "method": "Physical receipt serial can only be used for cash payments.",
+            })
+        if has_book and has_number:
+            dupe_qs = Payment.objects.filter(
+                physical_receipt_book_serial__iexact=self.physical_receipt_book_serial.strip(),
+                physical_receipt_number=self.physical_receipt_number,
+            )
+            if self.pk:
+                dupe_qs = dupe_qs.exclude(pk=self.pk)
+            if dupe_qs.exists():
+                raise ValidationError({
+                    "physical_receipt_number": "This physical receipt serial/number is already used.",
+                })
         
         # If invoice is set, check payment doesn't exceed balance
         if self.invoice:
@@ -677,6 +710,80 @@ class Payment(models.Model):
                 details={"reason": reason},
                 severity="high",
             )
+
+
+class CashOfficeClosure(models.Model):
+    """
+    Daily cash office closure to reconcile cash desk collections and deposits.
+    Bridges digital ledger with physical cash-office controls.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", "Open"
+        CLOSED = "CLOSED", "Closed"
+
+    profile = models.ForeignKey(
+        ComplianceProfile,
+        on_delete=models.CASCADE,
+        related_name="cash_office_closures",
+    )
+    closure_date = models.DateField(default=timezone.localdate)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.OPEN)
+    opening_cash = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    cash_collected = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    deposited_to_bank = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    cash_on_hand = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Physical cash count remaining in cashier's drawer at closure.",
+    )
+    expected_cash = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    discrepancy = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    bank_account = models.ForeignKey(
+        "finance.BankAccount",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cash_closures",
+        help_text="Bank account where daily cash was deposited (if any).",
+    )
+    deposit_reference = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True)
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cash_office_closures",
+    )
+    closed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-closure_date", "-updated_at"]
+        unique_together = ("profile", "closure_date")
+
+    def clean(self):
+        if self.opening_cash < 0 or self.cash_collected < 0 or self.deposited_to_bank < 0:
+            raise ValidationError("Opening, collected, and deposited amounts cannot be negative.")
+        if self.cash_on_hand < 0:
+            raise ValidationError({"cash_on_hand": "Cash on hand cannot be negative."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        expected = (self.opening_cash or Decimal("0.00")) + (self.cash_collected or Decimal("0.00")) - (
+            self.deposited_to_bank or Decimal("0.00")
+        )
+        self.expected_cash = expected
+        self.discrepancy = (self.cash_on_hand or Decimal("0.00")) - expected
+        if self.status == self.Status.CLOSED and not self.closed_at:
+            self.closed_at = timezone.now()
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"{self.profile.name} - {self.closure_date} ({self.get_status_display()})"
 
 
 class Transaction(models.Model):
@@ -1672,3 +1779,126 @@ class BankStatementUpload(models.Model):
     
     def __str__(self) -> str:
         return f"{self.bank_account.name} - {self.statement_period_start} to {self.statement_period_end}"
+
+
+class SuspensePayment(models.Model):
+    """
+    Unidentified money awaiting manual claim/allocation.
+    Typical case: MoMo/bank transfer with no clear student identifier.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", "Open"
+        PARTIAL = "PARTIAL", "Partially Allocated"
+        RESOLVED = "RESOLVED", "Resolved"
+
+    bank_statement_entry = models.OneToOneField(
+        BankStatementEntry,
+        on_delete=models.CASCADE,
+        related_name="suspense_payment",
+        null=True,
+        blank=True,
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(max_length=3, default="XAF")
+    transaction_reference = models.CharField(max_length=100, blank=True)
+    payer_name = models.CharField(max_length=120, blank=True)
+    payer_phone = models.CharField(max_length=50, blank=True)
+    description = models.TextField(blank=True)
+    raw_payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN)
+    suggested_student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="suggested_suspense_payments",
+    )
+    suggested_invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="suggested_suspense_payments",
+    )
+    claimed_student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="claimed_suspense_payments",
+    )
+    claimed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="claimed_suspense_payments",
+    )
+    claimed_at = models.DateTimeField(null=True, blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["transaction_reference"]),
+        ]
+
+    def __str__(self) -> str:
+        ref = self.transaction_reference or f"SUSP-{self.pk}"
+        return f"{ref} ({self.amount} {self.currency})"
+
+    @property
+    def allocated_amount(self) -> Decimal:
+        total = self.allocations.aggregate(total=models.Sum("amount")).get("total")
+        return total or Decimal("0.00")
+
+    @property
+    def remaining_amount(self) -> Decimal:
+        return max((self.amount or Decimal("0.00")) - self.allocated_amount, Decimal("0.00"))
+
+
+class SuspensePaymentAllocation(models.Model):
+    """Allocation lines that split one suspense payment across one or more invoices."""
+
+    suspense_payment = models.ForeignKey(
+        SuspensePayment,
+        on_delete=models.CASCADE,
+        related_name="allocations",
+    )
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name="suspense_allocations",
+    )
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="suspense_allocations",
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="suspense_allocations_created",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        unique_together = [("suspense_payment", "invoice")]
+
+    def clean(self):
+        if self.amount <= Decimal("0.00"):
+            raise ValidationError({"amount": "Allocation amount must be positive."})
+
+    def __str__(self) -> str:
+        return f"{self.suspense_payment_id} -> {self.invoice_id} ({self.amount})"

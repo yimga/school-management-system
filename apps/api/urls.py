@@ -23,6 +23,7 @@ from apps.api.dashboard_api import (
 from apps.api.dashboard_layout_api import DashboardLayoutAPI, AvailableWidgetsAPI
 from apps.api.user_preferences_api import PortalPreferencesAPI
 from apps.api.search_api import GlobalSearchAPI, SearchSuggestionsAPI
+from apps.academics.api_views import AttendanceViewSet
 from apps.api.entity_api import (
     ClassroomViewSet,
     ProfileView,
@@ -33,16 +34,21 @@ from apps.api.entity_api import (
     TeacherRosterView,
 )
 from apps.api.digital_id_api import DigitalIDAPI, DigitalIDChildrenAPI
+from apps.finance.api_views import FinancialAnalyticsAPI, InvoiceViewSet, PaymentViewSet
+from apps.api.ministry_placeholders import cartescolaire_placeholder, dgi_placeholder
 
 router = DefaultRouter()
 router.register(r'devices', MobileDeviceViewSet, basename='mobile-device')
 router.register(r'push-notifications', PushNotificationViewSet, basename='push-notification')
 router.register(r'sync', OfflineSyncViewSet, basename='offline-sync')
+router.register(r'attendance', AttendanceViewSet, basename='attendance')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 router.register(r'entities/students', StudentProfileViewSet, basename='entity-student')
 router.register(r'entities/teachers', TeacherProfileViewSet, basename='entity-teacher')
 router.register(r'entities/guardians', StudentGuardianViewSet, basename='entity-guardian')
 router.register(r'entities/classrooms', ClassroomViewSet, basename='entity-classroom')
+router.register(r'finance/invoices', InvoiceViewSet, basename='finance-invoice')
+router.register(r'finance/payments', PaymentViewSet, basename='finance-payment')
 
 urlpatterns = [
     # JWT Authentication
@@ -59,6 +65,7 @@ urlpatterns = [
     path('dashboard/student/', StudentDashboardAPI.as_view(), name='student-dashboard'),
     path('dashboard/financial/', FinancialDashboardAPI.as_view(), name='financial-dashboard'),
     path('dashboard/academic/', AcademicDashboardAPI.as_view(), name='academic-dashboard'),
+    path('finance/analytics/', FinancialAnalyticsAPI.as_view(), name='finance-analytics'),
     path('dashboard/layout/<str:page>/', DashboardLayoutAPI.as_view(), name='dashboard-layout'),
     path('portal-preferences/', PortalPreferencesAPI.as_view(), name='portal-preferences'),
     # Phase 5: Digital ID for wallet / partner apps
@@ -71,6 +78,10 @@ urlpatterns = [
     
     # Mobile API endpoints
     path('mobile/', include(router.urls)),
+
+    # Phase 9: Ministry / external API placeholders (501 until implemented)
+    path('ministry/cartescolaire/', cartescolaire_placeholder, name='ministry-cartescolaire'),
+    path('ministry/dgi/', dgi_placeholder, name='ministry-dgi'),
     
     # ViewSet routes (notifications, devices, etc)
     path('', include(router.urls)),

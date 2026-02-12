@@ -1,0 +1,135 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Split payment allocation{% endblock %}
+
+{% block content %}
+{% url 'finance:payments' as finance_payments_url %}
+{% include "components/page_header.html" with title="Split payment allocation" subtitle="Record one payment split across fee types (Tuition, Sports, Workshop, etc.)." action_url=finance_payments_url action_text="Back to Payments" %}
+
+{% if error %}
+  <div class="alert alert-warning">{{ error }}</div>
+{% elif form %}
+  <div class="card">
+    <div class="card-body">
+      <p class="text-muted small mb-3">Academic year: {{ active_year.name }}. Allocation lines must sum to the total amount.</p>
+      <form method="post" action="" id="split-allocation-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="p-3 border rounded-3 bg-light mb-3">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="id_student" class="form-label">{{ form.student.label }}</label>
+              {{ form.student }}
+              {% if form.student.errors %}<div class="invalid-feedback d-block">{{ form.student.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <label for="id_total_amount" class="form-label">{{ form.total_amount.label }}</label>
+              {{ form.total_amount }}
+              {% if form.total_amount.errors %}<div class="invalid-feedback d-block">{{ form.total_amount.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-3">
+              <label for="id_method" class="form-label">{{ form.method.label }}</label>
+              {{ form.method }}
+              {% if form.method.errors %}<div class="invalid-feedback d-block">{{ form.method.errors }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="text-end" style="width: 140px;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>{{ form.desc_1 }}</td><td class="text-end">{{ form.amount_1 }}</td></tr>
+            <tr><td>{{ form.desc_2 }}</td><td class="text-end">{{ form.amount_2 }}</td></tr>
+            <tr><td>{{ form.desc_3 }}</td><td class="text-end">{{ form.amount_3 }}</td></tr>
+            <tr><td>{{ form.desc_4 }}</td><td class="text-end">{{ form.amount_4 }}</td></tr>
+            <tr><td>{{ form.desc_5 }}</td><td class="text-end">{{ form.amount_5 }}</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p class="small text-muted">Leave amount 0 to skip a row. Sum of amounts must equal total.</p>
+        <div id="split-summary" class="small mb-2" aria-live="polite"></div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary" id="split-submit-btn">Record payment</button>
+          <a class="btn btn-outline-secondary" href="{% url 'finance:payments' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extrajs %}
+{% if form %}
+<script>
+(function() {
+  var totalEl = document.getElementById('id_total_amount');
+  var amountIds = ['id_amount_1', 'id_amount_2', 'id_amount_3', 'id_amount_4', 'id_amount_5'];
+  var summaryEl = document.getElementById('split-summary');
+  var submitBtn = document.getElementById('split-submit-btn');
+  var formEl = document.getElementById('split-allocation-form');
+
+  function parseNum(val) {
+    if (val === '' || val == null) return 0;
+    var n = parseFloat(String(val).replace(/,/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function updateSum() {
+    var total = parseNum(totalEl && totalEl.value);
+    var sum = 0;
+    amountIds.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) sum += parseNum(el.value);
+    });
+    if (!summaryEl) return;
+    summaryEl.textContent = 'Sum: ' + sum.toFixed(2) + ' / Total: ' + total.toFixed(2);
+    if (total > 0 && Math.abs(sum - total) > 0.001) {
+      summaryEl.className = 'small mb-2 text-danger';
+      if (submitBtn) submitBtn.disabled = true;
+    } else {
+      summaryEl.className = 'small mb-2 text-success';
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  }
+
+  function init() {
+    amountIds.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', updateSum);
+        el.addEventListener('change', updateSum);
+      }
+    });
+    if (totalEl) {
+      totalEl.addEventListener('input', updateSum);
+      totalEl.addEventListener('change', updateSum);
+    }
+    updateSum();
+  }
+
+  if (formEl) {
+    formEl.addEventListener('submit', function() {
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Recording…';
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+{% endif %}
+{% endblock %}

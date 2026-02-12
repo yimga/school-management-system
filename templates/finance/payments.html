@@ -4,38 +4,76 @@
 {% block title %}Payments{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Payments</h2>
-    <div class="text-muted">Incoming and outgoing payments.</div>
-  </div>
-  <div class="d-flex gap-2 align-items-center">
-    <a class="btn btn-sm btn-outline-secondary" href="?export=csv">Export CSV</a>
-    <a class="btn btn-sm btn-outline-secondary" href="?export=pdf">Export PDF</a>
-    <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Finance</a>
-  </div>
+{% url 'finance:dashboard' as finance_dashboard_url %}
+{% include "components/page_header.html" with title="Payments" subtitle="Incoming and outgoing payments." action_url=finance_dashboard_url action_text="Back to Finance" %}
+<div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+  <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:cash_office_closure' %}">Cash closure</a>
+  <a class="btn btn-sm btn-primary" href="{% url 'finance:split_allocation' %}">Split payment</a>
+  {% if enable_ocr_scan_teller %}<a class="btn btn-sm btn-outline-primary" href="{% url 'finance:scan_teller' %}">Scan Teller</a>{% endif %}
+  <a class="btn btn-sm btn-outline-secondary" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=csv">Export CSV</a>
+  <a class="btn btn-sm btn-outline-secondary" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">Export PDF</a>
 </div>
+
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small">Method</label>
+        <select class="form-select" name="method">
+          <option value="">All</option>
+          {% for value, label in payment_methods %}
+            <option value="{{ value }}" {% if selected_method == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">From date</label>
+        <input type="date" class="form-control" name="date_from" value="{{ date_from }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small">To date</label>
+        <input type="date" class="form-control" name="date_to" value="{{ date_to }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">Sort by</label>
+        <select class="form-select" name="order">
+          {% for value, label in order_options %}
+            <option value="{{ value }}" {% if selected_order == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-primary">Filter</button>
+      </div>
+    </div>
+  </div>
+</form>
 
 <div class="card">
   <div class="card-body">
     {% if payments %}
     <div class="table-responsive">
-      <table class="table table-sm align-middle table-sticky-head table-zebra" aria-label="Payments list: invoice, method, amount, and paid date">
+      <table class="table table-sm align-middle table-sticky-head table-zebra" aria-label="Payments list: invoice, method, amount, paid date, and actions">
         <thead>
           <tr>
             <th scope="col">Invoice</th>
             <th scope="col">Method</th>
             <th scope="col" class="text-end">Amount</th>
             <th scope="col">Paid at</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for pay in payments %}
             <tr>
-              <td>{{ pay.invoice.reference|default:pay.invoice.id }}</td>
+              <td><a href="{% url 'finance:invoice_detail' pay.invoice.id %}">{{ pay.invoice.reference|default:pay.invoice.id }}</a></td>
               <td>{{ pay.get_method_display }}</td>
               <td class="text-end">{{ pay.amount|format_currency }}</td>
               <td>{{ pay.paid_at|format_date }}</td>
+              <td>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:invoice_detail' pay.invoice.id %}">View invoice</a>
+                <a class="btn btn-outline-secondary btn-sm ms-1" href="{% url 'finance:invoice_receipt' pay.invoice.id %}">Receipt</a>
+              </td>
             </tr>
           {% endfor %}
         </tbody>

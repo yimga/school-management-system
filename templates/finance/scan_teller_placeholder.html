@@ -1,0 +1,143 @@
+{% extends "portal_base.html" %}
+{% load region_format %}
+
+{% block title %}Scan Teller (OCR){% endblock %}
+
+{% block content %}
+{% url 'finance:payments' as finance_payments_url %}
+{% include "components/page_header.html" with title="Scan Teller" subtitle="Upload a teller or payment proof to extract amount/reference and find likely matches." action_url=finance_payments_url action_text="Back to Payments" %}
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="mb-3">Extraction</h5>
+        {% if ocr_runtime_status %}
+        <div class="alert {% if ocr_runtime_status.ready %}alert-success{% else %}alert-warning{% endif %} small" role="alert">
+          <div class="fw-semibold mb-1">OCR runtime status: {{ ocr_runtime_status.provider }} ({{ ocr_runtime_status.method }})</div>
+          <div>{{ ocr_runtime_status.message }}</div>
+          {% if ocr_runtime_status.missing %}
+          <ul class="mb-0 mt-1">
+            {% for item in ocr_runtime_status.missing %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Receipt / teller file</label>
+            {{ form.receipt_file }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Expected amount (optional)</label>
+            {{ form.expected_amount }}
+            <div class="small text-muted">Used to validate OCR extraction tolerance.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Reference hint (optional)</label>
+            {{ form.transaction_reference }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Payment method hint</label>
+            {{ form.payment_method }}
+          </div>
+          <div class="small text-muted mb-3">
+            OCR mode: <strong>{{ verification_method }}</strong>
+          </div>
+          <button type="submit" class="btn btn-primary">Scan teller</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="mb-3">Extraction Result</h5>
+        {% if extraction %}
+        <div class="row g-2">
+          <div class="col-md-6">
+            <div class="small text-muted">Amount</div>
+            <div class="fw-semibold">{{ extraction.amount|default:"—" }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted">Reference</div>
+            <div class="fw-semibold">{{ extraction.reference|default:"—" }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted">Date</div>
+            <div class="fw-semibold">{{ extraction.date|default:"—" }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="small text-muted">Confidence</div>
+            <div class="fw-semibold">{{ extraction.confidence|default:0|format_number:2 }}</div>
+          </div>
+        </div>
+        {% if match_preview %}
+        <hr>
+        <div class="small text-muted">Amount validation</div>
+        <div class="{% if match_preview.matches %}text-success{% else %}text-danger{% endif %} fw-semibold">
+          Expected {{ match_preview.expected_amount }} • Extracted {{ match_preview.extracted_amount }} •
+          Difference {{ match_preview.difference }} (tolerance {{ match_preview.tolerance }})
+        </div>
+        {% endif %}
+        {% if extraction.raw_text %}
+        <hr>
+        <div class="small text-muted mb-1">OCR text sample</div>
+        <pre class="p-2 rounded bg-light small mb-0" style="white-space: pre-wrap;">{{ extraction.raw_text }}</pre>
+        {% endif %}
+        {% else %}
+        <p class="text-muted mb-0">No scan yet. Upload a file and click <strong>Scan teller</strong>.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Suggested Matches</h5>
+          <span class="small text-muted">Amount tolerance: {{ suggested_tolerance }}</span>
+        </div>
+        <div class="mb-3">
+          <div class="small text-muted mb-1">Suspense queue candidates</div>
+          {% if suspense_matches %}
+          <ul class="list-group list-group-flush">
+            {% for item in suspense_matches %}
+            <li class="list-group-item px-0">
+              <div class="fw-semibold">{{ item.amount|format_currency }} • {{ item.transaction_reference|default:"No ref" }}</div>
+              <div class="small text-muted">Status: {{ item.get_status_display }} • {{ item.created_at|format_date }}</div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="small text-muted">No suspense item matches this amount range.</div>
+          {% endif %}
+        </div>
+        <div>
+          <div class="small text-muted mb-1">Open invoice candidates</div>
+          {% if invoice_matches %}
+          <ul class="list-group list-group-flush">
+            {% for inv in invoice_matches %}
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-semibold">{{ inv.reference|default:inv.id }} • {{ inv.student }}</div>
+                <div class="small text-muted">Balance {{ inv.balance_amount|format_currency }} • Due {{ inv.due_date|format_date }}</div>
+              </div>
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:invoice_detail' inv.id %}">Open</a>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="small text-muted">No invoice match candidate for this scan.</div>
+          {% endif %}
+        </div>
+        <hr>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:suspense_queue' %}">Open Suspense Queue</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

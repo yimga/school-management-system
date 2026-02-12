@@ -22,6 +22,34 @@ from django.views.decorators.http import require_http_methods
 logger = logging.getLogger(__name__)
 
 
+class PaymentEncryption:
+    """
+    Lightweight masking/hashing helpers for payment metadata.
+    """
+
+    @staticmethod
+    def encrypt_card_number(card_number: str) -> str:
+        """
+        Mask card number while preserving only last four digits.
+        """
+        if not card_number:
+            return ""
+        normalized = "".join(ch for ch in str(card_number) if ch.isdigit())
+        if len(normalized) <= 4:
+            return normalized
+        masked = "*" * (len(normalized) - 4)
+        return f"{masked}{normalized[-4:]}"
+
+    @staticmethod
+    def hash_payment_token(token: str) -> str:
+        """
+        One-way hash for transient payment tokens.
+        """
+        secret = getattr(settings, "SECRET_KEY", "")
+        payload = f"{secret}:{token or ''}".encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
+
+
 class WebhookSecurityValidator:
     """
     Validates incoming payment webhooks for security.

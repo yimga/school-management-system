@@ -4,13 +4,8 @@
 {% block title %}Invoices{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-  <div>
-    <h2 class="mb-0">Invoices</h2>
-    <div class="text-muted">Accounts receivable and payable.</div>
-  </div>
-  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Finance</a>
-</div>
+{% url 'finance:dashboard' as finance_dashboard_url %}
+{% include "components/page_header.html" with title="Invoices" subtitle="Accounts receivable and payable." action_url=finance_dashboard_url action_text="Back to Finance" %}
 
 {% if finance_access_required and not finance_access_granted %}
 <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
@@ -50,7 +45,7 @@
         <label class="form-label small">Search</label>
         <input type="search" class="form-control" name="q" placeholder="Reference or student name..." value="{{ search }}">
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label class="form-label small">Status</label>
         <select class="form-select" name="status">
           <option value="">All</option>
@@ -59,7 +54,7 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label class="form-label small">Academic year</label>
         <select class="form-select" name="year">
           <option value="">All</option>
@@ -68,7 +63,15 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-3 d-grid">
+      <div class="col-md-3">
+        <label class="form-label small">Sort by</label>
+        <select class="form-select" name="order">
+          {% for value, label in order_options %}
+            <option value="{{ value }}" {% if selected_order == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-grid">
         <button type="submit" class="btn btn-primary">Filter</button>
       </div>
     </div>
@@ -88,8 +91,8 @@
         {% if user.is_staff or user.is_superuser %}
         <a class="btn btn-outline-primary btn-sm" href="{% url 'finance:finance_access_bulk' %}">Bulk finance access</a>
         {% endif %}
-        <a class="btn btn-outline-secondary btn-sm" href="?export=csv{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Export CSV</a>
-        <a class="btn btn-outline-secondary btn-sm" href="?export=pdf{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_year %}&year={{ selected_year }}{% endif %}">Export PDF</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=csv">Export CSV</a>
+        <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">Export PDF</a>
       </div>
     </div>
     <div class="table-responsive" data-table-density-key="finance_invoices">

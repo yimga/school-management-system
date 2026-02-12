@@ -8,6 +8,13 @@ Run through this before testing and deploying.
 python manage.py runserver
 ```
 
+## Render predeploy (required)
+
+- [ ] `preDeployCommand` points to `./scripts/release/render_predeploy.sh`.
+- [ ] `RUN_INTEGRATION_PREFLIGHT=1` in Render env.
+- [ ] `ADMIN_PASSWORD` configured (for `seed_render_users`).
+- [ ] `DATABASE_URL` points to Postgres (not SQLite ephemeral disk).
+
 ---
 
 ## 1. Admin (`/admin/`)

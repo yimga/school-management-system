@@ -32,7 +32,9 @@ Example for `school-management-system-2kzk.onrender.com`:
 If you do **not** set `DATABASE_URL`, the app uses SQLite on the server disk. Render’s disk is **ephemeral**: it is wiped on every deploy, so **all users and data disappear** after each deploy.
 
 - **Use PostgreSQL:** In Render, create a PostgreSQL database and set **`DATABASE_URL`** to its **Internal Database URL** in your Web Service → Environment (paste the full URL from the Postgres service). If you use separate vars instead, set real values for `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT` (do not use placeholder text like `from_render` or the app may fall back to SQLite and migrations can fail).
-- **Recreate users on each deploy:** Set a **Release Command** so admin and demo accounts exist after every deploy. See [CREDENTIALS_AND_RESTORE.md](./CREDENTIALS_AND_RESTORE.md) for the exact steps and release command (migrate + ensure_superuser + create_teacher_parent_accounts for admin, teacher1, Parent1).
+- **Recreate users on each deploy:** Use pre-deploy orchestration to run migrate, UI seeds, integration preflight, and render user seeding in one place.
+  - Blueprint (`render.yaml`) now uses: `./scripts/release/render_predeploy.sh`
+  - Non-Blueprint Release Command equivalent: `./scripts/release/render_predeploy.sh`
 
 ## Optional env vars on Render
 
@@ -42,3 +44,16 @@ If you do **not** set `DATABASE_URL`, the app uses SQLite on the server disk. Re
 - `DATABASE_URL` – **Recommended.** PostgreSQL Internal Database URL so data and users persist across deploys.
 - `ADMIN_PASSWORD` – Password for the `admin` account created by the release command.
 - `SECRET_KEY` – Required in production.
+- `RUN_INTEGRATION_PREFLIGHT=1` – Recommended. Fails deploy only when enabled integration features are missing runtime credentials.
+- `ADMIN_PASSWORD` – Recommended. Enables automatic `seed_render_users` during predeploy.
+
+## Predeploy flow
+
+`scripts/release/render_predeploy.sh` performs:
+
+1. `migrate --noinput`
+2. `seed_admin_dashboard_palettes`
+3. Optional UI fixture import (when `APPLY_UI_FIXTURE_ON_DEPLOY=1`)
+4. `normalize_ui_config`
+5. `integration_preflight` (when `RUN_INTEGRATION_PREFLIGHT=1`)
+6. `seed_render_users` (when `ADMIN_PASSWORD` is set)
