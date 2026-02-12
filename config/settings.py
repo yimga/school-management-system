@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "apps.people",
     "apps.reports",
     "apps.siteconfig.apps.SiteconfigConfig",
+    "apps.schools",
     "apps.analytics",
     "apps.finance",
     "apps.payroll",
@@ -89,6 +90,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "apps.schools.middleware.TenantMiddleware",  # Multi-tenant: resolve request.school from subdomain/custom domain
     "django.middleware.locale.LocaleMiddleware",  # Add for i18n
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -96,6 +98,7 @@ MIDDLEWARE = [
     "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
+    "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",

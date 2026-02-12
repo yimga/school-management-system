@@ -80,6 +80,9 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         user = self.request.user
         role = (getattr(user, "role", "") or "").upper()
         base = StudentProfile.objects.select_related("academic_year", "classroom", "specialty")
+        school = getattr(self.request, "school", None)
+        if school is not None:
+            base = base.filter(school=school)
 
         if _is_admin_like(user):
             return base
@@ -243,6 +246,9 @@ class TeacherProfileViewSet(viewsets.ModelViewSet):
         user = self.request.user
         role = (getattr(user, "role", "") or "").upper()
         base = TeacherProfile.objects.select_related("user", "department", "reports_to")
+        school = getattr(self.request, "school", None)
+        if school is not None:
+            base = base.filter(school=school)
 
         if _is_admin_like(user):
             return base
@@ -268,9 +274,15 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        base = StudentGuardian.objects.select_related("guardian_user", "student")
+        school = getattr(self.request, "school", None)
+        if school is not None and hasattr(StudentGuardian, "school"):
+            base = base.filter(school=school)
+        elif school is not None:
+            base = base.filter(student__school=school)
         if _is_admin_like(user):
-            return StudentGuardian.objects.select_related("guardian_user", "student")
-        return StudentGuardian.objects.select_related("guardian_user", "student").filter(guardian_user=user)
+            return base
+        return base.filter(guardian_user=user)
 
     def create(self, request, *args, **kwargs):
         # Parents can only create links for themselves; admins can create for anyone.
@@ -363,8 +375,14 @@ class ClassroomViewSet(viewsets.ModelViewSet):
 
     serializer_class = ClassroomSerializer
     permission_classes = [IsAuthenticated]
-    queryset = Classroom.objects.select_related("academic_year", "department")
     lookup_field = "id"
+
+    def get_queryset(self):
+        qs = Classroom.objects.select_related("academic_year", "department")
+        school = getattr(self.request, "school", None)
+        if school is not None:
+            qs = qs.filter(school=school)
+        return qs
 
     def _require_admin(self, request):
         if not _is_admin_like(request.user):
@@ -383,16 +401,18 @@ class SessionClaimsView(APIView):
         roles = list(user.roles.values_list("code", flat=True))
         feature_permissions = list(user.feature_permissions.values_list("code", flat=True))
 
-        return Response(
-            {
-                "user": UserSerializer(user, context={"request": request}).data,
-                "role": role,
-                "roles": roles,
-                "feature_permissions": feature_permissions,
-                "is_staff": user.is_staff,
-                "is_superuser": user.is_superuser,
-            }
-        )
+        payload = {
+            "user": UserSerializer(user, context={"request": request}).data,
+            "role": role,
+            "roles": roles,
+            "feature_permissions": feature_permissions,
+            "is_staff": user.is_staff,
+            "is_superuser": user.is_superuser,
+        }
+        school = getattr(request, "school", None)
+        if school is not None:
+            payload["school_id"] = str(school.id)
+        return Response(payload)
 
 
 class ProfileView(APIView):
@@ -424,6 +444,9 @@ class TeacherRosterView(APIView):
         teacher_ids = [teacher_profile.id] if teacher_profile and not admin_like else None
 
         assignments = TeacherAssignment.objects.filter(is_active=True)
+        school = getattr(request, "school", None)
+        if school is not None:
+            assignments = assignments.filter(school=school)
         if teacher_ids:
             assignments = assignments.filter(teacher_id__in=teacher_ids)
 
@@ -435,11 +458,14 @@ class TeacherRosterView(APIView):
         ).distinct():
             classroom = assignment.subject_assignment.classroom
             specialty = assignment.subject_assignment.specialty
-            students = StudentProfile.objects.filter(
+            students_qs = StudentProfile.objects.filter(
                 classroom=classroom,
                 specialty=specialty,
                 is_active=True,
-            ).values("id", "first_name", "last_name", "student_code")
+            )
+            if school is not None:
+                students_qs = students_qs.filter(school=school)
+            students = students_qs.values("id", "first_name", "last_name", "student_code")
             rosters.append({
                 "classroom": classroom.name if classroom else None,
                 "classroom_id": getattr(classroom, "id", None),

@@ -163,6 +163,13 @@ class Counterparty(models.Model):
 
 
 class FeePlan(models.Model):
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="fee_plans",
+    )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="fee_plans")
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name="fee_plans")
     specialty = models.ForeignKey(Specialty, on_delete=models.CASCADE, related_name="fee_plans")
@@ -295,6 +302,13 @@ class Invoice(models.Model):
     # Phase 4: Enable audit logging for this critical model (financial records)
     audit_enabled = True
 
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="invoices",
+    )
     class InvoiceType(models.TextChoices):
         AR = "AR", "Accounts Receivable"
         AP = "AP", "Accounts Payable"
@@ -477,6 +491,13 @@ class Payment(models.Model):
     # Phase 4: Enable audit logging for this critical model (financial records)
     audit_enabled = True
 
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="payments",
+    )
     PURPOSE_CHOICES = [
         ("tuition", "Tuition"),
         ("exam_fee", "Exam Fee"),
@@ -523,6 +544,14 @@ class Payment(models.Model):
     )
     gateway_transaction_id = models.CharField(max_length=100, blank=True, null=True, unique=True, default=None)
     gateway_response = models.JSONField(blank=True, default=dict)
+    platform_fee = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        null=True,
+        blank=True,
+        help_text="Optional platform fee (e.g. Mobile Money) deducted and recorded.",
+    )
     compliance_checked = models.BooleanField(default=False)
     compliance_issues = models.JSONField(blank=True, default=list)
     receipt_file = models.FileField(

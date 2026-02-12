@@ -79,8 +79,8 @@
     <style>
                               {% if SITE %}
                               :root {
-                                --school-primary: {{ SITE.primary_color|default:"#0d6efd" }};
-                                --school-accent: {{ SITE.accent_color|default:"#198754" }};
+                                --school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color|default:"#0d6efd" }};
+                                --school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color|default:"#198754" }};
                                 --school-success: {{ SITE.success_color|default:"#22c55e" }};
                                 --school-warning: {{ SITE.warning_color|default:"#f59e0b" }};
                                 --school-danger: {{ SITE.danger_color|default:"#ef4444" }};

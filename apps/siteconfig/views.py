@@ -224,6 +224,91 @@ def customizer(request):
         "theme_packs": theme_packs,
     })
 
+
+GRADING_SCALE_CHOICES = [
+    ("0-20", "Cameroon (0–20)"),
+    ("0-100", "US/UK (0–100)"),
+    ("0-10", "European (0–10)"),
+    ("a-f", "Letter Grade (A–F)"),
+    ("gpa", "GPA (0–4.0)"),
+]
+
+
+@login_required
+def grading_settings(request):
+    """School grading and default language (Phase 2). Requires request.school and admin-like role."""
+    from django.http import HttpResponseForbidden
+    from apps.accounts.models import User
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "Select a school (use your school subdomain) to manage grading.")
+        return redirect("siteconfig:user_preferences")
+    role = (getattr(request.user, "role", "") or "").upper()
+    if role not in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL") and not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden("You do not have permission to change school grading settings.")
+    region = school.default_region
+    current_settings = getattr(school, "settings", None) or {}
+    current_grading = current_settings.get("grading_scale") or (getattr(region, "grading_scale", "0-20") if region else "0-20")
+    current_language = current_settings.get("default_language") or (getattr(region, "default_language", "en") if region else "en")
+    if request.method == "POST":
+        new_grading = (request.POST.get("grading_scale") or "").strip() or None
+        new_language = (request.POST.get("default_language") or "").strip() or None
+        if new_grading or new_language is not None:
+            settings = dict(current_settings)
+            if new_grading:
+                settings["grading_scale"] = new_grading
+            if new_language is not None:
+                settings["default_language"] = new_language
+            school.settings = settings
+            school.save(update_fields=["settings", "updated_at"])
+            messages.success(request, "Grading and language settings updated.")
+            return redirect("siteconfig:grading_settings")
+    return render(request, "siteconfig/grading_settings.html", {
+        "school": school,
+        "region": region,
+        "current_grading": current_grading,
+        "current_language": current_language,
+        "grading_choices": GRADING_SCALE_CHOICES,
+        "language_choices": [("en", "English"), ("fr", "Français")],
+    })
+
+
+@login_required
+def module_market(request):
+    """Module market (App Store): list available modules, activate/deactivate for current school (Phase 3)."""
+    from django.http import HttpResponseForbidden
+    from apps.schools.feature_registry import get_available_modules
+    from apps.accounts.models import User
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "Select a school to manage modules.")
+        return redirect("siteconfig:user_preferences")
+    role = (getattr(request.user, "role", "") or "").upper()
+    if role not in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL") and not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden("You do not have permission to manage school modules.")
+    modules = get_available_modules()
+    features = getattr(school, "features", None) or {}
+    if request.method == "POST":
+        action = request.POST.get("action")
+        code = (request.POST.get("code") or "").strip()
+        if code and any(m.get("code") == code for m in modules):
+            features = dict(features)
+            if action == "activate":
+                features[code] = True
+            elif action == "deactivate":
+                features[code] = False
+            school.features = features
+            school.save(update_fields=["features", "updated_at"])
+            messages.success(request, f"Module '{code}' updated.")
+            return redirect("siteconfig:module_market")
+    active_codes = [k for k, v in features.items() if v]
+    return render(request, "siteconfig/module_market.html", {
+        "school": school,
+        "modules": modules,
+        "features": features,
+        "active_codes": active_codes,
+    })
+
 @permission_required("settings.manage")
 def reportcard_builder(request):
     settings_obj = SiteSettings.get_solo()

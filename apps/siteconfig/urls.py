@@ -4,6 +4,8 @@ from django.shortcuts import redirect
 from .views import (
     maintenance_view,
     customizer,
+    grading_settings,
+    module_market,
     clear_preview,
     preview_from_form,
     report_library,
@@ -37,6 +39,8 @@ urlpatterns = [
     path("maintenance/", maintenance_view, name="maintenance"),
     # Redirect legacy customizer paths into settings (keep name for templates)
     path("customizer/", customizer, name="customizer"),
+    path("grading-settings/", grading_settings, name="grading_settings"),
+    path("modules/", module_market, name="module_market"),
     path("customizer/clear-preview/", clear_preview, name="clear_preview"),
     path("theme-colors/", theme_colors_page, name="theme_colors"),
     path("theme-experience/", theme_experience_redirect, name="theme_experience_redirect"),

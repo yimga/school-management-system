@@ -1,0 +1,37 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Grading & language" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Grading & language" %}{% endblock %}
+
+{% block content %}
+  <div class="container-fluid py-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="h4 mb-3">{% trans "School grading and default language" %}</h1>
+        <p class="text-muted">{% trans "These apply to report cards and evaluations. Region" %}: {% if region %}{{ region.name }} ({{ region.code }}){% else %}—{% endif %}</p>
+        <form method="post" action="">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="grading_scale">{% trans "Grading scale" %}</label>
+            <select class="form-select" id="grading_scale" name="grading_scale">
+              {% for value, label in grading_choices %}
+                <option value="{{ value }}" {% if current_grading == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="default_language">{% trans "Default language" %}</label>
+            <select class="form-select" id="default_language" name="default_language">
+              {% for value, label in language_choices %}
+                <option value="{{ value }}" {% if current_language == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+          <a href="{% url 'siteconfig:user_preferences' %}" class="btn btn-outline-secondary">{% trans "Back to preferences" %}</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

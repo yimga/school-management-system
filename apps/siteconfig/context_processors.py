@@ -339,6 +339,27 @@ def site_settings(request):
         "CAN_MANAGE_SETTINGS": can_manage_settings,
         "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
     }
+    # Multi-tenant: when request.school is set, use school branding for logo and colors (Phase 2).
+    school = getattr(request, "school", None)
+    if school:
+        if getattr(school, "logo_url", None):
+            ctx["SITE_LOGO_URL"] = school.logo_url
+        ctx["SITE_PRIMARY_COLOR"] = getattr(school, "primary_color", None) or "#0d6efd"
+        ctx["SITE_ACCENT_COLOR"] = getattr(school, "accent_color", None) or "#198754"
+    else:
+        ctx["SITE_PRIMARY_COLOR"] = None
+        ctx["SITE_ACCENT_COLOR"] = None
+    # Offline: global Feature Control must be on; in multi-tenant, school must also have offline_mode module.
+    ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and (
+        not school or school.has_feature("offline_mode")
+    )
+    flags_ctx = getattr(site, "backend_feature_flags", None) or {}
+    # Whether to show the connection status bar (offline pill) in the header.
+    ctx["SHOW_OFFLINE_STATUS_BAR"] = ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] and bool(
+        flags_ctx.get("show_offline_status_bar", True)
+    )
+    # Super Admin / Schools: global toggle to show or hide /super/ and Schools link.
+    ctx["SUPER_ADMIN_UI_ENABLED"] = bool(flags_ctx.get("enable_super_admin_ui", True))
     portal_items = ctx["PORTAL_SIDEBAR_ITEMS"]
     pinned_list, pinned_ids = _get_pinned_sidebar_items(request, portal_items)
     ctx["PINNED_SIDEBAR_ITEMS"] = pinned_list
@@ -349,31 +370,48 @@ def site_settings(request):
 def region_settings(request):
     """
     Provides region-specific settings and utilities to all templates.
-    Phase 1.2.4: Internationalization & Multi-Region Support
+    Phase 1.2.4: Internationalization & Multi-Region Support.
+    Multi-tenant: when request.school is set, region/grading/language come from school.default_region and School.settings.
     """
     from types import SimpleNamespace
     from django.conf import settings
     from .models import RegionConfig
     from apps.siteconfig.currency import get_currency_symbol
-    
+
+    school = getattr(request, "school", None)
+    grading_scale = None
+    default_language = None
     try:
-        # Try to get region from user preferences, session, or use default
-        region_code = request.session.get('region_code', settings.REGION_CODE)
-        if request.user.is_authenticated:
-            try:
-                pref = getattr(request.user, 'preferences', None)
-                if pref and getattr(pref, 'preferred_region', ''):
-                    region_code = pref.preferred_region
-            except Exception:
-                pass
-        region = RegionConfig.objects.get(code=region_code)
+        # Multi-tenant: prefer school's region when request.school is set
+        if school and school.default_region_id:
+            region = school.default_region
+            # School.settings overrides for grading/language
+            settings_overrides = getattr(school, "settings", None) or {}
+            grading_scale = settings_overrides.get("grading_scale") or region.grading_scale
+            default_language = settings_overrides.get("default_language") or getattr(region, "default_language", "en")
+        else:
+            region_code = request.session.get('region_code', settings.REGION_CODE)
+            if request.user.is_authenticated:
+                try:
+                    pref = getattr(request.user, 'preferences', None)
+                    if pref and getattr(pref, 'preferred_region', ''):
+                        region_code = pref.preferred_region
+                except Exception:
+                    pass
+            region = RegionConfig.objects.get(code=region_code)
+            grading_scale = getattr(region, "grading_scale", "default")
+            default_language = getattr(region, "default_language", "en")
     except RegionConfig.DoesNotExist:
         # Fallback to default region (Cameroon)
         region = RegionConfig.get_default()
+        grading_scale = getattr(region, "grading_scale", "default")
+        default_language = getattr(region, "default_language", "en")
     except DatabaseError:
         _reset_db_state()
         try:
             region = RegionConfig.get_default()
+            grading_scale = getattr(region, "grading_scale", "default")
+            default_language = getattr(region, "default_language", "en")
         except Exception:
             region = SimpleNamespace(
                 code=getattr(settings, "REGION_CODE", "CMR"),
@@ -386,20 +424,30 @@ def region_settings(request):
                 decimal_separator=".",
                 thousands_separator=",",
             )
-    
+            grading_scale = "default"
+            default_language = "en"
+    if school and not (school.default_region_id):
+        settings_overrides = getattr(school, "settings", None) or {}
+        grading_scale = settings_overrides.get("grading_scale") or grading_scale
+        default_language = settings_overrides.get("default_language") or default_language
+    if grading_scale is None:
+        grading_scale = getattr(region, "grading_scale", "default")
+    if default_language is None:
+        default_language = getattr(region, "default_language", "en")
+
     currency_symbol = get_currency_symbol(getattr(region, "default_currency", None) or "XAF")
-    
+
     return {
         'region': region,
-        'region_code': region.code,
-        'region_name': region.name,
+        'region_code': getattr(region, "code", "CMR"),
+        'region_name': getattr(region, "name", "Default"),
         'currency_symbol': currency_symbol,
-        'date_format': region.date_format,
-        'timezone': region.timezone,
-        'default_language': region.default_language,
-        'grading_scale': region.grading_scale,
-        'decimal_separator': region.decimal_separator,
-        'thousands_separator': region.thousands_separator,
+        'date_format': getattr(region, "date_format", "YYYY-MM-DD"),
+        'timezone': getattr(region, "timezone", "UTC"),
+        'default_language': default_language,
+        'grading_scale': grading_scale,
+        'decimal_separator': getattr(region, "decimal_separator", "."),
+        'thousands_separator': getattr(region, "thousands_separator", ","),
         'enable_multi_region': getattr(settings, 'ENABLE_MULTI_REGION', False),
     }
 
@@ -435,29 +483,42 @@ def language_context(request):
             except Exception:
                 pass
         if current_language == translation.get_language():
-            # Not set from preference: try region-based auto-detection
-            try:
-                region = RegionConfig.get_default()
-                if request.user and request.user.is_authenticated:
-                    try:
-                        pref = getattr(request.user, 'preferences', None)
-                        if pref and getattr(pref, 'preferred_region', ''):
-                            region = RegionConfig.objects.get(code=pref.preferred_region)
-                        else:
-                            region = RegionConfig.objects.get(code=region.code)
-                    except (RegionConfig.DoesNotExist, Exception):
-                        pass
-                region_language_map = {
-                    'CMR': 'fr', 'FRA': 'fr', 'USA': 'en', 'GBR': 'en',
-                    'KEN': 'sw', 'NGA': 'yo', 'DEU': 'en',
-                }
-                default_language = region_language_map.get(region.code, 'en')
-                if default_language in SUPPORTED_LANGUAGES:
-                    current_language = default_language
-            except DatabaseError:
-                _reset_db_state()
-            except Exception:
-                pass
+            # Multi-tenant: prefer school default language when request.school is set
+            school = getattr(request, "school", None)
+            if school:
+                settings_overrides = getattr(school, "settings", None) or {}
+                lang_override = settings_overrides.get("default_language")
+                if lang_override and lang_override in SUPPORTED_LANGUAGES:
+                    current_language = lang_override
+                elif school.default_region_id:
+                    region = school.default_region
+                    default_language = getattr(region, "default_language", None)
+                    if default_language and default_language in SUPPORTED_LANGUAGES:
+                        current_language = default_language
+            else:
+                # Not set from preference: try region-based auto-detection
+                try:
+                    region = RegionConfig.get_default()
+                    if request.user and request.user.is_authenticated:
+                        try:
+                            pref = getattr(request.user, 'preferences', None)
+                            if pref and getattr(pref, 'preferred_region', ''):
+                                region = RegionConfig.objects.get(code=pref.preferred_region)
+                            else:
+                                region = RegionConfig.objects.get(code=region.code)
+                        except (RegionConfig.DoesNotExist, Exception):
+                            pass
+                    region_language_map = {
+                        'CMR': 'fr', 'FRA': 'fr', 'USA': 'en', 'GBR': 'en',
+                        'KEN': 'sw', 'NGA': 'yo', 'DEU': 'en',
+                    }
+                    default_language = region_language_map.get(region.code, 'en')
+                    if default_language in SUPPORTED_LANGUAGES:
+                        current_language = default_language
+                except DatabaseError:
+                    _reset_db_state()
+                except Exception:
+                    pass
     
     # Get available languages
     available_languages = [(code, name) for code, name in SUPPORTED_LANGUAGES.items()]

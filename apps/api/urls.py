@@ -36,6 +36,8 @@ from apps.api.entity_api import (
 from apps.api.digital_id_api import DigitalIDAPI, DigitalIDChildrenAPI
 from apps.finance.api_views import FinancialAnalyticsAPI, InvoiceViewSet, PaymentViewSet
 from apps.api.ministry_placeholders import cartescolaire_placeholder, dgi_placeholder
+from apps.schools.api_views import SchoolConfigAPI
+from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 
 router = DefaultRouter()
 router.register(r'devices', MobileDeviceViewSet, basename='mobile-device')
@@ -51,6 +53,10 @@ router.register(r'finance/invoices', InvoiceViewSet, basename='finance-invoice')
 router.register(r'finance/payments', PaymentViewSet, basename='finance-payment')
 
 urlpatterns = [
+    # School branding config (multi-tenant; from request host)
+    path('config/', SchoolConfigAPI.as_view(), name='config'),
+    # Benchmark comparison (Phase 4)
+    path('benchmark/comparison/', BenchmarkComparisonAPI.as_view(), name='benchmark-comparison'),
     # JWT Authentication
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

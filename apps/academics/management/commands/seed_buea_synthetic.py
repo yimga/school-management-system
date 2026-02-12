@@ -59,10 +59,31 @@ class Command(BaseCommand):
             default="small",
             help="small: 200 students, 150 parents, 10 teachers. full: 500 students, 450 parents, 20 teachers.",
         )
+        parser.add_argument(
+            "--school",
+            type=str,
+            default=None,
+            help="School slug or ID for tenant-scoped seed data. Omit for global (school=None) seed.",
+        )
+
+    def _resolve_school(self, slug_or_id):
+        if not slug_or_id:
+            return None
+        from apps.schools.models import School
+        s = str(slug_or_id).strip()
+        if s.isdigit():
+            return School.objects.filter(pk=int(s)).first()
+        return School.objects.filter(slug=s).first()
 
     @transaction.atomic
     def handle(self, *args, **options):
         scale = options.get("scale", "small")
+        self.school = self._resolve_school(options.get("school"))
+        if options.get("school") and not self.school:
+            self.stdout.write(self.style.ERROR("School not found for --school=%s" % options.get("school")))
+            return
+        if self.school:
+            self.stdout.write("Seeding for school: %s (slug=%s)" % (self.school.name, self.school.slug))
         n_students = 500 if scale == "full" else 200
         n_parents = 450 if scale == "full" else 150
         n_teachers = 20 if scale == "full" else 10
@@ -154,6 +175,7 @@ class Command(BaseCommand):
 
     def _ensure_academic_year(self, name: str, start: date, end: date, *, active: bool) -> AcademicYear:
         year, _ = AcademicYear.objects.get_or_create(
+            school=self.school,
             name=name,
             defaults={"start_date": start, "end_date": end, "is_active": active},
         )
@@ -182,7 +204,11 @@ class Command(BaseCommand):
         return terms
 
     def _ensure_department(self, code: str, name: str) -> Department:
-        dept, _ = Department.objects.get_or_create(code=code, defaults={"name": name})
+        dept, _ = Department.objects.get_or_create(
+            school=self.school,
+            code=code,
+            defaults={"name": name},
+        )
         return dept
 
     def _ensure_specialties(self, dept_gen, dept_tech) -> dict:
@@ -246,7 +272,7 @@ class Command(BaseCommand):
             ("English", 2), ("Mathematics", 5), ("French", 2),
             ("Physics", 3), ("Chemistry", 3), ("Biology", 2),
         ]:
-            s, _ = Subject.objects.get_or_create(name=name)
+            s, _ = Subject.objects.get_or_create(school=self.school, name=name, defaults={})
             out[name] = (s, coef)
         return out
 

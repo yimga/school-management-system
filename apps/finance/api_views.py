@@ -81,24 +81,24 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        
+        base = Invoice.objects.all().select_related('student__user')
+        school = getattr(self.request, "school", None)
+        if school is not None:
+            base = base.filter(school=school)
+
         if user.is_staff or user.role in ['ADMIN', 'BURSAR', 'LEADERSHIP', 'HOD']:
-            return Invoice.objects.all().select_related('student__user')
-        
+            return base
+
         from apps.people.models import StudentProfile
-        
+
         student_profile = StudentProfile.objects.filter(user=user).first()
         if student_profile:
-            return Invoice.objects.filter(
-                student=student_profile
-            ).select_related('student__user')
-        
+            return base.filter(student=student_profile)
+
         from apps.accounts.permissions import guardian_finance_student_ids
         guardian_children = guardian_finance_student_ids(user)
-        
-        return Invoice.objects.filter(
-            student_id__in=guardian_children
-        ).select_related('student__user')
+
+        return base.filter(student_id__in=guardian_children)
     
     def list(self, request, *args, **kwargs):
         """
@@ -229,24 +229,24 @@ class PaymentViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
-        
+        base = Payment.objects.all().select_related('invoice__student__user')
+        school = getattr(self.request, "school", None)
+        if school is not None:
+            base = base.filter(school=school)
+
         if _can_write_finance(user):
-            return Payment.objects.all().select_related('invoice__student__user')
-        
+            return base
+
         from apps.people.models import StudentProfile
-        
+
         student_profile = StudentProfile.objects.filter(user=user).first()
         if student_profile:
-            return Payment.objects.filter(
-                invoice__student=student_profile
-            ).select_related('invoice__student__user')
-        
+            return base.filter(invoice__student=student_profile)
+
         from apps.accounts.permissions import guardian_finance_student_ids
         guardian_children = guardian_finance_student_ids(user)
-        
-        return Payment.objects.filter(
-            invoice__student_id__in=guardian_children
-        ).select_related('invoice__student__user')
+
+        return base.filter(invoice__student_id__in=guardian_children)
     
     def create(self, request, *args, **kwargs):
         """

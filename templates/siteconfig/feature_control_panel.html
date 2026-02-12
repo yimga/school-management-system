@@ -20,7 +20,16 @@
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:feature_control_export' %}"><i class="bi bi-download me-1"></i>Export</a>
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:customizer' %}">Customizer</a>
           <a class="btn btn-outline-secondary btn-sm" href="{% url 'admin:siteconfig_sitesettings_change' site_settings_id %}">Site Settings</a>
+          {% if SUPER_ADMIN_UI_ENABLED %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
+          <a class="btn btn-primary btn-sm" href="{% url 'super:dashboard' %}"><i class="bi bi-building me-1"></i>Schools</a>
+          {% endif %}{% endif %}
         </div>
+      </div>
+      <div class="alert alert-light border mt-2 mb-0 py-2 px-3 small">
+        <strong>Feature Control</strong> toggles system-wide options (portals, offline, grade approval, etc.).
+        {% if SUPER_ADMIN_UI_ENABLED %}{% if request.user.is_superuser or request.user.role == "SUPERADMIN" %}
+        To <strong>create a new school/site</strong>, use <a href="{% url 'super:dashboard' %}">Schools</a> → Create School (multi-tenant provisioning).
+        {% endif %}{% endif %}
       </div>
       {% if last_saved %}
       <p class="text-muted small mb-0 mt-2">

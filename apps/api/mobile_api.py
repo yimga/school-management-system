@@ -296,13 +296,31 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
     def _process_eval_sync(self, sync_item, user):
         """
         Process evaluation sync items through OfflineMarkEntry + conflict resolver.
+        Multi-tenant: validate school_id matches request.school and user's membership (Phase 4).
         """
         from apps.academics.models import SubjectAssignment, AcademicYear, Term
         from apps.evals.models import OfflineMarkEntry
         from apps.evals.offline_sync import OfflineSyncService
         from apps.people.models import TeacherProfile, StudentProfile
+        from apps.schools.models import SchoolMembership
 
         payload = sync_item.data or {}
+        school = getattr(self.request, "school", None)
+        if school:
+            payload_school_id = payload.get("school_id")
+            if payload_school_id and str(payload_school_id) != str(school.id):
+                sync_item.status = "FAILED"
+                sync_item.error_message = "school_id does not match current school."
+                sync_item.synced_at = timezone.now()
+                sync_item.save(update_fields=["status", "error_message", "synced_at"])
+                return {"status": sync_item.status, "error": sync_item.error_message}
+            if not SchoolMembership.objects.filter(user=user, school=school).exists():
+                sync_item.status = "FAILED"
+                sync_item.error_message = "User has no access to this school."
+                sync_item.synced_at = timezone.now()
+                sync_item.save(update_fields=["status", "error_message", "synced_at"])
+                return {"status": sync_item.status, "error": sync_item.error_message}
+
         teacher = TeacherProfile.objects.filter(user=user).first()
         if not teacher:
             sync_item.status = 'FAILED'
@@ -325,28 +343,40 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
             sync_item.save(update_fields=["status", "error_message", "synced_at"])
             return {"status": sync_item.status, "error": sync_item.error_message}
 
-        if not SubjectAssignment.objects.filter(id=subject_assignment_id).exists():
+        sa_qs = SubjectAssignment.objects.filter(id=subject_assignment_id)
+        if school:
+            sa_qs = sa_qs.filter(school=school)
+        if not sa_qs.exists():
             sync_item.status = 'FAILED'
             sync_item.error_message = f"SubjectAssignment {subject_assignment_id} not found."
             sync_item.synced_at = timezone.now()
             sync_item.save(update_fields=["status", "error_message", "synced_at"])
             return {"status": sync_item.status, "error": sync_item.error_message}
 
-        if not StudentProfile.objects.filter(id=student_id).exists():
+        sp_qs = StudentProfile.objects.filter(id=student_id)
+        if school:
+            sp_qs = sp_qs.filter(school=school)
+        if not sp_qs.exists():
             sync_item.status = 'FAILED'
             sync_item.error_message = f"StudentProfile {student_id} not found."
             sync_item.synced_at = timezone.now()
             sync_item.save(update_fields=["status", "error_message", "synced_at"])
             return {"status": sync_item.status, "error": sync_item.error_message}
 
-        if not AcademicYear.objects.filter(id=academic_year_id).exists():
+        ay_qs = AcademicYear.objects.filter(id=academic_year_id)
+        if school:
+            ay_qs = ay_qs.filter(school=school)
+        if not ay_qs.exists():
             sync_item.status = 'FAILED'
             sync_item.error_message = f"AcademicYear {academic_year_id} not found."
             sync_item.synced_at = timezone.now()
             sync_item.save(update_fields=["status", "error_message", "synced_at"])
             return {"status": sync_item.status, "error": sync_item.error_message}
 
-        if not Term.objects.filter(id=term_id).exists():
+        term_qs = Term.objects.filter(id=term_id)
+        if school:
+            term_qs = term_qs.filter(school=school)
+        if not term_qs.exists():
             sync_item.status = 'FAILED'
             sync_item.error_message = f"Term {term_id} not found."
             sync_item.synced_at = timezone.now()
@@ -546,7 +576,7 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def sync_batch(self, request):
-        """Sync batch of offline changes"""
+        """Sync batch of offline changes. Multi-tenant: school must have offline_mode module when request.school is set."""
         from apps.siteconfig.models import SiteSettings
 
         site = SiteSettings.get_solo()
@@ -554,6 +584,12 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
         if not site.enable_offline_mode:
             return Response(
                 {'error': 'Offline sync is disabled by system configuration.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        school = getattr(request, "school", None)
+        if school and not school.has_feature("offline_mode"):
+            return Response(
+                {'error': 'Offline sync is not enabled for this school. Enable the Offline Mode module in Module Market.'},
                 status=status.HTTP_403_FORBIDDEN
             )
 

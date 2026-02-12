@@ -8,6 +8,13 @@ class AcademicYear(models.Model):
     # Phase 4: Enable audit logging for this model
     audit_enabled = True
 
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="academic_years",
+    )
     name = models.CharField(max_length=50)  # e.g. "2025/2026"
     start_date = models.DateField()
     end_date = models.DateField()
@@ -54,6 +61,13 @@ class Term(models.Model):
     # Phase 4: Enable audit logging for this model
     audit_enabled = True
 
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="terms",
+    )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="terms")
     # Code identifier (free text, e.g., "FIRST", "SEM1", "Q1"). No choices to enable flexibility.
     name = models.CharField(max_length=20)
@@ -114,6 +128,13 @@ class Term(models.Model):
 
 
 class Department(models.Model):
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="departments",
+    )
     name = models.CharField(max_length=120)
     code = models.CharField(max_length=30, unique=True)
 
@@ -125,6 +146,13 @@ class Department(models.Model):
 
 
 class Specialty(models.Model):
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="specialties",
+    )
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="specialties")
     name = models.CharField(max_length=120)
     code = models.CharField(max_length=30, unique=True)
@@ -137,6 +165,13 @@ class Specialty(models.Model):
 
 
 class Classroom(models.Model):
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="classrooms",
+    )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name="classrooms")
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="classrooms")
     name = models.CharField(max_length=120)
@@ -163,6 +198,13 @@ class ClassroomPromotionMapping(models.Model):
     for rollover (e.g. Form 5A in 2024/25 → Lower Sixth A in 2025/26).
     Used by the year-end rollover wizard to suggest "next class".
     """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="classroom_promotion_mappings",
+    )
     source_year = models.ForeignKey(
         AcademicYear, on_delete=models.CASCADE, related_name="promotion_mappings_from"
     )
@@ -191,11 +233,24 @@ class Subject(models.Model):
         RELATED = "RELATED", "Related"
         OTHER = "OTHER", "Other"
 
-    name = models.CharField(max_length=120, unique=True)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="subjects",
+    )
+    name = models.CharField(max_length=120)
     category = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "name"],
+                name="academics_subject_school_name_uniq",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -207,6 +262,13 @@ class SubjectAssignment(models.Model):
     AcademicYear + Term + Classroom + Specialty + Subject + Coefficient
     This is what teachers get assigned to, and what evaluations (marks) point to later.
     """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="subject_assignments",
+    )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="subject_assignments")
     term = models.ForeignKey(Term, on_delete=models.PROTECT, related_name="subject_assignments")
     classroom = models.ForeignKey(Classroom, on_delete=models.PROTECT, related_name="subject_assignments")
@@ -234,6 +296,13 @@ class SubjectAssignment(models.Model):
 
 class CertificationExamSession(models.Model):
     """Certification registration window/session (GCE, OBC, etc)."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="certification_sessions",
+    )
 
     class Board(models.TextChoices):
         GCE_BOARD = "GCE_BOARD", "GCE Board"
@@ -419,12 +488,15 @@ class CertificationAuditLog(models.Model):
 class CertificationExamPreset(models.Model):
     """
     Reusable rules/config for a certification exam type.
-
-    Examples:
-    - GCE General O-Level (with subject fee model)
-    - GCE General A-Level
-    - Technical (CAP/Probatoire/Bac) / OBC style
+    Examples: GCE General O-Level, GCE General A-Level, Technical (CAP/Probatoire/Bac) / OBC style.
     """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="certification_exam_presets",
+    )
 
     class Board(models.TextChoices):
         GCE_BOARD = "GCE_BOARD", "GCE Board"
@@ -473,9 +545,15 @@ class CertificationExamPreset(models.Model):
 
 
 class CertificationFeeTemplate(models.Model):
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="certification_fee_templates",
+    )
     """
     A fee template for an exam preset (or directly assigned to a session).
-
     Common patterns in Cameroon:
     - Fixed registration/admin fee
     - Per-subject fees
@@ -534,7 +612,13 @@ class CertificationFeeLine(models.Model):
 
 class CertificationDocumentChecklist(models.Model):
     """Reusable document checklist template for a preset/session."""
-
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="certification_document_checklists",
+    )
     preset = models.ForeignKey(
         CertificationExamPreset,
         on_delete=models.CASCADE,
@@ -603,6 +687,13 @@ class CertificationCandidateDocumentStatus(models.Model):
 
 class Attendance(models.Model):
     """Per-day student attendance (present, absent, late, excused). Used for roll call and absence alerts to parents."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="attendances",
+    )
     class Status(models.TextChoices):
         PRESENT = "present", "Present"
         ABSENT = "absent", "Absent"
@@ -772,6 +863,13 @@ class CourseSyllabus(models.Model):
 
 class ClassBooklist(models.Model):
     """Booklist per class (academic year; optional term). Configurable list of required books."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="class_booklists",
+    )
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="class_booklists")
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name="booklists")
     term = models.ForeignKey(
@@ -802,6 +900,13 @@ class ClassBooklist(models.Model):
 
 class CurriculumStandard(models.Model):
     """Curriculum/progression standard (e.g. MINESEC Physics Form 5, Common Core). Country-agnostic."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="curriculum_standards",
+    )
     name = models.CharField(max_length=200)
     country_code = models.CharField(max_length=10, blank=True, help_text="e.g. CM, US, GB")
     description = models.TextField(blank=True)

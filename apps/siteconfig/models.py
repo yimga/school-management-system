@@ -176,6 +176,7 @@ def default_backend_feature_flags():
         "enable_ministry_api_dgi": False,
         "enable_ministry_live_sync": False,
         "enable_analytics_dashboard_cache": False,
+        "enable_super_admin_ui": True,
         "marksheet_ocr_enabled": False,
         "marksheet_ocr_mobile_upload_enabled": True,
     }
@@ -1705,6 +1706,44 @@ class ReportTemplate(models.Model):
 
     def filename(self):
         return f"{self.slug}.{self.preferred_format.lower()}"
+
+
+class OfficialReportTemplate(models.Model):
+    """
+    Uploadable report template per region/sub_system (Phase 2 template engine).
+    MINESEC-style or custom HTML/Excel; data injection via placeholders.
+    """
+    class SubSystem(models.TextChoices):
+        FR = "FR", "French sub-system"
+        EN = "EN", "English sub-system"
+        INT = "INT", "International"
+
+    region_code = models.CharField(max_length=20, blank=True, help_text="e.g. CMR")
+    sub_system = models.CharField(max_length=10, choices=SubSystem.choices, default=SubSystem.EN)
+    name = models.CharField(max_length=120)
+    template_file = models.FileField(
+        upload_to="report_templates/official/",
+        blank=True,
+        null=True,
+        help_text="HTML or Excel template for data injection",
+    )
+    version = models.CharField(max_length=30, blank=True)
+    is_active = models.BooleanField(default=True)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="official_report_templates",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["region_code", "sub_system", "name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.region_code}/{self.sub_system})"
 
 
 class ReportCardStyleQuerySet(models.QuerySet):

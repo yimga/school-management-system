@@ -19,6 +19,7 @@ from .views import (
     redirect_view,
     rbac_dashboard,
     rollover_year,
+    school_picker,
     user_documentation,
     user_messages,
     user_notifications,
@@ -60,6 +61,7 @@ app_name = "accounts"
 urlpatterns = [
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
+    path("school-picker/", school_picker, name="school_picker"),
     path("redirect/", redirect_view, name="redirect"),
     path("profile/", user_profile, name="user_profile"),
     path("profile/edit/", profile_edit, name="profile_edit"),

@@ -33,21 +33,23 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         from apps.academics.models import Attendance
-        
+
         user = self.request.user
         role = (getattr(user, "role", "") or "").upper()
         admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "CENSOR"}
-        
+        base = Attendance.objects.all().select_related('student__user', 'classroom')
+        school = getattr(self.request, "school", None)
+        if school is not None:
+            base = base.filter(school=school)
+
         if user.is_staff or role in admin_roles:
-            return Attendance.objects.all().select_related(
-                'student__user', 'classroom'
-            )
+            return base
 
         if role == "TEACHER":
             from apps.evals.models import TeacherAssignment
             teacher = getattr(user, "teacher_profile", None)
             if not teacher:
-                return Attendance.objects.none()
+                return base.none()
             classroom_ids = TeacherAssignment.objects.filter(
                 teacher=teacher,
                 is_active=True,
@@ -55,17 +57,15 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 'subject_assignment__classroom_id',
                 flat=True
             ).distinct()
-            return Attendance.objects.filter(
+            return base.filter(
                 classroom_id__in=classroom_ids
-            ).select_related('student__user', 'classroom')
-        
+            )
+
         from apps.people.models import StudentProfile
-        
+
         student_profile = StudentProfile.objects.filter(user=user).first()
         if student_profile:
-            return Attendance.objects.filter(
-                student=student_profile
-            ).select_related('student__user', 'classroom')
+            return base.filter(student=student_profile)
 
         if role == "PARENT":
             from apps.people.models import StudentGuardian
@@ -73,11 +73,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 guardian_user=user,
                 can_view_results=True,
             ).values_list('student_id', flat=True)
-            return Attendance.objects.filter(
-                student_id__in=child_ids
-            ).select_related('student__user', 'classroom')
-        
-        return Attendance.objects.none()
+            return base.filter(student_id__in=child_ids)
+
+        return base.none()
     
     def list(self, request, *args, **kwargs):
         """

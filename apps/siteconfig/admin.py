@@ -16,6 +16,7 @@ from urllib.parse import quote
 
 from .models import (
     Integration,
+    OfficialReportTemplate,
     ReportCardStyle,
     ReportCardStyleAssignment,
     ReportTemplate,
@@ -924,6 +925,13 @@ class ReportTemplateAdmin(ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
+class OfficialReportTemplateAdmin(ModelAdmin):
+    list_display = ("name", "region_code", "sub_system", "school", "version", "is_active")
+    list_filter = ("sub_system", "is_active", "region_code")
+    search_fields = ("name", "region_code")
+    readonly_fields = ("created_at", "updated_at")
+
+
 class ReportCardStyleAdmin(ModelAdmin):
     change_form_template = "admin/siteconfig/reportcardstyle/change_form.html"
     list_display = ("name", "slug", "is_active", "term_template", "annual_template")
@@ -1674,6 +1682,7 @@ admin_site.register(SiteSettings, SiteSettingsAdmin)
 admin_site.register(ThemePack, ThemePackAdmin)
 admin_site.register(UserPreference, UserPreferenceAdmin)
 admin_site.register(ReportTemplate, ReportTemplateAdmin)
+admin_site.register(OfficialReportTemplate, OfficialReportTemplateAdmin)
 admin_site.register(ReportCardStyle, ReportCardStyleAdmin)
 admin_site.register(ReportCardStyleAssignment, ReportCardStyleAssignmentAdmin)
 admin_site.register(Integration, IntegrationAdmin)
