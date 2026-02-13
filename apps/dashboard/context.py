@@ -32,6 +32,10 @@ def _status_from_value(value: int, warn_at: int, danger_at: int) -> str:
     return "ok"
 
 
+# Heavy KPI snapshot cache TTL (seconds). Plan: 60–120s.
+DASHBOARD_SNAPSHOT_CACHE_TTL = 120
+
+
 def _snapshot_cache_key(site_id: str, role_code: str) -> str:
     return f"dashboard:backend:v2:snapshot:{site_id}:{role_code or 'unknown'}"
 
@@ -160,7 +164,7 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
         "failed_logins_24h": failed_logins_24h,
         "system_incidents": system_incidents,
     }
-    cache.set(key, snapshot, 60)
+    cache.set(key, snapshot, DASHBOARD_SNAPSHOT_CACHE_TTL)
     return snapshot
 
 

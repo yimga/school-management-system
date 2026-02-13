@@ -133,16 +133,34 @@
           <div class="card shadow-sm">
             <div class="card-header bg-transparent fw-semibold">Organization</div>
             <div class="card-body">
-              {% if org_chain %}
+              {% if request.user.role == 'TEACHER' and teacher_org_tree.diagram_levels %}
+                <p class="mb-2 small"><span class="text-muted">Org chart (top to bottom):</span></p>
+                <div class="org-diagram-vertical mt-2" role="list" aria-label="Organization chart">
+                  {% for level in teacher_org_tree.diagram_levels %}
+                    {% for node in level %}
+                      <div class="org-diagram-node d-flex align-items-center gap-2 py-2 {% if node.is_self %}org-diagram-node-self border-start border-3 border-primary{% endif %}" role="listitem">
+                        <div class="org-diagram-avatar rounded-circle d-flex align-items-center justify-content-center bg-light text-dark border" style="width: 40px; height: 40px; min-width: 40px; font-size: 0.85rem;">
+                          {% if node.photo_url %}<img src="{{ node.photo_url }}" alt="" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">{% else %}<span aria-hidden="true">{{ node.initials }}</span>{% endif %}
+                        </div>
+                        <div class="org-diagram-info min-w-0">
+                          <strong class="d-block">{{ node.name }}{% if node.is_self %} <span class="badge text-bg-primary">You</span>{% endif %}</strong>
+                          <span class="small text-muted">{{ node.title }}{% if node.department %} · {{ node.department }}{% endif %}</span>
+                        </div>
+                      </div>
+                    {% endfor %}
+                    {% if not forloop.last %}<div class="org-diagram-connector border-start border-2 ms-4" style="height: 12px; width: 0;"></div>{% endif %}
+                  {% endfor %}
+                </div>
+              {% elif org_chain %}
                 <p class="mb-2 small"><span class="text-muted">Your place in the organization:</span></p>
                 <p class="mb-3 small">
                   {% for node in org_chain %}
-                    {% if not forloop.first %}<span class="text-muted mx-1">→</span>{% endif %}
+                    {% if not forloop.first %}<span class="text-muted mx-1">&#8594;</span>{% endif %}
                     {% if node.user_id == request.user.id %}<strong>You</strong>{% else %}{{ node.user.get_full_name|default:node.user.username }}{% if node.position_title %} ({{ node.position_title }}){% endif %}{% endif %}
                   {% endfor %}
                 </p>
               {% endif %}
-              {% if request.user.role == 'TEACHER' and teacher_org_tree %}
+              {% if request.user.role == 'TEACHER' and teacher_org_tree and not teacher_org_tree.diagram_levels %}
               <ul class="list-unstyled mb-0 small">
                 <li><span class="text-muted">Department:</span> {{ teacher_org_tree.department.name|default:"—" }}</li>
                 <li><span class="text-muted">Position:</span> {{ teacher_org_tree.position_title }}</li>
