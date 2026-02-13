@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     "apps.requests",
     "apps.observability",  # Observability/monitoring
     "apps.api",
+    "apps.apicenter",
     "apps.automation",  # Automation and background tasks
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)

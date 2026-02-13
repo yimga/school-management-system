@@ -69,6 +69,7 @@ def api_create_school(request):
     sub_system = (data.get("sub_system") or "EN").strip()
     primary_color = (data.get("primary_color") or "#0d6efd").strip()
     accent_color = (data.get("accent_color") or "#198754").strip()
+    custom_domain = (data.get("custom_domain") or "").strip()
 
     errors = []
     if not name:
@@ -99,6 +100,7 @@ def api_create_school(request):
         default_region=default_region,
         primary_color=primary_color,
         accent_color=accent_color,
+        custom_domain=custom_domain or "",
         is_active=False,
         settings={
             "contact_email": contact_email,

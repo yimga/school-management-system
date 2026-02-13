@@ -13,6 +13,7 @@ from django.db.models import Count, Sum
 from django.urls import reverse
 from django.utils import timezone
 
+from apps.apicenter.gating import is_integration_allowed
 from apps.people.models import StudentProfile
 from apps.siteconfig.models import Integration, SiteSettings
 
@@ -67,19 +68,25 @@ def get_payment_integration_by_method(method: str) -> Integration | None:
     slug = PAYMENT_METHOD_PROVIDER_SLUGS.get(method)
     if not slug:
         return None
-    return Integration.objects.filter(
+    integration = Integration.objects.filter(
         provider="payments",
         enabled=True,
         config__provider_slug=slug,
     ).order_by("-id").first()
+    if integration and not is_integration_allowed(integration):
+        return None
+    return integration
 
 
 def get_payment_integration_by_slug(slug: str) -> Integration | None:
-    return Integration.objects.filter(
+    integration = Integration.objects.filter(
         provider="payments",
         enabled=True,
         config__provider_slug=slug,
     ).order_by("-id").first()
+    if integration and not is_integration_allowed(integration):
+        return None
+    return integration
 
 
 def _account(profile: ComplianceProfile, code: str, name: str, account_type: str) -> LedgerAccount:

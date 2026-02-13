@@ -157,6 +157,7 @@ urlpatterns = [
 
     # Apps
     path('siteconfig/', include(('apps.siteconfig.urls', 'siteconfig'), namespace='siteconfig')),
+    path('api-center/', include(('apps.apicenter.urls', 'apicenter'), namespace='apicenter')),
     path('authentication/', include(('apps.accounts.urls', 'accounts'), namespace='accounts')),
     path('evals/', include(('apps.evals.urls', 'evals'), namespace='evals')),
     path('academics/', include(('apps.academics.urls', 'academics'), namespace='academics')),

@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Count, Q
+from django.db.models import Avg, Count, Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse, NoReverseMatch
@@ -95,7 +95,7 @@ def _get_teacher_approved_syllabi(teacher_profile):
 
 
 def _teacher_org_tree(user):
-    """Build org tree for teacher: department, reports_to, assignments (year -> classrooms -> subjects)."""
+    """Build org tree for teacher: hierarchy diagram + assignments (year -> classrooms -> subjects)."""
     try:
         from apps.people.models import TeacherProfile
         from apps.evals.models import TeacherAssignment
@@ -117,24 +117,77 @@ def _teacher_org_tree(user):
             "subject_assignment__subject",
             "subject_assignment__academic_year",
         )
-        # Group by classroom then subject
         by_class = {}
         for ta in qs:
             sa = ta.subject_assignment
             if not sa:
                 continue
-            cname = sa.classroom.name if sa.classroom else "—"
+            cname = sa.classroom.name if sa.classroom else "-"
             if cname not in by_class:
                 by_class[cname] = []
-            by_class[cname].append(sa.subject.name if sa.subject else "—")
+            by_class[cname].append(sa.subject.name if sa.subject else "-")
         assignments = [{"classroom": c, "subjects": list(set(subs))} for c, subs in sorted(by_class.items())]
+
+    def _node_payload(profile, relation):
+        if not profile:
+            return None
+        target_user = getattr(profile, "user", None)
+        display_name = (
+            (target_user.get_full_name() if target_user and hasattr(target_user, "get_full_name") else "")
+            or (target_user.username if target_user else "")
+            or "Staff"
+        )
+        initials_parts = display_name.strip().split()
+        initials = "".join(part[:1].upper() for part in initials_parts[:2]) or "S"
+        photo_url = ""
+        profile_photo = getattr(profile, "profile_photo", None)
+        user_photo = getattr(target_user, "profile_photo", None) if target_user else None
+        try:
+            if profile_photo and getattr(profile_photo, "url", ""):
+                photo_url = profile_photo.url
+            elif user_photo and getattr(user_photo, "url", ""):
+                photo_url = user_photo.url
+        except Exception:
+            photo_url = ""
+        return {
+            "id": profile.pk,
+            "name": display_name,
+            "title": getattr(profile, "position_title", "") or "Staff member",
+            "department": getattr(getattr(profile, "department", None), "name", "") or "",
+            "photo_url": photo_url,
+            "initials": initials,
+            "is_self": bool(target_user and target_user.pk == getattr(user, "pk", None)),
+            "relation": relation,
+        }
+
+    chain_profiles = get_org_chain_to_staff(teacher)
+    chain_nodes = [_node_payload(profile, "chain") for profile in chain_profiles]
+    chain_nodes = [node for node in chain_nodes if node]
+
+    direct_reports = list(
+        TeacherProfile.objects.filter(
+            reports_to=teacher,
+            is_active=True,
+        )
+        .select_related("user", "department")
+        .order_by("position_title", "user__first_name", "user__last_name")[:8]
+    )
+    direct_report_nodes = [_node_payload(profile, "direct_report") for profile in direct_reports]
+    direct_report_nodes = [node for node in direct_report_nodes if node]
+
+    diagram_levels = [[node] for node in chain_nodes]
+    if direct_report_nodes:
+        diagram_levels.append(direct_report_nodes)
+
     return {
         "teacher": teacher,
         "department": teacher.department,
         "reports_to": teacher.reports_to,
-        "position_title": teacher.position_title or "—",
+        "position_title": teacher.position_title or "-",
         "assignments": assignments,
         "academic_year": year,
+        "diagram_levels": diagram_levels,
+        "direct_reports_count": len(direct_report_nodes),
     }
 
 
@@ -149,8 +202,8 @@ def _parent_children_tree(user):
     for link in links:
         s = link.student
         classroom = getattr(s, "classroom", None)
-        class_name = classroom.name if classroom else "—"
-        year_name = getattr(getattr(classroom, "academic_year", None), "name", "") or "—"
+        class_name = classroom.name if classroom else "-"
+        year_name = getattr(getattr(classroom, "academic_year", None), "name", "") or "-"
         children.append({
             "student": s,
             "relationship": link.get_relationship_display(),
@@ -1142,6 +1195,10 @@ def backend_dashboard(request):
     chart_finance_trend_json = ""
     chart_attendance_donut_json = ""
     chart_rbac_roles_json = ""
+    chart_enrollment_trend_json = ""
+    recent_admissions = []
+    top_performing_students = []
+    at_risk_students = []
     if compliance_profile and finance_status_counts:
         status_labels = dict(Invoice.Status.choices)
         chart_finance_status_json = json.dumps({
@@ -1199,6 +1256,159 @@ def backend_dashboard(request):
             },
             "options": {"indexAxis": "y"},
         })
+
+    # Enrollment trend + people lists for streamlined backend layout
+    try:
+        from django.db.models.functions import TruncMonth
+
+        enrollment_qs = StudentProfile.objects.filter(is_active=True, joined_date__isnull=False)
+        if year:
+            enrollment_qs = enrollment_qs.filter(academic_year=year)
+        monthly = list(
+            enrollment_qs.annotate(month=TruncMonth("joined_date"))
+            .values("month")
+            .annotate(total=Count("id"))
+            .order_by("month")
+        )
+        monthly = [row for row in monthly if row.get("month")][-6:]
+        enroll_labels = [row["month"].strftime("%b") for row in monthly]
+        enroll_values = [row["total"] for row in monthly]
+        if not enroll_labels:
+            enroll_labels = [item["date"].strftime("%a") for item in attendance_trend[-6:]]
+            enroll_values = [item["present"] for item in attendance_trend[-6:]]
+        if enroll_labels:
+            chart_enrollment_trend_json = json.dumps(
+                {
+                    "type": "line",
+                    "data": {
+                        "labels": enroll_labels,
+                        "datasets": [
+                            {
+                                "label": "Enrollment",
+                                "data": enroll_values,
+                                "borderColor": "#60a5fa",
+                                "backgroundColor": "rgba(96, 165, 250, 0.16)",
+                                "fill": True,
+                                "tension": 0.35,
+                            }
+                        ],
+                    },
+                }
+            )
+    except Exception:
+        chart_enrollment_trend_json = ""
+
+    try:
+        admissions_qs = StudentProfile.objects.select_related("classroom").filter(is_active=True)
+        if year:
+            admissions_qs = admissions_qs.filter(academic_year=year)
+        for student in admissions_qs.order_by("-updated_at", "-id")[:6]:
+            recent_admissions.append(
+                {
+                    "name": student.get_full_name(),
+                    "classroom": getattr(getattr(student, "classroom", None), "name", "") or "Unassigned",
+                    "admission_number": student.admission_number or student.student_code or "--",
+                }
+            )
+    except Exception:
+        recent_admissions = []
+
+    score_rows = []
+    try:
+        from apps.evals.models import Evaluation
+
+        eval_qs = Evaluation.objects.select_related("student", "student__classroom")
+        if year:
+            eval_qs = eval_qs.filter(academic_year=year)
+        if term:
+            eval_qs = eval_qs.filter(term=term)
+        score_candidates = eval_qs.values(
+            "student_id",
+            "student__first_name",
+            "student__last_name",
+            "student__classroom__name",
+        ).annotate(
+            avg_exam=Avg("exam_score"),
+            avg_seq1=Avg("seq1_score"),
+            avg_seq2=Avg("seq2_score"),
+        )[:300]
+
+        for row in score_candidates:
+            values = [
+                float(v)
+                for v in (row.get("avg_exam"), row.get("avg_seq1"), row.get("avg_seq2"))
+                if v is not None
+            ]
+            if not values:
+                continue
+            score = round(sum(values) / len(values), 1)
+            full_name = " ".join(
+                part for part in [row.get("student__first_name"), row.get("student__last_name")] if part
+            ).strip() or "Student"
+            score_rows.append(
+                {
+                    "student_id": row.get("student_id"),
+                    "name": full_name,
+                    "classroom": row.get("student__classroom__name") or "Unassigned",
+                    "score": score,
+                }
+            )
+    except Exception:
+        score_rows = []
+
+    score_rows.sort(key=lambda item: item.get("score", 0), reverse=True)
+    top_performing_students = score_rows[:5]
+
+    at_risk_map = {}
+    for row in score_rows:
+        if row.get("score", 0) >= 10:
+            continue
+        sid = row.get("student_id")
+        if sid in at_risk_map:
+            continue
+        at_risk_map[sid] = {
+            "student_id": sid,
+            "name": row.get("name") or "Student",
+            "classroom": row.get("classroom") or "Unassigned",
+            "tag": "Low performance",
+            "value": f"{row.get('score', 0):.1f}/20",
+        }
+        if len(at_risk_map) >= 5:
+            break
+
+    try:
+        overdue_qs = (
+            Invoice.objects.select_related("student__classroom")
+            .filter(status=Invoice.Status.OVERDUE, student__isnull=False)
+            .order_by("due_date", "-id")[:10]
+        )
+        for invoice in overdue_qs:
+            student = invoice.student
+            sid = student.id if student else None
+            if sid in at_risk_map:
+                continue
+            full_name = student.get_full_name() if student else "Student"
+            classroom_name = (
+                getattr(getattr(student, "classroom", None), "name", "") if student else ""
+            ) or "Unassigned"
+            risk_value = "Action required"
+            if invoice.due_date:
+                days_overdue = (today - invoice.due_date).days
+                if days_overdue > 0:
+                    risk_value = f"{days_overdue}d overdue"
+            at_risk_map[sid] = {
+                "student_id": sid,
+                "name": full_name,
+                "classroom": classroom_name,
+                "tag": "Overdue invoice",
+                "value": risk_value,
+            }
+            if len(at_risk_map) >= 5:
+                break
+    except Exception:
+        pass
+
+    at_risk_students = list(at_risk_map.values())[:5]
 
     # Workflow progress and recommended next steps for dashboard
     workflow_progress = _workflow_progress(year)
@@ -1281,6 +1491,10 @@ def backend_dashboard(request):
         "chart_finance_trend_json": chart_finance_trend_json,
         "chart_attendance_donut_json": chart_attendance_donut_json,
         "chart_rbac_roles_json": chart_rbac_roles_json,
+        "chart_enrollment_trend_json": chart_enrollment_trend_json,
+        "recent_admissions": recent_admissions,
+        "top_performing_students": top_performing_students,
+        "at_risk_students": at_risk_students,
         "quick_student_create_url": _safe_reverse("accounts:backend_student_create") if _safe_reverse("accounts:backend_student_create") != "#" else _safe_reverse("admin:people_studentprofile_add"),
         "quick_teacher_create_url": _safe_reverse("accounts:backend_teacher_create") if _safe_reverse("accounts:backend_teacher_create") != "#" else _safe_reverse("admin:people_teacherprofile_add"),
         "breadcrumbs": [{"title": "Backend", "url": reverse("accounts:backend_dashboard"), "icon": "bi-speedometer2"}],
@@ -2060,3 +2274,4 @@ def claim_invite(request):
         return redirect("portal:parent_dashboard")
 
     return render(request, "accounts/claim_invite.html", {"form": form})
+

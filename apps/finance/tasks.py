@@ -21,6 +21,7 @@ from apps.finance.models import PaymentReminder, PaymentReminderLog, Invoice, Fe
 from apps.finance.services import generate_payment_link, create_fee_invoices, recalculate_invoice, create_payment_from_receipt
 from apps.finance.receipt_verification import ReceiptVerificationService
 from apps.finance.fraud_detection import ReceiptFraudDetector
+from apps.apicenter.gating import is_integration_allowed
 from apps.people.models import StudentGuardian
 from apps.siteconfig.models import Integration, SiteSettings
 from apps.automation.models import AutomationExecutionLog, AutomationApprovalQueue
@@ -105,6 +106,8 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
         return {"sent": 0, "count": 0, "channels": {}, "dry_run": dry_run}
 
     integration = Integration.objects.filter(provider="email", enabled=True).first()
+    if integration and not is_integration_allowed(integration):
+        integration = None
     default_link = getattr(settings, "SITE_URL", "https://school.example/")
     sent_count = 0
     channel_counts = {"email": 0, "sms": 0, "whatsapp": 0}

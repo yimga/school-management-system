@@ -179,6 +179,7 @@ def default_backend_feature_flags():
         "enable_super_admin_ui": True,
         "marksheet_ocr_enabled": False,
         "marksheet_ocr_mobile_upload_enabled": True,
+        "enable_api_center": False,
     }
 
 
@@ -1522,8 +1523,9 @@ class ThemePack(models.Model):
 
 class Integration(models.Model):
     """
-    Generic external integration registry (plugin-style).
-    Examples: Email (SMTP/SendGrid), SMS (Twilio), Payments (Stripe), Analytics (GA/Sentry).
+    Unified external integration: plugin config + API Center governance (one module).
+    Examples: Email (SMTP), SMS (Twilio), Payments (MTN MoMo), Analytics.
+    Single kill switch: enabled. Optional governance: rate limit, scopes, audit via IntegrationAuditLog.
     """
 
     PROVIDERS = [
@@ -1534,11 +1536,51 @@ class Integration(models.Model):
         ("other", "Other"),
     ]
 
+    CATEGORIES = [
+        ("LMS", "LMS"),
+        ("PAYMENT", "Payment"),
+        ("ATTENDANCE", "Attendance"),
+        ("LIBRARY", "Library"),
+        ("AI", "AI"),
+        ("SIS", "SIS"),
+        ("OTHER", "Other"),
+    ]
+
+    HEALTH_STATUS = [
+        ("healthy", "Healthy"),
+        ("degraded", "Degraded"),
+        ("down", "Down"),
+    ]
+
     name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=50, unique=True)
     provider = models.CharField(max_length=30, choices=PROVIDERS, default="other")
-    enabled = models.BooleanField(default=False)
+    category = models.CharField(max_length=20, choices=CATEGORIES, default="OTHER", blank=True)
+    enabled = models.BooleanField(
+        default=False,
+        help_text="Master kill switch: when False, this integration is not used (payments, email, portal links).",
+    )
     config = models.JSONField(default=dict, blank=True)
+    # Governance: rate limit, scopes, audit (toggle in API Center)
+    rate_limit_per_min = models.PositiveIntegerField(null=True, blank=True)
+    ip_whitelist = models.JSONField(default=list, blank=True)
+    allowed_scopes = models.JSONField(default=dict, blank=True)
+    secret_key_hash = models.TextField(blank=True)
+    last_call_at = models.DateTimeField(null=True, blank=True)
+    health_status = models.CharField(max_length=20, choices=HEALTH_STATUS, default="healthy", blank=True)
+    pii_masking = models.BooleanField(default=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="integrations",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["provider", "name"]
 
     def __str__(self) -> str:
         return f"{self.name} ({self.provider})"

@@ -20,10 +20,13 @@
               <li class="nav-item" role="presentation">
                 <button class="nav-link" id="step3-tab" data-bs-toggle="tab" data-bs-target="#step3" type="button" role="tab">3. Branding</button>
               </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="step4-tab" data-bs-toggle="tab" data-bs-target="#step4" type="button" role="tab">4. Domain</button>
+              </li>
             </ul>
           </div>
           <div class="card-body">
-            <form id="wizard-form">
+            <form id="wizard-form" data-edit-school-url-template="{% url 'admin:schools_school_change' '00000000-0000-0000-0000-000000000000' %}">
               {% csrf_token %}
               <div class="tab-content">
                 <div class="tab-pane fade show active" id="step1" role="tabpanel">
@@ -76,6 +79,14 @@
                   </div>
                   <p class="text-muted small">Logo upload can be done after creation in school settings.</p>
                 </div>
+                <div class="tab-pane fade" id="step4" role="tabpanel">
+                  <div class="mb-3">
+                    <label class="form-label" for="custom_domain">Custom domain (optional)</label>
+                    <input type="text" class="form-control" id="custom_domain" name="custom_domain" placeholder="portal.school.edu">
+                    <div class="form-text">If the school will use their own domain (e.g. portal.greenwood.edu), enter it here. After creation, they must add a CNAME record pointing to your platform; then verify in school settings.</div>
+                  </div>
+                  <p class="text-muted small">Otherwise the school will use the subdomain from Step 1 (e.g. <code>slug.yoursystem.com</code>).</p>
+                </div>
               </div>
               <div class="d-flex justify-content-between mt-4">
                 <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
@@ -94,13 +105,14 @@
   <script>
     (function () {
       var form = document.getElementById('wizard-form');
-      var tabs = [document.getElementById('step1'), document.getElementById('step2'), document.getElementById('step3')];
-      var tabButtons = [document.getElementById('step1-tab'), document.getElementById('step2-tab'), document.getElementById('step3-tab')];
+      var tabs = [document.getElementById('step1'), document.getElementById('step2'), document.getElementById('step3'), document.getElementById('step4')];
+      var tabButtons = [document.getElementById('step1-tab'), document.getElementById('step2-tab'), document.getElementById('step3-tab'), document.getElementById('step4-tab')];
       var btnNext = document.getElementById('btn-next');
       var btnSubmit = document.getElementById('btn-submit');
       var successEl = document.getElementById('wizard-success');
       var errorEl = document.getElementById('wizard-error');
       var currentStep = 0;
+      var totalSteps = 4;
 
       function showStep(i) {
         currentStep = i;
@@ -111,12 +123,12 @@
         tabButtons.forEach(function (b, j) {
           b.classList.toggle('active', j === i);
         });
-        btnNext.classList.toggle('d-none', i === 2);
-        btnSubmit.classList.toggle('d-none', i !== 2);
+        btnNext.classList.toggle('d-none', i === totalSteps - 1);
+        btnSubmit.classList.toggle('d-none', i !== totalSteps - 1);
       }
 
       btnNext.addEventListener('click', function () {
-        if (currentStep < 2) showStep(currentStep + 1);
+        if (currentStep < totalSteps - 1) showStep(currentStep + 1);
       });
 
       form.addEventListener('submit', function (e) {
@@ -131,6 +143,7 @@
         var sub_system = document.getElementById('sub_system').value;
         var primary_color = document.getElementById('primary_color').value;
         var accent_color = document.getElementById('accent_color').value;
+        var custom_domain = (document.getElementById('custom_domain') && document.getElementById('custom_domain').value) ? document.getElementById('custom_domain').value.trim() : '';
         var payload = {
           name: name,
           slug: slug,
@@ -139,7 +152,8 @@
           region_code: region_code,
           sub_system: sub_system,
           primary_color: primary_color,
-          accent_color: accent_color
+          accent_color: accent_color,
+          custom_domain: custom_domain
         };
         var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
         fetch('{% url "super:api_create_school" %}', {
@@ -154,7 +168,14 @@
           .then(function (r) {
             return r.json().then(function (data) {
               if (r.ok) {
-                successEl.textContent = 'School created. Provisioning started. ' + (data.school_id ? 'ID: ' + data.school_id : '');
+                var msg = 'School created. Provisioning started.';
+                if (data.school_id) {
+                  var editUrl = (form.getAttribute('data-edit-school-url-template') || '').replace('00000000-0000-0000-0000-000000000000', data.school_id);
+                  if (editUrl) {
+                    msg += ' <a href="' + editUrl + '" class="alert-link">Edit school</a> (e.g. set logo, verify custom domain).';
+                  }
+                }
+                successEl.innerHTML = msg;
                 successEl.classList.remove('d-none');
                 form.reset();
                 showStep(0);

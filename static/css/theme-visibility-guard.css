@@ -1,0 +1,81 @@
+/*
+ * Theme visibility guard
+ * Ensures readable surfaces/text across theme-pack, palette, harmony, and lens combinations.
+ */
+
+:root {
+  --vis-surface: var(--admin-surface, var(--admin-content-surface, #ffffff));
+  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 90%, #0f172a 10%);
+  --vis-text: var(--admin-text, var(--admin-content-text, #0f172a));
+  --vis-text-muted: var(--admin-content-text-muted, #475569);
+  --vis-border: var(--admin-border, var(--admin-content-border, rgba(15, 23, 42, 0.14)));
+}
+
+html[data-theme="dark"],
+html[data-bs-theme="dark"],
+body.portal-backend-dark,
+body.portal-backend-black,
+body.portal-backend-ink,
+body.portal-backend-onyx,
+body.portal-backend-charcoal,
+body.portal-backend-midnight {
+  --vis-surface: var(--admin-surface, var(--admin-content-surface, #1e293b));
+  --vis-surface-muted: color-mix(in srgb, var(--vis-surface) 88%, #f8fafc 12%);
+  --vis-text: var(--admin-text, var(--admin-content-text, #f1f5f9));
+  --vis-text-muted: var(--admin-content-text-muted, #94a3b8);
+  --vis-border: var(--admin-border, var(--admin-content-border, rgba(148, 163, 184, 0.28)));
+}
+
+/* Site Settings / Theme pack catalog hardening */
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-main,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-sidebar-nav,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-mobile-dropdown {
+  background: var(--vis-surface) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog summary,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .help,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-group-title,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-name {
+  color: var(--vis-text) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-desc,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .theme-pack-catalog-hint,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .form-check-label,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-section .help,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-search-no-match {
+  color: var(--vis-text-muted) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-card {
+  background: var(--vis-surface-muted) !important;
+  border-color: var(--vis-border) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-card:hover,
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .admin-dashboard-palette-card.selected {
+  border-color: color-mix(in srgb, var(--school-primary, #3b82f6) 55%, var(--vis-border) 45%) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-search {
+  background: var(--vis-surface-muted) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+body.app-siteconfig.model-sitesettings.change-form .theme-pack-filter-row .form-control::placeholder,
+body.app-siteconfig.model-sitesettings.change-form .site-settings-search::placeholder {
+  color: color-mix(in srgb, var(--vis-text-muted) 88%, transparent) !important;
+}
+
+/* Generic safeguard for subtle labels on themed surfaces */
+[data-dashboard-page] .text-muted,
+[data-dashboard-page] .small.text-muted {
+  color: var(--vis-text-muted) !important;
+}
+

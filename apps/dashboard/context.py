@@ -64,6 +64,24 @@ def _build_nav_item(label: str, icon: str, url: str, *, item_id: str = "", allow
     return payload
 
 
+def _dedupe_nav_items(items: list[Dict[str, str]]) -> list[Dict[str, str]]:
+    """Keep order while removing duplicate nav actions inside the same visual action area."""
+    seen: set[tuple[str, str, str]] = set()
+    unique: list[Dict[str, str]] = []
+    for item in items or []:
+        if not isinstance(item, dict):
+            continue
+        item_id = str(item.get("id", "") or "").strip().lower()
+        label = str(item.get("label", "") or "").strip().lower()
+        url = str(item.get("url", "") or "").strip().lower()
+        key = (item_id, label, url)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(item)
+    return unique
+
+
 def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
     key = _snapshot_cache_key(site_id, role_code)
     cached = cache.get(key)
@@ -337,15 +355,9 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         _build_nav_item("Messages", "bi-chat-dots", _safe_reverse("accounts:user_messages"), allow=can_use_messages),
         _build_nav_item("Report Card Builder", "bi-file-earmark-richtext", _safe_reverse("siteconfig:reportcard_builder"), allow=can_manage_reports),
         _build_nav_item("My Preferences", "bi-sliders", _safe_reverse("siteconfig:user_preferences"), allow=True),
-        _build_nav_item(
-            "Customize layout",
-            "bi-grid-1x2",
-            f'{_safe_reverse("accounts:backend_dashboard")}?customize=1',
-            allow=True,
-        ),
         _build_nav_item("Configuration Engine", "bi-gear-wide-connected", _safe_reverse("admin:index"), allow=can_manage_settings),
     ]
-    action_chips = [item for item in action_chips if item]
+    action_chips = _dedupe_nav_items([item for item in action_chips if item])
 
     welcome_action_grid = [
         _build_nav_item("Add Student", "bi-person-plus", _safe_reverse("accounts:backend_student_create", _safe_reverse("admin:index")), item_id="add_student", allow=can_manage_people),
@@ -357,7 +369,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         _build_nav_item("Roles & Permissions", "bi-shield-lock", _safe_reverse("accounts:rbac"), item_id="roles_permissions", allow=can_manage_rbac),
         _build_nav_item("Document Library", "bi-folder2-open", _safe_reverse("portal:document_library_manage"), item_id="document_library", allow=can_manage_settings),
     ]
-    welcome_action_grid = [item for item in welcome_action_grid if item]
+    welcome_action_grid = _dedupe_nav_items([item for item in welcome_action_grid if item])
 
     if role_code in {"BURSAR", "FINANCE_STAFF"}:
         finance_console = _build_nav_item(
@@ -378,7 +390,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         _build_nav_item("Workflow Center", "bi-diagram-3", _safe_reverse("accounts:workflow_center"), item_id="workflow_center", allow=True),
         _build_nav_item("Preferences", "bi-sliders", _safe_reverse("siteconfig:user_preferences"), item_id="preferences", allow=True),
     ]
-    quick_links = [item for item in quick_links if item]
+    quick_links = _dedupe_nav_items([item for item in quick_links if item])
 
     pinned_order = []
     try:
@@ -400,7 +412,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         _build_nav_item("School Settings", "bi-building-gear", _safe_reverse("siteconfig:customizer", _safe_reverse("siteconfig:user_preferences")), allow=can_manage_settings),
         _build_nav_item("Workflow Center", "bi-diagram-3", _safe_reverse("accounts:workflow_center"), allow=True),
     ]
-    command_palette = [item for item in command_palette if item]
+    command_palette = _dedupe_nav_items([item for item in command_palette if item])
 
     return {
         "local_time": now,

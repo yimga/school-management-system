@@ -13,7 +13,7 @@
    - From Feature Control: click **Schools** in the header, or
    - Go directly to **`/super/`**.
 3. On the Super Admin dashboard, click **Create School**.
-4. Complete the wizard at `/super/create/` (identity, region, branding).
+4. Complete the wizard at `/super/create/` (1. Identity, 2. Region, 3. Branding, 4. Domain). Step 4 lets you optionally set a custom domain (e.g. portal.school.edu); the school can verify it later in Admin.
 5. Submit; the form posts to **`POST /super/api/create-school/`**.
 6. A **School** row is created and a **provisioning task** runs:
    - Admin user and `SchoolMembership`
@@ -62,6 +62,10 @@
 ## Verify RLS (PostgreSQL)
 
 - Run **`python manage.py verify_tenant_rls`** to confirm RLS is enabled on all tenant tables. On PostgreSQL it checks each table and reports any missing or disabled RLS. On SQLite/MySQL it skips with a note. Use after deployment to PostgreSQL.
+
+## Verification and completeness
+
+For a checklist that maps all multi-tenant requirements (data isolation, provisioning, feature toggles, regional flexibility, Super Admin, usage monitoring) to the codebase and notes optional improvements, see **[MULTI_TENANT_VERIFICATION_AND_IMPROVEMENTS.md](MULTI_TENANT_VERIFICATION_AND_IMPROVEMENTS.md)**.
 
 ## Quick Links
 

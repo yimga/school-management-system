@@ -962,28 +962,35 @@ class ReportCardStyleAssignmentAdmin(ModelAdmin):
 # ==========================
 class IntegrationAdmin(ModelAdmin):
     """
-    Plugin / API Integrations manager.
-    Examples: Email, SMS, Payments, Analytics.
+    Unified integrations: plugin config + API Center governance (one module).
+    Examples: Email, SMS, Payments, Analytics. Toggle enabled in API Center with audit.
     """
 
     list_display = (
         "name",
+        "slug",
         "provider",
+        "category",
         "enabled",
         "updated_at",
     )
 
     list_filter = (
         "provider",
+        "category",
         "enabled",
     )
 
     search_fields = (
         "name",
+        "slug",
         "provider",
     )
 
     ordering = ("provider", "name")
+    prepopulated_fields = {"slug": ("name",)}
+    readonly_fields = ("last_call_at", "created_at", "updated_at")
+    raw_id_fields = ("school",)
 
 
 # ==========================

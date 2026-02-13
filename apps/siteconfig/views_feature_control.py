@@ -85,6 +85,7 @@ FEATURE_CATEGORIES = {
         ("backend_flags.enable_ministry_live_sync", "Ministry Live Sync", True, "Allow outbound sync to configured ministry APIs when sync=1 is requested", "Only local payload preview available", ["backend_flags.enable_ministry_api_cartescolaire", "backend_flags.enable_ministry_api_dgi"]),
         ("backend_flags.enable_analytics_dashboard_cache", "Analytics Dashboard Cache", False, "Cache analytics dashboard HTML to reduce load (TTL from analytics_dashboard_cache_seconds or 60s)", "Analytics dashboard uncached", []),
         ("backend_flags.enable_super_admin_ui", "Super Admin / Schools", True, "Show Super Admin dashboard and Create School; when off, /super/ is hidden and Schools link removed.", "Super Admin hidden", []),
+        ("backend_flags.enable_api_center", "API Center", False, "Unified Integrations & API Center: one place to enable/disable integrations (payments, email, portal links) with required reason and audit log.", "API Center hidden", []),
     ],
     "system": [
         ("backend_flags.enable_portal_pwa", "Portal PWA", False, "Enable service worker and installable portal shell", "PWA disabled (online-only navigation)", []),
@@ -199,6 +200,7 @@ def _get_site_features(site: SiteSettings) -> dict:
         "backend_flags.enable_super_admin_ui": bool(flags.get("enable_super_admin_ui", True)),
         "backend_flags.marksheet_ocr_enabled": bool(flags.get("marksheet_ocr_enabled")),
         "backend_flags.marksheet_ocr_mobile_upload_enabled": bool(flags.get("marksheet_ocr_mobile_upload_enabled", True)),
+        "backend_flags.enable_api_center": bool(flags.get("enable_api_center", False)),
     }
 
 

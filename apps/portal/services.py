@@ -26,6 +26,7 @@ from apps.accounts.permissions import _guardian_finance_qs
 from apps.evals.models import TeacherAssignment
 from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
+from apps.apicenter.gating import is_integration_allowed
 from apps.siteconfig.models import Integration, SiteSettings
 from apps.communication.models import ClassAnnouncement, MessageThread, ThreadReadState
 
@@ -945,7 +946,7 @@ def _communication_center():
         .order_by("updated_at")
         .first()
     )
-    if whatsapp:
+    if whatsapp and is_integration_allowed(whatsapp):
         wa_number = whatsapp.config.get("phone") or whatsapp.config.get("whatsapp_number")
         wa_digits = _normalize_phone(wa_number)
         if wa_number:
@@ -967,6 +968,8 @@ def _communication_center():
         .order_by("-updated_at")
     )
     for integration in other_integrations:
+        if not is_integration_allowed(integration):
+            continue
         config_url = integration.config.get("url")
         if not config_url:
             continue

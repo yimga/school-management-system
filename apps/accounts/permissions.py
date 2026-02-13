@@ -167,6 +167,10 @@ MODULE_ACCESS_DEFAULTS = {
         "read": ALL_AUTHENTICATED,
         "write": ALL_AUTHENTICATED,
     },
+    "api_center": {
+        "read": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+        "write": {"ADMIN", "SUPERADMIN", "IT_ADMIN"},
+    },
 }
 
 # Group permissions by module for RBAC UI (grouped display; additive only, do not remove).
@@ -185,6 +189,7 @@ PERMISSION_GROUPS = {
     "Communication": ["communication.manage"],
     "Student": ["student.manage"],
     "Data": ["data.access"],
+    "API Center": ["api_center.manage"],
 }
 
 # Role categories for RBAC UI (grouped display; additive only, do not remove).
