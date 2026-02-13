@@ -8,8 +8,8 @@
     display: flex;
     align-items: center;
     gap: 0;
-    min-height: 32px;
-    padding: 2px 10px;
+    min-height: 40px;
+    padding: 4px 12px;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.14);
@@ -36,22 +36,23 @@
 
   .header-context-segment--datetime {
     font-weight: 600;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
   }
 
   .header-context-segment--weather {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
   }
 
   .header-context-segment--quote {
-    flex: 1 1 auto;
+    flex: 1 1 52%;
+    min-width: 220px;
     font-style: italic;
     opacity: 0.9;
   }
 
   .header-context-icon {
     line-height: 1;
-    font-size: 13px;
+    font-size: 12px;
     opacity: 0.95;
     flex: 0 0 auto;
   }
@@ -63,6 +64,20 @@
   }
 
   @media (max-width: 1399px) {
+    .header-context-segment {
+      font-size: 11px;
+      padding: 0 6px;
+    }
+    .header-context-segment--quote {
+      min-width: 170px;
+    }
+  }
+
+  @media (max-width: 1279px) {
+    .header-context-segment {
+      font-size: 11px;
+      padding: 0 6px;
+    }
     .header-context-segment--quote {
       display: none;
     }
@@ -95,22 +110,22 @@
 >
   {% if show_datetime %}
   <span class="header-context-segment header-context-segment--datetime">
-    <span class="header-context-icon">📅</span>
+    <i class="header-context-icon bi bi-calendar3" aria-hidden="true"></i>
     <span class="header-context-value" data-header-datetime>--</span>
   </span>
   {% endif %}
 
   {% if show_weather %}
   <span class="header-context-segment header-context-segment--weather">
-    <span class="header-context-icon" data-header-weather-icon>🌤️</span>
-    <span class="header-context-value" data-header-weather-temp>--°</span>
+    <i class="header-context-icon bi bi-cloud" data-header-weather-icon aria-hidden="true"></i>
+    <span class="header-context-value" data-header-weather-temp>--</span>
     <span class="header-context-value" data-header-weather-desc>{% if HEADER_WEATHER_LABEL %}{{ HEADER_WEATHER_LABEL }}{% else %}Weather{% endif %}</span>
   </span>
   {% endif %}
 
   {% if show_quote %}
   <span class="header-context-segment header-context-segment--quote">
-    <span class="header-context-icon">💡</span>
+    <i class="header-context-icon bi bi-lightbulb" aria-hidden="true"></i>
     <span class="header-context-value" data-header-quote>Stay focused and keep building.</span>
   </span>
   {% endif %}
@@ -125,11 +140,14 @@
   var strips = Array.prototype.slice.call(document.querySelectorAll("[data-header-context]"));
   if (!strips.length) return;
 
-  var weatherIcons = {
-    0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 45: "🌫️", 48: "🌫️",
-    51: "🌦️", 53: "🌦️", 55: "🌧️", 61: "🌧️", 63: "🌧️", 65: "🌧️",
-    71: "🌨️", 73: "🌨️", 75: "🌨️", 80: "🌦️", 81: "🌧️", 82: "⛈️",
-    95: "⛈️", 96: "⛈️", 99: "⛈️"
+  var weatherIconClasses = {
+    0: "bi-sun-fill", 1: "bi-brightness-high", 2: "bi-cloud-sun", 3: "bi-cloud",
+    45: "bi-cloud-fog2", 48: "bi-cloud-fog2",
+    51: "bi-cloud-drizzle", 53: "bi-cloud-drizzle", 55: "bi-cloud-rain",
+    61: "bi-cloud-rain", 63: "bi-cloud-rain", 65: "bi-cloud-rain-heavy",
+    71: "bi-cloud-snow", 73: "bi-cloud-snow", 75: "bi-cloud-snow",
+    80: "bi-cloud-rain", 81: "bi-cloud-rain", 82: "bi-cloud-rain-heavy",
+    95: "bi-cloud-lightning", 96: "bi-cloud-lightning", 99: "bi-cloud-lightning"
   };
 
   var weatherDescriptions = {
@@ -141,13 +159,13 @@
   };
 
   var quotes = [
-    "Consistency beats intensity.",
-    "Clarity creates better results.",
-    "Learning compounds every day.",
-    "Small wins build excellence.",
-    "Discipline today, freedom tomorrow.",
-    "Strong systems beat last-minute effort.",
-    "Progress is built one task at a time."
+    "Stay consistent and keep building.",
+    "Clarity drives better execution.",
+    "Small daily gains compound fast.",
+    "Discipline protects your momentum.",
+    "Finish the important task first.",
+    "Systems beat last-minute effort.",
+    "Progress is built one step at a time."
   ];
 
   function updateDateTime() {
@@ -156,8 +174,7 @@
     var dateText = new Intl.DateTimeFormat(locale, {
       weekday: "short",
       month: "short",
-      day: "numeric",
-      year: "numeric"
+      day: "numeric"
     }).format(now);
     var timeText = new Intl.DateTimeFormat(locale, {
       hour: "2-digit",
@@ -172,8 +189,8 @@
 
   function updateQuote() {
     var now = new Date();
-    var day = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 0)) / 86400000);
-    var quote = quotes[day % quotes.length];
+    var hourlySlot = Math.floor(now.getTime() / (60 * 60 * 1000));
+    var quote = quotes[hourlySlot % quotes.length];
     strips.forEach(function (strip) {
       var target = strip.querySelector("[data-header-quote]");
       if (target) target.textContent = quote;
@@ -196,8 +213,8 @@
       var icon = strip.querySelector("[data-header-weather-icon]");
       var temp = strip.querySelector("[data-header-weather-temp]");
       var desc = strip.querySelector("[data-header-weather-desc]");
-      if (icon) icon.textContent = "🌤️";
-      if (temp) temp.textContent = "--°";
+      if (icon) icon.className = "header-context-icon bi bi-cloud";
+      if (temp) temp.textContent = "--";
       if (desc) desc.textContent = label || "Weather unavailable";
     });
   }
@@ -219,12 +236,16 @@
         var temp = Math.round(data.current.temperature_2m);
         var code = data.current.weather_code;
         var unitSymbol = config.unit === "fahrenheit" ? "F" : "C";
+        var degreeSymbol = "\u00B0";
         strips.forEach(function (strip) {
           var icon = strip.querySelector("[data-header-weather-icon]");
           var tempNode = strip.querySelector("[data-header-weather-temp]");
           var desc = strip.querySelector("[data-header-weather-desc]");
-          if (icon) icon.textContent = weatherIcons[code] || "🌤️";
-          if (tempNode) tempNode.textContent = String(temp) + "°" + unitSymbol;
+          if (icon) {
+            var iconClass = weatherIconClasses[code] || "bi-cloud";
+            icon.className = "header-context-icon bi " + iconClass;
+          }
+          if (tempNode) tempNode.textContent = String(temp) + degreeSymbol + unitSymbol;
           if (desc) desc.textContent = weatherDescriptions[code] || "Weather";
         });
       })
@@ -238,6 +259,7 @@
   updateWeather();
 
   window.setInterval(updateDateTime, 60000);
+  window.setInterval(updateQuote, 15 * 60 * 1000);
   window.setInterval(updateWeather, 15 * 60 * 1000);
 })();
 </script>

@@ -119,8 +119,8 @@
         position: sticky;
         top: 0;
         z-index: 1030;
-        min-height: 56px;
-        max-height: 80px;
+        min-height: 68px;
+        max-height: none;
       }
 
       .brand-logo {
@@ -186,9 +186,30 @@
       .header-search-dropdown .search-result-empty,
       .header-search-dropdown .search-result-error { padding: 0.75rem; color: color-mix(in srgb, var(--admin-content-text, #cbd5e1) 72%, transparent); font-size: 0.9rem; }
 
-      .topbar-actions {
-        flex-wrap: nowrap;
-        justify-content: flex-end;
+      .topbar-actions.d-flex {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 500px) minmax(0, 1fr);
+        align-items: center !important;
+        column-gap: 0.9rem;
+        row-gap: 0.35rem;
+        width: 100%;
+        min-width: 0;
+      }
+
+      .topbar-weather {
+        grid-column: 1;
+        justify-self: start;
+        width: 100%;
+        min-width: 0;
+        max-width: 680px;
+      }
+
+      .topbar-search.header-search-container {
+        grid-column: 2;
+        justify-self: center;
+        width: 100%;
+        min-width: 280px;
+        max-width: 500px;
       }
 
       /* Full-width contract for module/dashboard surfaces. */
@@ -203,6 +224,31 @@
         align-items: center;
         gap: 0.5rem;
         margin-left: 0;
+        grid-column: 3;
+        justify-self: end;
+        justify-content: flex-end;
+        width: max-content;
+      }
+
+      .topbar-search-kbd {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.68rem;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        background: rgba(15, 23, 42, 0.34);
+        border-radius: 999px;
+        padding: 0.12rem 0.42rem;
+        pointer-events: none;
+        letter-spacing: 0.02em;
+        font-weight: 700;
+      }
+
+      .topbar-search-input {
+        padding-right: 4.8rem !important;
       }
 
       /* Overflow safety contract for all module pages (no text/frame bleed). */
@@ -497,7 +543,8 @@
           padding: 0.75rem;
         }
 
-        .topbar-actions {
+        .topbar-actions.d-flex {
+          display: flex !important;
           gap: 0.5rem;
           width: 100%;
         }
@@ -523,6 +570,10 @@
         .topbar-search input {
           width: 100% !important;
         }
+
+        .topbar-search-kbd {
+          right: 8px;
+        }
       }
 
       @media (max-width: var(--bp-extra-narrow, 575px)) {
@@ -534,6 +585,32 @@
         .topbar-controls .btn,
         .topbar-controls .btn-link {
           padding: 0.2rem 0.4rem;
+        }
+
+        .topbar-search-kbd {
+          display: none;
+        }
+
+        .topbar-search-input {
+          padding-right: 0.75rem !important;
+        }
+      }
+      @media (max-width: 1279px) {
+        .topbar-actions.d-flex {
+          grid-template-columns: minmax(0, 1fr) minmax(240px, 390px) minmax(0, 1fr);
+        }
+
+        .topbar-search.header-search-container {
+          max-width: 390px;
+          min-width: 240px;
+        }
+      }
+      @media (max-width: 991px) {
+        .topbar-actions.d-flex {
+          display: flex !important;
+          flex-wrap: wrap;
+          width: 100%;
+          gap: 0.5rem;
         }
       }
       @media (max-width: var(--bp-below-wide, 1023px)) {
@@ -772,14 +849,14 @@
               <input 
                 type="text" 
                 class="form-control form-control-sm topbar-search-input nav-search" 
-                placeholder="Search students, teachers, invoices... (Ctrl+K)"
+                placeholder="Search students, teachers, invoices..."
                 id="headerSearchInput"
                 aria-label="Global search"
                 aria-autocomplete="list"
                 aria-expanded="false"
                 aria-controls="headerSearchResults"
               />
-              <small class="topbar-search-hint">Ctrl+K</small>
+              <span class="topbar-search-kbd" aria-hidden="true">Ctrl+K</span>
               <div id="headerSearchResults" class="header-search-dropdown" role="listbox" aria-label="Search results" style="display: none;"></div>
             </div>
             {% endif %}
