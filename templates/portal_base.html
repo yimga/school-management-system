@@ -204,6 +204,41 @@
         max-width: 680px;
       }
 
+      .topbar-context-row {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        min-width: 0;
+      }
+
+      .topbar-context-row .topbar-context-strip {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+      }
+
+      .topbar-offline-status {
+        flex: 0 0 auto;
+        gap: 0.35rem !important;
+        padding: 0.3rem 0.65rem !important;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        white-space: nowrap;
+      }
+
+      .topbar-offline-status #sms-offline-status-text {
+        font-weight: 600;
+      }
+
+      .topbar-offline-status #sms-offline-status-last-synced {
+        display: none !important;
+      }
+
+      .topbar-offline-status #sms-offline-sync-now-btn {
+        margin-left: 0.22rem !important;
+        font-size: 0.78rem !important;
+      }
+
       .topbar-search.header-search-container {
         grid-column: 2;
         justify-self: center;
@@ -604,6 +639,10 @@
           max-width: 390px;
           min-width: 240px;
         }
+
+        .topbar-offline-status #sms-offline-sync-now-btn {
+          display: none;
+        }
       }
       @media (max-width: 991px) {
         .topbar-actions.d-flex {
@@ -834,12 +873,16 @@
 
         <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
           {% if request.user.is_authenticated %}
-            {% if SHOW_OFFLINE_STATUS_BAR %}
-            {% include 'components/offline_status_bar.html' %}
-            {% endif %}
-            {% if SHOW_HEADER_CONTEXT_STRIP %}
-            <div class="topbar-context-strip topbar-weather">
-              {% include 'components/header_weather_widget.html' %}
+            {% if SHOW_OFFLINE_STATUS_BAR or SHOW_HEADER_CONTEXT_STRIP %}
+            <div class="topbar-context-row topbar-weather">
+              {% if SHOW_OFFLINE_STATUS_BAR %}
+              {% include 'components/offline_status_bar.html' %}
+              {% endif %}
+              {% if SHOW_HEADER_CONTEXT_STRIP %}
+              <div class="topbar-context-strip">
+                {% include 'components/header_weather_widget.html' %}
+              </div>
+              {% endif %}
             </div>
             {% endif %}
 

@@ -336,10 +336,31 @@
     margin-top: 1rem;
   }
 
-  .children-grid {
+  .children-grid:not(.row) {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.35rem;
+  }
+
+  .parent-children-grid.row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .parent-children-grid.row > [class*="col-"] {
+    display: flex;
+  }
+
+  .parent-children-grid.row > [class*="col-"] > .card {
+    width: 100%;
+  }
+
+  .parent-children-grid.row > [class*="col-"] .child-card .card-body {
+    height: 100%;
+  }
+
+  .parent-children-grid.row > [class*="col-"] .child-card .card-body > .btn:last-child {
+    margin-top: auto;
   }
 
   .child-card {
@@ -1192,7 +1213,7 @@
   }
 
   #next-up {
-    margin-top: 0.65rem !important;
+    margin-top: 0.2rem !important;
   }
 
   .parent-sidebar-cards .parent-sidebar-card {
@@ -1494,10 +1515,10 @@
             <h2 id="children-heading" class="h6 mb-0"><i class="bi bi-people-fill"></i> My Children {% if links %}({{ links|length }}){% endif %}</h2>
             <a href="{% url 'portal:parent_medal_case' %}" class="btn btn-sm btn-outline-primary">Medal case</a>
           </div>
-          <div class="parent-children-grid children-grid row g-3">
+          <div class="parent-children-grid row g-3">
             {% for card in child_cards %}
             {% if forloop.counter0 < 2 or child_cards|length <= 2 %}
-            <div class="{% if child_cards|length == 1 %}col-xl-8 col-lg-7 col-md-7 col-12{% else %}col-md-6{% endif %}" data-dashboard-column="main" id="child-card-{{ card.link.student.id }}">
+            <div class="{% if child_cards|length == 1 %}col-xl-7 col-lg-7 col-md-7 col-12{% else %}col-md-6{% endif %}" data-dashboard-column="main" id="child-card-{{ card.link.student.id }}">
               <div class="card h-100 child-card" data-widget-id="parent-child-{{ forloop.counter0 }}">
                 <div class="card-body">
                   <div class="child-header d-flex align-items-center gap-3 mb-3">
@@ -1551,7 +1572,7 @@
             {% endif %}
             {% if child_cards|length == 1 %}
             {% with focus_child=child_cards.0 %}
-            <div class="col-xl-4 col-lg-5 col-md-5 col-12" data-dashboard-column="main">
+            <div class="col-xl-5 col-lg-5 col-md-5 col-12" data-dashboard-column="main">
               <div class="card h-100 child-fill-card" data-widget-id="parent-single-child-fill">
                 <div class="card-body">
                   <div class="child-fill-section">
@@ -1574,6 +1595,31 @@
                       <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_child_results' focus_child.link.student.id %}">Open results</a>
                     </div>
                   </div>
+                  <div class="child-fill-section">
+                    <h3 class="child-fill-head">
+                      <span><i class="bi bi-calendar-week me-1"></i>This week deadlines</span>
+                      <span class="badge text-bg-light">{{ widget_data.events|length|default:0 }}</span>
+                    </h3>
+                    {% if widget_data.events %}
+                    <ul class="child-fill-deadlines">
+                      {% for item in widget_data.events|slice:":3" %}
+                      <li>
+                        <div>
+                          <strong>{{ item.title|default:"Upcoming item"|truncatechars:34 }}</strong>
+                          <small>{{ item.when|default:"This week" }}</small>
+                        </div>
+                        <span class="badge rounded-pill text-bg-secondary">{{ forloop.counter }}</span>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="small text-muted mb-0">No pending deadlines this week.</p>
+                    {% endif %}
+                    <div class="child-fill-actions">
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_workflow' %}">Open workflow</a>
+                      <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:unified_calendar' %}">View calendar</a>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1583,7 +1629,7 @@
         </section>
 
         <!-- Homework & Upcoming -->
-        <section class="metrics-section mt-2" id="next-up" role="region" aria-labelledby="next-up-heading">
+        <section class="metrics-section mt-0" id="next-up" role="region" aria-labelledby="next-up-heading">
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h2 id="next-up-heading" class="h6 mb-0">Homework & Upcoming</h2>
             <a href="{% url 'portal:unified_calendar' %}" class="btn btn-sm btn-outline-primary">See all</a>
@@ -1643,7 +1689,7 @@
               {% endif %}
               <div class="d-grid gap-2">
                 <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-primary"><i class="bi bi-envelope me-2"></i>Message school</a>
-                <a href="{% url 'portal:parent_attendance_discipline' %}" class="btn btn-sm btn-outline-primary">Attendance & discipline</a>
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">Open message center</a>
               </div>
             </div>
           </div>
@@ -1682,7 +1728,7 @@
               </div>
               <div class="d-grid gap-2">
                 <a href="{% url 'portal:signature_pending_list' %}" class="btn btn-sm btn-outline-primary">Review signatures</a>
-                <a href="{% url 'portal:unified_calendar' %}" class="btn btn-sm btn-outline-primary">Open school calendar</a>
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">See all announcements</a>
               </div>
             </div>
           </div>
@@ -1707,7 +1753,7 @@
               {% endif %}
               <div class="d-grid gap-2">
                 <a href="{% url 'portal:parent_finance' %}" class="btn btn-sm btn-outline-primary">Payment history</a>
-                <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary">Workflow documents</a>
+                <a href="{% url 'portal:parent_workflow' %}" class="btn btn-sm btn-outline-primary">Document library</a>
               </div>
             </div>
           </div>

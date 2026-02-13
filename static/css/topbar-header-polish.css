@@ -56,6 +56,41 @@
   max-width: 680px;
 }
 
+.topbar-context-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.topbar-context-row .topbar-context-strip {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+}
+
+.topbar-offline-status {
+  flex: 0 0 auto;
+  gap: 0.35rem !important;
+  padding: 0.3rem 0.65rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  white-space: nowrap;
+}
+
+.topbar-offline-status #sms-offline-status-text {
+  font-weight: 600;
+}
+
+.topbar-offline-status #sms-offline-status-last-synced {
+  display: none !important;
+}
+
+.topbar-offline-status #sms-offline-sync-now-btn {
+  margin-left: 0.22rem !important;
+  font-size: 0.78rem !important;
+}
+
 .base-topbar-weather {
   flex: 0 1 460px;
   min-width: 240px;
@@ -224,6 +259,10 @@
   .header-search-container {
     min-width: 240px;
     max-width: 390px;
+  }
+
+  .topbar-offline-status #sms-offline-sync-now-btn {
+    display: none;
   }
 
   .header-search-hint {
