@@ -24,5 +24,5 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Smoke test (URL resolution, no DB)
-        run: python manage.py test apps.accounts.tests.test_smoke_urls -v 1
+      - name: Pre-deploy gate (check, migrations, smoke, theme matrix, phase checks)
+        run: bash scripts/pre_deploy_gate.sh
