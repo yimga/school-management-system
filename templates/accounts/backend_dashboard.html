@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-command-center-fixes.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
   (function () {
@@ -636,229 +637,120 @@
   
   {% admin_health as health %}
 
-  <!-- Welcome Header + Workflow row -->
-  <div class="mt-4 mb-2 backend-welcome-section">
-    <h2 class="fw-bold mb-1">Welcome back, {{ request.user.get_full_name|default:request.user.username }}</h2>
-    <p class="text-muted">Manage your school operations from this unified dashboard</p>
-    <div class="backend-welcome-row-with-sidebar d-flex flex-wrap align-items-stretch gap-3">
-      <div class="backend-welcome-main flex-grow-1 min-w-0">
-        <div class="d-flex flex-wrap gap-2 mt-2 align-items-center backend-welcome-action-row">
-          <a class="btn btn-sm btn-primary" href="{% url 'accounts:workflow_center' %}">
-            <i class="bi bi-diagram-3 me-1"></i>Workflow Center
-          </a>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'accounts:workflow_center' %}">
-            <i class="bi bi-pin-angle me-1"></i>Use Workflow Center as default view
-          </a>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">
-            <i class="bi bi-chat-dots me-1"></i>Messages
-          </a>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_builder' %}">
-            <i class="bi bi-file-earmark-richtext me-1"></i>Report Card Builder
-          </a>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}">
-            <i class="bi bi-sliders me-1"></i>My Preferences
-          </a>
-          {% if allow_custom_layout %}
-          {% include "components/dashboard_customize_ui.html" %}
-          {% endif %}
+  <div class="backend-v2-shell">
+    <div class="backend-v2-grid">
+      <section class="backend-v2-main">
+        <div class="backend-v2-overview" data-widget-id="backend-v2-overview">
+          <div class="backend-v2-overview-head">
+            <div>
+              <h2>Overview</h2>
+              <p class="backend-v2-overview-sub">Live pulse of academics, people, attendance, and finance</p>
+            </div>
+            <div class="backend-v2-ctas">
+              {% for cta in primary_ctas %}
+              <a class="backend-v2-cta" href="{{ cta.url }}">
+                <i class="bi {{ cta.icon }}"></i>
+                <span>{{ cta.label }}</span>
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="backend-v2-metrics">
+            {% for metric in overview_cards %}
+            <article class="backend-v2-metric {% if metric.status == 'danger' %}is-danger{% endif %}">
+              <div class="backend-v2-metric-title">
+                <span>{{ metric.title }}</span>
+                <i class="bi {{ metric.icon }}"></i>
+              </div>
+              <div class="backend-v2-metric-value">{{ metric.value }}</div>
+              <div class="backend-v2-metric-meta">
+                <span>{{ metric.meta }}</span>
+                <span>{{ metric.delta }}</span>
+              </div>
+            </article>
+            {% endfor %}
+          </div>
         </div>
-        <div class="row g-2 mt-3 backend-between-sidebars-row">
-          <div class="col-12 col-lg-6 backend-left-col d-flex flex-column">
-            <h6 class="fw-bold mb-2 text-uppercase small text-muted">Quick Actions</h6>
-            <div class="card backend-quick-actions-card mb-2" data-widget-id="backend-quick-actions">
-              <div class="card-body py-2 px-3">
-                <h6 class="fw-bold mb-2 d-flex align-items-center gap-2" style="font-size:0.9rem;">
-                  <i class="bi bi-lightning-charge text-primary"></i>
-                  Actions
-                </h6>
-                <div class="backend-quick-actions-grid">
-                {% if action_perms.people %}
-                {% if use_backend_people_ui %}
-                <a href="{% url 'accounts:backend_student_create' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-                  <i class="bi bi-person-plus me-1"></i>Add Student
-                </a>
-                {% else %}
-                <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn" title="{% trans 'Add student in Configuration Engine' %}">
-                  <i class="bi bi-person-plus me-1"></i>Add Student
-                </a>
-                {% endif %}
-                {% if use_backend_people_ui %}
-                <a href="{% url 'accounts:backend_teacher_create' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn">
-                  <i class="bi bi-person-badge me-1"></i>Add Teacher
-                </a>
-                {% else %}
-                <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-info backend-quick-action-btn" title="{% trans 'Add teacher in Configuration Engine' %}">
-                  <i class="bi bi-person-badge me-1"></i>Add Teacher
-                </a>
-                {% endif %}
-                <a href="{% url 'portal:student_onboarding' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
-                  <i class="bi bi-mortarboard me-1"></i>Onboard Student
-                </a>
-                <a href="{% url 'portal:teacher_onboarding' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
-                  <i class="bi bi-person-workspace me-1"></i>Onboard Teacher
-                </a>
-                {% endif %}
-                {% if action_perms.finance %}
-                <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn">
-                  <i class="bi bi-receipt me-1"></i>Create Invoice
-                </a>
-                <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-success backend-quick-action-btn">
-                  <i class="bi bi-cash-stack me-1"></i>Finance Console
-                </a>
-                {% endif %}
-                {% if action_perms.site_settings %}
-                <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-outline-dark backend-quick-action-btn">
-                  <i class="bi bi-palette me-1"></i>Site Settings
-                </a>
-                {% endif %}
-                <a href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
-                  <i class="bi bi-sliders me-1"></i>Preferences
-                </a>
-                <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-                  <i class="bi bi-eye me-1"></i>Preview Portal
-                </a>
-                <a href="{% url 'communication:announcement_create' %}" class="btn btn-sm btn-outline-secondary backend-quick-action-btn">
-                  <i class="bi bi-megaphone me-1"></i>Announcement
-                </a>
-                {% if request.user.is_superuser %}
-                <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-warning backend-quick-action-btn" title="Configuration Engine">
-                  <i class="bi bi-gear-wide-connected me-1"></i>Configuration
-                </a>
-                {% endif %}
-                {% if gce_enabled %}
-                <a href="{% url 'accounts:certification_home' %}" class="btn btn-sm btn-outline-danger backend-quick-action-btn">
-                  <i class="bi bi-award me-1"></i>Certification
-                </a>
-                {% endif %}
-                {% for step in recommended_next_steps %}
-                <a href="{{ step.url }}" class="btn btn-sm btn-outline-primary backend-quick-action-btn">
-                  {% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}
-                </a>
-                {% endfor %}
-                <a href="{% url 'accounts:workflow_center' %}" class="btn btn-sm btn-link text-muted backend-quick-action-btn">
-                  View all workflow <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-              </div>
-              {% if show_request_settings_access %}
-              <div class="alert alert-warning mt-2 mb-0 py-2 small">
-                <div class="d-flex justify-content-between align-items-center">
-                  <strong>Need higher access?</strong>
-                  <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}">Request access</a>
-                </div>
-              </div>
+
+        <div class="backend-v2-welcome" data-widget-id="backend-v2-welcome">
+          <div class="backend-v2-welcome-top">
+            <div>
+              <h3 class="backend-v2-welcome-title">Welcome back, {{ request.user.first_name|default:request.user.username }}</h3>
+              <p class="backend-v2-welcome-sub">Manage your school operations from this unified dashboard.</p>
+            </div>
+            <div class="backend-v2-welcome-controls">
+              <a class="backend-v2-cta" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'accounts:workflow_center' %}">
+                <i class="bi bi-pin-angle"></i>
+                <span>Use workflow default</span>
+              </a>
+              <button type="button" class="backend-v2-cta js-open-backend-command">
+                <i class="bi bi-command"></i>
+                <span>Command center</span>
+              </button>
+              {% if allow_custom_layout %}
+              {% include "components/dashboard_customize_ui.html" %}
               {% endif %}
-              </div>
             </div>
           </div>
-          <div class="col-12 col-lg-6 backend-kpi-col d-flex flex-column">
-            <h6 class="fw-bold mb-2 text-uppercase small text-muted">Key Metrics</h6>
-            <div class="row g-2 backend-kpi-grid-2col flex-grow-1">
-              <div class="col-6 d-flex">
-                <div class="card modular-card w-100 backend-kpi-card">
-                  <div class="card-body text-center">
-                    <div class="dashboard-kpi-label text-uppercase">Receivables</div>
-                    <div class="dashboard-kpi-value fw-bold">{{ finance_summary.receivables|default:0|format_currency }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 d-flex">
-                <div class="card modular-card w-100 backend-kpi-card">
-                  <div class="card-body text-center">
-                    <div class="dashboard-kpi-label text-uppercase">Paid</div>
-                    <div class="dashboard-kpi-value fw-bold text-success">{{ finance_summary.paid|default:0|format_currency }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 d-flex">
-                <div class="card modular-card w-100 backend-kpi-card">
-                  <div class="card-body text-center">
-                    <div class="dashboard-kpi-label text-uppercase">Overdue</div>
-                    <div class="dashboard-kpi-value fw-bold text-danger">{{ finance_summary.overdue|default:0|format_number:0 }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 d-flex">
-                <div class="card modular-card w-100 backend-kpi-card">
-                  <div class="card-body text-center">
-                    <div class="dashboard-kpi-label text-uppercase">Pending referrals</div>
-                    <div class="dashboard-kpi-value fw-bold">{{ stats.pending_referrals }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 d-flex">
-                <div class="card modular-card w-100 backend-kpi-card">
-                  <div class="card-body text-center">
-                    <div class="dashboard-kpi-label text-uppercase">Attendance %</div>
-                    <div class="dashboard-kpi-value fw-bold">{{ attendance_trend_progress|default:0 }}%</div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 d-flex">
-                <div class="card modular-card w-100 backend-kpi-card">
-                  <div class="card-body text-center">
-                    <div class="dashboard-kpi-label text-uppercase">Roles</div>
-                    <div class="dashboard-kpi-value fw-bold">{{ roles|length }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="backend-v2-chip-row">
+            {% for chip in action_chips %}
+            <a class="backend-v2-chip" href="{{ chip.url }}">
+              <i class="bi {{ chip.icon }}"></i>
+              <span>{{ chip.label }}</span>
+            </a>
+            {% endfor %}
+          </div>
+          <div class="backend-v2-action-grid">
+            {% for action in welcome_action_grid %}
+            <a class="backend-v2-action" href="{{ action.url }}">
+              <i class="bi {{ action.icon }}"></i>
+              <span>{{ action.label }}</span>
+            </a>
+            {% endfor %}
           </div>
         </div>
-        <div class="row g-2 mt-2 backend-operations-row align-items-stretch">
-          <div class="col-lg-4 col-md-4 d-flex">
-            <div class="card modular-card w-100" data-widget-id="backend-portal-insights">
-              <div class="card-body">
-                <div class="card-title">
-                  <h6 class="mb-0 small fw-bold">Portal insights</h6>
-                  <span class="meta-tag small">Features & toggles</span>
-                </div>
-                <div class="d-flex flex-wrap gap-1">
-                  {% for key, value in site.portal_features.items %}
-                    <span class="portal-pill {% if value %}enabled{% endif %} small">{{ key|capfirst }} - {{ value|yesno:"On,Off" }}</span>
-                  {% endfor %}
-                </div>
-                <div class="card-actions d-flex gap-1">
-                  <a class="btn btn-xs btn-outline-primary" href="{% url 'kb:kb_home' %}">Help</a>
-                  <a class="btn btn-xs btn-outline-primary" href="{% url 'portal:parent_dashboard' %}">Preview</a>
-                </div>
-              </div>
-            </div>
+      </section>
+
+      <aside class="backend-v2-side">
+        <div class="backend-v2-side-card" data-widget-id="backend-v2-admin-portal">
+          <div class="backend-v2-side-head">
+            <h3 class="backend-v2-side-title">Admin Portal</h3>
+            <a class="backend-v2-chip" href="{% url 'accounts:workflow_center' %}">
+              <i class="bi bi-diagram-3"></i>
+              <span>Workflow</span>
+            </a>
           </div>
-          <div class="col-lg-4 col-md-4 d-flex">
-            <div class="card modular-card w-100" data-widget-id="backend-pending-referrals">
-              <div class="card-body">
-                <div class="card-title">
-                  <h6 class="mb-0 small fw-bold">Pending referrals</h6>
-                  <span class="meta-tag small">Finance pipeline</span>
-                </div>
-                <div class="flex-grow-1">
-                  <p class="fs-5 fw-bold mb-1">{{ stats.pending_referrals }}</p>
-                  <p class="small text-muted mb-0">Awaiting approval. Overdue: {{ stats.overdue_invoices }}</p>
-                </div>
-                <div class="card-actions d-flex gap-1">
-                  <a class="btn btn-xs btn-outline-primary" href="{% url 'accounts:user_messages' %}?subject=finance+pipeline">Message</a>
-                  <a class="btn btn-xs btn-outline-primary" href="{% url 'finance:dashboard' %}">Finance</a>
-                </div>
-              </div>
+          <p class="backend-v2-side-meta">Snapshots, systems, and workflows</p>
+
+          <div class="backend-v2-side-grid">
+            {% for item in admin_portal.academics %}
+            <div class="backend-v2-mini">
+              <span>Academics - {{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
             </div>
+            {% endfor %}
+            {% for item in admin_portal.accounts %}
+            <div class="backend-v2-mini">
+              <span>Accounts - {{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+            {% for item in admin_portal.finance %}
+            <div class="backend-v2-mini">
+              <span>Finance - {{ item.label }}</span>
+              <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
           </div>
-          <div class="col-lg-4 col-md-4 d-flex">
-            <div class="card modular-card w-100" data-widget-id="backend-grade-imports">
-              <div class="card-body">
-                <div class="card-title">
-                  <h6 class="mb-0 small fw-bold">Grade imports</h6>
-                  <span class="meta-tag small">Bulk uploads</span>
-                </div>
-                <p class="text-muted small mb-0 flex-grow-1">Template download + upload preview.</p>
-                <div class="card-actions d-flex gap-1">
-                  <a class="btn btn-xs btn-primary" href="{{ grade_import_upload_url }}">Upload</a>
-                  <a class="btn btn-xs btn-outline-secondary" href="{{ grade_import_template_url }}">Template</a>
-                </div>
-              </div>
-            </div>
+
+          <div class="backend-v2-side-time">
+            <span>Local time <strong>{{ local_time|date:"h:i A" }}</strong></span>
+            {% if weather_cfg.enabled %}
+            <span>{{ weather_cfg.label }}</span>
+            {% endif %}
           </div>
         </div>
-      </div>
+      </aside>
     </div>
   </div>
 
@@ -1096,6 +988,7 @@
        data-widget-config='{{ widget_meta_json }}'
        data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
 
+  {% if chart_finance_status_json or chart_finance_trend_json %}
   <!-- Row 1: Charts - Invoice status | Invoice trend -->
   <div class="row g-2 mb-2 align-items-stretch">
     {% if chart_finance_status_json %}
@@ -1109,6 +1002,7 @@
     </div>
     {% endif %}
   </div>
+  {% endif %}
 
   <!-- Row 2: Detail - Finance & trend | Attendance snapshot -->
   <div class="row g-2 mb-2 align-items-stretch">
@@ -1438,34 +1332,66 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <h6 class="mb-0">Operations watch</h6>
-              <span class="badge bg-light text-dark">Live</span>
+              <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">Live - {{ local_time|date:"h:i A" }}</span>
             </div>
-            <ul class="list-unstyled mb-3 small">
-              <li class="d-flex justify-content-between mb-1">
-                <span class="text-muted">Pending approvals</span>
-                <strong>{{ pending_approvals_count|default:0 }}</strong>
-              </li>
-              <li class="d-flex justify-content-between mb-1">
-                <span class="text-muted">Finance requests</span>
-                <strong>{{ finance_requests_count|default:0 }}</strong>
-              </li>
-              <li class="d-flex justify-content-between mb-1">
-                <span class="text-muted">Overdue invoices</span>
-                <strong>{{ stats.overdue_invoices|default:0 }}</strong>
-              </li>
-              <li class="d-flex justify-content-between">
-                <span class="text-muted">Active sessions</span>
-                <strong>{{ active_sessions|default:0 }}</strong>
-              </li>
-            </ul>
+            <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}">
+              {% for item in operations_watch %}
+              <div class="backend-ops-item {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}" data-ops-key="{{ item.key }}">
+                <div class="backend-ops-item-left">
+                  <span class="backend-ops-dot"></span>
+                  <a href="{{ item.url }}">
+                    <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
+                  </a>
+                </div>
+                <strong>{{ item.value }}</strong>
+              </div>
+              {% endfor %}
+              <div class="backend-ops-item {% if ops_watch_finance_requests > 0 %}is-warn{% endif %}" data-ops-key="finance_requests">
+                <div class="backend-ops-item-left">
+                  <span class="backend-ops-dot"></span>
+                  <a href="{{ finance_request_link }}">
+                    <i class="bi bi-wallet2 me-1"></i>Finance requests
+                  </a>
+                </div>
+                <strong>{{ ops_watch_finance_requests|default:0 }}</strong>
+              </div>
+            </div>
             <div class="d-grid gap-1">
               <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:workflow_center' %}">Open workflow</a>
               <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">Open finance</a>
             </div>
           </div>
         </div>
+        <div class="card mb-3 backend-quick-links-card" data-widget-id="backend-quick-links">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">Quick Links</h6>
+              <span class="badge bg-light text-dark">Shortcuts</span>
+            </div>
+            <div class="backend-quick-links-list">
+              {% for quick in quick_links %}
+              <a class="backend-quick-link" href="{{ quick.url }}" data-quick-link-id="{{ quick.id|default:'' }}">
+                <span><i class="bi {{ quick.icon }} me-1"></i>{{ quick.label }}</span>
+                <i class="bi bi-chevron-right small"></i>
+              </a>
+              {% empty %}
+              <div class="small text-muted">No quick links available for this role.</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
+  </div>
+
+  {{ command_palette|json_script:"backend-command-palette-data" }}
+  <div id="backendCommandPalette" class="backend-cmd-palette" aria-hidden="true">
+    <div class="backend-cmd-overlay" data-cmd-close></div>
+    <div class="backend-cmd-box" role="dialog" aria-modal="true" aria-labelledby="backendCommandPaletteLabel">
+      <label id="backendCommandPaletteLabel" class="visually-hidden" for="backendCommandInput">Command center</label>
+      <input id="backendCommandInput" class="backend-cmd-input" type="text" placeholder="Type a command..." autocomplete="off" />
+      <div id="backendCommandResults" class="backend-cmd-results"></div>
+    </div>
   </div>
 
 {% endblock %}
@@ -1650,6 +1576,200 @@
           }
         });
       }).catch(() => {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const paletteEl = document.getElementById('backendCommandPalette');
+      const inputEl = document.getElementById('backendCommandInput');
+      const resultsEl = document.getElementById('backendCommandResults');
+      const triggerEls = document.querySelectorAll('.js-open-backend-command');
+      const dataEl = document.getElementById('backend-command-palette-data');
+      if (!paletteEl || !inputEl || !resultsEl || !dataEl) return;
+
+      let commands = [];
+      try {
+        commands = JSON.parse(dataEl.textContent || '[]');
+      } catch (err) {
+        commands = [];
+      }
+      if (!Array.isArray(commands)) {
+        commands = [];
+      }
+      let activeQueryResults = [];
+      let previousFocusedElement = null;
+
+      const isTypingContext = function (target) {
+        if (!target) return false;
+        const tag = (target.tagName || '').toLowerCase();
+        if (target.isContentEditable) return true;
+        return tag === 'input' || tag === 'textarea' || tag === 'select';
+      };
+
+      const escapeHtml = function (value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      };
+
+      const closePalette = function () {
+        paletteEl.classList.remove('is-open');
+        paletteEl.setAttribute('aria-hidden', 'true');
+        if (previousFocusedElement && typeof previousFocusedElement.focus === 'function') {
+          previousFocusedElement.focus();
+        }
+      };
+
+      const openPalette = function () {
+        previousFocusedElement = document.activeElement;
+        paletteEl.classList.add('is-open');
+        paletteEl.setAttribute('aria-hidden', 'false');
+        renderResults(inputEl.value || '');
+        setTimeout(function () { inputEl.focus(); }, 0);
+      };
+
+      const renderResults = function (query) {
+        const normalized = (query || '').trim().toLowerCase();
+        const items = commands.filter(function (item) {
+          if (!normalized) return true;
+          return String(item.label || '').toLowerCase().includes(normalized);
+        });
+        activeQueryResults = items;
+
+        if (!items.length) {
+          resultsEl.innerHTML = '<div class="backend-cmd-empty">No matching command.</div>';
+          return;
+        }
+
+        const lead = normalized
+          ? ''
+          : '<div class="backend-cmd-empty text-start py-2">Available commands</div>';
+        resultsEl.innerHTML = lead + items.map(function (item) {
+          const label = escapeHtml(String(item.label || 'Command'));
+          const href = String(item.url || '#');
+          return '<a class="backend-cmd-item" href="' + href + '"><span>' + label + '</span><kbd>Enter</kbd></a>';
+        }).join('');
+      };
+
+      triggerEls.forEach(function (trigger) {
+        trigger.addEventListener('click', function (event) {
+          event.preventDefault();
+          openPalette();
+        });
+      });
+
+      paletteEl.querySelectorAll('[data-cmd-close]').forEach(function (node) {
+        node.addEventListener('click', closePalette);
+      });
+
+      inputEl.addEventListener('input', function () {
+        renderResults(inputEl.value);
+      });
+      inputEl.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          const first = activeQueryResults[0];
+          if (first && first.url) {
+            window.location.href = first.url;
+          }
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closePalette();
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        const isMetaK = (event.ctrlKey || event.metaKey) && event.key && event.key.toLowerCase() === 'k';
+        const isClose = event.key === 'Escape';
+        const paletteOpen = paletteEl.classList.contains('is-open');
+        if (isMetaK) {
+          if (!paletteOpen && isTypingContext(document.activeElement)) {
+            return;
+          }
+          event.preventDefault();
+          if (paletteOpen) {
+            closePalette();
+          } else {
+            openPalette();
+          }
+        } else if (isClose && paletteOpen) {
+          closePalette();
+        }
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      const listEl = document.querySelector('.js-ops-watch-list');
+      const stampEl = document.getElementById('backendOpsWatchUpdatedAt');
+      if (!listEl) return;
+
+      const refreshUrl = listEl.getAttribute('data-refresh-url');
+      if (!refreshUrl) return;
+
+      const toRelative = function (isoDate) {
+        if (!isoDate) return 'just now';
+        const then = new Date(isoDate);
+        if (Number.isNaN(then.getTime())) return 'just now';
+        const diffSec = Math.max(0, Math.round((Date.now() - then.getTime()) / 1000));
+        if (diffSec < 60) return 'just now';
+        if (diffSec < 3600) return diffSec < 120 ? '1 min ago' : Math.floor(diffSec / 60) + ' mins ago';
+        return Math.floor(diffSec / 3600) + 'h ago';
+      };
+
+      const itemClass = function (status) {
+        if (status === 'danger') return 'backend-ops-item is-danger';
+        if (status === 'warn') return 'backend-ops-item is-warn';
+        return 'backend-ops-item';
+      };
+
+      const renderOps = function (data) {
+        const rows = [];
+        const ops = Array.isArray(data.operations_watch) ? data.operations_watch : [];
+        ops.forEach(function (item) {
+          rows.push(
+            '<div class="' + itemClass(item.status) + '" data-ops-key="' + (item.key || '') + '">' +
+              '<div class="backend-ops-item-left">' +
+                '<span class="backend-ops-dot"></span>' +
+                '<a href="' + (item.url || '#') + '">' +
+                  '<i class="bi ' + (item.icon || 'bi-dot') + ' me-1"></i>' + (item.label || 'Item') +
+                '</a>' +
+              '</div>' +
+              '<strong>' + (item.value || 0) + '</strong>' +
+            '</div>'
+          );
+        });
+        const financeStatus = Number(data.finance_requests || 0) > 0 ? 'warn' : 'ok';
+        rows.push(
+          '<div class="' + itemClass(financeStatus) + '" data-ops-key="finance_requests">' +
+            '<div class="backend-ops-item-left">' +
+              '<span class="backend-ops-dot"></span>' +
+              '<a href="{{ finance_request_link }}"><i class="bi bi-wallet2 me-1"></i>Finance requests</a>' +
+            '</div>' +
+            '<strong>' + (data.finance_requests || 0) + '</strong>' +
+          '</div>'
+        );
+        listEl.innerHTML = rows.join('');
+        if (stampEl) {
+          stampEl.textContent = 'Live - ' + toRelative(data.updated_at);
+        }
+      };
+
+      const refreshOps = function () {
+        fetch(refreshUrl, { credentials: 'same-origin' })
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (payload) {
+            if (!payload || payload.success !== true) return;
+            renderOps(payload);
+          })
+          .catch(function () {});
+      };
+
+      setInterval(refreshOps, 60000);
+      refreshOps();
     })();
   </script>
   <script src="{% static 'js/dashboard-layout.js' %}"></script>

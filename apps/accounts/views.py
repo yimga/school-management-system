@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
 from django.shortcuts import redirect, render, get_object_or_404
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -23,6 +23,7 @@ from apps.academics.services import get_active_year_and_term
 from apps.academics.services_year_setup import clone_academic_year
 from apps.portal.services import link_guardian_via_invite
 from apps.accounts.decorators import permission_required
+from apps.dashboard.context import build_dashboard_extras
 from apps.siteconfig.templatetags.admin_health import admin_section_stats
 from apps.siteconfig.templatetags.admin_kpis import admin_kpis
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata, DashboardWidget
@@ -1043,6 +1044,22 @@ def backend_dashboard(request):
     dashboard_settings = dashboard_context.get("dashboard_settings", {})
     dashboard_layout_url = dashboard_context.get("dashboard_layout_url", "")
     widget_meta_json = dashboard_context.get("widget_meta_json", "")
+    try:
+        from apps.siteconfig.models_dashboard import DashboardUserPreference
+        pref, created = DashboardUserPreference.objects.get_or_create(
+            user=request.user,
+            defaults={"sidebar_collapsed": bool(getattr(site, "default_sidebar_collapsed", False))},
+        )
+        if created or not pref.pinned_sidebar_items:
+            pref.pinned_sidebar_items = [
+                "workflow_center",
+                "import_grades",
+                "documents",
+                "preferences",
+            ]
+            pref.save(update_fields=["pinned_sidebar_items", "updated_at"])
+    except Exception:
+        pass
     def _safe_reverse(name, default="#", kwargs=None):
         try:
             return reverse(name, kwargs=kwargs)
@@ -1272,7 +1289,54 @@ def backend_dashboard(request):
             {"label": "Dashboard", "url": "", "active": True},
         ],
     }
+    try:
+        context.update(build_dashboard_extras(request, base=context))
+    except Exception:
+        pass
     return render(request, "accounts/backend_dashboard.html", context)
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+def backend_ops_watch_data(request):
+    """Lightweight JSON payload for live Ops Watch refresh."""
+    pending_approvals_count = 0
+    try:
+        from apps.requests.models import AccessRequest
+        pending_approvals_count = AccessRequest.objects.filter(
+            status=AccessRequest.Status.PENDING
+        ).count()
+    except Exception:
+        pending_approvals_count = 0
+
+    base_stats = {
+        "pending_referrals": ReferralReward.objects.filter(
+            status=ReferralReward.Status.PENDING
+        ).count(),
+        "overdue_invoices": Invoice.objects.filter(status=Invoice.Status.OVERDUE).count(),
+    }
+    finance_requests_count = FinanceNotification.objects.filter(
+        recipient=request.user,
+        title__icontains="finance access request",
+        is_read=False,
+    ).count()
+
+    extras = build_dashboard_extras(
+        request,
+        base={
+            "stats": base_stats,
+            "finance_requests_count": finance_requests_count,
+            "pending_approvals_count": pending_approvals_count,
+        },
+    )
+    return JsonResponse(
+        {
+            "success": True,
+            "operations_watch": extras.get("operations_watch", []),
+            "finance_requests": extras.get("ops_watch_finance_requests", 0),
+            "updated_at": extras.get("ops_watch_last_updated"),
+        }
+    )
 
 
 def _workflow_progress(year):
