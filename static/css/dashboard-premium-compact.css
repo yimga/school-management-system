@@ -14,11 +14,19 @@ body[data-dashboard-page="parent"] .parent-dashboard {
     linear-gradient(180deg, rgba(248, 250, 255, 0.95), rgba(242, 247, 255, 0.92));
 }
 
+/* Parent dashboard: reduce vertical height only (same design, less padding/margins) */
+body[data-dashboard-page="parent"] .dashboard-stats-bar {
+  margin-bottom: 0.5rem !important;
+}
+body[data-dashboard-page="parent"] .dashboard-stat-card {
+  padding: 0.5rem 0.6rem !important;
+}
+
 body[data-dashboard-page="parent"] .parent-dashboard .container-lg {
   max-width: none;
   width: 100%;
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
+  padding-top: 0.6rem !important;
+  padding-bottom: 0.6rem !important;
 }
 
 body[data-dashboard-page="parent"] .parent-dashboard-header {
@@ -26,7 +34,21 @@ body[data-dashboard-page="parent"] .parent-dashboard-header {
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 255, 0.9));
   box-shadow: var(--premium-shadow-md);
-  padding: 0.95rem 1rem;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.6rem;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-header .dashboard-header {
+  gap: 0.4rem 1rem;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-header .dashboard-title {
+  gap: 0.2rem;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-header p {
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+body[data-dashboard-page="parent"] .dashboard-actions {
+  gap: 0.4rem;
 }
 
 body[data-dashboard-page="parent"] .dashboard-eyebrow {
@@ -52,12 +74,19 @@ body[data-dashboard-page="parent"] .metrics-section .card {
   border-radius: var(--premium-radius-md);
 }
 
+body[data-dashboard-page="parent"] .parent-glance-section .section-title {
+  margin-bottom: 0.35rem !important;
+}
 body[data-dashboard-page="parent"] .parent-glance-card {
   border: 1px solid rgba(148, 163, 184, 0.25);
   box-shadow: var(--premium-shadow-sm);
   border-radius: var(--premium-radius-md);
-  min-height: 105px;
+  min-height: 78px;
+  padding: 0.5rem 0.65rem !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+body[data-dashboard-page="parent"] .parent-glance-card .mb-1 {
+  margin-bottom: 0.15rem !important;
 }
 
 body[data-dashboard-page="parent"] .parent-glance-card:hover {
@@ -65,16 +94,21 @@ body[data-dashboard-page="parent"] .parent-glance-card:hover {
   box-shadow: var(--premium-shadow-md);
 }
 
+body[data-dashboard-page="parent"] .parent-dashboard-widgets .alert.mb-3 {
+  margin-bottom: 0.5rem !important;
+  padding: 0.45rem 0.75rem;
+}
+
 body[data-dashboard-page="parent"] .parent-workflow-strip {
-  margin-top: 0.9rem;
-  margin-bottom: 0.95rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--premium-shadow-sm);
 }
 
 body[data-dashboard-page="parent"] .parent-workflow-strip .card-body {
-  padding: 0.95rem 1rem;
+  padding: 0.65rem 0.9rem;
 }
 
 body[data-dashboard-page="parent"] .parent-content-row {
@@ -107,6 +141,10 @@ body[data-dashboard-page="parent"] .parent-sidebar-card .card-body {
 }
 
 body[data-dashboard-page="parent"] .section-title {
+  margin-bottom: 0.4rem !important;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-widgets .row.mb-3,
+body[data-dashboard-page="parent"] .parent-dashboard-widgets .mb-4 {
   margin-bottom: 0.6rem !important;
 }
 
