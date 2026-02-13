@@ -1,18 +1,28 @@
 {% comment %}
-  Shared UI for dashboard layout customization: one "Customize layout" button,
-  Add widget palette, instructions bar (shown in edit mode), and toast for save feedback.
-  Include once per dashboard; requires #dashboard-layout and dashboard-layout.js.
+  Shared UI for dashboard layout customization: one "Customize layout" button (primary CTA),
+  Add widget / Reset in overflow menu to avoid duplicate CTAs. Requires #dashboard-layout and dashboard-layout.js.
 {% endcomment %}
 <input type="checkbox" id="toggleCustomize" class="d-none" aria-hidden="true" tabindex="-1">
 <button type="button" class="btn btn-outline-primary btn-sm" id="btnCustomizeLayout" aria-pressed="false" title="Arrange widgets: click to enter edit mode, then drag by the grip (⋮⋮) to reorder. Layout saves automatically.">
   <i class="bi bi-grid-3x3-gap me-1"></i>Customize layout
 </button>
-<button type="button" class="btn btn-outline-secondary btn-sm" id="btnAddWidget" aria-label="Add widget to dashboard" title="Restore a hidden widget">
-  <i class="bi bi-plus-square me-1"></i>Add widget
-</button>
-<button type="button" class="btn btn-outline-secondary btn-sm js-reset-dashboard-layout" id="btnResetLayout" aria-label="Reset dashboard layout to default" title="Restore default widget order">
-  <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to default
-</button>
+<div class="dropdown d-inline-block">
+  <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More layout options" title="Add widget or reset layout">
+    <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li>
+      <button type="button" class="dropdown-item" id="btnAddWidget" aria-label="Add widget to dashboard" title="Restore a hidden widget">
+        <i class="bi bi-plus-square me-2"></i>Add widget
+      </button>
+    </li>
+    <li>
+      <button type="button" class="dropdown-item js-reset-dashboard-layout" id="btnResetLayout" aria-label="Reset dashboard layout to default" title="Restore default widget order">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to default
+      </button>
+    </li>
+  </ul>
+</div>
 <div id="dashboard-customize-instructions" class="alert alert-info small mb-2 d-none" role="status">
   <i class="bi bi-info-circle me-2"></i>Drag cards by the grip (⋮⋮) to reorder. Use the ⋮ menu on each card for size, style, and hide. Add widget restores hidden widgets. Layout saves automatically.
 </div>
