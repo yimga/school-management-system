@@ -1,8 +1,14 @@
 /* Dashboard drag/drop widget controls + size/variant styling.
    Kept lightweight: works with existing Bootstrap cards/tiles without changing HTML. */
 
-[data-widget-id].dash-widget {
+[data-widget-id].dash-widget,
+[data-widget-id] {
   position: relative;
+  overflow: visible;
+}
+
+[data-widget-id] .card {
+  overflow: visible;
 }
 
 /* data-dashboard-column is for layout script only - do NOT change display/flex of elements.

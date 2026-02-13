@@ -110,7 +110,11 @@ body[data-dashboard-page="backend"] .backend-command-sidebar .card {
 }
 
 body[data-dashboard-page="backend"] .backend-sidebar-calendar-clock .card-body {
-  padding: 0.65rem 0.75rem;
+  padding: 0.5rem 0.6rem;
+}
+
+body[data-dashboard-page="backend"] .backend-sidebar-calendar-clock.backend-sidebar-calendar-clock--compact .card-body {
+  padding: 0.4rem 0.55rem;
 }
 
 body[data-dashboard-page="backend"] .backend-copilot-usage-card .card-body,

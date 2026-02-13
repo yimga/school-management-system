@@ -5,35 +5,35 @@
 <style>
   .backend-calendar-dow, .backend-calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1.4rem);
-    gap: 2px;
+    grid-template-columns: repeat(7, 1.15rem);
+    gap: 1px;
     justify-content: center;
   }
   .backend-cal-dow-cell {
     text-align: center;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: var(--bs-secondary, #6c757d);
     font-weight: 600;
   }
   .backend-cal-cell {
     text-align: center;
-    font-size: 0.7rem;
-    min-width: 1.4rem;
+    font-size: 0.65rem;
+    min-width: 1.15rem;
   }
   .backend-cal-empty { opacity: 0.3; }
-  .backend-cal-today { border-radius: 4px; background: var(--bs-primary); color: #fff; }
+  .backend-cal-today { border-radius: 3px; background: var(--bs-primary); color: #fff; }
 </style>
-<div class="card shadow-sm mb-3 backend-sidebar-calendar-clock">
-  <div class="card-body py-2 px-3">
-    <div class="text-center mb-2">
-      <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
-        <i class="bi bi-calendar3 small"></i>
-        <span class="small text-muted fw-semibold text-uppercase">Local time</span>
+<div class="card shadow-sm mb-3 backend-sidebar-calendar-clock backend-sidebar-calendar-clock--compact">
+  <div class="card-body backend-sidebar-calendar-clock-body">
+    <div class="text-center mb-1">
+      <div class="d-flex align-items-center justify-content-center gap-1 mb-0">
+        <i class="bi bi-calendar3" style="font-size: 0.75rem;"></i>
+        <span class="small text-muted fw-semibold text-uppercase" style="font-size: 0.65rem;">Local time</span>
       </div>
-      <div class="backend-clock-time fs-4 fw-bold lh-1" id="backendClockTime">--:--:--</div>
-      <div class="backend-clock-date small text-muted" id="backendClockDate">Loading...</div>
+      <div class="backend-clock-time fw-bold lh-1" style="font-size: 1.1rem;" id="backendClockTime">--:--:--</div>
+      <div class="backend-clock-date small text-muted" style="font-size: 0.7rem;" id="backendClockDate">Loading...</div>
     </div>
-    <div class="backend-calendar-mini small" id="backendCalendarMini">
+    <div class="backend-calendar-mini small mt-1" id="backendCalendarMini">
       <div class="backend-calendar-dow" id="backendCalendarDOW"></div>
       <div class="backend-calendar-grid" id="backendCalendarGrid"></div>
     </div>
