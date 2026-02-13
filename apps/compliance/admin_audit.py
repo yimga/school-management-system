@@ -2,8 +2,10 @@
 Compliance admin interface for Phase 4: comprehensive audit trail and reporting.
 Enables visibility and control over all system actions and access patterns.
 """
+import csv
 
 from django.contrib import admin
+from django.http import HttpResponse
 from django.utils import timezone
 from unfold.admin import ModelAdmin
 from .models_audit import (

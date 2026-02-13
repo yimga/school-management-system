@@ -12,7 +12,6 @@ from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.evals.models import TeacherAssignment
 from apps.siteconfig.models import SiteSettings
 
-from .permissions import IsAdminLike
 from .serializers import (
     ClassroomSerializer,
     StudentGuardianSerializer,

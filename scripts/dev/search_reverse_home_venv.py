@@ -1,5 +1,10 @@
+# Ad-hoc: search .venv for reverse('home') etc. in .py/.html/.txt. Run from project root.
 import os
-root = '..\\..\\.venv'
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_project_root = os.path.normpath(os.path.join(_script_dir, '..', '..'))
+root = os.path.join(_project_root, '.venv')
+if not os.path.isdir(root):
+    root = os.path.join(os.path.dirname(_project_root), '.venv')
 for dirpath, dirnames, filenames in os.walk(root):
     for name in filenames:
         if name.endswith(('.py', '.html', '.txt')):

@@ -9,7 +9,6 @@ import json
 # Try to import channels, fallback gracefully if not installed
 try:
     from channels.generic.websocket import AsyncWebsocketConsumer
-    from channels.db import database_sync_to_async
     CHANNELS_AVAILABLE = True
 except ImportError:
     CHANNELS_AVAILABLE = False

@@ -5,10 +5,9 @@ Uses get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL) and log_delegation_acti
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, get_object_or_404
-from django.http import HttpResponseForbidden, Http404
+from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django.utils import timezone
-from django.db.models import Q
 
 from apps.academics.models import CourseSyllabus, SubjectAssignment
 from apps.academics.services import get_active_year_and_term
@@ -196,12 +195,7 @@ def syllabus_preview(request, subject_assignment_id: int):
 @login_required
 def syllabus_approval_queue(request):
     """List syllabi pending approval for current user (effective approver: role or delegate)."""
-    from apps.accounts.delegation import (
-        get_effective_approvers,
-        get_active_delegation_for_delegate,
-        log_delegation_action,
-        WORKFLOW_SYLLABUS_APPROVAL,
-    )
+    from apps.accounts.delegation import get_effective_approvers, WORKFLOW_SYLLABUS_APPROVAL
     approver_ids = [u.pk for u in get_effective_approvers(WORKFLOW_SYLLABUS_APPROVAL)]
     if request.user.pk not in approver_ids:
         return HttpResponseForbidden("You are not an approver for syllabi.")

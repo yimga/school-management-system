@@ -145,9 +145,10 @@ class GenerateComplianceReportCommand(BaseCommand):
     
     def generate_audit_trail(self, start, end):
         """Generate audit trail findings"""
+        from django.db.models import Count
         logs = AuditLog.objects.filter(
             timestamp__range=[start, end]
-        ).values('user', 'action').annotate(count=models.Count('id'))
+        ).values('user', 'action').annotate(count=Count('id'))
         
         return {
             'total_changes': AuditLog.objects.filter(timestamp__range=[start, end]).count(),
@@ -157,8 +158,8 @@ class GenerateComplianceReportCommand(BaseCommand):
     
     def generate_access_control(self, start, end):
         """Generate access control findings"""
-        from django.db.models import Count, models
-        
+        from django.db.models import Count
+
         access_logs = AccessLog.objects.filter(
             timestamp__range=[start, end]
         )

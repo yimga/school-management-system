@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 from calendar import monthrange
+from datetime import date
 from decimal import Decimal
 from typing import Iterable
 
@@ -17,6 +18,7 @@ from apps.siteconfig.models import Integration, SiteSettings
 
 from .models import (
     ComplianceProfile,
+    FeeInstallment,
     FeeItem,
     FeePlan,
     Invoice,

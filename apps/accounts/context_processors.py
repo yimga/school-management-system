@@ -2,7 +2,6 @@
 Context processors for dashboard header/footer components.
 Provides role-based data, system information, and metrics for templates.
 """
-from datetime import datetime
 from decimal import Decimal
 from django.conf import settings
 from django.db import DatabaseError, connection, models, transaction

@@ -9,21 +9,15 @@ Handles:
 """
 
 from decimal import Decimal
-from typing import Dict, List, Optional
-from django.db.models import Q, Sum, F
-from django.utils import timezone
+from typing import Dict, Optional
 
 from apps.academics.models import (
-    CertificationExamSession,
     CertificationCandidate,
     CertificationExamPreset,
-    CertificationDocumentChecklist,
-    CertificationDocumentItem,
     CertificationCandidateDocumentStatus,
     SubjectAssignment,
 )
 from apps.evals.models import Evaluation
-from apps.people.models import StudentProfile
 
 
 def compute_ca_marks_for_candidate(

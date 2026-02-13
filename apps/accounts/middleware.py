@@ -292,36 +292,3 @@ class RequireMFAMiddleware:
         # Expired or invalid
         request.session.pop("mfa_verified_until", None)
         return False
-        # Allow MFA setup and verify so user can complete setup
-        if "/mfa/setup" in path or "/mfa/verify" in path:
-            return self.get_response(request)
-
-        user = getattr(request, "user", None)
-        if not user or not user.is_authenticated:
-            return self.get_response(request)
-
-        try:
-            from apps.siteconfig.models import SiteSettings
-            from django_otp import user_has_device
-
-            site = SiteSettings.get_solo()
-            require_all_staff = getattr(site, "require_mfa_all_staff", False)
-            required_roles = getattr(site, "require_mfa_roles", None) or []
-
-            must_have_mfa = False
-            if require_all_staff and user.is_staff:
-                must_have_mfa = True
-            elif required_roles:
-                role = get_user_role(user)
-                if role in [r.upper() if isinstance(r, str) else str(r) for r in required_roles]:
-                    must_have_mfa = True
-
-            if not must_have_mfa or user_has_device(user):
-                return self.get_response(request)
-            # Staff must set up MFA → redirect to setup
-            mfa_setup_url = reverse("accounts:mfa_setup")
-            if path != mfa_setup_url.rstrip("/") and not path.endswith(mfa_setup_url):
-                return redirect(mfa_setup_url + "?next=" + (request.GET.get("next") or request.path))
-        except Exception:
-            pass
-        return self.get_response(request)

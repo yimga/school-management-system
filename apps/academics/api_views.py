@@ -8,11 +8,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from django.db.models import Sum, Count, Q, F, Avg, Case, When, IntegerField
-from django.utils import timezone
-from datetime import datetime, timedelta
+from django.db.models import Count, Q, Avg, Case, When, IntegerField
+from datetime import datetime
 
-from apps.api.permissions import IsTeacherOrAdmin, IsTeacher, IsAdminUser
 from apps.api.serializers import AttendanceSerializer
 from apps.accounts.permissions import can_view_student_data, can_edit_student_grades
 
@@ -420,8 +418,6 @@ class GradeViewSet(viewsets.ModelViewSet):
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
-        from apps.evals.models import Grade
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

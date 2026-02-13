@@ -1,11 +1,10 @@
 # Script to scan and clean up invalid migration dependencies in people app
+# Run from project root: python scripts/clean_people_migrations.py
 import os
 import re
 
-MIGRATIONS_DIR = os.path.join(
-    os.path.dirname(__file__),
-    'apps', 'people', 'migrations'
-)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+MIGRATIONS_DIR = os.path.join(PROJECT_ROOT, 'apps', 'people', 'migrations')
 INVALID_DEPENDENCIES = [
     "last_migration_name",
     "auto_nullable_specialty_studentprofile"

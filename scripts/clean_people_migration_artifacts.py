@@ -1,11 +1,10 @@
-# Script to clean up all test/rollback artifacts from migrations
+# Script to clean up all test/rollback artifacts from people migrations
+# Run from project root: python scripts/clean_people_migration_artifacts.py
 import os
 import shutil
 
-MIGRATIONS_DIR = os.path.join(
-    os.path.dirname(__file__),
-    'apps', 'people', 'migrations'
-)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+MIGRATIONS_DIR = os.path.join(PROJECT_ROOT, 'apps', 'people', 'migrations')
 REMOVE_FILES = [
     '0016_alter_studentprofile_specialty_nullable.py',
     'auto_nullable_specialty_studentprofile.py',

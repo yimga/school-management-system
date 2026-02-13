@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from django.db import transaction
 
-from .models import AcademicYear, Term, Classroom, SubjectAssignment, Department, Specialty, Subject
+from .models import AcademicYear, Term, Classroom, SubjectAssignment
 from apps.reports.models import PromotionRule
 
 if TYPE_CHECKING:

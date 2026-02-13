@@ -2,7 +2,6 @@
 View helper for recent admin activity tracking
 """
 from django.contrib.admin.models import LogEntry
-from django.contrib.contenttypes.models import ContentType
 from django.utils.timesince import timesince
 
 

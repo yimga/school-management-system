@@ -3,8 +3,11 @@ from __future__ import annotations
 from collections import Counter
 from datetime import timedelta
 from decimal import Decimal
-from typing import Iterable, List
+from typing import TYPE_CHECKING, Iterable, List
 import re
+
+if TYPE_CHECKING:
+    from .models import PendingGuardianInvite
 
 from django.core.cache import cache
 from django.db.models import Sum, Count, Q, F, Value, Case, When, Max

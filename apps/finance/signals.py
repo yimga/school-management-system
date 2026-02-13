@@ -68,6 +68,14 @@ def sync_payment_delete(sender, instance: Payment, **kwargs):
         recalculate_invoice(instance.invoice)
 
 
+def _deactivate_reminders_for_student(student_profile):
+    """Deactivate all payment reminders for invoices belonging to this student."""
+    PaymentReminder.objects.filter(
+        invoice__student=student_profile,
+        is_active=True,
+    ).update(is_active=False)
+
+
 def _on_student_inactive_stop_reminders(sender, instance, **kwargs):
     """When a student is marked inactive/withdrawn, stop their payment reminders."""
     if getattr(instance, "is_active", True) is False:

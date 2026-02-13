@@ -954,6 +954,9 @@ def process_payment_receipt_upload_task(self, proof_upload_id: int) -> dict:
                         proof_upload.verification_notes = ""
                     proof_upload.verification_notes += f" Bank verification failed: {bank_verification_result.get('discrepancies', ['No match'])[0]}"
         
+        # This task does not support dry_run; auto-apply is controlled by site settings only.
+        dry_run = False
+
         # If fraud risk is high, force review regardless of verification
         if proof_upload.fraud_risk_score >= 70:
             should_auto_apply = False

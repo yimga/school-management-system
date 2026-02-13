@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered

@@ -20,7 +20,7 @@ from apps.api.dashboard_api import (
     FinancialDashboardAPI,
     AcademicDashboardAPI
 )
-from apps.api.dashboard_layout_api import DashboardLayoutAPI, AvailableWidgetsAPI
+from apps.api.dashboard_layout_api import DashboardLayoutAPI
 from apps.api.user_preferences_api import PortalPreferencesAPI
 from apps.api.search_api import GlobalSearchAPI, SearchSuggestionsAPI
 from apps.academics.api_views import AttendanceViewSet

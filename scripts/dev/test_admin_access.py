@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 """
-Quick test script to verify admin page access and key URLs
+Quick test script to verify admin page access and key URLs.
+Run from project root: python scripts/dev/test_admin_access.py
 """
 import os
-import django
+import sys
 
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_project_root = os.path.abspath(os.path.join(_script_dir, '..', '..'))
+sys.path.insert(0, _project_root)
+os.chdir(_project_root)
+
+import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
@@ -12,11 +19,8 @@ from django.test import Client
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
-# Create test client
 client = Client()
 
-# Test URLs
 urls_to_test = [
     ('/', 'Home'),
     ('/admin/', 'Admin Index'),
