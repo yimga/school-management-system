@@ -68,7 +68,27 @@ class Command(BaseCommand):
                 return
             raise
 
-        if has_superuser:
+        # When password is provided (e.g. ADMIN_PASSWORD on Render), always ensure this username exists and has this password so login works
+        if has_superuser and password:
+            existing_admin = User.objects.filter(username=username).first()
+            if existing_admin:
+                existing_admin.set_password(password)
+                existing_admin.is_staff = True
+                existing_admin.is_superuser = True
+                existing_admin.is_active = True
+                existing_admin.email = email or existing_admin.email
+                if SUPERADMIN_ROLE_VALUE is not None and hasattr(existing_admin, "role"):
+                    existing_admin.role = SUPERADMIN_ROLE_VALUE
+                existing_admin.save()
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        "Superuser '%s' password updated. Log in at /authentication/login/ or /admin/" % username
+                    )
+                )
+                return
+            # else: another user is superuser but not this username; fall through to create this username
+
+        if has_superuser and not password:
             self.stdout.write(
                 self.style.SUCCESS(
                     "A superuser already exists. To reset a password, run:\n"
