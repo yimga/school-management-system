@@ -74,6 +74,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/no-watermark.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
+    <link rel="stylesheet" href="{% static 'css/topbar-header-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-high-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-crisp-polish.css' %}">
@@ -118,8 +119,8 @@
         position: sticky;
         top: 0;
         z-index: 1030;
-        min-height: 56px;
-        max-height: 80px;
+        min-height: 68px;
+        max-height: none;
       }
 
       .brand-logo {
@@ -127,7 +128,7 @@
         width: 34px;
         border-radius: 10px;
         object-fit: cover;
-        background: rgba(255,255,255,.9);
+        background: color-mix(in srgb, var(--header-brand-fg, #ffffff) 16%, transparent);
         padding: 4px;
       }
 
@@ -160,34 +161,90 @@
         margin-top: 4px;
         max-height: 320px;
         overflow-y: auto;
-        background: var(--admin-content-bg);
+        background: var(--admin-content-surface, var(--portal-card-bg, rgba(15, 23, 42, 0.96)));
         border-radius: 8px;
         box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        border: 1px solid var(--admin-content-border, #e2e8f0);
+        border: 1px solid var(--admin-content-border, rgba(148, 163, 184, 0.35));
         z-index: 1050;
       }
       .header-search-dropdown .search-result-item {
         display: block;
         padding: 0.5rem 0.75rem;
-        color: var(--admin-content-text, #1e293b);
+        color: var(--admin-content-text, rgba(226, 232, 240, 0.96));
         text-decoration: none;
         font-size: 0.9rem;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid color-mix(in srgb, var(--admin-content-border, rgba(148, 163, 184, 0.35)) 75%, transparent);
         transition: background 0.15s;
       }
       .header-search-dropdown .search-result-item:hover,
       .header-search-dropdown .search-result-item:focus {
-        background: #f1f5f9;
-        color: #0f172a;
+        background: color-mix(in srgb, var(--brand-primary, #3b82f6) 18%, transparent);
+        color: var(--header-brand-fg, #ffffff);
       }
       .header-search-dropdown .search-result-item:last-child { border-bottom: none; }
-      .header-search-dropdown .search-result-muted { font-size: 0.8rem; color: #64748b; }
+      .header-search-dropdown .search-result-muted { font-size: 0.8rem; color: color-mix(in srgb, var(--admin-content-text, #cbd5e1) 72%, transparent); }
       .header-search-dropdown .search-result-empty,
-      .header-search-dropdown .search-result-error { padding: 0.75rem; color: #64748b; font-size: 0.9rem; }
+      .header-search-dropdown .search-result-error { padding: 0.75rem; color: color-mix(in srgb, var(--admin-content-text, #cbd5e1) 72%, transparent); font-size: 0.9rem; }
 
-      .topbar-actions {
-        flex-wrap: wrap;
-        justify-content: flex-end;
+      .topbar-actions.d-flex {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 500px) minmax(0, 1fr);
+        align-items: center !important;
+        column-gap: 0.9rem;
+        row-gap: 0.35rem;
+        width: 100%;
+        min-width: 0;
+      }
+
+      .topbar-weather {
+        grid-column: 1;
+        justify-self: start;
+        width: 100%;
+        min-width: 0;
+        max-width: 680px;
+      }
+
+      .topbar-context-row {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        min-width: 0;
+      }
+
+      .topbar-context-row .topbar-context-strip {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+      }
+
+      .topbar-offline-status {
+        flex: 0 0 auto;
+        gap: 0.35rem !important;
+        padding: 0.3rem 0.65rem !important;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        white-space: nowrap;
+      }
+
+      .topbar-offline-status #sms-offline-status-text {
+        font-weight: 600;
+      }
+
+      .topbar-offline-status #sms-offline-status-last-synced {
+        display: none !important;
+      }
+
+      .topbar-offline-status #sms-offline-sync-now-btn {
+        margin-left: 0.22rem !important;
+        font-size: 0.78rem !important;
+      }
+
+      .topbar-search.header-search-container {
+        grid-column: 2;
+        justify-self: center;
+        width: 100%;
+        min-width: 280px;
+        max-width: 500px;
       }
 
       /* Full-width contract for module/dashboard surfaces. */
@@ -201,7 +258,32 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        margin-left: auto;
+        margin-left: 0;
+        grid-column: 3;
+        justify-self: end;
+        justify-content: flex-end;
+        width: max-content;
+      }
+
+      .topbar-search-kbd {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.68rem;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        background: rgba(15, 23, 42, 0.34);
+        border-radius: 999px;
+        padding: 0.12rem 0.42rem;
+        pointer-events: none;
+        letter-spacing: 0.02em;
+        font-weight: 700;
+      }
+
+      .topbar-search-input {
+        padding-right: 4.8rem !important;
       }
 
       /* Overflow safety contract for all module pages (no text/frame bleed). */
@@ -496,7 +578,8 @@
           padding: 0.75rem;
         }
 
-        .topbar-actions {
+        .topbar-actions.d-flex {
+          display: flex !important;
           gap: 0.5rem;
           width: 100%;
         }
@@ -508,6 +591,7 @@
         }
 
         .topbar-weather,
+        .topbar-context-strip,
         .topbar-search {
           order: 2;
           flex-basis: 100%;
@@ -521,16 +605,51 @@
         .topbar-search input {
           width: 100% !important;
         }
+
+        .topbar-search-kbd {
+          right: 8px;
+        }
       }
 
       @media (max-width: var(--bp-extra-narrow, 575px)) {
-        .topbar-weather {
+        .topbar-weather,
+        .topbar-context-strip {
           display: none;
         }
 
         .topbar-controls .btn,
         .topbar-controls .btn-link {
           padding: 0.2rem 0.4rem;
+        }
+
+        .topbar-search-kbd {
+          display: none;
+        }
+
+        .topbar-search-input {
+          padding-right: 0.75rem !important;
+        }
+      }
+      @media (max-width: 1279px) {
+        .topbar-actions.d-flex {
+          grid-template-columns: minmax(0, 1fr) minmax(240px, 390px) minmax(0, 1fr);
+        }
+
+        .topbar-search.header-search-container {
+          max-width: 390px;
+          min-width: 240px;
+        }
+
+        .topbar-offline-status #sms-offline-sync-now-btn {
+          display: none;
+        }
+      }
+      @media (max-width: 991px) {
+        .topbar-actions.d-flex {
+          display: flex !important;
+          flex-wrap: wrap;
+          width: 100%;
+          gap: 0.5rem;
         }
       }
       @media (max-width: var(--bp-below-wide, 1023px)) {
@@ -754,29 +873,33 @@
 
         <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
           {% if request.user.is_authenticated %}
-            {% if SHOW_OFFLINE_STATUS_BAR %}
-            {% include 'components/offline_status_bar.html' %}
-            {% endif %}
-            <!-- Weather Widget - Scrolling Header -->
-            <div class="topbar-weather flex-grow-1" style="max-width: 400px;">
-              {% include 'components/header_weather_widget.html' %}
+            {% if SHOW_OFFLINE_STATUS_BAR or SHOW_HEADER_CONTEXT_STRIP %}
+            <div class="topbar-context-row topbar-weather">
+              {% if SHOW_OFFLINE_STATUS_BAR %}
+              {% include 'components/offline_status_bar.html' %}
+              {% endif %}
+              {% if SHOW_HEADER_CONTEXT_STRIP %}
+              <div class="topbar-context-strip">
+                {% include 'components/header_weather_widget.html' %}
+              </div>
+              {% endif %}
             </div>
+            {% endif %}
 
             {% if SHOW_HEADER_SEARCH %}
             <!-- Global Search Bar (Ctrl+K) - searches students, teachers, invoices, etc. -->
-            <div class="topbar-search search-bar-wrapper header-search-container" style="position: relative;">
+            <div class="topbar-search search-bar-wrapper header-search-container">
               <input 
                 type="text" 
                 class="form-control form-control-sm topbar-search-input nav-search" 
-                placeholder="Search students, teachers, invoices... (Ctrl+K)"
+                placeholder="Search students, teachers, invoices..."
                 id="headerSearchInput"
                 aria-label="Global search"
                 aria-autocomplete="list"
                 aria-expanded="false"
                 aria-controls="headerSearchResults"
-                style="width: 220px; min-width: 180px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff;"
               />
-              <small class="topbar-search-hint" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: rgba(255,255,255,0.85); pointer-events: none;">Ctrl+K</small>
+              <span class="topbar-search-kbd" aria-hidden="true">Ctrl+K</span>
               <div id="headerSearchResults" class="header-search-dropdown" role="listbox" aria-label="Search results" style="display: none;"></div>
             </div>
             {% endif %}
@@ -786,7 +909,7 @@
               {% include "partials/language_switcher.html" %}
               {% endif %}
               {% if request.user.is_authenticated %}
-              <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_messages' %}" title="Messages" aria-label="Open Messages" style="font-size: 1.2rem;">
+              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="Messages" aria-label="Open Messages">
                 <i class="bi bi-chat-dots-fill"></i>
                 {% if messages_unread_count %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ messages_unread_count }}</span>
@@ -794,22 +917,21 @@
               </a>
               {% endif %}
               {% if SHOW_HEADER_NOTIFICATIONS %}
-              <a class="btn btn-link text-white p-0 position-relative" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications" style="font-size: 1.2rem;">
+              <a class="btn btn-link text-white p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="Notifications" aria-label="View notifications">
                 <i class="bi bi-bell"></i>
                 {% if NOTIFICATIONS_UNREAD_COUNT %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
                 {% endif %}
               </a>
               {% endif %}
-              <a class="btn btn-link text-white p-0" href="{% url 'kb:kb_home' %}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}" style="font-size: 1.2rem;"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
+              <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{% url 'kb:kb_home' %}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
               {% if SHOW_HEADER_THEME_TOGGLE %}
               <button 
                 type="button"
-                class="btn btn-link text-white p-0" 
+                class="btn btn-link text-white p-0 topbar-icon-btn" 
                 id="themeToggle" 
                 title="Toggle Dark/Light Theme"
                 aria-label="Toggle Dark/Light Theme"
-                style="font-size: 1.2rem;"
               >
                 <i class="bi bi-moon-stars" aria-hidden="true"></i>
               </button>
@@ -818,14 +940,13 @@
               {% if SHOW_HEADER_PROFILE_MENU %}
               <div class="dropdown">
                 <button 
-                  class="btn btn-link text-white p-0 dropdown-toggle" 
+                  class="btn btn-link text-white p-0 dropdown-toggle topbar-icon-btn" 
                   type="button" 
                   id="adminMenuDropdown" 
                   data-bs-toggle="dropdown" 
                   aria-expanded="false"
                   title="Admin Menu"
                   aria-label="Admin menu"
-                  style="font-size: 1.2rem;"
                 >
                   <i class="bi bi-gear" aria-hidden="true"></i>
                 </button>
@@ -840,7 +961,7 @@
                 </ul>
               </div>
 
-              <span class="small opacity-75 d-none d-md-inline">{{ request.user.username }}</span>
+              <span class="small opacity-75 d-none d-md-inline topbar-username">{{ request.user.username }}</span>
               <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" href="{% url 'accounts:logout' %}">
                 <i class="bi bi-box-arrow-right"></i>
                 <span class="d-none d-sm-inline">Logout</span>

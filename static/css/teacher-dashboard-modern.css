@@ -222,6 +222,7 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 16px;
+  align-items: start;
 }
 
 .tdm-panel {
@@ -384,6 +385,13 @@
   gap: 10px;
 }
 
+.tdm-balance-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .tdm-compact-card {
   padding: 12px;
   border: 1px solid var(--tdm-border);
@@ -401,15 +409,33 @@
   gap: 10px;
 }
 
+.tdm-balance-card {
+  padding: 12px;
+  border: 1px solid var(--tdm-border);
+  border-radius: 14px;
+  background: var(--tdm-card);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
 .tdm-action-buttons {
   margin-top: auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+  align-items: stretch;
 }
 
 .tdm-action-buttons .btn {
   width: 100%;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 600;
 }
 
 .tdm-deadline-metrics {
@@ -418,12 +444,85 @@
   gap: 8px;
 }
 
-.tdm-compact-head {
+.tdm-pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tdm-pulse-item {
+  padding: 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tdm-primary) 8%, #ffffff 92%);
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 22%, #cbd5e1 78%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tdm-pulse-item span {
+  font-size: 0.74rem;
+  line-height: 1.2;
+  color: var(--admin-content-text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.tdm-pulse-item strong {
+  font-size: 1.08rem;
+  line-height: 1.1;
+  color: var(--admin-content-text, #0f172a);
+}
+
+.tdm-curriculum-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tdm-curriculum-list li {
+  border: 1px solid color-mix(in srgb, var(--tdm-primary) 18%, #cbd5e1 82%);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tdm-primary) 6%, #ffffff 94%);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tdm-curriculum-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.tdm-curriculum-top strong {
+  display: block;
+  min-width: 0;
+  font-size: 0.84rem;
+  color: var(--admin-content-text, #0f172a);
+}
+
+.tdm-curriculum-top span {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--admin-content-text-muted, #475569);
+}
+
+.tdm-compact-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 8px;
+  min-height: 30px;
 }
 
 .tdm-compact-head h4 {
@@ -504,6 +603,17 @@
 }
 
 :root[data-theme="dark"] .tdm-badge-tile {
+  background: rgba(30, 41, 59, 0.72);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+:root[data-theme="dark"] .tdm-balance-card {
+  background: rgba(15, 23, 42, 0.72);
+  border-color: rgba(148, 163, 184, 0.26);
+}
+
+:root[data-theme="dark"] .tdm-pulse-item,
+:root[data-theme="dark"] .tdm-curriculum-list li {
   background: rgba(30, 41, 59, 0.72);
   border-color: rgba(148, 163, 184, 0.35);
 }
@@ -663,6 +773,12 @@
   }
   .tdm-action-grid {
     grid-template-columns: 1fr;
+  }
+  .tdm-balance-row {
+    grid-template-columns: 1fr;
+  }
+  .tdm-pulse-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

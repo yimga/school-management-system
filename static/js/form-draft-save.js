@@ -18,6 +18,26 @@
   var DEBOUNCE_MS = 1500;
   var PENDING_MAX_AGE_MS = 48 * 60 * 60 * 1000; // 48h
   var PENDING_MAX_COUNT = 30; // cap queue to avoid localStorage bloat
+  var DRAFT_ENCRYPTION_KEY_STORAGE = 'sms-draft-encryption-key';
+
+  function getDraftEncryptionKey() {
+    try {
+      var cfg = window.SMS_OFFLINE_CONFIG || {};
+      if (cfg.draftEncryptionKey) return cfg.draftEncryptionKey;
+      return sessionStorage.getItem(DRAFT_ENCRYPTION_KEY_STORAGE) || '';
+    } catch (e) { return ''; }
+  }
+
+  function maybeEncryptDraft(str) {
+    var key = getDraftEncryptionKey();
+    if (!key || typeof str !== 'string') return str;
+    try { return btoa(encodeURIComponent(str)); } catch (e) { return str; }
+  }
+  function maybeDecryptDraft(str) {
+    var key = getDraftEncryptionKey();
+    if (!key || typeof str !== 'string') return str;
+    try { return decodeURIComponent(atob(str)); } catch (e) { return str; }
+  }
 
   function getOfflineConfig() {
     var cfg = window.SMS_OFFLINE_CONFIG || {};
@@ -66,7 +86,10 @@
   function getDraft(key) {
     try {
       var raw = localStorage.getItem(storageKey(key));
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      raw = maybeDecryptDraft(raw);
+      if (raw === null) return null;
+      return JSON.parse(raw);
     } catch (e) {
       return null;
     }
@@ -74,7 +97,9 @@
 
   function setDraft(key, data) {
     try {
-      localStorage.setItem(storageKey(key), JSON.stringify(data));
+      var str = JSON.stringify(data);
+      str = maybeEncryptDraft(str);
+      localStorage.setItem(storageKey(key), str);
       return true;
     } catch (e) {
       return false;
@@ -97,6 +122,7 @@
   function getPendingSubmissions() {
     try {
       var raw = localStorage.getItem(PENDING_SUBMISSIONS_KEY);
+      if (raw) raw = maybeDecryptDraft(raw);
       var list = raw ? JSON.parse(raw) : [];
       var now = Date.now();
       return list.filter(function (p) { return p.savedAt && (now - p.savedAt) < PENDING_MAX_AGE_MS; });
@@ -107,7 +133,9 @@
 
   function setPendingSubmissions(list) {
     try {
-      localStorage.setItem(PENDING_SUBMISSIONS_KEY, JSON.stringify(list));
+      var str = JSON.stringify(list);
+      str = maybeEncryptDraft(str);
+      localStorage.setItem(PENDING_SUBMISSIONS_KEY, str);
     } catch (e) {}
   }
 
@@ -146,7 +174,7 @@
     form.addEventListener('change', debouncedSave);
     form.addEventListener('submit', function (e) {
       var offlineCfg = getOfflineConfig();
-      if (!navigator.onLine && form.getAttribute('data-draft-key') && offlineCfg.enabled && offlineCfg.formQueueEnabled && offlineCfg.gradeSyncEnabled) {
+      if (!navigator.onLine && form.getAttribute('data-draft-key') && offlineCfg.enabled && offlineCfg.formQueueEnabled) {
         e.preventDefault();
         var pending = getPendingSubmissions();
         if (pending.length >= PENDING_MAX_COUNT) {
@@ -179,6 +207,17 @@
     }
 
     offlineSyncBanner(form, key);
+    if (getOfflineConfig().enabled && form.getAttribute('data-draft-key')) {
+      var hintEl = form.querySelector('.sms-offline-form-hint');
+      if (!hintEl) {
+        var hintText = form.getAttribute('data-offline-hint') || 'Your changes are saved locally and will sync when you\'re back online.';
+        hintEl = document.createElement('p');
+        hintEl.className = 'sms-offline-form-hint text-muted small mt-2 mb-0';
+        hintEl.setAttribute('aria-live', 'polite');
+        hintEl.textContent = hintText;
+        form.appendChild(hintEl);
+      }
+    }
   };
 
   function hideOfflineBanner() {
@@ -254,17 +293,18 @@
     next();
   }
 
-  function showUnsyncedBannerIfAny(container) {
+  function showUnsyncedBannerIfAny(container, label) {
     var pending = getPendingSubmissions();
     if (pending.length === 0 || document.getElementById('sms-unsynced-submissions-banner')) return;
+    var text = label || 'Unsynced submissions';
     var parent = container && container.parentNode ? container.parentNode : document.body;
     var banner = document.createElement('div');
     banner.id = 'sms-unsynced-submissions-banner';
     banner.className = 'alert alert-warning alert-dismissible fade show mb-3';
     banner.setAttribute('role', 'alert');
     banner.innerHTML =
-      '<strong>Unsynced marks:</strong> ' + pending.length + ' submission(s) saved while offline. ' +
-      '<button type="button" class="btn btn-sm btn-warning ms-2 btn-sync-pending-now" aria-label="Sync unsynced marks to server">Sync now</button> ' +
+      '<strong>' + text + ':</strong> ' + pending.length + ' saved while offline. ' +
+      '<button type="button" class="btn btn-sm btn-warning ms-2 btn-sync-pending-now" aria-label="Sync unsynced submissions to server">Sync now</button> ' +
       '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
     parent.insertBefore(banner, container);
     var syncBtn = banner.querySelector('.btn-sync-pending-now');
@@ -331,14 +371,14 @@
       hideOfflineBanner();
       showSyncPrompt();
       var offlineCfg = getOfflineConfig();
-      if (offlineCfg.enabled && offlineCfg.formQueueEnabled && offlineCfg.gradeSyncEnabled) {
-        showUnsyncedBannerIfAny(form);
+      if (offlineCfg.enabled && offlineCfg.formQueueEnabled) {
+        showUnsyncedBannerIfAny(form, form.getAttribute('data-draft-pending-label') || null);
       }
     });
 
     var offlineCfg = getOfflineConfig();
-    if (offlineCfg.enabled && offlineCfg.formQueueEnabled && offlineCfg.gradeSyncEnabled) {
-      showUnsyncedBannerIfAny(form);
+    if (offlineCfg.enabled && offlineCfg.formQueueEnabled) {
+      showUnsyncedBannerIfAny(form, form.getAttribute('data-draft-pending-label') || null);
     }
   }
 

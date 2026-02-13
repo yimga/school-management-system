@@ -13,7 +13,7 @@
   <div class="card">
     <div class="card-body">
       <p class="text-muted small mb-3">Academic year: {{ active_year.name }}. Allocation lines must sum to the total amount.</p>
-      <form method="post" action="" id="split-allocation-form">
+      <form method="post" action="" id="split-allocation-form" data-draft-key="split_allocation" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced payments">
         {% csrf_token %}
         {% if form.non_field_errors %}
           <div class="alert alert-danger">{{ form.non_field_errors }}</div>
@@ -55,6 +55,7 @@
         </table>
         </div>
         <p class="small text-muted">Leave amount 0 to skip a row. Sum of amounts must equal total.</p>
+        <p class="small text-muted mb-0">Draft is saved in your browser. Works offline; sync when back online.</p>
         <div id="split-summary" class="small mb-2" aria-live="polite"></div>
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary" id="split-submit-btn">Record payment</button>
@@ -68,6 +69,8 @@
 
 {% block extrajs %}
 {% if form %}
+{% load static %}
+<script src="{% static 'js/form-draft-save.js' %}"></script>
 <script>
 (function() {
   var totalEl = document.getElementById('id_total_amount');
@@ -122,6 +125,7 @@
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> Recording…';
       }
     });
+    if (window.FormDraftSave) window.FormDraftSave.init(formEl);
   }
 
   if (document.readyState === 'loading') {

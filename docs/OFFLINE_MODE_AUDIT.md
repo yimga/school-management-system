@@ -16,7 +16,8 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 | **Django as API for sync** | Done | `OfflineSyncViewSet`, `OfflineSyncQueue`, `/api/sync/`; attendance and grade sync in `mobile_api.py` |
 | **Versioning (modified_at)** | Done | Attendance and Evaluation (and others) use `updated_at` / `modified_at`; server compares with client timestamp on sync |
 | **Submit override (offline → queue)** | Done | Form draft save (`form-draft-save.js`) stores pending submissions when offline; sync when online; service worker queues `/api/attendance/` writes |
-| **Connection status UI** | Done | Global status bar in portal header (Connected / Offline – data will sync later / Syncing…); `offline_status_bar.html` + `offline-status-bar.js`; shown when `SITE.enable_offline_mode`. |
+| **Connection status UI** | Done | Global status bar in portal header (Connected / Offline – data will sync later / Syncing…); **Sync now** button triggers service worker to replay queued writes; **reachability check** (GET `/health/`) before showing "Syncing…" or running sync; `offline_status_bar.html` + `offline-status-bar.js`; shown when `SITE.enable_offline_mode`. |
+| **Platform-wide offline** | Partial | Service worker queues `/api/attendance/`, `/api/entity/`, `/api/requests/`; replay for "attendance", "grade", "api". See `docs/OFFLINE_PLATFORM_AND_DATA_INTEGRITY.md` for extending to every component and data-integrity with concurrent users. |
 | **Service worker write interception** | Done | Attendance API writes queued; comment in SW for adding grade/eval REST paths if added later. Grade writes use form-draft → sync when online. |
 | **API GET strategy** | Done | Stale-While-Revalidate for `/api/` GET (return cached then revalidate in background). |
 
@@ -43,18 +44,21 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 
 3. ~~**Stale-While-Revalidate (SWR)**~~ **Done.** API GET uses `staleWhileRevalidateApi` in service worker (return cached then revalidate in background).
 
-4. **Local DB “mirror” (Dexie/PouchDB)**  
+4. **How "internet is back" is detected**  
+   The app relies on: (1) the browser's `navigator.onLine` and `online` / `offline` events (can be true on LAN without real internet); (2) the **Background Sync API** – when a write is queued, the service worker registers a sync tag and the browser fires the `sync` event when it considers connectivity restored. There is no explicit "ping server" check. For manual sync, users can click **Sync now** in the portal header status bar (sends `REPLAY_SYNC_NOW` to the service worker to replay the queue immediately).
+
+5. **Local DB “mirror” (Dexie/PouchDB)**  
    Requirement: “Schema that mirrors Students, Attendance, Grades” and “pre-load when user first logs in.”  
    **Current:** No full client-side mirror of the DB. Queue stores **pending writes** (request body + URL), not a full read-optimized copy of entities.  
    **Impact:** Offline **reading** of full lists (e.g. all students) is limited to whatever was last cached by the SW (API GET cache). Acceptable if the goal is “write offline, sync when back,” not “browse full DB offline.”
 
-5. **Encryption of local data**  
+6. **Encryption of local data**  
    Requirement: “Keep the local database encrypted (CryptoJS) since school data will sit on local hard drives.”  
    **Current:** IndexedDB and localStorage are not encrypted.  
    **Hook points:** In `service-worker.js`, encrypt before `store.add(item)` in `enqueueSyncItem` and decrypt in `getSyncItems` / when building the fetch body in `replayQueue`. For form-draft-save, encrypt `sms_draft_*` and `sms_pending_mark_submissions` in localStorage. Key source could be a short-lived server token or a user-derived key (Web Crypto API or CryptoJS).  
    **Suggestion:** If policy requires it, implement the above and document key storage (e.g. session-only vs persisted).
 
-6. **Unit test: “Network Down”**  
+7. **Unit test: “Network Down”**  
    **Done:** `apps/api/tests/test_offline_sync.py` – `OfflineSyncBatchTestCase.test_sync_batch_attendance_creates_record` posts `sync_batch` with attendance data and asserts the server creates the Attendance record (simulates “replay after coming back online”). Full browser-offline simulation would require E2E (Playwright/Selenium).
 
 ---
@@ -85,3 +89,17 @@ This audit checks the codebase against the Cameroon / low-connectivity requireme
 2. ~~**Optional: grade/eval write path in SW**~~ Documented; add path in `isApiWriteRequest` / `inferSyncType` if a REST grade/eval write API is added.
 3. ~~**Optional: Network Down test**~~ Done: `test_sync_batch_attendance_creates_record` asserts sync_batch creates Attendance.
 4. **If policy requires:** Implement encryption at documented hook points (SW `enqueueSyncItem` / form-draft localStorage).
+
+---
+
+## What's still missing (detailed)
+
+See **`docs/OFFLINE_MODE_GAPS.md`** for a full list of gaps and improvements, including:
+
+- **Service worker:** Full URL in replay; strip auth headers (Cookie, CSRF) to avoid stale auth; 4xx handling (remove from queue); replay order by `createdAt`; queue size limit; optional queue-length visibility.
+- **Form draft:** Only marks entry uses FormDraftSave; extend to other forms; optional encryption.
+- **Backend:** Versioning/conflict for entity and request APIs; idempotency for critical writes.
+- **UX:** Offline page copy for "Sync now"; per-form offline hint.
+- **Testing:** E2E for offline → queue → replay.
+- **Security:** Optional encryption; ensure no stale auth in replay.
+- **Config:** Optional toggles for api/entity/requests and reachabilityUrl.

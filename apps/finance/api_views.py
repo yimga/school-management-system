@@ -8,9 +8,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.core.cache import cache
 from django.db.models import Sum, Count
 from django.db.models.functions import ExtractMonth
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
@@ -26,6 +28,42 @@ def _can_write_finance(user) -> bool:
     if user.is_superuser or user.is_staff:
         return True
     return (getattr(user, "role", "") or "").upper() in FINANCE_WRITE_ROLES
+
+
+def _parse_client_updated_at(value):
+    """Parse X-Client-Updated-At header to timezone-aware datetime for comparison."""
+    if not value or not value.strip():
+        return None
+    dt = parse_datetime(value.strip())
+    if dt is None:
+        return None
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt)
+    return dt
+
+
+def _check_offline_conflict(instance, request, method_name="update"):
+    """
+    If request has X-Client-Updated-At, compare with instance.updated_at (UTC).
+    Return Response(409) if client timestamp is older than server; else return None.
+    """
+    raw = request.headers.get("X-Client-Updated-At") or request.META.get("HTTP_X_CLIENT_UPDATED_AT")
+    if not raw:
+        return None
+    client_dt = _parse_client_updated_at(raw)
+    if client_dt is None:
+        return None
+    server_dt = getattr(instance, "updated_at", None)
+    if server_dt is None:
+        return None
+    if timezone.is_naive(server_dt):
+        server_dt = timezone.make_aware(server_dt)
+    if client_dt < server_dt:
+        return Response(
+            {"error": "conflict", "server_updated_at": server_dt.isoformat()},
+            status=status.HTTP_409_CONFLICT,
+        )
+    return None
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -106,9 +144,20 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
         return super().create(request, *args, **kwargs)
-    
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        conflict = _check_offline_conflict(instance, request)
+        if conflict is not None:
+            return conflict
+        return super().update(request, *args, partial=partial, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
+
     @action(detail=True, methods=['post'])
     def mark_paid(self, request, pk=None):
         """Mark invoice as fully paid"""
@@ -201,26 +250,25 @@ class PaymentViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """
-        Record a new payment
-        
-        Request Body:
-        {
-            "invoice": 1,
-            "amount": 25000.00,
-            "method": "MTN_MOMO",
-            "reference": "REF123456",
-            "paid_at": "2025-01-22T08:00:00Z"
-        }
+        Record a new payment.
+        Supports X-Idempotency-Key: same key within 24h returns the same response (offline replay dedup).
+        Request Body: { "invoice": 1, "amount": 25000.00, "method": "MTN_MOMO", "reference": "REF123456", "paid_at": "..." }
         """
         if not _can_write_finance(request.user):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+        idem_key = (request.headers.get("X-Idempotency-Key") or request.META.get("HTTP_X_IDEMPOTENCY_KEY") or "").strip()[:64]
+        if idem_key:
+            cache_key = f"offline_payment_idempotency:{request.user.pk}:{idem_key}"
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return Response(cached.get("data"), status=cached.get("status", status.HTTP_200_OK))
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         payment = serializer.save()
         
         invoice = payment.invoice
@@ -245,14 +293,30 @@ class PaymentViewSet(viewsets.ModelViewSet):
             recipient=request.user,
             created_by=request.user
         )
-        
+
+        if idem_key:
+            cache_key = f"offline_payment_idempotency:{request.user.pk}:{idem_key}"
+            cache.set(cache_key, {"data": serializer.data, "status": status.HTTP_201_CREATED}, timeout=86400)
+
         headers = self.get_success_headers(serializer.data)
         return Response(
             serializer.data,
             status=status.HTTP_201_CREATED,
             headers=headers
         )
-    
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        conflict = _check_offline_conflict(instance, request)
+        if conflict is not None:
+            return conflict
+        return super().update(request, *args, partial=partial, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
+
     @action(detail=False, methods=['get'])
     def by_method(self, request):
         """Get payment breakdown by method"""

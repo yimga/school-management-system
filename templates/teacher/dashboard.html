@@ -290,6 +290,55 @@
               </div>
             </article>
           </div>
+          <div class="tdm-balance-row" aria-label="{% trans 'Teaching pulse and curriculum progress' %}">
+            <article class="tdm-balance-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Teaching pulse" %}</h4>
+                <span class="badge rounded-pill text-bg-light">{{ workflow_summary.completion_pct|default:0 }}%</span>
+              </div>
+              <div class="tdm-pulse-grid">
+                <div class="tdm-pulse-item">
+                  <span>{% trans "At-risk" %}</span>
+                  <strong>{{ ews_list|length|default:0 }}</strong>
+                </div>
+                <div class="tdm-pulse-item">
+                  <span>{% trans "Pending marks" %}</span>
+                  <strong>{{ widget_data.tasks.pending_evaluations|default:0 }}</strong>
+                </div>
+                <div class="tdm-pulse-item">
+                  <span>{% trans "Syllabus pending" %}</span>
+                  <strong>{{ syllabus_pending_count|default:0 }}</strong>
+                </div>
+                <div class="tdm-pulse-item">
+                  <span>{% trans "Pending leave" %}</span>
+                  <strong>{{ pending_leaves|default:0 }}</strong>
+                </div>
+              </div>
+            </article>
+            <article class="tdm-balance-card">
+              <div class="tdm-compact-head">
+                <h4>{% trans "Curriculum progress snapshot" %}</h4>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'evals:teacher_marks_list' %}">{% trans "Open classes" %}</a>
+              </div>
+              {% if curriculum_map %}
+              <ul class="tdm-curriculum-list">
+                {% for item in curriculum_map|slice:":3" %}
+                <li>
+                  <div class="tdm-curriculum-top">
+                    <strong>{{ item.label|truncatechars:36 }}</strong>
+                    <span>{{ item.covered|default:0 }}%</span>
+                  </div>
+                  <div class="tdm-progress-track">
+                    <div class="tdm-progress-fill" style="width: {{ item.covered|default:0 }}%;"></div>
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted small mb-0">{% trans "Progress snapshot will appear once class data is available." %}</p>
+              {% endif %}
+            </article>
+          </div>
         </div>
       </div>
 
