@@ -11,6 +11,8 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-command-center-fixes.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-extras.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
   (function () {
@@ -30,606 +32,8 @@
     --brand-success: var(--school-success, {{ SITE.success_color|default:"#22c55e" }});
     --brand-warning: var(--school-warning, {{ SITE.warning_color|default:"#fbbf24" }});
     --brand-danger: var(--school-danger, {{ SITE.danger_color|default:"#ef4444" }});
-    --admin-dashboard-bg: var(--dashboard-surface-soft, #f8fafc);
-    --admin-surface: var(--dashboard-surface, #ffffff);
-    --admin-border: var(--dashboard-border, #e2e8f0);
-    --admin-border-strong: var(--dashboard-border, #cbd5e0);
-    --admin-text: var(--dashboard-text-strong, #0f172a);
-    --admin-muted: var(--dashboard-text-muted, #64748b);
-    --admin-subtle: var(--dashboard-text-muted, #475569);
-    --admin-accent: var(--brand-primary);
-    --admin-accent-light: var(--brand-accent);
-    --gradient-primary: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
-    --gradient-success: linear-gradient(135deg, #11998e 0%, var(--brand-success) 100%);
-    --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --shadow-lg: var(--dashboard-shadow, 0 20px 60px rgba(0, 0, 0, 0.15));
-    --shadow-md: var(--dashboard-shadow-soft, 0 10px 30px rgba(0, 0, 0, 0.1));
   }
-
-  :root[data-theme="dark"] {
-    --admin-dashboard-bg: var(--dashboard-surface-soft, #0b1220);
-    --admin-surface: var(--dashboard-surface, #111827);
-    --admin-border: var(--dashboard-border, #1f2937);
-    --admin-border-strong: var(--dashboard-border, #334155);
-    --admin-text: var(--dashboard-text-strong, #e2e8f0);
-    --admin-muted: var(--dashboard-text-muted, #94a3b8);
-    --admin-subtle: var(--dashboard-text-muted, #cbd5e1);
-    --admin-accent: var(--brand-primary);
-    --admin-accent-light: var(--brand-accent);
-    --admin-shadow: 0 1px 2px rgba(0,0,0,0.4);
-    --admin-shadow-hover: 0 6px 16px rgba(0,0,0,0.5);
-    --admin-border-hover: #64748b;
-  }
-
-  /* Modern Card Styles */
-  .card {
-    border: 1px solid var(--admin-border);
-    border-radius: 20px;
-    background: var(--admin-surface);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    overflow: hidden;
-  }
-  .card:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    transform: translateY(-4px);
-  }
-  .filter-card {
-    background: linear-gradient(135deg, var(--admin-surface) 0%, var(--admin-surface) 100%);
-    border: 1px solid var(--admin-border);
-  }
-  .modular-card {
-    position: relative;
-  }
-  .modular-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--gradient-primary);
-  }
-  
-  .trend-pill {
-    border-radius: 16px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-    padding: 1rem;
-    text-align: center;
-    flex: 1;
-    min-width: 110px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    transition: all 0.3s ease;
-  }
-  .trend-pill:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
-    transform: scale(1.05);
-  }
-  .trend-label {
-    font-size: var(--text-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--admin-muted);
-    font-weight: 700;
-  }
-  .trend-value {
-    font-size: var(--text-2xl);
-    font-weight: 800;
-    color: var(--brand-primary);
-    margin-top: 0.25rem;
-  }
-
-  /* Enhanced Button Styles */
-  .btn-gradient-pill {
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    border-radius: 999px;
-    padding: 0.5rem 1.5rem;
-    font-weight: 600;
-    transition: all 0.3s ease;
-  }
-  .btn-gradient-pill:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-    color: white;
-  }
-  
-  .card-title h5 {
-    font-weight: 700;
-    color: var(--admin-text);
-  }
-  .meta-tag {
-    font-size: 0.75rem;
-    color: var(--brand-primary);
-    background: rgba(102, 126, 234, 0.1);
-    padding: 0.25rem 0.75rem;
-  }
-
-  /* Floating Admin Log Panel */
-  .floating-log-panel {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    width: 320px;
-    max-height: 500px;
-    background: var(--admin-surface);
-    border-radius: 14px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    border: 1px solid var(--admin-border);
-    display: flex;
-    flex-direction: column;
-    z-index: 999;
-    animation: slideInUp 0.3s ease;
-  }
-
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .log-panel-header {
-    padding: 1rem;
-    border-bottom: 1px solid var(--admin-border);
-    background: var(--gradient-primary);
-    color: white;
-    border-radius: 14px 14px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .log-panel-header h6 {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-  }
-
-  .log-panel-close {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.75rem;
-  }
-
-  .log-panel-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-
-  .log-panel-body {
-    overflow-y: auto;
-    flex: 1;
-    font-size: 0.8rem;
-  }
-
-  .log-entry {
-    padding: 0.5rem 0.75rem;
-    border-left: 3px solid var(--admin-border);
-    margin-bottom: 0.5rem;
-    border-radius: 4px;
-    background: var(--admin-surface-alt);
-  }
-
-  .log-entry.success {
-    border-left-color: var(--brand-success);
-    background: rgba(34, 197, 94, 0.08);
-  }
-
-  .log-entry.error {
-    border-left-color: var(--brand-danger);
-    background: rgba(239, 68, 68, 0.08);
-  }
-
-  .log-entry.info {
-    border-left-color: var(--brand-primary);
-    background: rgba(99, 102, 241, 0.08);
-  }
-
-  .log-entry-time {
-    font-size: 0.7rem;
-    color: var(--admin-muted);
-  }
-
-  .log-entry-message {
-    color: var(--admin-text);
-    margin-top: 0.2rem;
-  }
-
-  .log-panel-footer {
-    padding: 0.75rem;
-    border-top: 1px solid var(--admin-border);
-    background: var(--admin-surface-alt);
-    border-radius: 0 0 14px 14px;
-    text-align: center;
-  }
-
-  .log-panel-footer a {
-    font-size: 0.75rem;
-    color: var(--brand-primary);
-    text-decoration: none;
-  }
-
-  .log-panel-footer a:hover {
-    text-decoration: underline;
-  }
-
-  @media (max-width: 768px) {
-    .floating-log-panel {
-      width: 280px;
-      max-height: 450px;
-    }
-  }
-
-  @media (max-width: 576px) {
-    .floating-log-panel {
-      right: 10px;
-      bottom: 10px;
-      width: 260px;
-      max-height: 400px;
-    }
-  }
-  .portal-pill {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 999px;
-    background: var(--admin-surface-alt);
-    color: var(--admin-muted);
-    border: 1px solid var(--admin-border);
-  }
-  .portal-pill.enabled {
-    background: rgba(34, 197, 94, 0.12);
-    color: var(--brand-success);
-    border-color: var(--brand-success);
-  }
-  
-  .widget-chart {
-    margin-top: 1rem;
-  }
-  
-  .attendance-trend {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
-  .attendance-trend-item {
-    flex: 1;
-    text-align: center;
-    padding: 0.75rem 0.5rem;
-    background: var(--admin-surface-alt);
-    border-radius: 10px;
-  }
-  .modular-card .card-body {
-    font-size: 1rem;
-    font-weight: 600;
-  }
-  .attendance-trend {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-    gap: 0.75rem;
-    margin-top: 0.9rem;
-  }
-  .attendance-trend-item {
-    text-align: center;
-    padding: 0.65rem;
-    border-radius: 12px;
-    background: rgba(13, 110, 253, 0.05);
-  }
-  .attendance-trend-item strong {
-    display: block;
-    font-size: 1.1rem;
-  }
-  .portal-pill {
-    border-radius: 12px;
-    padding: 0.65rem 0.85rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8rem;
-    border: 1px solid rgba(15, 23, 42, 0.1);
-    background: rgba(255, 255, 255, 0.7);
-  }
-  .portal-pill.enabled {
-    border-color: rgba(25, 135, 84, 0.4);
-    color: var(--brand-success);
-    background: rgba(25, 135, 84, 0.08);
-  }
-  .hero-info-panel {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: stretch;
-    min-height: 100%;
-  }
-  .hero-actions {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-  }
-  .hero-actions a {
-    min-width: 160px;
-  }
-  .hero-status-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .hero-kpi-sparkline {
-    height: 4px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(13,110,253,0.8));
-    border-radius: 20px;
-    margin-top: 0.7rem;
-  }
-  .hero-status-chip {
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 999px;
-    padding: 0.35rem 0.9rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .modular-card {
-    border-radius: 20px;
-    overflow: hidden;
-  }
-  .modular-card .card-body {
-    padding: 1.5rem;
-  }
-  .modular-card .card-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .modular-card .card-title h5 {
-    margin: 0;
-    color: var(--admin-text);
-  }
-  .modular-card .meta-tag {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    opacity: 0.6;
-  }
-  .modular-card .mini-sparkline {
-    height: 30px;
-    background: linear-gradient(90deg, rgba(13,110,253,0.4), rgba(99,102,241,0.9));
-    border-radius: 12px;
-    margin-top: 1rem;
-  }
-  .modular-card .card-actions {
-    margin-top: 1rem;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .contact-card .social-link {
-    border-radius: 12px;
-    padding: 0.65rem 1rem;
-    background: rgba(99, 102, 241, 0.08);
-    color: var(--brand-primary);
-    border: 1px solid var(--admin-border);
-    text-transform: capitalize;
-  }
-  .attendance-dial {
-    height: 12px;
-    border-radius: 999px;
-    background: var(--admin-border);
-    overflow: hidden;
-    margin-top: 1rem;
-  }
-  .attendance-dial .dial-fill {
-    height: 100%;
-    background: linear-gradient(135deg, var(--brand-success) 0%, var(--brand-success) 100%);
-  }
-
-  /* Enhanced Section Styling */
-  .section-divider {
-    margin: 3rem 0;
-    border-top: 2px dashed var(--admin-border);
-  }
-  
-  .badge-gradient {
-    background: var(--gradient-primary);
-    color: white;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-  }
-
-  /* Card Action Buttons */
-  .card-actions .btn {
-    border-radius: 12px;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-  }
-  .card-actions .btn-outline-light {
-    border-color: var(--brand-primary);
-    color: var(--brand-primary);
-  }
-  .card-actions .btn-outline-light:hover {
-    background: var(--brand-primary);
-    color: white;
-    transform: translateY(-2px);
-  }
-
-  /* Tile variants (user-customizable) */
-  #dashboard-layout.tile-variant-compact .card .card-body {
-    padding: 1rem;
-  }
-  #dashboard-layout.tile-variant-flat .card {
-    box-shadow: none;
-    border-color: var(--admin-border);
-    background: var(--admin-surface);
-  }
-  #dashboard-layout.tile-variant-flat .card .card-body {
-    padding: 1.1rem;
-  }
-  /* Backend: full width, no spill outside tiles */
-  #dashboard-layout {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    min-height: 200px;
-    overflow: visible;
-  }
-  #dashboard-layout .card {
-    max-width: 100%;
-    overflow: hidden;
-  }
-  #dashboard-layout .card-body {
-    overflow: hidden;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-  /* Tight row gaps - no wasted space */
-  #dashboard-layout .row.g-3 {
-    --bs-gutter-x: 0.6rem;
-    --bs-gutter-y: 0.6rem;
-  }
-  #dashboard-layout .row.mb-4 {
-    margin-bottom: 0.75rem !important;
-  }
-  /* Preserve Bootstrap row/col grid for cards */
-  #dashboard-layout .row {
-    display: flex;
-    flex-wrap: wrap;
-  }
-  #dashboard-layout .row > [class*="col-"] {
-    display: block;
-  }
-  /* Quick Actions: compact, between sidebars, 1in below workflow row */
-  .backend-welcome-main {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .backend-quick-actions-wrapper {
-    max-width: 100%;
-  }
-  .backend-quick-actions-card {
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-  }
-  .backend-quick-actions-card .card-body {
-    overflow: hidden;
-    padding: 0.5rem 0.75rem !important;
-  }
-  .backend-quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 0.35rem 0.4rem;
-    width: 100%;
-  }
-  @media (min-width: 992px) {
-    .backend-quick-actions-grid {
-      grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
-    }
-  }
-  @media (max-width: 991px) {
-    .backend-quick-actions-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  @media (max-width: 575px) {
-    .backend-quick-actions-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  .backend-quick-action-btn {
-    white-space: normal;
-    word-wrap: break-word;
-    text-align: center;
-    padding: 0.3rem 0.4rem;
-    font-size: 0.7rem;
-    line-height: 1.3;
-    min-height: 2.25rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .backend-quick-action-btn i {
-    font-size: 0.85rem;
-    display: inline-block;
-  }
-
-  /* Final polish: compact spacing + high-contrast readability */
-  .backend-welcome-section {
-    margin-top: 0.85rem !important;
-    margin-bottom: 0.55rem !important;
-  }
-  .backend-welcome-section > p {
-    margin-bottom: 0.45rem;
-  }
-  .backend-welcome-action-row {
-    row-gap: 0.45rem !important;
-  }
-  #dashboard-layout {
-    color: var(--admin-text);
-  }
-  #dashboard-layout .card,
-  #dashboard-layout .alert {
-    border-color: var(--admin-border-strong);
-    background: var(--admin-surface);
-  }
-  #dashboard-layout .text-muted,
-  #dashboard-layout .small.text-muted {
-    color: var(--admin-subtle) !important;
-  }
-  #dashboard-layout .row.g-2,
-  #dashboard-layout .row.g-3 {
-    --bs-gutter-y: 0.55rem;
-  }
-  #dashboard-layout .row.g-3.mb-4 {
-    margin-bottom: 0.7rem !important;
-  }
-  #dashboard-layout .badge.bg-light.text-dark {
-    background: rgba(15, 23, 42, 0.08) !important;
-    color: var(--admin-text) !important;
-    border: 1px solid var(--admin-border);
-  }
-  :root[data-theme="dark"] #dashboard-layout .card,
-  :root[data-theme="dark"] #dashboard-layout .alert {
-    background: #0f172a;
-    border-color: #334155;
-    color: #e5e7eb;
-  }
-  :root[data-theme="dark"] #dashboard-layout .text-muted,
-  :root[data-theme="dark"] #dashboard-layout .small.text-muted {
-    color: #cbd5e1 !important;
-  }
-  :root[data-theme="dark"] #dashboard-layout .badge.bg-light.text-dark {
-    background: rgba(148, 163, 184, 0.22) !important;
-    color: #f8fafc !important;
-    border-color: rgba(148, 163, 184, 0.4);
-  }
-  @media (max-width: 991px) {
-    .backend-welcome-row-with-sidebar {
-      gap: 0.6rem !important;
-    }
-    #dashboard-layout .card .card-body {
-      padding: 0.75rem 0.85rem !important;
-    }
-    .backend-right-sidebar {
-      width: 100%;
-      min-width: 0;
-    }
-  }
-</style>
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -743,647 +147,210 @@
             {% endfor %}
           </div>
 
-          <div class="backend-v2-side-time">
-            <span>Local time <strong>{{ local_time|date:"h:i A" }}</strong></span>
-            {% if weather_cfg.enabled %}
-            <span>{{ weather_cfg.label }}</span>
-            {% endif %}
-          </div>
         </div>
       </aside>
     </div>
   </div>
 
-  {% if finance_requests_count %}
-  <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-    <div>
-      <strong>{{ finance_requests_count }} pending finance access request{% if finance_requests_count != 1 %}s{% endif %}</strong>
-      <div class="small text-muted">Audit trails and messages are delivered to your inbox for quick adjudication.</div>
-    </div>
-    <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-sm btn-outline-dark" href="{{ finance_request_link }}">Review requests</a>
-      {% if PREVIEW_TOGGLE_ENABLED %}
-      <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle preview</a>
-      {% endif %}
-    </div>
-  </div>
-  {% if finance_request_notifications %}
-  <div class="card mb-2">
-    <div class="card-body">
-      <h6 class="mb-3">Finance access alerts</h6>
-      <ul class="list-unstyled mb-0">
-        {% for notif in finance_request_notifications %}
-        <li class="d-flex justify-content-between align-items-start mb-2">
-          <div>
-            <strong>{{ notif.title }}</strong>
-            <div class="small text-muted">{{ notif.message|truncatechars:120 }}</div>
-          </div>
-          <span class="badge bg-secondary">{{ notif.created_at|format_date }} {{ notif.created_at|time:"H:i" }}</span>
-        </li>
-        {% endfor %}
-      </ul>
-      <a class="btn btn-sm btn-link mt-3" href="{{ finance_request_link }}">Open message center</a>
-    </div>
-  </div>
-  {% endif %}
-  {% endif %}
-
-  <div class="row g-3 align-items-start backend-command-center-row">
-    <div class="col-12 col-xl-9 backend-command-main">
-  <script>
-  (function() {
-    async function loadCopilotMetrics() {
-      const roleList = document.getElementById('copilotRoleList');
-      const totalBadge = document.getElementById('copilotTotalBadge');
-      const deniedBadge = document.getElementById('copilotDeniedBadge');
-      const errorBadge = document.getElementById('copilotErrorBadge');
-      const lastSuccess = document.getElementById('copilotLastSuccess');
-      const lastError = document.getElementById('copilotLastError');
-      if (!roleList || !totalBadge || !deniedBadge) return;
-      try {
-        const res = await fetch('/api/observability/copilot-metrics/');
-        const data = await res.json();
-        if (!data || !data.success) {
-          roleList.innerHTML = '<li class="text-danger">Failed to load usage.</li>';
-          if (errorBadge) errorBadge.textContent = '--';
-          if (lastSuccess) lastSuccess.textContent = '--';
-          if (lastError) lastError.textContent = '--';
-          return;
-        }
-        totalBadge.textContent = `${data.total} total`;
-        deniedBadge.textContent = String(data.denied);
-        if (errorBadge) errorBadge.textContent = String(data.errors ?? 0);
-
-        const formatTs = (tsVal) => {
-          if (!tsVal) return '--';
-          const dt = new Date(tsVal * 1000);
-          if (Number.isNaN(dt.getTime())) return '--';
-          return dt.toLocaleTimeString();
-        };
-        if (lastSuccess) lastSuccess.textContent = formatTs(data.last_success_ts);
-        if (lastError) lastError.textContent = formatTs(data.last_error_ts);
-
-        if (errorBadge) {
-          const hasErrors = Number(data.errors || 0) > 0;
-          errorBadge.className = hasErrors ? 'badge bg-danger' : 'badge bg-light text-dark';
-        }
-        if (lastError) {
-          const hasErrors = Number(data.errors || 0) > 0 && data.last_error_ts;
-          lastError.className = hasErrors ? 'badge bg-danger' : 'badge bg-light text-dark';
-        }
-
-        const roles = Array.isArray(data.roles) ? data.roles : [];
-        if (roles.length === 0) {
-          roleList.innerHTML = '<li class="text-muted">No usage recorded.</li>';
-        } else {
-          roleList.innerHTML = '';
-          roles.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'd-flex justify-content-between mb-1';
-            const roleLabel = String(item.role || 'USER');
-            const countVal = Number(item.count || 0);
-            li.innerHTML = `
-              <span class="text-uppercase text-muted">${escapeHtml(roleLabel)}</span>
-              <strong class="text-dark">${countVal}</strong>
-            `;
-            roleList.appendChild(li);
-          });
-        }
-      } catch (e) {
-        roleList.innerHTML = '<li class="text-danger">Failed to load usage.</li>';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadCopilotMetrics);
-
-    async function loadCopilotConfig() {
-      const badge = document.getElementById('copilotConfigBadge');
-      if (!badge) return;
-      try {
-        const res = await fetch('/api/ai-copilot/config/');
-        const data = await res.json();
-        if (!data || !data.success) {
-          badge.textContent = 'Unavailable';
-          return;
-        }
-        const enabled = !!data.enabled;
-        const model = data.model ? String(data.model) : '--';
-        badge.textContent = enabled ? `Enabled (${model})` : 'Disabled';
-      } catch (e) {
-        badge.textContent = 'Error';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadCopilotConfig);
-
-    function markCopilotRefreshed() {
-      const ts = document.getElementById('copilotLastRefresh');
-      if (ts) {
-        ts.textContent = new Date().toLocaleTimeString();
-      }
-    }
-
-    async function loadCopilotLimits() {
-      const rem = document.getElementById('copilotLimitRemaining');
-      const reset = document.getElementById('copilotLimitReset');
-      if (!rem || !reset) return;
-      try {
-        const res = await fetch('/api/ai-copilot/limits/');
-        const data = await res.json();
-        if (!data || !data.success) {
-          rem.textContent = 'Unavailable';
-          reset.textContent = '--';
-          return;
-        }
-        const remaining = Number(data.remaining || 0);
-        const rateLimit = Number(data.rate_limit || 0);
-        const resetSec = Number(data.reset_in_seconds || 0);
-        rem.textContent = `${remaining} remaining / ${rateLimit}`;
-        // Format reset seconds to mm:ss
-        const mm = Math.floor(resetSec / 60);
-        const ss = Math.max(0, resetSec % 60);
-        const pad = (n) => String(n).padStart(2, '0');
-        reset.textContent = `${pad(mm)}:${pad(ss)}`;
-        markCopilotRefreshed();
-      } catch (e) {
-        rem.textContent = 'Error';
-        reset.textContent = '--';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadCopilotLimits);
-
-    async function loadCopilotAudit() {
-      const auditList = document.getElementById('copilotAuditList');
-      if (!auditList) return;
-      try {
-        const res = await fetch('/api/ai-copilot/audit/?limit=10');
-        const data = await res.json();
-        if (!data || !data.success) {
-          auditList.innerHTML = '<li class="text-danger">Failed to load audit.</li>';
-          return;
-        }
-        const items = Array.isArray(data.items) ? data.items : [];
-        if (items.length === 0) {
-          auditList.innerHTML = '<li class="text-muted">No recent AI activity.</li>';
-        } else {
-          auditList.innerHTML = '';
-          items.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'd-flex justify-content-between align-items-start mb-2';
-            const action = String(item.action || 'AI');
-            const when = String(item.when || '');
-            const user = String(item.user || '');
-            const sev = String(item.severity || 'INFO');
-            const sevClass = sev === 'WARNING' ? 'badge bg-warning text-dark' : (sev === 'ERROR' ? 'badge bg-danger' : 'badge bg-light text-dark');
-            li.innerHTML = `
-              <div>
-                <span class="fw-semibold">${escapeHtml(action)}</span>
-                <div class="text-muted small">${escapeHtml(user)}</div>
-              </div>
-              <div class="text-end">
-                <span class="${sevClass} me-1">${escapeHtml(sev)}</span>
-                <span class="badge bg-light text-dark">${escapeHtml(when)}</span>
-              </div>
-            `;
-            auditList.appendChild(li);
-          });
-        }
-      } catch (e) {
-        auditList.innerHTML = '<li class="text-danger">Failed to load audit.</li>';
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadCopilotAudit);
-    const auditRefresh = document.getElementById('copilotAuditRefresh');
-    if (auditRefresh) {
-      auditRefresh.addEventListener('click', function(evt) {
-        evt.preventDefault();
-        loadCopilotAudit();
-      });
-    }
-
-    // Auto-refresh lightweight widgets every 30s
-    document.addEventListener('DOMContentLoaded', function() {
-      setInterval(() => {
-        loadCopilotLimits();
-        loadCopilotAudit();
-        loadCopilotMetrics();
-        loadCopilotConfig();
-      }, 30000);
-    });
-  })();
-  </script>
-
-        <div id="dashboard-layout"
-           data-save-url="{{ dashboard_layout_url }}"
-           data-load-url="{{ dashboard_layout_url }}"
-           data-dashboard-column="main"
-       data-show-sidebar="{{ dashboard_settings.show_sidebar|yesno:'true,false' }}"
-       data-tile-variant="{{ dashboard_settings.tile_variant|default:'default' }}"
-       data-sidebar-items='{{ dashboard_settings.sidebar_items|default:"[]"|safe }}'
-       data-custom-links='{{ dashboard_settings.custom_links|default:"[]"|safe }}'
-       data-custom-drag-enabled="true"
-       data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
-       data-widget-config='{{ widget_meta_json }}'
-       data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
-
-  {% if chart_finance_status_json or chart_finance_trend_json %}
-  <!-- Row 1: Charts - Invoice status | Invoice trend -->
-  <div class="row g-2 mb-2 align-items-stretch">
-    {% if chart_finance_status_json %}
-    <div class="col-lg-6" data-widget-id="backend-finance-status-chart">
-      {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Invoice status" chart_data=chart_finance_status_json aria_label="Invoice status distribution" %}
-    </div>
-    {% endif %}
-    {% if chart_finance_trend_json %}
-    <div class="col-lg-6" data-widget-id="backend-finance-trend-chart">
-      {% include "components/dashboard_chart.html" with chart_id="backendFinanceTrendChart" chart_type="line" chart_title="Invoice trend (4 months)" chart_data=chart_finance_trend_json aria_label="Invoice total over last 4 months" %}
-    </div>
-    {% endif %}
-  </div>
-  {% endif %}
-
-  <!-- Row 2: Detail - Finance & trend | Attendance snapshot -->
-  <div class="row g-2 mb-2 align-items-stretch">
-    <div class="col-lg-6">
-      <div class="card modular-card h-100" data-widget-id="backend-finance-trend">
-        <div class="card-body">
-          <div class="card-title mb-2">
-            <h6 class="mb-0">Finance & trend</h6>
-            <span class="meta-tag">Receivables vs paid</span>
-          </div>
-          <div class="d-flex flex-wrap justify-content-between gap-2">
-            <div>
-              <div class="text-muted small">Receivables</div>
-              <div class="fs-5 fw-bold">{{ finance_summary.receivables|default:0|format_currency }}</div>
+  <div class="backend-v2-workspace">
+    <div
+      id="dashboard-layout"
+      class="backend-v2-workbench"
+      data-save-url="{{ dashboard_layout_url }}"
+      data-load-url="{{ dashboard_layout_url }}"
+      data-dashboard-column="main"
+      data-show-sidebar="{{ dashboard_settings.show_sidebar|yesno:'true,false' }}"
+      data-tile-variant="{{ dashboard_settings.tile_variant|default:'default' }}"
+      data-sidebar-items='{{ dashboard_settings.sidebar_items|default:"[]"|safe }}'
+      data-custom-links='{{ dashboard_settings.custom_links|default:"[]"|safe }}'
+      data-custom-drag-enabled="true"
+      data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
+      data-widget-config='{{ widget_meta_json }}'
+      data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
+      <div class="backend-v2-main-grid">
+        <div class="backend-v2-span-2" data-widget-id="backend-enrollment-trends">
+          {% if chart_enrollment_trend_json %}
+          {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False aria_label="Enrollment trend over recent months" %}
+          {% else %}
+          <article class="card backend-v2-panel">
+            <div class="card-body">
+              <h5 class="backend-v2-panel-title mb-2">Enrollment Trends</h5>
+              <div class="small text-muted">No enrollment trend data available yet.</div>
             </div>
-            <div>
-              <div class="text-muted small">Paid</div>
-              <div class="fs-5 fw-bold">{{ finance_summary.paid|default:0|format_currency }}</div>
-            </div>
-            <div>
-              <div class="text-muted small">Overdue</div>
-              <div class="fs-5 fw-bold text-danger">{{ finance_summary.overdue|default:0|format_number:0 }}</div>
-            </div>
-          </div>
-          <div class="d-flex gap-2 flex-wrap mt-2">
-            {% for point in finance_trend %}
-              <div class="trend-pill" style="padding: 0.75rem; min-width: 100px;">
-                <div class="trend-label" style="font-size: 0.65rem;">{{ point.label }}</div>
-                <div class="trend-value" style="font-size: 1.5rem;">{{ point.total|default:0|format_currency }}</div>
-              </div>
-            {% empty %}
-              <div class="trend-pill">
-                <div class="trend-label">Trend</div>
-                <div class="trend-value">--</div>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="d-flex flex-wrap gap-1 mt-2">
-            {% for stat in finance_status_counts %}
-              <span class="badge bg-light text-dark" style="font-size: 0.75rem;">{{ stat.status }}: {{ stat.count }}</span>
-            {% empty %}
-              <span class="small text-muted">No data</span>
-            {% endfor %}
-          </div>
+          </article>
+          {% endif %}
         </div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="card modular-card h-100" data-widget-id="backend-attendance-snapshot">
-        <div class="card-body">
-          <div class="card-title mb-2">
-            <h6 class="mb-0">Attendance snapshot</h6>
-            <span class="meta-tag">Weekly presence</span>
-          </div>
-          <div class="row g-1">
-            {% for label, count in attendance_counts.items %}
-              <div class="col-6">
-                <div class="text-muted small">{{ label }}</div>
-                <div class="fs-5 fw-semibold">{{ count }}</div>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="mt-2">
-            <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.8rem;">
-              <span>Progress</span>
-              <span>{{ attendance_trend_progress|default:0 }}%</span>
-            </div>
-            <div class="progress" style="height: 5px;">
-              <div class="progress-bar bg-success" role="progressbar" style="width:{{ attendance_trend_progress|default:0 }}%;" aria-valuenow="{{ attendance_trend_progress|default:0 }}" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>
-          </div>
-          <div class="d-flex gap-1 flex-wrap mt-2">
-            {% for day in attendance_trend|slice:":3" %}
-              <div class="text-center" style="flex: 1; min-width: 50px;">
-                <div class="small text-muted">{{ day.date|date:"D" }}</div>
-                <strong style="font-size: 0.95rem;">{{ day.present }}</strong>
-              </div>
-            {% empty %}
-              <div class="text-muted small">Pending data</div>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Row 5: Certification overview (if enabled) -->
-  {% if gce_enabled and certification_stats %}
-  <div class="row g-2 mb-2 align-items-stretch">
-    <div class="col-12">
-      <div class="card modular-card" data-widget-id="backend-certification-overview">
-        <div class="card-body">
-          <div class="card-title mb-3">
-            <h5><i class="bi bi-award text-danger me-2"></i>Certification & Exams</h5>
-            <span class="meta-tag">GCE / OBC Registration</span>
-          </div>
-          <div class="row g-3">
-            <div class="col-md-3 col-sm-6">
-              <div class="text-muted small">Active Sessions</div>
-              <div class="fs-4 fw-bold">{{ certification_stats.active_sessions }}</div>
+        <article class="card backend-v2-panel" data-widget-id="backend-recent-admissions">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">Recent Admissions</h5>
+              <a href="{{ quick_student_create_url }}" class="btn btn-sm btn-outline-primary">Add student</a>
             </div>
-            <div class="col-md-3 col-sm-6">
-              <div class="text-muted small">Total Candidates</div>
-              <div class="fs-4 fw-bold">{{ certification_stats.total_candidates }}</div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-              <div class="text-muted small">Draft</div>
-              <div class="fs-4 fw-bold text-warning">{{ certification_stats.draft_candidates }}</div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-              <div class="text-muted small">Verified</div>
-              <div class="fs-4 fw-bold text-success">{{ certification_stats.verified_candidates }}</div>
-            </div>
-          </div>
-          {% if certification_stats.sessions %}
-          <div class="mt-3">
-            <div class="small text-muted mb-2">Recent Sessions:</div>
-            <div class="d-flex flex-wrap gap-2">
-              {% for session in certification_stats.sessions %}
-              <a href="{% url 'accounts:certification_session_detail' session.id %}" class="btn btn-sm btn-outline-primary">
-                {{ session.name|truncatewords:4 }}
-              </a>
+            <div class="backend-v2-list">
+              {% for student in recent_admissions %}
+              <div class="backend-v2-list-item">
+                <div>
+                  <strong>{{ student.name }}</strong>
+                  <div class="small text-muted">{{ student.classroom }}</div>
+                </div>
+                <span class="badge text-bg-light">{{ student.admission_number }}</span>
+              </div>
+              {% empty %}
+              <div class="small text-muted">No recent admissions yet.</div>
               {% endfor %}
             </div>
           </div>
+        </article>
+
+        <div class="backend-v2-span-2" data-widget-id="backend-outstanding-fees">
+          {% if chart_finance_status_json %}
+          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False aria_label="Outstanding fees by invoice status" %}
+          {% else %}
+          <article class="card backend-v2-panel">
+            <div class="card-body">
+              <h5 class="backend-v2-panel-title mb-2">Outstanding Fees</h5>
+              <div class="small text-muted">No fee status data available yet.</div>
+            </div>
+          </article>
           {% endif %}
-          <div class="card-actions mt-3">
-            <a class="btn btn-sm btn-primary" href="{% url 'accounts:certification_home' %}">
-              <i class="bi bi-award me-1"></i>Open Certification Center
-            </a>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'admin:index' %}" title="{% trans 'Create session in Configuration Engine' %}">
-              <i class="bi bi-plus-circle me-1"></i>Create Session
-            </a>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:workflow_center' %}">
-              <i class="bi bi-diagram-3 me-1"></i>Workflow Center
-            </a>
-          </div>
         </div>
+
+        <article class="card backend-v2-panel" data-widget-id="backend-at-risk-students">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
+              <span class="badge text-bg-light">{{ at_risk_students|length }}</span>
+            </div>
+            <div class="backend-v2-list">
+              {% for student in at_risk_students %}
+              <div class="backend-v2-list-item">
+                <div>
+                  <strong>{{ student.name }}</strong>
+                  <div class="small text-muted">{{ student.classroom }} · {{ student.tag }}</div>
+                </div>
+                <span class="badge text-bg-warning">{{ student.value }}</span>
+              </div>
+              {% empty %}
+              <div class="small text-muted">No at-risk learners detected.</div>
+              {% endfor %}
+            </div>
+          </div>
+        </article>
+
+        <article class="card backend-v2-panel" data-widget-id="backend-recent-activity">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">Recent Activity</h5>
+              <span class="badge text-bg-light">Live feed</span>
+            </div>
+            <div class="backend-v2-list">
+              {% for activity in recent_activities|slice:":6" %}
+              <div class="backend-v2-list-item">
+                <div>
+                  <strong>{{ activity.object|truncatechars:40 }}</strong>
+                  <div class="small text-muted">{{ activity.user.get_full_name|default:activity.user.username }} · {{ activity.action }}</div>
+                </div>
+                <span class="small text-muted">{{ activity.time_ago }} ago</span>
+              </div>
+              {% empty %}
+              <div class="small text-muted">No recent activity available.</div>
+              {% endfor %}
+            </div>
+          </div>
+        </article>
+
+        <article class="card backend-v2-panel" data-widget-id="backend-top-performing">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">Top-Performing</h5>
+              <span class="badge text-bg-light">This term</span>
+            </div>
+            <div class="backend-v2-list">
+              {% for student in top_performing_students %}
+              <div class="backend-v2-list-item">
+                <div>
+                  <strong>{{ student.name }}</strong>
+                  <div class="small text-muted">{{ student.classroom }}</div>
+                </div>
+                <span class="badge text-bg-success">{{ student.score }}/20</span>
+              </div>
+              {% empty %}
+              <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
+              {% endfor %}
+            </div>
+          </div>
+        </article>
       </div>
     </div>
-  </div>
-  {% endif %}
 
-  <div class="row g-2 mb-2">
-    <div class="col-md-6">
-      <div class="card h-100" data-widget-id="backend-rbac-snapshot">
+    <aside class="backend-v2-rail" data-widget-id="backend-command-sidebar">
+      {% include 'components/backend_sidebar_calendar_clock.html' %}
+
+      {% if finance_requests_count %}
+      <article class="card backend-v2-panel mb-3" data-widget-id="backend-finance-alerts">
+        <div class="card-body">
+          <div class="backend-v2-panel-head">
+            <h6 class="backend-v2-panel-title mb-0">Finance Requests</h6>
+            <span class="badge text-bg-warning">{{ finance_requests_count }}</span>
+          </div>
+          <div class="small text-muted mb-2">Pending parent finance access requests.</div>
+          <a class="btn btn-sm btn-outline-primary w-100" href="{{ finance_request_link }}">Review requests</a>
+        </div>
+      </article>
+      {% endif %}
+
+      <div class="card mb-3 backend-ops-watch-card" data-widget-id="backend-ops-watch">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="mb-0">RBAC snapshot</h5>
-            <span class="badge bg-secondary">{{ roles|length }} roles</span>
+            <h6 class="mb-0">Operations watch</h6>
+            <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">Live - {{ local_time|date:"h:i A" }}</span>
           </div>
-          <p class="text-muted small mb-3">
-            Pre-set templates ensure Admin, Leadership, Teacher, and Parent portals stay granular yet manageable.
-          </p>
-          <ul class="list-unstyled small mb-0">
-            {% for role in roles|slice:":4" %}
-              <li class="d-flex justify-content-between">
-                <span>{{ role.name }}</span>
-                <strong>{{ role.permissions.count }} perms</strong>
-              </li>
-            {% endfor %}
-          </ul>
-          {% if roles|length > 4 %}
-            <p class="small text-muted mt-3">...and {{ roles|length|add:"-4" }} more roles.</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6">
-      <div class="card h-100" data-widget-id="backend-permissions-overview">
-        <div class="card-body">
-          <h5 class="mb-2">Permissions overview</h5>
-          <div class="d-flex flex-wrap gap-2">
-            {% for perm in permissions|slice:":6" %}
-              <span class="badge bg-light text-dark">{{ perm.code }}</span>
-            {% endfor %}
-          </div>
-          {% if permissions|length > 6 %}
-            <p class="small text-muted mt-3">Additional permissions power finance, reports, settings, and data exports.</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Entity Management + Charts (2-column) -->
-  <div class="row g-2 mb-2 align-items-stretch backend-entity-charts-row">
-    <div class="col-lg-6 d-flex flex-column">
-      <div class="card h-100" data-widget-id="react-entity-management">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start mb-3">
-            <div>
-              <h5 class="mb-1">Entity Management (React)</h5>
-              <p class="text-muted small mb-0">
-                Manage students, teachers, and groups using React components with TanStack Query.
-              </p>
-            </div>
-            <span class="badge bg-primary">React</span>
-          </div>
-          <div id="react-student-crud-container" class="mb-3"></div>
-          <div id="react-teacher-crud-container" class="mb-3"></div>
-          <div id="react-group-management-container"></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6 d-flex flex-column">
-      <div class="d-flex flex-column gap-2 h-100">
-        {% if chart_rbac_roles_json %}
-        <div class="flex-fill" data-widget-id="backend-rbac-chart">
-          {% include "components/dashboard_chart.html" with chart_id="backendRbacChart" chart_type="bar" chart_title="Users per RBAC role" chart_data=chart_rbac_roles_json aria_label="Number of users assigned to each RBAC role" %}
-        </div>
-        {% endif %}
-        {% if chart_attendance_donut_json %}
-        <div class="flex-fill" data-widget-id="backend-attendance-chart">
-          {% include "components/dashboard_chart.html" with chart_id="backendAttendanceChart" chart_type="doughnut" chart_title="Teacher attendance (today)" chart_data=chart_attendance_donut_json aria_label="Teacher attendance by status today" %}
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Frontend orchestration (beta) - LAST ITEM -->
-  <div class="card mb-2" data-widget-id="backend-entity-orchestrator">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <h5 class="mb-1">Frontend orchestration (beta)</h5>
-          <p class="text-muted small mb-0">
-            Drive CRUD from the frontend using the new `/api/entities/*` endpoints and stage bulk updates before committing.
-          </p>
-        </div>
-        <span class="badge bg-light text-dark">Headless ready</span>
-      </div>
-      <form id="bulkAssignForm" class="mt-3">
-        <div class="row g-3">
-          <div class="col-lg-4">
-            <label class="form-label small text-uppercase text-muted">Student IDs</label>
-            <textarea class="form-control" name="student_ids" rows="2" placeholder="e.g., 12, 14, 18"></textarea>
-            <div class="form-text">Paste IDs to stage the change.</div>
-          </div>
-          <div class="col-lg-4">
-            <label class="form-label small text-uppercase text-muted">Classroom</label>
-            <select id="bulkClassroomSelect" class="form-select">
-              <option value="">Loading classrooms...</option>
-            </select>
-          </div>
-          <div class="col-lg-2">
-            <label class="form-label small text-uppercase text-muted">Academic year</label>
-            <input class="form-control" name="academic_year" type="number" placeholder="Optional ID">
-          </div>
-          <div class="col-lg-2">
-            <label class="form-label small text-uppercase text-muted">Specialty</label>
-            <input class="form-control" name="specialty" type="number" placeholder="Optional ID">
-          </div>
-        </div>
-        <div class="d-flex gap-2 align-items-center mt-3">
-          <button class="btn btn-primary btn-sm" type="submit">Sync assignments</button>
-          <div id="bulkAssignStatus" class="small text-muted"></div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Keyboard Shortcuts -->
-  {% include 'components/keyboard_shortcuts.html' %}
-
-  </div> <!-- /dashboard-layout -->
-    </div>
-    <aside class="col-12 col-xl-3 backend-command-sidebar backend-right-sidebar" data-widget-id="backend-command-sidebar">
-      <div class="sidebar-sticky">
-        {% include 'components/backend_sidebar_calendar_clock.html' %}
-        <div class="card mb-3 backend-copilot-usage-card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="mb-0">Copilot Usage</h6>
-              <span class="badge bg-light text-dark" id="copilotTotalBadge">0 total</span>
-            </div>
-            <ul class="list-unstyled mb-2 small" id="copilotRoleList">
-              <li class="text-muted">Loading usage...</li>
-            </ul>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="small text-muted">Denied</span>
-              <span class="badge bg-light text-dark" id="copilotDeniedBadge">0</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <span class="small text-muted">Config</span>
-              <span class="badge bg-light text-dark" id="copilotConfigBadge">Disabled</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <span class="small text-muted">Rate limit</span>
-              <span class="badge bg-light text-dark" id="copilotLimitRemaining">0 remaining</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Resets</span>
-              <span class="badge bg-light text-dark" id="copilotLimitReset">--</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Refreshed</span>
-              <span class="badge bg-light text-dark" id="copilotLastRefresh">--</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Errors</span>
-              <span class="badge bg-light text-dark" id="copilotErrorBadge">0</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Last success</span>
-              <span class="badge bg-light text-dark" id="copilotLastSuccess">--</span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <span class="small text-muted">Last error</span>
-              <span class="badge bg-light text-dark" id="copilotLastError">--</span>
-            </div>
-          </div>
-        </div>
-        <div class="card mb-3 backend-copilot-audit-card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="mb-0">Copilot Audit</h6>
-              <button type="button" class="btn btn-link btn-sm text-muted p-0" id="copilotAuditRefresh">Refresh</button>
-            </div>
-            <ul class="list-unstyled mb-0 small" id="copilotAuditList">
-              <li class="text-muted">Loading audit...</li>
-            </ul>
-          </div>
-        </div>
-        <div class="card mb-3 backend-ops-watch-card" data-widget-id="backend-ops-watch">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="mb-0">Operations watch</h6>
-              <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">Live - {{ local_time|date:"h:i A" }}</span>
-            </div>
-            <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}">
-              {% for item in operations_watch %}
-              <div class="backend-ops-item {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}" data-ops-key="{{ item.key }}">
-                <div class="backend-ops-item-left">
-                  <span class="backend-ops-dot"></span>
-                  <a href="{{ item.url }}">
-                    <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
-                  </a>
-                </div>
-                <strong>{{ item.value }}</strong>
+          <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}">
+            {% for item in operations_watch %}
+            <div class="backend-ops-item {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}" data-ops-key="{{ item.key }}">
+              <div class="backend-ops-item-left">
+                <span class="backend-ops-dot"></span>
+                <a href="{{ item.url }}">
+                  <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
+                </a>
               </div>
-              {% endfor %}
-              <div class="backend-ops-item {% if ops_watch_finance_requests > 0 %}is-warn{% endif %}" data-ops-key="finance_requests">
-                <div class="backend-ops-item-left">
-                  <span class="backend-ops-dot"></span>
-                  <a href="{{ finance_request_link }}">
-                    <i class="bi bi-wallet2 me-1"></i>Finance requests
-                  </a>
-                </div>
-                <strong>{{ ops_watch_finance_requests|default:0 }}</strong>
-              </div>
+              <strong>{{ item.value }}</strong>
             </div>
-            <div class="d-grid gap-1">
-              <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:workflow_center' %}">Open workflow</a>
-              <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">Open finance</a>
+            {% endfor %}
+            <div class="backend-ops-item {% if ops_watch_finance_requests > 0 %}is-warn{% endif %}" data-ops-key="finance_requests">
+              <div class="backend-ops-item-left">
+                <span class="backend-ops-dot"></span>
+                <a href="{{ finance_request_link }}">
+                  <i class="bi bi-wallet2 me-1"></i>Finance requests
+                </a>
+              </div>
+              <strong>{{ ops_watch_finance_requests|default:0 }}</strong>
             </div>
           </div>
         </div>
-        <div class="card mb-3 backend-quick-links-card" data-widget-id="backend-quick-links">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h6 class="mb-0">Quick Links</h6>
-              <span class="badge bg-light text-dark">Shortcuts</span>
-            </div>
-            <div class="backend-quick-links-list">
-              {% for quick in quick_links %}
-              <a class="backend-quick-link" href="{{ quick.url }}" data-quick-link-id="{{ quick.id|default:'' }}">
-                <span><i class="bi {{ quick.icon }} me-1"></i>{{ quick.label }}</span>
-                <i class="bi bi-chevron-right small"></i>
-              </a>
-              {% empty %}
-              <div class="small text-muted">No quick links available for this role.</div>
-              {% endfor %}
-            </div>
+      </div>
+
+      <div class="card mb-3 backend-quick-links-card" data-widget-id="backend-quick-links">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Quick Links</h6>
+            <span class="badge bg-light text-dark">Shortcuts</span>
+          </div>
+          <div class="backend-quick-links-list">
+            {% for quick in quick_links %}
+            <a class="backend-quick-link" href="{{ quick.url }}" data-quick-link-id="{{ quick.id|default:'' }}">
+              <span><i class="bi {{ quick.icon }} me-1"></i>{{ quick.label }}</span>
+              <i class="bi bi-chevron-right small"></i>
+            </a>
+            {% empty %}
+            <div class="small text-muted">No quick links available for this role.</div>
+            {% endfor %}
           </div>
         </div>
       </div>
     </aside>
   </div>
-
   {{ command_palette|json_script:"backend-command-palette-data" }}
   <div id="backendCommandPalette" class="backend-cmd-palette" aria-hidden="true">
     <div class="backend-cmd-overlay" data-cmd-close></div>
@@ -1406,7 +373,7 @@
       if (typeof Chart === 'undefined' || !window.DashboardChartsShared) return;
       var shared = window.DashboardChartsShared;
       var charts = {};
-      ['backendFinanceStatusChart', 'backendFinanceTrendChart', 'backendAttendanceChart', 'backendRbacChart'].forEach(function(chartId) {
+      ['backendEnrollmentTrendChart', 'backendFinanceStatusChart'].forEach(function(chartId) {
         var configEl = document.querySelector('[data-chart-config="' + chartId + '"]');
         if (!configEl) return;
         try {
@@ -1441,142 +408,6 @@
       initBackendCharts();
     }
   })();
-  </script>
-  <script src="{% static 'js/entity-orchestrator.js' %}"></script>
-  <script src="{% static 'js/react-components-integrated.js' %}"></script>
-  
-  <!-- Initialize React Components -->
-  <script>
-    (function() {
-      // Wait for React libraries to load
-      function initReactComponents() {
-        if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
-          console.warn('React not loaded yet, retrying...');
-          setTimeout(initReactComponents, 100);
-          return;
-        }
-        
-        // Initialize React Query
-        if (typeof ReactQuery !== 'undefined') {
-          const { QueryClient, QueryClientProvider } = ReactQuery;
-          if (!window.ReactQueryClient) {
-            window.ReactQueryClient = new QueryClient({
-              defaultOptions: {
-                queries: {
-                  refetchOnWindowFocus: false,
-                  retry: 1,
-                  staleTime: 5 * 60 * 1000,
-                },
-              },
-            });
-          }
-        }
-        
-        // Initialize React helpers
-        if (window.initReactComponents) {
-          window.initReactComponents();
-        }
-        
-        // Mount React components if containers exist
-        const studentContainer = document.getElementById('react-student-crud-container');
-        const teacherContainer = document.getElementById('react-teacher-crud-container');
-        const groupContainer = document.getElementById('react-group-management-container');
-        
-        if (studentContainer && window.StudentCrudComponent) {
-          const root = ReactDOM.createRoot(studentContainer);
-          root.render(React.createElement(window.StudentCrudComponent, { student: null }));
-        }
-        
-        if (teacherContainer && window.TeacherCrudComponent) {
-          const root = ReactDOM.createRoot(teacherContainer);
-          root.render(React.createElement(window.TeacherCrudComponent, { teacher: null }));
-        }
-        
-        if (groupContainer && window.GroupManagementComponent) {
-          // Fetch groups and students for group management
-          fetch('/api/entities/classrooms/')
-            .then(r => r.json())
-            .then(groups => {
-              return fetch('/api/entities/students/')
-                .then(r => r.json())
-                .then(students => {
-                  const root = ReactDOM.createRoot(groupContainer);
-                  root.render(React.createElement(window.GroupManagementComponent, { 
-                    groups: groups.results || groups || [],
-                    students: students.results || students || []
-                  }));
-                });
-            })
-            .catch(err => console.error('Failed to load data for group management:', err));
-        }
-      }
-      
-      // Start initialization when DOM is ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initReactComponents);
-      } else {
-        initReactComponents();
-      }
-    })();
-  </script>
-  <script>
-    (function() {
-      const form = document.getElementById('bulkAssignForm');
-      const statusEl = document.getElementById('bulkAssignStatus');
-      if (!form || !window.EntityOrchestrator) return;
-
-      window.EntityOrchestrator.populateClassrooms('bulkClassroomSelect');
-
-      form.addEventListener('submit', async function(evt) {
-        evt.preventDefault();
-        statusEl.textContent = 'Syncing...';
-        const studentIds = window.EntityOrchestrator.parseIds(form.student_ids.value);
-        const classroomId = form.querySelector('#bulkClassroomSelect').value;
-        const academicYear = form.academic_year.value;
-        const specialty = form.specialty.value;
-
-        if (!studentIds.length || !classroomId) {
-          statusEl.textContent = 'Provide at least one student ID and a classroom.';
-          statusEl.className = 'small text-danger';
-          return;
-        }
-
-        try {
-          const payload = {
-            student_ids: studentIds,
-            classroom: classroomId || null,
-          };
-          if (academicYear) payload.academic_year = academicYear;
-          if (specialty) payload.specialty = specialty;
-          const result = await window.EntityOrchestrator.bulkAssignStudents(payload);
-          statusEl.textContent = `Updated ${result.updated || 0} students.`;
-          statusEl.className = 'small text-success';
-        } catch (err) {
-          const reason = (err && err.payload && err.payload.error) || err.message || 'Failed';
-          statusEl.textContent = reason;
-          statusEl.className = 'small text-danger';
-        }
-      });
-    })();
-  </script>
-  <script>
-    (function() {
-      if (!window.EntityOrchestrator) return;
-      window.EntityOrchestrator.fetchSessionClaims().then((claims) => {
-        const role = (claims.role || '').toUpperCase();
-        const extraRoles = (claims.roles || []).map((r) => (r || '').toUpperCase());
-        document.body.dataset.userRole = role;
-        document.body.dataset.userRoles = extraRoles.join(',');
-        const allowedRoles = new Set([role, ...extraRoles]);
-        document.querySelectorAll('[data-role-required]').forEach((el) => {
-          const requirement = (el.dataset.roleRequired || '').split(',').map((r) => r.trim().toUpperCase());
-          const allowed = requirement.some((r) => allowedRoles.has(r));
-          if (!allowed) {
-            el.classList.add('d-none');
-          }
-        });
-      }).catch(() => {});
-    })();
   </script>
   <script>
     (function () {
