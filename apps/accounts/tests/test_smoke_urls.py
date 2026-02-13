@@ -56,6 +56,10 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         """Frontend admin: canonical URL is under authentication."""
         self.assertEqual(reverse("accounts:backend_dashboard"), "/authentication/backend/")
 
+    def test_admin_dashboard(self):
+        """No-regression: admin dashboard (obs) path."""
+        self.assertEqual(reverse("admin_dashboard"), "/admin/dashboard/")
+
     def test_six_critical_paths_resolve(self):
         """Plan Phase 0: all six critical URLs must resolve."""
         critical = [

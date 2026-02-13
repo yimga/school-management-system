@@ -7,6 +7,8 @@ from django.core.cache import cache
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
+from apps.dashboard.action_registry import get_backend_dashboard_actions
+
 
 def _safe_reverse(name: str, fallback: str = "#") -> str:
     try:
@@ -349,31 +351,20 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         },
     ]
 
-    primary_ctas = [
-        {"label": "Manage Staff", "icon": "bi-person-gear", "url": _safe_reverse("accounts:backend_teacher_list", _safe_reverse("accounts:backend_dashboard"))},
-        {"label": "School Settings", "icon": "bi-building-gear", "url": _safe_reverse("siteconfig:customizer", _safe_reverse("siteconfig:user_preferences"))},
-    ]
-
-    action_chips = [
-        _build_nav_item("Workflow Center", "bi-diagram-3", _safe_reverse("accounts:workflow_center"), allow=True),
-        _build_nav_item("Messages", "bi-chat-dots", _safe_reverse("accounts:user_messages"), allow=can_use_messages),
-        _build_nav_item("Report Card Builder", "bi-file-earmark-richtext", _safe_reverse("siteconfig:reportcard_builder"), allow=can_manage_reports),
-        _build_nav_item("My Preferences", "bi-sliders", _safe_reverse("siteconfig:user_preferences"), allow=True),
-        _build_nav_item("Configuration Engine", "bi-gear-wide-connected", _safe_reverse("admin:index"), allow=can_manage_settings),
-    ]
-    action_chips = _dedupe_nav_items([item for item in action_chips if item])
-
-    welcome_action_grid = [
-        _build_nav_item("Add Student", "bi-person-plus", _safe_reverse("accounts:backend_student_create", _safe_reverse("admin:index")), item_id="add_student", allow=can_manage_people),
-        _build_nav_item("Add Teacher", "bi-person-badge", _safe_reverse("accounts:backend_teacher_create", _safe_reverse("admin:index")), item_id="add_teacher", allow=can_manage_people),
-        _build_nav_item("Onboard Student", "bi-mortarboard", _safe_reverse("portal:student_onboarding"), item_id="onboard_student", allow=can_manage_people),
-        _build_nav_item("Create Invoice", "bi-receipt", _safe_reverse("finance:dashboard"), item_id="create_invoice", allow=can_manage_finance),
-        _build_nav_item("Manage Exams", "bi-journal-text", _safe_reverse("reports:publish_term_results"), item_id="manage_exams", allow=can_manage_reports),
-        _build_nav_item("Announcements", "bi-megaphone", _safe_reverse("communication:announcement_create"), item_id="announcements", allow=can_use_messages),
-        _build_nav_item("Roles & Permissions", "bi-shield-lock", _safe_reverse("accounts:rbac"), item_id="roles_permissions", allow=can_manage_rbac),
-        _build_nav_item("Document Library", "bi-folder2-open", _safe_reverse("portal:document_library_manage"), item_id="document_library", allow=can_manage_settings),
-    ]
-    welcome_action_grid = _dedupe_nav_items([item for item in welcome_action_grid if item])
+    perms = {
+        "can_manage_settings": can_manage_settings,
+        "can_manage_people": can_manage_people,
+        "can_manage_finance": can_manage_finance,
+        "can_manage_reports": can_manage_reports,
+        "can_use_messages": can_use_messages,
+        "can_manage_rbac": can_manage_rbac,
+    }
+    actions = get_backend_dashboard_actions(perms, _safe_reverse, _build_nav_item, _dedupe_nav_items)
+    primary_ctas = actions["primary_ctas"]
+    action_chips = actions["action_chips"]
+    welcome_action_grid = actions["welcome_action_grid"]
+    quick_links = actions["quick_links"]
+    command_palette = actions["command_palette"]
 
     if role_code in {"BURSAR", "FINANCE_STAFF"}:
         finance_console = _build_nav_item(
@@ -386,16 +377,6 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         if finance_console:
             welcome_action_grid.insert(0, finance_console)
 
-    quick_links = [
-        _build_nav_item("Import Grades", "bi-upload", _safe_reverse("evals:grade_import_upload"), item_id="import_grades", allow=can_manage_reports),
-        _build_nav_item("Exams", "bi-journal-check", _safe_reverse("reports:publish_term_results"), item_id="exams", allow=can_manage_reports),
-        _build_nav_item("Certification", "bi-award", _safe_reverse("accounts:certification_home"), item_id="certification", allow=can_manage_reports),
-        _build_nav_item("Documents", "bi-folder2", _safe_reverse("portal:document_library_manage"), item_id="documents", allow=can_manage_settings),
-        _build_nav_item("Workflow Center", "bi-diagram-3", _safe_reverse("accounts:workflow_center"), item_id="workflow_center", allow=True),
-        _build_nav_item("Preferences", "bi-sliders", _safe_reverse("siteconfig:user_preferences"), item_id="preferences", allow=True),
-    ]
-    quick_links = _dedupe_nav_items([item for item in quick_links if item])
-
     pinned_order = []
     try:
         prefs = getattr(user, "dashboard_preferences", None)
@@ -406,17 +387,6 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     if pinned_order:
         order_map = {key: idx for idx, key in enumerate(pinned_order)}
         quick_links.sort(key=lambda x: order_map.get(x.get("id", ""), 999))
-
-    command_palette = [
-        _build_nav_item("Add Student", "bi-person-plus", _safe_reverse("accounts:backend_student_create", _safe_reverse("admin:index")), allow=can_manage_people),
-        _build_nav_item("Manage Staff", "bi-people", _safe_reverse("accounts:backend_teacher_list", _safe_reverse("accounts:backend_dashboard")), allow=can_manage_people),
-        _build_nav_item("Manage Exams", "bi-journal-check", _safe_reverse("reports:publish_term_results"), allow=can_manage_reports),
-        _build_nav_item("Import Grades", "bi-upload", _safe_reverse("evals:grade_import_upload"), allow=can_manage_reports),
-        _build_nav_item("Finance Dashboard", "bi-cash-stack", _safe_reverse("finance:dashboard"), allow=can_manage_finance),
-        _build_nav_item("School Settings", "bi-building-gear", _safe_reverse("siteconfig:customizer", _safe_reverse("siteconfig:user_preferences")), allow=can_manage_settings),
-        _build_nav_item("Workflow Center", "bi-diagram-3", _safe_reverse("accounts:workflow_center"), allow=True),
-    ]
-    command_palette = _dedupe_nav_items([item for item in command_palette if item])
 
     return {
         "local_time": now,

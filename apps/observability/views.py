@@ -519,6 +519,20 @@ def admin_dashboard(request):
     _db_vendor = _conn.vendor
     _db_display = {'sqlite': 'SQLite3', 'postgresql': 'PostgreSQL', 'mysql': 'MySQL', 'oracle': 'Oracle'}.get(_db_vendor, _db_vendor.title())
 
+    from django.urls import reverse
+    from django.urls.exceptions import NoReverseMatch
+
+    def _safe_reverse(name, fallback="#"):
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            return fallback
+        except Exception:
+            return fallback
+
+    from apps.dashboard.action_registry import get_admin_header_actions
+    header_actions = get_admin_header_actions(_safe_reverse)
+
     context = {
         'total_users': total_users,
         'admin_count': admin_count,
@@ -538,6 +552,7 @@ def admin_dashboard(request):
         'is_debug': _settings.DEBUG,
         'admin_palette': {},
         'preview_data': None,
+        'header_actions': header_actions,
     }
-    
+
     return render(request, 'admin/admin_dashboard.html', context)

@@ -224,6 +224,14 @@ body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog .help {
   color: var(--admin-content-text, #0f172a);
 }
 
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card .admin-dashboard-palette-name {
+  color: var(--card-fg, var(--admin-content-text, #0f172a));
+}
+
+body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-card .admin-dashboard-palette-desc {
+  color: var(--card-fg, var(--admin-content-text-muted, #64748b));
+}
+
 body.app-siteconfig.model-sitesettings.change-form .admin-dashboard-palette-desc,
 body.app-siteconfig.model-sitesettings.change-form .theme-pack-catalog-hint {
   color: var(--admin-content-text-muted, #64748b);
