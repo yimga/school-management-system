@@ -55,6 +55,13 @@ BACKEND_COMMAND_PALETTE = [
     {"label": "Workflow Center", "icon": "bi-diagram-3", "url_name": "accounts:workflow_center", "allow_key": "always"},
 ]
 
+# Admin dashboard (obs): header actions only; single Customizer entry to avoid duplicate CTAs
+ADMIN_HEADER_ACTIONS = [
+    {"label": "My Preferences", "url_name": "siteconfig:user_preferences", "fallback_url_name": "admin:index", "css_class": "admin-dash__header-action", "append_next": True},
+    {"label": "Backend Console", "url_name": "accounts:backend_dashboard", "fallback_url_name": "admin:index", "css_class": "admin-dash__header-action"},
+    {"label": "Customizer", "url_name": "siteconfig:customizer", "fallback_url_name": "siteconfig:user_preferences", "css_class": "admin-dash__header-action admin-dash__header-action--primary"},
+]
+
 
 def _resolve_actions(
     specs: List[Dict[str, Any]],
@@ -105,3 +112,18 @@ def get_backend_dashboard_actions(
         "quick_links": quick_links,
         "command_palette": command_palette,
     }
+
+
+def get_admin_header_actions(safe_reverse: Callable[[str, str], str]) -> List[Dict[str, Any]]:
+    """Resolve admin dashboard header actions from registry (single source; no duplicate Customizer)."""
+    out = []
+    for s in ADMIN_HEADER_ACTIONS:
+        url = safe_reverse(s["url_name"], s.get("fallback_url_name", "#"))
+        if url and url != "#":
+            out.append({
+                "label": s["label"],
+                "url": url,
+                "css_class": s.get("css_class", ""),
+                "append_next": s.get("append_next", False),
+            })
+    return out

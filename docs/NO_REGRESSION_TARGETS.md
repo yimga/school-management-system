@@ -1,15 +1,17 @@
 # No-Regression Targets (Dashboard & Theme Master Plan)
 
-Lock these URLs and areas for manual or automated checks before/after changes. Used by Phase 1 and Phase 9.
+Lock these URLs and areas for manual or automated checks before/after changes. Used by Phase 1 and Phase 9. Smoke tests lock resolution in `apps.accounts.tests.test_smoke_urls`.
 
-## Key URLs
+## Key URLs (locked by smoke tests where noted)
 
-| Target | URL / path | Notes |
-|--------|------------|--------|
-| Django Admin | `/admin/` | Login, dashboard, Site Settings (theme pack catalog) |
-| Backend dashboard | `/authentication/backend/` or app backend dashboard URL | Welcome block, Overview, chip row, action grid, side rail |
-| Teacher dashboard | Teacher dashboard URL | Role-adaptive, layout |
-| Parent dashboard | Parent dashboard URL | Role-adaptive, layout |
+| Target | URL path | URL name | Notes |
+|--------|----------|----------|--------|
+| Django Admin | `/admin/` | `admin:index` | Login, dashboard, Site Settings (theme pack catalog) |
+| Admin dashboard (obs) | `/admin/dashboard/` | `admin_dashboard` | Admin overview UI |
+| Backend dashboard | `/authentication/backend/` | `accounts:backend_dashboard` | Welcome block, Overview, chip row, action grid, side rail |
+| Teacher dashboard | `/evals/teacher/` | `evals:teacher_dashboard` | Role-adaptive, layout |
+| Parent dashboard | `/portal/parent/` | `portal:parent_dashboard` | Role-adaptive, layout |
+| Login | `/authentication/login/` | `accounts:login` | Auth entry |
 
 ## Preflight (Phase 1)
 

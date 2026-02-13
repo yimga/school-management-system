@@ -26,3 +26,6 @@ jobs:
 
       - name: Smoke test (URL resolution, no DB)
         run: python manage.py test apps.accounts.tests.test_smoke_urls -v 1
+
+      - name: Theme stress matrix (templates + token CSS)
+        run: python manage.py test apps.siteconfig.tests.test_theme_visibility_matrix -v 1

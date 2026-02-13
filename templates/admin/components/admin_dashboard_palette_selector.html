@@ -231,6 +231,16 @@
   if (field.value) setSelected(field.value);
   syncCardStatusBadges();
 
+  if (window.ContrastGuard && typeof window.ContrastGuard.textColorForBackground === 'function') {
+    cards.forEach(function(card) {
+      var bg = (card.dataset.surface || card.dataset.dashboardBg || '#f8fafc').trim();
+      if (bg) {
+        var fg = window.ContrastGuard.textColorForBackground(bg);
+        card.style.setProperty('--card-fg', fg);
+      }
+    });
+  }
+
   function applyFilter(value) {
     var query = normalizeText(value).trim();
     var visible = 0;

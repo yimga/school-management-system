@@ -181,7 +181,7 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
         {% if preview_data.preview_mode_enabled %}
           <a href="{% url 'siteconfig:clear_preview' %}" class="btn btn-sm btn-outline-secondary" title="Clear staged preview">Clear preview</a>
         {% endif %}
-        <a href="{% url 'siteconfig:customizer' %}" class="btn btn-sm btn-primary" title="Open the Site Settings preview customizer">Open customizer</a>
+        {# Customizer: single entry in header (admin-dash__header-actions); no duplicate here #}
       </div>
       <div class="preview-status-card__colors">
         <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.primary }};">Primary</span>
@@ -201,9 +201,13 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
           </div>
         </div>
         <div class="admin-dash__header-actions">
+          {% for action in header_actions %}
+          <a href="{{ action.url }}{% if action.append_next %}?next={{ request.path|urlencode }}{% endif %}" class="{{ action.css_class }}">{% trans action.label %}</a>
+          {% empty %}
           <a href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}" class="admin-dash__header-action">{% trans "My Preferences" %}</a>
           <a href="{% url 'accounts:backend_dashboard' %}" class="admin-dash__header-action">{% trans "Backend Console" %}</a>
           <a href="{% url 'siteconfig:customizer' %}" class="admin-dash__header-action admin-dash__header-action--primary">{% trans "Customizer" %}</a>
+          {% endfor %}
         </div>
       </div>
       <p class="admin-dash__tagline">{% trans "System monitoring and backend administration" %}</p>
