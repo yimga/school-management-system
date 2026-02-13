@@ -37,8 +37,6 @@
 {% endblock %}
 
 {% block content %}
-  {% include 'components/admin_nav_bridge.html' %}
-  
   {% admin_health as health %}
 
   <div class="backend-v2-shell">
@@ -73,6 +71,36 @@
               </div>
             </article>
             {% endfor %}
+          </div>
+        </div>
+
+        <div class="backend-v2-ops-quick-row" data-widget-id="backend-v2-ops-quick">
+          <div class="backend-v2-ops-quick-inner">
+            <div class="backend-v2-ops-section">
+              <span class="backend-v2-ops-quick-label">Operations watch</span>
+              <div class="backend-v2-ops-chips">
+                {% for item in operations_watch %}
+                <a class="backend-v2-ops-chip" href="{{ item.url }}">
+                  <span class="backend-v2-ops-dot {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}"></span>
+                  <i class="bi {{ item.icon }} me-1"></i>{{ item.label }} <strong>{{ item.value }}</strong>
+                </a>
+                {% endfor %}
+                <a class="backend-v2-ops-chip" href="{{ finance_request_link }}">
+                  <span class="backend-v2-ops-dot {% if ops_watch_finance_requests > 0 %}is-warn{% endif %}"></span>
+                  <i class="bi bi-wallet2 me-1"></i>Finance requests <strong>{{ ops_watch_finance_requests|default:0 }}</strong>
+                </a>
+              </div>
+            </div>
+            <div class="backend-v2-quick-section">
+              <span class="backend-v2-ops-quick-label">Quick Links</span>
+              <div class="backend-v2-ops-chips">
+                {% for quick in quick_links %}
+                <a class="backend-v2-ops-chip" href="{{ quick.url }}"><i class="bi {{ quick.icon }} me-1"></i>{{ quick.label }}</a>
+                {% empty %}
+                <span class="small text-muted">No quick links for this role.</span>
+                {% endfor %}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -114,41 +142,6 @@
           </div>
         </div>
       </section>
-
-      <aside class="backend-v2-side">
-        <div class="backend-v2-side-card" data-widget-id="backend-v2-admin-portal">
-          <div class="backend-v2-side-head">
-            <h3 class="backend-v2-side-title">Admin Portal</h3>
-            <a class="backend-v2-chip" href="{% url 'accounts:workflow_center' %}">
-              <i class="bi bi-diagram-3"></i>
-              <span>Workflow</span>
-            </a>
-          </div>
-          <p class="backend-v2-side-meta">Snapshots, systems, and workflows</p>
-
-          <div class="backend-v2-side-grid">
-            {% for item in admin_portal.academics %}
-            <div class="backend-v2-mini">
-              <span>Academics - {{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </div>
-            {% endfor %}
-            {% for item in admin_portal.accounts %}
-            <div class="backend-v2-mini">
-              <span>Accounts - {{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </div>
-            {% endfor %}
-            {% for item in admin_portal.finance %}
-            <div class="backend-v2-mini">
-              <span>Finance - {{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </div>
-            {% endfor %}
-          </div>
-
-        </div>
-      </aside>
     </div>
   </div>
 
@@ -285,69 +278,6 @@
     </div>
 
     <aside class="backend-v2-rail" data-widget-id="backend-command-sidebar">
-      <div class="card mb-3 backend-ops-watch-card" data-widget-id="backend-ops-watch">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0">Operations watch</h6>
-            <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">Live - {{ local_time|date:"h:i A" }}</span>
-          </div>
-          <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}">
-            {% for item in operations_watch %}
-            <div class="backend-ops-item {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}" data-ops-key="{{ item.key }}">
-              <div class="backend-ops-item-left">
-                <span class="backend-ops-dot"></span>
-                <a href="{{ item.url }}">
-                  <i class="bi {{ item.icon }} me-1"></i>{{ item.label }}
-                </a>
-              </div>
-              <strong>{{ item.value }}</strong>
-            </div>
-            {% endfor %}
-            <div class="backend-ops-item {% if ops_watch_finance_requests > 0 %}is-warn{% endif %}" data-ops-key="finance_requests">
-              <div class="backend-ops-item-left">
-                <span class="backend-ops-dot"></span>
-                <a href="{{ finance_request_link }}">
-                  <i class="bi bi-wallet2 me-1"></i>Finance requests
-                </a>
-              </div>
-              <strong>{{ ops_watch_finance_requests|default:0 }}</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card mb-3 backend-quick-links-card" data-widget-id="backend-quick-links">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0">Quick Links</h6>
-            <span class="badge bg-light text-dark">Shortcuts</span>
-          </div>
-          <div class="backend-quick-links-list">
-            {% for quick in quick_links %}
-            <a class="backend-quick-link" href="{{ quick.url }}" data-quick-link-id="{{ quick.id|default:'' }}">
-              <span><i class="bi {{ quick.icon }} me-1"></i>{{ quick.label }}</span>
-              <i class="bi bi-chevron-right small"></i>
-            </a>
-            {% empty %}
-            <div class="small text-muted">No quick links available for this role.</div>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-
-      {% if finance_requests_count %}
-      <article class="card backend-v2-panel mb-3" data-widget-id="backend-finance-alerts">
-        <div class="card-body">
-          <div class="backend-v2-panel-head">
-            <h6 class="backend-v2-panel-title mb-0">Finance Requests</h6>
-            <span class="badge text-bg-warning">{{ finance_requests_count }}</span>
-          </div>
-          <div class="small text-muted mb-2">Pending parent finance access requests.</div>
-          <a class="btn btn-sm btn-outline-primary w-100" href="{{ finance_request_link }}">Review requests</a>
-        </div>
-      </article>
-      {% endif %}
-
       {% include 'components/backend_sidebar_calendar_clock.html' %}
     </aside>
   </div>

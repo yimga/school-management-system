@@ -1,5 +1,6 @@
 /* Dashboard drag/drop widget controls + size/variant styling.
-   Kept lightweight: works with existing Bootstrap cards/tiles without changing HTML. */
+   Kept lightweight: works with existing Bootstrap cards/tiles without changing HTML.
+   Layout and containment rules: see docs/DASHBOARD_LAYOUT_RULES.md */
 
 [data-widget-id].dash-widget,
 [data-widget-id] {
@@ -317,4 +318,46 @@ html[data-theme="light"] .dash-widget-row select {
 /* Instructions bar (shown in edit mode via JS) */
 #dashboard-customize-instructions.d-none {
   display: none !important;
+}
+
+/* Codebase-wide dashboard containment: no spillage as data grows */
+[data-dashboard-page] .backend-v2-panel,
+[data-dashboard-page] .card.backend-v2-panel,
+[data-dashboard-page] [data-widget-id] .card-body {
+  min-width: 0;
+  overflow: hidden;
+}
+[data-dashboard-page] .backend-v2-panel-title,
+[data-dashboard-page] .card-title.backend-v2-panel-title,
+[data-dashboard-page] [data-widget-id] .card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+[data-dashboard-page] .backend-v2-list,
+[data-dashboard-page] .backend-v2-list-item > div {
+  min-width: 0;
+  overflow: hidden;
+}
+[data-dashboard-page] .backend-v2-list-item strong,
+[data-dashboard-page] .backend-v2-list-item .small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+/* Compact empty states: no huge vertical gaps when "No data" / empty list */
+[data-dashboard-page] .backend-v2-list:has(> .small.text-muted:only-child) {
+  padding: 0.35rem 0;
+  min-height: 0;
+}
+[data-dashboard-page] .backend-v2-panel .card-body:has(> .backend-v2-panel-title + .small.text-muted:last-child) {
+  padding-bottom: 0.6rem;
+  min-height: 0;
+}
+[data-dashboard-page] .backend-v2-panel .card-body:has(> .small.text-muted:only-child) {
+  padding: 0.6rem 1rem;
+  min-height: 0;
 }

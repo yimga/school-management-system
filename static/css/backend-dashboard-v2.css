@@ -6,7 +6,7 @@ body[data-dashboard-page="backend"] .backend-v2-shell {
 
 body[data-dashboard-page="backend"] .backend-v2-grid {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.6rem;
   align-items: stretch;
 }
@@ -138,6 +138,88 @@ body[data-dashboard-page="backend"] .backend-v2-metric.is-danger .backend-v2-met
   color: var(--brand-danger, #ef4444);
 }
 
+/* Horizontal Operations Watch + Quick Links row (no redundancy with rail) */
+body[data-dashboard-page="backend"] .backend-v2-ops-quick-row {
+  background: var(--admin-surface, var(--dashboard-surface, #ffffff));
+  border: 1px solid var(--admin-border, var(--dashboard-border, #cbd5e1));
+  border-radius: 14px;
+  box-shadow: var(--admin-shadow, var(--dashboard-shadow-soft, 0 4px 14px rgba(2, 6, 23, 0.08)));
+  padding: 0.6rem 1rem;
+  min-width: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-quick-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-section,
+body[data-dashboard-page="backend"] .backend-v2-quick-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-quick-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--admin-muted, #64748b);
+  flex-shrink: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  border: 1px solid var(--admin-border, #cbd5e1);
+  background: color-mix(in srgb, var(--dashboard-theme-primary, #3b82f6) 6%, var(--admin-surface, #fff) 92%);
+  color: var(--admin-text, #0f172a);
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-chip:hover {
+  border-color: var(--dashboard-theme-primary, #3b82f6);
+  background: color-mix(in srgb, var(--dashboard-theme-primary, #3b82f6) 12%, var(--admin-surface, #fff) 88%);
+  color: var(--admin-text, #0f172a);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--admin-muted, #94a3b8);
+  flex-shrink: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-dot.is-warn {
+  background: var(--brand-warning, #f59e0b);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-ops-dot.is-danger {
+  background: var(--brand-danger, #ef4444);
+}
+
 body[data-dashboard-page="backend"] .backend-v2-welcome {
   margin-top: 0;
   padding: 0.7rem 1rem;
@@ -184,6 +266,7 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
   justify-content: center;
   gap: 0.38rem;
   min-height: 34px;
+  min-width: 0;
   border-radius: 999px;
   padding: 0.32rem 0.7rem;
   border: 1px solid var(--admin-border, #cbd5e1);
@@ -192,6 +275,15 @@ body[data-dashboard-page="backend"] .backend-v2-chip {
   text-decoration: none;
   font-size: 0.8rem;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body[data-dashboard-page="backend"] .backend-v2-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-chip:hover,
@@ -221,6 +313,15 @@ body[data-dashboard-page="backend"] .backend-v2-action {
   text-decoration: none;
   font-size: 0.78rem;
   font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body[data-dashboard-page="backend"] .backend-v2-action span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   min-width: 0;
 }
 

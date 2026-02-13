@@ -1002,10 +1002,16 @@
         </div>
 
         {% if request.user.is_authenticated %}
-          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{{ portal_home_url }}">
+          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{{ portal_home_url }}" title="{% trans 'Portal Home' %}">
             <i class="bi bi-house"></i>
-            <span class="d-none d-sm-inline">Home</span>
+            <span class="d-none d-sm-inline">{% if is_backend_context %}{% trans "Portal Home" %}{% else %}{% trans "Home" %}{% endif %}</span>
           </a>
+          {% if is_backend_context and request.user.is_superuser %}
+          <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{% url 'admin:index' %}" title="{% trans 'Configuration Engine' %}">
+            <i class="bi bi-gear-wide-connected"></i>
+            <span class="d-none d-md-inline">{% trans "Configuration Engine" %}</span>
+          </a>
+          {% endif %}
           {% if is_backend_context %}
           <button
             type="button"
@@ -1106,10 +1112,8 @@
                   <i class="bi bi-gear" aria-hidden="true"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenuDropdown">
-                  {% if is_backend_context and request.user.is_superuser %}
+                  {% if not is_backend_context %}
                   <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear-wide-connected"></i> {% trans "Configuration Engine" %}</a></li>
-                  {% elif not is_backend_context %}
-                  <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Django Admin</a></li>
                   {% endif %}
                   <li><a class="dropdown-item" href="{% url 'admin:activity_logs' %}"><i class="bi bi-clock-history"></i> Activity Logs</a></li>
                   <li><a class="dropdown-item" href="{% url 'admin:system_health' %}"><i class="bi bi-heart-pulse"></i> System Health</a></li>
@@ -1168,7 +1172,7 @@
             {% endif %}
 
             {% if dashboard_stats_cards %}
-              <div class="mb-3">
+              <div class="mb-3 dashboard-stats-bar">
                 <div class="section-title">
                   <i class="bi bi-graph-up-arrow"></i>
                   <span>Dashboard Stats</span>
@@ -1176,7 +1180,7 @@
                 <div class="row g-2">
                   {% for stat in dashboard_stats_cards %}
                   <div class="col-6 col-xl-3">
-                    <div style="{{ stat.card_style }} border-radius: 10px; padding: 0.75rem;">
+                    <div class="dashboard-stat-card" style="{{ stat.card_style }} border-radius: 10px; padding: 0.75rem;">
                       <div style="display: flex; align-items: center; justify-content: space-between;">
                         <span class="dashboard-stat-label" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">{{ stat.label }}</span>
                         <span style="{{ stat.badge_style }} padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">{{ stat.value }}</span>
