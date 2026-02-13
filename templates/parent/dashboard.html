@@ -1201,6 +1201,35 @@
 
   .parent-content-row {
     --bs-gutter-y: 0.8rem;
+    align-items: stretch;
+  }
+
+  /* Left column: flex column so Homework block sits at bottom and aligns with Finance & Documents */
+  .parent-content-row > .col-lg-8 {
+    display: flex;
+    flex-direction: column;
+  }
+  .parent-content-row > .col-lg-8 > .parent-children-section {
+    flex: 0 0 auto;
+  }
+  .parent-content-row > .col-lg-8 > #next-up.metrics-section {
+    margin-top: auto;
+    flex: 0 0 auto;
+  }
+  #next-up .card {
+    min-height: 200px;
+  }
+  /* Sidebar: equal-height cards so last card (Finance & Documents) flushes with Homework */
+  .parent-content-row > .parent-sidebar-col .sidebar-sticky {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .parent-content-row > .parent-sidebar-col .parent-sidebar-card {
+    flex: 0 0 auto;
+  }
+  .parent-content-row > .parent-sidebar-col .parent-sidebar-card:last-child {
+    margin-bottom: 0;
   }
 
   .parent-content-row .metrics-section {
@@ -1322,6 +1351,65 @@
     .parent-workflow-strip .card-body {
       padding: 0.85rem;
     }
+  }
+
+  /* Compact vertical height: reduce padding/margins so dashboard is visibly shorter */
+  .parent-dashboard .container-lg {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+  }
+  .parent-dashboard .container-lg.py-4 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  .parent-dashboard-header {
+    padding: 0.5rem 0.75rem !important;
+    margin-bottom: 0.45rem !important;
+  }
+  .parent-dashboard-header .dashboard-header {
+    gap: 0.3rem 0.75rem !important;
+  }
+  .parent-dashboard-header .dashboard-title {
+    gap: 0.15rem !important;
+  }
+  .parent-dashboard-header h1 {
+    font-size: 1.2rem !important;
+    line-height: 1.25 !important;
+  }
+  .parent-dashboard-header p {
+    font-size: 0.8rem !important;
+    line-height: 1.25 !important;
+  }
+  .parent-dashboard-widgets .alert.mb-3 {
+    margin-bottom: 0.4rem !important;
+    padding: 0.35rem 0.6rem !important;
+  }
+  .parent-glance-section .section-title.mb-2 {
+    margin-bottom: 0.25rem !important;
+  }
+  .parent-glance-section .parent-glance-grid {
+    gap: 0.5rem !important;
+  }
+  .parent-dashboard-shell .parent-glance-card {
+    min-height: 64px !important;
+    padding: 0.4rem 0.55rem !important;
+  }
+  .parent-glance-card .mb-1 {
+    margin-bottom: 0.1rem !important;
+  }
+  .parent-glance-card .small {
+    font-size: 0.75rem !important;
+  }
+  .parent-workflow-strip {
+    margin-top: 0.4rem !important;
+    margin-bottom: 0.4rem !important;
+  }
+  .parent-workflow-strip .card-body {
+    padding: 0.5rem 0.7rem !important;
+  }
+  .parent-dashboard-widgets .row.mb-3,
+  .parent-dashboard-widgets .mb-4 {
+    margin-bottom: 0.5rem !important;
   }
 </style>
 {% endblock %}

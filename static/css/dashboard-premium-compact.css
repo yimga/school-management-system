@@ -14,11 +14,21 @@ body[data-dashboard-page="parent"] .parent-dashboard {
     linear-gradient(180deg, rgba(248, 250, 255, 0.95), rgba(242, 247, 255, 0.92));
 }
 
+/* Parent: compact vertical height (stats bar in portal_base) */
+body.dashboard-page-parent .dashboard-stats-bar,
+body[data-dashboard-page="parent"] .dashboard-stats-bar {
+  margin-bottom: 0.35rem !important;
+}
+body.dashboard-page-parent .dashboard-stat-card,
+body[data-dashboard-page="parent"] .dashboard-stat-card {
+  padding: 0.4rem 0.5rem !important;
+}
+
 body[data-dashboard-page="parent"] .parent-dashboard .container-lg {
   max-width: none;
   width: 100%;
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
 }
 
 body[data-dashboard-page="parent"] .parent-dashboard-header {
@@ -26,7 +36,22 @@ body[data-dashboard-page="parent"] .parent-dashboard-header {
   border: 1px solid rgba(148, 163, 184, 0.28);
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 255, 0.9));
   box-shadow: var(--premium-shadow-md);
-  padding: 0.95rem 1rem;
+  padding: 0.5rem 0.75rem !important;
+  margin-bottom: 0.45rem !important;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-header .dashboard-header {
+  gap: 0.3rem 0.75rem !important;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-header .dashboard-title {
+  gap: 0.15rem !important;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-header h1 {
+  font-size: 1.2rem !important;
+  line-height: 1.25 !important;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-header p {
+  font-size: 0.8rem !important;
+  line-height: 1.25 !important;
 }
 
 body[data-dashboard-page="parent"] .dashboard-eyebrow {
@@ -56,8 +81,15 @@ body[data-dashboard-page="parent"] .parent-glance-card {
   border: 1px solid rgba(148, 163, 184, 0.25);
   box-shadow: var(--premium-shadow-sm);
   border-radius: var(--premium-radius-md);
-  min-height: 105px;
+  min-height: 64px !important;
+  padding: 0.4rem 0.55rem !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+body[data-dashboard-page="parent"] .parent-glance-section .section-title {
+  margin-bottom: 0.25rem !important;
+}
+body[data-dashboard-page="parent"] .parent-glance-section .parent-glance-grid {
+  gap: 0.5rem !important;
 }
 
 body[data-dashboard-page="parent"] .parent-glance-card:hover {
@@ -66,15 +98,15 @@ body[data-dashboard-page="parent"] .parent-glance-card:hover {
 }
 
 body[data-dashboard-page="parent"] .parent-workflow-strip {
-  margin-top: 0.9rem;
-  margin-bottom: 0.95rem;
+  margin-top: 0.4rem !important;
+  margin-bottom: 0.4rem !important;
   border: 1px solid rgba(148, 163, 184, 0.25);
   background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--premium-shadow-sm);
 }
 
 body[data-dashboard-page="parent"] .parent-workflow-strip .card-body {
-  padding: 0.95rem 1rem;
+  padding: 0.5rem 0.7rem !important;
 }
 
 body[data-dashboard-page="parent"] .parent-content-row {
@@ -107,7 +139,15 @@ body[data-dashboard-page="parent"] .parent-sidebar-card .card-body {
 }
 
 body[data-dashboard-page="parent"] .section-title {
-  margin-bottom: 0.6rem !important;
+  margin-bottom: 0.35rem !important;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-widgets .alert.mb-3 {
+  margin-bottom: 0.4rem !important;
+  padding: 0.35rem 0.6rem !important;
+}
+body[data-dashboard-page="parent"] .parent-dashboard-widgets .row.mb-3,
+body[data-dashboard-page="parent"] .parent-dashboard-widgets .mb-4 {
+  margin-bottom: 0.5rem !important;
 }
 
 body[data-dashboard-page="teacher"] .tdm-bg {
