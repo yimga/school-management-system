@@ -40,7 +40,8 @@
   {% admin_health as health %}
 
   {# Optional: load status strip via HTMX so initial render does not wait on this data #}
-  <div id="backend-status-fragment" class="backend-status-fragment-placeholder" style="min-height:2rem; padding:0.25rem 0;"
+  <div class="backend-dashboard-content">
+  <div id="backend-status-fragment" class="backend-status-fragment-placeholder backend-status-fragment--compact"
        hx-get="{% url 'accounts:backend_dashboard_status_fragment' %}"
        hx-trigger="load"
        hx-swap="innerHTML"
@@ -82,9 +83,16 @@
                 <i class="bi {{ metric.icon }}"></i>
               </div>
               <div class="backend-v2-metric-value">{{ metric.value }}</div>
+              {% if metric.sparkline_points %}
+              <div class="backend-v2-sparkline-wrap" aria-hidden="true">
+                <svg class="backend-v2-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" width="100%" height="24">
+                  <polyline class="backend-v2-sparkline-line" fill="none" stroke="currentColor" stroke-width="1.2" points="{{ metric.sparkline_points }}"/>
+                </svg>
+              </div>
+              {% endif %}
               <div class="backend-v2-metric-meta">
                 <span>{{ metric.meta }}</span>
-                <span>{{ metric.delta }}</span>
+                {% if metric.delta %}<span>{{ metric.delta }}</span>{% endif %}
               </div>
             </article>
             {% endfor %}
@@ -141,7 +149,14 @@
           </div>
           <p class="backend-v2-side-meta">Snapshots, systems, and workflows</p>
 
-          {% include "components/backend_datetime_weather.html" %}
+          <div class="backend-dtw-and-calendar">
+            <div class="backend-dtw-and-calendar__dtw">
+              {% include "components/backend_datetime_weather.html" %}
+            </div>
+            <div class="backend-dtw-and-calendar__cal">
+              {% include "components/backend_mini_calendar.html" %}
+            </div>
+          </div>
 
           <div class="backend-v2-side-grid">
             {% for item in admin_portal.academics %}
@@ -189,10 +204,10 @@
           {% if chart_enrollment_trend_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label="Enrollment trend over recent months" %}
           {% else %}
-          <article class="card backend-v2-panel">
+          <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">
-              <h5 class="backend-v2-panel-title mb-2">Enrollment Trends</h5>
-              <div class="small text-muted">No enrollment trend data available yet.</div>
+              <h5 class="backend-v2-panel-title mb-1">Enrollment Trends</h5>
+              <p class="small text-muted mb-0">No enrollment trend data yet. Add students with join dates to see trends.</p>
             </div>
           </article>
           {% endif %}
@@ -224,16 +239,16 @@
           {% if chart_finance_status_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
           {% else %}
-          <article class="card backend-v2-panel">
+          <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">
-              <h5 class="backend-v2-panel-title mb-2">Outstanding Fees</h5>
-              <div class="small text-muted">No fee status data available yet.</div>
+              <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
+              <p class="small text-muted mb-0">No fee status data yet. Create invoices to see breakdown here.</p>
             </div>
           </article>
           {% endif %}
         </div>
 
-        <article class="card backend-v2-panel" data-widget-id="backend-at-risk-students">
+        <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
@@ -249,7 +264,7 @@
                 <span class="badge text-bg-warning">{{ student.value }}</span>
               </div>
               {% empty %}
-              <div class="small text-muted">No at-risk learners detected.</div>
+              <p class="small text-muted mb-0">No at-risk learners detected.</p>
               {% endfor %}
             </div>
           </div>
@@ -333,7 +348,7 @@
         </div>
       </div>
 
-      <div class="card mb-3 backend-quick-links-card" data-widget-id="backend-quick-links">
+      <div class="card mb-3 backend-quick-links-card {% if not quick_links %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-quick-links">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">Quick Links</h6>
@@ -346,7 +361,31 @@
               <i class="bi bi-chevron-right small"></i>
             </a>
             {% empty %}
-            <div class="small text-muted">No quick links available for this role.</div>
+            <p class="small text-muted mb-1">No shortcuts for your role.</p>
+            <a class="backend-empty-quick-action" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-1"></i>Add in Preferences</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3 backend-quick-links-card {% if not upcoming_events %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-upcoming-events">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Upcoming events</h6>
+            <a class="badge bg-light text-dark text-decoration-none" href="{% url 'portal:unified_calendar' %}">View calendar</a>
+          </div>
+          <div class="backend-quick-links-list">
+            {% for item in upcoming_events %}
+            <div class="backend-quick-link d-flex align-items-start gap-2 small py-1">
+              <span class="badge bg-secondary text-white flex-shrink-0" style="font-size: 0.65rem;">{{ item.when|format_date }}</span>
+              <div class="min-width-0">
+                <span class="fw-medium">{{ item.title|truncatechars:36 }}</span>
+                {% if item.detail %}<div class="text-muted" style="font-size: 0.7rem;">{{ item.detail|truncatechars:32 }}</div>{% endif %}
+              </div>
+            </div>
+            {% empty %}
+            <p class="small text-muted mb-1">No upcoming events.</p>
+            <a class="backend-empty-quick-action" href="{% url 'portal:unified_calendar' %}"><i class="bi bi-calendar3 me-1"></i>View calendar</a>
             {% endfor %}
           </div>
         </div>
@@ -398,6 +437,7 @@
       <div id="backendCommandResults" class="backend-cmd-results"></div>
     </div>
   </div>
+  </div><!-- .backend-dashboard-content -->
 
 {% endblock %}
 

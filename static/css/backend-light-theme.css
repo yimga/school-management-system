@@ -75,8 +75,16 @@ body.portal-backend-light .sidebar .sidebar-info p {
 }
 
 body.portal-backend-light .sidebar .nav-link.nav-pill:hover,
-body.portal-backend-light .sidebar .nav-link.nav-pill.active {
-  color: #0f172a !important;
+body.portal-backend-light .sidebar .nav-link.nav-pill.active,
+body.portal-backend-light .sidebar .nav-link.nav-pill[aria-current="page"] {
+  color: var(--school-primary, #0f172a) !important;
+}
+body.portal-backend-light .sidebar .nav-link.nav-pill.active,
+body.portal-backend-light .sidebar .nav-link.nav-pill[aria-current="page"] {
+  background: color-mix(in srgb, var(--school-primary, #6366f1) 12%, transparent) !important;
+}
+body.portal-backend-light .sidebar-avatar {
+  background: linear-gradient(135deg, var(--school-primary, #6366f1), var(--school-accent, #22c55e)) !important;
 }
 
 body.portal-backend-light .breadcrumb,

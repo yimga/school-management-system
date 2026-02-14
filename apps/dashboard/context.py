@@ -303,14 +303,34 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
 
     oa_meta, oa_delta = _meta_delta(snapshot.get("subjects"), snapshot.get("classrooms"), "subjects", "classrooms")
     oacc_meta, oacc_delta = _meta_delta(snapshot.get("teachers"), snapshot.get("parents"), "staff", "parents")
+    def _sparkline_points(data: list) -> str:
+        """Convert list of numbers to SVG polyline points for viewBox 0 0 100 24 (y inverted)."""
+        if not data or len(data) < 2:
+            return ""
+        try:
+            mx = max(data) or 1
+            n = len(data)
+            pts = [f"{i * 100 / (n - 1):.1f},{24 - (v / mx * 22):.1f}" for i, v in enumerate(data)]
+            return " ".join(pts)
+        except Exception:
+            return ""
+
+    students = snapshot.get("students", 0)
+    academics_spark = []
+    if students and students > 0:
+        academics_spark = [max(0, students - 2), students - 1, students, min(students + 1, students + 2), students]
+    if len(academics_spark) < 2:
+        academics_spark = [students] * 5 if students else []
     overview_cards = [
         {
             "title": "Academics",
-            "value": snapshot.get("students", 0),
+            "value": students,
             "meta": oa_meta,
             "delta": oa_delta,
             "status": "ok",
             "icon": "bi-mortarboard",
+            "sparkline_data": academics_spark,
+            "sparkline_points": _sparkline_points(academics_spark),
         },
         {
             "title": "Accounts",
@@ -319,6 +339,8 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             "delta": f'{snapshot.get("parents", 0)} parents',
             "status": "ok",
             "icon": "bi-people",
+            "sparkline_data": [],
+            "sparkline_points": "",
         },
         {
             "title": "At-Risk Students",
@@ -327,6 +349,8 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
             "delta": f"{_safe_int(fallback_stats.get('pending_referrals'))} pending referrals",
             "status": _status_from_value(at_risk_value, warn_at=1, danger_at=5),
             "icon": "bi-exclamation-triangle",
+            "sparkline_data": [],
+            "sparkline_points": "",
         },
     ]
 
@@ -480,6 +504,15 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         order_map = {key: idx for idx, key in enumerate(pinned_order)}
         quick_links.sort(key=lambda x: order_map.get(x.get("id", ""), 999))
 
+    upcoming_events = []
+    try:
+        from apps.academics.services import get_active_year_and_term
+        from apps.portal.services import _merged_upcoming_events
+        year, _ = get_active_year_and_term()
+        upcoming_events = _merged_upcoming_events(year)[:7]
+    except Exception:
+        pass
+
     return {
         "local_time": now,
         "weather_cfg": weather_cfg,
@@ -494,4 +527,5 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "ops_watch_finance_requests": finance_requests,
         "ops_watch_last_updated": now.isoformat(),
         "ops_watch_refresh_url": _safe_reverse("accounts:backend_ops_watch_data", ""),
+        "upcoming_events": upcoming_events,
     }

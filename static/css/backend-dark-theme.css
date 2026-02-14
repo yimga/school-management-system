@@ -317,16 +317,21 @@ body.portal-backend-dark .sidebar .sidebar-info p {
 
 body.portal-backend-dark .sidebar .nav-link.nav-pill:hover {
   background: rgba(148, 163, 184, 0.12) !important;
-  color: #f1f5f9 !important;
+  color: var(--school-primary, #a5b4fc) !important;
 }
 
-body.portal-backend-dark .sidebar .nav-link.nav-pill.active {
-  background: rgba(99, 102, 241, 0.25) !important;
-  color: #a5b4fc !important;
+body.portal-backend-dark .sidebar .nav-link.nav-pill.active,
+body.portal-backend-dark .sidebar .nav-link.nav-pill[aria-current="page"] {
+  background: color-mix(in srgb, var(--school-primary, #6366f1) 25%, transparent) !important;
+  color: var(--school-primary, #a5b4fc) !important;
 }
 
 body.portal-backend-dark .sidebar .sidebar-header {
   border-bottom-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+body.portal-backend-dark .sidebar-avatar {
+  background: linear-gradient(135deg, var(--school-primary, #6366f1), var(--school-accent, #22c55e)) !important;
 }
 
 body.portal-backend-dark .breadcrumb,
@@ -369,7 +374,7 @@ body.portal-backend-dark .btn-primary:hover {
 
 body.portal-backend-dark .nav-pill:hover,
 body.portal-backend-dark .nav-pill.active {
-  background: rgba(99, 102, 241, 0.2) !important;
+  background: color-mix(in srgb, var(--school-primary, #6366f1) 20%, transparent) !important;
 }
 
 /* Badges: all readable on dark; never dark text on dark bg */

@@ -1,13 +1,70 @@
 /* Backend dashboard v2 (theme-token driven) */
+
+/* Compactness: tighten spacing between header row and Overview/Admin (Phase 0) */
+body[data-dashboard-page="backend"] .page-wrap > div.mb-3:first-child {
+  margin-bottom: 0.5rem !important;
+}
+body[data-dashboard-page="backend"] .backend-status-fragment-placeholder.backend-status-fragment--compact {
+  min-height: 1.5rem;
+  padding: 0.15rem 0;
+}
 body[data-dashboard-page="backend"] .backend-v2-shell {
-  margin-top: 0.35rem;
-  margin-bottom: 0.4rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.35rem;
+}
+body[data-dashboard-page="backend"] .backend-v2-grid {
+  gap: 0.3rem;
+}
+body[data-dashboard-page="backend"] .backend-v2-main {
+  gap: 0.3rem;
+}
+body[data-dashboard-page="backend"] .backend-v2-overview {
+  padding: 0.55rem 0.75rem;
+}
+body[data-dashboard-page="backend"] .backend-v2-overview-head {
+  margin-bottom: 0.5rem;
+}
+body[data-dashboard-page="backend"] .backend-v2-welcome {
+  padding: 0.55rem 0.75rem;
+}
+body[data-dashboard-page="backend"] .backend-v2-side-card {
+  padding: 0.55rem 0.75rem;
+}
+
+/* Admin Portal: date/time/weather + mini calendar in one row (Phase 1) */
+body[data-dashboard-page="backend"] .backend-dtw-and-calendar {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+  margin-bottom: 0.35rem;
+  border-top: 1px solid var(--admin-border, #cbd5e1);
+  padding-top: 0.4rem;
+}
+body[data-dashboard-page="backend"] .backend-dtw-and-calendar__dtw {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+body[data-dashboard-page="backend"] .backend-dtw-and-calendar__dtw .backend-dtw {
+  margin-top: 0;
+  margin-bottom: 0;
+  border-top: none;
+  padding-top: 0;
+}
+body[data-dashboard-page="backend"] .backend-dtw-and-calendar__cal {
+  flex: 0 0 auto;
+}
+body[data-dashboard-page="backend"] .backend-dtw-and-calendar .backend-mini-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
-  gap: 0.4rem;
+  gap: 0.3rem;
   align-items: stretch;
 }
 
@@ -19,7 +76,7 @@ body[data-dashboard-page="backend"] .backend-v2-side {
 body[data-dashboard-page="backend"] .backend-v2-main {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side {
@@ -36,7 +93,7 @@ body[data-dashboard-page="backend"] .backend-v2-side-card {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-overview {
-  padding: 0.75rem 0.85rem;
+  padding: 0.55rem 0.75rem;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-overview-head {
@@ -44,7 +101,7 @@ body[data-dashboard-page="backend"] .backend-v2-overview-head {
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   flex-wrap: wrap;
 }
 
@@ -138,9 +195,22 @@ body[data-dashboard-page="backend"] .backend-v2-metric.is-danger .backend-v2-met
   color: var(--brand-danger, #ef4444);
 }
 
+body[data-dashboard-page="backend"] .backend-v2-sparkline-wrap {
+  margin-top: 0.35rem;
+  height: 24px;
+  opacity: 0.85;
+}
+body[data-dashboard-page="backend"] .backend-v2-sparkline {
+  display: block;
+  color: var(--school-primary, var(--chart-color-1, #6366f1));
+}
+body[data-dashboard-page="backend"] .backend-v2-sparkline-line {
+  vector-effect: non-scaling-stroke;
+}
+
 body[data-dashboard-page="backend"] .backend-v2-welcome {
   margin-top: 0;
-  padding: 0.7rem 0.85rem;
+  padding: 0.55rem 0.75rem;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-welcome-top {
@@ -614,6 +684,45 @@ body[data-dashboard-page="backend"] .backend-v2-panel-head > .badge {
   flex-shrink: 0;
 }
 
+/* Compact empty-state panels */
+body[data-dashboard-page="backend"] .backend-v2-panel--empty .card-body {
+  padding: 0.6rem 0.8rem;
+  padding-right: 2.5rem;
+  min-height: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-panel--empty .backend-v2-panel-title {
+  margin-bottom: 0.15rem;
+}
+
+body[data-dashboard-page="backend"] .backend-empty-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+body[data-dashboard-page="backend"] .backend-empty-quick-action {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.28rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--admin-border, #cbd5e1);
+  background: color-mix(in srgb, var(--dashboard-theme-primary, #3b82f6) 8%, var(--admin-surface, #fff) 92%);
+  color: var(--admin-text, #0f172a);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+body[data-dashboard-page="backend"] .backend-empty-quick-action:hover,
+body[data-dashboard-page="backend"] .backend-empty-quick-action:focus-visible {
+  color: #fff;
+  border-color: var(--dashboard-theme-primary, #3b82f6);
+  background: linear-gradient(135deg, var(--dashboard-theme-primary, #3b82f6), var(--dashboard-theme-accent, #06b6d4));
+}
+
 body[data-dashboard-page="backend"] .backend-v2-list {
   display: grid;
   gap: 0.42rem;
@@ -757,12 +866,12 @@ body[data-dashboard-page="backend"] .backend-v2-shell {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-grid {
-  gap: 0.4rem;
+  gap: 0.3rem;
   align-items: stretch;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main {
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-card {
