@@ -30,6 +30,13 @@ def main():
         "payroll/dashboard.html",
         "analytics/dashboard.html",
         "compliance/dashboard.html",
+        "siteconfig/theme_colors.html",  # Theme & Experience
+    ]
+    base_templates_with_guard = [
+        "base.html",
+        "portal_base.html",
+        "admin/base_site.html",
+        "admin/login.html",
     ]
 
     print("\nOK Test 1: Template Syntax for Theme Support")
@@ -39,6 +46,38 @@ def main():
             print(f"  OK {template_name}: Loads successfully")
         except Exception as exc:
             print(f"  ERROR {template_name}: Error - {exc}")
+
+    print("\nOK Test 1b: Base Templates Load theme-visibility-guard.css")
+    for template_name in base_templates_with_guard:
+        try:
+            t = get_template(template_name)
+            content = t.origin.loader.get_contents(t.origin)
+            if isinstance(content, bytes):
+                content = content.decode("utf-8", errors="replace")
+            if "theme-visibility-guard.css" in content:
+                print(f"  OK {template_name}: Loads guard")
+            else:
+                print(f"  WARN {template_name}: Does not reference theme-visibility-guard.css")
+        except Exception as exc:
+            print(f"  ERROR {template_name}: {exc}")
+
+    print("\nOK Test 1c: Guard CSS File (--vis-* and .theme-experience-page)")
+    guard_path = os.path.join(_project_root, "static", "css", "theme-visibility-guard.css")
+    if os.path.isfile(guard_path):
+        with open(guard_path, "r", encoding="utf-8") as f:
+            guard_content = f.read()
+        checks = [
+            ("--vis-text", "Guard defines --vis-text"),
+            ("--vis-text-muted", "Guard defines --vis-text-muted"),
+            (".theme-experience-page", "Guard styles .theme-experience-page"),
+        ]
+        for pattern, label in checks:
+            if pattern in guard_content:
+                print(f"  OK {label}")
+            else:
+                print(f"  WARN {label}: not found in theme-visibility-guard.css")
+    else:
+        print(f"  WARN theme-visibility-guard.css not found at {guard_path}")
 
     print("\nOK Test 2: CSS Color Definitions (Dark & Light Mode)")
     color_checks = {
