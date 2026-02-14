@@ -109,3 +109,33 @@ class BackendSidebarItemsTests(TestCase):
         ids = [it["id"] for it in items]
         self.assertIn("guardians", ids, "Outside backend, superuser should see guardians")
         self.assertIn("site_settings", ids, "Outside backend, superuser should see site_settings")
+
+
+class DashboardExtrasTests(TestCase):
+    """Test that build_dashboard_extras returns sidebar_quick_access and empty_panel_quick_actions."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username="dash1",
+            password="test",
+            email="dash1@example.com",
+            role=User.Role.ADMIN,
+        )
+        self.user.is_staff = True
+        self.user.save(update_fields=["is_staff"])
+
+    def test_build_dashboard_extras_returns_quick_access_and_empty_actions(self):
+        from apps.dashboard.context import build_dashboard_extras
+
+        request = self.factory.get("/authentication/backend/")
+        request.user = self.user
+        request.session = {}
+        base = {"stats": {}, "gce_enabled": False}
+        extras = build_dashboard_extras(request, base=base)
+        self.assertIn("sidebar_quick_access", extras)
+        self.assertIn("empty_panel_quick_actions", extras)
+        self.assertIsInstance(extras["sidebar_quick_access"], list)
+        self.assertIsInstance(extras["empty_panel_quick_actions"], list)
+        self.assertIn("operations_watch", extras)
+        self.assertIsInstance(extras["operations_watch"], list)

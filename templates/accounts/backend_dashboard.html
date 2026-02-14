@@ -84,7 +84,7 @@
               <div class="backend-v2-metric-value">{{ metric.value }}</div>
               <div class="backend-v2-metric-meta">
                 <span>{{ metric.meta }}</span>
-                <span>{{ metric.delta }}</span>
+                {% if metric.delta %}<span>{{ metric.delta }}</span>{% endif %}
               </div>
             </article>
             {% endfor %}
@@ -189,10 +189,17 @@
           {% if chart_enrollment_trend_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label="Enrollment trend over recent months" %}
           {% else %}
-          <article class="card backend-v2-panel">
+          <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">
-              <h5 class="backend-v2-panel-title mb-2">Enrollment Trends</h5>
-              <div class="small text-muted">No enrollment trend data available yet.</div>
+              <h5 class="backend-v2-panel-title mb-1">Enrollment Trends</h5>
+              <p class="small text-muted mb-2">No enrollment trend data yet. Add students with join dates to see trends.</p>
+              {% if empty_panel_quick_actions %}
+              <div class="backend-empty-quick-actions">
+                {% for action in empty_panel_quick_actions|slice:":4" %}
+                <a class="backend-empty-quick-action" href="{{ action.url }}"><i class="bi {{ action.icon }} me-1"></i>{{ action.label }}</a>
+                {% endfor %}
+              </div>
+              {% endif %}
             </div>
           </article>
           {% endif %}
@@ -224,16 +231,23 @@
           {% if chart_finance_status_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
           {% else %}
-          <article class="card backend-v2-panel">
+          <article class="card backend-v2-panel backend-v2-panel--empty">
             <div class="card-body">
-              <h5 class="backend-v2-panel-title mb-2">Outstanding Fees</h5>
-              <div class="small text-muted">No fee status data available yet.</div>
+              <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
+              <p class="small text-muted mb-2">No fee status data yet. Create invoices to see breakdown here.</p>
+              {% if empty_panel_quick_actions %}
+              <div class="backend-empty-quick-actions">
+                {% for action in empty_panel_quick_actions|slice:":4" %}
+                <a class="backend-empty-quick-action" href="{{ action.url }}"><i class="bi {{ action.icon }} me-1"></i>{{ action.label }}</a>
+                {% endfor %}
+              </div>
+              {% endif %}
             </div>
           </article>
           {% endif %}
         </div>
 
-        <article class="card backend-v2-panel" data-widget-id="backend-at-risk-students">
+        <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
@@ -249,7 +263,14 @@
                 <span class="badge text-bg-warning">{{ student.value }}</span>
               </div>
               {% empty %}
-              <div class="small text-muted">No at-risk learners detected.</div>
+              <p class="small text-muted mb-2">No at-risk learners detected.</p>
+              {% if empty_panel_quick_actions %}
+              <div class="backend-empty-quick-actions">
+                {% for action in empty_panel_quick_actions|slice:":4" %}
+                <a class="backend-empty-quick-action" href="{{ action.url }}"><i class="bi {{ action.icon }} me-1"></i>{{ action.label }}</a>
+                {% endfor %}
+              </div>
+              {% endif %}
               {% endfor %}
             </div>
           </div>
@@ -333,7 +354,7 @@
         </div>
       </div>
 
-      <div class="card mb-3 backend-quick-links-card" data-widget-id="backend-quick-links">
+      <div class="card mb-3 backend-quick-links-card {% if not quick_links %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-quick-links">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">Quick Links</h6>
@@ -346,11 +367,31 @@
               <i class="bi bi-chevron-right small"></i>
             </a>
             {% empty %}
-            <div class="small text-muted">No quick links available for this role.</div>
+            <p class="small text-muted mb-1">No shortcuts for your role.</p>
+            <a class="backend-empty-quick-action" href="{% url 'siteconfig:user_preferences' %}"><i class="bi bi-sliders me-1"></i>Add in Preferences</a>
             {% endfor %}
           </div>
         </div>
       </div>
+
+      {% if sidebar_quick_access %}
+      <div class="card mb-3 backend-quick-access-card" data-widget-id="backend-quick-access">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Quick access</h6>
+            <span class="badge bg-light text-dark">From sidebar</span>
+          </div>
+          <div class="backend-quick-links-list">
+            {% for item in sidebar_quick_access %}
+            <a class="backend-quick-link" href="{{ item.url }}">
+              <span><i class="bi {{ item.icon }} me-1"></i>{{ item.label }}{% if item.badge %}<span class="badge bg-primary ms-1">{{ item.badge }}</span>{% endif %}</span>
+              <i class="bi bi-chevron-right small"></i>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
 
       {% if finance_requests_count %}
       <article class="card backend-v2-panel mb-3" data-widget-id="backend-finance-alerts">

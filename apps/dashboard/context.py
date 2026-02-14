@@ -293,12 +293,22 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         ],
     }
 
+    def _meta_delta(meta_val, delta_val, meta_suffix, delta_suffix):
+        """Tighten: when both 0 show single line; when delta 0 omit second line."""
+        m, d = _safe_int(meta_val), _safe_int(delta_val)
+        if m == 0 and d == 0:
+            return "No data yet", ""
+        delta_str = f"{d} {delta_suffix}" if d else ""
+        return f"{m} {meta_suffix}", delta_str
+
+    oa_meta, oa_delta = _meta_delta(snapshot.get("subjects"), snapshot.get("classrooms"), "subjects", "classrooms")
+    oacc_meta, oacc_delta = _meta_delta(snapshot.get("teachers"), snapshot.get("parents"), "staff", "parents")
     overview_cards = [
         {
             "title": "Academics",
             "value": snapshot.get("students", 0),
-            "meta": f'{snapshot.get("subjects", 0)} subjects',
-            "delta": f'{snapshot.get("classrooms", 0)} classrooms',
+            "meta": oa_meta,
+            "delta": oa_delta,
             "status": "ok",
             "icon": "bi-mortarboard",
         },
@@ -355,6 +365,84 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         },
     ]
 
+    # Sidebar-backed ops: Pending Signatures, Contact Requests, Unread Messages, Announcements
+    staff_like = bool(
+        getattr(user, "is_staff", False)
+        or getattr(user, "is_superuser", False)
+        or role_code in (admin_roles | {"SECRETARY", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER"})
+    )
+    pending_signatures = 0
+    if can_manage_settings or staff_like:
+        try:
+            from apps.portal.models import FormSignature
+            pending_signatures = FormSignature.objects.filter(status=FormSignature.SignatureStatus.PENDING).count()
+        except Exception:
+            pass
+    if pending_signatures > 0:
+        operations_watch.append({
+            "key": "pending_signatures",
+            "label": "Pending Signatures",
+            "value": pending_signatures,
+            "status": _status_from_value(pending_signatures, warn_at=1, danger_at=5),
+            "url": _safe_reverse("portal:signature_requests_manage"),
+            "icon": "bi-pen",
+        })
+
+    contact_requests_count = 0
+    if staff_like:
+        try:
+            from apps.communication.models import ContactRequest
+            contact_requests_count = ContactRequest.objects.exclude(
+                status__in=(ContactRequest.Status.RESOLVED, ContactRequest.Status.CLOSED)
+            ).count()
+        except Exception:
+            pass
+    if contact_requests_count > 0:
+        operations_watch.append({
+            "key": "contact_requests",
+            "label": "Contact Requests",
+            "value": contact_requests_count,
+            "status": _status_from_value(contact_requests_count, warn_at=1, danger_at=5),
+            "url": _safe_reverse("portal:staff_contact_request_list"),
+            "icon": "bi-inbox",
+        })
+
+    messages_unread = _safe_int(getattr(request, "messages_unread_count", None))
+    try:
+        from apps.communication.models import Message
+        if messages_unread == 0 and user:
+            messages_unread = Message.objects.filter(recipient=user, is_read=False).count()
+    except Exception:
+        pass
+    if messages_unread > 0:
+        operations_watch.append({
+            "key": "unread_messages",
+            "label": "Unread Messages",
+            "value": messages_unread,
+            "status": _status_from_value(messages_unread, warn_at=1, danger_at=10),
+            "url": _safe_reverse("accounts:user_messages"),
+            "icon": "bi-chat-dots",
+        })
+
+    announcements_pending = 0
+    if can_use_messages:
+        try:
+            from apps.communication.models import Announcement
+            announcements_pending = Announcement.objects.filter(
+                status=Announcement.Status.PENDING_APPROVAL
+            ).count()
+        except Exception:
+            pass
+    if announcements_pending > 0:
+        operations_watch.append({
+            "key": "announcements_pending",
+            "label": "Announcements (pending)",
+            "value": announcements_pending,
+            "status": "warn",
+            "url": _safe_reverse("communication:announcement_list_pending") or _safe_reverse("communication:announcement_create"),
+            "icon": "bi-megaphone",
+        })
+
     perms = {
         "can_manage_settings": can_manage_settings,
         "can_manage_people": can_manage_people,
@@ -392,6 +480,66 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         order_map = {key: idx for idx, key in enumerate(pinned_order)}
         quick_links.sort(key=lambda x: order_map.get(x.get("id", ""), 999))
 
+    # Quick access card: sidebar-backed links with optional counts
+    sidebar_quick_access: list[Dict[str, Any]] = []
+    _msg_url = _safe_reverse("accounts:user_messages")
+    if _msg_url:
+        sidebar_quick_access.append({"label": "Messages", "url": _msg_url, "icon": "bi-chat-dots", "badge": messages_unread if messages_unread > 0 else None})
+    if can_manage_settings or staff_like:
+        _sig_url = _safe_reverse("portal:signature_requests_manage")
+        if _sig_url:
+            sidebar_quick_access.append({"label": "Signature Requests", "url": _sig_url, "icon": "bi-pen", "badge": pending_signatures if pending_signatures > 0 else None})
+    if staff_like:
+        _cr_url = _safe_reverse("portal:staff_contact_request_list")
+        if _cr_url:
+            sidebar_quick_access.append({"label": "Contact Requests", "url": _cr_url, "icon": "bi-inbox", "badge": contact_requests_count if contact_requests_count > 0 else None})
+    if can_use_messages:
+        _ann_url = _safe_reverse("communication:announcement_create")
+        if _ann_url:
+            sidebar_quick_access.append({"label": "Announcements", "url": _ann_url, "icon": "bi-megaphone", "badge": announcements_pending if announcements_pending > 0 else None})
+    _doc_url = _safe_reverse("portal:document_library_manage")
+    if _doc_url and (can_manage_settings or staff_like):
+        sidebar_quick_access.append({"label": "Document Library", "url": _doc_url, "icon": "bi-folder2-open", "badge": None})
+    if role_code in finance_roles:
+        _pay_url = _safe_reverse("payroll:dashboard")
+        if _pay_url:
+            payroll_payslips = None
+            try:
+                from apps.payroll.services import get_active_payroll_profile
+                from apps.payroll.models import PayrollRun, Payslip
+                profile = get_active_payroll_profile()
+                if profile:
+                    run = PayrollRun.objects.filter(profile=profile).order_by("-period_start").first()
+                    if run:
+                        payroll_payslips = Payslip.objects.filter(payroll_run=run).count()
+            except Exception:
+                pass
+            sidebar_quick_access.append({"label": "Payroll", "url": _pay_url, "icon": "bi-cash-stack", "badge": payroll_payslips if payroll_payslips is not None else None})
+    gce_enabled = base.get("gce_enabled") if isinstance(base, dict) else False
+    if gce_enabled:
+        _cert_url = _safe_reverse("accounts:certification_home")
+        if _cert_url:
+            sidebar_quick_access.append({"label": "Certification & Exams", "url": _cert_url, "icon": "bi-award", "badge": None})
+
+    # Short list for empty-panel quick actions (main grid)
+    empty_panel_quick_actions = []
+    _wf_url = _safe_reverse("accounts:workflow_center")
+    if _wf_url:
+        empty_panel_quick_actions.append({"label": "Workflow Center", "url": _wf_url, "icon": "bi-diagram-3"})
+    if can_manage_people:
+        _add_s = _safe_reverse("accounts:backend_student_create") or _safe_reverse("admin:people_studentprofile_add")
+        if _add_s:
+            empty_panel_quick_actions.append({"label": "Add student", "url": _add_s, "icon": "bi-person-plus"})
+    if can_manage_finance:
+        _fin_url = _safe_reverse("finance:dashboard")
+        if _fin_url:
+            empty_panel_quick_actions.append({"label": "Finance", "url": _fin_url, "icon": "bi-cash-stack"})
+    if _msg_url:
+        empty_panel_quick_actions.append({"label": "Messages", "url": _msg_url, "icon": "bi-chat-dots"})
+    if not empty_panel_quick_actions and primary_ctas:
+        for c in primary_ctas[:4]:
+            empty_panel_quick_actions.append({"label": c.get("label"), "url": c.get("url", "#"), "icon": c.get("icon", "bi-link")})
+
     return {
         "local_time": now,
         "weather_cfg": weather_cfg,
@@ -406,4 +554,6 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "ops_watch_finance_requests": finance_requests,
         "ops_watch_last_updated": now.isoformat(),
         "ops_watch_refresh_url": _safe_reverse("accounts:backend_ops_watch_data", ""),
+        "sidebar_quick_access": sidebar_quick_access,
+        "empty_panel_quick_actions": empty_panel_quick_actions,
     }
