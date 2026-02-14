@@ -79,3 +79,127 @@ body.app-siteconfig.model-sitesettings.change-form .site-settings-search::placeh
   color: var(--vis-text-muted) !important;
 }
 
+/* ===== Global: .text-muted, .help, .form-text (token-driven) ===== */
+html[data-bs-theme="light"] .text-muted,
+html[data-bs-theme="light"] .small.text-muted,
+:root:not([data-theme="dark"]) .text-muted,
+:root:not([data-theme="dark"]) .small.text-muted,
+body.portal-backend-light .text-muted,
+body.portal-backend-light .small.text-muted {
+  color: var(--vis-text-muted) !important;
+}
+
+html[data-bs-theme="dark"] .text-muted,
+html[data-bs-theme="dark"] .small.text-muted,
+[data-theme="dark"] .text-muted,
+[data-theme="dark"] .small.text-muted,
+body.portal-backend-dark .text-muted,
+body.portal-backend-dark .small.text-muted {
+  color: var(--vis-text-muted) !important;
+}
+
+.help,
+.form-text {
+  color: var(--vis-text-muted) !important;
+}
+
+/* ===== Badges: .badge.text-bg-light visible on light/dark ===== */
+html[data-bs-theme="light"] .badge.text-bg-light,
+:root:not([data-theme="dark"]) .badge.text-bg-light,
+body.portal-backend-light .badge.text-bg-light {
+  border: 1px solid var(--vis-border) !important;
+  color: var(--vis-text) !important;
+  background: var(--vis-surface-muted) !important;
+}
+
+html[data-bs-theme="dark"] .badge.text-bg-light,
+[data-theme="dark"] .badge.text-bg-light,
+body.portal-backend-dark .badge.text-bg-light {
+  border: 1px solid var(--vis-border) !important;
+  color: var(--vis-text) !important;
+  background: var(--vis-surface-muted) !important;
+}
+
+/* ===== Cards: minimum visible border (no feature removal) ===== */
+.card {
+  border: 1px solid var(--vis-border) !important;
+}
+
+/* ===== Critical text: never faded or blocked by low opacity ===== */
+.card-body,
+.card-body p,
+.card-title,
+.form-label,
+.help,
+.form-text,
+.dashboard-kpi-label,
+.dashboard-kpi-value,
+#dashboard-layout .card-body,
+#dashboard-layout .card-title {
+  opacity: 1 !important;
+}
+
+/* Secondary labels (e.g. meta-tag) stay readable; cap at 0.9 minimum */
+.modular-card .meta-tag,
+.card .meta-tag {
+  opacity: 0.9 !important;
+}
+
+/* ===== Theme & Experience page: theme pack catalog (mirror Site Settings) ===== */
+.theme-experience-page .theme-pack-catalog,
+.theme-experience-page .theme-pack-catalog .theme-pack-catalog-body {
+  background: var(--vis-surface) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+.theme-experience-page .theme-pack-catalog summary,
+.theme-experience-page .theme-pack-catalog .help,
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-group-title,
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-name {
+  color: var(--vis-text) !important;
+}
+
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-desc,
+.theme-experience-page .theme-pack-catalog .theme-pack-catalog-hint,
+.theme-experience-page .theme-pack-catalog .form-check-label {
+  color: var(--vis-text-muted) !important;
+}
+
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-card {
+  background: var(--vis-surface-muted) !important;
+  border-color: var(--vis-border) !important;
+}
+
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-card:hover,
+.theme-experience-page .theme-pack-catalog .admin-dashboard-palette-card.selected {
+  border-color: color-mix(in srgb, var(--school-primary, #3b82f6) 55%, var(--vis-border) 45%) !important;
+}
+
+.theme-experience-page .theme-pack-filter-row .form-control {
+  background: var(--vis-surface-muted) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+.theme-experience-page .theme-pack-filter-row .form-control::placeholder {
+  color: color-mix(in srgb, var(--vis-text-muted) 88%, transparent) !important;
+}
+
+/* Theme & Experience page – dark */
+html[data-theme="dark"] .theme-experience-page .theme-pack-catalog,
+html[data-bs-theme="dark"] .theme-experience-page .theme-pack-catalog,
+html[data-theme="dark"] .theme-experience-page .admin-dashboard-palette-card,
+html[data-bs-theme="dark"] .theme-experience-page .admin-dashboard-palette-card,
+html[data-theme="dark"] .theme-experience-page .theme-pack-filter-row .form-control,
+html[data-bs-theme="dark"] .theme-experience-page .theme-pack-filter-row .form-control {
+  background: var(--vis-surface) !important;
+  color: var(--vis-text) !important;
+  border-color: var(--vis-border) !important;
+}
+
+html[data-theme="dark"] .theme-experience-page .admin-dashboard-palette-card,
+html[data-bs-theme="dark"] .theme-experience-page .admin-dashboard-palette-card {
+  background: var(--vis-surface-muted) !important;
+}
+

@@ -3,6 +3,8 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
 {{ form.media }}
 <style>
   /* Standalone card so login never looks like the old placeholder; works even if Unfold CSS fails to load */

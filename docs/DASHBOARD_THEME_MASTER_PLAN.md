@@ -8,7 +8,7 @@ Single execution plan combining stabilization, audit fixes (duplicate actions, t
 
 ### Screenshot / audit summary
 
-- **Theme pack catalog (Site Settings):** Low-contrast descriptions on cards; mixed `--color-*` vs `--admin-content-*`. Partially addressed by `theme-visibility-guard.css` (untracked); needs commit and full coverage.
+- **Theme pack catalog (Site Settings):** Low-contrast descriptions on cards; mixed `--color-*` vs `--admin-content-*`. Addressed by `theme-visibility-guard.css`: visibility is enforced codebase-wide (Site Settings and Theme & Experience page); all values are token-driven (no hardcoding). See `docs/THEME_VISIBILITY_CODEBASE_PLAN.md`.
 - **Header (portal/dark):** Possible mojibake (date pipe, “Ctrl+K”/English). Needs encoding pass.
 - **Backend dashboard:** Dense grid; many “No data to display”; slight panel color variation; duplicate “Customize layout” in welcome block vs chips/primary CTAs.
 
@@ -16,8 +16,8 @@ Single execution plan combining stabilization, audit fixes (duplicate actions, t
 
 | Area | Done | Where |
 |------|------|--------|
-| Theme visibility guard | New stylesheet + load points | `static/css/theme-visibility-guard.css`, base_site.html, base.html, portal_base.html |
-| Theme pack catalog hardening | Guard rules for Site Settings + `[data-dashboard-page] .text-muted` | theme-visibility-guard.css |
+| Theme visibility guard | Stylesheet + load points + global and Theme & Experience rules | `static/css/theme-visibility-guard.css`, base_site.html, base.html, portal_base.html; token-driven, no hardcoding |
+| Theme pack catalog hardening | Guard for Site Settings + `.theme-experience-page` catalog + `[data-dashboard-page]` (incl. theme-colors) | theme-visibility-guard.css, admin-color-preview.css, dashboard-text-visibility.css |
 | Backend dashboard v2 | Overview, welcome, chip row, action grid, side cards | backend_dashboard.html, apps/dashboard/context.py, backend-dashboard-v2.css |
 | Multi-tenant verification | Checklist doc | docs/MULTI_TENANT_VERIFICATION_AND_IMPROVEMENTS.md |
 | API Center | New app | apps/apicenter/ |

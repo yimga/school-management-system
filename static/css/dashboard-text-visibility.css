@@ -7,7 +7,8 @@
 /* ===== 1. Global: .text-muted must meet minimum contrast ===== */
 .text-muted,
 .small.text-muted {
-  /* Light themes: dark gray on white/light bg */
+  /* Light themes: set in blocks below via var(--vis-text-muted, …) */
+  color: var(--vis-text-muted, var(--admin-content-text-muted));
 }
 html[data-bs-theme="light"] .text-muted,
 html[data-bs-theme="light"] .small.text-muted,
@@ -15,7 +16,7 @@ body.portal-backend-light .text-muted,
 body.portal-backend-light .small.text-muted,
 :root:not([data-theme="dark"]) .text-muted,
 :root:not([data-theme="dark"]) .small.text-muted {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 
 html[data-bs-theme="dark"] .text-muted,
@@ -24,7 +25,7 @@ body.portal-backend-dark .text-muted,
 body.portal-backend-dark .small.text-muted,
 [data-theme="dark"] .text-muted,
 [data-theme="dark"] .small.text-muted {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* Cards: muted text inside cards */
@@ -32,15 +33,15 @@ body.portal-backend-dark .small.text-muted,
 #dashboard-layout .small.text-muted,
 .card .text-muted,
 .card .small.text-muted {
-  /* Override any low-contrast inherited */
+  color: var(--vis-text-muted, var(--admin-content-text-muted));
 }
 body.portal-backend-light #dashboard-layout .text-muted,
 body.portal-backend-light .card .text-muted {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 body.portal-backend-dark #dashboard-layout .text-muted,
 body.portal-backend-dark .card .text-muted {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* ===== 2. No critical text hidden until hover ===== */
@@ -48,8 +49,8 @@ body.portal-backend-dark .card .text-muted {
    we don't hide .btn or .nav-link text with opacity in global scope. */
 a[title]:not([aria-label]) .visually-hidden,
 button[title]:not([aria-label]) .visually-hidden {
-  /* If we add visible-hidden labels, keep them for screen readers only;
-     prefer adding visible span for primary actions. */
+  /* Screen-reader-only; prefer visible span for primary actions. */
+  opacity: 1;
 }
 
 /* ===== 3. Admin sidebar: tooltip when shown = high contrast (no white-on-white) ===== */
@@ -86,7 +87,7 @@ button[title]:not([aria-label]) .visually-hidden {
 /* Unfold navigation helper: muted line (school name/tagline) = readable ===== */
 .admin-sidebar-brand-link-header .text-xs.truncate,
 .unfold .text-subtle {
-  color: var(--admin-sidebar-text-muted, #94a3b8) !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* ===== 4. Portal topbar & sidebar: white text on dark = sufficient contrast ===== */
@@ -146,10 +147,10 @@ body.portal-backend-dark .btn[title="Download as PNG"] {
   color: inherit;
 }
 body.portal-backend-light .meta-tag {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 body.portal-backend-dark .meta-tag {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* ===== 9. Copilot / sidebar right: list labels visible ===== */
@@ -165,21 +166,21 @@ body.portal-backend-dark .meta-tag {
   color: inherit !important;
 }
 body.portal-backend-light #dashboard-layout .form-label {
-  color: #0f172a !important;
+  color: var(--vis-text, var(--admin-content-text)) !important;
 }
 body.portal-backend-dark #dashboard-layout .form-label {
-  color: #f8fafc !important;
+  color: var(--vis-text, var(--admin-sidebar-text)) !important;
 }
 
 /* ===== 11. Design token overrides for minimum contrast (no overlay-only text) ===== */
 /* Ensure muted/secondary text is always readable; never rely on hover to see critical info. */
 [data-theme="dark"] {
-  --admin-sidebar-text-muted: #94a3b8;
-  --portal-text-muted: #94a3b8;
+  --admin-sidebar-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
+  --portal-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
 }
 html[data-bs-theme="dark"] {
-  --admin-sidebar-text-muted: #94a3b8;
-  --portal-text-muted: #94a3b8;
+  --admin-sidebar-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
+  --portal-text-muted: var(--vis-text-muted, var(--admin-content-text-muted));
 }
 body.portal-backend-dark {
   --portal-text-muted: #94a3b8;
@@ -193,32 +194,32 @@ body.portal-backend-dark {
 }
 body.portal-backend-dark .portal-sidebar-wrapper .sidebar-section-title,
 body.portal-backend-dark .portal-sidebar-wrapper .sidebar-stat-label {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 body.portal-backend-light .portal-sidebar-wrapper .sidebar-section-title,
 body.portal-backend-light .portal-sidebar-wrapper .sidebar-stat-label {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 
 /* ===== 12. Admin index / dashboard (Django admin) ===== */
 #content .text-muted,
 #content .dashboard-subtitle,
 #content .theme-toggle-label {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 body.dark #content .text-muted,
 body:not(.light-mode) #content .text-muted,
 #content[data-bs-theme="dark"] .text-muted {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 body.light-mode #content .text-muted,
 body.light-mode #content .dashboard-subtitle,
 body.light-mode #content .theme-toggle-label {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 body:not(.light-mode) #content .dashboard-subtitle,
 body:not(.light-mode) #content .theme-toggle-label {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* ===== 13. ALL DASHBOARDS: /admin, /backend, /parent, /teacher, finance, analytics, payroll, emis, requests, compliance ===== */
@@ -227,32 +228,32 @@ body:not(.light-mode) #content .theme-toggle-label {
 .parent-dashboard .text-muted,
 .parent-dashboard .small.text-muted,
 [data-dashboard-page="parent"] .text-muted {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 [data-theme="dark"] .parent-dashboard .text-muted,
 body.portal-backend-dark .parent-dashboard .text-muted {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 .parent-dashboard .dashboard-eyebrow,
 .parent-dashboard .dashboard-hero p {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 [data-theme="dark"] .parent-dashboard .dashboard-eyebrow,
 [data-theme="dark"] .parent-dashboard .dashboard-hero p,
 body.portal-backend-dark .parent-dashboard .dashboard-eyebrow,
 body.portal-backend-dark .parent-dashboard .dashboard-hero p {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* Teacher dashboard */
 .teacher-shell .text-muted,
 .teacher-shell .small.text-muted,
 [data-dashboard-page="teacher"] .text-muted {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 [data-theme="dark"] .teacher-shell .text-muted,
 body.portal-backend-dark .teacher-shell .text-muted {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* Finance, analytics, payroll, emis, requests (portal_base; body has data-dashboard-page) */
@@ -261,14 +262,14 @@ body.portal-backend-dark .teacher-shell .text-muted {
 [data-dashboard-page="payroll"] .text-muted,
 [data-dashboard-page="emis"] .text-muted,
 [data-dashboard-page="requests"] .text-muted {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 body.portal-backend-dark [data-dashboard-page="finance"] .text-muted,
 body.portal-backend-dark [data-dashboard-page="analytics"] .text-muted,
 body.portal-backend-dark [data-dashboard-page="payroll"] .text-muted,
 body.portal-backend-dark [data-dashboard-page="emis"] .text-muted,
 body.portal-backend-dark [data-dashboard-page="requests"] .text-muted {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* Compliance / evals dashboards (base.html) */
@@ -277,12 +278,12 @@ body.portal-backend-dark [data-dashboard-page="requests"] .text-muted {
 .compliance-dashboard .app-meta,
 .compliance-dashboard .stat-meta,
 .compliance-dashboard .alert-text p {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
   opacity: 1;
 }
 [data-theme="dark"] .compliance-dashboard .text-muted,
 [data-theme="dark"] .compliance-dashboard .metric-label {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }
 
 /* Dashboard page body: ensure all labels/values visible */
@@ -295,9 +296,9 @@ body.portal-backend-dark [data-dashboard-page="requests"] .text-muted {
 }
 [data-dashboard-page="parent"] .card .text-muted,
 [data-dashboard-page="teacher"] .card .text-muted {
-  color: #475569 !important;
+  color: var(--vis-text-muted, var(--admin-content-text-muted)) !important;
 }
 body.portal-backend-dark [data-dashboard-page="parent"] .card .text-muted,
 body.portal-backend-dark [data-dashboard-page="teacher"] .card .text-muted {
-  color: #94a3b8 !important;
+  color: var(--vis-text-muted, var(--admin-sidebar-text-muted)) !important;
 }

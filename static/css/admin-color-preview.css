@@ -84,11 +84,13 @@
 }
 
 .admin-dashboard-palette-card {
-  border: 2px solid transparent;
+  border: 2px solid var(--vis-border, transparent);
   border-radius: 10px;
   padding: 10px;
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
+  background: var(--vis-surface-muted, transparent);
+  color: var(--vis-text);
 }
 
 .admin-dashboard-palette-card:hover {
@@ -131,12 +133,12 @@
 .admin-dashboard-palette-name {
   font-weight: 600;
   font-size: 13px;
-  color: var(--color-text-primary, #0f172a);
+  color: var(--vis-text, var(--color-text-primary, var(--admin-content-text)));
 }
 
 .admin-dashboard-palette-desc {
   font-size: 11px;
-  color: var(--color-text-muted, #6b7280);
+  color: var(--vis-text-muted, var(--color-text-muted, var(--admin-content-text-muted)));
   margin-top: 2px;
 }
 
@@ -150,10 +152,10 @@
 }
 
 .theme-pack-catalog {
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--vis-border, var(--admin-content-border));
   border-radius: 12px;
   padding: 0.75rem;
-  background: color-mix(in srgb, var(--color-surface, #ffffff) 92%, #0f172a 8%);
+  background: var(--vis-surface-muted, color-mix(in srgb, var(--vis-surface, var(--admin-content-surface)) 92%, var(--admin-content-text) 8%));
 }
 
 .theme-pack-catalog-scroll {
@@ -194,7 +196,7 @@
 .admin-dashboard-palette-group-title {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--color-text-primary, #0f172a);
+  color: var(--vis-text, var(--color-text-primary, var(--admin-content-text)));
   margin: 0 0 0.5rem 0;
 }
 
