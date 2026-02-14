@@ -1,5 +1,5 @@
 {% if BREADCRUMBS and BREADCRUMBS|length > 1 %}
-  <nav aria-label="breadcrumb" class="mb-3">
+  <nav aria-label="breadcrumb" class="mb-0">
     <ol class="breadcrumb bg-transparent px-0 mb-0">
       {% for crumb in BREADCRUMBS %}
         <li class="breadcrumb-item {% if crumb.active %}active text-dark{% endif %}">

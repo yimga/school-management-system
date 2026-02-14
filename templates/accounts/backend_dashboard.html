@@ -37,9 +37,24 @@
 {% endblock %}
 
 {% block content %}
-  {% include 'components/admin_nav_bridge.html' %}
-  
   {% admin_health as health %}
+
+  {# Optional: load status strip via HTMX so initial render does not wait on this data #}
+  <div id="backend-status-fragment" class="backend-status-fragment-placeholder" style="min-height:2rem; padding:0.25rem 0;"
+       hx-get="{% url 'accounts:backend_dashboard_status_fragment' %}"
+       hx-trigger="load"
+       hx-swap="innerHTML"
+       hx-headers='{"X-Requested-With": "XMLHttpRequest"}'>
+    <span class="text-muted small">Loading…</span>
+  </div>
+  <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7Nlx9D84UOpmUlJ2ANZ+4ysAuqpgUdXDk4" crossorigin="anonymous" defer></script>
+  <script>
+    document.addEventListener('htmx:responseError', function(ev) {
+      if (ev.detail && ev.detail.target && ev.detail.target.id === 'backend-status-fragment') {
+        ev.detail.target.innerHTML = '<span class="text-muted small">—</span>';
+      }
+    });
+  </script>
 
   <div class="backend-v2-shell">
     <div class="backend-v2-grid">
@@ -170,7 +185,7 @@
       <div class="backend-v2-main-grid">
         <div class="backend-v2-span-2" data-widget-id="backend-enrollment-trends">
           {% if chart_enrollment_trend_json %}
-          {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False aria_label="Enrollment trend over recent months" %}
+          {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label="Enrollment trend over recent months" %}
           {% else %}
           <article class="card backend-v2-panel">
             <div class="card-body">
@@ -205,7 +220,7 @@
 
         <div class="backend-v2-span-2" data-widget-id="backend-outstanding-fees">
           {% if chart_finance_status_json %}
-          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False aria_label="Outstanding fees by invoice status" %}
+          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
           {% else %}
           <article class="card backend-v2-panel">
             <div class="card-body">

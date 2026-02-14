@@ -1156,7 +1156,10 @@
       <!-- Content -->
       <div class="portal-main-col col-lg-9 col-xl-10" id="main-content" role="main">
         <div class="page-wrap">
-          {% include "partials/breadcrumbs.html" %}
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div class="mb-0">{% include "partials/breadcrumbs.html" %}</div>
+            <div class="breadcrumb-actions">{% block breadcrumb_actions %}{% endblock %}</div>
+          </div>
             {% if messages %}
             <div class="mb-3">
               <!-- Global Announcements Banner -->

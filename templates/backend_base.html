@@ -1,7 +1,16 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
+
+{% block breadcrumb_actions %}
+{% if request.user.is_superuser %}
+<a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
+  <i class="bi bi-gear-wide-connected"></i>
+  <span>{% trans "Configuration Engine" %}</span>
+</a>
+{% endif %}
+{% endblock %}
 {% block body_extra_class %}backend-shell{% endblock %}
 
 {# Staff theme: /backend uses same ThemePack as /admin (admin_theme_pack) #}
