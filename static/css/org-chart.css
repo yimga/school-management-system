@@ -1,0 +1,77 @@
+/**
+ * Org chart – profile & teacher dashboard only.
+ * All selectors are namespaced (.org-chart-*) so dashboard layout and other UI are unchanged.
+ * ID-style cards: photo on top (or empty placeholder), name + title below.
+ */
+.org-chart-tree {
+  --org-card-width: 120px;
+  --org-photo-size: 64px;
+}
+.org-chart-level {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+.org-chart-card {
+  width: var(--org-card-width);
+  max-width: 140px;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+.org-chart-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.org-chart-card-self {
+  box-shadow: 0 0 0 2px var(--bs-primary, #0d6efd);
+  background: color-mix(in srgb, var(--bs-primary, #0d6efd) 6%, white);
+  border-color: var(--bs-primary, #0d6efd);
+}
+
+/* Photo area: full width, fixed height – like ID card photo spot */
+.org-chart-photo-wrap {
+  width: 100%;
+  height: var(--org-photo-size);
+  background: #f1f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.org-chart-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Empty placeholder when no profile image – blank space like ID photo slot */
+.org-chart-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #e9ecef;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.org-chart-photo-placeholder-inner {
+  display: none;
+}
+.org-chart-name {
+  margin-bottom: 2px;
+}
+.org-chart-title {
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+.org-chart-connector {
+  display: flex;
+  justify-content: center;
+  padding: 0 8px;
+}
+.org-chart-line {
+  display: block;
+  width: 2px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 1px;
+}

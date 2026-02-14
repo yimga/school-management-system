@@ -316,7 +316,7 @@ class SiteSettingsAdmin(ModelAdmin):
         if fields:
             kwargs["fields"] = [
                 f for f in fields
-                if f not in ("backend_flags_summary", "theme_color_tools_link_block", "portal_features_help", "automation_overview_block", "rbac_discovery_block")
+                if f not in ("backend_flags_summary", "theme_color_tools_link_block", "portal_features_help", "automation_overview_block", "rbac_discovery_block", "integrations_api_center_block")
             ]
         return super().get_form(request, obj=obj, **kwargs)
 
@@ -342,7 +342,7 @@ class SiteSettingsAdmin(ModelAdmin):
         # Keep the model hidden for non-admin staff; other siteconfig models remain visible via their own admins.
         return self._is_site_admin(request.user)
 
-    readonly_fields = ("updated_at", "logo_preview", "site_summary", "theme_color_tools_link_block", "portal_features_help", "automation_overview_block", "rbac_discovery_block")
+    readonly_fields = ("updated_at", "logo_preview", "site_summary", "theme_color_tools_link_block", "portal_features_help", "automation_overview_block", "rbac_discovery_block", "integrations_api_center_block")
 
     fieldsets = (
         ("At a glance", {
@@ -456,6 +456,7 @@ class SiteSettingsAdmin(ModelAdmin):
                 "portal_features_help",
                 "enable_parent_portal",
                 "enable_teacher_portal",
+                "default_portal_role_dual_role",
                 "enable_reports_pdf",
                 "portal_features",
             )
@@ -487,6 +488,11 @@ class SiteSettingsAdmin(ModelAdmin):
                 "rbac_discovery_block",
                 "backend_flags_summary",
             )
+        }),
+        ("Integrations & API Center", {
+            "classes": ("tab",),
+            "description": "Manage external integrations (email, SMS, payments, portal links) and turn them on/off with audit. Enable the API Center in Backend feature flags (above) to show the API Center in the backend sidebar.",
+            "fields": ("integrations_api_center_block",),
         }),
         ("Notifications & Analytics", {
             "classes": ("tab",),
@@ -798,6 +804,23 @@ class SiteSettingsAdmin(ModelAdmin):
         except Exception:
             return ""
     rbac_discovery_block.short_description = "User permissions (who can do what)"
+
+    def integrations_api_center_block(self, obj):
+        """Clear entry point for Integrations and API Center (one module)."""
+        try:
+            integrations_url = reverse("admin:siteconfig_integration_changelist")
+            api_center_url = reverse("apicenter:dashboard")
+            return format_html(
+                '<p class="mb-2 text-sm">Integrations & API Center: manage external integrations (email, SMS, payments, portal links) and turn them on/off with required reason and audit log.</p>'
+                '<p class="mb-2 text-sm">Add or edit integration config here; enable/disable with audit on the API Center page.</p>'
+                '<a href="{}" class="btn btn-outline-primary btn-sm me-2">Manage Integrations (Configuration Engine)</a>'
+                '<a href="{}" class="btn btn-primary btn-sm">Open API Center</a>',
+                integrations_url,
+                api_center_url,
+            )
+        except Exception:
+            return ""
+    integrations_api_center_block.short_description = "Integrations & API Center"
 
     def backend_flags_summary(self, obj):
         flags = getattr(obj, "backend_feature_flags", {}) or {}

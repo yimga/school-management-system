@@ -308,18 +308,18 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         from apps.communication.models import Announcement
-        
+
         return Announcement.objects.filter(
             is_active=True,
+            status=Announcement.Status.PUBLISHED,
             expiry_date__gte=timezone.now()
         ).select_related('created_by')
-    
+
     def create(self, request, *args, **kwargs):
         """
-        Create a new announcement
-        
-        Requires: Admin or Teacher role
-        
+        Create a school-wide announcement. Restricted to admins/leadership only
+        (same as web). Teachers should use class/department announcements.
+
         Request Body:
         {
             "title": "School Closed Tomorrow",
@@ -329,26 +329,32 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             "expiry_date": "2025-02-22"
         }
         """
-        if not (request.user.is_staff or request.user.role in ['ADMIN', 'TEACHER', 'HOD']):
+        from apps.communication.models import Announcement
+        from apps.communication.views_announcements import _can_create_school_wide_announcement
+
+        if not _can_create_school_wide_announcement(request.user):
             return Response(
-                {'error': 'Permission denied'},
+                {'error': 'Only administrators and leadership can create school-wide announcements.'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
-        from apps.communication.models import Announcement
-        
+
+        from apps.communication.models import log_announcement_audit
+
         announcement = Announcement.objects.create(
             title=request.data.get('title'),
             content=request.data.get('content'),
             announcement_type=request.data.get('announcement_type', 'general'),
             audience=request.data.get('audience', 'all'),
-            created_by=request.user
+            created_by=request.user,
+            status=Announcement.Status.PUBLISHED,
         )
-        
+
         if 'expiry_date' in request.data:
             announcement.expiry_date = request.data.get('expiry_date')
             announcement.save()
-        
+
+        log_announcement_audit(announcement, request.user, "created")
+
         from apps.api.serializers import AnnouncementSerializer
         serializer = AnnouncementSerializer(announcement)
         return Response(
@@ -358,14 +364,14 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def active(self, request):
-        """Get active announcements for current user"""
+        """Get active, published announcements for current user."""
         from apps.communication.models import Announcement
-        
+
         user = request.user
-        
         now = timezone.now()
         announcements = Announcement.objects.filter(
             is_active=True,
+            status=Announcement.Status.PUBLISHED,
             expiry_date__gte=now
         ).order_by('-created_at')
         
@@ -493,6 +499,7 @@ class CommunicationAnalyticsAPI(APIView):
         
         active_announcements = Announcement.objects.filter(
             is_active=True,
+            status=Announcement.Status.PUBLISHED,
             expiry_date__gte=now
         ).count()
         

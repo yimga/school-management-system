@@ -1,6 +1,8 @@
 /* ============================================
    DASHBOARD RESPONSIVE OPTIMIZATIONS
-   Shared tweaks for dashboards and data-heavy views
+   Shared tweaks for dashboards and data-heavy views.
+   Breakpoints: --bp-tablet 991px, --bp-mobile-max 767px, --bp-extra-narrow 575px.
+   Admin dashboard uses 992px / 768px / 480px in template.
    ============================================ */
 
 /* General layout helpers */
@@ -17,6 +19,13 @@
   max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Prevent grid/flex children from causing horizontal overflow on narrow viewports */
+.admin-dash__inner,
+.dashboard-hero,
+.welcome-hero {
+  min-width: 0;
 }
 
 img,
@@ -161,4 +170,13 @@ canvas {
   .chart-container {
     height: 220px;
   }
+}
+
+/* Admin dashboard: allow horizontal scroll for wide tables on small screens */
+.admin-sysinfo {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-sysinfo table {
+  min-width: 280px;
 }

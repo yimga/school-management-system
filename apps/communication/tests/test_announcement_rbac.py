@@ -1,6 +1,8 @@
 """
-RBAC: Department announcement create restricted to HOD and leadership only.
-Other teachers get 403 and can only view/receive announcements.
+RBAC: Tiered announcement permissions.
+- School-wide: only admins/leadership can create (teachers get 403).
+- Department: HOD and leadership only.
+- Class: teachers can create (class_announcement_create).
 """
 from django.test import TestCase
 from django.urls import reverse
@@ -8,6 +10,35 @@ from django.urls import reverse
 from apps.accounts.models import User
 from apps.academics.models import Department
 from apps.people.models import TeacherProfile
+
+
+class SchoolWideAnnouncementCreateRBACTest(TestCase):
+    """Only admins/leadership can create school-wide announcements."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.teacher_user = User.objects.create_user(
+            username="teacher_sw",
+            password="testpass",
+            role=User.Role.TEACHER,
+        )
+        cls.principal_user = User.objects.create_user(
+            username="principal_sw",
+            password="testpass",
+            role=User.Role.PRINCIPAL,
+        )
+
+    def test_teacher_cannot_create_school_wide_announcement(self):
+        """Regular teacher gets 403 when accessing school-wide announcement create."""
+        self.client.force_login(self.teacher_user)
+        response = self.client.get(reverse("communication:announcement_create"))
+        self.assertEqual(response.status_code, 403)
+
+    def test_principal_can_access_school_wide_announcement_create(self):
+        """Principal can access the create page."""
+        self.client.force_login(self.principal_user)
+        response = self.client.get(reverse("communication:announcement_create"))
+        self.assertEqual(response.status_code, 200)
 
 
 class DepartmentAnnouncementCreateRBACTest(TestCase):

@@ -565,3 +565,18 @@
     min-width: 0;
   }
 }
+
+/* HTMX-loaded status strip (backend dashboard partial update) */
+.backend-status-strip--fragment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+}
+.backend-status-strip__link {
+  margin-left: 0.25rem;
+}
+.backend-status-fragment-placeholder .text-muted {
+  font-size: 0.8rem;
+}

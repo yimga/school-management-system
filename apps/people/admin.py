@@ -111,6 +111,7 @@ class TeacherProfileAdmin(ModelAdmin):
     search_fields = ("user__username", "user__email", "user__first_name", "user__last_name", "staff_id")
     list_filter = ("department", "pay_scale", "default_dashboard_view", "allow_leave_approvals", "allow_finance_panel")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     fieldsets = (
         ("Basic Information", {
             "fields": ("user", "staff_id", "phone", "profile_photo", "is_active")
@@ -202,6 +203,7 @@ class StudentProfileAdmin(ModelAdmin):
     )
     list_filter = ("academic_year", "classroom", "specialty", "is_active", "uses_transport")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("student_code", "admission_number", "first_name", "last_name")
     readonly_fields = ("parent_completeness",)
     fieldsets = (
@@ -369,6 +371,7 @@ class StudentGuardianAdmin(ModelAdmin):
         ("can_view_finance", admin.BooleanFieldListFilter),
     )
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("guardian_user__username", "guardian_user__email", "student__student_code", "student__last_name")
     actions = ("grant_finance_access", "revoke_finance_access")
 
@@ -467,6 +470,7 @@ class TeacherPayRecordAdmin(ModelAdmin):
     list_display = ("teacher", "record_type", "amount", "effective_date", "created_by", "created_at")
     list_filter = ("record_type", "effective_date")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
     autocomplete_fields = ("teacher", "created_by")
 
@@ -475,6 +479,7 @@ class TeacherLeaveRequestAdmin(ModelAdmin):
     list_display = ("teacher", "start_date", "end_date", "status", "approver", "decided_at")
     list_filter = ("status", "start_date", "end_date")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
     autocomplete_fields = ("teacher", "approver")
 
@@ -483,6 +488,7 @@ class TeacherAttendanceAdmin(ModelAdmin):
     list_display = ("teacher", "date", "status", "check_in", "check_out")
     list_filter = ("status", "date")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("teacher__user__username", "teacher__user__email", "teacher__user__first_name", "teacher__user__last_name")
     autocomplete_fields = ("teacher",)
 

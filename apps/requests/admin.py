@@ -11,6 +11,7 @@ class AccessRequestAdmin(admin.ModelAdmin):
     search_fields = ("reference", "title", "requester__username", "requester__email")
     readonly_fields = ("reference", "requested_at", "updated_at")
     list_per_page = 50
+    show_full_result_count = False
 
 
 @admin.register(RequestDecision, site=admin_site)
@@ -20,6 +21,7 @@ class RequestDecisionAdmin(admin.ModelAdmin):
     search_fields = ("request__reference", "decided_by__username")
     readonly_fields = ("created_at",)
     list_per_page = 50
+    show_full_result_count = False
 
 
 @admin.register(RequestAudit, site=admin_site)
@@ -29,3 +31,4 @@ class RequestAuditAdmin(admin.ModelAdmin):
     search_fields = ("request__reference", "actor__username", "message")
     readonly_fields = ("created_at",)
     list_per_page = 50
+    show_full_result_count = False

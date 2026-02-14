@@ -166,16 +166,19 @@ def build_portal_sidebar_items(request, site):
     Return a list of sidebar items {id, label, url, icon, section, badge} for the current user.
     If site.portal_sidebar_order is non-empty, sort items so that IDs in that list come first in that order,
     then append any remaining items in their original order.
+    Uses effective portal role (session) when user has both teacher and parent hats.
     """
     if not request or not request.user.is_authenticated:
         return []
     user = request.user
-    role = (getattr(user, "role", "") or "").upper()
+    from apps.accounts.portal_roles import get_effective_portal_role
+    primary_role = (getattr(user, "role", "") or "").upper()
+    role = get_effective_portal_role(request) or primary_role
     is_staff = getattr(user, "is_staff", False)
     is_superuser = getattr(user, "is_superuser", False)
     messages_unread_count = getattr(request, "messages_unread_count", None)
-    # Staff-like: full or partial backend nav (Principal/VP/Secretary get executive view without finance)
-    staff_like = is_staff or is_superuser or role in (
+    # Staff-like: full or partial backend nav (use primary role so dual-hat users don't get staff nav when viewing as Parent)
+    staff_like = is_staff or is_superuser or primary_role in (
         "ADMIN", "LEADERSHIP", "IT_ADMIN",
         "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER", "SECRETARY",
     )
@@ -199,13 +202,23 @@ def build_portal_sidebar_items(request, site):
         items.append({"id": "message_groups", "label": "Message Groups", "url": _safe_reverse("communication:group_list"), "icon": "bi-people", "section": "Communication", "badge": None})
     elif role == "PARENT":
         items.append({"id": "contact_school", "label": "Contact School", "url": _safe_reverse("portal:parent_contact_school"), "icon": "bi-envelope-paper", "section": "Communication", "badge": None})
+    elif role == "STUDENT":
+        items.append({"id": "messages", "label": "Messages", "url": _safe_reverse("accounts:user_messages"), "icon": "bi-chat-dots", "section": "Communication", "badge": messages_unread_count})
     elif is_staff or is_superuser or role in ("ADMIN", "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "PROPRIETOR", "SECRETARY"):
         items.append({"id": "messages", "label": "Messages", "url": _safe_reverse("accounts:user_messages"), "icon": "bi-chat-dots", "section": "Communication", "badge": messages_unread_count})
         items.append({"id": "message_groups", "label": "Message Groups", "url": _safe_reverse("communication:group_list"), "icon": "bi-people", "section": "Communication", "badge": None})
-        items.append({"id": "announcements", "label": "Announcements", "url": _safe_reverse("communication:announcement_create"), "icon": "bi-megaphone", "section": "Communication", "badge": None})
+        try:
+            from apps.communication.views_announcements import _can_create_school_wide_announcement, _can_access_school_wide_announcement_create
+            if _can_access_school_wide_announcement_create(user):
+                items.append({"id": "announcements", "label": "School-wide Announcements", "url": _safe_reverse("communication:announcement_create"), "icon": "bi-megaphone", "section": "Communication", "badge": None})
+            if _can_create_school_wide_announcement(user):
+                items.append({"id": "announcements_pending", "label": "Pending approval", "url": _safe_reverse("communication:announcement_list_pending"), "icon": "bi-hourglass-split", "section": "Communication", "badge": None})
+        except Exception:
+            pass
 
     # --- Teacher ---
     if role == "TEACHER":
+        items.append({"id": "class_announcement", "label": "Class Announcement", "url": _safe_reverse("communication:class_announcement_create"), "icon": "bi-journal-text", "section": "Communication", "badge": None})
         items.append({"id": "teacher_workflow", "label": "My Workflow", "url": _safe_reverse("portal:teacher_workflow"), "icon": "bi-diagram-3", "section": "My Workflow", "badge": workflow_badge})
         items.append({"id": "marks_entry", "label": "Enter Marks", "url": _safe_reverse("evals:teacher_marks_entry"), "icon": "bi-pencil-square", "section": "Learning Management", "badge": None})
         items.append({"id": "marks_list", "label": "Marks History", "url": _safe_reverse("evals:teacher_marks_list"), "icon": "bi-table", "section": "Learning Management", "badge": None})

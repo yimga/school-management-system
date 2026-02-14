@@ -36,6 +36,11 @@ class DashboardCharts {
     return defaultType;
   }
 
+  _maintainAspectRatioForCanvas(canvas) {
+    if (!canvas || !canvas.closest) return true;
+    return !canvas.closest('[data-chart-fill-container="true"]');
+  }
+
   init() {
     this.loadChartData();
     this.initCharts();
@@ -115,7 +120,7 @@ class DashboardCharts {
       data: this.data.enrollment,
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: this._maintainAspectRatioForCanvas(canvas),
         plugins: {
           legend: {
             display: true,
@@ -164,7 +169,7 @@ class DashboardCharts {
       data: this.data.feeCollection,
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: this._maintainAspectRatioForCanvas(canvas),
         plugins: {
           legend: {
             display: true,
@@ -194,7 +199,7 @@ class DashboardCharts {
       data: this.data.performance,
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: this._maintainAspectRatioForCanvas(canvas),
         plugins: {
           legend: {
             display: true,
@@ -235,7 +240,7 @@ class DashboardCharts {
       data: this.data.attendance,
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: this._maintainAspectRatioForCanvas(canvas),
         indexAxis: 'y',
         plugins: {
           legend: {

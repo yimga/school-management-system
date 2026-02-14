@@ -492,9 +492,9 @@ class StudentGuardian(models.Model):
         unique_together = ("guardian_user", "student")
 
     def clean(self):
-        # Ensure the linked user is a PARENT
-        if self.guardian_user and self.guardian_user.role != User.Role.PARENT:
-            raise ValidationError("StudentGuardian guardian_user must have role=PARENT")
+        # Allow PARENT or TEACHER (dual-role: teacher who is also a parent uses same account)
+        if self.guardian_user and self.guardian_user.role not in (User.Role.PARENT, User.Role.TEACHER):
+            raise ValidationError("StudentGuardian guardian_user must have role PARENT or TEACHER")
 
     def __str__(self):
         return f"{self.guardian_user.username} -> {self.student}"

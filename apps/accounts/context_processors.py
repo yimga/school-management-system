@@ -32,6 +32,8 @@ def dashboard_context(request):
         'current_time': timezone.now(),
         'system_version': getattr(settings, 'APP_VERSION', '3.2.1'),
         'can_customize_dashboard': False,
+        'can_create_school_wide_announcement': False,
+        'can_access_school_wide_announcement_create': False,
     }
 
     if not request.user.is_authenticated:
@@ -40,8 +42,17 @@ def dashboard_context(request):
     if connection.needs_rollback:
         _reset_db_state()
         return context
-    
+
     user = request.user
+    try:
+        from apps.communication.views_announcements import (
+            _can_create_school_wide_announcement,
+            _can_access_school_wide_announcement_create,
+        )
+        context['can_create_school_wide_announcement'] = _can_create_school_wide_announcement(user)
+        context['can_access_school_wide_announcement_create'] = _can_access_school_wide_announcement_create(user)
+    except Exception:
+        pass
     role_value = (getattr(user, "role", "") or "").upper()
 
     def format_stat_value(value, prefix="", suffix=""):

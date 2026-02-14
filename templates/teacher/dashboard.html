@@ -343,18 +343,47 @@
       </div>
 
       <aside class="tdm-main-right">
-        {% if org_chain %}
+        {% if teacher_org_tree and teacher_org_tree.diagram_levels or org_chain %}
         <div class="card-glass tdm-panel">
           <div class="tdm-panel-head">
             <p class="tdm-eyebrow">{% trans "Organization" %}</p>
-            <h3>{% trans "Your place" %}</h3>
+            <h3>{% trans "Org chart" %}</h3>
           </div>
+          {% if teacher_org_tree and teacher_org_tree.diagram_levels %}
+          <div class="org-chart-tree mt-2" role="list" aria-label="{% trans 'Organization chart' %}">
+            {% for level in teacher_org_tree.diagram_levels %}
+            <div class="org-chart-level d-flex flex-wrap justify-content-center gap-3 mb-2" role="listitem">
+              {% for node in level %}
+              <div class="org-chart-card card border shadow-sm {% if node.is_self %}org-chart-card-self border-primary border-2{% endif %}" role="listitem">
+                <div class="org-chart-photo-wrap">
+                  {% if node.photo_url %}
+                  <img src="{{ node.photo_url }}" alt="" class="org-chart-photo" loading="lazy">
+                  {% else %}
+                  <div class="org-chart-photo-placeholder" aria-hidden="true"><span class="org-chart-photo-placeholder-inner"></span></div>
+                  {% endif %}
+                </div>
+                <div class="card-body p-2 text-center">
+                  <div class="org-chart-name fw-semibold text-truncate small">{% if node.is_self %}{% trans "You" %}{% else %}{{ node.name }}{% endif %}</div>
+                  <div class="org-chart-title text-muted text-truncate small">{{ node.title }}{% if node.department %} · {{ node.department }}{% endif %}</div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% if not forloop.last %}
+            <div class="org-chart-connector d-flex justify-content-center mb-1">
+              <span class="org-chart-line" aria-hidden="true"></span>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% else %}
           <p class="small mb-0">
             {% for node in org_chain %}
               {% if not forloop.first %}<span class="text-muted mx-1">→</span>{% endif %}
-              {% if node.user_id == request.user.id %}<strong>You</strong>{% else %}{{ node.user.get_full_name|default:node.user.username }}{% if node.position_title %} <span class="text-muted">({{ node.position_title }})</span>{% endif %}{% endif %}
+              {% if node.user_id == request.user.id %}<strong>{% trans "You" %}</strong>{% else %}{{ node.user.get_full_name|default:node.user.username }}{% if node.position_title %} <span class="text-muted">({{ node.position_title }})</span>{% endif %}{% endif %}
             {% endfor %}
           </p>
+          {% endif %}
           <a class="btn btn-soft btn-sm mt-2" href="{% url 'accounts:user_profile' %}">{% trans "View profile" %}</a>
         </div>
         {% endif %}

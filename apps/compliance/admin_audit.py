@@ -26,6 +26,7 @@ class AuditLogAdmin(ModelAdmin):
     search_fields = ("user__username", "object_id", "object_repr", "reason")
     readonly_fields = ("timestamp", "ip_address", "user_agent", "old_values", "new_values", "changed_fields")
     list_per_page = 100
+    show_full_result_count = False
     date_hierarchy = "timestamp"
 
     fieldsets = (
@@ -57,6 +58,7 @@ class UserActivitySessionAdmin(ModelAdmin):
     search_fields = ("user__username", "ip_address")
     readonly_fields = ("session_key", "login_timestamp", "logout_timestamp", "last_activity")
     list_per_page = 100
+    show_full_result_count = False
     date_hierarchy = "login_timestamp"
 
     fieldsets = (
@@ -74,6 +76,7 @@ class AccessLogAdmin(ModelAdmin):
     search_fields = ("user__username", "resource", "ip_address")
     readonly_fields = ("timestamp", "response_time_ms")
     list_per_page = 100
+    show_full_result_count = False
     date_hierarchy = "timestamp"
 
     fieldsets = (
@@ -91,6 +94,7 @@ class ComplianceReportAdmin(ModelAdmin):
     search_fields = ("generated_by__username",)
     readonly_fields = ("generated_at", "summary", "details", "issues", "export_formats")
     list_per_page = 50
+    show_full_result_count = False
     date_hierarchy = "generated_at"
     actions = ["export_as_json", "export_as_csv", "export_as_pdf"]
 

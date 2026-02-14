@@ -131,6 +131,13 @@
     return STATUS_COLORS[String(status).toUpperCase()] || CHART_COLORS.palette[0];
   }
 
+  /** If the chart card, wrapper, or any ancestor has data-chart-fill-container="true", use maintainAspectRatio: false so the chart fills the container. */
+  function shouldFillContainer(canvas) {
+    if (!canvas || !canvas.closest) return false;
+    const el = canvas.closest('[data-chart-fill-container="true"]');
+    return !!el;
+  }
+
   function createChart(canvasId, config) {
     if (typeof Chart === 'undefined') {
       console.warn('Chart.js not loaded. Charts will not render.');
@@ -149,6 +156,10 @@
         ...(config.options && config.options.plugins || {}),
       }
     };
+
+    if (shouldFillContainer(canvas)) {
+      mergedOptions.maintainAspectRatio = false;
+    }
 
     if (isBackendPage()) {
       const backendOpts = getBackendChartOptions();
@@ -223,6 +234,7 @@
     STATUS_COLORS,
     getStatusColor,
     createChart,
+    shouldFillContainer,
     exportChartToPng,
     hasData,
     fillGapsInTimeSeries,

@@ -20,9 +20,16 @@
     </div>
     <div class="sidebar-info">
       <h6>{{ request.user.get_full_name|default:request.user.username }}</h6>
-      <p>{{ request.user.role|default:"Portal User" }}</p>
+      <p>{% if SHOW_ROLE_SWITCHER %}{% trans "Viewing as" %}: {{ EFFECTIVE_PORTAL_ROLE|default:"Portal User" }}{% else %}{{ request.user.role|default:"Portal User" }}{% endif %}</p>
     </div>
   </div>
+  {% if SHOW_ROLE_SWITCHER %}
+  <div class="mt-2 small" role="group" aria-labelledby="portal-role-switcher-label">
+    <span id="portal-role-switcher-label" class="text-muted d-block mb-1">{% trans "Switch view" %}:</span>
+    <a class="d-block py-1 text-decoration-none{% if EFFECTIVE_PORTAL_ROLE == 'TEACHER' %} fw-semibold{% endif %}" href="{% url 'accounts:switch_portal_role' %}?role=TEACHER" title="{% trans 'Switch to Teacher view' %}" aria-label="{% trans 'Switch to Teacher view' %}">{% trans "Teacher" %}</a>
+    <a class="d-block py-1 text-decoration-none{% if EFFECTIVE_PORTAL_ROLE == 'PARENT' %} fw-semibold{% endif %}" href="{% url 'accounts:switch_portal_role' %}?role=PARENT" title="{% trans 'Switch to Parent view' %}" aria-label="{% trans 'Switch to Parent view' %}">{% trans "Parent" %}</a>
+  </div>
+  {% endif %}
 </div>
 
 <div class="nav flex-column gap-0" data-sidebar-nav="true" data-preview-label="{% trans 'Sidebar navigation' %}" data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
@@ -90,9 +97,16 @@
           {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
         </a>
         <a class="nav-link nav-pill" href="{% url 'communication:group_list' %}"><i class="bi bi-people me-2"></i>Message Groups</a>
-        <a class="nav-link nav-pill" href="{% url 'communication:announcement_create' %}"><i class="bi bi-megaphone me-2"></i>Announcements</a>
+        {% if can_access_school_wide_announcement_create %}
+        <a class="nav-link nav-pill" href="{% url 'communication:announcement_create' %}"><i class="bi bi-megaphone me-2"></i>School-wide Announcements</a>
+        {% endif %}
+        {% if can_create_school_wide_announcement %}
+        <a class="nav-link nav-pill" href="{% url 'communication:announcement_list_pending' %}"><i class="bi bi-hourglass-split me-2"></i>Pending approval</a>
+        {% endif %}
       {% endif %}
       {% if request.user.role == 'TEACHER' %}
+        <div class="sidebar-section-title">Communication</div>
+        <a class="nav-link nav-pill" href="{% url 'communication:class_announcement_create' %}"><i class="bi bi-journal-text me-2"></i>Class Announcement</a>
         <div class="sidebar-section-title">My Workflow</div>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>My Workflow</a>
         <div class="sidebar-section-title">Pedagogical Dashboard</div>

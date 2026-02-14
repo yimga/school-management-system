@@ -20,11 +20,19 @@ admin.site.unregister(Group)
 class UserAdmin(DjangoUserAdmin, ModelAdmin):
     """Unfold-styled user admin with an additional Role field."""
 
+    show_full_result_count = False  # Avoid expensive COUNT on large user table
+
     # Add role to the default Django user admin form
     fieldsets = DjangoUserAdmin.fieldsets + (
         ("Role", {"fields": ("role", "roles", "feature_permissions")}),
         ("Profile", {"fields": ("profile_photo",)}),
+        ("Portal roles (dual-role)", {
+            "fields": ("guardian_of_display",),
+            "description": "If this user is linked as a guardian to students, they can also use the Parent portal view.",
+        }),
     )
+
+    readonly_fields = DjangoUserAdmin.readonly_fields + ("guardian_of_display",)
 
     # Show role in the users list
     list_display = ("username", "email", "role", "is_staff", "is_active")
@@ -32,6 +40,20 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
 
     search_fields = ("username", "email", "first_name", "last_name")
     ordering = ("username",)
+
+    def guardian_of_display(self, obj):
+        if not obj or not obj.pk:
+            return "—"
+        from apps.people.models import StudentGuardian
+        links = StudentGuardian.objects.filter(guardian_user=obj).select_related("student")[:50]
+        if not links:
+            return "—"
+        from django.utils.html import format_html
+        parts = [f"{link.student.get_full_name() or link.student.username} (ID {link.student_id})" for link in links]
+        if len(links) >= 50:
+            parts.append("…")
+        return format_html("{}", ", ".join(parts))
+    guardian_of_display.short_description = "Also guardian of"
 
 
 class RoleAdmin(ModelAdmin):

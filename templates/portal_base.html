@@ -1029,14 +1029,19 @@
 
         <div class="topbar-actions d-flex align-items-center gap-3 text-white ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
           {% if request.user.is_authenticated %}
-            {% if SHOW_OFFLINE_STATUS_BAR or SHOW_HEADER_CONTEXT_STRIP %}
+            {% if SHOW_OFFLINE_STATUS_BAR or SHOW_HEADER_CONTEXT_STRIP or SHOW_ROLE_SWITCHER %}
             <div class="topbar-context-row topbar-weather">
               {% if SHOW_OFFLINE_STATUS_BAR %}
               {% include 'components/offline_status_bar.html' %}
               {% endif %}
-              {% if SHOW_HEADER_CONTEXT_STRIP %}
-              <div class="topbar-context-strip">
+              {% if SHOW_HEADER_CONTEXT_STRIP or SHOW_ROLE_SWITCHER %}
+              <div class="topbar-context-strip d-flex align-items-center gap-2 flex-wrap">
+                {% if SHOW_HEADER_CONTEXT_STRIP %}
                 {% include 'components/header_weather_widget.html' %}
+                {% endif %}
+                {% if SHOW_ROLE_SWITCHER and EFFECTIVE_PORTAL_ROLE %}
+                <span class="badge bg-light text-dark opacity-90 small" aria-label="{% trans 'Current portal view' %}">{% trans 'Viewing as' %}: {{ EFFECTIVE_PORTAL_ROLE }}</span>
+                {% endif %}
               </div>
               {% endif %}
             </div>

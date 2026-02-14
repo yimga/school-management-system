@@ -15,6 +15,7 @@ class AutomationExecutionLogAdmin(ModelAdmin):
     search_fields = ("task_name", "error_message")
     readonly_fields = ("started_at", "completed_at", "execution_summary")
     list_per_page = 50
+    show_full_result_count = False
     
     fieldsets = (
         ("Execution Info", {
@@ -36,6 +37,7 @@ class AutomationApprovalQueueAdmin(ModelAdmin):
     search_fields = ("automation_type", "rejection_reason")
     readonly_fields = ("created_at", "execution_summary", "execution_log")
     list_per_page = 50
+    show_full_result_count = False
     
     fieldsets = (
         ("Request Info", {

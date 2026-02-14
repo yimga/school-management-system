@@ -180,6 +180,8 @@ def default_backend_feature_flags():
         "marksheet_ocr_enabled": False,
         "marksheet_ocr_mobile_upload_enabled": True,
         "enable_api_center": False,
+        "announcement_allow_submit_for_approval": False,
+        "announcement_submit_for_approval_roles": ["TEACHER", "COMMS_STAFF"],
     }
 
 
@@ -886,6 +888,18 @@ class SiteSettings(models.Model):
     # Feature toggles
     enable_parent_portal = models.BooleanField(default=True)
     enable_teacher_portal = models.BooleanField(default=True)
+    DEFAULT_PORTAL_ROLE_DUAL_CHOICES = [
+        ("", "Use primary role (user.role)"),
+        ("TEACHER", "Teacher"),
+        ("PARENT", "Parent"),
+    ]
+    default_portal_role_dual_role = models.CharField(
+        max_length=20,
+        choices=DEFAULT_PORTAL_ROLE_DUAL_CHOICES,
+        blank=True,
+        default="",
+        help_text="For users who have both Teacher and Parent roles: default portal view when they have not yet chosen. Leave blank to use the user's primary role.",
+    )
     enable_reports_pdf = models.BooleanField(default=True)
     report_downloads_enabled = models.BooleanField(default=True)
     # Phase 2: Evals–Reports – require approved grades before publish; report cards show only approved grades
@@ -1619,6 +1633,12 @@ class UserPreference(models.Model):
         blank=True,
         default="",
         help_text="User's preferred region code (e.g. CMR, USA). When set, drives currency, date format, grading.",
+    )
+    last_portal_role = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="For users with both Teacher and Parent roles: last selected portal view (TEACHER or PARENT). Restored on login.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

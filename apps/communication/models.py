@@ -117,7 +117,8 @@ class DirectConversation(models.Model):
 
 class Announcement(models.Model):
     """
-    School announcements for different audiences
+    School-wide announcements. Creation is restricted to admins/leadership.
+    Optional approval workflow: submissions can be PENDING_APPROVAL until approved.
     """
     class AnnouncementType(models.TextChoices):
         GENERAL = 'general', 'General'
@@ -126,7 +127,12 @@ class Announcement(models.Model):
         ALERT = 'alert', 'Alert'
         HOLIDAY = 'holiday', 'Holiday'
         MAINTENANCE = 'maintenance', 'Maintenance'
-    
+
+    class Status(models.TextChoices):
+        DRAFT = 'draft', 'Draft'
+        PENDING_APPROVAL = 'pending_approval', 'Pending Approval'
+        PUBLISHED = 'published', 'Published'
+
     class Audience(models.TextChoices):
         ALL = 'all', 'All Users'
         STUDENTS = 'students', 'Students Only'
@@ -134,7 +140,7 @@ class Announcement(models.Model):
         PARENTS = 'all_parents', 'All Parents'
         STAFF = 'staff', 'Staff Only'
         SPECIFIC = 'specific', 'Specific Group'
-    
+
     title = models.CharField(max_length=255)
     content = models.TextField()
     announcement_type = models.CharField(
@@ -147,10 +153,16 @@ class Announcement(models.Model):
         choices=Audience.choices,
         default=Audience.ALL
     )
-    
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PUBLISHED,
+        help_text='Only published announcements are visible to the audience.'
+    )
+
     is_active = models.BooleanField(default=True)
     is_urgent = models.BooleanField(default=False)
-    
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -158,7 +170,15 @@ class Announcement(models.Model):
         blank=True,
         related_name='announcements'
     )
-    
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_announcements'
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     expiry_date = models.DateTimeField(default=get_default_expiry)
@@ -168,6 +188,7 @@ class Announcement(models.Model):
         indexes = [
             models.Index(fields=['-created_at']),
             models.Index(fields=['is_active', 'expiry_date']),
+            models.Index(fields=['status']),
         ]
         verbose_name = 'Announcement'
         verbose_name_plural = 'Announcements'
@@ -187,6 +208,64 @@ class Announcement(models.Model):
             return 0
         delta = self.expiry_date - timezone.now()
         return delta.days
+
+
+class AnnouncementAuditLog(models.Model):
+    """
+    Audit log for school-wide announcements: who created, updated, approved,
+    or deactivated. Supports accountability and compliance.
+    """
+    class Action(models.TextChoices):
+        CREATED = 'created', 'Created'
+        UPDATED = 'updated', 'Updated'
+        SUBMITTED_FOR_APPROVAL = 'submitted_for_approval', 'Submitted for approval'
+        APPROVED = 'approved', 'Approved'
+        PUBLISHED = 'published', 'Published'
+        DEACTIVATED = 'deactivated', 'Deactivated'
+
+    announcement = models.ForeignKey(
+        Announcement,
+        on_delete=models.CASCADE,
+        related_name='audit_logs',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='announcement_audit_entries',
+    )
+    action = models.CharField(max_length=32, choices=Action.choices)
+    notes = models.CharField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['announcement', '-created_at']),
+            models.Index(fields=['action']),
+        ]
+        verbose_name = 'Announcement audit log'
+        verbose_name_plural = 'Announcement audit logs'
+
+    def __str__(self):
+        return f"{self.get_action_display()} by {self.user} on {self.announcement_id}"
+
+
+def log_announcement_audit(announcement, user, action: str, notes: str = ""):
+    """Record an audit entry for an announcement (create, update, approve, deactivate)."""
+    if not announcement or not action:
+        return
+    action_val = (action or "").strip().lower().replace(" ", "_")
+    valid = [a[0] for a in AnnouncementAuditLog.Action.choices]
+    if action_val not in valid:
+        action_val = AnnouncementAuditLog.Action.UPDATED
+    AnnouncementAuditLog.objects.create(
+        announcement=announcement,
+        user=user,
+        action=action_val,
+        notes=(notes or "")[:500],
+    )
 
 
 class ClassAnnouncement(models.Model):

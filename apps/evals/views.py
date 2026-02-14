@@ -681,9 +681,10 @@ def teacher_dashboard(request: HttpRequest):
                     )[:3],
                 }
 
-    # Org chain (top → current staff) for "Your place in the organization" widget
-    from apps.accounts.views import get_org_chain_to_staff
+    # Org chain and full tree (with photos) for "Organization" chart on dashboard and profile
+    from apps.accounts.views import get_org_chain_to_staff, _teacher_org_tree
     org_chain = get_org_chain_to_staff(teacher_profile) if teacher_profile else []
+    teacher_org_tree = _teacher_org_tree(request.user) if request.user else None
 
     # Phase 11: Show welcome hint when new (no assignments or no marks entered yet)
     show_welcome_hint = (
@@ -877,6 +878,7 @@ def teacher_dashboard(request: HttpRequest):
         "pending_leaves": pending_leaves,
         "workflow_summary": workflow_summary,
         "org_chain": org_chain,
+        "teacher_org_tree": teacher_org_tree,
     })
 
 

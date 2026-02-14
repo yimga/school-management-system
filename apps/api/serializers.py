@@ -5,7 +5,7 @@ from django.db import models
 from rest_framework import serializers
 
 from apps.academics.models import Classroom
-from apps.communication.models import Message
+from apps.communication.models import Announcement, Message
 from apps.finance.models import Invoice, Notification, Payment
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 
@@ -99,8 +99,9 @@ class StudentGuardianSerializer(serializers.ModelSerializer):
         ]
 
     def validate_guardian_user(self, user):
-        if getattr(user, "role", "").upper() != "PARENT":
-            raise serializers.ValidationError("guardian_user must have role=PARENT.")
+        role = (getattr(user, "role", "") or "").upper()
+        if role not in ("PARENT", "TEACHER"):
+            raise serializers.ValidationError("guardian_user must have role PARENT or TEACHER.")
         return user
 
 
@@ -233,6 +234,23 @@ class ClassroomSerializer(serializers.ModelSerializer):
 
 
 # ==================== COMMUNICATION SERIALIZERS ====================
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    """School-wide announcements (communication app)."""
+    created_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Announcement
+        fields = [
+            'id', 'title', 'content', 'announcement_type', 'audience',
+            'status', 'is_active', 'is_urgent', 'created_by', 'created_by_name',
+            'created_at', 'updated_at', 'expiry_date',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'status', 'created_by']
+
+    def get_created_by_name(self, obj):
+        return obj.created_by.get_full_name() if obj.created_by else None
+
 
 class NotificationSerializer(serializers.ModelSerializer):
     """Notification with user context"""

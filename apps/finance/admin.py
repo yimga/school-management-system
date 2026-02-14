@@ -46,6 +46,7 @@ class ComplianceProfileAdmin(ModelAdmin):
     list_display = ("name", "country_code", "currency_code", "chart_template", "timezone", "is_active")
     list_filter = ("country_code", "chart_template", "is_active")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("name", "country_code")
     fieldsets = (
         ("Identity", {"fields": ("name", "country_code", "currency_code")}),
@@ -59,12 +60,14 @@ class TaxBracketAdmin(ModelAdmin):
     list_display = ("profile", "lower_bound", "upper_bound", "rate")
     list_filter = ("profile",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
 
 
 class ContributionRuleAdmin(ModelAdmin):
     list_display = ("profile", "code", "name", "employee_rate", "employer_rate", "cap_amount")
     list_filter = ("profile",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("code", "name")
 
 
@@ -72,6 +75,7 @@ class LedgerAccountAdmin(ModelAdmin):
     list_display = ("profile", "code", "name", "account_type", "is_active")
     list_filter = ("profile", "account_type", "is_active")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("code", "name")
 
 
@@ -84,6 +88,7 @@ class JournalEntryAdmin(ModelAdmin):
     list_display = ("entry_date", "reference", "profile", "posted_at")
     list_filter = ("profile",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("reference", "memo")
     inlines = [JournalLineInline]
 
@@ -92,6 +97,7 @@ class CounterpartyAdmin(ModelAdmin):
     list_display = ("name", "counterparty_type", "student", "user")
     list_filter = ("counterparty_type",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("name", "email", "phone")
 
 
@@ -104,6 +110,7 @@ class FeePlanAdmin(ModelAdmin):
     list_display = ("name", "academic_year", "classroom", "specialty", "is_active")
     list_filter = ("academic_year", "classroom", "specialty", "is_active")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("name",)
     inlines = [FeeItemInline]
     actions = ["copy_to_next_year"]
@@ -170,6 +177,7 @@ class FeeInstallmentAdmin(ModelAdmin):
     list_display = ("fee_item", "installment_number", "amount", "due_date")
     list_filter = ("fee_item",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
 
 
 class InvoiceLineInline(admin.TabularInline):
@@ -190,6 +198,7 @@ class InvoiceAdmin(ModelAdmin):
     )
     list_filter = ("invoice_type", "status", "issued_date")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("reference", "student__student_code", "counterparty__name")
     inlines = [InvoiceLineInline]
 
@@ -228,6 +237,7 @@ class PaymentAdmin(ModelAdmin):
     )
     list_filter = ("method", "paid_at")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("reference", "receipt_number")
 
 
@@ -235,6 +245,7 @@ class PaymentReminderAdmin(ModelAdmin):
     list_display = ("invoice", "is_active", "next_send_at", "last_sent_at", "reminder_days_before", "reminder_history_link")
     list_filter = ("is_active",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("invoice__reference", "invoice__student__student_code")
     readonly_fields = ("reminder_history", "last_sent_at", "next_send_at")
     actions = ["resend_selected_reminders"]
@@ -324,29 +335,34 @@ class PaymentReminderLogAdmin(ModelAdmin):
     list_display = ("reminder", "sent_at", "status")
     list_filter = ("status",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
 
 
 class BudgetAdmin(ModelAdmin):
     list_display = ("name", "academic_year", "department", "total_amount")
     list_filter = ("academic_year", "department")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
 
 
 class BudgetLineAdmin(ModelAdmin):
     list_display = ("budget", "account", "amount")
     list_filter = ("budget",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
 
 
 class AssetCategoryAdmin(ModelAdmin):
     list_display = ("name",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
 
 
 class AssetAdmin(ModelAdmin):
     list_display = ("name", "category", "status", "purchase_cost")
     list_filter = ("status", "category")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("name", "asset_tag")
 
 
@@ -358,6 +374,7 @@ class GrantAllocationInline(admin.TabularInline):
 class GrantAdmin(ModelAdmin):
     list_display = ("name", "funder", "amount", "start_date", "end_date")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("name", "funder")
     inlines = [GrantAllocationInline]
 
@@ -366,6 +383,7 @@ class NotificationAdmin(ModelAdmin):
     list_display = ("title", "severity", "is_read", "created_at", "recipient", "created_by")
     list_filter = ("severity", "is_read")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("title", "message", "created_by__username", "recipient__username")
 
 
@@ -373,12 +391,14 @@ class FinanceRequestAuditAdmin(ModelAdmin):
     list_display = ("notification", "user", "action", "created_at")
     list_filter = ("action",)
     list_per_page = 50
+    show_full_result_count = False
     search_fields = ("notification__title", "user__username")
 
 class ReportRequestAdmin(ModelAdmin):
     list_display = ("report_type", "requested_by", "status", "created_at")
     list_filter = ("report_type", "status")
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("requested_by__username", "description")
 
 
@@ -395,6 +415,7 @@ class CashOfficeClosureAdmin(ModelAdmin):
         "closed_by",
     )
     list_filter = ("status", "profile", "closure_date")
+    show_full_result_count = False
     search_fields = ("profile__name", "deposit_reference", "notes")
     readonly_fields = ("expected_cash", "discrepancy", "closed_at", "created_at", "updated_at")
 
@@ -403,6 +424,7 @@ class ReferralRewardAdmin(ModelAdmin):
     list_display = ("student", "guardian", "amount", "status", "awarded_by", "created_at")
     list_filter = ("status",)
     list_per_page = 50  # PERFORMANCE: Add pagination
+    show_full_result_count = False
     search_fields = ("student__student_code", "guardian__guardian_user__username", "guardian__guardian_user__email")
 
 
@@ -449,6 +471,7 @@ class PaymentProofUploadAdmin(ModelAdmin):
         "verified_at",
     )
     list_filter = ("status", "payment_method", "is_suspicious", "created_at", "fraud_risk_score")
+    show_full_result_count = False
     search_fields = (
         "invoice__reference",
         "invoice__id",
@@ -580,6 +603,7 @@ admin_site.register(PaymentProofUpload, PaymentProofUploadAdmin)
 class BankAccountAdmin(ModelAdmin):
     list_display = ("name", "account_type", "account_number", "bank_name", "currency", "is_active", "region")
     list_filter = ("account_type", "is_active", "region", "currency")
+    show_full_result_count = False
     search_fields = ("name", "account_number", "bank_name")
     fieldsets = (
         ("Account Information", {
@@ -594,6 +618,7 @@ class BankAccountAdmin(ModelAdmin):
 class BankStatementEntryAdmin(ModelAdmin):
     list_display = ("bank_account", "transaction_date", "amount", "transaction_type", "transaction_reference", "is_verified", "matched_receipt_upload")
     list_filter = ("bank_account", "transaction_type", "is_verified", "transaction_date")
+    show_full_result_count = False
     search_fields = ("transaction_reference", "description", "bank_account__name")
     readonly_fields = ("matched_receipt_upload", "created_at", "imported_from")
     fieldsets = (
@@ -609,6 +634,7 @@ class BankStatementEntryAdmin(ModelAdmin):
 class BankStatementUploadAdmin(ModelAdmin):
     list_display = ("bank_account", "statement_period_start", "statement_period_end", "status", "entries_imported", "uploaded_by", "created_at")
     list_filter = ("status", "bank_account", "created_at")
+    show_full_result_count = False
     search_fields = ("bank_account__name",)
     readonly_fields = ("status", "entries_imported", "errors", "processed_at")
     actions = ["process_selected_uploads"]
@@ -659,6 +685,7 @@ class SuspensePaymentAdmin(ModelAdmin):
         "claimed_by",
         "created_at",
     )
+    show_full_result_count = False
     list_filter = ("status", "currency", "created_at")
     search_fields = ("transaction_reference", "payer_name", "payer_phone", "description")
     readonly_fields = ("allocated_amount_display", "remaining_amount_display", "created_at", "updated_at")

@@ -17,6 +17,7 @@ def _normalize_role(r) -> str:
 
 def _has_any_role(user, roles: tuple[str, ...]) -> bool:
     from apps.accounts.permissions import has_role
+    from apps.accounts.portal_roles import has_teacher_hat, has_parent_hat
     if not user.is_authenticated:
         return False
     if getattr(user, "is_superuser", False):
@@ -24,6 +25,11 @@ def _has_any_role(user, roles: tuple[str, ...]) -> bool:
     normalized = tuple(_normalize_role(r) for r in roles)
     for r in normalized:
         if has_role(user, r):
+            return True
+        # Dual-role: allow by "hat" even if primary role is different
+        if r == "PARENT" and has_parent_hat(user):
+            return True
+        if r == "TEACHER" and has_teacher_hat(user):
             return True
     return False
 
@@ -102,16 +108,13 @@ def parent_can_access_student(request, student_id: int) -> bool:
     if user.is_staff or user.is_superuser or user.role == User.Role.ADMIN:
         return True
     
-    # Parents can only access their own children
-    if user.role == User.Role.PARENT:
-        from apps.people.models import StudentGuardian
-        return StudentGuardian.objects.filter(
-            guardian_user=user,
-            student_id=student_id,
-            can_view_results=True,
-        ).exists()
-    
-    return False
+    # Any user with a guardian link to this student (and can_view_results) can access
+    from apps.people.models import StudentGuardian
+    return StudentGuardian.objects.filter(
+        guardian_user=user,
+        student_id=student_id,
+        can_view_results=True,
+    ).exists()
 
 
 def parent_can_access_invoice(request, invoice_id: int) -> bool:
@@ -129,17 +132,13 @@ def parent_can_access_invoice(request, invoice_id: int) -> bool:
     # Staff/admin can access all invoices
     if user.is_staff or user.is_superuser or user.role == User.Role.ADMIN:
         return True
-    
-    # Parents can only access invoices for their children
-    if user.role == User.Role.PARENT:
-        from apps.people.models import StudentGuardian
-        try:
-            invoice = Invoice.objects.select_related('student').get(id=invoice_id)
-            if not invoice.student:
-                return False  # Non-student invoices not accessible to parents
-            from apps.accounts.permissions import _guardian_finance_qs
-            return _guardian_finance_qs(user).filter(student=invoice.student).exists()
-        except Invoice.DoesNotExist:
+
+    # Any user with guardian finance access to this invoice's student can access
+    try:
+        invoice = Invoice.objects.select_related('student').get(id=invoice_id)
+        if not invoice.student:
             return False
-    
-    return False
+        from apps.accounts.permissions import _guardian_finance_qs
+        return _guardian_finance_qs(user).filter(student=invoice.student).exists()
+    except Invoice.DoesNotExist:
+        return False

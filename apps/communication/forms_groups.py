@@ -148,6 +148,7 @@ class MessageThreadUpdateForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
             # Pre-populate members

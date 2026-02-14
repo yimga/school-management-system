@@ -17,7 +17,10 @@ urlpatterns = [
     
     # Announcements
     path('announcements/create/', views_announcements.announcement_create, name='announcement_create'),
+    path('announcements/class/', views_announcements.class_announcement_create, name='class_announcement_create'),
+    path('announcements/pending/', views_announcements.announcement_list_pending, name='announcement_list_pending'),
     path('announcements/<int:announcement_id>/', views_announcements.announcement_detail, name='announcement_detail'),
     path('announcements/<int:announcement_id>/edit/', views_announcements.announcement_edit, name='announcement_edit'),
+    path('announcements/<int:announcement_id>/approve/', views_announcements.announcement_approve, name='announcement_approve'),
     path('announcements/department/', views_announcements.department_announcement_create, name='department_announcement_create'),
 ]

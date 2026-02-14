@@ -37,6 +37,10 @@ def _status_from_value(value: int, warn_at: int, danger_at: int) -> str:
 # Heavy KPI snapshot cache TTL (seconds). Plan: 60–120s.
 DASHBOARD_SNAPSHOT_CACHE_TTL = 120
 
+# Data capping for dashboard charts (see docs/DASHBOARD_DATA_CAPPING_POLICY.md)
+DASHBOARD_CHART_TOP_N = 12
+DASHBOARD_TIME_WINDOW_DAYS = 30
+
 
 def _snapshot_cache_key(site_id: str, role_code: str) -> str:
     return f"dashboard:backend:v2:snapshot:{site_id}:{role_code or 'unknown'}"

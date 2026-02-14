@@ -216,18 +216,23 @@ def dashboard(request: HttpRequest):
         },
     }
 
-    # Chart data: specialty pass rates (donut)
+    # Chart data: specialty pass rates (donut). Cap for dashboard (see docs/DASHBOARD_DATA_CAPPING_POLICY.md)
+    from apps.dashboard.context import DASHBOARD_CHART_TOP_N
+    specialty_for_chart = specialty_rows[:DASHBOARD_CHART_TOP_N]
     chart_specialty_donut = {
         "type": "doughnut",
         "data": {
-            "labels": [str(row.specialty) for row in specialty_rows],
+            "labels": [str(row.specialty) for row in specialty_for_chart],
             "datasets": [{
-                "data": [row.passed for row in specialty_rows],
+                "data": [row.passed for row in specialty_for_chart],
                 "backgroundColor": [
                     "rgba(13, 110, 253, 0.8)", "rgba(25, 135, 84, 0.8)",
                     "rgba(255, 193, 7, 0.8)", "rgba(220, 53, 69, 0.8)",
                     "rgba(111, 66, 193, 0.8)", "rgba(13, 202, 240, 0.8)",
-                ][: len(specialty_rows)],
+                    "rgba(13, 110, 253, 0.8)", "rgba(25, 135, 84, 0.8)",
+                    "rgba(255, 193, 7, 0.8)", "rgba(220, 53, 69, 0.8)",
+                    "rgba(111, 66, 193, 0.8)", "rgba(13, 202, 240, 0.8)",
+                ][: len(specialty_for_chart)],
             }],
         },
     }

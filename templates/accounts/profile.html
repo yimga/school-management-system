@@ -3,6 +3,11 @@
 
 {% block title %}My Profile - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/org-chart.css' %}">
+{% endblock %}
+
 {% block content %}
   <div class="container py-4 profile-shell">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 profile-header">
@@ -135,20 +140,30 @@
             <div class="card-body">
               {% if request.user.role == 'TEACHER' and teacher_org_tree.diagram_levels %}
                 <p class="mb-2 small"><span class="text-muted">Org chart (top to bottom):</span></p>
-                <div class="org-diagram-vertical mt-2" role="list" aria-label="Organization chart">
+                <div class="org-chart-tree mt-2" role="list" aria-label="Organization chart">
                   {% for level in teacher_org_tree.diagram_levels %}
+                  <div class="org-chart-level d-flex flex-wrap justify-content-start gap-3 mb-2" role="listitem">
                     {% for node in level %}
-                      <div class="org-diagram-node d-flex align-items-center gap-2 py-2 {% if node.is_self %}org-diagram-node-self border-start border-3 border-primary{% endif %}" role="listitem">
-                        <div class="org-diagram-avatar rounded-circle d-flex align-items-center justify-content-center bg-light text-dark border" style="width: 40px; height: 40px; min-width: 40px; font-size: 0.85rem;">
-                          {% if node.photo_url %}<img src="{{ node.photo_url }}" alt="" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">{% else %}<span aria-hidden="true">{{ node.initials }}</span>{% endif %}
-                        </div>
-                        <div class="org-diagram-info min-w-0">
-                          <strong class="d-block">{{ node.name }}{% if node.is_self %} <span class="badge text-bg-primary">You</span>{% endif %}</strong>
-                          <span class="small text-muted">{{ node.title }}{% if node.department %} · {{ node.department }}{% endif %}</span>
-                        </div>
+                    <div class="org-chart-card card border shadow-sm {% if node.is_self %}org-chart-card-self border-primary border-2{% endif %}" role="listitem">
+                      <div class="org-chart-photo-wrap">
+                        {% if node.photo_url %}
+                        <img src="{{ node.photo_url }}" alt="" class="org-chart-photo" loading="lazy">
+                        {% else %}
+                        <div class="org-chart-photo-placeholder" aria-hidden="true"><span class="org-chart-photo-placeholder-inner"></span></div>
+                        {% endif %}
                       </div>
+                      <div class="card-body p-2 text-center">
+                        <div class="org-chart-name fw-semibold text-truncate small">{% if node.is_self %}You{% else %}{{ node.name }}{% endif %}</div>
+                        <div class="org-chart-title text-muted text-truncate small">{{ node.title }}{% if node.department %} · {{ node.department }}{% endif %}</div>
+                      </div>
+                    </div>
                     {% endfor %}
-                    {% if not forloop.last %}<div class="org-diagram-connector border-start border-2 ms-4" style="height: 12px; width: 0;"></div>{% endif %}
+                  </div>
+                  {% if not forloop.last %}
+                  <div class="org-chart-connector d-flex justify-content-start mb-1">
+                    <span class="org-chart-line" aria-hidden="true"></span>
+                  </div>
+                  {% endif %}
                   {% endfor %}
                 </div>
               {% elif org_chain %}

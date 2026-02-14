@@ -42,7 +42,11 @@ def _get_pinned_sidebar_items(request, all_items):
         pinned_ids = list(raw_pinned_ids or [])
         # Seed defaults only for first-time preferences (or legacy null state), not when users intentionally unpin all.
         if not pinned_ids and (prefs_created or raw_pinned_ids is None):
-            role = (getattr(request.user, "role", "") or "").upper()
+            try:
+                from apps.accounts.portal_roles import get_effective_portal_role
+                role = (get_effective_portal_role(request) or getattr(request.user, "role", "") or "").upper()
+            except Exception:
+                role = (getattr(request.user, "role", "") or "").upper()
             default_pin_map = {
                 "TEACHER": ["teacher_workflow", "preferences"],
                 "PARENT": ["parent_workflow", "preferences"],
@@ -278,6 +282,15 @@ def site_settings(request):
         request.path.startswith("/backend")
         or "/authentication/backend" in request.path
     )
+    # Cache portal "hat" checks before building sidebar (so get_effective_portal_role can use them)
+    if request.user.is_authenticated:
+        try:
+            from apps.accounts.portal_roles import has_teacher_hat, has_parent_hat
+            request._portal_teacher_hat = has_teacher_hat(request.user)
+            request._portal_parent_hat = has_parent_hat(request.user)
+        except Exception:
+            request._portal_teacher_hat = False
+            request._portal_parent_hat = False
     ctx = {
         "SITE": site,
         "SITE_SETTINGS": site,
@@ -339,6 +352,26 @@ def site_settings(request):
         "CAN_MANAGE_SETTINGS": can_manage_settings,
         "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
     }
+    # Dual-role (Teacher + Parent): show role switcher when user has both hats (cache already set above)
+    if request.user.is_authenticated:
+        try:
+            from apps.accounts.portal_roles import get_effective_portal_role
+            has_teacher = getattr(request, "_portal_teacher_hat", False)
+            has_parent = getattr(request, "_portal_parent_hat", False)
+            ctx["SHOW_ROLE_SWITCHER"] = has_teacher and has_parent
+            ctx["EFFECTIVE_PORTAL_ROLE"] = get_effective_portal_role(request) or (getattr(request.user, "role", "") or "").upper()
+            ctx["HAS_TEACHER_HAT"] = has_teacher
+            ctx["HAS_PARENT_HAT"] = has_parent
+        except Exception:
+            ctx["SHOW_ROLE_SWITCHER"] = False
+            ctx["EFFECTIVE_PORTAL_ROLE"] = (getattr(request.user, "role", "") or "").upper()
+            ctx["HAS_TEACHER_HAT"] = False
+            ctx["HAS_PARENT_HAT"] = False
+    else:
+        ctx["SHOW_ROLE_SWITCHER"] = False
+        ctx["EFFECTIVE_PORTAL_ROLE"] = ""
+        ctx["HAS_TEACHER_HAT"] = False
+        ctx["HAS_PARENT_HAT"] = False
     # Multi-tenant: when request.school is set, use school branding for logo and colors (Phase 2).
     school = getattr(request, "school", None)
     if school:

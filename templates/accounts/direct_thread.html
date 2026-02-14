@@ -7,11 +7,7 @@
   <div class="container-fluid py-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div class="d-flex align-items-center gap-2">
-        {% if request.user.role == 'PARENT' %}
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-arrow-left me-1"></i>Contact School</a>
-        {% else %}
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}?tab=direct"><i class="bi bi-arrow-left me-1"></i>Messages</a>
-        {% endif %}
         <h1 class="h5 mb-0">Chat with {{ other_user.get_full_name|default:other_user.username }}</h1>
       </div>
       {% if can_close %}

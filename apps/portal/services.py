@@ -120,6 +120,7 @@ def _serialize_thread(thread: MessageThread, user: User):
     else:
         unread_count = thread.messages.filter(is_deleted=False).count()
     return {
+        "id": thread.id,
         "title": thread.title,
         "description": thread.description,
         "last_message_at": effective_latest,
@@ -946,21 +947,41 @@ def _communication_center():
         .order_by("updated_at")
         .first()
     )
+    wa_digits = None
+    wa_label = "WhatsApp"
     if whatsapp and is_integration_allowed(whatsapp):
         wa_number = whatsapp.config.get("phone") or whatsapp.config.get("whatsapp_number")
         wa_digits = _normalize_phone(wa_number)
         if wa_number:
             items.append({"type": "whatsapp", "label": whatsapp.name, "value": wa_number})
+        wa_label = whatsapp.name
+    if not wa_digits and site.whatsapp_support_number:
+        wa_digits = _normalize_phone(site.whatsapp_support_number)
         if wa_digits:
-            links.insert(
-                0,
-                {
-                    "label": f"Chat on {whatsapp.name}",
-                    "url": f"https://wa.me/{wa_digits}",
-                    "icon": "bi-whatsapp",
-                    "target": "_blank",
-                },
-            )
+            items.append({"type": "whatsapp", "label": "WhatsApp", "value": site.whatsapp_support_number})
+    if not wa_digits and getattr(site, "footer_whatsapp_url", None):
+        import urllib.parse
+        try:
+            parsed = urllib.parse.urlparse(site.footer_whatsapp_url)
+            path = (parsed.path or "").strip("/")
+            if path and path.isdigit():
+                wa_digits = path
+            if not wa_digits and parsed.netloc == "wa.me":
+                wa_digits = path.split("?")[0] if path else None
+            if wa_digits and not any(i.get("type") == "whatsapp" for i in items):
+                items.append({"type": "whatsapp", "label": "WhatsApp", "value": site.footer_whatsapp_url})
+        except Exception:
+            pass
+    if wa_digits:
+        links.insert(
+            0,
+            {
+                "label": f"Chat on {wa_label}",
+                "url": f"https://wa.me/{wa_digits}",
+                "icon": "bi-whatsapp",
+                "target": "_blank",
+            },
+        )
 
     other_integrations = (
         Integration.objects.filter(enabled=True)

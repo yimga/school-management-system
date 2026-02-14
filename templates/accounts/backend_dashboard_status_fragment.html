@@ -1,0 +1,8 @@
+{% load i18n %}
+<div class="backend-status-strip backend-status-strip--fragment" role="status" aria-live="polite">
+  <span class="backend-status-strip__label">{% trans "Pending access requests" %}:</span>
+  <strong class="backend-status-strip__value">{{ pending_requests }}</strong>
+  {% if pending_requests > 0 %}
+  <a href="{% url 'requests:dashboard' %}?status=PENDING" class="backend-status-strip__link">{% trans "Review" %}</a>
+  {% endif %}
+</div>
