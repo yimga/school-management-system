@@ -414,7 +414,9 @@ def _direct_conversations(user, limit=50):
     from apps.communication.models import DirectConversation
 
     # For parents: only show conversations with staff/teacher that are not closed
+    # For students: only show conversations with staff/teacher
     is_parent = getattr(user, "role", None) == User.Role.PARENT
+    is_student = getattr(user, "role", None) == User.Role.STUDENT
 
     seen_other_ids = set()
     conversations = []
@@ -426,6 +428,9 @@ def _direct_conversations(user, limit=50):
             if getattr(other, "role", None) == User.Role.PARENT:
                 continue
             if DirectConversation.is_closed(user, other):
+                continue
+        if is_student:
+            if not _is_staff_or_teacher(other):
                 continue
         seen_other_ids.add(other.id)
         unread_count = unread_by_sender.get(other.id, 0)
@@ -443,16 +448,24 @@ def _direct_conversations(user, limit=50):
 
 @login_required
 def user_messages(request):
-    """Messages hub: Direct and Groups. Parents redirected to Contact School (RBAC)."""
-    if getattr(request.user, "role", None) == User.Role.PARENT:
+    """Messages hub: Direct and Groups. Parents use Contact School only (redirected). Students see Direct only. Staff/teachers see both."""
+    role = getattr(request.user, "role", None)
+    if role == User.Role.PARENT:
         return redirect(reverse("portal:parent_contact_school"))
     from apps.portal.services import threads_for_user
 
-    active_tab = request.GET.get("tab", "groups")
-    try:
-        threads = threads_for_user(request.user, limit=12)
-    except Exception:
+    # Students: show only Direct tab (conversations with staff); staff/teachers see both
+    direct_only = role == User.Role.STUDENT
+    if direct_only:
+        active_tab = "direct"
         threads = []
+    else:
+        active_tab = request.GET.get("tab", "groups")
+        try:
+            threads = threads_for_user(request.user, limit=12)
+        except Exception:
+            threads = []
+
     try:
         direct_list = _direct_conversations(request.user)
     except Exception:
@@ -461,7 +474,9 @@ def user_messages(request):
     context = {
         "threads": threads,
         "direct_conversations": direct_list,
-        "active_tab": active_tab,
+        "active_tab": request.GET.get("tab") if not direct_only else "direct",
+        "direct_only": direct_only,
+        "is_student": role == User.Role.STUDENT,
     }
     return render(request, "accounts/messages.html", context)
 
@@ -505,7 +520,7 @@ def _can_access_direct_messages(user) -> bool:
 
 @login_required
 def direct_thread(request, user_id):
-    """View 1-on-1 thread. Parents can only open threads with staff/teacher (to reply); staff can close the loop."""
+    """View 1-on-1 thread. Parents and students can only open threads with staff/teacher (view/reply). Staff can close the loop."""
     from apps.communication.models import Message, DirectConversation
     from django.utils import timezone
 
@@ -516,11 +531,15 @@ def direct_thread(request, user_id):
 
     other_is_parent = getattr(other, "role", None) == User.Role.PARENT
     i_am_parent = getattr(request.user, "role", None) == User.Role.PARENT
+    i_am_student = getattr(request.user, "role", None) == User.Role.STUDENT
+    other_is_staff = _is_staff_or_teacher(other)
 
-    # Parent can only chat with staff/teacher (reply to school).
-    if i_am_parent and not _is_staff_or_teacher(other):
+    # Parents do not use direct messaging; they use Contact School only.
+    if i_am_parent:
         return redirect(reverse("portal:parent_contact_school"))
-    if not i_am_parent and not _can_access_direct_messages(request.user):
+    if i_am_student and not other_is_staff:
+        return HttpResponseForbidden("You can only message staff or teachers.")
+    if not i_am_parent and not i_am_student and not _can_access_direct_messages(request.user):
         return HttpResponseForbidden("You don't have permission to send direct messages.")
 
     # Staff–parent conversation record (only when one is parent, one is staff/teacher)
@@ -676,7 +695,8 @@ def redirect_view(request):
     except Exception:
         dash_view = None
 
-    role = getattr(user, "role", None)
+    from apps.accounts.portal_roles import get_effective_portal_role
+    role = get_effective_portal_role(request) or getattr(user, "role", None)
 
     # Staff/backend: Dashboard or Workflow Center as default view
     if user.has_feature_permission("settings.manage"):
@@ -701,6 +721,36 @@ def redirect_view(request):
 
     # Default: admin
     return _redirect_with_params("admin:index")
+
+
+@login_required
+def switch_portal_role(request):
+    """
+    Set the active portal role (Teacher or Parent) for dual-hat users and redirect to the appropriate dashboard.
+    GET or POST with ?role=TEACHER or ?role=PARENT. Only allowed when the user has that hat.
+    """
+    from apps.accounts.portal_roles import (
+        ACTIVE_PORTAL_ROLE_KEY,
+        ALLOWED_PORTAL_ROLES,
+        has_teacher_hat,
+        has_parent_hat,
+    )
+    role = (request.GET.get("role") or request.POST.get("role") or "").strip().upper()
+    if role not in ALLOWED_PORTAL_ROLES:
+        return redirect(reverse("accounts:redirect"))
+    if role == "TEACHER" and not has_teacher_hat(request.user):
+        return redirect(reverse("accounts:redirect"))
+    if role == "PARENT" and not has_parent_hat(request.user):
+        return redirect(reverse("accounts:redirect"))
+    request.session[ACTIVE_PORTAL_ROLE_KEY] = role
+    try:
+        from apps.siteconfig.models import UserPreference
+        pref, _ = UserPreference.objects.get_or_create(user=request.user, defaults={})
+        pref.last_portal_role = role
+        pref.save(update_fields=["last_portal_role", "updated_at"])
+    except Exception:
+        pass
+    return redirect(reverse("accounts:redirect"))
 
 
 def _is_admin_user(user):
@@ -1239,16 +1289,19 @@ def backend_dashboard(request):
                 }],
             },
         })
+    # Dashboard data capping: top N roles by user count (see docs/DASHBOARD_DATA_CAPPING_POLICY.md)
+    from apps.dashboard.context import DASHBOARD_CHART_TOP_N
     roles_qs = AccessRole.objects.prefetch_related("permissions", "users").order_by("code")
     role_user_counts = {r.code: r.users.count() for r in roles_qs}
     if role_user_counts:
+        sorted_roles = sorted(role_user_counts.items(), key=lambda x: -x[1])[:DASHBOARD_CHART_TOP_N]
         chart_rbac_roles_json = json.dumps({
             "type": "bar",
             "data": {
-                "labels": list(role_user_counts.keys()),
+                "labels": [r[0] for r in sorted_roles],
                 "datasets": [{
                     "label": "Users",
-                    "data": list(role_user_counts.values()),
+                    "data": [r[1] for r in sorted_roles],
                     "backgroundColor": "rgba(13, 110, 253, 0.8)",
                     "borderColor": "#0d6efd",
                     "borderWidth": 1,
@@ -1502,12 +1555,46 @@ def backend_dashboard(request):
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
             {"label": "Dashboard", "url": "", "active": True},
         ],
+        "SHOW_HEADER_CONTEXT_STRIP": False,
     }
     try:
         context.update(build_dashboard_extras(request, base=context))
     except Exception:
         pass
     return render(request, "accounts/backend_dashboard.html", context)
+
+
+BACKEND_STATUS_FRAGMENT_CACHE_KEY = "backend_dashboard_status_fragment"
+BACKEND_STATUS_FRAGMENT_CACHE_TTL = 60  # seconds
+
+
+@login_required
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+def backend_dashboard_status_fragment(request):
+    """Return HTML fragment for backend dashboard status strip (for HTMX partial load). Cached 60s to reduce DB load."""
+    from django.http import HttpResponse
+    from django.template import loader
+    from django.core.cache import cache
+
+    html = cache.get(BACKEND_STATUS_FRAGMENT_CACHE_KEY)
+    if html is not None:
+        return HttpResponse(html)
+
+    pending_requests = 0
+    try:
+        from apps.requests.models import AccessRequest
+        pending_requests = AccessRequest.objects.filter(status=AccessRequest.Status.PENDING).count()
+    except Exception:
+        pass
+
+    template = loader.get_template("accounts/backend_dashboard_status_fragment.html")
+    html = template.render({
+        "request": request,
+        "pending_requests": pending_requests,
+    })
+    cache.set(BACKEND_STATUS_FRAGMENT_CACHE_KEY, html, BACKEND_STATUS_FRAGMENT_CACHE_TTL)
+    return HttpResponse(html)
 
 
 @permission_required("settings.manage")

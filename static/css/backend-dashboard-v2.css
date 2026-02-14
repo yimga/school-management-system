@@ -680,3 +680,37 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-heade
     grid-column: span 1;
   }
 }
+
+/* Layout polish: even alignment, no empty gaps, slick flow */
+body[data-dashboard-page="backend"] .backend-v2-shell {
+  margin-top: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-grid {
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main {
+  gap: 0.5rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-side-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-side-grid {
+  margin-top: 0.1rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-workspace {
+  margin-top: 0.5rem;
+  gap: 0.5rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid {
+  gap: 0.5rem;
+}
