@@ -46,8 +46,13 @@ class MaintenanceModeMiddleware:
         return enabled
 
     def __call__(self, request):
-        # Allow admin + auth routes always
-        if request.path.startswith("/admin/") or request.path.startswith("/authentication/"):
+        # Allow admin, auth, and health routes (so load balancers / Render always get 200 when app is up)
+        if (
+            request.path.startswith("/admin/")
+            or request.path.startswith("/authentication/")
+            or request.path.startswith("/health/")
+            or request.path.startswith("/healthz/")
+        ):
             return self.get_response(request)
 
         # request.user may not exist if AuthenticationMiddleware isn't loaded yet
