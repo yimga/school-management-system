@@ -1,6 +1,6 @@
 {% comment %}
   Backend Admin Portal card: date, local time, weather, location.
-  Matches reference layout: "April 2024", "10:21 AM", weather icon + temp, location.
+  Reference layout: vertical stack — "April 2024", "10:21 AM", icon + "27°", location (no separators).
   Uses Open-Meteo for weather; Intl for date/time. Works in light and dark backend themes.
 {% endcomment %}
 <div
@@ -12,51 +12,43 @@
   data-weather-label="{{ HEADER_WEATHER_LABEL|default:'Douala, Cameroon' }}"
   aria-label="Local date, time, and weather"
 >
-  <div class="backend-dtw__row backend-dtw__date-time">
-    <span class="backend-dtw__month-year" id="backendDtwMonthYear">—</span>
-    <span class="backend-dtw__sep" aria-hidden="true">·</span>
-    <span class="backend-dtw__time" id="backendDtwTime">—:—</span>
+  <div class="backend-dtw__line backend-dtw__month-year" id="backendDtwMonthYear">—</div>
+  <div class="backend-dtw__line backend-dtw__time" id="backendDtwTime">—:—</div>
+  <div class="backend-dtw__line backend-dtw__weather">
+    <i class="bi bi-cloud-sun backend-dtw__weather-icon" id="backendDtwWeatherIcon" aria-hidden="true"></i>
+    <span class="backend-dtw__temp" id="backendDtwTemp">—°</span>
   </div>
-  <div class="backend-dtw__row backend-dtw__weather-loc">
-    <span class="backend-dtw__weather">
-      <i class="bi bi-cloud-sun backend-dtw__weather-icon" id="backendDtwWeatherIcon" aria-hidden="true"></i>
-      <span class="backend-dtw__temp" id="backendDtwTemp">—°</span>
-    </span>
-    <span class="backend-dtw__sep" aria-hidden="true">·</span>
-    <span class="backend-dtw__location" id="backendDtwLocation">{{ HEADER_WEATHER_LABEL|default:"Douala, Cameroon" }}</span>
-  </div>
+  <div class="backend-dtw__line backend-dtw__location" id="backendDtwLocation">{{ HEADER_WEATHER_LABEL|default:"Douala, Cameroon" }}</div>
 </div>
 
 <style>
   .backend-dtw {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    margin-top: 0.6rem;
+    gap: 0.25rem;
+    margin-top: 0.4rem;
+    margin-bottom: 0.35rem;
     border-top: 1px solid var(--admin-border, #cbd5e1);
-    padding-top: 0.6rem;
+    padding-top: 0.4rem;
   }
-  .backend-dtw__row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    font-size: 0.875rem;
-    color: var(--admin-subtle, #475569);
+  .backend-dtw__line {
+    line-height: 1.25;
   }
-  .backend-dtw__month-year,
-  .backend-dtw__time {
+  .backend-dtw__month-year {
+    font-size: 0.95rem;
     font-weight: 600;
     color: var(--admin-text, #0f172a);
   }
-  .backend-dtw__sep {
-    color: var(--admin-muted, #94a3b8);
-    font-weight: 400;
+  .backend-dtw__time {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--admin-text, #0f172a);
   }
   .backend-dtw__weather {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 0.35rem;
+    font-size: 0.9rem;
   }
   .backend-dtw__weather-icon {
     font-size: 1.1rem;
@@ -67,7 +59,7 @@
     color: var(--admin-text, #0f172a);
   }
   .backend-dtw__location {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--admin-muted, #64748b);
   }
 </style>
