@@ -1,5 +1,12 @@
 /* Backend dashboard v2 (theme-token driven) */
 
+/* Aesthetics: uniform spacing and padding (Administration-style) */
+body[data-dashboard-page="backend"] {
+  --dash-gap: 0.5rem;
+  --dash-section: 0.5rem;
+  --dash-card-pad: 0.75rem 1rem;
+}
+
 /* Compactness: tighten spacing between header row and Overview/Admin (Phase 0) */
 body[data-dashboard-page="backend"] .page-wrap > div.mb-3:first-child {
   margin-bottom: 0.5rem !important;
@@ -13,22 +20,22 @@ body[data-dashboard-page="backend"] .backend-v2-shell {
   margin-bottom: 0.35rem;
 }
 body[data-dashboard-page="backend"] .backend-v2-grid {
-  gap: 0.3rem;
+  gap: var(--dash-gap);
 }
 body[data-dashboard-page="backend"] .backend-v2-main {
-  gap: 0.3rem;
+  gap: var(--dash-section);
 }
 body[data-dashboard-page="backend"] .backend-v2-overview {
-  padding: 0.4rem 0.6rem;
+  padding: var(--dash-card-pad);
 }
 body[data-dashboard-page="backend"] .backend-v2-overview-head {
-  margin-bottom: 0.35rem;
+  margin-bottom: var(--dash-gap);
 }
 body[data-dashboard-page="backend"] .backend-v2-welcome {
-  padding: 0.55rem 0.75rem;
+  padding: var(--dash-card-pad);
 }
 body[data-dashboard-page="backend"] .backend-v2-side-card {
-  padding: 0.55rem 0.75rem;
+  padding: var(--dash-card-pad);
 }
 
 /* Admin Portal: date/time/weather + mini calendar in one row (Phase 1) */
@@ -36,12 +43,12 @@ body[data-dashboard-page="backend"] .backend-dtw-and-calendar {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--dash-gap);
   flex-wrap: wrap;
-  margin-top: 0.4rem;
-  margin-bottom: 0.35rem;
+  margin-top: var(--dash-gap);
+  margin-bottom: var(--dash-gap);
   border-top: 1px solid var(--admin-border, #cbd5e1);
-  padding-top: 0.4rem;
+  padding-top: var(--dash-gap);
 }
 body[data-dashboard-page="backend"] .backend-dtw-and-calendar__dtw {
   flex: 0 1 auto;
@@ -65,7 +72,7 @@ body[data-dashboard-page="backend"] .backend-dtw-and-calendar .backend-mini-cale
 body[data-dashboard-page="backend"] .backend-v2-grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
-  gap: 0.3rem;
+  gap: var(--dash-gap);
   align-items: stretch;
 }
 
@@ -77,7 +84,7 @@ body[data-dashboard-page="backend"] .backend-v2-side {
 body[data-dashboard-page="backend"] .backend-v2-main {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--dash-section);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side {
@@ -94,15 +101,15 @@ body[data-dashboard-page="backend"] .backend-v2-side-card {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-overview {
-  padding: 0.4rem 0.6rem;
+  padding: var(--dash-card-pad);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-overview-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 0.4rem;
-  margin-bottom: 0.35rem;
+  gap: var(--dash-gap);
+  margin-bottom: var(--dash-gap);
   flex-wrap: wrap;
 }
 
@@ -121,7 +128,7 @@ body[data-dashboard-page="backend"] .backend-v2-overview-sub {
 
 body[data-dashboard-page="backend"] .backend-v2-ctas {
   display: flex;
-  gap: 0.35rem;
+  gap: var(--dash-gap);
   flex-wrap: wrap;
 }
 
@@ -153,7 +160,7 @@ body[data-dashboard-page="backend"] .backend-v2-cta:focus-visible {
 body[data-dashboard-page="backend"] .backend-v2-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.35rem;
+  gap: var(--dash-gap);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric {
@@ -162,7 +169,7 @@ body[data-dashboard-page="backend"] .backend-v2-metric {
   border: 1px solid color-mix(in srgb, var(--dashboard-theme-primary, #3b82f6) 20%, var(--admin-border, #cbd5e1) 80%);
   border-radius: 10px;
   background: color-mix(in srgb, var(--dashboard-theme-primary, #3b82f6) 6%, var(--admin-surface, #fff) 94%);
-  padding: 0.5rem 0.6rem;
+  padding: var(--dash-gap) 0.75rem;
   min-width: 0;
 }
 
@@ -187,7 +194,7 @@ body[data-dashboard-page="backend"] .backend-v2-metric-meta {
   margin-top: 0.2rem;
   display: flex;
   justify-content: space-between;
-  gap: 0.35rem;
+  gap: var(--dash-gap);
   font-size: 0.75rem;
   color: var(--admin-muted, var(--dashboard-text-muted, #64748b));
 }
@@ -211,14 +218,14 @@ body[data-dashboard-page="backend"] .backend-v2-sparkline-line {
 
 body[data-dashboard-page="backend"] .backend-v2-welcome {
   margin-top: 0;
-  padding: 0.4rem 0.6rem;
+  padding: var(--dash-card-pad);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-welcome-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.4rem;
+  gap: var(--dash-gap);
   flex-wrap: wrap;
 }
 
@@ -237,16 +244,16 @@ body[data-dashboard-page="backend"] .backend-v2-welcome-sub {
 
 body[data-dashboard-page="backend"] .backend-v2-welcome-controls {
   display: flex;
-  gap: 0.35rem;
+  gap: var(--dash-gap);
   flex-wrap: wrap;
   align-items: center;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-chip-row {
-  margin-top: 0.35rem;
+  margin-top: var(--dash-gap);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.35rem;
+  gap: var(--dash-gap);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-chip {
@@ -272,10 +279,10 @@ body[data-dashboard-page="backend"] .backend-v2-chip:focus-visible {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-action-grid {
-  margin-top: 0.35rem;
+  margin-top: var(--dash-gap);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.35rem;
+  gap: var(--dash-gap);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-action {
@@ -303,7 +310,7 @@ body[data-dashboard-page="backend"] .backend-v2-action:focus-visible {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-card {
-  padding: 0.7rem 0.8rem;
+  padding: var(--dash-card-pad);
   min-height: 100%;
   width: 100%;
 }
@@ -624,9 +631,9 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
 body[data-dashboard-page="backend"] .backend-v2-workspace {
   display: grid;
   grid-template-columns: minmax(0, 2.1fr) minmax(320px, 1fr);
-  gap: 0.4rem;
+  gap: var(--dash-gap);
   align-items: start;
-  margin-top: 0.4rem;
+  margin-top: var(--dash-section);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-workbench {
@@ -636,7 +643,7 @@ body[data-dashboard-page="backend"] .backend-v2-workbench {
 body[data-dashboard-page="backend"] .backend-v2-main-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.4rem;
+  gap: var(--dash-gap);
   align-items: stretch;
 }
 
@@ -653,7 +660,7 @@ body[data-dashboard-page="backend"] .backend-v2-panel {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-panel .card-body {
-  padding: 0.72rem 0.85rem;
+  padding: var(--dash-card-pad);
   /* Reserve space for widget gear (Settings) so it never bleeds or clips */
   padding-right: 3.25rem;
 }
@@ -672,8 +679,8 @@ body[data-dashboard-page="backend"] .backend-v2-panel-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.55rem;
+  gap: var(--dash-gap);
+  margin-bottom: var(--dash-gap);
   min-width: 0;
 }
 
@@ -689,7 +696,7 @@ body[data-dashboard-page="backend"] .backend-v2-panel-head > .badge {
 
 /* Compact empty-state panels */
 body[data-dashboard-page="backend"] .backend-v2-panel--empty .card-body {
-  padding: 0.6rem 0.8rem;
+  padding: var(--dash-card-pad);
   padding-right: 2.5rem;
   min-height: 0;
 }
@@ -728,7 +735,7 @@ body[data-dashboard-page="backend"] .backend-empty-quick-action:focus-visible {
 
 body[data-dashboard-page="backend"] .backend-v2-list {
   display: grid;
-  gap: 0.42rem;
+  gap: var(--dash-gap);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-list-item {
@@ -802,8 +809,9 @@ body[data-dashboard-page="backend"] .backend-attendance-pulse-meta {
 body[data-dashboard-page="backend"] .backend-v2-rail {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--dash-gap);
   min-width: 0;
+  align-self: start;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-rail > .card:last-child,
@@ -823,7 +831,7 @@ body[data-dashboard-page="backend"] .backend-next-steps-rail .card-body {
 
 body[data-dashboard-page="backend"] .backend-next-steps-list {
   display: grid;
-  gap: 0.35rem;
+  gap: var(--dash-gap);
 }
 
 body[data-dashboard-page="backend"] .backend-next-steps-rail .backend-quick-link {
@@ -866,6 +874,10 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-span-2 > .
   min-height: 180px;
 }
 
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-span-2 > .backend-v2-panel--empty {
+  min-height: 100px;
+}
+
 @media (max-width: 1400px) {
   body[data-dashboard-page="backend"] .backend-v2-workspace {
     grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr);
@@ -902,6 +914,10 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-span-2 > .
   body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-span-2 > .backend-v2-panel {
     min-height: 160px;
   }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-span-2 > .backend-v2-panel--empty {
+    min-height: 100px;
+  }
 }
 
 /* Layout polish: even alignment, no empty gaps, slick flow */
@@ -911,12 +927,12 @@ body[data-dashboard-page="backend"] .backend-v2-shell {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-grid {
-  gap: 0.3rem;
+  gap: var(--dash-gap);
   align-items: stretch;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main {
-  gap: 0.3rem;
+  gap: var(--dash-section);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-side-card {
@@ -930,10 +946,10 @@ body[data-dashboard-page="backend"] .backend-v2-side-grid {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-workspace {
-  margin-top: 0.4rem;
-  gap: 0.4rem;
+  margin-top: var(--dash-section);
+  gap: var(--dash-gap);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid {
-  gap: 0.4rem;
+  gap: var(--dash-gap);
 }
