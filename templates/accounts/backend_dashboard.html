@@ -742,20 +742,31 @@
     })();
   </script>
   <script src="{% static 'js/dashboard-layout.js' %}"></script>
-  {# Force show Recent Activity, Top performing, Attendance (survives cached layout JS and saved hidden state) #}
+  {# Backend: force Recent Activity, Top performing, Attendance visible (sync with dashboard_layout_api.BACKEND_ALWAYS_VISIBLE_WIDGET_IDS) #}
   <script>
   (function(){
     var ids = ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'];
-    function show() {
+    function ensureVisible() {
       var root = document.getElementById('dashboard-layout');
       if (!root) return;
       ids.forEach(function(id) {
         var el = root.querySelector('[data-widget-id="' + id + '"]');
-        if (el) { el.classList.remove('dash-widget-hidden'); el.style.display = ''; }
+        if (el && (el.classList.contains('dash-widget-hidden') || el.style.display === 'none')) {
+          el.classList.remove('dash-widget-hidden');
+          el.style.display = '';
+        }
       });
     }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { show(); setTimeout(show, 800); });
-    else { show(); setTimeout(show, 800); }
+    function run() {
+      ensureVisible();
+      var n = 0;
+      var t = setInterval(function() {
+        ensureVisible();
+        if (++n >= 10) clearInterval(t);
+      }, 1000);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+    else run();
   })();
   </script>
 {% endblock %}

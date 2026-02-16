@@ -163,13 +163,15 @@
     { value: 'polarArea', label: 'Polar Area' },
   ];
 
-  function injectControls(el, meta, onChange, isLightMode) {
+  function injectControls(el, meta, onChange, isLightMode, noHideWidgetIds) {
     if (el.dataset.widgetControlsInjected === '1') return;
     el.dataset.widgetControlsInjected = '1';
 
     const allowedSizes = (meta && meta.allowed_sizes) || ['sm', 'md', 'lg'];
     const allowedVariants = (meta && meta.allowed_variants) || ['default', 'compact', 'flat'];
     const isChartWidget = (meta && meta.widget_type) === 'chart';
+    const wid = el.dataset.widgetId || '';
+    const canHide = !Array.isArray(noHideWidgetIds) || noHideWidgetIds.indexOf(wid) < 0;
 
     el.classList.add('dash-widget');
     if (!isLightMode) injectGrip(el);
@@ -195,11 +197,13 @@
       </div>
       `;
     }
-    menuRows += `
+    if (canHide) {
+      menuRows += `
       <div class="dash-widget-row">
         <button type="button" class="dash-widget-hide-btn btn btn-sm btn-outline-secondary w-100">Hide widget</button>
       </div>
     `;
+    }
 
     const isBackend = document.body && document.body.dataset.dashboardPage === 'backend';
     const gearLabel = isBackend ? '' : '<span class="dash-widget-gear-label d-none d-md-inline ms-1">Settings</span>';
@@ -369,7 +373,10 @@
     }
     
     if (!page) return;
-    
+
+    // Backend: these widgets must always be visible (keep in sync with API BACKEND_ALWAYS_VISIBLE_WIDGET_IDS)
+    var BACKEND_ALWAYS_VISIBLE = ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'];
+
     ensureColumnKeys(columns);
 
     let widgetMetaById = {};
@@ -569,10 +576,8 @@
 
         hiddenWidgetIds = (data.layout && data.layout.__settings__ && data.layout.__settings__.hidden_widget_ids) || [];
         if (!Array.isArray(hiddenWidgetIds)) hiddenWidgetIds = [];
-        // Backend: always show Recent Activity, Top performing, Attendance
         if (page === 'backend') {
-          var alwaysVisible = ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'];
-          hiddenWidgetIds = hiddenWidgetIds.filter(function (id) { return alwaysVisible.indexOf(id) < 0; });
+          hiddenWidgetIds = hiddenWidgetIds.filter(function (id) { return BACKEND_ALWAYS_VISIBLE.indexOf(id) < 0; });
         }
         columns.forEach((col) => {
           col.querySelectorAll('[data-widget-id]').forEach((el) => {
@@ -582,9 +587,8 @@
             }
           });
         });
-        // Backend: force-unhide the three panels in case they were ever hidden
         if (page === 'backend' && layoutRoot) {
-          ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'].forEach(function (id) {
+          BACKEND_ALWAYS_VISIBLE.forEach(function (id) {
             var el = layoutRoot.querySelector('[data-widget-id="' + id + '"]');
             if (el) { el.classList.remove('dash-widget-hidden'); el.style.display = ''; }
           });
@@ -608,7 +612,7 @@
             const meta = widgetMetaById[wid] || {};
             applyPresentation(el, item, meta);
             injectGrip(el, moveUpDown);
-            injectControls(el, meta, saveLayout);
+            injectControls(el, meta, saveLayout, undefined, page === 'backend' ? BACKEND_ALWAYS_VISIBLE : null);
           });
         });
       })
@@ -617,8 +621,8 @@
         if (loader) loader.remove();
         if (page === 'backend') {
           var root = document.getElementById('dashboard-layout');
-          if (root) {
-            ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'].forEach(function (id) {
+          if (root && typeof BACKEND_ALWAYS_VISIBLE !== 'undefined') {
+            BACKEND_ALWAYS_VISIBLE.forEach(function (id) {
               var el = root.querySelector('[data-widget-id="' + id + '"]');
               if (el) { el.classList.remove('dash-widget-hidden'); el.style.display = ''; }
             });
