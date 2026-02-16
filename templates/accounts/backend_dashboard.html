@@ -218,6 +218,7 @@
               <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
               <span class="badge text-bg-light">{{ at_risk_students|length }}</span>
             </div>
+            <div class="dashboard-card-scroll">
             <div class="backend-v2-list">
               {% for student in at_risk_students %}
               <div class="backend-v2-list-item">
@@ -230,6 +231,7 @@
               {% empty %}
               <p class="small text-muted mb-0">No at-risk learners detected.</p>
               {% endfor %}
+            </div>
             </div>
           </div>
         </article>
@@ -272,6 +274,7 @@
               <h5 class="backend-v2-panel-title mb-0">Recent Admissions</h5>
               <a href="{{ quick_student_create_url }}" class="btn btn-sm btn-outline-primary">Add student</a>
             </div>
+            <div class="dashboard-card-scroll">
             <div class="backend-v2-list">
               {% for student in recent_admissions %}
               <div class="backend-v2-list-item">
@@ -285,6 +288,7 @@
               <div class="small text-muted">No recent admissions yet.</div>
               {% endfor %}
             </div>
+            </div>
           </div>
         </article>
 
@@ -294,6 +298,7 @@
               <h5 class="backend-v2-panel-title mb-0">Recent Activity</h5>
               <span class="badge text-bg-light">Live feed</span>
             </div>
+            <div class="dashboard-card-scroll">
             <div class="backend-v2-list">
               {% for activity in recent_activities|slice:":6" %}
               <div class="backend-v2-list-item">
@@ -307,6 +312,7 @@
               <div class="small text-muted">No recent activity available.</div>
               {% endfor %}
             </div>
+            </div>
           </div>
         </article>
 
@@ -316,6 +322,7 @@
               <h5 class="backend-v2-panel-title mb-0">Top-Performing</h5>
               <span class="badge text-bg-light">This term</span>
             </div>
+            <div class="dashboard-card-scroll">
             <div class="backend-v2-list">
               {% for student in top_performing_students %}
               <div class="backend-v2-list-item">
@@ -328,6 +335,7 @@
               {% empty %}
               <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
               {% endfor %}
+            </div>
             </div>
           </div>
         </article>

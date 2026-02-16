@@ -1007,19 +1007,6 @@
             <i class="bi bi-house"></i>
             <span class="d-none d-sm-inline">Home</span>
           </a>
-          {% if is_backend_context %}
-          <button
-            type="button"
-            class="btn btn-sm btn-outline-light d-none d-lg-inline-flex align-items-center gap-1 ms-2 js-sidebar-toggle"
-            aria-controls="portal-sidebar-col"
-            aria-expanded="true"
-            aria-label="Collapse sidebar"
-            title="Collapse sidebar to icons"
-          >
-            <i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i>
-            <span class="d-none d-xl-inline" data-sidebar-toggle-label>Collapse sidebar</span>
-          </button>
-          {% endif %}
         {% else %}
           <a class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-2" href="{% url 'home' %}">
             <i class="bi bi-house"></i>

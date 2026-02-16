@@ -7,17 +7,25 @@
 {% block content %}
   <div class="container-fluid py-4">
     <h1 class="h4 mb-3">{% trans "Child schools" %} ({{ parent_school.name }})</h1>
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <div class="row text-center">
-          <div class="col"><strong>{{ total_students }}</strong><br><span class="text-muted">{% trans "Students" %}</span></div>
-          <div class="col"><strong>{{ total_teachers }}</strong><br><span class="text-muted">{% trans "Teachers" %}</span></div>
-          <div class="col"><strong>{{ total_paid }}</strong><br><span class="text-muted">{% trans "Total paid" %}</span></div>
+    <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
+      <div class="card shadow-sm text-center">
+        <div class="card-body py-3">
+          <strong>{{ total_students }}</strong><br><span class="text-muted small">{% trans "Students" %}</span>
+        </div>
+      </div>
+      <div class="card shadow-sm text-center">
+        <div class="card-body py-3">
+          <strong>{{ total_teachers }}</strong><br><span class="text-muted small">{% trans "Teachers" %}</span>
+        </div>
+      </div>
+      <div class="card shadow-sm text-center">
+        <div class="card-body py-3">
+          <strong>{{ total_paid }}</strong><br><span class="text-muted small">{% trans "Total paid" %}</span>
         </div>
       </div>
     </div>
     <div class="card shadow-sm">
-      <div class="table-responsive">
+      <div class="dashboard-card-scroll table-responsive">
         <table class="table table-hover mb-0">
           <thead class="table-light">
             <tr>
