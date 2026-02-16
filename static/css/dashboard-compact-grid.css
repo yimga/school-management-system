@@ -11,6 +11,14 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  height: auto;
+  min-height: 0;
+}
+
+.dashboard-compact-grid .compact-card .card-body,
+.dashboard-compact-grid .compact-card {
+  height: auto;
+  min-height: 0;
 }
 
 .dashboard-compact-grid .compact-card {

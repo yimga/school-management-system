@@ -9,10 +9,9 @@
   <h1 class="h4 mb-3">{% trans "Integrations & API Center" %}</h1>
   <p class="text-muted">{% trans "One place for all external integrations. Toggle on or off (kill switch); a reason is required and recorded in the audit log. Add or edit integrations in Configuration Engine → Integrations." %}</p>
 
-  <div class="row g-3 mb-4">
+  <div class="dashboard-card-grid mb-4">
     {% for integration in integrations %}
-    <div class="col-md-6 col-lg-4">
-      <div class="card h-100 shadow-sm">
+    <div class="card shadow-sm">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
@@ -38,10 +37,11 @@
           <a href="{% url 'admin:siteconfig_integration_change' integration.pk %}" class="btn btn-link btn-sm p-0 mt-2">{% trans "Manage config & scopes" %} →</a>
         </div>
       </div>
-    </div>
     {% empty %}
-    <div class="col-12">
-      <div class="alert alert-info">{% trans "No integrations yet. Add them in Configuration Engine → Integrations." %}</div>
+    <div class="card shadow-sm" style="grid-column: 1 / -1;">
+      <div class="card-body">
+        <div class="alert alert-info mb-0">{% trans "No integrations yet. Add them in Configuration Engine → Integrations." %}</div>
+      </div>
     </div>
     {% endfor %}
   </div>

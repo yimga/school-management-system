@@ -2,8 +2,33 @@
  * Backend dashboard – single token contract.
  * Depends on design-tokens.css and SITE-injected --brand-* (from template).
  * Aligns with --admin-content-* and theme-visibility-guard --vis-* for readability.
+ *
+ * Spacing and padding: use these tokens in backend-dashboard-v2.css and other
+ * backend dashboard/backend page styles so all aesthetics are defined in one place.
  */
 :root {
+  /* ---- Spacing (gaps, margins) ---- */
+  --dash-gap: 0.5rem;
+  --dash-gap-xs: 0.1rem;
+  --dash-gap-sm: 0.15rem;
+  --dash-gap-md: 0.25rem;
+  --dash-gap-lg: 0.35rem;
+  --dash-gap-xl: 0.42rem;
+  --dash-gap-2xl: 0.6rem;
+  --dash-section: 0.5rem;
+  --dash-block-spacing: 0.55rem;
+  /* ---- Padding ---- */
+  --dash-card-pad: 0.75rem 1rem;
+  --dash-pad-tight: 0.35rem 0.5rem;
+  --dash-pad-chip: 0.28rem 0.6rem;
+  --dash-pad-chip-sm: 0.3rem 0.45rem;
+  --dash-pad-chip-lg: 0.42rem 0.95rem;
+  --dash-pad-cta: 0.5rem 0.75rem;
+  --dash-pad-mini: 0.45rem 0.5rem;
+  --dash-pad-side-meta: 0.1rem 0 0.45rem;
+  --dash-pad-list: 0.4rem 0.5rem;
+
+  /* ---- Surfaces and colors ---- */
   --admin-dashboard-bg: var(--dashboard-surface-soft, #f8fafc);
   --admin-surface: var(--dashboard-surface, var(--admin-content-surface, #ffffff));
   --admin-surface-alt: var(--admin-content-thead-bg, #f1f5f9);

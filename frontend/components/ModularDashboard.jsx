@@ -1,10 +1,18 @@
 import React from 'react';
 import CustomWidget from './CustomWidget';
 
-// Example modular micro-frontend dashboard
+// Example modular micro-frontend dashboard – auto-adjusting grid when data grows
+const gridStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+  gap: '1rem',
+  width: '100%',
+  minWidth: 0,
+};
+
 export default function ModularDashboard() {
   return (
-    <div className="modular-dashboard">
+    <div className="modular-dashboard dashboard-card-grid" style={gridStyle}>
       <CustomWidget
         title="Recent Student Activity"
         fetchUrl="/api/analytics/recent-student-activity/"

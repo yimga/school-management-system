@@ -5,6 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     document.body.dataset.dashboardPage = 'evals-compliance';
@@ -24,37 +25,29 @@
     </div>
     
     <!-- KPI Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-left-primary shadow-sm">
-                <div class="card-body">
-                    <div class="text-primary font-weight-bold text-uppercase mb-1">Total Teachers</div>
-                    <div class="h3 mb-0">{{ kpis.total }}</div>
-                </div>
+    <div class="dashboard-card-grid dashboard-card-grid--dense mb-4">
+        <div class="card border-left-primary shadow-sm">
+            <div class="card-body">
+                <div class="text-primary font-weight-bold text-uppercase mb-1">Total Teachers</div>
+                <div class="h3 mb-0">{{ kpis.total }}</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-left-success shadow-sm">
-                <div class="card-body">
-                    <div class="text-success font-weight-bold text-uppercase mb-1">Compliant</div>
-                    <div class="h3 mb-0">{{ kpis.compliant }}</div>
-                </div>
+        <div class="card border-left-success shadow-sm">
+            <div class="card-body">
+                <div class="text-success font-weight-bold text-uppercase mb-1">Compliant</div>
+                <div class="h3 mb-0">{{ kpis.compliant }}</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-left-warning shadow-sm">
-                <div class="card-body">
-                    <div class="text-warning font-weight-bold text-uppercase mb-1">At Risk</div>
-                    <div class="h3 mb-0">{{ kpis.at_risk }}</div>
-                </div>
+        <div class="card border-left-warning shadow-sm">
+            <div class="card-body">
+                <div class="text-warning font-weight-bold text-uppercase mb-1">At Risk</div>
+                <div class="h3 mb-0">{{ kpis.at_risk }}</div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-left-danger shadow-sm">
-                <div class="card-body">
-                    <div class="text-danger font-weight-bold text-uppercase mb-1">Overdue</div>
-                    <div class="h3 mb-0">{{ kpis.overdue }}</div>
-                </div>
+        <div class="card border-left-danger shadow-sm">
+            <div class="card-body">
+                <div class="text-danger font-weight-bold text-uppercase mb-1">Overdue</div>
+                <div class="h3 mb-0">{{ kpis.overdue }}</div>
             </div>
         </div>
     </div>

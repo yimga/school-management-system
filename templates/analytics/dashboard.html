@@ -5,6 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -56,9 +57,8 @@
   </div>
 </div>
 
-<div class="row g-3 mb-4" data-dashboard-column="main">
-  <div class="col-lg-8" data-widget-id="analytics-operational-pulse">
-    <div class="card shadow-sm p-3 h-100">
+<div class="dashboard-card-grid dashboard-card-grid--charts mb-4" data-dashboard-column="main">
+  <div class="card shadow-sm p-3" data-widget-id="analytics-operational-pulse">
       <div class="d-flex justify-content-between align-items-center flex-wrap">
         <div>
           <h3 class="h5 mb-1">Operational pulse</h3>
@@ -69,39 +69,31 @@
           <span class="badge bg-outline-primary">2026 insights</span>
         </div>
       </div>
-      <div class="row g-3 mt-3">
-        <div class="col-sm-6 col-lg-3">
-          <div class="border p-3 rounded-3 h-100" style="background: var(--admin-content-bg);">
-            <div class="text-uppercase small text-muted mb-1">Top students</div>
-            <div class="h4">{{ top_n }}</div>
-            <div class="small text-muted">per filter results</div>
-            <div class="progress mt-2" style="height:4px;">
-              <div class="progress-bar" role="progressbar" style="width:{{ weak_subjects|length|default:30 }}%;"></div>
-            </div>
+      <div class="dashboard-card-grid dashboard-card-grid--dense mt-3">
+        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
+          <div class="text-uppercase small text-muted mb-1">Top students</div>
+          <div class="h4">{{ top_n }}</div>
+          <div class="small text-muted">per filter results</div>
+          <div class="progress mt-2" style="height:4px;">
+            <div class="progress-bar" role="progressbar" style="width:{{ weak_subjects|length|default:30 }}%;"></div>
           </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-          <div class="border p-3 rounded-3 h-100" style="background: var(--admin-content-bg);">
-            <div class="text-uppercase small text-muted mb-1">Weak subjects</div>
-            <div class="h4">{{ weak_subjects|length }}</div>
-            <div class="small text-muted">monitor action</div>
-            <div class="progress mt-2" style="height:4px;">
-              <div class="progress-bar bg-warning" style="width:{{ weak_subjects|length|default:10 }}%;"></div>
-            </div>
+        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
+          <div class="text-uppercase small text-muted mb-1">Weak subjects</div>
+          <div class="h4">{{ weak_subjects|length }}</div>
+          <div class="small text-muted">monitor action</div>
+          <div class="progress mt-2" style="height:4px;">
+            <div class="progress-bar bg-warning" style="width:{{ weak_subjects|length|default:10 }}%;"></div>
           </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-          <div class="border p-3 rounded-3 h-100" style="background: var(--admin-content-bg);">
-            <div class="text-uppercase small text-muted mb-1">Teacher compliance</div>
-            <div class="h4">{{ teacher_stats|length }}</div>
-            <div class="small text-muted">on deadlines</div>
-          </div>
+        <div class="border p-3 rounded-3" style="background: var(--admin-content-bg);">
+          <div class="text-uppercase small text-muted mb-1">Teacher compliance</div>
+          <div class="h4">{{ teacher_stats|length }}</div>
+          <div class="small text-muted">on deadlines</div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-          <div class="border p-3 rounded-3 h-100 text-center" style="background: var(--admin-content-bg);">
-            <div class="h1 fw-bold">{{ improvement_rows|length }}</div>
-            <div class="small text-muted">students improved</div>
-          </div>
+        <div class="border p-3 rounded-3 text-center" style="background: var(--admin-content-bg);">
+          <div class="h1 fw-bold">{{ improvement_rows|length }}</div>
+          <div class="small text-muted">students improved</div>
         </div>
       </div>
       <div class="d-flex flex-wrap gap-2 mt-3">
@@ -111,8 +103,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-4" data-widget-id="analytics-ai-insight">
-    <div class="card shadow-sm p-3 h-100">
+  <div class="card shadow-sm p-3" data-widget-id="analytics-ai-insight">
       <h5 class="mb-2">AI insight</h5>
       <p class="small text-muted mb-3">Popular subject: {{ specialty_rates.0.subject|default:"No data available" }} — trending across {{ specialty_rates|length }} specializations.</p>
       <ul class="list-group list-group-flush mb-3">
@@ -129,7 +120,6 @@
         <a class="btn btn-sm btn-outline-dark" href="{% url 'analytics:master_sheet' %}">Master sheet</a>
         <a class="btn btn-sm btn-outline-dark" href="{% url 'reports:publish_term_results' %}">Publish term results</a>
       </div>
-    </div>
   </div>
 </div>
 

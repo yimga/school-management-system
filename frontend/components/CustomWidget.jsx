@@ -23,7 +23,7 @@ export default function CustomWidget({ title, fetchUrl, renderContent }) {
   }, [fetchUrl]);
 
   return (
-    <div className="custom-widget">
+    <div className="custom-widget" style={{ height: 'auto', minHeight: 0, minWidth: 0 }}>
       <h4>{title}</h4>
       {loading && <div>Loading...</div>}
       {error && <div style={{ color: 'red' }}>{error}</div>}

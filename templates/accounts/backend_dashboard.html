@@ -6,6 +6,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
@@ -45,8 +46,8 @@
        hx-get="{% url 'accounts:backend_dashboard_status_fragment' %}"
        hx-trigger="load"
        hx-swap="innerHTML"
-       hx-headers='{"X-Requested-With": "XMLHttpRequest"}'>
-    <span class="text-muted small">Loading…</span>
+       hx-headers='{"X-Requested-With": "XMLHttpRequest"}'
+       aria-live="polite" aria-atomic="true">
   </div>
   <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7Nlx9D84UOpmUlJ2ANZ+4ysAuqpgUdXDk4" crossorigin="anonymous" defer></script>
   <script>
@@ -153,6 +154,19 @@
             {% endfor %}
           </div>
         </div>
+
+        <div class="backend-v2-below-welcome" data-widget-id="backend-outstanding-fees">
+          {% if chart_finance_status_json %}
+          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
+          {% else %}
+          <article class="card backend-v2-panel backend-v2-panel--empty">
+            <div class="card-body">
+              <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
+              <p class="small text-muted mb-0">No fee status data yet. Create invoices to see breakdown here.</p>
+            </div>
+          </article>
+          {% endif %}
+        </div>
       </section>
 
       <aside class="backend-v2-side">
@@ -197,6 +211,28 @@
           </div>
 
         </div>
+
+        <article class="card backend-v2-panel backend-v2-panel--below-admin {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
+              <span class="badge text-bg-light">{{ at_risk_students|length }}</span>
+            </div>
+            <div class="backend-v2-list">
+              {% for student in at_risk_students %}
+              <div class="backend-v2-list-item">
+                <div>
+                  <strong>{{ student.name }}</strong>
+                  <div class="small text-muted">{{ student.classroom }} · {{ student.tag }}</div>
+                </div>
+                <span class="badge text-bg-warning">{{ student.value }}</span>
+              </div>
+              {% empty %}
+              <p class="small text-muted mb-0">No at-risk learners detected.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </article>
       </aside>
     </div>
   </div>
@@ -314,41 +350,6 @@
               {% endif %}
             </div>
             <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'portal:teacher_attendance' %}">View teacher attendance</a>
-          </div>
-        </article>
-
-        <div class="backend-v2-span-2" data-widget-id="backend-outstanding-fees">
-          {% if chart_finance_status_json %}
-          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
-          {% else %}
-          <article class="card backend-v2-panel backend-v2-panel--empty">
-            <div class="card-body">
-              <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
-              <p class="small text-muted mb-0">No fee status data yet. Create invoices to see breakdown here.</p>
-            </div>
-          </article>
-          {% endif %}
-        </div>
-
-        <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
-          <div class="card-body">
-            <div class="backend-v2-panel-head">
-              <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
-              <span class="badge text-bg-light">{{ at_risk_students|length }}</span>
-            </div>
-            <div class="backend-v2-list">
-              {% for student in at_risk_students %}
-              <div class="backend-v2-list-item">
-                <div>
-                  <strong>{{ student.name }}</strong>
-                  <div class="small text-muted">{{ student.classroom }} · {{ student.tag }}</div>
-                </div>
-                <span class="badge text-bg-warning">{{ student.value }}</span>
-              </div>
-              {% empty %}
-              <p class="small text-muted mb-0">No at-risk learners detected.</p>
-              {% endfor %}
-            </div>
           </div>
         </article>
       </div>

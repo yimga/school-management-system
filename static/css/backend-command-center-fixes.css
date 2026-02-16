@@ -136,6 +136,14 @@ body[data-dashboard-page="backend"] .backend-copilot-audit-card .small.text-mute
 
 body[data-dashboard-page="backend"] .backend-ops-watch-card .card-body {
   padding: 0.65rem 0.75rem;
+  height: auto;
+  min-height: 0;
+}
+
+/* Let operations watch list grow when JS injects more items */
+body[data-dashboard-page="backend"] .backend-ops-watch-card .js-ops-watch-list {
+  min-width: 0;
+  height: auto;
 }
 
 body[data-dashboard-page="backend"] .backend-ops-watch-card .btn {

@@ -5,6 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -48,11 +49,11 @@
   </div>
 {% endif %}
 
-<div class="row g-3 mb-3">
-  <div class="col-lg-6">
+<div class="dashboard-card-grid dashboard-card-grid--charts mb-3">
+  <div>
     {% include "components/dashboard_chart.html" with chart_id="payrollStatusChart" chart_type="doughnut" chart_title="Run status" chart_data=chart_status_donut_json aria_label="Payroll run status distribution" %}
   </div>
-  <div class="col-lg-6">
+  <div>
     {% include "components/dashboard_chart.html" with chart_id="payrollVolumeChart" chart_type="bar" chart_title="Runs per month" chart_data=chart_volume_column_json aria_label="Payroll runs per month for last 6 months" %}
   </div>
 </div>
