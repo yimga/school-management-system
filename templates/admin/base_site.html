@@ -176,7 +176,7 @@
   <script>
     (function(){
       function apply() {
-        var theme = '{{ SITE.backend_console_theme|default:"dark"|escapejs }}';
+        var theme = '{{ RESOLVED_BACKEND_CONSOLE_THEME|default:"dark"|escapejs }}';
         if (theme === 'system') {
           theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }

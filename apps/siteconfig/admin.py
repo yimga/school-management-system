@@ -905,7 +905,7 @@ class ThemePackAdmin(ModelAdmin):
         ),
         (None, {"fields": ("name", "slug", "description", "font_family", "layout", "palette")}),
         ("Assets", {"fields": ("logo", "background_image", "video_background", "svg_background", "logo_opacity", "logo_background_mode")}),
-        ("Options", {"fields": ("applies_to_admin", "is_active", "is_default", "custom_css")}),
+        ("Options", {"fields": ("applies_to_admin", "backend_console_theme", "is_active", "is_default", "custom_css")}),
     )
 
     # Theme packs are managed from Theme & Experience studio; hide standalone model page.

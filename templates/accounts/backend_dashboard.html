@@ -27,13 +27,26 @@
   })();
 </script>
   <style>
+  {# ThemePack (admin_theme_pack) colors – single source for dashboard so it uses the active theme #}
+  {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
   :root {
-    --brand-primary: var(--school-primary, {{ SITE.primary_color|default:"#0d6efd" }});
-    --brand-accent: var(--school-accent, {{ SITE.accent_color|default:"#198754" }});
+    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
+    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
     --brand-success: var(--school-success, {{ SITE.success_color|default:"#22c55e" }});
     --brand-warning: var(--school-warning, {{ SITE.warning_color|default:"#fbbf24" }});
     --brand-danger: var(--school-danger, {{ SITE.danger_color|default:"#ef4444" }});
+    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
+    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
   }
+  body[data-dashboard-page="backend"] {
+    --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
+    --brand-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+    --dashboard-theme-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
+    --dashboard-theme-accent: var(--school-accent, {{ theme.accent_color|default:"#198754" }});
+    --chart-color-1: var(--brand-primary);
+    --chart-color-2: var(--brand-accent);
+  }
+  {% endwith %}
   </style>
 {% endblock %}
 
@@ -155,18 +168,6 @@
           </div>
         </div>
 
-        <div class="backend-v2-below-welcome" data-widget-id="backend-outstanding-fees">
-          {% if chart_finance_status_json %}
-          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
-          {% else %}
-          <article class="card backend-v2-panel backend-v2-panel--empty">
-            <div class="card-body">
-              <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
-              <p class="small text-muted mb-0">No fee status data yet. Create invoices to see breakdown here.</p>
-            </div>
-          </article>
-          {% endif %}
-        </div>
       </section>
 
       <aside class="backend-v2-side">
@@ -211,8 +212,39 @@
           </div>
 
         </div>
+      </aside>
+    </div>
+  </div>
 
-        <article class="card backend-v2-panel backend-v2-panel--below-admin {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
+  <div class="backend-v2-workspace">
+    <div
+      id="dashboard-layout"
+      class="backend-v2-workbench"
+      data-save-url="{{ dashboard_layout_url }}"
+      data-load-url="{{ dashboard_layout_url }}"
+      data-dashboard-column="main"
+      data-show-sidebar="{{ dashboard_settings.show_sidebar|yesno:'true,false' }}"
+      data-tile-variant="{{ dashboard_settings.tile_variant|default:'default' }}"
+      data-sidebar-items='{{ dashboard_settings.sidebar_items|default:"[]"|safe }}'
+      data-custom-links='{{ dashboard_settings.custom_links|default:"[]"|safe }}'
+      data-custom-drag-enabled="true"
+      data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
+      data-widget-config='{{ widget_meta_json }}'
+      data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
+      <div class="backend-v2-main-grid">
+        <div class="backend-v2-span-2" data-widget-id="backend-outstanding-fees">
+          {% if chart_finance_status_json %}
+          {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
+          {% else %}
+          <article class="card backend-v2-panel backend-v2-panel--empty">
+            <div class="card-body">
+              <h5 class="backend-v2-panel-title mb-1">Outstanding Fees</h5>
+              <p class="small text-muted mb-0">No fee status data yet. Create invoices to see breakdown here.</p>
+            </div>
+          </article>
+          {% endif %}
+        </div>
+        <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
@@ -235,26 +267,7 @@
             </div>
           </div>
         </article>
-      </aside>
-    </div>
-  </div>
 
-  <div class="backend-v2-workspace">
-    <div
-      id="dashboard-layout"
-      class="backend-v2-workbench"
-      data-save-url="{{ dashboard_layout_url }}"
-      data-load-url="{{ dashboard_layout_url }}"
-      data-dashboard-column="main"
-      data-show-sidebar="{{ dashboard_settings.show_sidebar|yesno:'true,false' }}"
-      data-tile-variant="{{ dashboard_settings.tile_variant|default:'default' }}"
-      data-sidebar-items='{{ dashboard_settings.sidebar_items|default:"[]"|safe }}'
-      data-custom-links='{{ dashboard_settings.custom_links|default:"[]"|safe }}'
-      data-custom-drag-enabled="true"
-      data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
-      data-widget-config='{{ widget_meta_json }}'
-      data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
-      <div class="backend-v2-main-grid">
         <div class="backend-v2-span-2" data-widget-id="backend-enrollment-trends">
           {% if chart_enrollment_trend_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label="Enrollment trend over recent months" %}

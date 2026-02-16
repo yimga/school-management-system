@@ -1488,6 +1488,13 @@ class ThemePack(models.Model):
         default=False,
         help_text="Use this pack for the Django /admin interface.",
     )
+    backend_console_theme = models.CharField(
+        max_length=20,
+        choices=SiteSettings.BACKEND_CONSOLE_THEME_CHOICES,
+        blank=True,
+        default="",
+        help_text="Optional: When set, this pack's console mode (light/dark) is used for /backend and /admin. Leave blank to use the site-level Backend console theme.",
+    )
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -271,6 +271,9 @@ def site_settings(request):
     admin_success = getattr(site, "success_color", None) or "#22c55e"
     admin_warning = getattr(site, "warning_color", None) or "#fbbf24"
     admin_danger = getattr(site, "danger_color", None) or "#ef4444"
+    # Backend console theme: pack overrides site when set (ThemePack.backend_console_theme)
+    _pack_console = getattr(admin_theme, "backend_console_theme", None) or ""
+    resolved_backend_console_theme = _pack_console.strip() or getattr(site, "backend_console_theme", None) or "dark"
     can_manage_settings = False
     if request.user.is_authenticated:
         can_manage_settings = bool(
@@ -303,6 +306,7 @@ def site_settings(request):
         "ADMIN_RESOLVED_SUCCESS": admin_success,
         "ADMIN_RESOLVED_WARNING": admin_warning,
         "ADMIN_RESOLVED_DANGER": admin_danger,
+        "RESOLVED_BACKEND_CONSOLE_THEME": resolved_backend_console_theme,
         "SITE_ADMIN_BACKGROUND_URL": admin_background_url,
         "SITE_ADMIN_LOGO_URL": admin_logo,
         "SITE_FAVICON_URL": favicon_url,

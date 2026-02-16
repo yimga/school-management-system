@@ -17,6 +17,7 @@ THEME_COMPARE_FIELDS = (
     "background_color",
     "layout",
     "applies_to_admin",
+    "backend_console_theme",
     "is_active",
     "is_default",
 )

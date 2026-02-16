@@ -132,7 +132,7 @@
             {# Theme + checkboxes in one row #}
             <div class="row g-1 mb-1">
               <div class="col-md-3"><div class="mb-0">{{ form.theme_brightness.label_tag }}{{ form.theme_brightness }}</div></div>
-              <div class="col-md-3"><div class="mb-0">{{ form.backend_console_theme.label_tag }}{{ form.backend_console_theme }}</div></div>
+              <div class="col-md-3"><div class="mb-0">{{ form.backend_console_theme.label_tag }}{{ form.backend_console_theme }}</div><small class="text-muted">{% trans "If the selected Admin theme pack has a console theme set, it overrides this." %}</small></div>
               <div class="col-md-3"><div class="mb-0">{{ form.theme_pack.label_tag }}{{ form.theme_pack }}</div></div>
               <div class="col-md-3"><div class="mb-0">{{ form.admin_theme_pack.label_tag }}{{ form.admin_theme_pack }}</div></div>
               <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
