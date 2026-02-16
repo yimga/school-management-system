@@ -311,13 +311,23 @@ class DashboardLayoutAPI(APIView):
         widgets = DashboardWidgetSerializer(widgets_qs, many=True).data
 
         layout_obj = get_layout_for_page(request.user, page)
-        layout_data = {"layout": layout_obj.layout if layout_obj else {}}
+        layout_data = layout_obj.layout if layout_obj else {}
+        # Backend: always show Recent Activity, Top performing, Attendance (never hide)
+        if page == "backend" and layout_data:
+            layout_data = dict(layout_data)
+            settings = layout_data.get("__settings__") or {}
+            if isinstance(settings, dict):
+                settings = dict(settings)
+                hidden = list(settings.get("hidden_widget_ids") or [])
+                always_visible = {"backend-recent-activity", "backend-top-performing", "backend-attendance-today"}
+                settings["hidden_widget_ids"] = [w for w in hidden if w not in always_visible]
+                layout_data["__settings__"] = settings
 
         return Response(
             {
                 "page": page,
                 "role": role,
-                "layout": layout_data["layout"],
+                "layout": layout_data,
                 "widgets": widgets,
             }
         )
@@ -360,6 +370,18 @@ class DashboardLayoutAPI(APIView):
 
         serializer = DashboardLayoutSerializer(data=request.data, context={"allowed_widgets": allowed_widgets})
         serializer.is_valid(raise_exception=True)
+        new_layout = serializer.validated_data["layout"]
+        # Backend: never persist Recent Activity, Top performing, Attendance as hidden
+        if page == "backend" and new_layout:
+            settings = new_layout.get("__settings__") or {}
+            if isinstance(settings, dict):
+                hidden = list(settings.get("hidden_widget_ids") or [])
+                always_visible = {"backend-recent-activity", "backend-top-performing", "backend-attendance-today"}
+                settings = dict(settings)
+                settings["hidden_widget_ids"] = [w for w in hidden if w not in always_visible]
+                new_layout = dict(new_layout)
+                new_layout["__settings__"] = settings
+                serializer.validated_data["layout"] = new_layout
 
         layout_obj, _ = DashboardLayout.objects.get_or_create(
             user=request.user,
