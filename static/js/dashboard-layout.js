@@ -569,6 +569,11 @@
 
         hiddenWidgetIds = (data.layout && data.layout.__settings__ && data.layout.__settings__.hidden_widget_ids) || [];
         if (!Array.isArray(hiddenWidgetIds)) hiddenWidgetIds = [];
+        // Backend: always show Recent Activity, Top performing, Attendance
+        if (page === 'backend') {
+          var alwaysVisible = ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'];
+          hiddenWidgetIds = hiddenWidgetIds.filter(function (id) { return alwaysVisible.indexOf(id) < 0; });
+        }
         columns.forEach((col) => {
           col.querySelectorAll('[data-widget-id]').forEach((el) => {
             if (hiddenWidgetIds.indexOf(el.dataset.widgetId) >= 0) {
@@ -577,6 +582,13 @@
             }
           });
         });
+        // Backend: force-unhide the three panels in case they were ever hidden
+        if (page === 'backend' && layoutRoot) {
+          ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'].forEach(function (id) {
+            var el = layoutRoot.querySelector('[data-widget-id="' + id + '"]');
+            if (el) { el.classList.remove('dash-widget-hidden'); el.style.display = ''; }
+          });
+        }
         pinnedWidgets = (data.layout && data.layout.__settings__ && data.layout.__settings__.pinned_widgets) || [];
         if (!Array.isArray(pinnedWidgets)) pinnedWidgets = [];
 
@@ -603,6 +615,15 @@
       .catch(() => {
         const loader = document.getElementById('dashboard-layout-loading');
         if (loader) loader.remove();
+        if (page === 'backend') {
+          var root = document.getElementById('dashboard-layout');
+          if (root) {
+            ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'].forEach(function (id) {
+              var el = root.querySelector('[data-widget-id="' + id + '"]');
+              if (el) { el.classList.remove('dash-widget-hidden'); el.style.display = ''; }
+            });
+          }
+        }
       });
 
     let setEditModeFn = null;
