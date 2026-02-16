@@ -742,4 +742,20 @@
     })();
   </script>
   <script src="{% static 'js/dashboard-layout.js' %}"></script>
+  {# Force show Recent Activity, Top performing, Attendance (survives cached layout JS and saved hidden state) #}
+  <script>
+  (function(){
+    var ids = ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'];
+    function show() {
+      var root = document.getElementById('dashboard-layout');
+      if (!root) return;
+      ids.forEach(function(id) {
+        var el = root.querySelector('[data-widget-id="' + id + '"]');
+        if (el) { el.classList.remove('dash-widget-hidden'); el.style.display = ''; }
+      });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function() { show(); setTimeout(show, 800); });
+    else { show(); setTimeout(show, 800); }
+  })();
+  </script>
 {% endblock %}
