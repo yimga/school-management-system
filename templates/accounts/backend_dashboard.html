@@ -106,6 +106,10 @@
               <p class="backend-v2-welcome-sub">Manage your school operations from this unified dashboard.</p>
             </div>
             <div class="backend-v2-welcome-controls">
+              <a class="backend-v2-cta" href="{% url 'accounts:workflow_center' %}">
+                <i class="bi bi-diagram-3"></i>
+                <span>Workflow</span>
+              </a>
               <a class="backend-v2-cta" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=WORKFLOW&amp;next={% url 'accounts:workflow_center' %}">
                 <i class="bi bi-pin-angle"></i>
                 <span>Use workflow default</span>
@@ -120,19 +124,32 @@
             </div>
           </div>
           <div class="backend-v2-chip-row">
+            {% url 'accounts:workflow_center' as workflow_center_url %}
             {% for chip in action_chips %}
+            {% if chip.url != workflow_center_url %}
             <a class="backend-v2-chip" href="{{ chip.url }}">
               <i class="bi {{ chip.icon }}"></i>
               <span>{{ chip.label }}</span>
             </a>
+            {% endif %}
+            {% endfor %}
+            {% for action in welcome_action_grid %}
+            {% if action.id == 'manage_exams' or action.id == 'announcements' %}
+            <a class="backend-v2-chip" href="{{ action.url }}">
+              <i class="bi {{ action.icon }}"></i>
+              <span>{{ action.label }}</span>
+            </a>
+            {% endif %}
             {% endfor %}
           </div>
           <div class="backend-v2-action-grid">
             {% for action in welcome_action_grid %}
+            {% if action.id != 'manage_exams' and action.id != 'announcements' %}
             <a class="backend-v2-action" href="{{ action.url }}">
               <i class="bi {{ action.icon }}"></i>
               <span>{{ action.label }}</span>
             </a>
+            {% endif %}
             {% endfor %}
           </div>
         </div>
@@ -311,6 +328,27 @@
               <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
               {% endfor %}
             </div>
+          </div>
+        </article>
+
+        <article class="card backend-v2-panel backend-v2-panel--attendance" data-widget-id="backend-attendance-today">
+          <div class="card-body">
+            <div class="backend-v2-panel-head">
+              <h5 class="backend-v2-panel-title mb-0">Attendance</h5>
+              <span class="badge text-bg-light">Staff</span>
+            </div>
+            <div class="backend-attendance-pulse">
+              <div class="backend-attendance-pulse-row">
+                <span class="backend-attendance-pulse-value">{{ attended_today|default:0 }}</span>
+                <span class="backend-attendance-pulse-label">Present today</span>
+              </div>
+              {% if attendance_trend_total is not None %}
+              <div class="backend-attendance-pulse-row backend-attendance-pulse-meta">
+                <span class="small text-muted">This week: {{ attendance_trend_total }} present total</span>
+              </div>
+              {% endif %}
+            </div>
+            <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'portal:teacher_attendance' %}">View teacher attendance</a>
           </div>
         </article>
       </div>
