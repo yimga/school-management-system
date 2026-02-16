@@ -1,6 +1,7 @@
 /*
  * Backend dashboard – single token contract.
- * Depends on design-tokens.css and SITE-injected --brand-* (from template).
+ * --brand-* and --dashboard-theme-* are set from the active ThemePack (admin_theme_pack)
+ * in backend_dashboard.html so the dashboard uses the assigned/active theme colors.
  * Aligns with --admin-content-* and theme-visibility-guard --vis-* for readability.
  *
  * Spacing and padding: use these tokens in backend-dashboard-v2.css and other
