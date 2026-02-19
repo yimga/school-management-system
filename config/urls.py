@@ -130,11 +130,13 @@ urlpatterns = [
     path('metrics/', obs_views.metrics, name='metrics'),
     path('api/observability/copilot-metrics/', obs_views.copilot_metrics_json, name='copilot_metrics_json'),
     
-    # Admin Dashboard (Backend-focused)
+    # Legacy alias: /admin/dashboard/ resolves to canonical /admin/
     path('admin/dashboard/', obs_views.admin_dashboard, name='admin_dashboard'),
     
     # API endpoints for admin dashboard
     path('api/health/', obs_views.api_health, name='api_health'),
+    path('api/admin/weather/', obs_views.api_admin_weather, name='api_admin_weather'),
+    path('api/weather/context/', obs_views.api_weather_context, name='api_weather_context'),
     path('api/notifications/', obs_views.api_notifications, name='api_notifications'),
     path('api/notifications/mark-all-read/', obs_views.api_notifications_mark_all_read, name='api_notifications_mark_all_read'),
     

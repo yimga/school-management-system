@@ -513,10 +513,84 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     except Exception:
         pass
 
+    top_performing_students = base.get("top_performing_students") or []
+    if not isinstance(top_performing_students, list):
+        top_performing_students = []
+    recent_admissions = base.get("recent_admissions") or []
+    if not isinstance(recent_admissions, list):
+        recent_admissions = []
+
+    top_entry = top_performing_students[0] if top_performing_students else {}
+    top_name = str((top_entry or {}).get("name") or "").strip() or "No marks entered"
+    top_score = (top_entry or {}).get("score")
+    try:
+        top_score_value = f"{float(top_score):.1f}/20"
+        top_status = "ok"
+    except Exception:
+        top_score_value = "--"
+        top_status = "warn"
+
+    attended_today = _safe_int(base.get("attended_today"))
+    attendance_trend_total = _safe_int(base.get("attendance_trend_total"))
+    attendance_counts = base.get("attendance_counts") or {}
+    if not isinstance(attendance_counts, dict):
+        attendance_counts = {}
+    attendance_total = sum(_safe_int(v) for v in attendance_counts.values())
+    attendance_rate = None
+    if attendance_total > 0:
+        attendance_rate = round((attended_today / max(attendance_total, 1)) * 100)
+    attendance_meta = (
+        f"{attendance_rate}% present today" if attendance_rate is not None else "No attendance records yet"
+    )
+    if attendance_rate is None:
+        attendance_status = "warn"
+    elif attendance_rate < 50:
+        attendance_status = "danger"
+    elif attendance_rate < 75:
+        attendance_status = "warn"
+    else:
+        attendance_status = "ok"
+
+    kpi_strip_cards = [
+        {
+            "id": "top_performing",
+            "label": "Top Performing",
+            "value": top_score_value,
+            "meta": top_name,
+            "status": top_status,
+            "icon": "bi-trophy",
+        },
+        {
+            "id": "attendance_today",
+            "label": "Attendance Today",
+            "value": attended_today,
+            "meta": attendance_meta,
+            "status": attendance_status,
+            "icon": "bi-person-check",
+        },
+        {
+            "id": "recent_admissions",
+            "label": "Recent Admissions",
+            "value": len(recent_admissions),
+            "meta": "Latest entries",
+            "status": "ok" if recent_admissions else "warn",
+            "icon": "bi-person-vcard",
+        },
+        {
+            "id": "weekly_presence",
+            "label": "Weekly Presence",
+            "value": attendance_trend_total,
+            "meta": "7-day present total",
+            "status": "ok" if attendance_trend_total > 0 else "warn",
+            "icon": "bi-activity",
+        },
+    ]
+
     return {
         "local_time": now,
         "weather_cfg": weather_cfg,
         "overview_cards": overview_cards,
+        "kpi_strip_cards": kpi_strip_cards,
         "admin_portal": admin_portal,
         "operations_watch": operations_watch,
         "primary_ctas": primary_ctas,

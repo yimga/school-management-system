@@ -130,7 +130,7 @@
     grip.setAttribute('title', 'Drag to reorder. Arrow keys or buttons: move up/down.');
     grip.setAttribute('tabindex', '0');
     grip.setAttribute('role', 'button');
-    grip.innerHTML = '<span class="dashboard-widget-grip-dots" aria-hidden="true">⋮⋮</span>';
+    grip.innerHTML = '<span class="dashboard-widget-grip-dots" aria-hidden="true">&#x22EE;&#x22EE;</span>';
     if (typeof onMoveUpDown === 'function') {
       grip.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowUp') { e.preventDefault(); onMoveUpDown(el, -1); }
@@ -210,7 +210,7 @@
     const controls = document.createElement('div');
     controls.className = 'dash-widget-controls';
     controls.innerHTML = `
-      <button type="button" class="dash-widget-gear" aria-label="Widget settings" title="Widget settings"><span class="dash-widget-gear-dots" aria-hidden="true">⋯</span>${gearLabel}</button>
+      <button type="button" class="dash-widget-gear" aria-label="Widget settings" title="Widget settings"><span class="dash-widget-gear-dots" aria-hidden="true">&#x22EF;</span>${gearLabel}</button>
       <div class="dash-widget-menu" aria-hidden="true">${menuRows}</div>
     `;
 
@@ -476,7 +476,7 @@
       const listEl = document.getElementById('addWidgetList');
       const modalEl = document.getElementById('addWidgetModal');
       if (!listEl || !modalEl) return;
-      listEl.innerHTML = '<div class="text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Loading…</div>';
+      listEl.innerHTML = '<div class="text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Loading...</div>';
       if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
@@ -492,7 +492,7 @@
           widgets.forEach((w) => { if (w.id) widgetById[w.id] = w; });
           const hidden = hiddenWidgetIds.filter((id) => id);
           if (hidden.length === 0) {
-            listEl.innerHTML = '<p class="text-muted small mb-0">No hidden widgets. Hide a widget from the ⋮ menu on any card to restore it here.</p>';
+            listEl.innerHTML = '<p class="text-muted small mb-0">No hidden widgets. Hide a widget from the settings menu on any card to restore it here.</p>';
             return;
           }
           function formatLabel(id) {
@@ -555,7 +555,7 @@
     const loader = document.createElement('div');
     loader.className = 'small text-muted mb-2';
     loader.id = 'dashboard-layout-loading';
-    loader.textContent = 'Loading your layout…';
+    loader.textContent = 'Loading your layout...';
     layoutRoot.parentNode.insertBefore(loader, layoutRoot);
 
     // Load current layout + widget metadata
@@ -642,7 +642,7 @@
           if (toast) {
             const msg = document.createElement('div');
             msg.className = 'dashboard-layout-toast-item alert alert-warning shadow-sm mb-0';
-            msg.textContent = 'Loading…';
+            msg.textContent = 'Loading...';
             toast.appendChild(msg);
             setTimeout(function () { msg.remove(); }, 1500);
           }
@@ -729,7 +729,7 @@
               if (localStorage.getItem('dashboard-customize-hint-seen') !== '1') {
                 var hint = document.createElement('div');
                 hint.className = 'alert alert-light border small mt-2';
-                hint.innerHTML = 'Drag cards by the grip (⋮⋮) to reorder. Use ▲▼ on mobile. <button type="button" class="btn-close btn-sm float-end" aria-label="Dismiss"></button>';
+                hint.innerHTML = 'Drag cards by the grip handle to reorder. Use ▲▼ on mobile. <button type="button" class="btn-close btn-sm float-end" aria-label="Dismiss"></button>';
                 hint.querySelector('.btn-close').addEventListener('click', function () {
                   try { localStorage.setItem('dashboard-customize-hint-seen', '1'); } catch (e) {}
                   hint.remove();
@@ -771,3 +771,4 @@
     }, 50);
   });
 })();
+

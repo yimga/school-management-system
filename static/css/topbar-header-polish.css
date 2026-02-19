@@ -144,6 +144,10 @@
   pointer-events: none;
   letter-spacing: 0.02em;
   font-weight: 700;
+  max-width: 3.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-controls {
@@ -259,6 +263,14 @@
   .header-search-container {
     min-width: 240px;
     max-width: 390px;
+  }
+
+  .topbar-search-kbd {
+    display: none;
+  }
+
+  .header-search-container .topbar-search-input {
+    padding-right: 0.9rem;
   }
 
   .topbar-offline-status #sms-offline-sync-now-btn {

@@ -152,3 +152,9 @@ class AdminUiSmokeTests(TestCase):
             if page.status_code not in (200, 302, 403):
                 failures.append((path, page.status_code))
         self.assertFalse(failures, msg=f"Broken sidebar links detected: {failures}")
+
+    def test_admin_dashboard_legacy_path_redirects_to_index(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get("/admin/dashboard/", follow=False)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("admin:index"))

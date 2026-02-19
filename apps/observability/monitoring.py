@@ -10,12 +10,116 @@ from django.http import JsonResponse
 from django.views import View
 from typing import Dict, List, Tuple, Optional
 import json
+import os
+import shutil
 import time
-import psutil
 import logging
+import platform
+
+try:
+    import psutil
+except Exception:  # pragma: no cover - optional dependency
+    psutil = None
 
 
 logger = logging.getLogger(__name__)
+
+MB = 1024 * 1024
+GB = 1024 * 1024 * 1024
+
+
+def _read_process_rss_mb() -> float:
+    """Return current process RSS in MB without requiring psutil."""
+    if psutil is not None:
+        try:
+            return psutil.Process().memory_info().rss / MB
+        except Exception:
+            pass
+
+    try:
+        import resource
+
+        usage = resource.getrusage(resource.RUSAGE_SELF)
+        # Linux reports KB, macOS reports bytes.
+        if platform.system() == "Darwin":
+            rss_mb = float(usage.ru_maxrss) / MB
+        else:
+            rss_mb = float(usage.ru_maxrss) / 1024
+        if rss_mb > 0:
+            return rss_mb
+    except Exception:
+        pass
+
+    return 0.0
+
+
+def _read_memory_usage() -> Tuple[float, float]:
+    """
+    Return memory usage tuple: (percent, used_mb).
+    Falls back to OS APIs when psutil is unavailable.
+    """
+    if psutil is not None:
+        mem = psutil.virtual_memory()
+        return float(mem.percent), float(mem.used) / MB
+
+    # Windows fallback.
+    if platform.system() == "Windows":
+        try:
+            import ctypes
+
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [
+                    ("dwLength", ctypes.c_ulong),
+                    ("dwMemoryLoad", ctypes.c_ulong),
+                    ("ullTotalPhys", ctypes.c_ulonglong),
+                    ("ullAvailPhys", ctypes.c_ulonglong),
+                    ("ullTotalPageFile", ctypes.c_ulonglong),
+                    ("ullAvailPageFile", ctypes.c_ulonglong),
+                    ("ullTotalVirtual", ctypes.c_ulonglong),
+                    ("ullAvailVirtual", ctypes.c_ulonglong),
+                    ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+                ]
+
+            memory_status = MEMORYSTATUSEX()
+            memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
+                total = float(memory_status.ullTotalPhys)
+                available = float(memory_status.ullAvailPhys)
+                used = max(total - available, 0.0)
+                percent = (used / total * 100.0) if total > 0 else 0.0
+                return percent, max(used / MB, 0.001)
+        except Exception:
+            pass
+
+    # POSIX fallback.
+    try:
+        page_size = os.sysconf("SC_PAGE_SIZE")
+        total_pages = os.sysconf("SC_PHYS_PAGES")
+        avail_pages = os.sysconf("SC_AVPHYS_PAGES")
+        total = float(page_size * total_pages)
+        available = float(page_size * avail_pages)
+        used = max(total - available, 0.0)
+        percent = (used / total * 100.0) if total > 0 else 0.0
+        return percent, max(used / MB, 0.001)
+    except Exception:
+        pass
+
+    # Last fallback: expose at least process memory.
+    return 0.0, max(_read_process_rss_mb(), 0.001)
+
+
+def _read_disk_usage(path: str = "/") -> Tuple[float, float]:
+    """
+    Return disk usage tuple: (percent_used, free_gb).
+    Uses stdlib fallback when psutil is unavailable.
+    """
+    if psutil is not None:
+        disk = psutil.disk_usage(path)
+        return float(disk.percent), max(float(disk.free) / GB, 0.001)
+
+    total, used, free = shutil.disk_usage(path)
+    percent = (float(used) / float(total) * 100.0) if total > 0 else 0.0
+    return percent, max(float(free) / GB, 0.001)
 
 
 class SystemHealthMetric(models.Model):
@@ -124,7 +228,9 @@ class SystemHealthMonitor:
     def get_cpu_usage() -> float:
         """Get CPU usage percentage"""
         try:
-            return psutil.cpu_percent(interval=0.1)
+            if psutil is None:
+                return 0.0
+            return float(psutil.cpu_percent(interval=0.1))
         except Exception as e:
             logger.error(f"Error getting CPU usage: {e}")
             return 0.0
@@ -133,21 +239,19 @@ class SystemHealthMonitor:
     def get_memory_usage() -> Tuple[float, float]:
         """Get memory usage (percent, used_mb)"""
         try:
-            mem = psutil.virtual_memory()
-            return mem.percent, mem.used / (1024 * 1024)
+            return _read_memory_usage()
         except Exception as e:
             logger.error(f"Error getting memory usage: {e}")
-            return 0.0, 0.0
+            return 0.0, 0.001
     
     @staticmethod
     def get_disk_usage() -> Tuple[float, float]:
         """Get disk usage (percent, free_gb)"""
         try:
-            disk = psutil.disk_usage('/')
-            return disk.percent, disk.free / (1024 * 1024 * 1024)
+            return _read_disk_usage("/")
         except Exception as e:
             logger.error(f"Error getting disk usage: {e}")
-            return 0.0, 0.0
+            return 0.0, 0.001
     
     @staticmethod
     def check_database_health() -> Dict:
@@ -275,20 +379,14 @@ class PerformanceProfiler:
     
     def __enter__(self):
         self.start_time = time.time()
-        try:
-            self.start_memory = psutil.Process().memory_info().rss / (1024 * 1024)
-        except:
-            self.start_memory = 0
+        self.start_memory = _read_process_rss_mb()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         duration_ms = (time.time() - self.start_time) * 1000
-        
-        try:
-            end_memory = psutil.Process().memory_info().rss / (1024 * 1024)
-            memory_used = end_memory - self.start_memory
-        except:
-            memory_used = 0
+
+        end_memory = _read_process_rss_mb()
+        memory_used = max(end_memory - (self.start_memory or 0.0), 0.0)
         
         error_message = ''
         success = exc_type is None
@@ -357,7 +455,12 @@ class HealthCheckEndpoint(View):
     def get(self, request):
         """GET /health - Return system health status"""
         health = SystemHealthMonitor.get_comprehensive_health()
-        status_code = 200 if health['overall_status'] == 'healthy' else 503
+        # Liveness/readiness should fail only when core dependencies fail.
+        # Resource pressure (CPU/memory/disk warnings) remains visible in payload
+        # but should not return 503 by itself.
+        database_unhealthy = health.get("database", {}).get("status") != "healthy"
+        cache_unhealthy = health.get("cache", {}).get("status") != "healthy"
+        status_code = 503 if (database_unhealthy or cache_unhealthy) else 200
         
         return JsonResponse(health, status=status_code)
 

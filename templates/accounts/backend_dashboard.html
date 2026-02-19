@@ -111,6 +111,20 @@
             </article>
             {% endfor %}
           </div>
+          {% if kpi_strip_cards %}
+          <div class="backend-v2-kpi-strip" data-widget-id="backend-overview-kpis">
+            {% for item in kpi_strip_cards %}
+            <article class="backend-v2-kpi {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
+              <div class="backend-v2-kpi-head">
+                <span>{{ item.label }}</span>
+                <i class="bi {{ item.icon }}"></i>
+              </div>
+              <div class="backend-v2-kpi-value">{{ item.value }}</div>
+              <div class="backend-v2-kpi-meta">{{ item.meta }}</div>
+            </article>
+            {% endfor %}
+          </div>
+          {% endif %}
         </div>
 
         <div class="backend-v2-welcome" data-widget-id="backend-v2-welcome">
@@ -147,23 +161,13 @@
             </a>
             {% endif %}
             {% endfor %}
-            {% for action in welcome_action_grid %}
-            {% if action.id == 'manage_exams' or action.id == 'announcements' %}
-            <a class="backend-v2-chip" href="{{ action.url }}">
-              <i class="bi {{ action.icon }}"></i>
-              <span>{{ action.label }}</span>
-            </a>
-            {% endif %}
-            {% endfor %}
           </div>
           <div class="backend-v2-action-grid">
             {% for action in welcome_action_grid %}
-            {% if action.id != 'manage_exams' and action.id != 'announcements' %}
             <a class="backend-v2-action" href="{{ action.url }}">
               <i class="bi {{ action.icon }}"></i>
               <span>{{ action.label }}</span>
             </a>
-            {% endif %}
             {% endfor %}
           </div>
         </div>

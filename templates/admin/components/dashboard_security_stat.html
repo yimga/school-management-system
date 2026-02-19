@@ -1,0 +1,5 @@
+{% load i18n %}
+<div class="admin-security-stat">
+  <span>{% trans label %}</span>
+  <strong class="{% if value_class %}{{ value_class }}{% else %}admin-kpi-val{% endif %}">{{ value }}</strong>
+</div>

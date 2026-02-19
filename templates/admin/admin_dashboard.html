@@ -7,11 +7,8 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
   <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.body.dataset.dashboardPage = 'admin-security';
-    });
-  </script>
+  <link rel="stylesheet" href="{% static 'css/admin-dashboard-security.css' %}">
+  <script src="{% static 'js/admin-dashboard-security.js' %}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -29,136 +26,13 @@
   --admin-shadow: {{ admin_palette.shadow|default:"0 1px 2px rgba(0,0,0,0.04)" }};
   --admin-shadow-hover: {{ admin_palette.shadow_hover|default:"0 4px 12px rgba(0,0,0,0.08)" }};
   --admin-border-hover: {{ admin_palette.border_hover|default:"#94a3b8" }};
+  --admin-preview-primary: {{ preview_data.preview_colors.primary|default:"#0d6efd" }};
+  --admin-preview-accent: {{ preview_data.preview_colors.accent|default:"#198754" }};
+  --admin-weather-bg: {{ admin_palette.weather_bg|default:"rgba(255, 149, 0, 0.08)" }};
 }
-
-:root[data-theme="dark"] {
-  --admin-dashboard-bg: #0b1220;
-  --admin-surface: #111827;
-  --admin-border: #334155;
-  --admin-border-strong: #475569;
-  --admin-text: #f8fafc;
-  --admin-muted: #cbd5e1;
-  --admin-subtle: #e2e8f0;
-  --admin-shadow: 0 1px 3px rgba(2, 6, 23, 0.65);
-  --admin-shadow-hover: 0 8px 20px rgba(2, 6, 23, 0.72);
-}
-
-/* === Dashboard Layout === */
-.admin-dash { background: var(--admin-dashboard-bg); padding: 18px 14px; min-height: 80vh; }
-.admin-dash__inner { width: 100%; max-width: none; }
-.admin-dash__header { margin-bottom: 20px; border-bottom: 1px solid var(--admin-border); padding-bottom: 16px; }
-.admin-dash__header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px; }
-.admin-dash__brand { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 280px; }
-.admin-dash__title { margin: 0; font-size: 28px; font-weight: 700; color: var(--admin-text); letter-spacing: -0.5px; }
-.admin-dash__subtitle { margin: 2px 0 0 0; font-size: 12px; color: var(--admin-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.admin-dash__tagline { margin: 8px 0 0 0; font-size: 14px; color: var(--admin-muted); }
-.admin-dash__header-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-.admin-dash__header-action { display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; border-radius: 7px; border: 1px solid var(--admin-border-strong); background: var(--admin-surface); color: var(--admin-text); text-decoration: none; font-size: 12px; font-weight: 700; }
-.admin-dash__header-action:hover { border-color: var(--admin-border-hover); color: var(--admin-text); text-decoration: none; transform: translateY(-1px); }
-.admin-dash__header-action:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; }
-.admin-dash__header-action--primary { background: var(--admin-accent); color: #fff; border-color: var(--admin-accent); }
-.admin-dash__header-action--primary:hover { color: #fff; }
-
-/* === KPI Grid === */
-.admin-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 12px; }
-.admin-kpi-card { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 20px; box-shadow: var(--admin-shadow); transition: box-shadow 0.2s ease, transform 0.2s ease; }
-.admin-kpi-card:hover { box-shadow: var(--admin-shadow-hover); transform: translateY(-2px); }
-.admin-kpi-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.admin-kpi-card__label { font-size: 12px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
-.admin-kpi-card__icon { font-size: 20px; }
-.admin-kpi-card__value { font-size: 36px; font-weight: 700; color: var(--admin-text); margin-bottom: 12px; }
-.admin-kpi-card__details { font-size: 13px; color: var(--admin-subtle); line-height: 1.6; border-top: 1px solid var(--admin-border); padding-top: 12px; overflow: visible; min-height: 0; }
-.admin-kpi-card { overflow: visible; }
-.admin-kpi-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
-.admin-kpi-row:last-child { margin-bottom: 0; }
-.admin-kpi-val { font-weight: 600; color: var(--admin-text); }
-/* System Health: keep "Operational" consistent with other card values, not oversized */
-.admin-kpi-card[data-widget-id="admin-system-health"] .admin-kpi-card__value { font-size: 1.25rem; font-weight: 600; }
-
-/* === Security Row === */
-.admin-security-row { display: grid; grid-template-columns: 1fr minmax(240px, 280px); gap: 10px; margin-bottom: 20px; align-items: stretch; }
-.admin-security-card { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 18px; box-shadow: var(--admin-shadow); display: flex; flex-direction: column; }
-.admin-security-card__body { display: flex; gap: 12px; flex-wrap: wrap; flex: 1; }
-.admin-security-panel { flex: 1 1 260px; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-.admin-security-panel__title { font-size: 11px; color: var(--admin-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
-.admin-security-stat { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
-.admin-security-stat:last-child { margin-bottom: 0; }
-.admin-security-divider { border-top: 1px solid var(--admin-border); padding-top: 8px; }
-.admin-security-footer { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--admin-border); text-align: center; font-size: 12px; color: var(--admin-muted); }
-
-/* === Admin Controls === */
-.admin-controls__title { margin: 0 0 16px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px; }
-.admin-controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
-.admin-control-btn { display: flex; align-items: center; justify-content: center; gap: 0.45rem; padding: 12px 14px; background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 6px; text-decoration: none; color: var(--admin-text); font-size: 13px; font-weight: 600; transition: all 0.2s ease; cursor: pointer; box-shadow: var(--admin-shadow); }
-.admin-control-btn:hover { border-color: var(--admin-border-hover); box-shadow: var(--admin-shadow-hover); transform: translateY(-1px); color: var(--admin-text); text-decoration: none; }
-.admin-control-btn:focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 2px; }
-.admin-stat--success { color: #047857; font-weight: 700; }
-.admin-stat--danger { color: #b91c1c; font-weight: 700; }
-:root[data-theme="dark"] .admin-stat--success { color: #34d399; }
-:root[data-theme="dark"] .admin-stat--danger { color: #f87171; }
-
-/* === System Info Table === */
-.admin-sysinfo { background: var(--admin-surface); border: 1px solid var(--admin-border-strong); border-radius: 8px; padding: 18px; box-shadow: var(--admin-shadow); }
-.admin-sysinfo__title { margin: 0 0 20px 0; font-size: 16px; font-weight: 700; color: var(--admin-text); text-transform: uppercase; letter-spacing: 0.5px; }
-.admin-sysinfo table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.admin-sysinfo td { padding: 12px 0; }
-.admin-sysinfo tr { border-bottom: 1px solid var(--admin-border); }
-.admin-sysinfo tr:last-child { border-bottom: none; }
-.admin-sysinfo__label { color: var(--admin-subtle); font-weight: 600; width: 35%; }
-.admin-sysinfo__val { color: var(--admin-text); }
-.admin-sysinfo__mono { font-family: 'Monaco', 'Menlo', monospace; }
-
-/* === Preview Card === */
-.preview-status-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 10px; padding: 16px 18px; box-shadow: var(--admin-shadow); margin-bottom: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.preview-status-card__info { flex: 1 1 320px; min-width: 240px; }
-.preview-status-card__info-label { font-size: 13px; color: var(--admin-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.preview-status-card__info-title { font-size: 18px; font-weight: 600; color: var(--admin-text); }
-.preview-status-card__info-desc { margin: 6px 0 0 0; font-size: 12px; color: var(--admin-subtle); }
-.preview-status-card__actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.preview-status-card__actions .btn { font-size: 11px; padding: 6px 12px; }
-.preview-status-card__colors { display: flex; gap: 10px; }
-.preview-status-card__chip { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; color: white; }
-
-/* === Calendar Widget === */
-.calendar-widget { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: 8px; padding: 16px; box-shadow: var(--admin-shadow); display: flex; flex-direction: column; }
-.calendar-header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; margin-bottom: 12px; gap: 8px; }
-.calendar-header__month { color: var(--admin-text); font-size: 12px; font-weight: 600; text-align: center; }
-.calendar-nav-btn { background: var(--admin-accent); color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 11px; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; color: var(--admin-text); font-size: 10px; }
-.calendar-grid__header { font-weight: 700; text-align: center; padding: 6px 4px; color: var(--admin-accent); }
-.calendar-day { text-align: center; padding: 3px 2px; border-radius: 3px; background: var(--admin-border); color: var(--admin-muted); font-size: 10px; }
-.calendar-day--today { background: var(--admin-accent); color: white; font-weight: 700; }
-.calendar-day--empty { opacity: 0.3; background: transparent; }
-.calendar-widget__footer { padding-top: 8px; border-top: 1px solid var(--admin-border); margin-top: auto; }
-.calendar-widget__today { text-align: center; margin-bottom: 6px; color: var(--admin-accent); font-weight: 600; font-size: 11px; }
-.weather-widget { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px; background: {{ admin_palette.weather_bg|default:'rgba(255, 149, 0, 0.08)' }}; border-radius: 6px; margin-bottom: 6px; }
-.weather-widget__icon { font-size: 18px; }
-.weather-widget__temp { color: var(--admin-text); font-weight: 700; font-size: 13px; }
-.weather-widget__desc { color: var(--admin-muted); font-size: 10px; }
-.daily-message { text-align: center; color: var(--admin-muted); font-size: 10px; font-style: italic; line-height: 1.3; }
-
-/* === Responsive === */
-@media (max-width: 992px) {
-  .admin-security-row { grid-template-columns: 1fr; }
-}
-@media (max-width: 768px) {
-  .admin-kpi-grid { grid-template-columns: 1fr; }
-  .admin-controls-grid { grid-template-columns: repeat(2, 1fr); }
-  .admin-dash { padding: 16px 12px; }
-}
-@media (max-width: 480px) {
-  .admin-controls-grid { grid-template-columns: 1fr; }
-  .admin-dash__brand { min-width: auto; }
-  .admin-dash__title { font-size: 22px; }
-}
-
-/* On dashboard index, hide the duplicate "Administration Dashboard" in the top header (we show it once with logo below) */
-body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
-/* Dashboard page uses the admin bridge header as the single top bar. */
-#main > #header.admin-top-header { display: none !important; }
 </style>
 
-<div class="admin-dash">
+<div class="admin-dash" data-health-endpoint="{% url 'api_health' %}" data-weather-endpoint="{% url 'api_admin_weather' %}">
   <div class="admin-dash__inner">
 
     {# === Preview Status === #}
@@ -185,8 +59,8 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
         {# Customizer: single entry in header (admin-dash__header-actions); no duplicate here #}
       </div>
       <div class="preview-status-card__colors">
-        <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.primary }};">Primary</span>
-        <span class="preview-status-card__chip" style="background: {{ preview_data.preview_colors.accent }};">Accent</span>
+        <span class="preview-status-card__chip preview-status-card__chip--primary">Primary</span>
+        <span class="preview-status-card__chip preview-status-card__chip--accent">Accent</span>
       </div>
     </div>
     {% endif %}
@@ -215,75 +89,14 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
     </div>
 
     {# === Key Metrics Row === #}
-    <div class="admin-kpi-grid" data-dashboard-column="main">
-
-      {# Total Users Card #}
-      <div class="admin-kpi-card" data-widget-id="admin-total-users">
-        <div class="admin-kpi-card__head">
-          <span class="admin-kpi-card__label">{% trans "Total Users" %}</span>
-          <span class="admin-kpi-card__icon">👥</span>
-        </div>
-        <div class="admin-kpi-card__value">{{ total_users|default:"0" }}</div>
-        <div class="admin-kpi-card__details">
-          <div class="admin-kpi-row"><span>{% trans "Admins" %}:</span> <span class="admin-kpi-val admin-stat admin-stat--admins">{{ admin_count|default:"0" }}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Students" %}:</span> <span class="admin-kpi-val admin-stat admin-stat--students">{{ student_count|default:"0" }}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Teachers" %}:</span> <span class="admin-kpi-val admin-stat admin-stat--teachers">{{ teacher_count|default:"0" }}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Parents" %}:</span> <span class="admin-kpi-val">{{ parent_count|default:"0" }}</span></div>
-        </div>
+    <div class="admin-kpi-grid dashboard-card-grid dashboard-card-grid--dense" data-dashboard-column="main">
+      {% for card in dashboard_kpi_cards %}
+      {% include "admin/components/dashboard_kpi_card.html" with card=card %}
+      {% empty %}
+      <div class="admin-kpi-card">
+        <div class="admin-kpi-card__details">{% trans "No KPI data available." %}</div>
       </div>
-
-      {# Database & App Stats Card #}
-      <div class="admin-kpi-card" data-widget-id="admin-db-app-stats">
-        <div class="admin-kpi-card__head">
-          <span class="admin-kpi-card__label">{% trans "Database & App Stats" %}</span>
-          <span class="admin-kpi-card__icon">📊</span>
-        </div>
-        <div class="admin-kpi-card__details">
-          <div class="admin-kpi-row"><span>{% trans "Connection" %}:</span> <span id="dbConnectionStatus" class="admin-stat admin-stat--success">{% trans "Ready" %}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Database Health" %}:</span> <span id="dbHealthStatus" class="admin-stat admin-stat--success">{% trans "Optimal" %}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Engine" %}:</span> <span class="admin-kpi-val">{{ db_engine_display|default:"SQLite3" }}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Active Sessions" %}:</span> <span class="admin-kpi-val">{{ active_sessions|default:"0" }}</span></div>
-        </div>
-      </div>
-
-      {# System Health Card #}
-      <div class="admin-kpi-card" data-widget-id="admin-system-health">
-        <div class="admin-kpi-card__head">
-          <span class="admin-kpi-card__label">{% trans "System Health" %}</span>
-          <span class="admin-kpi-card__icon">⚙️</span>
-        </div>
-        <div class="admin-kpi-card__value">
-          <a id="apiHealthStatus" href="{% url 'api_health' %}" target="_blank" rel="noopener" title="{% trans 'View API health' %}" class="admin-stat admin-stat--success" style="text-decoration: none; color: inherit;">{% trans "Operational" %}</a>
-        </div>
-        <div class="admin-kpi-card__details">
-          <div class="admin-kpi-row"><span>{% trans "Status" %}:</span> <span id="systemStatus" class="admin-stat admin-stat--success">{% trans "Online" %}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Sessions (24h)" %}:</span> <span class="admin-kpi-val">{{ sessions_24h|default:"0" }}</span></div>
-        </div>
-      </div>
-
-      {# MFA Compliance Card #}
-      <div class="admin-kpi-card" data-widget-id="admin-mfa-compliance">
-        <div class="admin-kpi-card__head">
-          <span class="admin-kpi-card__label">{% trans "MFA Compliance" %}</span>
-          <span class="admin-kpi-card__icon">🔐</span>
-        </div>
-        <div class="admin-kpi-card__value">{{ mfa_compliance_percent|default:0 }}%</div>
-        <div class="admin-kpi-card__details">
-          <div class="admin-kpi-row"><span>{% trans "Staff with MFA" %}:</span> <span class="admin-kpi-val">{{ mfa_enabled_count|default:0 }}</span></div>
-          <div class="admin-kpi-row"><span>{% trans "Total staff" %}:</span> <span class="admin-kpi-val">{{ mfa_staff_total|default:0 }}</span></div>
-          {% if mfa_by_role %}
-            <div class="admin-kpi-row">
-              <span>{% trans "By role" %}:</span>
-              <span class="admin-kpi-val">
-                {% for row in mfa_by_role %}
-                  {{ row.role }} {{ row.enabled }}/{{ row.total }} ({{ row.percent }}%){% if not forloop.last %}, {% endif %}
-                {% endfor %}
-              </span>
-            </div>
-          {% endif %}
-          <div class="admin-kpi-row"><a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-kpi-val" style="font-size: 12px;">{% trans "Site Settings" %}</a></div>
-        </div>
-      </div>
+      {% endfor %}
     </div>
 
     {# === Security / Compliance + Calendar Row === #}
@@ -293,13 +106,13 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
       <div class="admin-security-card" data-widget-id="admin-active-users-security">
         <div class="admin-kpi-card__head">
           <span class="admin-kpi-card__label">{% trans "Security / Compliance (24h)" %}</span>
-          <span class="admin-kpi-card__icon">🛡️</span>
+          <span class="material-symbols-outlined admin-kpi-card__icon" aria-hidden="true">shield</span>
         </div>
         <div class="admin-security-card__body">
           <div class="admin-security-panel">
             <div class="admin-security-panel__title">{% trans "Login Activity" %}</div>
-            <div class="admin-security-stat"><span>{% trans "New logins" %}</span> <strong class="admin-kpi-val">{{ new_logins_24h|default:"0" }}</strong></div>
-            <div class="admin-security-stat"><span>{% trans "Failed logins" %}</span> <strong class="admin-stat admin-stat--danger">{{ failed_logins_24h|default:"0" }}</strong></div>
+            {% include "admin/components/dashboard_security_stat.html" with label="New logins" value=new_logins_24h value_class="admin-kpi-val" %}
+            {% include "admin/components/dashboard_security_stat.html" with label="Failed logins" value=failed_logins_24h value_class="admin-stat admin-stat--danger" %}
             <div class="admin-security-divider">
               <div class="admin-security-panel__title">{% trans "Failed logins by role" %}</div>
               {% if failed_logins_by_role %}
@@ -307,17 +120,17 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
                   <div class="admin-security-stat"><span>{{ row.role }}</span> <strong>{{ row.count }}</strong></div>
                 {% endfor %}
               {% else %}
-                <div class="admin-security-stat" style="color: var(--admin-muted);">{% trans "No failed logins." %}</div>
+                <div class="admin-security-stat admin-security-muted">{% trans "No failed logins." %}</div>
               {% endif %}
             </div>
           </div>
           <div class="admin-security-panel">
             <div class="admin-security-panel__title">{% trans "Alerts & Access" %}</div>
-            <div class="admin-security-stat"><span>{% trans "Security alerts" %}</span> <strong class="admin-stat admin-stat--danger">{{ security_alerts_24h|default:"0" }}</strong></div>
-            <div class="admin-security-stat"><span>{% trans "Access denials" %}</span> <strong class="admin-stat admin-stat--danger">{{ access_denials_24h|default:"0" }}</strong></div>
+            {% include "admin/components/dashboard_security_stat.html" with label="Security alerts" value=security_alerts_24h value_class="admin-stat admin-stat--danger" %}
+            {% include "admin/components/dashboard_security_stat.html" with label="Access denials" value=access_denials_24h value_class="admin-stat admin-stat--danger" %}
             <div class="admin-security-divider">
-              <div class="admin-security-stat"><span>{% trans "Sessions (24h)" %}</span> <strong class="admin-kpi-val">{{ sessions_24h|default:"0" }}</strong></div>
-              <div class="admin-security-stat"><span>{% trans "Active sessions" %}</span> <strong class="admin-kpi-val">{{ active_sessions|default:"0" }}</strong></div>
+              {% include "admin/components/dashboard_security_stat.html" with label="Sessions (24h)" value=sessions_24h value_class="admin-kpi-val" %}
+              {% include "admin/components/dashboard_security_stat.html" with label="Active sessions" value=active_sessions value_class="admin-kpi-val" %}
             </div>
           </div>
         </div>
@@ -330,21 +143,18 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
       <div class="admin-security-card" data-widget-id="admin-action-queue">
         <div class="admin-kpi-card__head">
           <span class="admin-kpi-card__label">{% trans "Action queue" %}</span>
-          <span class="admin-kpi-card__icon">📋</span>
+          <span class="material-symbols-outlined admin-kpi-card__icon" aria-hidden="true">checklist</span>
         </div>
         <div class="admin-security-card__body">
-          <div class="admin-security-panel" style="flex: 1 1 100%;">
-            <div class="admin-security-stat">
-              <span>{% trans "Pending approvals" %}</span>
-              <strong class="admin-kpi-val">{{ pending_approvals_count|default:0 }}</strong>
-            </div>
+          <div class="admin-security-panel admin-security-panel--full">
+            {% include "admin/components/dashboard_security_stat.html" with label="Pending approvals" value=pending_approvals_count value_class="admin-kpi-val" %}
             {% if pending_approvals_list %}
               <div class="admin-security-divider">
                 <div class="admin-security-panel__title">{% trans "Recent" %}</div>
                 {% for req in pending_approvals_list %}
                   <div class="admin-security-stat">
                     <span title="{{ req.reference }}">{{ req.reference }}</span>
-                    <span>{{ req.get_request_type_display }}</span>
+                    <span>{{ req.request_type_display }}</span>
                   </div>
                 {% endfor %}
               </div>
@@ -352,7 +162,7 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
           </div>
         </div>
         <div class="admin-security-footer">
-          <a href="{% url 'admin:requests_accessrequest_changelist' %}" class="admin-control-btn" style="display: inline-flex;">{% trans "View all" %}</a>
+          <a href="{% url 'admin:requests_accessrequest_changelist' %}" class="admin-control-btn admin-control-btn--inline">{% trans "View all" %}</a>
         </div>
       </div>
 
@@ -361,31 +171,28 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
       <div class="admin-security-card" data-widget-id="admin-finance-inbox">
         <div class="admin-kpi-card__head">
           <span class="admin-kpi-card__label">{% trans "Finance Inbox" %}</span>
-          <span class="admin-kpi-card__icon">💰</span>
+          <span class="material-symbols-outlined admin-kpi-card__icon" aria-hidden="true">payments</span>
         </div>
         <div class="admin-security-card__body">
-          <div class="admin-security-panel" style="flex: 1 1 100%;">
-            <div class="admin-security-stat">
-              <span>{% trans "Unread requests" %}</span>
-              <strong class="admin-kpi-val">{{ finance_inbox_unread|default:0 }}</strong>
-            </div>
+          <div class="admin-security-panel admin-security-panel--full">
+            {% include "admin/components/dashboard_security_stat.html" with label="Unread requests" value=finance_inbox_unread value_class="admin-kpi-val" %}
             {% if finance_inbox_preview %}
               <div class="admin-security-divider">
                 <div class="admin-security-panel__title">{% trans "Recent" %}</div>
                 {% for note in finance_inbox_preview %}
                   <div class="admin-security-stat">
                     <span title="{{ note.title }}">{{ note.title|truncatewords:6 }}</span>
-                    <span>{{ note.created_at|date:"M d, H:i" }}</span>
+                    <span>{{ note.created_at_display }}</span>
                   </div>
                 {% endfor %}
               </div>
             {% else %}
-              <div class="admin-security-stat" style="color: var(--admin-muted);">{% trans "No recent finance requests." %}</div>
+              <div class="admin-security-stat admin-security-muted">{% trans "No recent finance requests." %}</div>
             {% endif %}
           </div>
         </div>
         <div class="admin-security-footer">
-          <a href="{% url 'finance:dashboard' %}" class="admin-control-btn" style="display: inline-flex;">{% trans "Open finance" %}</a>
+          <a href="{% url 'finance:dashboard' %}" class="admin-control-btn admin-control-btn--inline">{% trans "Open finance" %}</a>
         </div>
       </div>
       {% endif %}
@@ -393,15 +200,15 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
       {# Calendar / Weather Block #}
       <div class="calendar-widget" data-widget-id="admin-calendar-widget">
         <div class="calendar-header">
-          <button type="button" class="calendar-nav-btn" onclick="prevMonth()" aria-label="{% trans 'Previous month' %}">&larr;</button>
+          <button type="button" class="calendar-nav-btn" data-calendar-nav="prev" aria-label="{% trans 'Previous month' %}">&larr;</button>
           <span id="monthYear" class="calendar-header__month"></span>
-          <button type="button" class="calendar-nav-btn" onclick="nextMonth()" aria-label="{% trans 'Next month' %}">&rarr;</button>
+          <button type="button" class="calendar-nav-btn" data-calendar-nav="next" aria-label="{% trans 'Next month' %}">&rarr;</button>
         </div>
         <div class="calendar-grid" id="calendarGrid"></div>
         <div class="calendar-widget__footer">
           <div class="calendar-widget__today" id="todayDate"></div>
           <div class="weather-widget" id="weatherWidget">
-            <span class="weather-widget__icon" id="weatherIcon">🌤️</span>
+            <span class="material-symbols-outlined weather-widget__icon" id="weatherIcon" aria-hidden="true">partly_cloudy_day</span>
             <div>
               <div class="weather-widget__temp" id="weatherTemp">--&deg;C</div>
               <div class="weather-widget__desc" id="weatherDesc">{% trans "Loading..." %}</div>
@@ -414,16 +221,14 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
 
     {# === Admin Controls === #}
     <div data-dashboard-column="lower">
-      <div style="margin-bottom: 32px;" data-widget-id="admin-controls">
+      <div class="admin-controls-block" data-widget-id="admin-controls">
         <h2 class="admin-controls__title">{% trans "Admin Controls" %}</h2>
         <div class="admin-controls-grid">
-          <a href="{% url 'admin:accounts_user_changelist' %}" class="admin-control-btn">👥 {% trans "Manage Users" %}</a>
-          <a href="{% url 'admin:siteconfig_sitesettings_changelist' %}" class="admin-control-btn">⚙️ {% trans "Site Settings" %}</a>
-          <a href="{% url 'siteconfig:feature_control_panel' %}" class="admin-control-btn">🧩 {% trans "Feature Control" %}</a>
-          <a href="{% url 'siteconfig:report_library' %}" class="admin-control-btn">📄 {% trans "Report Library" %}</a>
-          <a href="{% url 'kb:kb_home' %}" class="admin-control-btn">📚 {% trans "Knowledge Base" %}</a>
-          <a href="{% url 'api_health' %}" target="_blank" rel="noopener" class="admin-control-btn">⚕️ {% trans "API Health" %}</a>
-          <a href="{% url 'siteconfig:user_preferences' %}?next={{ request.path|urlencode }}" class="admin-control-btn">🎛️ {% trans "My Preferences" %}</a>
+          {% for control in admin_control_links %}
+          {% include "admin/components/dashboard_control_link.html" with control=control %}
+          {% empty %}
+          <a href="{% url 'admin:accounts_user_changelist' %}" class="admin-control-btn">{% trans "Manage Users" %}</a>
+          {% endfor %}
         </div>
       </div>
 
@@ -432,39 +237,53 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
         <h2 class="admin-sysinfo__title">{% trans "System Information" %}</h2>
         <table>
           <tbody>
-            <tr>
-              <td class="admin-sysinfo__label">{% trans "Django Version" %}</td>
-              <td class="admin-sysinfo__val">{{ django_version|default:"Unknown" }}</td>
-            </tr>
-            <tr>
-              <td class="admin-sysinfo__label">{% trans "Python Version" %}</td>
-              <td class="admin-sysinfo__val">{{ python_version|default:"Unknown" }}</td>
-            </tr>
-            <tr>
-              <td class="admin-sysinfo__label">{% trans "Database Engine" %}</td>
-              <td class="admin-sysinfo__val">{{ db_engine_display|default:"SQLite3" }}</td>
-            </tr>
-            <tr>
-              <td class="admin-sysinfo__label">{% trans "Admin Theme" %}</td>
-              <td class="admin-sysinfo__val">Unfold</td>
-            </tr>
-            <tr>
-              <td class="admin-sysinfo__label">{% trans "Server Time" %}</td>
-              <td class="admin-sysinfo__val admin-sysinfo__mono" id="timestamp">{% trans "Loading..." %}</td>
-            </tr>
+            {% include "admin/components/dashboard_system_info_row.html" with label="Django Version" value=django_version|default:"Unknown" %}
+            {% include "admin/components/dashboard_system_info_row.html" with label="Python Version" value=python_version|default:"Unknown" %}
+            {% include "admin/components/dashboard_system_info_row.html" with label="Database Engine" value=db_engine_display|default:"SQLite3" %}
+            {% include "admin/components/dashboard_system_info_row.html" with label="Admin Theme" value="Unfold" %}
+            {% include "admin/components/dashboard_system_info_row.html" with label="Server Time" value="Loading..." value_id="timestamp" value_class="admin-sysinfo__mono" %}
           </tbody>
         </table>
       </div>
 
       {% if settings_change_log %}
-      <div class="admin-sysinfo" data-widget-id="admin-settings-audit" style="margin-top: 16px;">
+      <div class="admin-sysinfo admin-sysinfo--spaced" data-widget-id="admin-settings-audit">
         <h2 class="admin-sysinfo__title">{% trans "Recent Site Settings Changes" %}</h2>
         <table>
           <tbody>
             {% for entry in settings_change_log %}
+            {% include "admin/components/dashboard_settings_change_row.html" with entry=entry %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      {% if is_debug and dashboard_widget_telemetry %}
+      <div class="admin-sysinfo admin-sysinfo--spaced" data-widget-id="admin-widget-telemetry">
+        <h2 class="admin-sysinfo__title">{% trans "Dashboard Widget Telemetry" %}</h2>
+        <table class="admin-telemetry-table">
+          <thead>
             <tr>
-              <td class="admin-sysinfo__label">{{ entry.user|default:"System" }}</td>
-              <td class="admin-sysinfo__val">{{ entry.action_time|date:"M d, H:i" }}</td>
+              <th>{% trans "Widget" %}</th>
+              <th>{% trans "Template" %}</th>
+              <th>{% trans "Cache" %}</th>
+              <th>{% trans "TTL" %}</th>
+              <th>{% trans "Timing" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for widget in dashboard_widget_telemetry %}
+            <tr>
+              <td class="admin-sysinfo__label">{{ widget.id }}</td>
+              <td class="admin-sysinfo__val">{{ widget.template }}</td>
+              <td class="admin-sysinfo__val">
+                <span class="admin-telemetry-chip {% if widget.cache_hit %}admin-telemetry-chip--hit{% else %}admin-telemetry-chip--miss{% endif %}">
+                  {% if widget.cache_hit %}{% trans "Hit" %}{% else %}{% trans "Miss" %}{% endif %}
+                </span>
+              </td>
+              <td class="admin-sysinfo__val">{{ widget.cache_ttl_seconds }}s ({{ widget.cache_scope }})</td>
+              <td class="admin-sysinfo__val">{{ widget.timing_ms|floatformat:2 }}ms</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -476,146 +295,12 @@ body[data-dashboard-page="admin-security"] #header-inner h1 { display: none; }
   </div>
 </div>
 
-<script>
-  // Initialize dashboard on load (no duplicate theme toggle -- using base_site.html's toggle)
-  window.addEventListener('DOMContentLoaded', function() {
-    generateCalendar();
-    var ts = document.getElementById('timestamp');
-    if (ts) ts.textContent = new Date().toLocaleString();
-    loadSystemHealth();
-    loadWeather();
-    loadDailyMessage();
-    // Update today display
-    var todayEl = document.getElementById('todayDate');
-    if (todayEl) {
-      var now = new Date();
-      todayEl.textContent = 'Today: ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  });
-
-  async function loadSystemHealth() {
-    try {
-      const response = await fetch('{% url "api_health" %}', { credentials: 'same-origin' });
-      const data = await response.json();
-      const ok = response.ok && data && data.status === 'healthy';
-      const apiEl = document.getElementById('apiHealthStatus');
-      const sysEl = document.getElementById('systemStatus');
-      const dbConn = document.getElementById('dbConnectionStatus');
-      const dbHealth = document.getElementById('dbHealthStatus');
-      if (apiEl) {
-        apiEl.textContent = ok ? 'Operational' : 'Degraded';
-        apiEl.className = 'admin-stat ' + (ok ? 'admin-stat--success' : 'admin-stat--danger');
-      }
-      if (sysEl) {
-        sysEl.textContent = ok ? 'Online' : 'Attention';
-        sysEl.className = 'admin-stat ' + (ok ? 'admin-stat--success' : 'admin-stat--danger');
-      }
-      if (dbConn) {
-        const dbOk = data && data.database === 'connected';
-        dbConn.textContent = dbOk ? 'Ready' : 'Issue';
-        dbConn.className = 'admin-stat ' + (dbOk ? 'admin-stat--success' : 'admin-stat--danger');
-      }
-      if (dbHealth) {
-        dbHealth.textContent = ok ? 'Optimal' : 'Check';
-        dbHealth.className = 'admin-stat ' + (ok ? 'admin-stat--success' : 'admin-stat--danger');
-      }
-    } catch (e) {
-      const apiEl = document.getElementById('apiHealthStatus');
-      const sysEl = document.getElementById('systemStatus');
-      if (apiEl) {
-        apiEl.textContent = 'Degraded';
-        apiEl.className = 'admin-stat admin-stat--danger';
-      }
-      if (sysEl) {
-        sysEl.textContent = 'Attention';
-        sysEl.className = 'admin-stat admin-stat--danger';
-      }
-    }
-  }
-
-  // Weather -- Buea, Cameroon (4.1527, 9.2410)
-  async function loadWeather() {
-    try {
-      var response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=4.1527&longitude=9.2410&current=temperature_2m,weather_code&temperature_unit=celsius&timezone=Africa%2FDouala');
-      var data = await response.json();
-      if (data.current) {
-        var temp = Math.round(data.current.temperature_2m);
-        var code = data.current.weather_code;
-        var icons = {0:'\u2600',1:'\u26C5',2:'\u26C5',3:'\u2601',45:'\u2601',48:'\u2601',51:'\u2614',53:'\u2614',55:'\u2614',61:'\u2614',63:'\u2614',65:'\u2614',71:'\u2744',73:'\u2744',75:'\u2744',80:'\u2614',81:'\u2614',82:'\u2614',95:'\u26A1',96:'\u26A1',99:'\u26A1'};
-        var descs = {0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Foggy',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Light showers',81:'Showers',82:'Heavy showers',95:'Thunderstorm',96:'Thunderstorm',99:'Heavy thunderstorm'};
-        document.getElementById('weatherIcon').textContent = icons[code] || '\u26C5';
-        document.getElementById('weatherTemp').textContent = temp + '\u00B0C';
-        document.getElementById('weatherDesc').textContent = (descs[code] || 'Unknown') + ' - Buea';
-      }
-    } catch (e) {
-      document.getElementById('weatherTemp').textContent = '24\u00B0C';
-      document.getElementById('weatherDesc').textContent = 'Buea, Cameroon';
-    }
-  }
-
-  // Daily inspirational messages
-  function loadDailyMessage() {
-    var msgs = [
-      '"Education is the most powerful weapon which you can use to change the world." - Nelson Mandela',
-      '"The beautiful thing about learning is that no one can take it away from you." - B.B. King',
-      '"Great things are done by a series of small things brought together." - Vincent Van Gogh',
-      '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
-      '"The only way to do great work is to love what you do." - Steve Jobs',
-      '"Believe you can and you are halfway there." - Theodore Roosevelt',
-      '"In the middle of difficulty lies opportunity." - Albert Einstein',
-      '"Quality is not an act, it is a habit." - Aristotle',
-      '"Excellence is not a skill, it is an attitude." - Ralph Marston',
-      '"The expert in anything was once a beginner." - Helen Hayes'
-    ];
-    var now = new Date();
-    var start = new Date(now.getFullYear(), 0, 0);
-    var dayOfYear = Math.floor((now - start) / 86400000);
-    var el = document.getElementById('dailyMessage');
-    if (el) el.textContent = msgs[dayOfYear % msgs.length];
-  }
-
-  // Calendar
-  var currentDate = new Date();
-  function generateCalendar() {
-    var year = currentDate.getFullYear();
-    var month = currentDate.getMonth();
-    var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    var el = document.getElementById('monthYear');
-    if (el) el.textContent = monthNames[month] + ' ' + year;
-    var firstDay = new Date(year, month, 1).getDay();
-    var daysInMonth = new Date(year, month + 1, 0).getDate();
-    var today = new Date();
-    var grid = document.getElementById('calendarGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d) {
-      var h = document.createElement('div');
-      h.className = 'calendar-grid__header';
-      h.textContent = d;
-      grid.appendChild(h);
-    });
-    for (var i = 0; i < firstDay; i++) {
-      var empty = document.createElement('div');
-      empty.className = 'calendar-day calendar-day--empty';
-      grid.appendChild(empty);
-    }
-    for (var day = 1; day <= daysInMonth; day++) {
-      var cell = document.createElement('div');
-      cell.className = 'calendar-day';
-      cell.textContent = day;
-      if (today.getFullYear() === year && today.getMonth() === month && today.getDate() === day) {
-        cell.classList.add('calendar-day--today');
-      }
-      grid.appendChild(cell);
-    }
-  }
-  function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); generateCalendar(); }
-  function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); generateCalendar(); }
-</script>
+{{ admin_weather|json_script:"admin-weather-config" }}
 
 {# Weather Marquee Footer #}
-<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--admin-border);">
+<div class="admin-weather-marquee">
   {% include 'components/weather_marquee.html' %}
 </div>
 
 {% endblock %}
+

@@ -2,19 +2,204 @@
 Observability endpoints: /healthz and /metrics.
 """
 
+import logging
 from functools import wraps
+from urllib.parse import urlencode
 
+import requests
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.db import connection
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
-from django.shortcuts import render
+from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
-from django.db.models import Count, Q, Sum, Avg, Value
-from django.db.models.functions import Coalesce
+from django.db.models import Count, Q, Sum, Avg
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from django.core.cache import cache
+
+logger = logging.getLogger(__name__)
+
+WEATHER_CACHE_TTL_SECONDS = 300
+WEATHER_STALE_CACHE_TTL_SECONDS = 1800
+OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/forecast"
+WEATHER_CODE_DESCRIPTIONS = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Foggy",
+    48: "Foggy",
+    51: "Light drizzle",
+    53: "Drizzle",
+    55: "Heavy drizzle",
+    61: "Light rain",
+    63: "Rain",
+    65: "Heavy rain",
+    71: "Light snow",
+    73: "Snow",
+    75: "Heavy snow",
+    80: "Light showers",
+    81: "Showers",
+    82: "Heavy showers",
+    95: "Thunderstorm",
+    96: "Thunderstorm",
+    99: "Heavy thunderstorm",
+}
+
+
+def _safe_float(value, default: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _build_admin_weather_config() -> dict:
+    from apps.siteconfig.models import SiteSettings
+
+    site = SiteSettings.get_solo()
+    flags = getattr(site, "backend_feature_flags", None) or {}
+    raw_unit = str(flags.get("header_weather_temperature_unit", "celsius")).lower()
+    temp_unit = "fahrenheit" if raw_unit in {"f", "fahrenheit"} else "celsius"
+    timezone_name = str(flags.get("header_weather_timezone") or settings.TIME_ZONE or "UTC")
+
+    return {
+        "enabled": bool(flags.get("show_header_context_weather", True)),
+        "label": str(flags.get("header_weather_label", "Buea, Cameroon")),
+        "latitude": _safe_float(flags.get("header_weather_latitude", 4.1527), 4.1527),
+        "longitude": _safe_float(flags.get("header_weather_longitude", 9.2410), 9.2410),
+        "temperature_unit": temp_unit,
+        "timezone": timezone_name,
+    }
+
+
+def _weather_cache_key(config: dict, *, scope: str) -> str:
+    lat = round(float(config.get("latitude", 0.0)), 4)
+    lon = round(float(config.get("longitude", 0.0)), 4)
+    unit = str(config.get("temperature_unit", "celsius")).lower()
+    timezone_name = str(config.get("timezone", "UTC"))
+    return f"weather:{scope}:v1:{lat}:{lon}:{unit}:{timezone_name}"
+
+
+def _fetch_weather_snapshot(config: dict) -> dict:
+    params = {
+        "latitude": config["latitude"],
+        "longitude": config["longitude"],
+        "current": "temperature_2m,weather_code",
+        "temperature_unit": config["temperature_unit"],
+        "timezone": config["timezone"],
+    }
+    url = f"{OPEN_METEO_BASE_URL}?{urlencode(params)}"
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, dict):
+        payload = {}
+    current = payload.get("current") if isinstance(payload, dict) else None
+    if not isinstance(current, dict):
+        raise ValueError("Weather provider response missing current data.")
+
+    temperature = current.get("temperature_2m")
+    weather_code = current.get("weather_code")
+    if temperature is None or weather_code is None:
+        raise ValueError("Weather provider response missing required fields.")
+
+    code = int(weather_code)
+    return {
+        "temperature": float(temperature),
+        "weather_code": code,
+        "description": WEATHER_CODE_DESCRIPTIONS.get(code, "Unknown"),
+    }
+
+
+def _build_admin_weather_response(config: dict, weather: dict, *, status: str, cached: bool, stale: bool = False) -> dict:
+    return {
+        "status": status,
+        "enabled": True,
+        "label": config["label"],
+        "latitude": config["latitude"],
+        "longitude": config["longitude"],
+        "temperature_unit": config["temperature_unit"],
+        "timezone": config["timezone"],
+        "cached": cached,
+        "stale": stale,
+        "weather": weather,
+    }
+
+
+def _build_weather_disabled_response(config: dict) -> dict:
+    return {
+        "status": "disabled",
+        "enabled": False,
+        "label": config["label"],
+        "latitude": config["latitude"],
+        "longitude": config["longitude"],
+        "temperature_unit": config["temperature_unit"],
+        "timezone": config["timezone"],
+        "cached": False,
+        "stale": False,
+        "weather": None,
+    }
+
+
+def _build_weather_degraded_response(config: dict) -> dict:
+    return {
+        "status": "degraded",
+        "enabled": True,
+        "label": config["label"],
+        "latitude": config["latitude"],
+        "longitude": config["longitude"],
+        "temperature_unit": config["temperature_unit"],
+        "timezone": config["timezone"],
+        "cached": False,
+        "stale": False,
+        "weather": None,
+    }
+
+
+def _resolve_weather_payload(config: dict, *, scope: str) -> dict:
+    if not config["enabled"]:
+        return _build_weather_disabled_response(config)
+
+    cache_key = _weather_cache_key(config, scope=scope)
+    stale_cache_key = f"{cache_key}:stale"
+
+    cached_payload = cache.get(cache_key)
+    if isinstance(cached_payload, dict):
+        response_payload = dict(cached_payload)
+        response_payload["cached"] = True
+        response_payload.setdefault("stale", False)
+        return response_payload
+
+    try:
+        weather = _fetch_weather_snapshot(config)
+        payload = _build_admin_weather_response(
+            config,
+            weather,
+            status="success",
+            cached=False,
+            stale=False,
+        )
+        cache.set(cache_key, payload, WEATHER_CACHE_TTL_SECONDS)
+        cache.set(stale_cache_key, payload, WEATHER_STALE_CACHE_TTL_SECONDS)
+        return payload
+    except Exception:
+        logger.warning(
+            "Weather provider request failed (scope=%s).",
+            scope,
+            exc_info=True,
+        )
+
+    stale_payload = cache.get(stale_cache_key)
+    if isinstance(stale_payload, dict):
+        response_payload = dict(stale_payload)
+        response_payload["status"] = "degraded"
+        response_payload["cached"] = True
+        response_payload["stale"] = True
+        return response_payload
+
+    return _build_weather_degraded_response(config)
 
 
 def _is_observability_authorized(request) -> bool:
@@ -207,6 +392,21 @@ def api_health(request):
             "status": "error",
             "error": str(exc)
         }, status=500)
+
+
+@require_GET
+@observability_auth_required
+def api_admin_weather(request):
+    """Server-side weather snapshot for admin dashboard widgets."""
+    payload = _resolve_weather_payload(_build_admin_weather_config(), scope="admin")
+    return JsonResponse(payload)
+
+
+@require_GET
+def api_weather_context(request):
+    """Public-safe weather snapshot for shared header/backend widgets."""
+    payload = _resolve_weather_payload(_build_admin_weather_config(), scope="context")
+    return JsonResponse(payload)
 
 
 @require_POST
@@ -438,121 +638,5 @@ def api_dashboard_charts(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff or u.is_superuser or getattr(u, "role", None) == "ADMIN")
 def admin_dashboard(request):
-    """Backend admin dashboard for system management.
-    
-    Provides access to:
-    - System statistics and health checks
-    - User management and admin operations
-    - Academic and financial management
-    - Data export and reporting tools
-    - Audit logs and activity tracking
-    - Quick system actions and utilities
-    """
-    from django.contrib.auth.models import User, Group
-    
-    # Get system statistics
-    total_users = User.objects.count()
-    admin_count = User.objects.filter(is_staff=True).count()
-    
-    # Try to get student/teacher/parent counts from custom user model if available
-    try:
-        from apps.accounts.models import User as CustomUser
-        student_count = CustomUser.objects.filter(role='STUDENT').count()
-        teacher_count = CustomUser.objects.filter(role='TEACHER').count()
-        parent_count = CustomUser.objects.filter(role='PARENT').count()
-    except (ImportError, AttributeError):
-        student_count = 0
-        teacher_count = 0
-        parent_count = 0
-    
-    # Get active sessions (approximate)
-    from django.contrib.sessions.models import Session
-    import datetime
-    now = timezone.now()
-    active_sessions = Session.objects.filter(expire_date__gte=now).count()
-    sessions_24h = Session.objects.filter(expire_date__gte=now - datetime.timedelta(hours=24)).count()
-
-    new_logins_24h = 0
-    failed_logins_24h = 0
-    failed_logins_by_role = []
-    security_alerts_24h = 0
-    access_denials_24h = 0
-    try:
-        from apps.compliance.models_audit import AccessLog, AuditLog
-        cutoff_24h = now - datetime.timedelta(hours=24)
-        login_paths = ["/authentication/login/", "/admin/login/"]
-        login_attempts = AccessLog.objects.filter(
-            resource__in=login_paths,
-            request_method="POST",
-            timestamp__gte=cutoff_24h,
-        )
-        new_logins_24h = login_attempts.filter(status__in=["302", "303"]).count()
-        failed_logins = login_attempts.exclude(status__in=["302", "303"])
-        failed_logins_24h = failed_logins.count()
-        failed_logins_by_role = list(
-            failed_logins.values(
-                role=Coalesce("user__role", Value("Unknown"))
-            ).annotate(count=Count("id")).order_by("-count")[:3]
-        )
-
-        security_alerts_24h = AuditLog.objects.filter(
-            timestamp__gte=cutoff_24h
-        ).filter(
-            Q(action=AuditLog.Action.ACCESS_DENIED) | Q(sensitivity__in=["HIGH", "CRITICAL"])
-        ).count()
-        access_denials_24h = AuditLog.objects.filter(
-            action=AuditLog.Action.ACCESS_DENIED,
-            timestamp__gte=cutoff_24h,
-        ).count()
-    except Exception:
-        new_logins_24h = 0
-        failed_logins_24h = 0
-        failed_logins_by_role = []
-        security_alerts_24h = 0
-        access_denials_24h = 0
-    
-    # System info (dynamic, shared with config/admin.py dashboard)
-    import sys
-    import django as _django
-    from django.db import connection as _conn
-    from django.conf import settings as _settings
-    _db_vendor = _conn.vendor
-    _db_display = {'sqlite': 'SQLite3', 'postgresql': 'PostgreSQL', 'mysql': 'MySQL', 'oracle': 'Oracle'}.get(_db_vendor, _db_vendor.title())
-
-    from django.urls import reverse
-    from django.urls.exceptions import NoReverseMatch
-
-    def _safe_reverse(name, fallback="#"):
-        try:
-            return reverse(name)
-        except NoReverseMatch:
-            return fallback
-        except Exception:
-            return fallback
-
-    from apps.dashboard.action_registry import get_admin_header_actions
-    header_actions = get_admin_header_actions(_safe_reverse)
-
-    context = {
-        'total_users': total_users,
-        'admin_count': admin_count,
-        'student_count': student_count,
-        'teacher_count': teacher_count,
-        'parent_count': parent_count,
-        'active_sessions': active_sessions,
-        'sessions_24h': sessions_24h,
-        'new_logins_24h': new_logins_24h,
-        'failed_logins_24h': failed_logins_24h,
-        'failed_logins_by_role': failed_logins_by_role,
-        'security_alerts_24h': security_alerts_24h,
-        'access_denials_24h': access_denials_24h,
-        'django_version': _django.get_version(),
-        'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
-        'db_engine_display': _db_display,
-        'is_debug': _settings.DEBUG,
-        'admin_palette': {},
-        'preview_data': None,
-        'header_actions': header_actions,
-    }
-
-    return render(request, 'admin/admin_dashboard.html', context)
+    """Legacy alias for the admin dashboard."""
+    return redirect("admin:index")

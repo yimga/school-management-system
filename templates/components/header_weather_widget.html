@@ -104,6 +104,7 @@
 <div
   class="header-context-strip"
   data-header-context
+  data-weather-endpoint="{% url 'api_weather_context' %}"
   data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'4.1527' }}"
   data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'9.2410' }}"
   data-weather-unit="{{ HEADER_WEATHER_TEMPERATURE_UNIT|default:'celsius' }}"
@@ -150,14 +151,6 @@
     95: "bi-cloud-lightning", 96: "bi-cloud-lightning", 99: "bi-cloud-lightning"
   };
 
-  var weatherDescriptions = {
-    0: "Clear", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-    45: "Fog", 48: "Fog", 51: "Drizzle", 53: "Drizzle", 55: "Heavy drizzle",
-    61: "Light rain", 63: "Rain", 65: "Heavy rain", 71: "Light snow",
-    73: "Snow", 75: "Heavy snow", 80: "Showers", 81: "Showers",
-    82: "Heavy showers", 95: "Thunderstorm", 96: "Thunderstorm", 99: "Thunderstorm"
-  };
-
   var quotes = [
     "Stay consistent and keep building.",
     "Clarity drives better execution.",
@@ -199,13 +192,14 @@
 
   function getWeatherConfig() {
     var first = strips[0];
+    var endpoint = (first && first.getAttribute("data-weather-endpoint")) || "";
     var lat = parseFloat(first && first.getAttribute("data-weather-lat"));
     var lon = parseFloat(first && first.getAttribute("data-weather-lon"));
     var unit = (first && first.getAttribute("data-weather-unit")) || "celsius";
     if (Number.isNaN(lat)) lat = 4.1527;
     if (Number.isNaN(lon)) lon = 9.2410;
     if (unit !== "fahrenheit") unit = "celsius";
-    return { lat: lat, lon: lon, unit: unit };
+    return { endpoint: endpoint, lat: lat, lon: lon, unit: unit };
   }
 
   function setWeatherFallback(label) {
@@ -221,22 +215,29 @@
 
   function updateWeather() {
     var config = getWeatherConfig();
-    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + encodeURIComponent(config.lat)
-      + "&longitude=" + encodeURIComponent(config.lon)
-      + "&current=temperature_2m,weather_code&temperature_unit=" + encodeURIComponent(config.unit)
-      + "&timezone=auto";
+    if (!config.endpoint) {
+      setWeatherFallback("Weather unavailable");
+      return;
+    }
 
-    fetch(url, { method: "GET" })
+    fetch(config.endpoint, {
+      method: "GET",
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    })
       .then(function (response) { return response.ok ? response.json() : null; })
       .then(function (data) {
-        if (!data || !data.current) {
-          setWeatherFallback("Weather unavailable");
+        var weather = data && data.weather;
+        if (!data || data.enabled === false || !weather) {
+          setWeatherFallback((data && data.label) || "Weather unavailable");
           return;
         }
-        var temp = Math.round(data.current.temperature_2m);
-        var code = data.current.weather_code;
-        var unitSymbol = config.unit === "fahrenheit" ? "F" : "C";
+        var temp = Math.round(Number(weather.temperature));
+        var code = Number(weather.weather_code);
+        var unit = String(data.temperature_unit || config.unit).toLowerCase() === "fahrenheit" ? "fahrenheit" : "celsius";
+        var unitSymbol = unit === "fahrenheit" ? "F" : "C";
         var degreeSymbol = "\u00B0";
+        var descText = String(weather.description || "Weather");
         strips.forEach(function (strip) {
           var icon = strip.querySelector("[data-header-weather-icon]");
           var tempNode = strip.querySelector("[data-header-weather-temp]");
@@ -246,7 +247,7 @@
             icon.className = "header-context-icon bi " + iconClass;
           }
           if (tempNode) tempNode.textContent = String(temp) + degreeSymbol + unitSymbol;
-          if (desc) desc.textContent = weatherDescriptions[code] || "Weather";
+          if (desc) desc.textContent = descText;
         });
       })
       .catch(function () {

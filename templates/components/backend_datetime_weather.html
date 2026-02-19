@@ -1,22 +1,23 @@
 {% comment %}
   Backend Admin Portal card: date, local time, weather, location.
-  Reference layout: vertical stack — "April 2024", "10:21 AM", icon + "27°", location (no separators).
-  Uses Open-Meteo for weather; Intl for date/time. Works in light and dark backend themes.
+  Reference layout: vertical stack - "April 2024", "10:21 AM", icon + "27deg", location (no separators).
+  Uses internal weather API for weather; Intl for date/time. Works in light and dark backend themes.
 {% endcomment %}
 <div
   class="backend-v2-side-time backend-dtw"
   id="backendDatetimeWeather"
+  data-weather-endpoint="{% url 'api_weather_context' %}"
   data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'4.1527' }}"
   data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'9.2410' }}"
   data-weather-unit="{{ HEADER_WEATHER_TEMPERATURE_UNIT|default:'celsius' }}"
   data-weather-label="{{ HEADER_WEATHER_LABEL|default:'Douala, Cameroon' }}"
   aria-label="Local date, time, and weather"
 >
-  <div class="backend-dtw__line backend-dtw__month-year" id="backendDtwMonthYear">—</div>
-  <div class="backend-dtw__line backend-dtw__time" id="backendDtwTime">—:—</div>
+  <div class="backend-dtw__line backend-dtw__month-year" id="backendDtwMonthYear">--</div>
+  <div class="backend-dtw__line backend-dtw__time" id="backendDtwTime">--:--</div>
   <div class="backend-dtw__line backend-dtw__weather">
     <i class="bi bi-cloud-sun backend-dtw__weather-icon" id="backendDtwWeatherIcon" aria-hidden="true"></i>
-    <span class="backend-dtw__temp" id="backendDtwTemp">—°</span>
+    <span class="backend-dtw__temp" id="backendDtwTemp">--&deg;</span>
   </div>
   <div class="backend-dtw__line backend-dtw__location" id="backendDtwLocation">{{ HEADER_WEATHER_LABEL|default:"Douala, Cameroon" }}</div>
 </div>
@@ -100,29 +101,39 @@
   }
 
   function getWeatherConfig() {
+    var endpoint = root.getAttribute("data-weather-endpoint") || "";
     var lat = parseFloat(root.getAttribute("data-weather-lat"));
     var lon = parseFloat(root.getAttribute("data-weather-lon"));
     var unit = (root.getAttribute("data-weather-unit") || "celsius").toLowerCase();
     if (Number.isNaN(lat)) lat = 4.1527;
     if (Number.isNaN(lon)) lon = 9.2410;
     if (unit !== "fahrenheit") unit = "celsius";
-    return { lat: lat, lon: lon, unit: unit };
+    return { endpoint: endpoint, lat: lat, lon: lon, unit: unit };
   }
 
   function updateWeather() {
     var config = getWeatherConfig();
-    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + encodeURIComponent(config.lat)
-      + "&longitude=" + encodeURIComponent(config.lon)
-      + "&current=temperature_2m,weather_code&temperature_unit=" + encodeURIComponent(config.unit)
-      + "&timezone=auto";
+    if (!config.endpoint) {
+      if (tempEl) tempEl.textContent = "--\u00B0";
+      return;
+    }
 
-    fetch(url, { method: "GET" })
+    fetch(config.endpoint, {
+      method: "GET",
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    })
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(data) {
-        if (!data || !data.current || !tempEl) return;
-        var temp = Math.round(data.current.temperature_2m);
-        var code = data.current.weather_code;
-        var sym = config.unit === "fahrenheit" ? "°F" : "°";
+        var weather = data && data.weather;
+        if (!data || data.enabled === false || !weather || !tempEl) {
+          if (tempEl) tempEl.textContent = "--\u00B0";
+          return;
+        }
+        var temp = Math.round(Number(weather.temperature));
+        var code = Number(weather.weather_code);
+        var unit = String(data.temperature_unit || config.unit).toLowerCase() === "fahrenheit" ? "fahrenheit" : "celsius";
+        var sym = unit === "fahrenheit" ? "\u00B0F" : "\u00B0";
         tempEl.textContent = temp + sym;
         if (iconEl) {
           var cls = weatherIconClasses[code] || "bi-cloud-sun";
@@ -130,7 +141,7 @@
         }
       })
       .catch(function() {
-        if (tempEl) tempEl.textContent = "—°";
+        if (tempEl) tempEl.textContent = "--\u00B0";
       });
   }
 

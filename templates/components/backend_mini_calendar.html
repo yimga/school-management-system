@@ -51,7 +51,7 @@
     for (i = 0; i < 7; i++) gridHtml += '<span class="backend-cal-dow-cell">' + labels[i] + '</span>';
     dowEl.innerHTML = gridHtml;
     gridHtml = '';
-    for (i = 0; i < startPad; i++) gridHtml += '<span class="backend-cal-cell backend-cal-empty">—</span>';
+    for (i = 0; i < startPad; i++) gridHtml += '<span class="backend-cal-cell backend-cal-empty">-</span>';
     for (d = 1; d <= days; d++) {
       cls = 'backend-cal-cell' + (d === now.getDate() ? ' backend-cal-today' : '');
       gridHtml += '<span class="' + cls + '">' + d + '</span>';

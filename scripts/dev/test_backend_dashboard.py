@@ -1,141 +1,113 @@
 #!/usr/bin/env python
-"""Test script to validate backend dashboard template changes. Run from project root: python scripts/dev/test_backend_dashboard.py"""
+"""Backend dashboard validation helper.
+Run from project root: python scripts/dev/test_backend_dashboard.py
+"""
 import os
-import sys
 import re
+import sys
 
-_script_dir = os.path.dirname(os.path.abspath(__file__))
-_project_root = os.path.abspath(os.path.join(_script_dir, '..', '..'))
-sys.path.insert(0, _project_root)
-os.chdir(_project_root)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(script_dir, "..", ".."))
+sys.path.insert(0, project_root)
+os.chdir(project_root)
 
 import django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from django.template.loader import get_template
-from django.test import RequestFactory, Client
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-User = get_user_model()
+
+def ok(msg: str) -> None:
+    print(f"  [OK] {msg}")
+
+
+def warn(msg: str) -> None:
+    print(f"  [WARN] {msg}")
+
 
 print("=" * 80)
-print("BACKEND DASHBOARD VALIDATION TEST")
+print("BACKEND DASHBOARD VALIDATION")
 print("=" * 80)
 
-print("\n✓ Test 1: Template Loading")
+print("\n1) Template loading")
 try:
-    template = get_template('accounts/backend_dashboard.html')
-    print("  ✅ Template loads successfully")
-except Exception as e:
-    print(f"  ❌ Template loading failed: {e}")
+    get_template("accounts/backend_dashboard.html")
+    ok("accounts/backend_dashboard.html loads")
+except Exception as exc:
+    print(f"  [ERROR] template loading failed: {exc}")
     sys.exit(1)
 
-print("\n✓ Test 2: Template Structure")
-template_path = os.path.join(_project_root, 'templates/accounts/backend_dashboard.html')
-with open(template_path, 'r', encoding='utf-8') as f:
-    content = f.read()
+print("\n2) Core structure markers")
+template_path = os.path.join(project_root, "templates", "accounts", "backend_dashboard.html")
+with open(template_path, "r", encoding="utf-8") as fh:
+    content = fh.read()
 
-checks = {
-    "Floating sidebar": "floating-sidebar",
-    "Analytics filters": "analytics-filters",
-    "Main content wrapper": "main-content-wrapper",
-    "KPI cards": "kpi-card",
-    "Sidebar navigation": "sidebar-nav-link",
-    "AI Copilot include": "ai_copilot.html",
+required_markers = {
+    "overview block": "backend-v2-overview",
+    "welcome block": "backend-v2-welcome",
+    "kpi strip": "backend-v2-kpi-strip",
+    "admin portal side card": "backend-v2-side-card",
+    "workspace grid": "backend-v2-main-grid",
+    "ops watch card": "backend-ops-watch-card",
+    "quick links card": "backend-quick-links-card",
 }
-for name, pattern in checks.items():
-    if pattern in content:
-        print(f"  ✅ {name}: Found")
+for label, marker in required_markers.items():
+    if marker in content:
+        ok(f"{label}: found ({marker})")
     else:
-        print(f"  ⚠️  {name}: Not found")
+        warn(f"{label}: missing ({marker})")
 
-print("\n✓ Test 3: HTML Tag Balance")
-div_opens = content.count('<div')
-div_closes = content.count('</div>')
-style_opens = content.count('<style')
-style_closes = content.count('</style>')
-print(f"  - <div> tags: {div_opens} opens, {div_closes} closes")
-if div_opens != div_closes:
-    print(f"    ⚠️  Mismatch: {div_opens - div_closes} difference")
+print("\n3) Basic HTML/style balance")
+div_open = content.count("<div")
+div_close = content.count("</div>")
+style_open = content.count("<style")
+style_close = content.count("</style>")
+print(f"  div: {div_open} open / {div_close} close")
+print(f"  style: {style_open} open / {style_close} close")
+if div_open == div_close:
+    ok("div tags balanced")
 else:
-    print(f"    ✅ Balanced")
-print(f"  - <style> tags: {style_opens} opens, {style_closes} closes")
-if style_opens != style_closes:
-    print(f"    ⚠️  Mismatch")
+    warn("div tags are not balanced")
+if style_open == style_close:
+    ok("style tags balanced")
 else:
-    print(f"    ✅ Balanced")
+    warn("style tags are not balanced")
 
-print("\n✓ Test 4: Django Template Blocks")
-blocks = {
-    "{% block title %}": "{% endblock %}",
-    "{% block extrastyle %}": "{% endblock %}",
-    "{% block content %}": "{% endblock %}",
-}
-for start, end in blocks.items():
-    if start in content and end in content:
-        print(f"  ✅ {start.split()[1]} block: Properly closed")
-    else:
-        print(f"  ❌ {start.split()[1]} block: Missing or incomplete")
-
-print("\n✓ Test 5: CSS Syntax Check")
-css_errors = []
-style_sections = re.findall(r'<style>(.*?)</style>', content, re.DOTALL)
-for i, style in enumerate(style_sections):
-    open_braces = style.count('{')
-    close_braces = style.count('}')
-    if open_braces != close_braces:
-        css_errors.append(f"Style block {i+1}: Brace mismatch ({open_braces} vs {close_braces})")
-if css_errors:
-    for error in css_errors:
-        print(f"  ⚠️  {error}")
+print("\n4) Inline script sanity")
+script_blocks = re.findall(r"<script(?:[^>]*)>(.*?)</script>", content, re.DOTALL)
+if script_blocks:
+    ok(f"found {len(script_blocks)} inline script block(s)")
 else:
-    print(f"  ✅ CSS syntax appears valid")
+    warn("no inline script blocks found")
 
-print("\n✓ Test 6: URL References")
-urls_to_check = [
-    'accounts:backend_dashboard', 'admin:index', 'analytics:dashboard',
-    'finance:dashboard', 'payroll:dashboard', 'compliance:dashboard',
+print("\n5) URL reverse smoke")
+url_names = [
+    "accounts:backend_dashboard",
+    "accounts:workflow_center",
+    "siteconfig:user_preferences",
+    "siteconfig:customizer",
+    "accounts:backend_ops_watch_data",
 ]
-for url_name in urls_to_check:
+for name in url_names:
     try:
-        reverse(url_name.replace(':', ':'))
-        if f"'{url_name}'" in content or f'"{url_name}"' in content:
-            print(f"  ✅ {url_name}: Found and valid")
-        else:
-            print(f"  ⚠️  {url_name}: Not found in template")
-    except Exception:
-        print(f"  ⚠️  {url_name}: URL pattern might not exist")
+        reverse(name)
+        ok(f"{name} resolves")
+    except Exception as exc:
+        warn(f"{name} unresolved ({exc})")
 
-print("\n✓ Test 7: Verify Removed Elements")
-removed_elements = [
-    ("Gradient hero visible", 'class="admin-hero"', False),
-    ("Hero display hidden", '.admin-hero { display: none', True),
-    ("Old header include", 'dashboard_header.html', False),
-]
-for name, pattern, should_exist in removed_elements:
-    exists = pattern in content
-    if exists == should_exist:
-        print(f"  ✅ {name}: {'Present' if should_exist else 'Removed'} as expected")
-    else:
-        print(f"  ⚠️  {name}: {'Present' if exists else 'Missing'} (unexpected)")
+print("\n6) Regression guards")
+if "backend-v2-chip-row" in content and "backend-v2-action-grid" in content:
+    ok("welcome action rows are present")
+else:
+    warn("welcome action rows may be incomplete")
 
-print("\n✓ Test 8: Responsive Design")
-responsive_checks = ["@media (max-width: 768px)", "margin-left: 260px", "width: 260px"]
-for check in responsive_checks:
-    if check in content:
-        print(f"  ✅ {check}: Found")
-    else:
-        print(f"  ⚠️  {check}: Not found")
-
-print("\n✓ Test 9: Button Visibility")
-button_styles = [".btn-primary", ".btn-outline-primary", ".btn-outline-secondary", "background: #3b82f6"]
-for style in button_styles:
-    if style in content:
-        print(f"  ✅ {style}: Defined")
-    else:
-        print(f"  ⚠️  {style}: Not found")
+if "backend-status-fragment" in content:
+    ok("status fragment placeholder present")
+else:
+    warn("status fragment placeholder missing")
 
 print("\n" + "=" * 80)
 print("VALIDATION COMPLETE")

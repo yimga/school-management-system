@@ -60,6 +60,12 @@ class SmokeUrlResolutionTests(SimpleTestCase):
         """No-regression: admin dashboard (obs) path."""
         self.assertEqual(reverse("admin_dashboard"), "/admin/dashboard/")
 
+    def test_api_admin_weather(self):
+        self.assertEqual(reverse("api_admin_weather"), "/api/admin/weather/")
+
+    def test_api_weather_context(self):
+        self.assertEqual(reverse("api_weather_context"), "/api/weather/context/")
+
     def test_six_critical_paths_resolve(self):
         """Plan Phase 0: all six critical URLs must resolve."""
         critical = [
