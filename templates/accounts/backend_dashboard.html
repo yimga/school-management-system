@@ -8,11 +8,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
-<link rel="stylesheet" href="{% static 'css/backend-dashboard-polish.css' %}">
-<link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
-<link rel="stylesheet" href="{% static 'css/backend-command-center-fixes.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-tokens.css' %}">
-<link rel="stylesheet" href="{% static 'css/backend-dashboard-extras.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
@@ -154,12 +150,14 @@
           <div class="backend-v2-chip-row">
             {% url 'accounts:workflow_center' as workflow_center_url %}
             {% for chip in action_chips %}
-            {% if chip.url != workflow_center_url and chip.label != 'Workflow Center' and chip.label != 'Workflow' and chip.label != 'Customize layout' %}
+            {% with chip_label=chip.label|default_if_none:""|lower %}
+            {% if chip.url != workflow_center_url and chip_label != 'workflow center' and chip_label != 'workflow' and chip_label != 'customize layout' and chip_label != 'command center' and chip_label != 'use workflow default' %}
             <a class="backend-v2-chip" href="{{ chip.url }}">
               <i class="bi {{ chip.icon }}"></i>
               <span>{{ chip.label }}</span>
             </a>
             {% endif %}
+            {% endwith %}
             {% endfor %}
           </div>
           <div class="backend-v2-action-grid">
