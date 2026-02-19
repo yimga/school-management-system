@@ -154,7 +154,7 @@
           <div class="backend-v2-chip-row">
             {% url 'accounts:workflow_center' as workflow_center_url %}
             {% for chip in action_chips %}
-            {% if chip.url != workflow_center_url %}
+            {% if chip.url != workflow_center_url and chip.label != 'Workflow Center' and chip.label != 'Workflow' and chip.label != 'Customize layout' %}
             <a class="backend-v2-chip" href="{{ chip.url }}">
               <i class="bi {{ chip.icon }}"></i>
               <span>{{ chip.label }}</span>

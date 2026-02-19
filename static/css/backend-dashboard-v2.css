@@ -1123,3 +1123,59 @@ body[data-dashboard-page="backend"] .backend-v2-workspace {
 body[data-dashboard-page="backend"] .backend-v2-main-grid {
   gap: var(--dash-gap);
 }
+
+/* Final polish: compact without cramping, keep key cards visible above fold */
+body[data-dashboard-page="backend"] .backend-v2-welcome-controls > .btn,
+body[data-dashboard-page="backend"] .backend-v2-welcome-controls .dropdown > .btn {
+  min-height: 38px;
+  border-radius: 999px;
+  padding: var(--dash-pad-chip-lg);
+  font-weight: 700;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-card-scroll {
+  max-height: min(220px, 38vh);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] .dashboard-card-scroll {
+  max-height: min(230px, 40vh);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] .dashboard-card-scroll,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] .dashboard-card-scroll {
+  max-height: min(210px, 35vh);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] .dashboard-chart-wrapper,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] .dashboard-chart-wrapper {
+  min-height: 120px;
+  max-height: 180px;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] .dashboard-chart-card,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] .dashboard-chart-card {
+  min-height: 148px;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-list-item {
+  padding: var(--dash-gap-md) var(--dash-gap);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list {
+  max-height: 230px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list {
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-upcoming-events"] .backend-quick-links-list,
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-next-steps"] .backend-next-steps-list {
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
