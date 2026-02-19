@@ -136,8 +136,6 @@ body[data-dashboard-page="backend"] .backend-v2-cta {
   border-radius: 999px;
   padding: var(--dash-pad-chip-lg);
   font-weight: 700;
-  border: 1px solid var(--admin-border, #cbd5e1);
-  background: rgba(59, 130, 246, 0.08);
   border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 28%, var(--admin-border, #cbd5e1) 72%);
   color: var(--admin-text, #0f172a);
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 8%, var(--admin-surface, #fff) 92%);
@@ -213,8 +211,6 @@ body[data-dashboard-page="backend"] .backend-v2-kpi.is-danger .backend-v2-kpi-va
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric {
-  border: 1px solid var(--admin-border, #cbd5e1);
-  background: rgba(59, 130, 246, 0.06);
   border: 1px solid color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 20%, var(--admin-border, #cbd5e1) 80%);
   border-radius: 10px;
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 6%, var(--admin-surface, #fff) 94%);
@@ -393,7 +389,6 @@ body[data-dashboard-page="backend"] .backend-v2-mini {
   border: 1px solid var(--admin-border, #cbd5e1);
   border-radius: 10px;
   padding: var(--dash-pad-mini);
-  background: rgba(59, 130, 246, 0.05);
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 5%, var(--admin-surface, #fff) 95%);
   min-width: 0;
 }
@@ -432,7 +427,6 @@ body[data-dashboard-page="backend"] .backend-ops-item {
   border: 1px solid var(--admin-border, #cbd5e1);
   border-radius: 10px;
   padding: var(--dash-pad-list);
-  background: rgba(59, 130, 246, 0.04);
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 4%, var(--admin-surface, #fff) 96%);
 }
 
@@ -503,7 +497,6 @@ body[data-dashboard-page="backend"] .backend-quick-link {
   border-radius: 10px;
   min-width: 0;
   padding: var(--dash-pad-tight);
-  background: rgba(59, 130, 246, 0.04);
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 4%, var(--admin-surface, #fff) 96%);
   color: var(--admin-text, #0f172a);
   text-decoration: none;
@@ -581,7 +574,6 @@ body[data-dashboard-page="backend"] .backend-cmd-item {
   padding: var(--dash-gap) var(--dash-block-spacing);
   text-decoration: none;
   color: var(--admin-text, #0f172a);
-  background: rgba(59, 130, 246, 0.04);
   background: color-mix(in srgb, var(--brand-primary, var(--dashboard-theme-primary, #0d6efd)) 4%, var(--admin-surface, #fff) 96%);
 }
 
@@ -913,20 +905,6 @@ body[data-dashboard-page="backend"] .backend-v2-rail .card.mb-3 {
   margin-bottom: 0 !important;
 }
 
-body[data-dashboard-page="backend"] .backend-next-steps-rail .card-body {
-  padding-top: var(--dash-gap-2xl);
-  padding-bottom: var(--dash-gap-2xl);
-}
-
-body[data-dashboard-page="backend"] .backend-next-steps-list {
-  display: grid;
-  gap: var(--dash-gap);
-}
-
-body[data-dashboard-page="backend"] .backend-next-steps-rail .backend-quick-link {
-  padding: var(--dash-pad-tight);
-}
-
 body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-card {
   margin: 0;
   border: 1px solid var(--admin-border, #cbd5e1);
@@ -1173,8 +1151,7 @@ body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-qu
   padding-right: 2px;
 }
 
-body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-upcoming-events"] .backend-quick-links-list,
-body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-next-steps"] .backend-next-steps-list {
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
   max-height: 180px;
   overflow-y: auto;
   padding-right: 2px;
@@ -1224,8 +1201,7 @@ body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-ne
     max-height: 200px;
   }
 
-  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-upcoming-events"] .backend-quick-links-list,
-  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-next-steps"] .backend-next-steps-list {
+  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
     max-height: 150px;
   }
 }
@@ -1359,8 +1335,7 @@ body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list {
 body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list {
   max-height: 212px;
 }
-body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-upcoming-events"] .backend-quick-links-list,
-body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-next-steps"] .backend-next-steps-list {
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
   max-height: 150px;
 }
 

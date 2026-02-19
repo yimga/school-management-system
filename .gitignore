@@ -35,6 +35,10 @@ nul
 
 # Local release artifacts
 .tmp/
+tmp/
+
+# Local ad-hoc dev utilities
+scripts/dev/capture_backend_screenshot.py
 
 # Frontend build artifacts
 node_modules/
