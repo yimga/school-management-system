@@ -7,7 +7,7 @@ services:
     plan: free
     buildCommand: "./build.sh"
     preDeployCommand: "./scripts/release/render_predeploy.sh"
-    startCommand: ".venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "bash ./scripts/release/render_start_web.sh"
     healthCheckPath: /health/
     envVars:
       - key: DATABASE_URL
