@@ -11,9 +11,9 @@
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-premium-compact.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-command-center-fixes.css' %}">
-<link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-tokens.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-extras.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
   (function () {
@@ -750,9 +750,20 @@
   <script>
   (function(){
     var ids = ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'];
+    function ensurePlacement(root) {
+      var grid = root ? root.querySelector('.backend-v2-main-grid') : null;
+      if (!grid) return;
+      ids.forEach(function(id) {
+        var el = root.querySelector('[data-widget-id="' + id + '"]');
+        if (el && el.parentElement !== grid) {
+          grid.appendChild(el);
+        }
+      });
+    }
     function ensureVisible() {
       var root = document.getElementById('dashboard-layout');
       if (!root) return;
+      ensurePlacement(root);
       ids.forEach(function(id) {
         var el = root.querySelector('[data-widget-id="' + id + '"]');
         if (el && (el.classList.contains('dash-widget-hidden') || el.style.display === 'none')) {

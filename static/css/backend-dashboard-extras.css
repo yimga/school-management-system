@@ -416,36 +416,36 @@
   padding: 1.1rem;
 }
 /* Backend: full width, no spill outside tiles */
-#dashboard-layout {
+#dashboard-layout:not(.backend-v2-workbench) {
   display: block;
   width: 100%;
   max-width: 100%;
   min-height: 200px;
   overflow: visible;
 }
-#dashboard-layout .card {
+#dashboard-layout:not(.backend-v2-workbench) .card {
   max-width: 100%;
   overflow: hidden;
 }
-#dashboard-layout .card-body {
+#dashboard-layout:not(.backend-v2-workbench) .card-body {
   overflow: hidden;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 /* Tight row gaps - no wasted space */
-#dashboard-layout .row.g-3 {
+#dashboard-layout:not(.backend-v2-workbench) .row.g-3 {
   --bs-gutter-x: 0.6rem;
   --bs-gutter-y: 0.6rem;
 }
-#dashboard-layout .row.mb-4 {
+#dashboard-layout:not(.backend-v2-workbench) .row.mb-4 {
   margin-bottom: 0.75rem !important;
 }
 /* Preserve Bootstrap row/col grid for cards */
-#dashboard-layout .row {
+#dashboard-layout:not(.backend-v2-workbench) .row {
   display: flex;
   flex-wrap: wrap;
 }
-#dashboard-layout .row > [class*="col-"] {
+#dashboard-layout:not(.backend-v2-workbench) .row > [class*="col-"] {
   display: block;
 }
 /* Quick Actions: compact, between sidebars, 1in below workflow row */

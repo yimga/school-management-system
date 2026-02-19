@@ -684,32 +684,61 @@ body[data-dashboard-page="backend"] .backend-cmd-empty {
   }
 }
 
-/* Streamlined workspace: 3 rows so row 3 (Rec Act, Top Perf, Attend) aligns with rail Suggested next */
+/* Streamlined workspace: deterministic placement (no subgrid dependency) */
 body[data-dashboard-page="backend"] .backend-v2-workspace {
   display: grid;
   grid-template-columns: minmax(0, 2.1fr) minmax(320px, 1fr);
-  grid-template-rows: auto auto 1fr;
   gap: var(--dash-gap);
-  align-items: stretch;
+  align-items: start;
   margin-top: var(--dash-block-spacing);
-  min-height: 420px;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-workbench {
   min-width: 0;
-  grid-row: 1 / -1;
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-template-columns: 1fr;
+  display: block;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: subgrid;
-  grid-row: 1 / -1;
+  grid-template-rows: repeat(3, minmax(0, auto));
   gap: var(--dash-gap);
   align-items: stretch;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] {
+  grid-column: 1 / span 2;
+  grid-row: 1;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"] {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+  grid-column: 3;
+  grid-row: 3;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-span-2 {
@@ -874,25 +903,10 @@ body[data-dashboard-page="backend"] .backend-attendance-pulse-meta {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-rail {
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-row: 1 / -1;
+  display: flex;
+  flex-direction: column;
   gap: var(--dash-gap);
   min-width: 0;
-  align-content: start;
-}
-
-body[data-dashboard-page="backend"] .backend-v2-rail > .backend-ops-watch-card {
-  grid-row: 1;
-}
-body[data-dashboard-page="backend"] .backend-v2-rail > .card:not(.backend-ops-watch-card):not(.backend-next-steps-rail),
-body[data-dashboard-page="backend"] .backend-v2-rail > article.card:not(.backend-next-steps-rail) {
-  grid-row: 2;
-}
-body[data-dashboard-page="backend"] .backend-v2-rail > .backend-next-steps-rail {
-  grid-row: 3;
-  min-height: 0;
-  align-self: stretch;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-rail .card.mb-3 {
@@ -996,33 +1010,36 @@ body[data-dashboard-page="backend"] .backend-dashboard-content .badge.text-bg-li
 @media (max-width: 1200px) {
   body[data-dashboard-page="backend"] .backend-v2-workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: unset;
-    min-height: 0;
-  }
-
-  body[data-dashboard-page="backend"] .backend-v2-workbench {
-    grid-template-rows: unset;
-    grid-row: unset;
   }
 
   body[data-dashboard-page="backend"] .backend-v2-main-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: unset;
-    grid-row: unset;
+    grid-template-rows: repeat(5, minmax(0, auto));
   }
 
-  body[data-dashboard-page="backend"] .backend-v2-rail {
-    grid-template-rows: unset;
-    grid-row: unset;
-    align-content: unset;
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] {
+    grid-column: 1 / span 2;
   }
 
-  body[data-dashboard-page="backend"] .backend-v2-rail > .backend-ops-watch-card,
-  body[data-dashboard-page="backend"] .backend-v2-rail > .card:not(.backend-ops-watch-card):not(.backend-next-steps-rail),
-  body[data-dashboard-page="backend"] .backend-v2-rail > article.card:not(.backend-next-steps-rail),
-  body[data-dashboard-page="backend"] .backend-v2-rail > .backend-next-steps-rail {
-    grid-row: unset;
-    align-self: unset;
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] {
+    grid-column: 1 / span 2;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] {
+    grid-column: 2;
+    grid-row: auto;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+    grid-column: 1 / span 2;
+    grid-row: auto;
   }
 
   body[data-dashboard-page="backend"] .backend-v2-span-2 {
@@ -1033,10 +1050,22 @@ body[data-dashboard-page="backend"] .backend-dashboard-content .badge.text-bg-li
 @media (max-width: 760px) {
   body[data-dashboard-page="backend"] .backend-v2-main-grid {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
 
   body[data-dashboard-page="backend"] .backend-v2-span-2 {
     grid-column: span 1;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-span-2 .dashboard-chart-card {
