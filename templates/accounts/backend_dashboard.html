@@ -430,56 +430,49 @@
         </div>
       </div>
 
-      <div class="card mb-3 backend-quick-links-card {% if not upcoming_events %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-upcoming-events">
+      <div class="card mb-3 backend-quick-links-card backend-v2-planner-card {% if not upcoming_events and not recommended_next_steps %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-planner">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0">Upcoming events</h6>
+            <h6 class="mb-0">Planner</h6>
             <a class="badge bg-light text-dark text-decoration-none" href="{% url 'portal:unified_calendar' %}">View calendar</a>
           </div>
-          <div class="backend-quick-links-list">
-            {% for item in upcoming_events %}
-            <div class="backend-quick-link d-flex align-items-start gap-2 small py-1">
-              <span class="badge bg-secondary text-white flex-shrink-0" style="font-size: 0.65rem;">{{ item.when|format_date }}</span>
-              <div class="min-width-0">
-                <span class="fw-medium">{{ item.title|truncatechars:36 }}</span>
-                {% if item.detail %}<div class="text-muted" style="font-size: 0.7rem;">{{ item.detail|truncatechars:32 }}</div>{% endif %}
+          <div class="backend-planner-sections">
+            <section class="backend-planner-section">
+              <div class="backend-planner-section-head">
+                <span class="small fw-semibold text-muted">Upcoming events</span>
               </div>
-            </div>
-            {% empty %}
-            <p class="small text-muted mb-1">No upcoming events.</p>
-            <a class="backend-empty-quick-action" href="{% url 'portal:unified_calendar' %}"><i class="bi bi-calendar3 me-1"></i>View calendar</a>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-
-      {% if finance_requests_count %}
-      <article class="card backend-v2-panel mb-3" data-widget-id="backend-finance-alerts">
-        <div class="card-body">
-          <div class="backend-v2-panel-head">
-            <h6 class="backend-v2-panel-title mb-0">Finance Requests</h6>
-            <span class="badge text-bg-warning">{{ finance_requests_count }}</span>
-          </div>
-          <div class="small text-muted mb-2">Pending parent finance access requests.</div>
-          <a class="btn btn-sm btn-outline-primary w-100" href="{{ finance_request_link }}">Review requests</a>
-        </div>
-      </article>
-      {% endif %}
-
-      {% if recommended_next_steps %}
-      <div class="card backend-next-steps-rail" data-widget-id="backend-next-steps">
-        <div class="card-body py-2">
-          <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-lightning-charge-fill text-warning small"></i>
-            <h6 class="mb-0 small fw-semibold">Suggested next</h6>
-          </div>
-          <div class="backend-next-steps-list">
-            {% for step in recommended_next_steps %}
-            <a href="{{ step.url }}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small">
-              <span>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</span>
-              <i class="bi bi-chevron-right ms-auto"></i>
-            </a>
-            {% endfor %}
+              <div class="backend-planner-list backend-planner-events">
+                {% for item in upcoming_events|slice:":3" %}
+                <div class="backend-quick-link d-flex align-items-start gap-2 small py-1">
+                  <span class="badge bg-secondary text-white flex-shrink-0" style="font-size: 0.65rem;">{{ item.when|format_date }}</span>
+                  <div class="min-width-0">
+                    <span class="fw-medium">{{ item.title|truncatechars:32 }}</span>
+                    {% if item.detail %}<div class="text-muted" style="font-size: 0.7rem;">{{ item.detail|truncatechars:28 }}</div>{% endif %}
+                  </div>
+                </div>
+                {% empty %}
+                <p class="small text-muted mb-1">No upcoming events.</p>
+                {% endfor %}
+              </div>
+            </section>
+            <section class="backend-planner-section">
+              <div class="backend-planner-section-head d-flex align-items-center justify-content-between">
+                <span class="small fw-semibold text-muted">Suggested next</span>
+                {% if finance_requests_count %}
+                <a class="badge text-bg-warning text-decoration-none" href="{{ finance_request_link }}">Finance {{ finance_requests_count }}</a>
+                {% endif %}
+              </div>
+              <div class="backend-planner-list backend-planner-next">
+                {% for step in recommended_next_steps|slice:":3" %}
+                <a href="{{ step.url }}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small">
+                  <span>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</span>
+                  <i class="bi bi-chevron-right ms-auto"></i>
+                </a>
+                {% empty %}
+                <p class="small text-muted mb-1">No pending workflow actions.</p>
+                {% endfor %}
+              </div>
+            </section>
             <a href="{% url 'accounts:workflow_center' %}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small text-muted">
               <span>View all workflow steps</span>
               <i class="bi bi-arrow-right ms-auto"></i>
@@ -487,7 +480,6 @@
           </div>
         </div>
       </div>
-      {% endif %}
     </aside>
   </div>
   {{ command_palette|json_script:"backend-command-palette-data" }}

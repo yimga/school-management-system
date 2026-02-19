@@ -40,6 +40,66 @@
     return getComputedStyle(document.body).getPropertyValue(name).trim() || null;
   }
 
+  function clamp01(value) {
+    const n = Number(value);
+    if (Number.isNaN(n)) return 1;
+    return Math.max(0, Math.min(1, n));
+  }
+
+  function parseColorToRgb(color) {
+    if (!color) return null;
+    const v = String(color).trim();
+    const hex = v.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (hex) {
+      const raw = hex[1];
+      if (raw.length === 3) {
+        return {
+          r: parseInt(raw[0] + raw[0], 16),
+          g: parseInt(raw[1] + raw[1], 16),
+          b: parseInt(raw[2] + raw[2], 16),
+        };
+      }
+      return {
+        r: parseInt(raw.slice(0, 2), 16),
+        g: parseInt(raw.slice(2, 4), 16),
+        b: parseInt(raw.slice(4, 6), 16),
+      };
+    }
+    const rgb = v.match(/^rgba?\(\s*([0-9.]+)\s*[, ]\s*([0-9.]+)\s*[, ]\s*([0-9.]+)/i);
+    if (rgb) {
+      return {
+        r: Math.round(parseFloat(rgb[1])),
+        g: Math.round(parseFloat(rgb[2])),
+        b: Math.round(parseFloat(rgb[3])),
+      };
+    }
+    return null;
+  }
+
+  function colorWithAlpha(color, alpha) {
+    const rgb = parseColorToRgb(color);
+    if (!rgb) return color;
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${clamp01(alpha)})`;
+  }
+
+  function createVerticalGradient(ctx, fromColor, toColor) {
+    if (!ctx || !ctx.canvas) return fromColor;
+    const g = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height || 220);
+    g.addColorStop(0, fromColor);
+    g.addColorStop(1, toColor);
+    return g;
+  }
+
+  function buildThemePalette() {
+    const primary = getComputedVar('--dashboard-theme-primary') || getComputedVar('--brand-primary') || '#3b82f6';
+    const accent = getComputedVar('--dashboard-theme-accent') || getComputedVar('--brand-accent') || '#22c55e';
+    const success = getComputedVar('--brand-success') || '#16a34a';
+    const warning = getComputedVar('--brand-warning') || '#f59e0b';
+    const danger = getComputedVar('--brand-danger') || '#ef4444';
+    const info = getComputedVar('--chart-color-6') || '#06b6d4';
+    return [primary, accent, success, warning, danger, info];
+  }
+
   /** When on backend, returns array of --chart-color-1..6 from CSS; otherwise null. */
   function getBackendChartPalette() {
     if (!isBackendPage()) return null;
@@ -48,7 +108,8 @@
       const v = getComputedVar('--chart-color-' + i);
       if (v) out.push(v);
     }
-    return out.length >= 3 ? out : null;
+    if (out.length >= 3) return out;
+    return buildThemePalette();
   }
 
   /** When on backend, returns Chart.js options for scales and legend (grid/tick/legend color from theme). */
@@ -79,13 +140,42 @@
     };
   }
 
-  function applyPaletteToDatasets(data, palette) {
+  function applyPaletteToDatasets(data, palette, chartType, ctx) {
     if (!data || !data.datasets || !Array.isArray(palette) || palette.length === 0) return data;
+    const normalizedType = String(chartType || '').toLowerCase();
     const datasets = data.datasets.map(function (ds, i) {
       const c = palette[i % palette.length];
       const out = { ...ds };
-      if (out.backgroundColor === undefined) out.backgroundColor = c;
-      if (out.borderColor === undefined) out.borderColor = c;
+      if (normalizedType === 'line') {
+        if (out.borderColor === undefined) out.borderColor = colorWithAlpha(c, 0.95);
+        if (out.backgroundColor === undefined) {
+          out.backgroundColor = createVerticalGradient(
+            ctx,
+            colorWithAlpha(c, 0.3),
+            colorWithAlpha(c, 0.03)
+          );
+        }
+        if (out.fill === undefined) out.fill = true;
+        if (out.tension === undefined) out.tension = 0.35;
+        if (out.pointRadius === undefined) out.pointRadius = 2;
+        if (out.pointHoverRadius === undefined) out.pointHoverRadius = 4;
+      } else if (normalizedType === 'bar') {
+        if (out.backgroundColor === undefined) out.backgroundColor = colorWithAlpha(c, 0.78);
+        if (out.borderColor === undefined) out.borderColor = colorWithAlpha(c, 0.95);
+        if (out.borderWidth === undefined) out.borderWidth = 1;
+        if (out.borderRadius === undefined) out.borderRadius = 6;
+      } else if (normalizedType === 'pie' || normalizedType === 'doughnut' || normalizedType === 'polararea') {
+        if (out.backgroundColor === undefined) {
+          out.backgroundColor = palette.map(function (pc) { return colorWithAlpha(pc, 0.9); });
+        }
+        if (out.borderColor === undefined) {
+          out.borderColor = palette.map(function (pc) { return colorWithAlpha(pc, 1); });
+        }
+        if (out.borderWidth === undefined) out.borderWidth = 1;
+      } else {
+        if (out.backgroundColor === undefined) out.backgroundColor = c;
+        if (out.borderColor === undefined) out.borderColor = c;
+      }
       return out;
     });
     return { ...data, datasets };
@@ -190,7 +280,7 @@
     if (isBackendPage() && chartData) {
       const palette = getBackendChartPalette();
       if (palette && palette.length) {
-        chartData = applyPaletteToDatasets(chartData, palette);
+        chartData = applyPaletteToDatasets(chartData, palette, config.type, ctx);
       }
     }
 
