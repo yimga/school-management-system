@@ -22,7 +22,7 @@
               </div>
               <span class="text-muted">Profile {{ profile_completion.percent }}% complete</span>
             </div>
-            <a class="text-decoration-none small" href="{% url 'accounts:profile_edit' %}">Add {{ profile_completion.missing|join:", " }} →</a>
+            <a class="text-decoration-none small" href="{% url 'accounts:profile_edit' %}">Add {{ profile_completion.missing|join:", " }} -></a>
           </div>
         {% endif %}
       </div>
@@ -149,12 +149,12 @@
                         {% if node.photo_url %}
                         <img src="{{ node.photo_url }}" alt="" class="org-chart-photo" loading="lazy">
                         {% else %}
-                        <div class="org-chart-photo-placeholder" aria-hidden="true"><span class="org-chart-photo-placeholder-inner"></span></div>
+                        <div class="org-chart-photo-placeholder" aria-hidden="true"><span class="org-chart-photo-placeholder-inner">{{ node.initials }}</span></div>
                         {% endif %}
                       </div>
                       <div class="card-body p-2 text-center">
                         <div class="org-chart-name fw-semibold text-truncate small">{% if node.is_self %}You{% else %}{{ node.name }}{% endif %}</div>
-                        <div class="org-chart-title text-muted text-truncate small">{{ node.title }}{% if node.department %} · {{ node.department }}{% endif %}</div>
+                        <div class="org-chart-title text-muted text-truncate small">{{ node.title }}{% if node.department %} - {{ node.department }}{% endif %}</div>
                       </div>
                     </div>
                     {% endfor %}
@@ -177,7 +177,7 @@
               {% endif %}
               {% if request.user.role == 'TEACHER' and teacher_org_tree and not teacher_org_tree.diagram_levels %}
               <ul class="list-unstyled mb-0 small">
-                <li><span class="text-muted">Department:</span> {{ teacher_org_tree.department.name|default:"—" }}</li>
+                <li><span class="text-muted">Department:</span> {{ teacher_org_tree.department.name|default:"-" }}</li>
                 <li><span class="text-muted">Position:</span> {{ teacher_org_tree.position_title }}</li>
                 {% if teacher_org_tree.reports_to %}
                   <li><span class="text-muted">Reports to:</span> {{ teacher_org_tree.reports_to.user.get_full_name|default:teacher_org_tree.reports_to.user.username }}</li>
@@ -192,7 +192,7 @@
                       {% for item in teacher_org_tree.assignments %}
                         <li class="mb-1">
                           <strong>{{ item.classroom }}</strong>
-                          <span class="text-muted">—</span>
+                          <span class="text-muted">-</span>
                           {{ item.subjects|join:", " }}
                         </li>
                       {% endfor %}
@@ -208,9 +208,9 @@
                   <ul class="list-unstyled mt-1 mb-0 small">
                     {% for s in approved_syllabi %}
                       <li class="mb-1">
-                        {{ s.subject_assignment.classroom.name|default:"—" }}
-                        <span class="text-muted">—</span>
-                        {{ s.subject_assignment.subject.name|default:"—" }}
+                        {{ s.subject_assignment.classroom.name|default:"-" }}
+                        <span class="text-muted">-</span>
+                        {{ s.subject_assignment.subject.name|default:"-" }}
                         {% if s.subject_assignment.specialty %}<span class="text-muted">({{ s.subject_assignment.specialty.name }})</span>{% endif %}
                         <a href="{% url 'academics:syllabus_preview' s.subject_assignment_id %}" class="ms-1">View</a>
                       </li>

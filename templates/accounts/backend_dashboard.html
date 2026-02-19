@@ -27,7 +27,7 @@
   })();
 </script>
   <style>
-  {# ThemePack (admin_theme_pack) colors – single source for dashboard so it uses the active theme #}
+  {# ThemePack (admin_theme_pack) colors - single source for dashboard so it uses the active theme #}
   {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
   :root {
     --brand-primary: var(--school-primary, {{ theme.primary_color|default:"#0d6efd" }});
@@ -66,7 +66,7 @@
   <script>
     document.addEventListener('htmx:responseError', function(ev) {
       if (ev.detail && ev.detail.target && ev.detail.target.id === 'backend-status-fragment') {
-        ev.detail.target.innerHTML = '<span class="text-muted small">—</span>';
+        ev.detail.target.innerHTML = '<span class="text-muted small">-</span>';
       }
     });
   </script>
@@ -256,7 +256,7 @@
               <div class="backend-v2-list-item">
                 <div>
                   <strong>{{ student.name }}</strong>
-                  <div class="small text-muted">{{ student.classroom }} · {{ student.tag }}</div>
+                  <div class="small text-muted">{{ student.classroom }} - {{ student.tag }}</div>
                 </div>
                 <span class="badge text-bg-warning">{{ student.value }}</span>
               </div>
@@ -317,7 +317,7 @@
               <div class="backend-v2-list-item">
                 <div>
                   <strong>{{ activity.object|truncatechars:40 }}</strong>
-                  <div class="small text-muted">{{ activity.user.get_full_name|default:activity.user.username }} · {{ activity.action }}</div>
+                  <div class="small text-muted">{{ activity.user.get_full_name|default:activity.user.username }} - {{ activity.action }}</div>
                 </div>
                 <span class="small text-muted">{{ activity.time_ago }} ago</span>
               </div>

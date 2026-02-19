@@ -34,7 +34,7 @@ def _status_from_value(value: int, warn_at: int, danger_at: int) -> str:
     return "ok"
 
 
-# Heavy KPI snapshot cache TTL (seconds). Plan: 60–120s.
+# Heavy KPI snapshot cache TTL (seconds). Plan: 60-120s.
 DASHBOARD_SNAPSHOT_CACHE_TTL = 120
 
 # Data capping for dashboard charts (see docs/DASHBOARD_DATA_CAPPING_POLICY.md)
@@ -528,4 +528,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "ops_watch_last_updated": now.isoformat(),
         "ops_watch_refresh_url": _safe_reverse("accounts:backend_ops_watch_data", ""),
         "upcoming_events": upcoming_events,
+        # Backward-compatible aliases used by older templates/tests.
+        "sidebar_quick_access": quick_links,
+        "empty_panel_quick_actions": quick_links[:3],
     }

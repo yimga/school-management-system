@@ -1,7 +1,7 @@
 /**
- * Org chart – profile & teacher dashboard only.
+ * Org chart - profile and teacher dashboard only.
  * All selectors are namespaced (.org-chart-*) so dashboard layout and other UI are unchanged.
- * ID-style cards: photo on top (or empty placeholder), name + title below.
+ * ID-style cards: photo on top (or placeholder), name and title below.
  */
 .org-chart-tree {
   --org-card-width: 120px;
@@ -30,7 +30,7 @@
   border-color: var(--bs-primary, #0d6efd);
 }
 
-/* Photo area: full width, fixed height – like ID card photo spot */
+/* Photo area: full width, fixed height similar to ID card photo spot. */
 .org-chart-photo-wrap {
   width: 100%;
   height: var(--org-photo-size);
@@ -46,15 +46,28 @@
   object-fit: cover;
   display: block;
 }
-/* Empty placeholder when no profile image – blank space like ID photo slot */
+/* Empty placeholder when no profile image. */
 .org-chart-photo-placeholder {
   width: 100%;
   height: 100%;
   background: #e9ecef;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .org-chart-photo-placeholder-inner {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  background: #f8fafc;
+  border: 1px solid rgba(51, 65, 85, 0.2);
 }
 .org-chart-name {
   margin-bottom: 2px;
