@@ -1,8 +1,11 @@
 from django.contrib import admin
+
+from config.admin import admin_site
+
 from .models import School, SchoolMembership
 
 
-@admin.register(School)
+@admin.register(School, site=admin_site)
 class SchoolAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "subdomain", "sub_system", "is_active", "created_at")
     list_filter = ("sub_system", "is_active")
@@ -11,7 +14,7 @@ class SchoolAdmin(admin.ModelAdmin):
     prepopulated_fields = {"subdomain": ["slug"]}
 
 
-@admin.register(SchoolMembership)
+@admin.register(SchoolMembership, site=admin_site)
 class SchoolMembershipAdmin(admin.ModelAdmin):
     list_display = ("user", "school", "role", "is_primary", "created_at")
     list_filter = ("role", "school")
