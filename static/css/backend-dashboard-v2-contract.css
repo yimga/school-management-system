@@ -1,0 +1,524 @@
+/* ------------------------------------------------------------------
+   Backend v2 canonical runtime contract
+   - one deterministic layout contract for desktop/tablet/mobile
+   - no card spill/overlap; lists scroll inside cards
+   - themepack-driven visual accents with accessible contrast
+------------------------------------------------------------------- */
+
+/* Backend-only widget controls visibility */
+body[data-dashboard-page="backend"] #dashboard-layout:not(.drag-mode) .dash-widget-controls,
+body[data-dashboard-page="backend"] #dashboard-layout:not(.drag-mode) .dashboard-widget-grip {
+  display: none !important;
+}
+
+body[data-dashboard-page="backend"] #dashboard-layout.drag-mode .dash-widget-controls {
+  display: block !important;
+}
+
+/* Typography + spacing tokens */
+body[data-dashboard-page="backend"] {
+  --backend-font-heading: var(--school-font, "Inter", system-ui, -apple-system, sans-serif);
+  --backend-font-body: var(--school-font, "Inter", system-ui, -apple-system, sans-serif);
+  --backend-heading-weight: 800;
+  --backend-title-size: 1.56rem;
+  --backend-card-title-size: 1.02rem;
+  --backend-data-size: 1.72rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-overview-head h2,
+body[data-dashboard-page="backend"] .backend-v2-welcome-title,
+body[data-dashboard-page="backend"] .backend-v2-side-title {
+  font-family: var(--backend-font-heading);
+  font-weight: var(--backend-heading-weight);
+  letter-spacing: 0.01em;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-overview-head h2 {
+  font-size: var(--backend-title-size);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-panel-title,
+body[data-dashboard-page="backend"] .dashboard-chart-header .card-title {
+  font-family: var(--backend-font-heading);
+  font-size: var(--backend-card-title-size);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-metric-value,
+body[data-dashboard-page="backend"] .backend-v2-kpi-value,
+body[data-dashboard-page="backend"] .backend-attendance-pulse-value {
+  font-family: var(--backend-font-heading);
+  font-size: var(--backend-data-size);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-overview-sub,
+body[data-dashboard-page="backend"] .backend-v2-welcome-sub,
+body[data-dashboard-page="backend"] .backend-v2-kpi-meta,
+body[data-dashboard-page="backend"] .backend-v2-metric-meta,
+body[data-dashboard-page="backend"] .backend-v2-list-item .small {
+  font-family: var(--backend-font-body);
+}
+
+/* Unified workspace/grid contract */
+body[data-dashboard-page="backend"] .backend-v2-workspace {
+  margin-top: var(--dash-gap);
+  display: grid;
+  grid-template-columns: minmax(0, 2.08fr) minmax(320px, 0.92fr);
+  gap: var(--dash-gap);
+  align-items: start;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-workbench {
+  min-width: 0;
+  overflow: hidden;
+}
+
+body[data-dashboard-page="backend"] #dashboard-layout.drag-mode.backend-v2-workbench {
+  overflow: visible;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--dash-gap);
+  align-items: stretch;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id] {
+  min-width: 0;
+}
+
+/* Deterministic widget placement */
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] {
+  grid-column: 1 / span 2;
+  grid-row: 1;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"] {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+  grid-column: 3;
+  grid-row: 3;
+}
+
+/* Card internals: prevent overflow and keep equalized heights */
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id],
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id] .dashboard-chart-card,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id].backend-v2-panel,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id] .dashboard-chart-card .card-body,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id].backend-v2-panel .card-body,
+body[data-dashboard-page="backend"] .backend-v2-rail > .card,
+body[data-dashboard-page="backend"] .backend-v2-rail > .card > .card-body {
+  min-height: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-card,
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel,
+body[data-dashboard-page="backend"] .backend-v2-rail-card {
+  position: relative;
+  overflow: hidden;
+  border-width: 1px;
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--admin-border, #cbd5e1) 82%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 18%);
+  background:
+    linear-gradient(
+      148deg,
+      color-mix(in srgb, var(--admin-surface, #fff) 92%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 8%),
+      color-mix(in srgb, var(--admin-surface, #fff) 96%, var(--dashboard-theme-accent, var(--brand-accent, #22c55e)) 4%)
+    );
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-card::after,
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel::after,
+body[data-dashboard-page="backend"] .backend-v2-rail-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(
+      320px 120px at 108% -24%,
+      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 12%, transparent),
+      transparent 66%
+    );
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-card > *,
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel > *,
+body[data-dashboard-page="backend"] .backend-v2-rail-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-card .card-body,
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel .card-body {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-header,
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-head {
+  margin-bottom: 0.55rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-wrapper {
+  min-width: 0;
+  min-height: 92px;
+  overflow: hidden;
+  position: relative;
+  flex: 1 1 auto;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-wrapper canvas {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  height: 100% !important;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-card-scroll,
+body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] .dashboard-card-scroll,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] .dashboard-card-scroll,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] .dashboard-card-scroll,
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"] .dashboard-card-scroll {
+  flex: 1 1 auto;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] .backend-attendance-pulse {
+  flex: 1 1 auto;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] .backend-empty-quick-action {
+  margin-top: auto;
+}
+
+/* Deterministic row heights on desktop; rail matches workbench height */
+@media (min-width: 1201px) {
+  body[data-dashboard-page="backend"] {
+    --backend-row-1: clamp(192px, 24vh, 248px);
+    --backend-row-2: clamp(108px, 14vh, 152px);
+    --backend-row-3: clamp(184px, 23vh, 236px);
+    --backend-main-height: calc(var(--backend-row-1) + var(--backend-row-2) + var(--backend-row-3) + (var(--dash-gap) * 2));
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-workbench {
+    height: var(--backend-main-height);
+    min-height: var(--backend-main-height);
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid {
+    height: 100%;
+    min-height: var(--backend-main-height);
+    grid-template-rows: var(--backend-row-1) var(--backend-row-2) var(--backend-row-3);
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] .dashboard-chart-wrapper {
+    min-height: 102px;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] .dashboard-chart-wrapper {
+    min-height: 62px;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+    min-height: var(--backend-row-3);
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail {
+    display: grid;
+    gap: var(--dash-gap);
+    min-height: var(--backend-main-height);
+    height: var(--backend-main-height);
+    grid-template-rows: minmax(0, 1.18fr) minmax(0, 0.98fr) minmax(0, 0.92fr);
+    overflow: hidden;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail > .card {
+    margin-bottom: 0 !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail > .card > .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-sections {
+    min-height: 0;
+    display: grid;
+    gap: var(--dash-gap);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-section {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
+    min-height: 0;
+    max-height: none;
+    flex: 1 1 auto;
+  }
+}
+
+/* Tablet contract */
+@media (max-width: 1200px) {
+  body[data-dashboard-page="backend"] .backend-v2-workspace {
+    grid-template-columns: 1fr;
+    margin-top: var(--dash-gap);
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(140px, auto);
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+    grid-column: 1 / span 2;
+    grid-row: auto;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] {
+    grid-column: 2;
+    grid-row: auto;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-wrapper {
+    min-height: 120px;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-card-scroll,
+  body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
+  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
+  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
+    max-height: 240px;
+  }
+}
+
+/* Mobile stack */
+@media (max-width: 760px) {
+  body[data-dashboard-page="backend"] .backend-v2-main-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id] {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-wrapper {
+    min-height: 138px;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-card-scroll,
+  body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
+  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
+  body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
+    max-height: 280px;
+  }
+}
+
+/* Theme accents by card role */
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] {
+  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, #3b82f6));
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] {
+  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, #14b8a6));
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] {
+  --card-accent: var(--brand-warning, #f59e0b);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"] {
+  --card-accent: var(--brand-danger, #ef4444);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] {
+  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, #3b82f6));
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] {
+  --card-accent: var(--brand-success, #22c55e);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, #14b8a6));
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail-card--ops {
+  --card-accent: var(--brand-danger, #ef4444);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail-card--links {
+  --card-accent: var(--dashboard-theme-primary, var(--brand-primary, #3b82f6));
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail-card--planner {
+  --card-accent: var(--dashboard-theme-accent, var(--brand-accent, #14b8a6));
+}
+
+body[data-dashboard-page="backend"] .backend-v2-metric--tone-1 {
+  --metric-tone: var(--dashboard-theme-primary, var(--brand-primary, #3b82f6));
+}
+
+body[data-dashboard-page="backend"] .backend-v2-metric--tone-2 {
+  --metric-tone: var(--brand-warning, #f59e0b);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-metric--tone-3 {
+  --metric-tone: var(--brand-danger, #ef4444);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-metric,
+body[data-dashboard-page="backend"] .backend-v2-kpi {
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--metric-tone, var(--brand-primary, #3b82f6)) 12%, transparent);
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-header .card-title,
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-header .card-title::before,
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-title::before {
+  content: "";
+  width: 0.48rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))), color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 35%, transparent));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 16%, transparent);
+  flex-shrink: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-ops-item {
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.18s ease;
+}
+
+body[data-dashboard-page="backend"] .backend-ops-item.is-danger {
+  border-color: color-mix(in srgb, var(--brand-danger, #ef4444) 48%, var(--admin-border, #cbd5e1) 52%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-danger, #ef4444) 12%, var(--admin-surface, #fff) 88%), var(--admin-surface, #fff));
+}
+
+body[data-dashboard-page="backend"] .backend-ops-item.is-warn {
+  border-color: color-mix(in srgb, var(--brand-warning, #f59e0b) 48%, var(--admin-border, #cbd5e1) 52%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--brand-warning, #f59e0b) 11%, var(--admin-surface, #fff) 89%), var(--admin-surface, #fff));
+}
+
+body[data-dashboard-page="backend"] .backend-ops-item:hover,
+body[data-dashboard-page="backend"] .backend-quick-link:hover {
+  transform: translateY(-1px);
+}
+
+/* Preset density contracts */
+body.backend-preset-executive[data-dashboard-page="backend"] {
+  --dash-gap: 0.62rem;
+  --dash-block-spacing: 0.68rem;
+  --dash-card-pad: 0.84rem 1.02rem;
+  --backend-title-size: 1.62rem;
+  --backend-card-title-size: 1.04rem;
+  --backend-data-size: 1.78rem;
+}
+
+body.backend-preset-operational[data-dashboard-page="backend"] {
+  --dash-gap: 0.42rem;
+  --dash-block-spacing: 0.48rem;
+  --dash-card-pad: 0.66rem 0.88rem;
+  --backend-title-size: 1.46rem;
+  --backend-card-title-size: 0.96rem;
+  --backend-data-size: 1.56rem;
+}
+
+body.backend-preset-operational[data-dashboard-page="backend"] .backend-v2-action-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+body.backend-preset-analytical[data-dashboard-page="backend"] {
+  --dash-gap: 0.56rem;
+  --dash-block-spacing: 0.6rem;
+  --dash-card-pad: 0.78rem 1rem;
+  --backend-title-size: 1.58rem;
+  --backend-card-title-size: 1.02rem;
+  --backend-data-size: 1.7rem;
+}
+
+body.backend-preset-analytical[data-dashboard-page="backend"] .backend-v2-action-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1200px) {
+  body.backend-preset-operational[data-dashboard-page="backend"] .backend-v2-action-grid,
+  body.backend-preset-analytical[data-dashboard-page="backend"] .backend-v2-action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  body.backend-preset-operational[data-dashboard-page="backend"] .backend-v2-action-grid,
+  body.backend-preset-analytical[data-dashboard-page="backend"] .backend-v2-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+body[data-dashboard-page="backend"] .backend-planner-date-badge {
+  font-size: 0.65rem;
+}
+
+body[data-dashboard-page="backend"] .backend-planner-detail {
+  font-size: 0.7rem;
+}
+
+
+

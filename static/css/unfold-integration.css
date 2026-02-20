@@ -1,0 +1,76 @@
+/* Unfold integration bridge
+   Centralized token-driven styles for overridden Unfold helper templates.
+   Avoids inline styles and keeps admin visuals theme-safe. */
+
+.admin-unfold-sidebar-brand {
+  color: var(--admin-sidebar-text, #0f172a);
+}
+
+.admin-unfold-sidebar-logo-wrap {
+  background: var(--admin-sidebar-logo-bg, rgba(0, 0, 0, 0.12));
+  color: var(--admin-sidebar-logo-fg, inherit);
+  padding: 6px;
+  min-width: 38px;
+  min-height: 38px;
+}
+
+.admin-unfold-sidebar-logo-wrap--large {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.admin-unfold-sidebar-logo-img {
+  object-fit: contain;
+  filter: contrast(1.08) brightness(1.04);
+}
+
+.admin-unfold-sidebar-fallback-icon {
+  font-size: 1.25rem;
+}
+
+.admin-unfold-hidden {
+  display: none !important;
+}
+
+.admin-unfold-sidebar-title {
+  color: var(--admin-sidebar-text, #0f172a);
+}
+
+.admin-unfold-sidebar-subtitle {
+  color: var(--admin-sidebar-text-muted, #64748b);
+}
+
+.admin-unfold-header-shell {
+  background: var(--admin-surface, var(--admin-dashboard-bg, #f8fafc));
+  color: var(--admin-text, #0f172a);
+  border-color: var(--admin-border, #e2e8f0);
+}
+
+.admin-unfold-empty-results {
+  background: var(--admin-surface, var(--admin-dashboard-bg, #f8fafc));
+  border: 1px solid var(--admin-border, #e2e8f0);
+  color: var(--admin-text, #0f172a);
+}
+
+.admin-unfold-empty-results-icon-shell {
+  border-color: var(--admin-border, #e2e8f0);
+}
+
+.admin-unfold-empty-results-icon {
+  color: var(--admin-muted, #64748b);
+}
+
+.admin-unfold-empty-results-title {
+  color: var(--admin-text, #0f172a);
+}
+
+.admin-unfold-empty-results-subtitle {
+  color: var(--admin-muted, #64748b);
+}
+
+.admin-unfold-empty-results-reset {
+  border: 1px solid var(--admin-border, #e2e8f0);
+  color: var(--admin-text, #0f172a);
+}

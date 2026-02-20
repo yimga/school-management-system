@@ -729,7 +729,7 @@
               if (localStorage.getItem('dashboard-customize-hint-seen') !== '1') {
                 var hint = document.createElement('div');
                 hint.className = 'alert alert-light border small mt-2';
-                hint.innerHTML = 'Drag cards by the grip handle to reorder. Use ▲▼ on mobile. <button type="button" class="btn-close btn-sm float-end" aria-label="Dismiss"></button>';
+                hint.innerHTML = 'Drag cards by the grip handle to reorder. Use move up/down controls on mobile. <button type="button" class="btn-close btn-sm float-end" aria-label="Dismiss"></button>';
                 hint.querySelector('.btn-close').addEventListener('click', function () {
                   try { localStorage.setItem('dashboard-customize-hint-seen', '1'); } catch (e) {}
                   hint.remove();
@@ -746,7 +746,8 @@
 
       if (customizeBtnRef) {
         const urlParams = new URLSearchParams(window.location.search);
-        const startActive = urlParams.get('customize') === '1' || (dragToggle && !!dragToggle.checked) || false;
+        const backendPage = page === 'backend';
+        const startActive = urlParams.get('customize') === '1' || (!backendPage && (dragToggle && !!dragToggle.checked)) || false;
         if (startActive) setEditMode(true); else setEditMode(false);
       } else {
         const startEnabled = dragToggle ? !!dragToggle.checked : customDragEnabled;

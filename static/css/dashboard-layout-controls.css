@@ -11,6 +11,19 @@
   overflow: visible;
 }
 
+/* Backend dashboard: contain widget internals to prevent chart/list spill */
+body[data-dashboard-page="backend"] [data-widget-id].dash-widget,
+body[data-dashboard-page="backend"] [data-widget-id],
+body[data-dashboard-page="backend"] [data-widget-id] .card {
+  overflow: hidden;
+}
+
+/* Keep editor menus usable while layout customization is active */
+#dashboard-layout.drag-mode [data-widget-id],
+#dashboard-layout.drag-mode [data-widget-id] .card {
+  overflow: visible;
+}
+
 /* data-dashboard-column is for layout script only - do NOT change display/flex of elements.
    Let Bootstrap row/col handle the grid. */
 
@@ -52,6 +65,11 @@
 [data-widget-id] .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Backend grid uses deterministic row heights; avoid hover lift-induced overlap there. */
+body[data-dashboard-page="backend"] [data-widget-id] .card:hover {
+  transform: none;
 }
 
 
@@ -97,6 +115,7 @@
   top: 0.5rem;
   right: 0.5rem;
   z-index: 5;
+  display: none;
 }
 
 .dash-widget-gear {
@@ -211,7 +230,7 @@ html[data-theme="light"] .dash-widget-row select {
   transform: translateY(-50%);
   width: 1.75rem;
   height: 2rem;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   cursor: grab;
@@ -238,6 +257,9 @@ html[data-theme="light"] .dash-widget-row select {
 }
 #dashboard-layout.drag-mode [data-widget-id] {
   cursor: default;
+}
+#dashboard-layout.drag-mode [data-widget-id] .dash-widget-controls {
+  display: block;
 }
 #dashboard-layout.drag-mode [data-widget-id] .dashboard-widget-grip {
   display: flex;

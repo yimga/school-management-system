@@ -35,6 +35,15 @@
     return document.body.classList.contains('portal-backend-dark') || document.body.classList.contains('portal-backend-light');
   }
 
+  function getBackendPreset() {
+    if (!isBackendPage() || typeof document === 'undefined' || !document.body) return 'executive';
+    const preset = String(document.body.dataset.backendPreset || '').toLowerCase();
+    if (preset === 'operational' || preset === 'analytical' || preset === 'executive') return preset;
+    if (document.body.classList.contains('backend-preset-operational')) return 'operational';
+    if (document.body.classList.contains('backend-preset-analytical')) return 'analytical';
+    return 'executive';
+  }
+
   function getComputedVar(name) {
     if (typeof document === 'undefined' || !document.documentElement) return null;
     return getComputedStyle(document.body).getPropertyValue(name).trim() || null;
@@ -143,9 +152,19 @@
   function applyPaletteToDatasets(data, palette, chartType, ctx) {
     if (!data || !data.datasets || !Array.isArray(palette) || palette.length === 0) return data;
     const normalizedType = String(chartType || '').toLowerCase();
+    const preset = getBackendPreset();
     const datasets = data.datasets.map(function (ds, i) {
       const c = palette[i % palette.length];
       const out = { ...ds };
+      const userSet = {
+        fill: ds.fill !== undefined,
+        tension: ds.tension !== undefined,
+        borderWidth: ds.borderWidth !== undefined,
+        pointRadius: ds.pointRadius !== undefined,
+        borderRadius: ds.borderRadius !== undefined,
+        maxBarThickness: ds.maxBarThickness !== undefined,
+        hoverOffset: ds.hoverOffset !== undefined,
+      };
       if (normalizedType === 'line') {
         if (out.borderColor === undefined) out.borderColor = colorWithAlpha(c, 0.95);
         if (out.backgroundColor === undefined) {
@@ -165,6 +184,19 @@
         if (out.pointHoverRadius === undefined) out.pointHoverRadius = 4;
         if (out.pointHoverBorderWidth === undefined) out.pointHoverBorderWidth = 2;
         if (out.pointHoverBackgroundColor === undefined) out.pointHoverBackgroundColor = colorWithAlpha(c, 1);
+        if (preset === 'executive') {
+          if (!userSet.tension) out.tension = 0.4;
+          if (!userSet.borderWidth) out.borderWidth = 2.4;
+          if (!userSet.pointRadius) out.pointRadius = 1;
+        } else if (preset === 'operational') {
+          if (!userSet.fill) out.fill = false;
+          if (!userSet.tension) out.tension = 0.28;
+          if (!userSet.borderWidth) out.borderWidth = 2;
+        } else if (preset === 'analytical') {
+          if (!userSet.tension) out.tension = 0.22;
+          if (!userSet.borderWidth) out.borderWidth = 2.3;
+          if (!userSet.pointRadius) out.pointRadius = 3;
+        }
       } else if (normalizedType === 'bar') {
         if (out.backgroundColor === undefined) out.backgroundColor = colorWithAlpha(c, 0.78);
         if (out.borderColor === undefined) out.borderColor = colorWithAlpha(c, 0.95);
@@ -175,6 +207,13 @@
         if (out.barPercentage === undefined) out.barPercentage = 0.66;
         if (out.categoryPercentage === undefined) out.categoryPercentage = 0.64;
         if (out.maxBarThickness === undefined) out.maxBarThickness = 20;
+        if (preset === 'operational') {
+          if (!userSet.borderRadius) out.borderRadius = 4;
+          if (!userSet.maxBarThickness) out.maxBarThickness = 18;
+        } else if (preset === 'analytical') {
+          if (!userSet.borderRadius) out.borderRadius = 8;
+          if (!userSet.maxBarThickness) out.maxBarThickness = 24;
+        }
       } else if (normalizedType === 'pie' || normalizedType === 'doughnut' || normalizedType === 'polararea') {
         if (out.backgroundColor === undefined) {
           out.backgroundColor = palette.map(function (pc) { return colorWithAlpha(pc, 0.9); });
@@ -184,6 +223,8 @@
         }
         if (out.borderWidth === undefined) out.borderWidth = 1;
         if (out.hoverOffset === undefined) out.hoverOffset = 6;
+        if (preset === 'operational' && !userSet.hoverOffset) out.hoverOffset = 4;
+        if (preset === 'analytical' && !userSet.hoverOffset) out.hoverOffset = 8;
       } else {
         if (out.backgroundColor === undefined) out.backgroundColor = c;
         if (out.borderColor === undefined) out.borderColor = c;
@@ -291,11 +332,23 @@
     let chartData = config.data;
     if (isBackendPage() && chartData) {
       const palette = getBackendChartPalette();
+      const preset = getBackendPreset();
       if (palette && palette.length) {
         chartData = applyPaletteToDatasets(chartData, palette, config.type, ctx);
       }
+      if (preset === 'analytical') {
+        mergedOptions.scales = mergedOptions.scales || {};
+        mergedOptions.scales.x = { ...(mergedOptions.scales.x || {}), grid: { ...((mergedOptions.scales.x || {}).grid || {}), lineWidth: 1 } };
+        mergedOptions.scales.y = { ...(mergedOptions.scales.y || {}), grid: { ...((mergedOptions.scales.y || {}).grid || {}), lineWidth: 1 } };
+      } else if (preset === 'executive') {
+        mergedOptions.plugins = mergedOptions.plugins || {};
+        mergedOptions.plugins.legend = { ...(mergedOptions.plugins.legend || {}), position: 'bottom' };
+      } else if (preset === 'operational') {
+        mergedOptions.plugins = mergedOptions.plugins || {};
+        mergedOptions.plugins.legend = { ...(mergedOptions.plugins.legend || {}), position: 'bottom' };
+      }
       if (String(config.type || '').toLowerCase() === 'doughnut' && mergedOptions.cutout === undefined) {
-        mergedOptions.cutout = '62%';
+        mergedOptions.cutout = preset === 'operational' ? '56%' : (preset === 'analytical' ? '66%' : '62%');
       }
     }
 

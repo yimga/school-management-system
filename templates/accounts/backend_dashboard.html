@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-tokens.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
+<link rel="stylesheet" href="{% static 'css/backend-dashboard-v2-contract.css' %}">
 <!-- Include navigation bridge styles -->
 <script>
   (function () {
@@ -17,9 +18,34 @@
       if (!document.body) return;
       document.body.dataset.dashboardPage = 'backend';
       document.body.classList.add('dashboard-page-backend');
+
+      var allowed = { executive: true, operational: true, analytical: true };
+      var params = new URLSearchParams(window.location.search);
+      var fromUrl = (params.get('style') || params.get('preset') || '').toLowerCase();
+      var root = document.getElementById('dashboard-layout');
+      var fromData = root ? String(root.dataset.stylePreset || '').toLowerCase() : '';
+      var fromTile = root ? String(root.dataset.tileVariant || '').toLowerCase() : '';
+      var preset = 'executive';
+      if (allowed[fromUrl]) {
+        preset = fromUrl;
+      } else if (allowed[fromData]) {
+        preset = fromData;
+      } else if (fromTile === 'compact') {
+        preset = 'operational';
+      } else if (fromTile === 'flat') {
+        preset = 'analytical';
+      }
+      document.body.classList.remove('backend-preset-executive', 'backend-preset-operational', 'backend-preset-analytical');
+      document.body.classList.add('backend-preset-' + preset);
+      document.body.dataset.backendPreset = preset;
+      if (root) root.dataset.stylePreset = preset;
     };
-    apply();
-    document.addEventListener('DOMContentLoaded', apply, { once: true });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', apply, { once: true });
+    } else {
+      apply();
+    }
   })();
 </script>
   <style>
@@ -232,7 +258,8 @@
       data-custom-drag-enabled="true"
       data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
       data-widget-config='{{ widget_meta_json }}'
-      data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}">
+      data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}"
+      data-style-preset="{{ dashboard_settings.style_preset|default:'' }}">
       <div class="backend-v2-main-grid">
         <div class="backend-v2-span-2" data-widget-id="backend-outstanding-fees">
           {% if chart_finance_status_json %}
@@ -385,7 +412,7 @@
             <h6 class="mb-0">Operations watch</h6>
             <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">Live - {{ local_time|date:"h:i A" }}</span>
           </div>
-          <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}">
+          <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}" data-finance-url="{{ finance_request_link }}">
             {% for item in operations_watch %}
             <div class="backend-ops-item {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}" data-ops-key="{{ item.key }}">
               <div class="backend-ops-item-left">
@@ -444,10 +471,10 @@
               <div class="backend-planner-list backend-planner-events">
                 {% for item in upcoming_events|slice:":3" %}
                 <div class="backend-quick-link d-flex align-items-start gap-2 small py-1">
-                  <span class="badge bg-secondary text-white flex-shrink-0" style="font-size: 0.65rem;">{{ item.when|format_date }}</span>
+                  <span class="badge bg-secondary text-white flex-shrink-0 backend-planner-date-badge">{{ item.when|format_date }}</span>
                   <div class="min-width-0">
                     <span class="fw-medium">{{ item.title|truncatechars:32 }}</span>
-                    {% if item.detail %}<div class="text-muted" style="font-size: 0.7rem;">{{ item.detail|truncatechars:28 }}</div>{% endif %}
+                    {% if item.detail %}<div class="text-muted backend-planner-detail">{{ item.detail|truncatechars:28 }}</div>{% endif %}
                   </div>
                 </div>
                 {% empty %}
@@ -499,279 +526,6 @@
   {{ block.super }}
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
-  <script>
-  (function() {
-    function initBackendCharts() {
-      if (typeof Chart === 'undefined' || !window.DashboardChartsShared) return;
-      var shared = window.DashboardChartsShared;
-      var charts = {};
-      ['backendEnrollmentTrendChart', 'backendFinanceStatusChart'].forEach(function(chartId) {
-        var configEl = document.querySelector('[data-chart-config="' + chartId + '"]');
-        if (!configEl) return;
-        try {
-          var config = JSON.parse(configEl.textContent);
-          if (config.data && config.data.labels && config.data.labels.length > 0) {
-            var ds = config.data.datasets && config.data.datasets[0];
-            var hasValues = !ds || !ds.data || ds.data.some(function(v){ return (v || 0) > 0; });
-            if (hasValues) {
-              charts[chartId] = shared.createChart(chartId, config);
-            } else {
-              document.querySelector('[data-chart-empty="' + chartId + '"]')?.classList.remove('d-none');
-              var c = document.getElementById(chartId);
-              if (c) c.style.display = 'none';
-            }
-          } else {
-            document.querySelector('[data-chart-empty="' + chartId + '"]')?.classList.remove('d-none');
-            var c = document.getElementById(chartId);
-            if (c) c.style.display = 'none';
-          }
-        } catch (e) { console.warn('Backend chart init:', chartId, e); }
-      });
-      document.querySelectorAll('[data-chart-export]').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var id = this.getAttribute('data-chart-export');
-          if (charts[id]) shared.exportChartToPng(charts[id], 'backend-chart-' + id + '.png');
-        });
-      });
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initBackendCharts);
-    } else {
-      initBackendCharts();
-    }
-  })();
-  </script>
-  <script>
-    (function () {
-      const paletteEl = document.getElementById('backendCommandPalette');
-      const inputEl = document.getElementById('backendCommandInput');
-      const resultsEl = document.getElementById('backendCommandResults');
-      const triggerEls = document.querySelectorAll('.js-open-backend-command');
-      const dataEl = document.getElementById('backend-command-palette-data');
-      if (!paletteEl || !inputEl || !resultsEl || !dataEl) return;
-
-      let commands = [];
-      try {
-        commands = JSON.parse(dataEl.textContent || '[]');
-      } catch (err) {
-        commands = [];
-      }
-      if (!Array.isArray(commands)) {
-        commands = [];
-      }
-      let activeQueryResults = [];
-      let previousFocusedElement = null;
-
-      const isTypingContext = function (target) {
-        if (!target) return false;
-        const tag = (target.tagName || '').toLowerCase();
-        if (target.isContentEditable) return true;
-        return tag === 'input' || tag === 'textarea' || tag === 'select';
-      };
-
-      const escapeHtml = function (value) {
-        return String(value || '')
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-      };
-
-      const closePalette = function () {
-        paletteEl.classList.remove('is-open');
-        paletteEl.setAttribute('aria-hidden', 'true');
-        if (previousFocusedElement && typeof previousFocusedElement.focus === 'function') {
-          previousFocusedElement.focus();
-        }
-      };
-
-      const openPalette = function () {
-        previousFocusedElement = document.activeElement;
-        paletteEl.classList.add('is-open');
-        paletteEl.setAttribute('aria-hidden', 'false');
-        renderResults(inputEl.value || '');
-        setTimeout(function () { inputEl.focus(); }, 0);
-      };
-
-      const renderResults = function (query) {
-        const normalized = (query || '').trim().toLowerCase();
-        const items = commands.filter(function (item) {
-          if (!normalized) return true;
-          return String(item.label || '').toLowerCase().includes(normalized);
-        });
-        activeQueryResults = items;
-
-        if (!items.length) {
-          resultsEl.innerHTML = '<div class="backend-cmd-empty">No matching command.</div>';
-          return;
-        }
-
-        const lead = normalized
-          ? ''
-          : '<div class="backend-cmd-empty text-start py-2">Available commands</div>';
-        resultsEl.innerHTML = lead + items.map(function (item) {
-          const label = escapeHtml(String(item.label || 'Command'));
-          const href = String(item.url || '#');
-          return '<a class="backend-cmd-item" href="' + href + '"><span>' + label + '</span><kbd>Enter</kbd></a>';
-        }).join('');
-      };
-
-      triggerEls.forEach(function (trigger) {
-        trigger.addEventListener('click', function (event) {
-          event.preventDefault();
-          openPalette();
-        });
-      });
-
-      paletteEl.querySelectorAll('[data-cmd-close]').forEach(function (node) {
-        node.addEventListener('click', closePalette);
-      });
-
-      inputEl.addEventListener('input', function () {
-        renderResults(inputEl.value);
-      });
-      inputEl.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          const first = activeQueryResults[0];
-          if (first && first.url) {
-            window.location.href = first.url;
-          }
-        } else if (event.key === 'Escape') {
-          event.preventDefault();
-          closePalette();
-        }
-      });
-
-      document.addEventListener('keydown', function (event) {
-        const isMetaK = (event.ctrlKey || event.metaKey) && event.key && event.key.toLowerCase() === 'k';
-        const isClose = event.key === 'Escape';
-        const paletteOpen = paletteEl.classList.contains('is-open');
-        if (isMetaK) {
-          if (!paletteOpen && isTypingContext(document.activeElement)) {
-            return;
-          }
-          event.preventDefault();
-          if (paletteOpen) {
-            closePalette();
-          } else {
-            openPalette();
-          }
-        } else if (isClose && paletteOpen) {
-          closePalette();
-        }
-      });
-    })();
-  </script>
-  <script>
-    (function () {
-      const listEl = document.querySelector('.js-ops-watch-list');
-      const stampEl = document.getElementById('backendOpsWatchUpdatedAt');
-      if (!listEl) return;
-
-      const refreshUrl = listEl.getAttribute('data-refresh-url');
-      if (!refreshUrl) return;
-
-      const toRelative = function (isoDate) {
-        if (!isoDate) return 'just now';
-        const then = new Date(isoDate);
-        if (Number.isNaN(then.getTime())) return 'just now';
-        const diffSec = Math.max(0, Math.round((Date.now() - then.getTime()) / 1000));
-        if (diffSec < 60) return 'just now';
-        if (diffSec < 3600) return diffSec < 120 ? '1 min ago' : Math.floor(diffSec / 60) + ' mins ago';
-        return Math.floor(diffSec / 3600) + 'h ago';
-      };
-
-      const itemClass = function (status) {
-        if (status === 'danger') return 'backend-ops-item is-danger';
-        if (status === 'warn') return 'backend-ops-item is-warn';
-        return 'backend-ops-item';
-      };
-
-      const renderOps = function (data) {
-        const rows = [];
-        const ops = Array.isArray(data.operations_watch) ? data.operations_watch : [];
-        ops.forEach(function (item) {
-          rows.push(
-            '<div class="' + itemClass(item.status) + '" data-ops-key="' + (item.key || '') + '">' +
-              '<div class="backend-ops-item-left">' +
-                '<span class="backend-ops-dot"></span>' +
-                '<a href="' + (item.url || '#') + '">' +
-                  '<i class="bi ' + (item.icon || 'bi-dot') + ' me-1"></i>' + (item.label || 'Item') +
-                '</a>' +
-              '</div>' +
-              '<strong>' + (item.value || 0) + '</strong>' +
-            '</div>'
-          );
-        });
-        const financeStatus = Number(data.finance_requests || 0) > 0 ? 'warn' : 'ok';
-        rows.push(
-          '<div class="' + itemClass(financeStatus) + '" data-ops-key="finance_requests">' +
-            '<div class="backend-ops-item-left">' +
-              '<span class="backend-ops-dot"></span>' +
-              '<a href="{{ finance_request_link }}"><i class="bi bi-wallet2 me-1"></i>Finance requests</a>' +
-            '</div>' +
-            '<strong>' + (data.finance_requests || 0) + '</strong>' +
-          '</div>'
-        );
-        listEl.innerHTML = rows.join('');
-        if (stampEl) {
-          stampEl.textContent = 'Live - ' + toRelative(data.updated_at);
-        }
-      };
-
-      const refreshOps = function () {
-        fetch(refreshUrl, { credentials: 'same-origin' })
-          .then(function (res) { return res.ok ? res.json() : null; })
-          .then(function (payload) {
-            if (!payload || payload.success !== true) return;
-            renderOps(payload);
-          })
-          .catch(function () {});
-      };
-
-      setInterval(refreshOps, 60000);
-      refreshOps();
-    })();
-  </script>
   <script src="{% static 'js/dashboard-layout.js' %}"></script>
-  {# Backend: force Recent Activity, Top performing, Attendance visible (sync with dashboard_layout_api.BACKEND_ALWAYS_VISIBLE_WIDGET_IDS) #}
-  <script>
-  (function(){
-    var ids = ['backend-recent-activity', 'backend-top-performing', 'backend-attendance-today'];
-    function ensurePlacement(root) {
-      var grid = root ? root.querySelector('.backend-v2-main-grid') : null;
-      if (!grid) return;
-      ids.forEach(function(id) {
-        var el = root.querySelector('[data-widget-id="' + id + '"]');
-        if (el && el.parentElement !== grid) {
-          grid.appendChild(el);
-        }
-      });
-    }
-    function ensureVisible() {
-      var root = document.getElementById('dashboard-layout');
-      if (!root) return;
-      ensurePlacement(root);
-      ids.forEach(function(id) {
-        var el = root.querySelector('[data-widget-id="' + id + '"]');
-        if (el && (el.classList.contains('dash-widget-hidden') || el.style.display === 'none')) {
-          el.classList.remove('dash-widget-hidden');
-          el.style.display = '';
-        }
-      });
-    }
-    function run() {
-      ensureVisible();
-      var n = 0;
-      var t = setInterval(function() {
-        ensureVisible();
-        if (++n >= 10) clearInterval(t);
-      }, 1000);
-    }
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
-    else run();
-  })();
-  </script>
+  <script src="{% static 'js/backend-dashboard-v2-page.js' %}"></script>
 {% endblock %}
