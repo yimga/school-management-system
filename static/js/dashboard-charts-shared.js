@@ -151,19 +151,30 @@
         if (out.backgroundColor === undefined) {
           out.backgroundColor = createVerticalGradient(
             ctx,
-            colorWithAlpha(c, 0.3),
+            colorWithAlpha(c, 0.42),
             colorWithAlpha(c, 0.03)
           );
         }
         if (out.fill === undefined) out.fill = true;
         if (out.tension === undefined) out.tension = 0.35;
+        if (out.borderWidth === undefined) out.borderWidth = 2.2;
         if (out.pointRadius === undefined) out.pointRadius = 2;
+        if (out.pointBackgroundColor === undefined) out.pointBackgroundColor = colorWithAlpha(c, 0.95);
+        if (out.pointBorderColor === undefined) out.pointBorderColor = colorWithAlpha(c, 1);
+        if (out.pointBorderWidth === undefined) out.pointBorderWidth = 1;
         if (out.pointHoverRadius === undefined) out.pointHoverRadius = 4;
+        if (out.pointHoverBorderWidth === undefined) out.pointHoverBorderWidth = 2;
+        if (out.pointHoverBackgroundColor === undefined) out.pointHoverBackgroundColor = colorWithAlpha(c, 1);
       } else if (normalizedType === 'bar') {
         if (out.backgroundColor === undefined) out.backgroundColor = colorWithAlpha(c, 0.78);
         if (out.borderColor === undefined) out.borderColor = colorWithAlpha(c, 0.95);
         if (out.borderWidth === undefined) out.borderWidth = 1;
         if (out.borderRadius === undefined) out.borderRadius = 6;
+        if (out.hoverBackgroundColor === undefined) out.hoverBackgroundColor = colorWithAlpha(c, 0.94);
+        if (out.hoverBorderColor === undefined) out.hoverBorderColor = colorWithAlpha(c, 1);
+        if (out.barPercentage === undefined) out.barPercentage = 0.66;
+        if (out.categoryPercentage === undefined) out.categoryPercentage = 0.64;
+        if (out.maxBarThickness === undefined) out.maxBarThickness = 20;
       } else if (normalizedType === 'pie' || normalizedType === 'doughnut' || normalizedType === 'polararea') {
         if (out.backgroundColor === undefined) {
           out.backgroundColor = palette.map(function (pc) { return colorWithAlpha(pc, 0.9); });
@@ -172,6 +183,7 @@
           out.borderColor = palette.map(function (pc) { return colorWithAlpha(pc, 1); });
         }
         if (out.borderWidth === undefined) out.borderWidth = 1;
+        if (out.hoverOffset === undefined) out.hoverOffset = 6;
       } else {
         if (out.backgroundColor === undefined) out.backgroundColor = c;
         if (out.borderColor === undefined) out.borderColor = c;
@@ -281,6 +293,9 @@
       const palette = getBackendChartPalette();
       if (palette && palette.length) {
         chartData = applyPaletteToDatasets(chartData, palette, config.type, ctx);
+      }
+      if (String(config.type || '').toLowerCase() === 'doughnut' && mergedOptions.cutout === undefined) {
+        mergedOptions.cutout = '62%';
       }
     }
 

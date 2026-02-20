@@ -87,7 +87,7 @@
           </div>
           <div class="backend-v2-metrics">
             {% for metric in overview_cards %}
-            <article class="backend-v2-metric {% if metric.status == 'danger' %}is-danger{% endif %}">
+            <article class="backend-v2-metric backend-v2-metric--tone-{{ forloop.counter }} {% if metric.status == 'danger' %}is-danger{% endif %}">
               <div class="backend-v2-metric-title">
                 <span>{{ metric.title }}</span>
                 <i class="bi {{ metric.icon }}"></i>
@@ -110,7 +110,7 @@
           {% if kpi_strip_cards %}
           <div class="backend-v2-kpi-strip" data-widget-id="backend-overview-kpis">
             {% for item in kpi_strip_cards %}
-            <article class="backend-v2-kpi {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
+            <article class="backend-v2-kpi backend-v2-kpi--tone-{{ forloop.counter }} {% if item.status == 'danger' %}is-danger{% elif item.status == 'warn' %}is-warn{% endif %}">
               <div class="backend-v2-kpi-head">
                 <span>{{ item.label }}</span>
                 <i class="bi {{ item.icon }}"></i>
@@ -379,7 +379,7 @@
     </div>
 
     <aside class="backend-v2-rail" data-widget-id="backend-command-sidebar">
-      <div class="card mb-3 backend-ops-watch-card" data-widget-id="backend-ops-watch">
+      <div class="card mb-3 backend-ops-watch-card backend-v2-rail-card backend-v2-rail-card--ops" data-widget-id="backend-ops-watch">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">Operations watch</h6>
@@ -410,7 +410,7 @@
         </div>
       </div>
 
-      <div class="card mb-3 backend-quick-links-card {% if not quick_links %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-quick-links">
+      <div class="card mb-3 backend-quick-links-card backend-v2-rail-card backend-v2-rail-card--links {% if not quick_links %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-quick-links">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">Quick Links</h6>
@@ -430,7 +430,7 @@
         </div>
       </div>
 
-      <div class="card mb-3 backend-quick-links-card backend-v2-planner-card {% if not upcoming_events and not recommended_next_steps %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-planner">
+      <div class="card mb-3 backend-quick-links-card backend-v2-planner-card backend-v2-rail-card backend-v2-rail-card--planner {% if not upcoming_events and not recommended_next_steps %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-planner">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h6 class="mb-0">Planner</h6>
