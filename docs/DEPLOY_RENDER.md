@@ -47,6 +47,14 @@ If you do **not** set `DATABASE_URL`, the app uses SQLite on the server disk. Re
 - `RUN_INTEGRATION_PREFLIGHT=1` – Recommended. Fails deploy only when enabled integration features are missing runtime credentials.
 - `ADMIN_PASSWORD` – Recommended. Enables automatic `seed_render_users` during predeploy.
 
+## Start command (do not override without binding to PORT)
+
+The web service **must** listen on **`0.0.0.0:$PORT`** so Render’s health check can detect an open HTTP port. The blueprint uses:
+
+- **Start command:** `bash ./scripts/release/render_start_web.sh`
+
+That script runs Gunicorn with `config/gunicorn.conf.py`, which sets `bind = "0.0.0.0:{PORT}"`. If you override the start command in the Render dashboard, use either this script or run Gunicorn with `-c config/gunicorn.conf.py` (or pass `--bind 0.0.0.0:$PORT` explicitly). Binding only to `127.0.0.1` or omitting `--bind` will cause “No open HTTP ports detected” and deploy failure.
+
 ## Predeploy flow
 
 `scripts/release/render_predeploy.sh` performs:

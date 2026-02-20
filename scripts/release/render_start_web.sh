@@ -2,14 +2,11 @@
 set -euo pipefail
 
 # Render web start script.
-# Forces an explicit HTTP bind so port scanning always detects the service.
+# Uses config/gunicorn.conf.py so HTTP always binds to 0.0.0.0:PORT for port-scan health checks.
 
-PORT_VALUE="${PORT:-10000}"
-WORKERS_VALUE="${WEB_CONCURRENCY:-2}"
-THREADS_VALUE="${GUNICORN_THREADS:-2}"
-TIMEOUT_VALUE="${GUNICORN_TIMEOUT:-120}"
 APP_MODULE="${GUNICORN_APP_MODULE:-config.wsgi:application}"
 GUNICORN_BIN=".venv/bin/gunicorn"
+CONFIG_FILE="config/gunicorn.conf.py"
 
 # Avoid conflicting runtime overrides that can silently switch bind targets.
 unset GUNICORN_CMD_ARGS || true
@@ -18,13 +15,8 @@ if [[ ! -x "${GUNICORN_BIN}" ]]; then
   GUNICORN_BIN="gunicorn"
 fi
 
-echo "[web-start] binding ${APP_MODULE} on 0.0.0.0:${PORT_VALUE}"
-echo "[web-start] workers=${WORKERS_VALUE} threads=${THREADS_VALUE} timeout=${TIMEOUT_VALUE}"
+# Ensure PORT is set for config (Render sets it; default for local)
+export PORT="${PORT:-10000}"
+echo "[web-start] starting ${APP_MODULE} via ${CONFIG_FILE} (bind 0.0.0.0:${PORT})"
 
-exec "${GUNICORN_BIN}" "${APP_MODULE}" \
-  --bind "0.0.0.0:${PORT_VALUE}" \
-  --workers "${WORKERS_VALUE}" \
-  --threads "${THREADS_VALUE}" \
-  --timeout "${TIMEOUT_VALUE}" \
-  --access-logfile "-" \
-  --error-logfile "-"
+exec "${GUNICORN_BIN}" -c "${CONFIG_FILE}" "${APP_MODULE}"
