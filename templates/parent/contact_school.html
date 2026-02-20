@@ -33,12 +33,21 @@
 
 <div class="card">
   <div class="card-body">
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="contact-school-form" data-draft-key="parent_contact_school" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced request">
       {% csrf_token %}
       {{ form.as_p }}
       <button class="btn btn-primary" type="submit">Submit request</button>
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+(function() {
+  var form = document.getElementById('contact-school-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
 {% endblock %}
 

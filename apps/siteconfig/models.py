@@ -157,6 +157,12 @@ def default_backend_feature_flags():
         "header_weather_temperature_unit": "celsius",
         "header_weather_label": "Buea, Cameroon",
         "request_persistent_browser_storage": True,
+        "reduce_activity_low_power": False,
+        "reachability_url": "",
+        "offline_entity_sync": True,
+        "offline_requests_sync": True,
+        "hub_base_url": "",
+        "prefetch_at_hour": None,
         "max_bulk_import_rows": 500,
         "allow_bulk_commit": True,
         "allowed_roles_entity_console": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
@@ -1368,11 +1374,63 @@ class SiteSettings(models.Model):
     @classmethod
     def get_solo(cls) -> "SiteSettings":
         global _SITE_SETTINGS_CACHE
+        cls._ensure_preview_columns()
         if _SITE_SETTINGS_CACHE is None:
-            cls._ensure_preview_columns()
             obj, _ = cls.objects.get_or_create(pk=1)
             _SITE_SETTINGS_CACHE = obj
+        else:
+            try:
+                _SITE_SETTINGS_CACHE.refresh_from_db()
+            except cls.DoesNotExist:
+                obj, _ = cls.objects.get_or_create(pk=1)
+                _SITE_SETTINGS_CACHE = obj
+            except DatabaseError:
+                return _SITE_SETTINGS_CACHE
+        _SITE_SETTINGS_CACHE._sanitize_foreign_keys(persist=True)
         return _SITE_SETTINGS_CACHE
+
+    def _sanitize_foreign_keys(self, *, persist: bool = False) -> list[str]:
+        fk_guards = (
+            ("theme_pack", "siteconfig", "ThemePack"),
+            ("admin_theme_pack", "siteconfig", "ThemePack"),
+            ("default_term_report_style", "siteconfig", "ReportCardStyle"),
+            ("default_annual_report_style", "siteconfig", "ReportCardStyle"),
+            ("compliance_profile", "finance", "ComplianceProfile"),
+        )
+        model_cache: dict[tuple[str, str], object | None] = {}
+        cleared_fields: list[str] = []
+
+        for field_name, app_label, model_name in fk_guards:
+            field_id = getattr(self, f"{field_name}_id", None)
+            if not field_id:
+                continue
+            cache_key = (app_label, model_name)
+            if cache_key not in model_cache:
+                try:
+                    model_cache[cache_key] = django_apps.get_model(app_label, model_name)
+                except (LookupError, OperationalError):
+                    model_cache[cache_key] = None
+            related_model = model_cache[cache_key]
+            if related_model is None:
+                continue
+            try:
+                exists = related_model.objects.filter(pk=field_id).exists()
+            except (OperationalError, DatabaseError):
+                continue
+            if exists:
+                continue
+            setattr(self, f"{field_name}_id", None)
+            self._state.fields_cache.pop(field_name, None)
+            cleared_fields.append(field_name)
+
+        if persist and cleared_fields and getattr(self, "pk", None):
+            update_kwargs = {f"{field_name}_id": None for field_name in cleared_fields}
+            try:
+                type(self).objects.filter(pk=self.pk).update(**update_kwargs)
+            except (OperationalError, DatabaseError):
+                pass
+
+        return cleared_fields
 
     def get_theme_background(self, field_name: str) -> FieldFile | None:
         target = getattr(self, field_name, None)
@@ -1400,37 +1458,31 @@ class SiteSettings(models.Model):
         return "contain"
 
     def save(self, *args, **kwargs):
-        fk_guards = (
-            ("theme_pack", "siteconfig", "ThemePack"),
-            ("admin_theme_pack", "siteconfig", "ThemePack"),
-            ("default_term_report_style", "siteconfig", "ReportCardStyle"),
-            ("default_annual_report_style", "siteconfig", "ReportCardStyle"),
-            ("compliance_profile", "finance", "ComplianceProfile"),
-        )
-        model_cache: dict[tuple[str, str], object | None] = {}
-
-        for field_name, app_label, model_name in fk_guards:
-            field_id = getattr(self, f"{field_name}_id", None)
-            if not field_id:
-                continue
-            cache_key = (app_label, model_name)
-            if cache_key not in model_cache:
-                try:
-                    model_cache[cache_key] = django_apps.get_model(app_label, model_name)
-                except OperationalError:
-                    model_cache[cache_key] = None
-            related_model = model_cache[cache_key]
-            if related_model is None or not related_model.objects.filter(pk=field_id).exists():
-                setattr(self, field_name, None)
+        cleared_fields = self._sanitize_foreign_keys()
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and cleared_fields:
+            normalized_update_fields = set(update_fields)
+            normalized_update_fields.update(cleared_fields)
+            kwargs["update_fields"] = list(normalized_update_fields)
         super().save(*args, **kwargs)
 
     @property
     def active_theme(self) -> "ThemePack | None":
-        if self.theme_pack:
-            return self.theme_pack
+        if self.theme_pack_id:
+            try:
+                selected = ThemePack.objects.filter(pk=self.theme_pack_id).first()
+            except (OperationalError, DatabaseError):
+                return None
+            if selected:
+                self._state.fields_cache["theme_pack"] = selected
+                return selected
+            self._sanitize_foreign_keys(persist=True)
         try:
-            return ThemePack.objects.filter(is_default=True, is_active=True).first()
-        except OperationalError:
+            fallback = ThemePack.objects.filter(is_default=True, is_active=True).first()
+            if fallback:
+                return fallback
+            return ThemePack.objects.filter(is_active=True).order_by("name").first()
+        except (OperationalError, DatabaseError):
             return None
 
     def apply_theme_pack(self, pack: "ThemePack", save: bool = True) -> None:
@@ -1456,15 +1508,33 @@ class SiteSettings(models.Model):
         return links
 
     def get_admin_theme(self):
-        if self.admin_theme_pack:
-            return self.admin_theme_pack
-        if self.theme_pack and getattr(self.theme_pack, "applies_to_admin", False):
-            return self.theme_pack
+        if self.admin_theme_pack_id:
+            try:
+                admin_pack = ThemePack.objects.filter(pk=self.admin_theme_pack_id).first()
+            except (OperationalError, DatabaseError):
+                admin_pack = None
+            if admin_pack and admin_pack.is_active and admin_pack.applies_to_admin:
+                self._state.fields_cache["admin_theme_pack"] = admin_pack
+                return admin_pack
+            if admin_pack is None:
+                self._sanitize_foreign_keys(persist=True)
+
+        site_pack = None
+        if self.theme_pack_id:
+            try:
+                site_pack = ThemePack.objects.filter(pk=self.theme_pack_id).first()
+            except (OperationalError, DatabaseError):
+                site_pack = None
+            if site_pack and site_pack.is_active and getattr(site_pack, "applies_to_admin", False):
+                self._state.fields_cache["theme_pack"] = site_pack
+                return site_pack
+            if site_pack is None:
+                self._sanitize_foreign_keys(persist=True)
         try:
             fallback = ThemePack.objects.filter(applies_to_admin=True, is_active=True).order_by("-is_default", "name").first()
-            return fallback or self.theme_pack
-        except OperationalError:
-            return self.theme_pack
+            return fallback or site_pack
+        except (OperationalError, DatabaseError):
+            return site_pack
 
 
 class ThemePack(models.Model):

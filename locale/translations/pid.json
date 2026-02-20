@@ -58,5 +58,7 @@
   "Date Start": "Date Start",
   "Date End": "Date End",
   "Duration": "Duration",
-  "Type": "Type"
+  "Type": "Type",
+  "Student": "Student",
+  "Teacher": "Teacher"
 }

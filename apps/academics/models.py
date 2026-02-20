@@ -765,6 +765,13 @@ class Incident(models.Model):
         null=True,
         blank=True,
     )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="incidents",
+        null=True,
+        blank=True,
+    )
     incident_type = models.CharField(max_length=20, choices=Type.choices, default=Type.OTHER)
     date = models.DateField()
     description = models.TextField(blank=True)
@@ -785,6 +792,19 @@ class Incident(models.Model):
 
     class Meta:
         ordering = ["-date", "-created_at"]
+
+    def save(self, *args, **kwargs):
+        """
+        Keep tenant ownership aligned with linked student/teacher records.
+        Student school takes precedence when both are provided.
+        """
+        resolved_school_id = self.school_id
+        if self.student_id:
+            resolved_school_id = getattr(self.student, "school_id", None) or resolved_school_id
+        elif self.teacher_id:
+            resolved_school_id = getattr(self.teacher, "school_id", None) or resolved_school_id
+        self.school_id = resolved_school_id
+        super().save(*args, **kwargs)
 
     def __str__(self):
         who = (self.student or self.teacher) or "—"

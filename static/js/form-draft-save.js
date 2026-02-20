@@ -208,6 +208,15 @@
 
     offlineSyncBanner(form, key);
     if (getOfflineConfig().enabled && form.getAttribute('data-draft-key')) {
+      if (!form.querySelector('.sms-offline-works-badge')) {
+        var badge = document.createElement('span');
+        badge.className = 'sms-offline-works-badge badge bg-secondary bg-opacity-75 text-white small align-middle';
+        badge.setAttribute('aria-label', 'This form works offline');
+        badge.title = 'This form works offline. Your changes are saved locally and will sync when you\'re back online.';
+        badge.textContent = 'Works offline';
+        badge.style.cssText = 'font-weight: 500; letter-spacing: 0.02em;';
+        form.insertBefore(badge, form.firstChild);
+      }
       var hintEl = form.querySelector('.sms-offline-form-hint');
       if (!hintEl) {
         var hintText = form.getAttribute('data-offline-hint') || 'Your changes are saved locally and will sync when you\'re back online.';

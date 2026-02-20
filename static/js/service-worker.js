@@ -1,5 +1,5 @@
 // Service worker for portal PWA + offline write-behind queue.
-const CACHE_VERSION = "sms-v1.3.0";
+const CACHE_VERSION = "sms-v1.4.0";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -21,15 +21,25 @@ let OFFLINE_CONFIG = {
   attendanceSyncEnabled: true,
   gradeSyncEnabled: true,
   apiSyncEnabled: true,
+  entitySyncEnabled: true,
+  requestsSyncEnabled: true,
   backgroundSyncEnabled: true,
+  hubBaseUrl: "",
 };
 
 const STATIC_ASSETS = [
   "/offline/",
   "/static/css/portal_theme.css",
   "/static/css/dashboard-responsive.css",
+  "/static/css/reduce-motion-low-power.css",
   "/static/js/command-palette.js",
   "/static/js/dashboard-layout.js",
+  "/static/js/vendor/dexie.min.js",
+  "/static/js/offline-db.js",
+  "/static/js/sync-manager.js",
+  "/static/js/low-power.js",
+  "/static/js/offline-status-bar.js",
+  "/static/js/auto-pilot.js",
   "/static/images/logo.png",
   "/static/manifest.json",
 ];
@@ -76,25 +86,47 @@ self.addEventListener("message", (event) => {
   }
   if (data.type === "REPLAY_SYNC_NOW") {
     event.waitUntil(
-      Promise.all([
-        replayQueue("attendance"),
-        replayQueue("grade"),
-        replayQueue("api"),
-      ]).then((counts) => {
+      (async () => {
+        const counts = [];
+        counts.push(await replayQueue("attendance"));
+        counts.push(await replayQueue("grade"));
+        counts.push(await replayQueue("api"));
         const totalFailed = (counts[0]?.failed ?? 0) + (counts[1]?.failed ?? 0) + (counts[2]?.failed ?? 0);
         const failedItems = [].concat(
           counts[0]?.failedItems ?? [],
           counts[1]?.failedItems ?? [],
           counts[2]?.failedItems ?? [],
         );
-        return self.clients.matchAll().then((clients) => {
-          clients.forEach((client) => {
-            try {
-              client.postMessage({ type: "sync-complete", failedCount: totalFailed, failedItems });
-            } catch (_err) {}
-          });
+        const clients = await self.clients.matchAll();
+        clients.forEach((client) => {
+          try {
+            client.postMessage({ type: "sync-complete", failedCount: totalFailed, failedItems });
+          } catch (_err) {}
         });
-      }),
+      })(),
+    );
+  }
+  if (data.type === "REPLAY_SYNC_BATCH") {
+    const limit = Math.min(Math.max(1, parseInt(data.limit, 10) || 10), 50);
+    event.waitUntil(
+      (async () => {
+        const counts = [];
+        counts.push(await replayQueueLimit("attendance", limit));
+        counts.push(await replayQueueLimit("grade", limit));
+        counts.push(await replayQueueLimit("api", limit));
+        const totalFailed = (counts[0]?.failed ?? 0) + (counts[1]?.failed ?? 0) + (counts[2]?.failed ?? 0);
+        const failedItems = [].concat(
+          counts[0]?.failedItems ?? [],
+          counts[1]?.failedItems ?? [],
+          counts[2]?.failedItems ?? [],
+        );
+        const clients = await self.clients.matchAll();
+        clients.forEach((client) => {
+          try {
+            client.postMessage({ type: "sync-complete", failedCount: totalFailed, failedItems, batch: true });
+          } catch (_err) {}
+        });
+      })(),
     );
   }
   if (data.type === "GET_QUEUE_LENGTH") {
@@ -121,7 +153,7 @@ self.addEventListener("message", (event) => {
     );
   }
   if (data.type === "GET_QUEUE_ITEMS") {
-    const limit = Math.min(Math.max(0, parseInt(data.limit, 10) || 50), 200);
+    const limit = Math.min(Math.max(0, parseInt(data.limit, 10) || 50), 500);
     const origin = self.location.origin;
     event.waitUntil(
       Promise.all([
@@ -171,7 +203,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (OFFLINE_CONFIG.enabled && isApiWriteRequest(request, url)) {
+  if (OFFLINE_CONFIG.enabled && isApiWriteRequest(request, url) && isApiWriteAllowedByToggles(url)) {
     event.respondWith(handleApiWrite(request, url));
     return;
   }
@@ -201,7 +233,11 @@ self.addEventListener("sync", (event) => {
     event.waitUntil(replayQueue("api"));
   } else if (event.tag === "offline-sync-all") {
     event.waitUntil(
-      Promise.all([replayQueue("attendance"), replayQueue("grade"), replayQueue("api")]),
+      (async () => {
+        await replayQueue("attendance");
+        await replayQueue("grade");
+        await replayQueue("api");
+      })(),
     );
   }
 });
@@ -232,6 +268,14 @@ function queueAllowed(syncType) {
   if (syncType === "grade") return !!OFFLINE_CONFIG.gradeSyncEnabled;
   if (syncType === "api") return !!OFFLINE_CONFIG.apiSyncEnabled;
   return false;
+}
+
+function isApiWriteAllowedByToggles(url) {
+  const path = url.pathname || "";
+  if (path.startsWith("/api/entity") || path.startsWith("/api/entities")) return !!OFFLINE_CONFIG.entitySyncEnabled;
+  if (path.startsWith("/api/requests/")) return !!OFFLINE_CONFIG.requestsSyncEnabled;
+  if (path.startsWith("/api/finance/")) return !!OFFLINE_CONFIG.apiSyncEnabled;
+  return !!OFFLINE_CONFIG.apiSyncEnabled;
 }
 
 /** Stale-While-Revalidate: return cached API response immediately if present, then revalidate in background. */
@@ -299,6 +343,27 @@ async function handleApiWrite(request, url) {
   try {
     return await fetch(request.clone());
   } catch (_err) {
+    const hubBaseUrl = (OFFLINE_CONFIG.hubBaseUrl || "").trim();
+    if (hubBaseUrl) {
+      const hubOrigin = hubBaseUrl.replace(/\/$/, "");
+      const hubUrl = hubOrigin + url.pathname + url.search;
+      try {
+        const body = await request.clone().text();
+        const headers = {};
+        request.headers.forEach((value, key) => {
+          const k = key.toLowerCase();
+          if (!["cookie", "authorization", "content-length"].includes(k)) headers[key] = value;
+        });
+        if (!headers["Content-Type"]) headers["Content-Type"] = "application/json";
+        const res = await fetch(hubUrl, {
+          method: request.method,
+          headers,
+          body: body || undefined,
+          credentials: "omit",
+        });
+        if (res.ok) return res;
+      } catch (_hubErr) {}
+    }
     const syncType = inferSyncType(url.pathname);
     if (!queueAllowed(syncType)) {
       return new Response(
@@ -407,6 +472,80 @@ async function replayQueue(syncType) {
     if (nextRetryAt > now) {
       continue;
     }
+    const url = item.requestUrl && item.requestUrl.startsWith("http") ? item.requestUrl : origin + (item.requestUrl || "");
+    const body = typeof item.body === "string" ? maybeDecryptBody(item.body) : (item.body || "");
+    const headers = { "Content-Type": "application/json" };
+    if (item.headers && typeof item.headers === "object") {
+      Object.keys(item.headers).forEach((k) => {
+        const l = k.toLowerCase();
+        if (!SKIP_HEADERS.includes(l)) headers[k] = item.headers[k];
+      });
+    }
+    try {
+      const response = await fetch(url, {
+        method: item.method || "POST",
+        headers,
+        body,
+        credentials: "include",
+      });
+      if (response.ok) {
+        await deleteSyncItem(item.id);
+        succeeded++;
+      } else if (response.status >= 400 && response.status < 500) {
+        let message = "";
+        try {
+          const json = await response.clone().json();
+          message = json.error || json.message || json.detail || "";
+        } catch (_) {}
+        failedItems.push({
+          url: url.replace(origin, ""),
+          status: response.status,
+          message: message || ("HTTP " + response.status),
+        });
+        await deleteSyncItem(item.id);
+        failed++;
+      } else {
+        const attemptCount = (item.attemptCount || 0) + 1;
+        const delay = backoffDelayMs(attemptCount);
+        await updateSyncItem(item.id, {
+          lastAttemptAt: now,
+          attemptCount,
+          nextRetryAt: now + delay,
+        });
+      }
+    } catch (_err) {
+      const attemptCount = (item.attemptCount || 0) + 1;
+      const delay = backoffDelayMs(attemptCount);
+      await updateSyncItem(item.id, {
+        lastAttemptAt: now,
+        attemptCount,
+        nextRetryAt: now + delay,
+      });
+    }
+  }
+  return { succeeded, failed, failedItems };
+}
+
+/**
+ * Replay up to `limit` items for a sync type (for drip/batch replay).
+ * @param {string} syncType
+ * @param {number} limit
+ * @returns {{ succeeded: number, failed: number, failedItems: Array }}
+ */
+async function replayQueueLimit(syncType, limit) {
+  const items = await getSyncItems(syncType);
+  const sorted = (items || []).slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  const now = Date.now();
+  const toReplay = [];
+  for (const item of sorted) {
+    if (toReplay.length >= limit) break;
+    if ((item.nextRetryAt || 0) <= now) toReplay.push(item);
+  }
+  let succeeded = 0;
+  let failed = 0;
+  const failedItems = [];
+  const origin = self.location.origin;
+  for (const item of toReplay) {
     const url = item.requestUrl && item.requestUrl.startsWith("http") ? item.requestUrl : origin + (item.requestUrl || "");
     const body = typeof item.body === "string" ? maybeDecryptBody(item.body) : (item.body || "");
     const headers = { "Content-Type": "application/json" };

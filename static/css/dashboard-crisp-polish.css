@@ -6,6 +6,15 @@
  * Complements dashboard-high-contrast.css and dashboard-text-visibility.css.
  */
 
+:root {
+  --crisp-card-radius: 12px;
+  --crisp-card-border: color-mix(in srgb, var(--vis-border, rgba(15, 23, 42, 0.14)) 88%, var(--school-primary, #3b82f6) 12%);
+  --crisp-card-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --crisp-card-shadow-dark: 0 12px 26px rgba(2, 8, 23, 0.42);
+  --crisp-heading: var(--vis-heading-strong, var(--vis-text, #0f172a));
+  --crisp-muted: var(--vis-text-muted, #475569);
+}
+
 /* ===== Main content area – crisp background (all dashboard pages) ===== */
 body[data-dashboard-page] #main-content,
 body[data-dashboard-page] .portal-main-col,
@@ -42,8 +51,9 @@ body.portal-backend-dark .portal-main-col {
 .compliance-dashboard .card,
 .parent-dashboard .card,
 .teacher-shell .card {
-  border-radius: 10px;
+  border-radius: var(--crisp-card-radius);
   border-width: 1px;
+  border-color: var(--crisp-card-border);
 }
 #dashboard-layout .card .card-body,
 .dashboard-layout-unified .card .card-body,
@@ -83,6 +93,7 @@ html[data-bs-theme="light"] .compliance-dashboard .card {
   background: var(--admin-content-bg);
   border-color: #e2e8f0;
   color: var(--admin-content-text);
+  box-shadow: var(--crisp-card-shadow);
 }
 :root:not([data-theme="dark"]) .card .card-title,
 html[data-bs-theme="light"] .card .card-title,
@@ -105,12 +116,39 @@ html[data-bs-theme="dark"] .compliance-dashboard .card {
   background: #1e293b;
   border-color: #334155;
   color: #f8fafc;
+  box-shadow: var(--crisp-card-shadow-dark);
 }
 [data-theme="dark"] .card .card-title,
 html[data-bs-theme="dark"] .card .card-title,
 body.portal-backend-dark #dashboard-layout .card-title,
 html[data-bs-theme="dark"] [data-dashboard-page] .card-title {
   color: #f8fafc !important;
+}
+
+[data-dashboard-page] h1,
+[data-dashboard-page] h2,
+[data-dashboard-page] h3,
+[data-dashboard-page] h4,
+[data-dashboard-page] h5,
+[data-dashboard-page] h6,
+[data-dashboard-page] .card-title,
+[data-dashboard-page] .section-title {
+  color: var(--crisp-heading) !important;
+}
+
+[data-dashboard-page] .text-muted,
+[data-dashboard-page] .small.text-muted,
+[data-dashboard-page] .dashboard-eyebrow,
+[data-dashboard-page] .meta-tag {
+  color: var(--crisp-muted) !important;
+}
+
+[data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: color-mix(in srgb, var(--school-primary, #3b82f6) 72%, var(--crisp-heading) 28%);
+}
+
+[data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+  color: color-mix(in srgb, var(--school-primary, #3b82f6) 84%, var(--crisp-heading) 16%);
 }
 
 /* ===== Status badges & pills – clearly visible (all dashboards) ===== */
@@ -321,7 +359,7 @@ html[data-bs-theme="dark"] [data-dashboard-page] .dashboard-kpi-value {
 /* ===== Charts – axis/legend already in high-contrast; ensure container crisp ===== */
 .dashboard-chart-card,
 .dashboard-chart-wrapper {
-  border-radius: 10px;
+  border-radius: var(--crisp-card-radius);
 }
 .dashboard-chart-card .card-body {
   padding: 1rem 1.25rem;
@@ -357,6 +395,22 @@ html[data-bs-theme="dark"] [data-dashboard-page] .form-control,
 body.portal-backend-dark .form-control::placeholder,
 html[data-bs-theme="dark"] [data-dashboard-page] .form-control::placeholder {
   color: #94a3b8;
+}
+
+/* Theme & Experience page: keep studio cards, headings, and controls legible in every palette */
+.theme-experience-page .card,
+body.app-siteconfig.model-sitesettings.change-form .card {
+  border-radius: var(--crisp-card-radius);
+  border-color: var(--crisp-card-border) !important;
+}
+
+.theme-experience-page h1,
+.theme-experience-page h2,
+.theme-experience-page h3,
+body.app-siteconfig.model-sitesettings.change-form h1,
+body.app-siteconfig.model-sitesettings.change-form h2,
+body.app-siteconfig.model-sitesettings.change-form h3 {
+  color: var(--crisp-heading) !important;
 }
 
 /* ===== List items (e.g. Current Partnerships, Messages) – clear separation (all dashboards) ===== */

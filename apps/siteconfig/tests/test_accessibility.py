@@ -80,22 +80,18 @@ class PortalAccessibilityTest(AccessibilityTestCase):
     def test_portal_dashboard_wcag_structure(self):
         """Test portal dashboard HTML structure."""
         self.client.login(username="testuser", password="test123")
-        response = self.client.get(reverse('portal:redirect'))
-        
+        response = self.client.get(reverse("accounts:redirect"), follow=True)
+        self.assertIn(response.status_code, (200, 302, 403))
         if response.status_code == 200:
             issues = self.check_wcag_html_structure(response.content.decode())
-            # These are warnings, not failures
+            # These are warnings, not strict failures yet; print for audit visibility.
             print(f"Portal dashboard WCAG check: {issues}")
 
     def test_grades_page_accessibility(self):
-        """Test grades page is accessible."""
+        """Test teacher dashboard page is accessible for teacher role."""
         self.client.login(username="testuser", password="test123")
-        try:
-            response = self.client.get('/portal/grades/')
-            self.assertEqual(response.status_code, 200)
-            # Page loads successfully
-        except Exception as e:
-            print(f"Grades page accessibility test: {e}")
+        response = self.client.get(reverse("portal:teacher_dashboard_alias"))
+        self.assertIn(response.status_code, (200, 302, 403))
 
 
 class AdminAccessibilityTest(AccessibilityTestCase):

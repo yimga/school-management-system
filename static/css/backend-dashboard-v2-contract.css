@@ -23,6 +23,10 @@ body[data-dashboard-page="backend"] {
   --backend-title-size: 1.56rem;
   --backend-card-title-size: 1.02rem;
   --backend-data-size: 1.72rem;
+  --backend-scroll-cap-main: clamp(180px, 28vh, 296px);
+  --backend-scroll-cap-rail: clamp(170px, 24vh, 260px);
+  --backend-heading-color: var(--vis-heading-strong, var(--admin-text, #0f172a));
+  --backend-subheading-color: var(--vis-text-muted, var(--admin-muted, #475569));
 }
 
 body[data-dashboard-page="backend"] .backend-v2-overview-head h2,
@@ -41,6 +45,24 @@ body[data-dashboard-page="backend"] .backend-v2-panel-title,
 body[data-dashboard-page="backend"] .dashboard-chart-header .card-title {
   font-family: var(--backend-font-heading);
   font-size: var(--backend-card-title-size);
+  color: var(--backend-heading-color) !important;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-overview-head h2,
+body[data-dashboard-page="backend"] .backend-v2-welcome-title,
+body[data-dashboard-page="backend"] .backend-v2-side-title,
+body[data-dashboard-page="backend"] .backend-v2-rail-card h6 {
+  color: var(--backend-heading-color) !important;
+  text-shadow: 0 1px 0 rgba(2, 6, 23, 0.16);
+}
+
+body.portal-backend-dark[data-dashboard-page="backend"] .backend-v2-overview-head h2,
+body.portal-backend-dark[data-dashboard-page="backend"] .backend-v2-welcome-title,
+body.portal-backend-dark[data-dashboard-page="backend"] .backend-v2-side-title,
+body.portal-backend-dark[data-dashboard-page="backend"] .backend-v2-rail-card h6,
+body.portal-backend-dark[data-dashboard-page="backend"] .backend-v2-panel-title,
+body.portal-backend-dark[data-dashboard-page="backend"] .dashboard-chart-header .card-title {
+  text-shadow: 0 1px 0 rgba(2, 8, 23, 0.6);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-metric-value,
@@ -56,6 +78,16 @@ body[data-dashboard-page="backend"] .backend-v2-kpi-meta,
 body[data-dashboard-page="backend"] .backend-v2-metric-meta,
 body[data-dashboard-page="backend"] .backend-v2-list-item .small {
   font-family: var(--backend-font-body);
+  color: var(--backend-subheading-color) !important;
+  opacity: 1 !important;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-side-meta,
+body[data-dashboard-page="backend"] .backend-v2-mini span,
+body[data-dashboard-page="backend"] .backend-v2-rail-card .small,
+body[data-dashboard-page="backend"] .backend-v2-rail-card .text-muted {
+  color: var(--backend-subheading-color) !important;
+  opacity: 1 !important;
 }
 
 /* Unified workspace/grid contract */
@@ -139,15 +171,21 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel,
 body[data-dashboard-page="backend"] .backend-v2-rail-card {
   position: relative;
   overflow: hidden;
+  border-radius: 14px;
   border-width: 1px;
   border-style: solid;
-  border-color: color-mix(in srgb, var(--admin-border, #cbd5e1) 82%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 18%);
+  border-color: color-mix(in srgb, var(--admin-border, #cbd5e1) 72%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 28%) !important;
   background:
     linear-gradient(
       148deg,
-      color-mix(in srgb, var(--admin-surface, #fff) 92%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 8%),
-      color-mix(in srgb, var(--admin-surface, #fff) 96%, var(--dashboard-theme-accent, var(--brand-accent, #22c55e)) 4%)
-    );
+      color-mix(in srgb, var(--admin-surface, #fff) 86%, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6)) 14%),
+      color-mix(in srgb, var(--admin-surface, #fff) 92%, var(--dashboard-theme-accent, var(--brand-accent, #22c55e)) 8%)
+    ) !important;
+  box-shadow:
+    0 12px 26px color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 10%, transparent),
+    0 2px 10px rgba(2, 6, 23, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-card::after,
@@ -161,8 +199,13 @@ body[data-dashboard-page="backend"] .backend-v2-rail-card::after {
   background:
     radial-gradient(
       320px 120px at 108% -24%,
-      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 12%, transparent),
+      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 16%, transparent),
       transparent 66%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 3%, transparent),
+      transparent 32%
     );
 }
 
@@ -202,13 +245,24 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-wrapp
   height: 100% !important;
 }
 
-body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-card-scroll,
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-card-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: var(--backend-scroll-cap-main);
+  scrollbar-gutter: stable both-edges;
+  overscroll-behavior: contain;
+}
+
 body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
 body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
 body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  max-height: var(--backend-scroll-cap-rail);
+  scrollbar-gutter: stable both-edges;
+  overscroll-behavior: contain;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] .dashboard-card-scroll,
@@ -226,45 +280,45 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
   margin-top: auto;
 }
 
-/* Deterministic row heights on desktop; rail matches workbench height */
+/* Desktop contract: balanced rows without locking every card to viewport height */
 @media (min-width: 1201px) {
   body[data-dashboard-page="backend"] {
-    --backend-row-1: clamp(192px, 24vh, 248px);
-    --backend-row-2: clamp(108px, 14vh, 152px);
-    --backend-row-3: clamp(184px, 23vh, 236px);
-    --backend-main-height: calc(var(--backend-row-1) + var(--backend-row-2) + var(--backend-row-3) + (var(--dash-gap) * 2));
+    --backend-row-1-min: clamp(236px, 30vh, 332px);
+    --backend-row-2-min: clamp(200px, 24vh, 290px);
+    --backend-row-3-min: clamp(210px, 24vh, 300px);
+    --backend-scroll-cap-main: clamp(190px, 30vh, 320px);
+    --backend-scroll-cap-rail: clamp(190px, 28vh, 300px);
   }
 
   body[data-dashboard-page="backend"] .backend-v2-workbench {
-    height: var(--backend-main-height);
-    min-height: var(--backend-main-height);
+    min-height: 0;
+    overflow: visible;
   }
 
   body[data-dashboard-page="backend"] .backend-v2-main-grid {
-    height: 100%;
-    min-height: var(--backend-main-height);
-    grid-template-rows: var(--backend-row-1) var(--backend-row-2) var(--backend-row-3);
+    grid-template-rows:
+      minmax(var(--backend-row-1-min), auto)
+      minmax(var(--backend-row-2-min), auto)
+      minmax(var(--backend-row-3-min), auto);
   }
 
   body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] .dashboard-chart-wrapper {
-    min-height: 102px;
+    min-height: 132px;
   }
 
   body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] .dashboard-chart-wrapper {
-    min-height: 62px;
+    min-height: 112px;
   }
 
   body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
-    min-height: var(--backend-row-3);
+    min-height: var(--backend-row-3-min);
   }
 
   body[data-dashboard-page="backend"] .backend-v2-rail {
     display: grid;
     gap: var(--dash-gap);
-    min-height: var(--backend-main-height);
-    height: var(--backend-main-height);
-    grid-template-rows: minmax(0, 1.18fr) minmax(0, 0.98fr) minmax(0, 0.92fr);
-    overflow: hidden;
+    grid-template-rows: minmax(220px, auto) minmax(208px, auto) minmax(228px, auto);
+    align-content: start;
   }
 
   body[data-dashboard-page="backend"] .backend-v2-rail > .card {
@@ -339,7 +393,7 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
   body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
   body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
   body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
-    max-height: 240px;
+    max-height: 300px;
   }
 }
 
@@ -363,7 +417,7 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
   body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
   body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
   body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
-    max-height: 280px;
+    max-height: 360px;
   }
 }
 
@@ -426,14 +480,16 @@ body[data-dashboard-page="backend"] .backend-v2-kpi {
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-header .card-title,
-body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-title {
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-title,
+body[data-dashboard-page="backend"] .backend-v2-rail-card h6 {
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-header .card-title::before,
-body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-title::before {
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-title::before,
+body[data-dashboard-page="backend"] .backend-v2-rail-card h6::before {
   content: "";
   width: 0.48rem;
   height: 0.9rem;
@@ -441,6 +497,19 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-titl
   background: linear-gradient(180deg, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))), color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 35%, transparent));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 16%, transparent);
   flex-shrink: 0;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail-card .badge.bg-light,
+body[data-dashboard-page="backend"] .backend-v2-rail-card .badge.text-bg-light {
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 32%, var(--admin-border, #cbd5e1) 68%);
+  background: color-mix(in srgb, var(--card-accent, var(--dashboard-theme-primary, var(--brand-primary, #3b82f6))) 12%, var(--admin-surface, #fff) 88%) !important;
+  color: var(--backend-heading-color) !important;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail-card .backend-quick-link,
+body[data-dashboard-page="backend"] .backend-v2-rail-card .backend-ops-item a,
+body[data-dashboard-page="backend"] .backend-v2-rail-card .backend-ops-item strong {
+  color: var(--backend-heading-color) !important;
 }
 
 body[data-dashboard-page="backend"] .backend-ops-item {
@@ -464,31 +533,31 @@ body[data-dashboard-page="backend"] .backend-quick-link:hover {
 
 /* Preset density contracts */
 body.backend-preset-executive[data-dashboard-page="backend"] {
-  --dash-gap: 0.62rem;
-  --dash-block-spacing: 0.68rem;
-  --dash-card-pad: 0.84rem 1.02rem;
+  --dash-gap: 0.78rem;
+  --dash-block-spacing: 0.78rem;
+  --dash-card-pad: 0.96rem 1.14rem;
   --backend-title-size: 1.62rem;
   --backend-card-title-size: 1.04rem;
   --backend-data-size: 1.78rem;
 }
 
 body.backend-preset-operational[data-dashboard-page="backend"] {
-  --dash-gap: 0.42rem;
-  --dash-block-spacing: 0.48rem;
-  --dash-card-pad: 0.66rem 0.88rem;
+  --dash-gap: 0.72rem;
+  --dash-block-spacing: 0.72rem;
+  --dash-card-pad: 0.9rem 1.04rem;
   --backend-title-size: 1.46rem;
   --backend-card-title-size: 0.96rem;
   --backend-data-size: 1.56rem;
 }
 
 body.backend-preset-operational[data-dashboard-page="backend"] .backend-v2-action-grid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 body.backend-preset-analytical[data-dashboard-page="backend"] {
-  --dash-gap: 0.56rem;
-  --dash-block-spacing: 0.6rem;
-  --dash-card-pad: 0.78rem 1rem;
+  --dash-gap: 0.75rem;
+  --dash-block-spacing: 0.75rem;
+  --dash-card-pad: 0.94rem 1.08rem;
   --backend-title-size: 1.58rem;
   --backend-card-title-size: 1.02rem;
   --backend-data-size: 1.7rem;

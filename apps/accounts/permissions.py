@@ -10,6 +10,7 @@ Provides:
 from functools import wraps
 from typing import Optional, Callable, Any
 
+from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 from django.db import DatabaseError, transaction
 from django.http import HttpResponseForbidden, HttpRequest
@@ -596,7 +597,7 @@ def finance_access_required(*roles: str):
         user_role = getattr(user, "role", None)
         return user_role in roles or user.roles.filter(code__in=roles).exists()
     
-    return user_passes_test(check, redirect_url="/authentication/login/")
+    return user_passes_test(check, redirect_url=settings.LOGIN_URL)
 
 
 def evaluation_access_required(can_edit: bool = False):
@@ -633,7 +634,7 @@ def evaluation_access_required(can_edit: bool = False):
             code__in=allowed_roles
         ).exists()
     
-    return user_passes_test(check, redirect_url="/authentication/login/")
+    return user_passes_test(check, redirect_url=settings.LOGIN_URL)
 
 
 def object_permission_required(permission_func: Callable[[Any, int], bool]):

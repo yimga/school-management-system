@@ -20,7 +20,13 @@
   var pendingCount = 0;
   var syncingWaitingLength = false;
   var syncingViaBatch = false;
+  var serverUnreachable = false;
+  var weAreSyncing = false;
+  var syncingInOtherTab = false;
+  var syncChannel = null;
+  var exportQueueRequested = false;
   var SYNCING_DURATION_MS = 4000;
+  var SYNC_CHANNEL_NAME = 'sms-offline-sync';
   var REACHABILITY_TIMEOUT_MS = 5000;
   var REACHABILITY_URL = '/health/';
   var REACHABILITY_RETRY_INTERVAL_MS = 30000;
@@ -109,6 +115,7 @@
   function setState(online, syncing) {
     if (!bar || !dot || !textEl) return;
     if (syncing) {
+      serverUnreachable = false;
       bar.classList.remove('d-none');
       bar.classList.add('d-inline-flex');
       dot.style.background = '#ffc107';
@@ -120,6 +127,27 @@
       return;
     }
     if (syncBtn) { syncBtn.disabled = false; syncBtn.style.visibility = ''; }
+    if (online && syncingInOtherTab) {
+      bar.classList.remove('d-none');
+      bar.classList.add('d-inline-flex');
+      dot.style.background = '#ffc107';
+      textEl.textContent = 'Syncing in another tab';
+      if (spinnerEl) spinnerEl.classList.add('d-none');
+      if (syncBtn) { syncBtn.disabled = true; syncBtn.style.visibility = 'hidden'; }
+      if (lastSyncedEl) lastSyncedEl.classList.add('d-none');
+      if (conflictsBtn) conflictsBtn.classList.add('d-none');
+      return;
+    }
+    if (online && serverUnreachable) {
+      bar.classList.remove('d-none');
+      bar.classList.add('d-inline-flex');
+      dot.style.background = '#fd7e14';
+      textEl.textContent = 'Server unreachable';
+      if (spinnerEl) spinnerEl.classList.add('d-none');
+      if (lastSyncedEl) lastSyncedEl.classList.add('d-none');
+      if (conflictsBtn) conflictsBtn.classList.add('d-none');
+      return;
+    }
     if (online) {
       stopReachabilityRetry();
       stopQueueLengthPolling();
@@ -209,20 +237,13 @@
     }, SYNCING_DURATION_MS);
   }
 
+  function setServerUnreachable(flag) {
+    serverUnreachable = !!flag;
+  }
+
   function showUnreachableBriefly() {
-    if (bar && dot) {
-      dot.style.background = '#fd7e14';
-      bar.classList.remove('d-none');
-      bar.classList.add('d-inline-flex');
-    }
-    if (textEl) {
-      var prev = textEl.textContent;
-      textEl.textContent = 'Server unreachable';
-      setTimeout(function () {
-        if (textEl) textEl.textContent = navigator.onLine ? 'Connected' : prev;
-        if (dot) dot.style.background = navigator.onLine ? '#198754' : '#fd7e14';
-      }, 3000);
-    }
+    serverUnreachable = true;
+    setState(true, false);
     if (typeof document.dispatchEvent === 'function') {
       document.dispatchEvent(new CustomEvent('sms-sync-unreachable', { bubbles: true }));
       document.dispatchEvent(new CustomEvent('showToast', {
@@ -234,8 +255,17 @@
   function triggerSyncNow() {
     if (!navigator.serviceWorker || !navigator.serviceWorker.controller) return;
     stopReachabilityRetry();
+    weAreSyncing = true;
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        syncChannel = syncChannel || new BroadcastChannel(SYNC_CHANNEL_NAME);
+        syncChannel.postMessage({ type: 'sync-busy' });
+      } catch (_) {}
+    }
     checkReachability().then(function (reachable) {
       if (!reachable) {
+        weAreSyncing = false;
+        if (syncChannel) try { syncChannel.postMessage({ type: 'sync-idle' }); } catch (_) {}
         setState(true, false);
         showUnreachableBriefly();
         return;
@@ -243,9 +273,16 @@
       setState(true, true);
       if (syncingTimeout) clearTimeout(syncingTimeout);
       syncingTimeout = null;
-      navigator.serviceWorker.controller.postMessage({ type: 'REPLAY_SYNC_NOW' });
+      var dripOn = window.SMSSyncManager && typeof window.SMSSyncManager.getDripModeSync === 'function' && window.SMSSyncManager.getDripModeSync();
+      if (dripOn && typeof window.SMSSyncManager.requestSyncBatch === 'function') {
+        window.SMSSyncManager.requestSyncBatch(10);
+      } else {
+        navigator.serviceWorker.controller.postMessage({ type: 'REPLAY_SYNC_NOW' });
+      }
       syncingTimeout = setTimeout(function () {
         syncingTimeout = null;
+        weAreSyncing = false;
+        if (syncChannel) try { syncChannel.postMessage({ type: 'sync-idle' }); } catch (_) {}
         setState(navigator.onLine, false);
       }, SYNCING_DURATION_MS);
     });
@@ -265,6 +302,7 @@
           return;
         }
         stopReachabilityRetry();
+        serverUnreachable = false;
         showSyncingTemporary();
         if (navigator.serviceWorker && navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({ type: 'REPLAY_SYNC_NOW' });
@@ -302,12 +340,47 @@
     var dismissBtn = document.getElementById('sms-offline-conflicts-dismiss-btn');
     if (dismissBtn) dismissBtn.addEventListener('click', clearConflictsAndClose);
 
+    if (typeof BroadcastChannel !== 'undefined') {
+      try {
+        syncChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        syncChannel.onmessage = function (e) {
+          var msg = e && e.data;
+          if (!msg || msg.type === undefined) return;
+          if (msg.type === 'sync-busy' && !weAreSyncing) {
+            syncingInOtherTab = true;
+            setState(navigator.onLine, false);
+          } else if (msg.type === 'sync-idle') {
+            syncingInOtherTab = false;
+            setState(navigator.onLine, false);
+          }
+        };
+      } catch (_) {}
+    }
+
+    var showOfflineDebug = (typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).get('offline_debug') === '1');
+    if (showOfflineDebug && bar && navigator.serviceWorker && navigator.serviceWorker.controller) {
+      var exportBtn = document.createElement('button');
+      exportBtn.type = 'button';
+      exportBtn.className = 'btn btn-link btn-sm p-0 ms-1 text-white-50 text-decoration-underline';
+      exportBtn.style.fontSize = 'inherit';
+      exportBtn.textContent = 'Export queue';
+      exportBtn.setAttribute('aria-label', 'Copy queue to clipboard (debug)');
+      exportBtn.addEventListener('click', function () {
+        exportQueueRequested = true;
+        navigator.serviceWorker.controller.postMessage({ type: 'GET_QUEUE_ITEMS', limit: 500 });
+      });
+      bar.appendChild(exportBtn);
+    }
+
     if (navigator.serviceWorker) {
       navigator.serviceWorker.addEventListener('message', function (event) {
         var d = event.data;
         if (!d) return;
         if (d.type === 'sync-complete') {
           if (syncingTimeout) { clearTimeout(syncingTimeout); syncingTimeout = null; }
+          weAreSyncing = false;
+          syncingInOtherTab = false;
+          if (syncChannel) try { syncChannel.postMessage({ type: 'sync-idle' }); } catch (_) {}
           pendingCount = 0;
           setState(navigator.onLine, false);
           var failed = d.failedCount || 0;
@@ -328,15 +401,30 @@
         }
         if (d.type === 'queue-length') {
           pendingCount = d.total != null ? d.total : 0;
+          if (pendingCount >= 0 && typeof fetch === 'function') {
+            var metricsUrl = (getConfig().baseUrl || '').replace(/\/+$/, '') + '/api/offline/queue_metrics/';
+            if (!metricsUrl.startsWith('http')) metricsUrl = window.location.origin + (metricsUrl.startsWith('/') ? metricsUrl : '/' + metricsUrl);
+            fetch(metricsUrl, {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json', 'X-CSRFToken': (document.querySelector('meta[name="csrf-token"]') || {}).content || '' },
+              body: JSON.stringify({ total: pendingCount, by_type: d.by_type || { attendance: d.attendance || 0, grade: d.grade || 0, api: d.api || 0 } })
+            }).catch(function () {});
+          }
           if (syncingWaitingLength) {
             syncingWaitingLength = false;
-            var threshold = (getConfig().batchReplayThreshold != null ? getConfig().batchReplayThreshold : 5);
-            if (pendingCount >= threshold && pendingCount > 0 && navigator.serviceWorker.controller) {
-              syncingViaBatch = true;
-              navigator.serviceWorker.controller.postMessage({ type: 'GET_QUEUE_ITEMS', limit: pendingCount + 50 });
+            var dripOn = window.SMSSyncManager && typeof window.SMSSyncManager.getDripModeSync === 'function' && window.SMSSyncManager.getDripModeSync();
+            if (dripOn) {
+              setState(navigator.onLine, false);
             } else {
-              if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type: 'REPLAY_SYNC_NOW' });
-              syncingTimeout = setTimeout(function () { syncingTimeout = null; setState(navigator.onLine, false); }, SYNCING_DURATION_MS);
+              var threshold = (getConfig().batchReplayThreshold != null ? getConfig().batchReplayThreshold : 5);
+              if (pendingCount >= threshold && pendingCount > 0 && navigator.serviceWorker.controller) {
+                syncingViaBatch = true;
+                navigator.serviceWorker.controller.postMessage({ type: 'GET_QUEUE_ITEMS', limit: pendingCount + 50 });
+              } else {
+                if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type: 'REPLAY_SYNC_NOW' });
+                syncingTimeout = setTimeout(function () { syncingTimeout = null; setState(navigator.onLine, false); }, SYNCING_DURATION_MS);
+              }
             }
           }
           if (!navigator.onLine && textEl) {
@@ -345,7 +433,30 @@
               : 'Offline – data will sync later';
           }
         }
-        if (d.type === 'queue-items' && syncingViaBatch && d.items && Array.isArray(d.items)) {
+        if (d.type === 'queue-items' && d.items && Array.isArray(d.items)) {
+          if (exportQueueRequested) {
+            exportQueueRequested = false;
+            try {
+              var json = JSON.stringify(d.items, null, 2);
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(json).then(function () {
+                  if (typeof document.dispatchEvent === 'function') {
+                    document.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Queue copied to clipboard (' + d.items.length + ' items)', type: 'info', duration: 3000 } }));
+                  }
+                }).catch(function () {
+                  if (typeof document.dispatchEvent === 'function') {
+                    document.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Copy failed. Queue: ' + d.items.length + ' items.', type: 'warning', duration: 3000 } }));
+                  }
+                });
+              } else {
+                if (typeof document.dispatchEvent === 'function') {
+                  document.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Queue: ' + d.items.length + ' items (clipboard not available)', type: 'info', duration: 3000 } }));
+                }
+              }
+            } catch (_) {}
+            return;
+          }
+          if (!syncingViaBatch) return;
           syncingViaBatch = false;
           var ids = d.items.map(function (it) { return it.id; }).filter(Boolean);
           var body = JSON.stringify({ items: d.items });
@@ -385,20 +496,34 @@
       stopQueueLengthPolling();
       pendingCount = 0;
       checkReachability().then(function (reachable) {
-        if (reachable) {
+        if (!reachable) {
+          setState(true, false);
+          showUnreachableBriefly();
+          startReachabilityRetry();
+          return;
+        }
+        var doReplay = function () {
           showSyncingTemporary();
           if (navigator.serviceWorker && navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({ type: 'REPLAY_SYNC_NOW' });
           }
+        };
+        if (window.SMSSyncManager && typeof window.SMSSyncManager.getDripMode === 'function') {
+          window.SMSSyncManager.getDripMode().then(function (drip) {
+            if (drip) {
+              setState(true, false);
+              return;
+            }
+            doReplay();
+          }).catch(function () { doReplay(); });
         } else {
-          setState(true, false);
-          showUnreachableBriefly();
-          startReachabilityRetry();
+          doReplay();
         }
       });
     });
     window.addEventListener('offline', function () {
       stopReachabilityRetry();
+      serverUnreachable = false;
       setState(false, false);
       startQueueLengthPolling();
     });
@@ -418,5 +543,5 @@
     init();
   }
 
-  window.SMSOfflineStatusBar = { setState: setState, showSyncing: showSyncingTemporary, triggerSyncNow: triggerSyncNow, checkReachability: checkReachability };
+  window.SMSOfflineStatusBar = { setState: setState, showSyncing: showSyncingTemporary, triggerSyncNow: triggerSyncNow, checkReachability: checkReachability, setServerUnreachable: setServerUnreachable };
 })();

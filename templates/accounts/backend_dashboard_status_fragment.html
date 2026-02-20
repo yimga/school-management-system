@@ -5,4 +5,9 @@
   {% if pending_requests > 0 %}
   <a href="{% url 'requests:dashboard' %}?status=PENDING" class="backend-status-strip__link">{% trans "Review" %}</a>
   {% endif %}
+  {% if enable_offline_mode and offline_queue_metrics %}
+  <span class="backend-status-strip__sep" aria-hidden="true">·</span>
+  <span class="backend-status-strip__label">{% trans "Offline queue (last reported)" %}:</span>
+  <strong class="backend-status-strip__value">{{ offline_queue_metrics.total|default:0 }}</strong>
+  {% endif %}
 </div>

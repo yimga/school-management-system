@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Q
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.urls import reverse
 from .models import StudentProfile, TeacherProfile, StudentGuardian
 from .forms_backend import StudentCreateForm, TeacherCreateForm, ClassroomCreateForm
 from apps.academics.models import AcademicYear, Classroom, Department
@@ -57,7 +58,7 @@ def backend_student_create(request):
                                     from django.core.mail import send_mail
                                     from django.conf import settings
                                     site_name = getattr(site, "site_name", None) or "School"
-                                    login_url = request.build_absolute_uri("/authentication/login/")
+                                    login_url = request.build_absolute_uri(reverse("accounts:login"))
                                     send_mail(
                                         subject=f"Your {site_name} parent portal account",
                                         message=(

@@ -72,7 +72,7 @@ class OfflineSyncBatchTestCase(TestCase):
         """When sync_batch is called with attendance data (as after 'coming back online'),
         the server creates the Attendance record so offline-queued save is visible."""
         try:
-            url = reverse("api:offline-sync-sync_batch")
+            url = reverse("api:offline-sync-sync-batch")
         except Exception:
             url = "/api/sync/sync_batch/"
         payload = {

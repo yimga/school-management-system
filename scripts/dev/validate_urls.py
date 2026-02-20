@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
 URL Validation Script. Run from project root: python scripts/dev/validate_urls.py
 Validates all URLs and internal links in the Django project.
@@ -85,7 +85,7 @@ def main():
     for link in sorted(list(valid))[:20]:
         print(f"    [OK] {link}")
     if broken:
-        print(f"\n  ⚠ Potentially broken links found: {len(broken)}")
+        print(f"\n  [WARN] Potentially broken links found: {len(broken)}")
         for item in broken[:10]:
             print(f"    [FAIL] {item['link']} in {item['file']}")
     else:
@@ -110,3 +110,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

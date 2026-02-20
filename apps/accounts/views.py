@@ -1588,10 +1588,23 @@ def backend_dashboard_status_fragment(request):
     except Exception:
         pass
 
+    enable_offline_mode = False
+    offline_queue_metrics = None
+    try:
+        from apps.siteconfig.models import SiteSettings
+        site = SiteSettings.get_solo()
+        enable_offline_mode = getattr(site, "enable_offline_mode", False)
+        if enable_offline_mode:
+            offline_queue_metrics = cache.get("sms_offline_queue_metrics")
+    except Exception:
+        pass
+
     template = loader.get_template("accounts/backend_dashboard_status_fragment.html")
     html = template.render({
         "request": request,
         "pending_requests": pending_requests,
+        "enable_offline_mode": enable_offline_mode,
+        "offline_queue_metrics": offline_queue_metrics,
     })
     cache.set(BACKEND_STATUS_FRAGMENT_CACHE_KEY, html, BACKEND_STATUS_FRAGMENT_CACHE_TTL)
     return HttpResponse(html)

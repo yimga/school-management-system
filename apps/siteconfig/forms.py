@@ -786,8 +786,21 @@ class ThemeColorsForm(forms.ModelForm):
 
         contrast_report = build_theme_contrast_report(cleaned)
         for failure in contrast_report["failures"]:
+            field_name = failure["field"]
+            incoming_value = cleaned.get(field_name)
+            current_value = None
+            if self.instance and getattr(self.instance, "pk", None):
+                current_value = getattr(self.instance, field_name, None)
+
+            # Do not block publish on unchanged legacy colors; keep contrast report visible in the UI.
+            if (
+                incoming_value not in (None, "")
+                and current_value is not None
+                and str(incoming_value).strip().lower() == str(current_value).strip().lower()
+            ):
+                continue
             self.add_error(
-                failure["field"],
+                field_name,
                 (
                     f"{failure['label']} needs stronger contrast ({failure['ratio']:.1f}:1). "
                     f"Minimum {failure['min_ratio']:.1f}:1 against {failure['target']}."

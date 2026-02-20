@@ -21,11 +21,16 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p class="small text-body-secondary">These items could not sync (e.g. changed on server). Open the relevant page and re-apply your changes if needed.</p>
+        <p class="small text-body-secondary mb-2">These items could not sync (e.g. changed on server or validation error).</p>
+        <ol class="small text-body-secondary mb-3 ps-3">
+          <li>Open the linked page below (or the relevant screen).</li>
+          <li>Re-apply your changes there and submit while online.</li>
+          <li>Use <strong>Dismiss</strong> to clear this list from the bar once you have fixed or discarded the changes.</li>
+        </ol>
         <ul id="sms-offline-conflicts-list" class="list-group list-group-flush"></ul>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="sms-offline-conflicts-dismiss-btn">Dismiss</button>
+        <button type="button" class="btn btn-secondary" id="sms-offline-conflicts-dismiss-btn">Dismiss list</button>
         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>

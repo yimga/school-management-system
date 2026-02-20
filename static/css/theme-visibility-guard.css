@@ -9,6 +9,9 @@
   --vis-text: var(--admin-text, var(--admin-content-text, #0f172a));
   --vis-text-muted: var(--admin-content-text-muted, #475569);
   --vis-border: var(--admin-border, var(--admin-content-border, rgba(15, 23, 42, 0.14)));
+  --vis-heading: color-mix(in srgb, var(--vis-text) 92%, #0f172a 8%);
+  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 96%, #0f172a 4%);
+  --vis-link: color-mix(in srgb, var(--school-primary, #3b82f6) 72%, var(--vis-text) 28%);
 }
 
 html[data-theme="dark"],
@@ -24,6 +27,9 @@ body.portal-backend-midnight {
   --vis-text: var(--admin-text, var(--admin-content-text, #f1f5f9));
   --vis-text-muted: var(--admin-content-text-muted, #94a3b8);
   --vis-border: var(--admin-border, var(--admin-content-border, rgba(148, 163, 184, 0.28)));
+  --vis-heading: color-mix(in srgb, var(--vis-text) 94%, #f8fafc 6%);
+  --vis-heading-strong: color-mix(in srgb, var(--vis-text) 97%, #f8fafc 3%);
+  --vis-link: color-mix(in srgb, var(--school-primary, #60a5fa) 62%, #f8fafc 38%);
 }
 
 /* Site Settings / Theme pack catalog hardening */
@@ -139,6 +145,31 @@ body.portal-backend-dark .badge.text-bg-light {
   opacity: 1 !important;
 }
 
+[data-dashboard-page] h1,
+[data-dashboard-page] h2,
+[data-dashboard-page] h3,
+[data-dashboard-page] h4,
+[data-dashboard-page] h5,
+[data-dashboard-page] h6,
+[data-dashboard-page] .card-title,
+[data-dashboard-page] .section-title,
+[data-dashboard-page] .backend-v2-panel-title,
+[data-dashboard-page] .backend-v2-side-title,
+[data-dashboard-page] .backend-v2-rail-card h6,
+[data-dashboard-page] .admin-controls__title,
+[data-dashboard-page] .admin-sysinfo__title {
+  color: var(--vis-heading-strong) !important;
+  opacity: 1 !important;
+}
+
+[data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: var(--vis-link);
+}
+
+[data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
+  color: color-mix(in srgb, var(--vis-link) 82%, var(--vis-heading-strong) 18%);
+}
+
 /* Secondary labels (e.g. meta-tag) stay readable; cap at 0.9 minimum */
 .modular-card .meta-tag,
 .card .meta-tag {
@@ -158,6 +189,21 @@ body.portal-backend-dark .badge.text-bg-light {
 .theme-experience-page .theme-pack-catalog .admin-dashboard-palette-group-title,
 .theme-experience-page .theme-pack-catalog .admin-dashboard-palette-name {
   color: var(--vis-text) !important;
+}
+
+.theme-experience-page h1,
+.theme-experience-page h2,
+.theme-experience-page h3,
+.theme-experience-page h4,
+.theme-experience-page h5,
+.theme-experience-page h6,
+body.app-siteconfig.model-sitesettings.change-form h1,
+body.app-siteconfig.model-sitesettings.change-form h2,
+body.app-siteconfig.model-sitesettings.change-form h3,
+body.app-siteconfig.model-sitesettings.change-form h4,
+body.app-siteconfig.model-sitesettings.change-form h5,
+body.app-siteconfig.model-sitesettings.change-form h6 {
+  color: var(--vis-heading-strong) !important;
 }
 
 .theme-experience-page .theme-pack-catalog .admin-dashboard-palette-desc,
@@ -202,4 +248,3 @@ html[data-theme="dark"] .theme-experience-page .admin-dashboard-palette-card,
 html[data-bs-theme="dark"] .theme-experience-page .admin-dashboard-palette-card {
   background: var(--vis-surface-muted) !important;
 }
-

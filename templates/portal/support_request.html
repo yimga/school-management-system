@@ -15,7 +15,7 @@
 
 <div class="card">
   <div class="card-body">
-    <form method="post">
+    <form method="post" id="support-request-form" data-draft-key="support_request" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced message">
       {% csrf_token %}
       {{ form.as_p }}
       {% if next_url %}
@@ -25,4 +25,13 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+(function() {
+  var form = document.getElementById('support-request-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
 {% endblock %}

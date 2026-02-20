@@ -1,0 +1,11 @@
+/**
+ * Reduce non-essential motion when data-low-power is set (low battery / Save Data).
+ * Applied when Reduce Activity When Low Power is enabled in Feature Control.
+ */
+[data-low-power="true"] *,
+[data-low-power="true"] *::before,
+[data-low-power="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

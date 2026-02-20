@@ -52,7 +52,9 @@ class TenantIsolationTests(TestCase):
     def test_api_entity_students_scoped_by_school(self):
         """Students API does not return school B's student when request is for school A."""
         self.client.force_login(self.user_a)
-        self.client.session["school_id"] = str(self.school_a.id)
+        session = self.client.session
+        session["school_id"] = str(self.school_a.id)
+        session.save()
         resp = self.client.get(reverse("api:entity-student-list"))
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
@@ -165,7 +167,7 @@ class OfflineSyncPerSchoolTests(TestCase):
         session["school_id"] = str(school.id)
         session.save()
 
-        url = reverse("api:offline-sync-sync_batch")
+        url = reverse("api:offline-sync-sync-batch")
         payload = {
             "device_id": str(device.device_id),
             "changes": [],

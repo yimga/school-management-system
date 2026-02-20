@@ -3,6 +3,7 @@ Provisioning task: after School row is created, create admin user, school_member
 Can be run as Celery task or synchronously.
 """
 import logging
+import secrets
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
@@ -42,7 +43,8 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             admin_user = User.objects.create_user(
                 username=username,
                 email=contact_email,
-                password=User.objects.make_random_password(length=32),
+                # Keep a strong random value even though we disable password login.
+                password=secrets.token_urlsafe(32),
                 role=User.Role.ADMIN,
             )
             admin_user.set_unusable_password()

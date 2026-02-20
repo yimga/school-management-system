@@ -5,6 +5,7 @@ Used when the service worker or client wants to sync many queued writes in one r
 """
 
 import json
+from django.core.cache import cache
 from django.test import Client
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +13,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.siteconfig.models import SiteSettings
+
+QUEUE_METRICS_CACHE_KEY = "sms_offline_queue_metrics"
+QUEUE_METRICS_CACHE_TIMEOUT = 86400
 
 
 # Paths allowed for batch replay (prefixes). Restrict to avoid abuse.
@@ -110,3 +114,78 @@ class OfflineReplayBatchAPI(APIView):
             "failed_count": len(failed_items),
             "failed_items": failed_items,
         })
+
+
+class PrefetchUrlsAPI(APIView):
+    """
+    GET: Returns a list of URLs the client should prefetch for offline (Auto-Pilot).
+    Role-based: teacher gets dashboard/teacher, entities/students, attendance; etc.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        site = SiteSettings.get_solo()
+        if not getattr(site, "enable_offline_mode", False):
+            return Response({"urls": []})
+        role = (getattr(request.user, "role", "") or "").upper()
+        base = request.build_absolute_uri("/").rstrip("/")
+        urls = []
+        if role == "TEACHER":
+            urls = [
+                base + "/api/dashboard/teacher/",
+                base + "/api/entities/students/",
+                base + "/api/attendance/",
+                base + "/api/entities/classrooms/",
+                base + "/portal/calendar/",
+                base + "/portal/teacher/timetable/",
+                base + "/portal/teacher/lesson-notes/",
+            ]
+        elif role in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN", "CENSOR", "BURSAR"):
+            urls = [
+                base + "/api/dashboard/admin/",
+                base + "/api/entities/students/",
+                base + "/api/attendance/",
+                base + "/api/entities/classrooms/",
+                base + "/portal/calendar/",
+            ]
+        elif role == "PARENT":
+            urls = [base + "/api/dashboard/parent/"]
+        elif role == "STUDENT":
+            urls = [base + "/api/dashboard/student/"]
+        else:
+            urls = []
+        return Response({"urls": urls[:30]})
+
+
+class QueueMetricsAPI(APIView):
+    """
+    GET: Returns last reported queue metrics (total, by_type) from clients.
+    POST: Accepts { "total": N, "by_type": { "attendance": n, "grade": n, "api": n } } and stores for admin/analytics.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        site = SiteSettings.get_solo()
+        if not getattr(site, "enable_offline_mode", False):
+            return Response({"total": 0, "by_type": {}})
+        data = cache.get(QUEUE_METRICS_CACHE_KEY)
+        if not data or not isinstance(data, dict):
+            return Response({"total": 0, "by_type": {}})
+        return Response(data)
+
+    def post(self, request):
+        site = SiteSettings.get_solo()
+        if not getattr(site, "enable_offline_mode", False):
+            return Response({"ok": False}, status=status.HTTP_403_FORBIDDEN)
+        total = request.data.get("total")
+        by_type = request.data.get("by_type")
+        if total is not None and not isinstance(total, (int, float)):
+            total = 0
+        if by_type is not None and not isinstance(by_type, dict):
+            by_type = {}
+        payload = {
+            "total": int(total) if total is not None else 0,
+            "by_type": {k: int(v) for k, v in (by_type or {}).items() if isinstance(v, (int, float))},
+        }
+        cache.set(QUEUE_METRICS_CACHE_KEY, payload, QUEUE_METRICS_CACHE_TIMEOUT)
+        return Response({"ok": True})

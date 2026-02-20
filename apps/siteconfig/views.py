@@ -135,6 +135,19 @@ def _safe_next_url(request, candidate, fallback):
     return fallback
 
 
+def _snapshot_theme_field_values(instance, field_names):
+    snapshot = {}
+    for field_name in field_names:
+        id_attr = f"{field_name}_id"
+        if hasattr(instance, id_attr):
+            field_id = getattr(instance, id_attr, None)
+            if field_id is not None:
+                snapshot[field_name] = field_id
+                continue
+        snapshot[field_name] = getattr(instance, field_name, None)
+    return snapshot
+
+
 @staff_member_required
 def preview_from_form(request):
     """
@@ -881,11 +894,12 @@ def theme_colors_page(request):
     tracked_theme_fields = list(ThemeColorsForm.Meta.fields)
 
     if request.method == "POST":
+        baseline_values = _snapshot_theme_field_values(site, tracked_theme_fields)
         form = ThemeColorsForm(request.POST, instance=site)
         if form.is_valid():
             changed_fields = []
             for field_name in tracked_theme_fields:
-                previous_value = getattr(site, field_name, None)
+                previous_value = baseline_values.get(field_name)
                 next_value = form.cleaned_data.get(field_name)
                 if hasattr(previous_value, "pk"):
                     previous_value = previous_value.pk

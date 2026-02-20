@@ -38,6 +38,8 @@ from apps.finance.api_views import FinancialAnalyticsAPI, InvoiceViewSet, Paymen
 from apps.api.ministry_placeholders import cartescolaire_placeholder, dgi_placeholder
 from apps.schools.api_views import SchoolConfigAPI
 from apps.analytics.benchmark_views import BenchmarkComparisonAPI
+from apps.api.offline_replay_views import OfflineReplayBatchAPI, PrefetchUrlsAPI, QueueMetricsAPI
+from apps.api.sync_delta_api import DeltaSyncAPI
 
 router = DefaultRouter()
 router.register(r'devices', MobileDeviceViewSet, basename='mobile-device')
@@ -88,7 +90,11 @@ urlpatterns = [
     # Phase 9: Ministry / external API placeholders (501 until implemented)
     path('ministry/cartescolaire/', cartescolaire_placeholder, name='ministry-cartescolaire'),
     path('ministry/dgi/', dgi_placeholder, name='ministry-dgi'),
-    
+    # Offline: batch replay (SW queue) and delta sync (Phase 2)
+    path('offline/replay_batch/', OfflineReplayBatchAPI.as_view(), name='offline-replay-batch'),
+    path('offline/delta/', DeltaSyncAPI.as_view(), name='offline-delta'),
+    path('offline/prefetch_urls/', PrefetchUrlsAPI.as_view(), name='offline-prefetch-urls'),
+    path('offline/queue_metrics/', QueueMetricsAPI.as_view(), name='offline-queue-metrics'),
     # ViewSet routes (notifications, devices, etc)
     path('', include(router.urls)),
 ]

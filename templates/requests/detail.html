@@ -39,7 +39,7 @@
 <div class="card shadow-sm mb-4">
   <div class="card-body">
     <h5 class="mb-3">Action</h5>
-    <form method="post" class="row g-3">
+    <form method="post" class="row g-3" id="request-action-form" data-draft-key="request_action_{{ req.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced decision">
       {% csrf_token %}
       <div class="col-12">
         <label class="form-label small">Decision notes / clarification reason</label>
@@ -96,4 +96,13 @@
     </div>
   </div>
 {% endif %}
+{% endblock %}
+
+{% block extrajs %}
+<script>
+(function() {
+  var form = document.getElementById('request-action-form');
+  if (form && window.FormDraftSave) window.FormDraftSave.init(form);
+})();
+</script>
 {% endblock %}

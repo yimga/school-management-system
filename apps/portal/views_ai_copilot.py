@@ -221,7 +221,7 @@ def is_query_allowed(user, query):
 
 @require_http_methods(["POST"])
 @csrf_protect
-@login_required(login_url='/authentication/login/')
+@login_required
 def ai_copilot_query(request):
     """
     Backend endpoint for AI Copilot queries.
@@ -403,7 +403,7 @@ def get_client_ip(request):
     return ip
 
 
-@login_required(login_url='/authentication/login/')
+@login_required
 def ai_permissions(request):
     """
     Return user's AI permissions without processing a query.
@@ -418,7 +418,7 @@ def ai_permissions(request):
 
 
 @require_GET
-@login_required(login_url='/authentication/login/')
+@login_required
 def ai_copilot_limits(request):
     """Return current rate limit status for the logged-in user."""
     key = f"ai_rl:{getattr(request.user, 'id', 'anon')}"
@@ -453,7 +453,7 @@ def ai_copilot_limits(request):
 
 
 @require_GET
-@login_required(login_url='/authentication/login/')
+@login_required
 def ai_copilot_config(request):
     """Return AI Copilot backend config visibility for frontend widgets."""
     api_key = os.environ.get('GEMINI_API_KEY', '')
@@ -470,7 +470,7 @@ def ai_copilot_config(request):
 
 
 @require_GET
-@login_required(login_url='/authentication/login/')
+@login_required
 def ai_copilot_audit_feed(request):
     """Return recent AI-related audit logs; staff/admin only."""
     user = request.user
