@@ -291,6 +291,7 @@ def module_market(request):
     """Module market (App Store): list available modules, activate/deactivate for current school (Phase 3)."""
     from django.http import HttpResponseForbidden
     from apps.schools.feature_registry import get_available_modules
+    from apps.siteconfig.feature_toggles import set_toggle_state
     from apps.accounts.models import User
     school = getattr(request, "school", None)
     if not school:
@@ -312,6 +313,16 @@ def module_market(request):
                 features[code] = False
             school.features = features
             school.save(update_fields=["features", "updated_at"])
+            set_toggle_state(
+                f"module.{code}",
+                enabled=bool(features[code]),
+                school=school,
+                user=request.user,
+                label=f"Module: {code}",
+                description=f"School-level module toggle for '{code}'.",
+                category="modules",
+                default_enabled=False,
+            )
             messages.success(request, f"Module '{code}' updated.")
             return redirect("siteconfig:module_market")
     active_codes = [k for k, v in features.items() if v]

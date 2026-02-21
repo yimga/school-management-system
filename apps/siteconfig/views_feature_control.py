@@ -18,8 +18,10 @@ from django.views.decorators.cache import never_cache
 from apps.accounts.decorators import permission_required
 from apps.siteconfig.models import (
     SiteSettings,
+    WeatherLocation,
     default_portal_features,
     default_backend_feature_flags,
+    default_header_weather_config,
 )
 from apps.siteconfig.models_dashboard import FeatureControlAudit
 
@@ -210,7 +212,139 @@ def _get_site_features(site: SiteSettings) -> dict:
     }
 
 
-def _apply_form_to_site(site: SiteSettings, form_data: dict) -> None:
+def _list_weather_locations() -> list[WeatherLocation]:
+    try:
+        WeatherLocation.ensure_seed_data()
+        return list(
+            WeatherLocation.objects.select_related("region")
+            .filter(is_active=True)
+            .order_by("region__name", "sort_order", "city")
+        )
+    except Exception:
+        return []
+
+
+def _safe_float(value, default: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _get_weather_selector_state(site: SiteSettings) -> dict:
+    defaults = default_header_weather_config()
+    flags = site.backend_feature_flags or default_backend_feature_flags()
+    location_id = flags.get("header_weather_location_id")
+    country_code = str(flags.get("header_weather_country_code") or defaults["header_weather_country_code"]).upper()
+    city_name = str(flags.get("header_weather_city") or defaults["header_weather_city"])
+    label = str(flags.get("header_weather_label") or defaults["header_weather_label"])
+    latitude = _safe_float(flags.get("header_weather_latitude"), defaults["header_weather_latitude"])
+    longitude = _safe_float(flags.get("header_weather_longitude"), defaults["header_weather_longitude"])
+    timezone_name = str(flags.get("header_weather_timezone") or defaults["header_weather_timezone"])
+
+    locations = _list_weather_locations()
+    selected = None
+    if location_id:
+        try:
+            selected = next((loc for loc in locations if loc.pk == int(location_id)), None)
+        except (TypeError, ValueError):
+            selected = None
+    if selected is None and country_code and city_name:
+        selected = next(
+            (
+                loc
+                for loc in locations
+                if loc.region_id == country_code and loc.city.lower() == city_name.lower()
+            ),
+            None,
+        )
+    if selected is None and country_code:
+        selected = next((loc for loc in locations if loc.region_id == country_code), None)
+    if selected is not None:
+        location_id = selected.pk
+        country_code = selected.region_id
+        city_name = selected.city
+        label = selected.display_label
+        latitude = float(selected.latitude)
+        longitude = float(selected.longitude)
+        timezone_name = selected.timezone or selected.region.timezone or timezone_name
+
+    countries = []
+    seen = set()
+    for loc in locations:
+        if loc.region_id in seen:
+            continue
+        seen.add(loc.region_id)
+        countries.append({"code": loc.region_id, "name": loc.region.name})
+    cities = [
+        {
+            "id": loc.pk,
+            "country_code": loc.region_id,
+            "city": loc.city,
+            "label": loc.display_label,
+            "timezone": loc.timezone or loc.region.timezone or "UTC",
+        }
+        for loc in locations
+    ]
+
+    return {
+        "location_id": location_id,
+        "country_code": country_code,
+        "city": city_name,
+        "label": label,
+        "latitude": latitude,
+        "longitude": longitude,
+        "timezone": timezone_name,
+        "countries": countries,
+        "cities": cities,
+    }
+
+
+def _resolve_weather_payload_from_post(site: SiteSettings, post_data) -> tuple[dict, dict]:
+    current = _get_weather_selector_state(site)
+    locations = _list_weather_locations()
+
+    selected_country = (post_data.get("weather_country_code") or current.get("country_code") or "").strip().upper()
+    selected_city_id = (post_data.get("weather_city_id") or "").strip()
+
+    selected = None
+    if selected_city_id:
+        try:
+            selected = next((loc for loc in locations if loc.pk == int(selected_city_id)), None)
+        except (TypeError, ValueError):
+            selected = None
+    if selected is None and selected_country:
+        selected = next((loc for loc in locations if loc.region_id == selected_country), None)
+
+    if selected is None:
+        payload = {
+            "header_weather_location_id": current.get("location_id"),
+            "header_weather_country_code": current.get("country_code"),
+            "header_weather_city": current.get("city"),
+            "header_weather_label": current.get("label"),
+            "header_weather_latitude": current.get("latitude"),
+            "header_weather_longitude": current.get("longitude"),
+            "header_weather_timezone": current.get("timezone"),
+        }
+        return payload, current
+
+    payload = selected.to_weather_flags()
+    payload["header_weather_location_id"] = selected.pk
+    state = {
+        "location_id": selected.pk,
+        "country_code": selected.region_id,
+        "city": selected.city,
+        "label": selected.display_label,
+        "latitude": float(selected.latitude),
+        "longitude": float(selected.longitude),
+        "timezone": selected.timezone or selected.region.timezone or "UTC",
+        "countries": current.get("countries", []),
+        "cities": current.get("cities", []),
+    }
+    return payload, state
+
+
+def _apply_form_to_site(site: SiteSettings, form_data: dict, weather_payload: dict | None = None) -> None:
     """Apply form checkbox values to SiteSettings."""
     portal = dict(site.portal_features or default_portal_features())
     flags = dict(site.backend_feature_flags or default_backend_feature_flags())
@@ -262,6 +396,8 @@ def _apply_form_to_site(site: SiteSettings, form_data: dict) -> None:
             site.reports_require_approved_grades_before_publish = bool(val)
         elif key == "reports_use_approved_grades_only":
             site.reports_use_approved_grades_only = bool(val)
+    if weather_payload:
+        flags.update(weather_payload)
     site.portal_features = portal
     site.backend_feature_flags = flags
     site.save(update_fields=[
@@ -297,8 +433,24 @@ def feature_control_export(request):
     """Export current feature configuration as JSON."""
     site = SiteSettings.get_solo()
     current = _get_site_features(site)
+    weather = _get_weather_selector_state(site)
     response = HttpResponse(
-        json.dumps({"features": current, "exported_at": timezone.now().isoformat()}, indent=2),
+        json.dumps(
+            {
+                "features": current,
+                "weather": {
+                    "location_id": weather.get("location_id"),
+                    "country_code": weather.get("country_code"),
+                    "city": weather.get("city"),
+                    "label": weather.get("label"),
+                    "latitude": weather.get("latitude"),
+                    "longitude": weather.get("longitude"),
+                    "timezone": weather.get("timezone"),
+                },
+                "exported_at": timezone.now().isoformat(),
+            },
+            indent=2,
+        ),
         content_type="application/json",
     )
     response["Content-Disposition"] = 'attachment; filename="feature-control-backup.json"'
@@ -318,14 +470,27 @@ def feature_control_panel(request):
         if action_type == "revert" and REVERT_SESSION_KEY in request.session:
             prev = request.session.pop(REVERT_SESSION_KEY, {})
             if prev:
-                changes = {k: {"from": current.get(k), "to": prev.get(k)} for k in current if current.get(k) != prev.get(k)}
-                _apply_form_to_site(site, prev)
+                prev_features = prev.get("features") if isinstance(prev, dict) else None
+                prev_weather_payload = prev.get("weather_payload") if isinstance(prev, dict) else None
+                if not isinstance(prev_features, dict):
+                    prev_features = prev if isinstance(prev, dict) else {}
+                if not isinstance(prev_weather_payload, dict):
+                    prev_weather_payload = None
+
+                changes = {
+                    k: {"from": current.get(k), "to": prev_features.get(k)}
+                    for k in current
+                    if current.get(k) != prev_features.get(k)
+                }
+                _apply_form_to_site(site, prev_features, weather_payload=prev_weather_payload)
                 _log_audit(request, "revert", changes)
                 logger.info("Feature control reverted by %s", request.user.username)
                 messages.success(request, "Reverted to previous settings.")
                 return redirect("siteconfig:feature_control_panel")
 
         form_data = {}
+        current_weather = _get_weather_selector_state(site)
+        weather_payload, weather_state = _resolve_weather_payload_from_post(site, request.POST)
         import_data = request.FILES.get("import_file")
         if import_data:
             if import_data.size > 2 * 1024 * 1024:  # 2MB max
@@ -337,6 +502,25 @@ def feature_control_panel(request):
                 imported = data.get("features") or data
                 for key in current:
                     form_data[key] = bool(imported.get(key, current.get(key)))
+
+                imported_weather = data.get("weather", {})
+                imported_country = (
+                    imported_weather.get("country_code")
+                    or imported_weather.get("header_weather_country_code")
+                    or weather_state.get("country_code")
+                )
+                imported_city_id = (
+                    imported_weather.get("location_id")
+                    or imported_weather.get("header_weather_location_id")
+                    or weather_state.get("location_id")
+                )
+                weather_payload, weather_state = _resolve_weather_payload_from_post(
+                    site,
+                    {
+                        "weather_country_code": imported_country,
+                        "weather_city_id": str(imported_city_id or ""),
+                    },
+                )
             except (json.JSONDecodeError, UnicodeDecodeError) as ex:
                 logger.warning("Feature control import failed: %s", ex)
                 messages.error(request, "Invalid import file. Use a valid JSON export.")
@@ -344,9 +528,40 @@ def feature_control_panel(request):
         else:
             for key in current:
                 form_data[key] = request.POST.get(f"feature_{key}") == "on"
-        changes_dict = {k: {"from": current.get(k), "to": form_data.get(k)} for k in current if current.get(k) != form_data.get(k)}
-        request.session[REVERT_SESSION_KEY] = dict(current)
-        _apply_form_to_site(site, form_data)
+
+        weather_changed = any(
+            [
+                weather_payload.get("header_weather_location_id") != current_weather.get("location_id"),
+                weather_payload.get("header_weather_country_code") != current_weather.get("country_code"),
+                weather_payload.get("header_weather_city") != current_weather.get("city"),
+                weather_payload.get("header_weather_label") != current_weather.get("label"),
+            ]
+        )
+
+        changes_dict = {
+            k: {"from": current.get(k), "to": form_data.get(k)}
+            for k in current
+            if current.get(k) != form_data.get(k)
+        }
+        if weather_changed:
+            changes_dict["backend_flags.header_weather_location"] = {
+                "from": current_weather.get("label"),
+                "to": weather_state.get("label"),
+            }
+
+        request.session[REVERT_SESSION_KEY] = {
+            "features": dict(current),
+            "weather_payload": {
+                "header_weather_location_id": current_weather.get("location_id"),
+                "header_weather_country_code": current_weather.get("country_code"),
+                "header_weather_city": current_weather.get("city"),
+                "header_weather_label": current_weather.get("label"),
+                "header_weather_latitude": current_weather.get("latitude"),
+                "header_weather_longitude": current_weather.get("longitude"),
+                "header_weather_timezone": current_weather.get("timezone"),
+            },
+        }
+        _apply_form_to_site(site, form_data, weather_payload=weather_payload)
         _log_audit(request, "import" if import_data else "save", changes_dict)
         logger.info("Feature control saved by %s: changed %s", request.user.username, list(changes_dict.keys()))
         now = timezone.now()
@@ -368,7 +583,6 @@ def feature_control_panel(request):
     }
     categories = []
     active_count = 0
-    key_to_meta = {}
     for cat_id, rows in FEATURE_CATEGORIES.items():
         label, icon = cat_labels.get(cat_id, (cat_id.replace("_", " ").title(), "bi-circle"))
         items = []
@@ -396,6 +610,7 @@ def feature_control_panel(request):
     total = sum(len(c["items"]) for c in categories)
     can_revert = REVERT_SESSION_KEY in request.session
     last_saved = cache.get(FEATURE_CONTROL_LAST_SAVED_KEY)
+    weather_state = _get_weather_selector_state(site)
     return render(request, "siteconfig/feature_control_panel.html", {
         "categories": categories,
         "active_count": active_count,
@@ -406,6 +621,9 @@ def feature_control_panel(request):
         "bulk_presets": BULK_PRESETS,
         "bulk_presets_json": json.dumps(BULK_PRESETS),
         "current_json": json.dumps(current),
+        "weather_state": weather_state,
+        "weather_countries": weather_state.get("countries", []),
+        "weather_cities": weather_state.get("cities", []),
     })
 
 
@@ -423,7 +641,17 @@ def feature_control_api(request):
     """REST API: GET returns current feature state as JSON."""
     site = SiteSettings.get_solo()
     current = _get_site_features(site)
+    weather_state = _get_weather_selector_state(site)
     return JsonResponse({
         "features": current,
+        "weather": {
+            "location_id": weather_state.get("location_id"),
+            "country_code": weather_state.get("country_code"),
+            "city": weather_state.get("city"),
+            "label": weather_state.get("label"),
+            "latitude": weather_state.get("latitude"),
+            "longitude": weather_state.get("longitude"),
+            "timezone": weather_state.get("timezone"),
+        },
         "updated_at": site.updated_at.isoformat() if hasattr(site, "updated_at") and site.updated_at else None,
     })

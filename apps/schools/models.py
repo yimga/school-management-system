@@ -87,9 +87,16 @@ class School(models.Model):
 
     def has_feature(self, code: str) -> bool:
         """Return True if the school has the given feature/module enabled."""
-        if not isinstance(self.features, dict):
+        normalized = (code or "").strip().lower()
+        if not normalized:
             return False
-        return bool(self.features.get(code))
+        fallback = bool(self.features.get(normalized)) if isinstance(self.features, dict) else False
+        try:
+            from apps.siteconfig.feature_toggles import resolve_module_enabled
+
+            return resolve_module_enabled(normalized, school=self, fallback=fallback)
+        except Exception:
+            return fallback
 
     def get_cname_target(self) -> str:
         """Return the hostname schools should CNAME their custom_domain to (whitelabel Phase 4)."""

@@ -137,7 +137,21 @@ def default_footer_links():
     ]
 
 
+def default_header_weather_config():
+    return {
+        "header_weather_location_id": None,
+        "header_weather_country_code": "CMR",
+        "header_weather_city": "Buea",
+        "header_weather_label": "Buea, Cameroon",
+        "header_weather_latitude": 4.1527,
+        "header_weather_longitude": 9.2410,
+        "header_weather_timezone": "Africa/Douala",
+        "header_weather_temperature_unit": "celsius",
+    }
+
+
 def default_backend_feature_flags():
+    weather = default_header_weather_config()
     return {
         "enable_entity_console": True,
         "enable_entity_import": True,
@@ -152,10 +166,14 @@ def default_backend_feature_flags():
         "show_header_context_datetime": True,
         "show_header_context_weather": True,
         "show_header_context_quote": True,
-        "header_weather_latitude": 4.1527,
-        "header_weather_longitude": 9.2410,
-        "header_weather_temperature_unit": "celsius",
-        "header_weather_label": "Buea, Cameroon",
+        "header_weather_country_code": weather["header_weather_country_code"],
+        "header_weather_location_id": weather["header_weather_location_id"],
+        "header_weather_city": weather["header_weather_city"],
+        "header_weather_latitude": weather["header_weather_latitude"],
+        "header_weather_longitude": weather["header_weather_longitude"],
+        "header_weather_temperature_unit": weather["header_weather_temperature_unit"],
+        "header_weather_timezone": weather["header_weather_timezone"],
+        "header_weather_label": weather["header_weather_label"],
         "request_persistent_browser_storage": True,
         "reduce_activity_low_power": False,
         "reachability_url": "",
@@ -2300,6 +2318,250 @@ class HolidayCalendar(models.Model):
         """Check if a specific date falls within this holiday."""
         return self.date_start <= date <= self.date_end
 
+
+class WeatherLocation(models.Model):
+    """
+    Configurable weather locations for the header/context strip.
+    Lets operators choose country -> city without hardcoding coordinates in templates.
+    """
+
+    region = models.ForeignKey(
+        RegionConfig,
+        on_delete=models.CASCADE,
+        related_name="weather_locations",
+    )
+    city = models.CharField(max_length=120)
+    label = models.CharField(max_length=180, blank=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    timezone = models.CharField(max_length=64, default="UTC")
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["region__name", "sort_order", "city"]
+        unique_together = [("region", "city")]
+
+    def __str__(self):
+        return self.display_label
+
+    @property
+    def display_label(self) -> str:
+        if self.label:
+            return self.label
+        return f"{self.city}, {self.region.name}"
+
+    def to_weather_flags(self) -> dict:
+        return {
+            "header_weather_country_code": self.region_id,
+            "header_weather_city": self.city,
+            "header_weather_label": self.display_label,
+            "header_weather_latitude": self.latitude,
+            "header_weather_longitude": self.longitude,
+            "header_weather_timezone": self.timezone or self.region.timezone or "UTC",
+        }
+
+    @classmethod
+    def _seed_rows(cls) -> list[dict]:
+        return [
+            {
+                "country_code": "CMR",
+                "country_name": "Cameroon",
+                "city": "Buea",
+                "label": "Buea, Cameroon",
+                "latitude": 4.1527,
+                "longitude": 9.2410,
+                "timezone": "Africa/Douala",
+                "sort_order": 10,
+            },
+            {
+                "country_code": "CMR",
+                "country_name": "Cameroon",
+                "city": "Douala",
+                "label": "Douala, Cameroon",
+                "latitude": 4.0511,
+                "longitude": 9.7679,
+                "timezone": "Africa/Douala",
+                "sort_order": 20,
+            },
+            {
+                "country_code": "USA",
+                "country_name": "United States",
+                "city": "New York",
+                "label": "New York, United States",
+                "latitude": 40.7128,
+                "longitude": -74.0060,
+                "timezone": "America/New_York",
+                "sort_order": 10,
+            },
+            {
+                "country_code": "USA",
+                "country_name": "United States",
+                "city": "Los Angeles",
+                "label": "Los Angeles, United States",
+                "latitude": 34.0522,
+                "longitude": -118.2437,
+                "timezone": "America/Los_Angeles",
+                "sort_order": 20,
+            },
+            {
+                "country_code": "GBR",
+                "country_name": "United Kingdom",
+                "city": "London",
+                "label": "London, United Kingdom",
+                "latitude": 51.5072,
+                "longitude": -0.1276,
+                "timezone": "Europe/London",
+                "sort_order": 10,
+            },
+            {
+                "country_code": "NGA",
+                "country_name": "Nigeria",
+                "city": "Lagos",
+                "label": "Lagos, Nigeria",
+                "latitude": 6.5244,
+                "longitude": 3.3792,
+                "timezone": "Africa/Lagos",
+                "sort_order": 10,
+            },
+            {
+                "country_code": "KEN",
+                "country_name": "Kenya",
+                "city": "Nairobi",
+                "label": "Nairobi, Kenya",
+                "latitude": -1.2864,
+                "longitude": 36.8172,
+                "timezone": "Africa/Nairobi",
+                "sort_order": 10,
+            },
+            {
+                "country_code": "FRA",
+                "country_name": "France",
+                "city": "Paris",
+                "label": "Paris, France",
+                "latitude": 48.8566,
+                "longitude": 2.3522,
+                "timezone": "Europe/Paris",
+                "sort_order": 10,
+            },
+        ]
+
+    @classmethod
+    def ensure_seed_data(cls) -> None:
+        if cls.objects.exists():
+            return
+        for row in cls._seed_rows():
+            region, _ = RegionConfig.objects.get_or_create(
+                code=row["country_code"],
+                defaults={
+                    "name": row["country_name"],
+                    "default_language": "en",
+                    "timezone": row["timezone"],
+                    "date_format": "DD/MM/YYYY",
+                    "grading_scale": "0-100",
+                    "default_currency": "USD",
+                    "academic_year_start_month": 9,
+                    "term_count_per_year": 3,
+                },
+            )
+            cls.objects.get_or_create(
+                region=region,
+                city=row["city"],
+                defaults={
+                    "label": row["label"],
+                    "latitude": row["latitude"],
+                    "longitude": row["longitude"],
+                    "timezone": row["timezone"],
+                    "sort_order": row["sort_order"],
+                },
+            )
+
+    @classmethod
+    def get_default(cls):
+        cls.ensure_seed_data()
+        location = (
+            cls.objects.select_related("region")
+            .filter(region_id="CMR", city__iexact="Buea")
+            .first()
+        )
+        if location:
+            return location
+        return cls.objects.select_related("region").filter(is_active=True).order_by("sort_order", "city").first()
+
+
+class FeatureToggleDefinition(models.Model):
+    """
+    Registry of configurable toggles.
+    Supports global defaults plus optional per-school overrides.
+    """
+
+    class Scope(models.TextChoices):
+        GLOBAL = "global", "Global only"
+        SCHOOL = "school", "School override allowed"
+
+    key = models.SlugField(max_length=120, unique=True)
+    label = models.CharField(max_length=160)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=80, blank=True)
+    scope = models.CharField(max_length=20, choices=Scope.choices, default=Scope.SCHOOL)
+    default_enabled = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["category", "label", "key"]
+
+    def __str__(self):
+        return self.label or self.key
+
+
+class FeatureToggleState(models.Model):
+    """
+    Effective toggle values.
+    - school=None => global override
+    - school=<id> => tenant override
+    """
+
+    definition = models.ForeignKey(
+        FeatureToggleDefinition,
+        on_delete=models.CASCADE,
+        related_name="states",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="feature_toggle_states",
+        null=True,
+        blank=True,
+    )
+    is_enabled = models.BooleanField(default=False)
+    value = models.JSONField(default=dict, blank=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_feature_toggle_states",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["definition", "school"],
+                name="siteconfig_toggle_state_unique_definition_school",
+            )
+        ]
+        ordering = ["definition__key", "school_id"]
+
+    def __str__(self):
+        scope = self.school.slug if self.school_id else "global"
+        return f"{self.definition.key} ({scope})"
 
 def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> None:
     global _SITE_SETTINGS_CACHE

@@ -22,15 +22,25 @@ class CertificateLocalizerTestCase(TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.region_cmr = RegionConfig.objects.create(
-            code='CMR', name='Cameroon', timezone='Africa/Douala',
-            default_currency='XAF', academic_year_start_month=9,
-            term_count_per_year=3
+        self.region_cmr, _ = RegionConfig.objects.update_or_create(
+            code='CMR',
+            defaults={
+                'name': 'Cameroon',
+                'timezone': 'Africa/Douala',
+                'default_currency': 'XAF',
+                'academic_year_start_month': 9,
+                'term_count_per_year': 3,
+            },
         )
-        self.region_ken = RegionConfig.objects.create(
-            code='KEN', name='Kenya', timezone='Africa/Nairobi',
-            default_currency='KES', academic_year_start_month=1,
-            term_count_per_year=3
+        self.region_ken, _ = RegionConfig.objects.update_or_create(
+            code='KEN',
+            defaults={
+                'name': 'Kenya',
+                'timezone': 'Africa/Nairobi',
+                'default_currency': 'KES',
+                'academic_year_start_month': 1,
+                'term_count_per_year': 3,
+            },
         )
 
     def test_certificate_localizer_english(self):
@@ -137,10 +147,15 @@ class TranscriptLocalizerTestCase(TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.region_cmr = RegionConfig.objects.create(
-            code='CMR', name='Cameroon', timezone='Africa/Douala',
-            default_currency='XAF', academic_year_start_month=9,
-            term_count_per_year=3
+        self.region_cmr, _ = RegionConfig.objects.update_or_create(
+            code='CMR',
+            defaults={
+                'name': 'Cameroon',
+                'timezone': 'Africa/Douala',
+                'default_currency': 'XAF',
+                'academic_year_start_month': 9,
+                'term_count_per_year': 3,
+            },
         )
 
     def test_transcript_localizer_init(self):
@@ -214,10 +229,15 @@ class FactoryFunctionsTestCase(TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.region_cmr = RegionConfig.objects.create(
-            code='CMR', name='Cameroon', timezone='Africa/Douala',
-            default_currency='XAF', academic_year_start_month=9,
-            term_count_per_year=3
+        self.region_cmr, _ = RegionConfig.objects.update_or_create(
+            code='CMR',
+            defaults={
+                'name': 'Cameroon',
+                'timezone': 'Africa/Douala',
+                'default_currency': 'XAF',
+                'academic_year_start_month': 9,
+                'term_count_per_year': 3,
+            },
         )
 
     def test_get_certificate_localizer(self):

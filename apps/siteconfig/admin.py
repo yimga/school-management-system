@@ -26,6 +26,9 @@ from .models import (
     RegionConfig,
     GradingScaleConfig,
     HolidayCalendar,
+    WeatherLocation,
+    FeatureToggleDefinition,
+    FeatureToggleState,
 )
 from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout, FeatureControlAudit
 from .context_processors import SESSION_KEY
@@ -1707,6 +1710,27 @@ class HolidayCalendarAdmin(ModelAdmin):
     export_holidays.short_description = "📥 Export to CSV"
 
 
+class WeatherLocationAdmin(ModelAdmin):
+    list_display = ("region", "city", "label", "latitude", "longitude", "timezone", "is_active", "sort_order")
+    list_filter = ("region", "is_active")
+    search_fields = ("city", "label", "region__name", "region__code")
+    ordering = ("region__name", "sort_order", "city")
+
+
+class FeatureToggleDefinitionAdmin(ModelAdmin):
+    list_display = ("key", "label", "category", "scope", "default_enabled", "is_active", "updated_at")
+    list_filter = ("category", "scope", "default_enabled", "is_active")
+    search_fields = ("key", "label", "description")
+    readonly_fields = ("created_at", "updated_at")
+
+
+class FeatureToggleStateAdmin(ModelAdmin):
+    list_display = ("definition", "school", "is_enabled", "updated_by", "updated_at")
+    list_filter = ("is_enabled", "school")
+    search_fields = ("definition__key", "definition__label", "school__name")
+    readonly_fields = ("created_at", "updated_at")
+
+
 # Register all models with custom admin site
 admin_site.register(SiteSettings, SiteSettingsAdmin)
 admin_site.register(ThemePack, ThemePackAdmin)
@@ -1719,6 +1743,9 @@ admin_site.register(Integration, IntegrationAdmin)
 admin_site.register(RegionConfig, RegionConfigAdmin)
 admin_site.register(GradingScaleConfig, GradingScaleConfigAdmin)
 admin_site.register(HolidayCalendar, HolidayCalendarAdmin)
+admin_site.register(WeatherLocation, WeatherLocationAdmin)
+admin_site.register(FeatureToggleDefinition, FeatureToggleDefinitionAdmin)
+admin_site.register(FeatureToggleState, FeatureToggleStateAdmin)
 
 # Register dashboard preference and widget models for admin configurability
 admin_site.register(DashboardUserPreference, DashboardUserPreferenceAdmin)

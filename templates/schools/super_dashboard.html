@@ -1,8 +1,8 @@
 {% extends "backend_base.html" %}
 {% load static %}
 
-{% block title %}Super Admin – Schools{% endblock %}
-{% block backend_title %}Super Admin – Schools{% endblock %}
+{% block title %}Super Admin - Schools{% endblock %}
+{% block backend_title %}Super Admin - Schools{% endblock %}
 
 {% block content %}
   <div class="container-fluid py-4">
@@ -32,7 +32,7 @@
                 <tr>
                   <td>{{ school.name }}</td>
                   <td><code>{{ school.slug }}</code></td>
-                  <td><code>{{ school.subdomain|default:"—" }}</code></td>
+                  <td><code>{{ school.subdomain|default:"--" }}</code></td>
                   <td>
                     {% if school.is_active %}
                       <span class="badge bg-success">Active</span>
@@ -44,7 +44,12 @@
                   <td>{{ school.teacher_count|default:0 }}</td>
                   <td>{{ school.member_count|default:0 }}</td>
                   <td>
-                    <a href="{% url 'admin:schools_school_change' school.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    {% url 'admin:schools_school_change' school.pk as school_edit_url %}
+                    {% if school_edit_url %}
+                      <a href="{{ school_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    {% else %}
+                      <span class="text-muted small">Edit unavailable</span>
+                    {% endif %}
                   </td>
                 </tr>
               {% empty %}

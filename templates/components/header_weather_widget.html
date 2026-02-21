@@ -105,8 +105,8 @@
   class="header-context-strip"
   data-header-context
   data-weather-endpoint="{% url 'api_weather_context' %}"
-  data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'4.1527' }}"
-  data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'9.2410' }}"
+  data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'0' }}"
+  data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'0' }}"
   data-weather-unit="{{ HEADER_WEATHER_TEMPERATURE_UNIT|default:'celsius' }}"
 >
   {% if show_datetime %}

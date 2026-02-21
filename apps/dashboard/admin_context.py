@@ -24,7 +24,7 @@ from django.utils import timezone
 
 from apps.dashboard.action_registry import get_admin_header_actions
 from apps.finance.models import Notification
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, default_header_weather_config
 
 logger = logging.getLogger(__name__)
 
@@ -47,14 +47,28 @@ def _safe_float(value: Any, default: float) -> float:
 
 def _build_admin_weather_config(site: SiteSettings) -> dict[str, Any]:
     flags = getattr(site, "backend_feature_flags", None) or {}
-    raw_unit = str(flags.get("header_weather_temperature_unit", "celsius")).lower()
+    weather_defaults = default_header_weather_config()
+    raw_unit = str(
+        flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"])
+    ).lower()
     temp_unit = "fahrenheit" if raw_unit in {"f", "fahrenheit"} else "celsius"
-    timezone_name = str(flags.get("header_weather_timezone") or settings.TIME_ZONE or "UTC")
+    timezone_name = str(
+        flags.get("header_weather_timezone")
+        or weather_defaults["header_weather_timezone"]
+        or settings.TIME_ZONE
+        or "UTC"
+    )
     return {
         "enabled": bool(flags.get("show_header_context_weather", True)),
-        "label": str(flags.get("header_weather_label", "Buea, Cameroon")),
-        "latitude": _safe_float(flags.get("header_weather_latitude", 4.1527), 4.1527),
-        "longitude": _safe_float(flags.get("header_weather_longitude", 9.2410), 9.2410),
+        "label": str(flags.get("header_weather_label", weather_defaults["header_weather_label"])),
+        "latitude": _safe_float(
+            flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
+            weather_defaults["header_weather_latitude"],
+        ),
+        "longitude": _safe_float(
+            flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
+            weather_defaults["header_weather_longitude"],
+        ),
         "temperature_unit": temp_unit,
         "timezone": timezone_name,
     }

@@ -1823,10 +1823,11 @@ def discipline_incidents_list(request: HttpRequest):
     if not _can_manage_discipline(request.user):
         return HttpResponseForbidden("You do not have permission to view disciplinary incidents.")
     from apps.academics.models import Incident
-    incidents = (
-        Incident.objects.select_related("student", "teacher", "created_by")
-        .order_by("-date", "-created_at")[:100]
-    )
+    incidents_qs = Incident.objects.select_related("school", "student", "teacher", "created_by")
+    school = getattr(request, "school", None)
+    if school is not None:
+        incidents_qs = incidents_qs.filter(school=school)
+    incidents = incidents_qs.order_by("-date", "-created_at")[:100]
     hero = {"title": "Disciplinary Incidents", "subtitle": "View and manage incidents (tardiness, behavior). Parents are notified when requested.", "actions": []}
     return render(request, "staff/discipline_incidents.html", {"hero": hero, "incidents": incidents})
 

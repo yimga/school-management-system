@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
 {% load static %}
 
-{% block title %}Create School – Super Admin{% endblock %}
+{% block title %}Create School - Super Admin{% endblock %}
 {% block backend_title %}Create School{% endblock %}
 
 {% block content %}
@@ -26,7 +26,8 @@
             </ul>
           </div>
           <div class="card-body">
-            <form id="wizard-form" data-edit-school-url-template="{% url 'admin:schools_school_change' '00000000-0000-0000-0000-000000000000' %}">
+            {% url 'admin:schools_school_change' '00000000-0000-0000-0000-000000000000' as school_admin_edit_template %}
+            <form id="wizard-form" data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}">
               {% csrf_token %}
               <div class="tab-content">
                 <div class="tab-pane fade show active" id="step1" role="tabpanel">
@@ -53,7 +54,7 @@
                   <div class="mb-3">
                     <label class="form-label" for="region_code">Region</label>
                     <select class="form-select" id="region_code" name="region_code">
-                      <option value="">— Select —</option>
+                      <option value="">-- Select --</option>
                       {% for r in regions %}
                         <option value="{{ r.code }}">{{ r.name }} ({{ r.code }})</option>
                       {% endfor %}

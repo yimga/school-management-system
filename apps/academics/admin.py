@@ -217,10 +217,17 @@ admin_site.register(Subject, SubjectAdmin)
 
 
 class IncidentAdmin(ModelAdmin):
-    list_display = ("date", "incident_type", "student", "teacher", "severity", "status", "notify_parent", "created_at")
-    list_filter = ("incident_type", "severity", "status", "notify_parent")
-    search_fields = ("description", "student__first_name", "student__last_name")
-    raw_id_fields = ("student", "teacher", "created_by")
+    list_display = ("date", "school", "incident_type", "student", "teacher", "severity", "status", "notify_parent", "created_at")
+    list_filter = ("school", "incident_type", "severity", "status", "notify_parent")
+    search_fields = (
+        "description",
+        "student__first_name",
+        "student__last_name",
+        "teacher__user__first_name",
+        "teacher__user__last_name",
+        "school__name",
+    )
+    raw_id_fields = ("school", "student", "teacher", "created_by")
     date_hierarchy = "date"
 
 

@@ -7,10 +7,10 @@
   class="backend-v2-side-time backend-dtw"
   id="backendDatetimeWeather"
   data-weather-endpoint="{% url 'api_weather_context' %}"
-  data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'4.1527' }}"
-  data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'9.2410' }}"
+  data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'0' }}"
+  data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'0' }}"
   data-weather-unit="{{ HEADER_WEATHER_TEMPERATURE_UNIT|default:'celsius' }}"
-  data-weather-label="{{ HEADER_WEATHER_LABEL|default:'Douala, Cameroon' }}"
+  data-weather-label="{{ HEADER_WEATHER_LABEL|default:'Weather' }}"
   aria-label="Local date, time, and weather"
 >
   <div class="backend-dtw__line backend-dtw__month-year" id="backendDtwMonthYear">--</div>
@@ -19,7 +19,7 @@
     <i class="bi bi-cloud-sun backend-dtw__weather-icon" id="backendDtwWeatherIcon" aria-hidden="true"></i>
     <span class="backend-dtw__temp" id="backendDtwTemp">--&deg;</span>
   </div>
-  <div class="backend-dtw__line backend-dtw__location" id="backendDtwLocation">{{ HEADER_WEATHER_LABEL|default:"Douala, Cameroon" }}</div>
+  <div class="backend-dtw__line backend-dtw__location" id="backendDtwLocation">{{ HEADER_WEATHER_LABEL|default:"Weather" }}</div>
 </div>
 
 <style>

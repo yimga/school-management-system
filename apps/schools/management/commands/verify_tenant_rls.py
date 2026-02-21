@@ -22,6 +22,7 @@ TENANT_RLS_TABLES = [
     "academics_subject",
     "academics_subjectassignment",
     "academics_attendance",
+    "academics_incident",
     "academics_certificationexamsession",
     "academics_certificationdocumentchecklist",
     "academics_certificationexampreset",
@@ -36,6 +37,7 @@ TENANT_RLS_TABLES = [
     "evals_evaluation",
     "reports_reportcard",
     "siteconfig_officialreporttemplate",
+    "siteconfig_featuretogglestate",
 ]
 
 

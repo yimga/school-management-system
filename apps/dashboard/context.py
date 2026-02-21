@@ -192,24 +192,25 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
 
     weather_cfg = {
         "enabled": True,
-        "label": "Buea, Cameroon",
-        "lat": 4.1527,
-        "lon": 9.2410,
+        "label": "Weather",
+        "lat": 0.0,
+        "lon": 0.0,
         "unit": "celsius",
     }
 
     site_id = "global"
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.siteconfig.models import SiteSettings, default_header_weather_config
         site = SiteSettings.get_solo()
         site_id = str(site.pk)
         flags = getattr(site, "backend_feature_flags", None) or {}
+        weather_defaults = default_header_weather_config()
         weather_cfg.update({
             "enabled": flags.get("show_header_context_weather", weather_cfg["enabled"]),
-            "label": flags.get("header_weather_label", weather_cfg["label"]),
-            "lat": flags.get("header_weather_latitude", weather_cfg["lat"]),
-            "lon": flags.get("header_weather_longitude", weather_cfg["lon"]),
-            "unit": flags.get("header_weather_temperature_unit", weather_cfg["unit"]),
+            "label": flags.get("header_weather_label", weather_defaults["header_weather_label"]),
+            "lat": flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
+            "lon": flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
+            "unit": flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"]),
         })
     except Exception:
         pass

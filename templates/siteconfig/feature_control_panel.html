@@ -63,6 +63,50 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="save">
 
+        <div class="border rounded-3 p-3 mb-4" style="background: var(--bs-tertiary-bg, #f8f9fa);">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+              <h2 class="h6 mb-1">Header Weather Location</h2>
+              <p class="text-muted small mb-0">Select country then city. Coordinates/timezone update automatically.</p>
+            </div>
+            <span class="badge bg-light text-dark border" id="weatherLocationPreview">
+              {{ weather_state.label|default:"Weather location" }}
+            </span>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-md-4">
+              <label for="weatherCountrySelect" class="form-label small text-muted">Country</label>
+              <select class="form-select form-select-sm" id="weatherCountrySelect" name="weather_country_code">
+                {% for country in weather_countries %}
+                <option value="{{ country.code }}" {% if country.code == weather_state.country_code %}selected{% endif %}>
+                  {{ country.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12 col-md-4">
+              <label for="weatherCitySelect" class="form-label small text-muted">City</label>
+              <select class="form-select form-select-sm" id="weatherCitySelect" name="weather_city_id">
+                {% for city in weather_cities %}
+                <option
+                  value="{{ city.id }}"
+                  data-country="{{ city.country_code }}"
+                  data-label="{{ city.label }}"
+                  data-timezone="{{ city.timezone|default:'' }}"
+                  {% if city.id == weather_state.location_id %}selected{% endif %}
+                >
+                  {{ city.city }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label small text-muted">Resolved timezone</label>
+              <div class="form-control form-control-sm bg-body-tertiary" id="weatherTimezonePreview">{{ weather_state.timezone|default:"UTC" }}</div>
+            </div>
+          </div>
+        </div>
+
         <div class="row g-4" id="featureCategories">
           {% for cat in categories %}
           <div class="col-12 col-lg-6 col-xl-4 feature-category" data-category="{{ cat.id }}">
@@ -200,7 +244,48 @@
   const criticalInputs = form.querySelectorAll('[data-critical="true"]');
   const maintenanceInp = form.querySelector('[name="feature_maintenance_mode"]');
   const currentState = {{ current_json|safe }};
+  const weatherCountrySelect = document.getElementById('weatherCountrySelect');
+  const weatherCitySelect = document.getElementById('weatherCitySelect');
+  const weatherLocationPreview = document.getElementById('weatherLocationPreview');
+  const weatherTimezonePreview = document.getElementById('weatherTimezonePreview');
   let searchTimeout = null;
+
+  function syncWeatherCityOptions() {
+    if (!weatherCountrySelect || !weatherCitySelect) return;
+    const selectedCountry = weatherCountrySelect.value || '';
+    let firstVisible = null;
+    let hasSelectedVisible = false;
+
+    Array.from(weatherCitySelect.options).forEach(function(opt) {
+      const visible = !selectedCountry || opt.dataset.country === selectedCountry;
+      opt.hidden = !visible;
+      opt.disabled = !visible;
+      if (visible && !firstVisible) firstVisible = opt;
+      if (visible && opt.selected) hasSelectedVisible = true;
+    });
+
+    if (!hasSelectedVisible && firstVisible) {
+      firstVisible.selected = true;
+    }
+
+    const selectedOpt = weatherCitySelect.options[weatherCitySelect.selectedIndex];
+    const label = selectedOpt ? (selectedOpt.dataset.label || selectedOpt.textContent || 'Weather location') : 'Weather location';
+    const tz = selectedOpt ? (selectedOpt.dataset.timezone || 'UTC') : 'UTC';
+    if (weatherLocationPreview) weatherLocationPreview.textContent = label;
+    if (weatherTimezonePreview) weatherTimezonePreview.textContent = tz;
+  }
+
+  if (weatherCountrySelect && weatherCitySelect) {
+    weatherCountrySelect.addEventListener('change', function() {
+      syncWeatherCityOptions();
+      formDirty = true;
+    });
+    weatherCitySelect.addEventListener('change', function() {
+      syncWeatherCityOptions();
+      formDirty = true;
+    });
+    syncWeatherCityOptions();
+  }
 
   function updateStatusBadges() {
     form.querySelectorAll('.feature-toggle-row').forEach(function(row) {

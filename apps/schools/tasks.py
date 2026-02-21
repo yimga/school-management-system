@@ -22,7 +22,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     from .models import School, SchoolMembership
     from apps.academics.models import AcademicYear, Term, Subject
     from django.utils import timezone
-    from datetime import date
+    from datetime import date, timedelta
 
     school = School.objects.filter(id=school_id).first()
     if not school:
@@ -70,7 +70,6 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     if now.month < start_month:
         year_start = date(now.year - 1, start_month, 1)
     year_end = date(year_start.year + 1, start_month, 1)
-    from datetime import timedelta
     year_end = year_end - timedelta(days=1)
 
     ay, created = AcademicYear.objects.get_or_create(
@@ -84,18 +83,19 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     )
     if created:
         # Create terms
+        def _month_start_add(base_date: date, months: int) -> date:
+            year = base_date.year + ((base_date.month - 1 + months) // 12)
+            month = ((base_date.month - 1 + months) % 12) + 1
+            return date(year, month, 1)
+
         months_per_term = 12 // term_count
         for i in range(term_count):
-            t_start = date(year_start.year, year_start.month + i * months_per_term, 1)
-            t_end_month = year_start.month + (i + 1) * months_per_term
-            if t_end_month > 12:
-                t_end_month -= 12
-                t_end_year = year_start.year + 1
+            t_start = _month_start_add(year_start, i * months_per_term)
+            if i == term_count - 1:
+                t_end = year_end
             else:
-                t_end_year = year_start.year
-            from calendar import monthrange
-            _, last_day = monthrange(t_end_year, t_end_month)
-            t_end = date(t_end_year, t_end_month, last_day)
+                next_term_start = _month_start_add(year_start, (i + 1) * months_per_term)
+                t_end = next_term_start - timedelta(days=1)
             Term.objects.get_or_create(
                 school=school,
                 academic_year=ay,

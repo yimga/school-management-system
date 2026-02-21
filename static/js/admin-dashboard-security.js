@@ -138,11 +138,11 @@
   function getWeatherConfig() {
     var defaults = {
       enabled: true,
-      label: "Buea, Cameroon",
-      latitude: 4.1527,
-      longitude: 9.241,
+      label: "Configured location",
+      latitude: 0,
+      longitude: 0,
       temperature_unit: "celsius",
-      timezone: "Africa/Douala",
+      timezone: "UTC",
     };
     var cfg = readJsonScript("admin-weather-config");
     return Object.assign({}, defaults, cfg || {});
@@ -170,7 +170,7 @@
     var tempUnit =
       String(cfg.temperature_unit || "celsius").toLowerCase() === "fahrenheit" ? "fahrenheit" : "celsius";
     var unitSymbol = tempUnit === "fahrenheit" ? "F" : "C";
-    var locationLabel = String(cfg.label || "Buea, Cameroon");
+    var locationLabel = String(cfg.label || "Configured location");
 
     if (!cfg.enabled) {
       setWeatherDisabled(iconEl, tempEl, descEl, unitSymbol);

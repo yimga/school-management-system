@@ -1,6 +1,6 @@
 import json
 from django.db import DatabaseError, connection, transaction
-from .models import SiteSettings, RegionConfig, default_backend_feature_flags
+from .models import SiteSettings, RegionConfig, default_backend_feature_flags, default_header_weather_config
 from .translations import TranslationManager, SUPPORTED_LANGUAGES
 from .models_dashboard import DashboardUserPreference
 from django.core.files.storage import default_storage
@@ -105,6 +105,17 @@ def _reset_db_state() -> None:
             connection.rollback()
     except Exception:
         pass
+
+
+def _request_school(request):
+    """
+    Return tenant school only when middleware explicitly set it.
+
+    Using request.__dict__ avoids Mock auto-attribute behavior in tests where
+    getattr(request, "school", None) can yield a MagicMock.
+    """
+    data = getattr(request, "__dict__", {}) or {}
+    return data.get("school")
 
 
 def _build_breadcrumbs(request_path: str) -> list[dict[str, str]]:
@@ -294,6 +305,7 @@ def site_settings(request):
         except Exception:
             request._portal_teacher_hat = False
             request._portal_parent_hat = False
+    weather_defaults = default_header_weather_config()
     ctx = {
         "SITE": site,
         "SITE_SETTINGS": site,
@@ -320,10 +332,12 @@ def site_settings(request):
         "SHOW_HEADER_CONTEXT_DATETIME": bool(feature_flags.get("show_header_context_datetime", True)),
         "SHOW_HEADER_CONTEXT_WEATHER": bool(feature_flags.get("show_header_context_weather", True)),
         "SHOW_HEADER_CONTEXT_QUOTE": bool(feature_flags.get("show_header_context_quote", True)),
-        "HEADER_WEATHER_LATITUDE": feature_flags.get("header_weather_latitude", 4.1527),
-        "HEADER_WEATHER_LONGITUDE": feature_flags.get("header_weather_longitude", 9.2410),
-        "HEADER_WEATHER_TEMPERATURE_UNIT": str(feature_flags.get("header_weather_temperature_unit", "celsius")).lower(),
-        "HEADER_WEATHER_LABEL": feature_flags.get("header_weather_label", "Buea, Cameroon"),
+        "HEADER_WEATHER_LATITUDE": feature_flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
+        "HEADER_WEATHER_LONGITUDE": feature_flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
+        "HEADER_WEATHER_TEMPERATURE_UNIT": str(
+            feature_flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"])
+        ).lower(),
+        "HEADER_WEATHER_LABEL": feature_flags.get("header_weather_label", weather_defaults["header_weather_label"]),
         "SITE_BRANDED_DOMAIN": getattr(site, "branded_domain", "") or "",
         "SITE_SECONDARY_FONT": getattr(site, "secondary_font", "") or "",
         "SITE_USE_SECONDARY_FONT_HEADINGS": getattr(site, "use_secondary_font_for_headings", False),
@@ -377,7 +391,7 @@ def site_settings(request):
         ctx["HAS_TEACHER_HAT"] = False
         ctx["HAS_PARENT_HAT"] = False
     # Multi-tenant: when request.school is set, use school branding for logo and colors (Phase 2).
-    school = getattr(request, "school", None)
+    school = _request_school(request)
     if school:
         if getattr(school, "logo_url", None):
             ctx["SITE_LOGO_URL"] = school.logo_url
@@ -415,7 +429,7 @@ def region_settings(request):
     from .models import RegionConfig
     from apps.siteconfig.currency import get_currency_symbol
 
-    school = getattr(request, "school", None)
+    school = _request_school(request)
     grading_scale = None
     default_language = None
     try:
@@ -521,7 +535,7 @@ def language_context(request):
                 pass
         if current_language == translation.get_language():
             # Multi-tenant: prefer school default language when request.school is set
-            school = getattr(request, "school", None)
+            school = _request_school(request)
             if school:
                 settings_overrides = getattr(school, "settings", None) or {}
                 lang_override = settings_overrides.get("default_language")
@@ -545,11 +559,7 @@ def language_context(request):
                                 region = RegionConfig.objects.get(code=region.code)
                         except (RegionConfig.DoesNotExist, Exception):
                             pass
-                    region_language_map = {
-                        'CMR': 'fr', 'FRA': 'fr', 'USA': 'en', 'GBR': 'en',
-                        'KEN': 'sw', 'NGA': 'yo', 'DEU': 'en',
-                    }
-                    default_language = region_language_map.get(region.code, 'en')
+                    default_language = getattr(region, "default_language", None) or "en"
                     if default_language in SUPPORTED_LANGUAGES:
                         current_language = default_language
                 except DatabaseError:

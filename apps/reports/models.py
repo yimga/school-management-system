@@ -61,15 +61,16 @@ class ReportCard(models.Model):
         """Get language for this report card."""
         if self.language:
             return self.language
-        # Fall back to region language mapping
+        # Fall back to region-configured language
         if self.region_code:
-            region_to_lang = {
-                'CMR': 'fr', 'FRA': 'fr',  # Cameroon, France -> French
-                'USA': 'en', 'GBR': 'en', 'DEU': 'en',  # USA, UK, Germany -> English
-                'KEN': 'sw',  # Kenya -> Swahili
-                'NGA': 'yo',  # Nigeria -> Yoruba
-            }
-            return region_to_lang.get(self.region_code, 'en')
+            try:
+                from apps.siteconfig.models import RegionConfig
+
+                region = RegionConfig.objects.filter(code=self.region_code).only("default_language").first()
+                if region and region.default_language:
+                    return region.default_language
+            except Exception:
+                pass
         return 'en'
     
     def get_region(self):
