@@ -74,7 +74,7 @@
             </span>
           </div>
           <div class="row g-3">
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
               <label for="weatherCountrySelect" class="form-label small text-muted">Country</label>
               <select class="form-select form-select-sm" id="weatherCountrySelect" name="weather_country_code">
                 {% for country in weather_countries %}
@@ -84,7 +84,7 @@
                 {% endfor %}
               </select>
             </div>
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
               <label for="weatherCitySelect" class="form-label small text-muted">City</label>
               <select class="form-select form-select-sm" id="weatherCitySelect" name="weather_city_id">
                 {% for city in weather_cities %}
@@ -100,9 +100,24 @@
                 {% endfor %}
               </select>
             </div>
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
               <label class="form-label small text-muted">Resolved timezone</label>
               <div class="form-control form-control-sm bg-body-tertiary" id="weatherTimezonePreview">{{ weather_state.timezone|default:"UTC" }}</div>
+            </div>
+            <div class="col-12 col-md-3">
+              <label for="backendListDensity" class="form-label small text-muted">Backend list density</label>
+              <select class="form-select form-select-sm" id="backendListDensity" name="backend_layout_max_items_per_list">
+                <option value="3" {% if backend_layout_max_items_per_list == 3 %}selected{% endif %}>3 items per list</option>
+                <option value="4" {% if backend_layout_max_items_per_list == 4 %}selected{% endif %}>4 items per list</option>
+                <option value="5" {% if backend_layout_max_items_per_list == 5 %}selected{% endif %}>5 items per list</option>
+                <option value="6" {% if backend_layout_max_items_per_list == 6 %}selected{% endif %}>6 items per list</option>
+                <option value="7" {% if backend_layout_max_items_per_list == 7 %}selected{% endif %}>7 items per list</option>
+                <option value="8" {% if backend_layout_max_items_per_list == 8 %}selected{% endif %}>8 items per list</option>
+                <option value="9" {% if backend_layout_max_items_per_list == 9 %}selected{% endif %}>9 items per list</option>
+                <option value="10" {% if backend_layout_max_items_per_list == 10 %}selected{% endif %}>10 items per list</option>
+                <option value="11" {% if backend_layout_max_items_per_list == 11 %}selected{% endif %}>11 items per list</option>
+                <option value="12" {% if backend_layout_max_items_per_list == 12 %}selected{% endif %}>12 items per list</option>
+              </select>
             </div>
           </div>
         </div>

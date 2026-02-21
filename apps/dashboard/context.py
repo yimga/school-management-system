@@ -197,23 +197,70 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "lon": 0.0,
         "unit": "celsius",
     }
+    backend_defaults: Dict[str, Any] = {}
+    backend_flags: Dict[str, Any] = {}
 
     site_id = "global"
     try:
-        from apps.siteconfig.models import SiteSettings, default_header_weather_config
+        from apps.siteconfig.models import (
+            SiteSettings,
+            default_header_weather_config,
+            default_backend_feature_flags,
+        )
         site = SiteSettings.get_solo()
         site_id = str(site.pk)
-        flags = getattr(site, "backend_feature_flags", None) or {}
+        backend_defaults = default_backend_feature_flags()
+        backend_flags = dict(backend_defaults)
+        backend_flags.update(getattr(site, "backend_feature_flags", None) or {})
         weather_defaults = default_header_weather_config()
         weather_cfg.update({
-            "enabled": flags.get("show_header_context_weather", weather_cfg["enabled"]),
-            "label": flags.get("header_weather_label", weather_defaults["header_weather_label"]),
-            "lat": flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
-            "lon": flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
-            "unit": flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"]),
+            "enabled": backend_flags.get("show_header_context_weather", weather_cfg["enabled"]),
+            "label": backend_flags.get("header_weather_label", weather_defaults["header_weather_label"]),
+            "lat": backend_flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
+            "lon": backend_flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),
+            "unit": backend_flags.get("header_weather_temperature_unit", weather_defaults["header_weather_temperature_unit"]),
         })
     except Exception:
         pass
+
+    def _clamp_max_items(value, default=5):
+        try:
+            parsed = int(value)
+        except Exception:
+            parsed = int(default)
+        return max(3, min(12, parsed))
+
+    max_items = _clamp_max_items(
+        backend_flags.get("backend_layout_max_items_per_list"),
+        backend_defaults.get("backend_layout_max_items_per_list", 5),
+    )
+    module_visibility = {
+        "overview": bool(backend_flags.get("backend_module_overview", True)),
+        "admin_portal": bool(backend_flags.get("backend_module_admin_portal", True)),
+        "welcome": bool(backend_flags.get("backend_module_welcome", True)),
+        "enrollment_trends": bool(backend_flags.get("backend_module_enrollment_trends", True)),
+        "at_risk_students": bool(backend_flags.get("backend_module_at_risk_students", True)),
+        "outstanding_fees": bool(backend_flags.get("backend_module_outstanding_fees", True)),
+        "recent_admissions": bool(backend_flags.get("backend_module_recent_admissions", True)),
+        "recent_activity": bool(backend_flags.get("backend_module_recent_activity", True)),
+        "top_performing": bool(backend_flags.get("backend_module_top_performing", True)),
+        "attendance_today": bool(backend_flags.get("backend_module_attendance_today", True)),
+        "ops_watch": bool(backend_flags.get("backend_module_ops_watch", True)),
+        "quick_links": bool(backend_flags.get("backend_module_quick_links", True)),
+        "planner": bool(backend_flags.get("backend_module_planner", True)),
+    }
+    visual_settings = {
+        "show_trend_ribbons": bool(backend_flags.get("backend_viz_show_trend_ribbons", True)),
+        "show_progress_rings": bool(backend_flags.get("backend_viz_show_progress_rings", True)),
+        "show_rank_sparklines": bool(backend_flags.get("backend_viz_show_rank_sparklines", True)),
+    }
+    theme_settings = {
+        "warm_palette": bool(backend_flags.get("backend_warm_palette", True)),
+        "reduce_card_flatness": bool(backend_flags.get("backend_reduce_card_flatness", True)),
+        "high_depth_surfaces": bool(backend_flags.get("backend_high_depth_surfaces", True)),
+        "balanced_motion": bool(backend_flags.get("backend_balanced_motion", True)),
+        "layout_equal_heights": bool(backend_flags.get("backend_layout_equal_heights", True)),
+    }
 
     snapshot = _build_cached_snapshot(site_id, role_code)
 
@@ -520,6 +567,8 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     recent_admissions = base.get("recent_admissions") or []
     if not isinstance(recent_admissions, list):
         recent_admissions = []
+    top_performing_students = top_performing_students[:max_items]
+    recent_admissions = recent_admissions[:max_items]
 
     top_entry = top_performing_students[0] if top_performing_students else {}
     top_name = str((top_entry or {}).get("name") or "").strip() or "No marks entered"
@@ -587,6 +636,11 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         },
     ]
 
+    operations_watch = operations_watch[:max_items]
+    quick_links = quick_links[:max_items]
+    welcome_action_grid = welcome_action_grid[: max(6, max_items + 2)]
+    upcoming_events = upcoming_events[:max_items]
+
     return {
         "local_time": now,
         "weather_cfg": weather_cfg,
@@ -603,6 +657,10 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
         "ops_watch_last_updated": now.isoformat(),
         "ops_watch_refresh_url": _safe_reverse("accounts:backend_ops_watch_data", ""),
         "upcoming_events": upcoming_events,
+        "backend_module_visibility": module_visibility,
+        "backend_visual_settings": visual_settings,
+        "backend_theme_settings": theme_settings,
+        "backend_layout_max_items_per_list": max_items,
         # Backward-compatible aliases used by older templates/tests.
         "sidebar_quick_access": quick_links,
         "empty_panel_quick_actions": quick_links[:3],

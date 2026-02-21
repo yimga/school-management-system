@@ -217,6 +217,7 @@
 
       listEl.innerHTML = rows.join("");
       if (stampEl) stampEl.textContent = "Live - " + toRelative(data.updated_at);
+      document.dispatchEvent(new Event("backend:content-updated"));
     }
 
     function refreshOps() {
@@ -231,6 +232,31 @@
 
     setInterval(refreshOps, 60000);
     refreshOps();
+  }
+
+  function initConditionalScroll() {
+    var selectors = [
+      ".backend-v2-main-grid .dashboard-card-scroll",
+      ".backend-v2-rail .js-ops-watch-list",
+      ".backend-v2-rail [data-widget-id=\"backend-quick-links\"] .backend-quick-links-list",
+      ".backend-v2-rail [data-widget-id=\"backend-planner\"] .backend-planner-list"
+    ];
+
+    function refresh() {
+      selectors.forEach(function (selector) {
+        document.querySelectorAll(selector).forEach(function (el) {
+          if (!el) return;
+          var overflowing = (el.scrollHeight - el.clientHeight) > 4;
+          el.classList.toggle("is-overflowing", overflowing);
+        });
+      });
+    }
+
+    refresh();
+    window.addEventListener("resize", refresh);
+    document.addEventListener("backend:content-updated", refresh);
+    setTimeout(refresh, 250);
+    setTimeout(refresh, 1000);
   }
 
   function ensureBackendCoreWidgetsVisible() {
@@ -272,6 +298,6 @@
     initBackendCommandPalette();
     initOpsWatchRefresh();
     ensureBackendCoreWidgetsVisible();
+    initConditionalScroll();
   });
 })();
-

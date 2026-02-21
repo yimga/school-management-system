@@ -47,7 +47,13 @@ class AuditLoggingMiddleware(MiddlewareMixin):
         '/favicon.ico',
         '/.well-known/',
         '/health/',
+        '/healthz/',
+        '/ready',
+        '/api/health/',
         '/status/',
+    }
+    SKIP_EXACT_PATHS = {
+        '/',
     }
 
     def process_request(self, request):
@@ -62,7 +68,10 @@ class AuditLoggingMiddleware(MiddlewareMixin):
                 _reset_db_state()
                 return response
             # Skip logging for static/media/health paths
-            if any(request.path.startswith(skip) for skip in self.SKIP_PATHS):
+            path = request.path or "/"
+            if path in self.SKIP_EXACT_PATHS:
+                return response
+            if any(path.startswith(skip) for skip in self.SKIP_PATHS):
                 return response
 
             # Calculate response time
@@ -121,6 +130,11 @@ class AuditLoggingMiddleware(MiddlewareMixin):
         try:
             if connection.needs_rollback:
                 _reset_db_state()
+                return None
+            path = request.path or "/"
+            if path in self.SKIP_EXACT_PATHS:
+                return None
+            if any(path.startswith(skip) for skip in self.SKIP_PATHS):
                 return None
             user = None
             if hasattr(request, 'user') and request.user.is_authenticated:
@@ -236,22 +250,37 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
     Blocks requests from denied IPs/countries before they reach views.
     """
 
-    # Paths to bypass access control (e.g., health checks, static files)
-    BYPASS_PATHS = {
+    # Paths to bypass access control (e.g., health checks, auth/bootstrap routes, static files)
+    # Keep this list strict: these routes either have their own auth guards or must stay probe-safe.
+    BYPASS_PATH_PREFIXES = {
         '/static/',
         '/media/',
         '/assets/',
         '/favicon.ico',
         '/.well-known/',
         '/health/',
+        '/healthz/',
+        '/ready',
+        '/authentication/',
+        '/super/',
+        '/offline/',
+        '/api/health/',
+        '/api/weather/context/',
         '/status/',
         '/admin/jsi18n/',  # Django admin i18n
+    }
+    BYPASS_EXACT_PATHS = {
+        '/',
     }
 
     def process_request(self, request):
         """Check IP/country access before view execution."""
+        path = request.path or "/"
+
         # Skip bypass paths
-        if any(request.path.startswith(skip) for skip in self.BYPASS_PATHS):
+        if path in self.BYPASS_EXACT_PATHS:
+            return None
+        if any(path.startswith(skip) for skip in self.BYPASS_PATH_PREFIXES):
             return None
 
         # Check if access control is enabled
@@ -264,7 +293,12 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
                 return None
 
         # Check access
-        is_allowed, reason = check_request_access(request)
+        try:
+            is_allowed, reason = check_request_access(request)
+        except Exception as exc:
+            # Never block requests due to access-control runtime errors.
+            logger.warning("IP/country access check failed; allowing request. error=%s", exc, exc_info=True)
+            return None
         
         if not is_allowed:
             # Log the blocked attempt (skip if AccessLog table missing)

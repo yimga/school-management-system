@@ -99,6 +99,10 @@ body[data-dashboard-page="backend"] .backend-v2-workspace {
   align-items: start;
 }
 
+body[data-dashboard-page="backend"] .backend-v2-workspace.backend-v2-workspace--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 body[data-dashboard-page="backend"] .backend-v2-workbench {
   min-width: 0;
   overflow: hidden;
@@ -115,42 +119,51 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid {
   align-items: stretch;
 }
 
+body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-span-2 {
+  grid-column: span 2;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid.backend-v2-main-grid--fluid {
+  grid-auto-flow: row dense;
+  grid-auto-rows: minmax(200px, auto);
+}
+
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id] {
   min-width: 0;
 }
 
 /* Deterministic widget placement */
-body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"] {
+body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-enrollment-trends"] {
   grid-column: 1 / span 2;
   grid-row: 1;
 }
 
-body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] {
+body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-recent-admissions"] {
   grid-column: 3;
   grid-row: 1;
 }
 
-body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"] {
+body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-outstanding-fees"] {
   grid-column: 1 / span 2;
   grid-row: 2;
 }
 
-body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"] {
+body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-at-risk-students"] {
   grid-column: 3;
   grid-row: 2;
 }
 
-body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] {
+body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-recent-activity"] {
   grid-column: 1;
   grid-row: 3;
 }
 
-body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] {
+body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-top-performing"] {
   grid-column: 2;
   grid-row: 3;
 }
 
-body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-attendance-today"] {
   grid-column: 3;
   grid-row: 3;
 }
@@ -247,22 +260,34 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-chart-wrapp
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-card-scroll {
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
-  max-height: var(--backend-scroll-cap-main);
+  max-height: none;
   scrollbar-gutter: stable both-edges;
   overscroll-behavior: contain;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-main-grid .dashboard-card-scroll.is-overflowing {
+  overflow-y: auto;
+  max-height: var(--backend-scroll-cap-main);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
 body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
 body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
-  max-height: var(--backend-scroll-cap-rail);
+  max-height: none;
   scrollbar-gutter: stable both-edges;
   overscroll-behavior: contain;
+}
+
+body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list.is-overflowing,
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list.is-overflowing,
+body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list.is-overflowing {
+  overflow-y: auto;
+  max-height: var(--backend-scroll-cap-rail);
 }
 
 body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"] .dashboard-card-scroll,
@@ -295,7 +320,7 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
     overflow: visible;
   }
 
-  body[data-dashboard-page="backend"] .backend-v2-main-grid {
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) {
     grid-template-rows:
       minmax(var(--backend-row-1-min), auto)
       minmax(var(--backend-row-2-min), auto)
@@ -366,21 +391,21 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
     grid-auto-rows: minmax(140px, auto);
   }
 
-  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-enrollment-trends"],
-  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-outstanding-fees"],
-  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-admissions"],
-  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-at-risk-students"],
-  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-attendance-today"] {
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-enrollment-trends"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-outstanding-fees"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-recent-admissions"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-at-risk-students"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-attendance-today"] {
     grid-column: 1 / span 2;
     grid-row: auto;
   }
 
-  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-recent-activity"] {
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-recent-activity"] {
     grid-column: 1;
     grid-row: auto;
   }
 
-  body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="backend-top-performing"] {
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-top-performing"] {
     grid-column: 2;
     grid-row: auto;
   }
@@ -393,7 +418,7 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
   body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
   body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
   body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
-    max-height: 300px;
+    max-height: none;
   }
 }
 
@@ -417,7 +442,7 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
   body[data-dashboard-page="backend"] .backend-v2-rail .js-ops-watch-list,
   body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-quick-links"] .backend-quick-links-list,
   body[data-dashboard-page="backend"] .backend-v2-rail [data-widget-id="backend-planner"] .backend-planner-list {
-    max-height: 360px;
+    max-height: none;
   }
 }
 

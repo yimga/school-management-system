@@ -266,18 +266,9 @@ def healthz(request):
 def public_health(request):
     """Public health endpoint for load balancers and uptime checks.
 
-    This endpoint intentionally does not require observability auth so it can be
-    polled without credentials (expected by health check tests and external
-    load balancers). It performs a lightweight DB check but avoids exposing
-    any sensitive observability counters.
+    This endpoint intentionally does not require observability auth and avoids
+    DB/cache dependencies so cold starts and platform probes stay reliable.
     """
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-            cursor.fetchone()
-    except Exception as exc:  # noqa: BLE001
-        return JsonResponse({"status": "error", "error": str(exc)}, status=500)
-
     return JsonResponse({"status": "healthy"})
 
 

@@ -52,6 +52,9 @@ class MaintenanceModeMiddleware:
             or request.path.startswith("/authentication/")
             or request.path.startswith("/health/")
             or request.path.startswith("/healthz/")
+            or request.path.startswith("/ready")
+            or request.path.startswith("/status/")
+            or request.path.startswith("/api/health/")
         ):
             return self.get_response(request)
 

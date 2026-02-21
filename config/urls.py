@@ -127,6 +127,8 @@ urlpatterns = [
     path('healthz/', obs_views.healthz, name='healthz'),
     # Public health endpoint for load balancers
     path('health/', obs_views.public_health, name='health'),
+    path('ready/', obs_views.public_health, name='ready'),
+    path('status/', obs_views.public_health, name='status'),
     path('metrics/', obs_views.metrics, name='metrics'),
     path('api/observability/copilot-metrics/', obs_views.copilot_metrics_json, name='copilot_metrics_json'),
     

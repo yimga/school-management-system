@@ -77,6 +77,27 @@ FEATURE_CATEGORIES = {
         ("backend_flags.carry_forward_arrears_on_rollover", "Carry Forward Arrears on Rollover", False, "Create opening-balance invoices in next year for unpaid fees", "Rollover does not carry arrears", []),
     ],
     "backend": [
+        ("backend_flags.backend_warm_palette", "Backend Warm Palette", False, "Use warm, school-friendly palette defaults on /backend", "Backend palette follows neutral fallback", []),
+        ("backend_flags.backend_reduce_card_flatness", "Backend Card Depth", False, "Add layered surfaces and accents to reduce flat look", "Cards stay minimal/flat", []),
+        ("backend_flags.backend_high_depth_surfaces", "Backend High-Depth Surfaces", False, "Enable deeper gradients and lifted panel surfaces", "Surfaces stay low-depth", []),
+        ("backend_flags.backend_balanced_motion", "Backend Balanced Motion", False, "Enable subtle purposeful motion for highlights and alerts", "Motion reduced to near-static", []),
+        ("backend_flags.backend_layout_equal_heights", "Backend Equalized Grid", False, "Keep grid rows visually balanced with aligned endings", "Auto-flow grid without equalization", []),
+        ("backend_flags.backend_viz_show_trend_ribbons", "Backend Trend Ribbons", False, "Show inline trend ribbons in list cards", "Trend ribbons hidden", []),
+        ("backend_flags.backend_viz_show_progress_rings", "Backend Progress Rings", False, "Show circular progress rings for at-risk and completion signals", "Rings hidden", []),
+        ("backend_flags.backend_viz_show_rank_sparklines", "Backend Rank Sparklines", False, "Show rank mini-bars in top-performing lists", "Rank sparklines hidden", []),
+        ("backend_flags.backend_module_overview", "Backend Module: Overview", False, "Show overview KPI strip and hero metrics", "Overview module hidden", []),
+        ("backend_flags.backend_module_admin_portal", "Backend Module: Admin Portal", False, "Show right-side admin portal snapshot card", "Admin portal card hidden", []),
+        ("backend_flags.backend_module_welcome", "Backend Module: Welcome", False, "Show welcome/actions workspace block", "Welcome block hidden", []),
+        ("backend_flags.backend_module_enrollment_trends", "Backend Module: Enrollment Trends", False, "Show enrollment trends chart panel", "Enrollment trends hidden", []),
+        ("backend_flags.backend_module_at_risk_students", "Backend Module: At-Risk Students", False, "Show at-risk students list and risk signal", "At-risk panel hidden", []),
+        ("backend_flags.backend_module_outstanding_fees", "Backend Module: Outstanding Fees", False, "Show outstanding fees visualization", "Outstanding fees panel hidden", []),
+        ("backend_flags.backend_module_recent_admissions", "Backend Module: Recent Admissions", False, "Show recent admissions panel", "Recent admissions hidden", []),
+        ("backend_flags.backend_module_recent_activity", "Backend Module: Recent Activity", False, "Show recent activity panel", "Recent activity hidden", []),
+        ("backend_flags.backend_module_top_performing", "Backend Module: Top Performing", False, "Show top-performing panel", "Top-performing panel hidden", []),
+        ("backend_flags.backend_module_attendance_today", "Backend Module: Attendance Today", False, "Show attendance pulse card", "Attendance card hidden", []),
+        ("backend_flags.backend_module_ops_watch", "Backend Module: Operations Watch", False, "Show operations watch rail card", "Operations watch hidden", []),
+        ("backend_flags.backend_module_quick_links", "Backend Module: Quick Links", False, "Show quick links rail card", "Quick links hidden", []),
+        ("backend_flags.backend_module_planner", "Backend Module: Planner", False, "Show planner rail card", "Planner hidden", []),
         ("backend_flags.enable_entity_console", "Entity Console", False, "Data orchestration UI", "Entity Console hidden", []),
         ("backend_flags.enable_entity_import", "Entity Import", False, "Bulk import tools", "Entity Import hidden", []),
         ("backend_flags.allow_bulk_commit", "Bulk Import Commit", False, "Allow commit step in entity import", "Bulk commit disabled", []),
@@ -143,73 +164,42 @@ BULK_PRESETS = {
     },
 }
 
+FEATURE_KEYS = tuple(
+    dict.fromkeys(
+        key
+        for rows in FEATURE_CATEGORIES.values()
+        for key, *_ in rows
+    )
+)
+
+
+def _clamp_int(value, default: int, *, minimum: int, maximum: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        parsed = default
+    return max(minimum, min(maximum, parsed))
+
 
 def _get_site_features(site: SiteSettings) -> dict:
     """Return current feature state for display and form."""
     portal = site.portal_features or default_portal_features()
     flags = site.backend_feature_flags or default_backend_feature_flags()
-    return {
-        "enable_parent_portal": site.enable_parent_portal,
-        "enable_teacher_portal": site.enable_teacher_portal,
-        "enable_reports_pdf": site.enable_reports_pdf,
-        "report_downloads_enabled": site.report_downloads_enabled,
-        "portal_features.documents": bool(portal.get("documents")),
-        "portal_features.forums": bool(portal.get("forums")),
-        "portal_features.video": bool(portal.get("video")),
-        "portal_features.messaging": bool(portal.get("messaging")),
-        "portal_features.syllabus": bool(portal.get("syllabus")),
-        "grade_approval_enabled": site.grade_approval_enabled,
-        "grade_approval_auto_validate": site.grade_approval_auto_validate,
-        "enable_practical_assessment": site.enable_practical_assessment,
-        "enable_concurrent_mark_uploads": site.enable_concurrent_mark_uploads,
-        "maintenance_mode": site.maintenance_mode,
-        "preview_mode_enabled": site.preview_mode_enabled,
-        "enable_offline_mode": site.enable_offline_mode,
-        "auto_tag_photos_from_exif": site.auto_tag_photos_from_exif,
-        "show_header_search": getattr(site, "show_header_search", True),
-        "show_header_notifications": getattr(site, "show_header_notifications", True),
-        "show_header_profile_menu": getattr(site, "show_header_profile_menu", True),
-        "show_header_theme_toggle": getattr(site, "show_header_theme_toggle", True),
-        "backend_flags.show_header_context_strip": bool(flags.get("show_header_context_strip", True)),
-        "backend_flags.show_header_context_datetime": bool(flags.get("show_header_context_datetime", True)),
-        "backend_flags.show_header_context_weather": bool(flags.get("show_header_context_weather", True)),
-        "backend_flags.show_header_context_quote": bool(flags.get("show_header_context_quote", True)),
-        "enable_whatsapp_parent_portal": getattr(site, "enable_whatsapp_parent_portal", False),
-        "enable_whatsapp_staff_portal": getattr(site, "enable_whatsapp_staff_portal", False),
-        "reports_require_approved_grades_before_publish": getattr(site, "reports_require_approved_grades_before_publish", False),
-        "reports_use_approved_grades_only": getattr(site, "reports_use_approved_grades_only", False),
-        "backend_flags.enable_entity_console": bool(flags.get("enable_entity_console")),
-        "backend_flags.enable_entity_import": bool(flags.get("enable_entity_import")),
-        "backend_flags.enable_api_schema_ui": bool(flags.get("enable_api_schema_ui")),
-        "backend_flags.enable_portal_pwa": bool(flags.get("enable_portal_pwa", True)),
-        "backend_flags.request_persistent_browser_storage": bool(flags.get("request_persistent_browser_storage", True)),
-        "backend_flags.enable_offline_form_queue": bool(flags.get("enable_offline_form_queue", True)),
-        "backend_flags.enable_offline_attendance_sync": bool(flags.get("enable_offline_attendance_sync", True)),
-        "backend_flags.enable_offline_grade_sync": bool(flags.get("enable_offline_grade_sync", True)),
-        "backend_flags.enable_offline_background_sync": bool(flags.get("enable_offline_background_sync", True)),
-        "backend_flags.show_offline_status_bar": bool(flags.get("show_offline_status_bar", True)),
-        "backend_flags.reduce_activity_low_power": bool(flags.get("reduce_activity_low_power", False)),
-        "backend_flags.offline_entity_sync": bool(flags.get("offline_entity_sync", True)),
-        "backend_flags.offline_requests_sync": bool(flags.get("offline_requests_sync", True)),
-        "backend_flags.allow_bulk_commit": bool(flags.get("allow_bulk_commit", True)),
-        "backend_flags.require_guardian_finance_opt_in": bool(flags.get("require_guardian_finance_opt_in")),
-        "backend_flags.allow_finance_access_requests": bool(flags.get("allow_finance_access_requests", True)),
-        "backend_flags.notify_parent_on_absence": bool(flags.get("notify_parent_on_absence", True)),
-        "backend_flags.block_promotion_if_outstanding_returns": bool(flags.get("block_promotion_if_outstanding_returns")),
-        "backend_flags.block_report_download_if_outstanding_balance": bool(flags.get("block_report_download_if_outstanding_balance", True)),
-        "backend_flags.block_report_download_if_outstanding_returns": bool(flags.get("block_report_download_if_outstanding_returns")),
-        "backend_flags.carry_forward_arrears_on_rollover": bool(flags.get("carry_forward_arrears_on_rollover", True)),
-        "backend_flags.enable_cahier_de_texte": bool(flags.get("enable_cahier_de_texte")),
-        "backend_flags.enable_ocr_scan_teller": bool(flags.get("enable_ocr_scan_teller")),
-        "backend_flags.enable_ministry_api_cartescolaire": bool(flags.get("enable_ministry_api_cartescolaire")),
-        "backend_flags.enable_ministry_api_dgi": bool(flags.get("enable_ministry_api_dgi")),
-        "backend_flags.enable_ministry_live_sync": bool(flags.get("enable_ministry_live_sync")),
-        "backend_flags.enable_analytics_dashboard_cache": bool(flags.get("enable_analytics_dashboard_cache")),
-        "backend_flags.enable_super_admin_ui": bool(flags.get("enable_super_admin_ui", True)),
-        "backend_flags.marksheet_ocr_enabled": bool(flags.get("marksheet_ocr_enabled")),
-        "backend_flags.marksheet_ocr_mobile_upload_enabled": bool(flags.get("marksheet_ocr_mobile_upload_enabled", True)),
-        "backend_flags.enable_api_center": bool(flags.get("enable_api_center", False)),
-    }
+    defaults = default_backend_feature_flags()
+    feature_state = {}
+    for key in FEATURE_KEYS:
+        if key.startswith("portal_features."):
+            subkey = key.split(".", 1)[1]
+            feature_state[key] = bool(portal.get(subkey))
+            continue
+        if key.startswith("backend_flags."):
+            subkey = key.split(".", 1)[1]
+            default_val = defaults.get(subkey, False)
+            value = flags.get(subkey, default_val)
+            feature_state[key] = bool(value)
+            continue
+        feature_state[key] = bool(getattr(site, key, False))
+    return feature_state
 
 
 def _list_weather_locations() -> list[WeatherLocation]:
@@ -434,6 +424,14 @@ def feature_control_export(request):
     site = SiteSettings.get_solo()
     current = _get_site_features(site)
     weather = _get_weather_selector_state(site)
+    defaults = default_backend_feature_flags()
+    backend_flags = site.backend_feature_flags or defaults
+    backend_layout_max_items_per_list = _clamp_int(
+        backend_flags.get("backend_layout_max_items_per_list"),
+        defaults.get("backend_layout_max_items_per_list", 5),
+        minimum=3,
+        maximum=12,
+    )
     response = HttpResponse(
         json.dumps(
             {
@@ -447,6 +445,7 @@ def feature_control_export(request):
                     "longitude": weather.get("longitude"),
                     "timezone": weather.get("timezone"),
                 },
+                "backend_layout_max_items_per_list": backend_layout_max_items_per_list,
                 "exported_at": timezone.now().isoformat(),
             },
             indent=2,
@@ -491,6 +490,15 @@ def feature_control_panel(request):
         form_data = {}
         current_weather = _get_weather_selector_state(site)
         weather_payload, weather_state = _resolve_weather_payload_from_post(site, request.POST)
+        defaults = default_backend_feature_flags()
+        current_flags = site.backend_feature_flags or defaults
+        current_max_items = _clamp_int(
+            current_flags.get("backend_layout_max_items_per_list"),
+            defaults.get("backend_layout_max_items_per_list", 5),
+            minimum=3,
+            maximum=12,
+        )
+        posted_max_items = current_max_items
         import_data = request.FILES.get("import_file")
         if import_data:
             if import_data.size > 2 * 1024 * 1024:  # 2MB max
@@ -521,6 +529,12 @@ def feature_control_panel(request):
                         "weather_city_id": str(imported_city_id or ""),
                     },
                 )
+                posted_max_items = _clamp_int(
+                    data.get("backend_layout_max_items_per_list"),
+                    current_max_items,
+                    minimum=3,
+                    maximum=12,
+                )
             except (json.JSONDecodeError, UnicodeDecodeError) as ex:
                 logger.warning("Feature control import failed: %s", ex)
                 messages.error(request, "Invalid import file. Use a valid JSON export.")
@@ -528,6 +542,12 @@ def feature_control_panel(request):
         else:
             for key in current:
                 form_data[key] = request.POST.get(f"feature_{key}") == "on"
+            posted_max_items = _clamp_int(
+                request.POST.get("backend_layout_max_items_per_list"),
+                current_max_items,
+                minimum=3,
+                maximum=12,
+            )
 
         weather_changed = any(
             [
@@ -537,6 +557,11 @@ def feature_control_panel(request):
                 weather_payload.get("header_weather_label") != current_weather.get("label"),
             ]
         )
+        settings_payload = {
+            **weather_payload,
+            "backend_layout_max_items_per_list": posted_max_items,
+        }
+        max_items_changed = posted_max_items != current_max_items
 
         changes_dict = {
             k: {"from": current.get(k), "to": form_data.get(k)}
@@ -547,6 +572,11 @@ def feature_control_panel(request):
             changes_dict["backend_flags.header_weather_location"] = {
                 "from": current_weather.get("label"),
                 "to": weather_state.get("label"),
+            }
+        if max_items_changed:
+            changes_dict["backend_flags.backend_layout_max_items_per_list"] = {
+                "from": current_max_items,
+                "to": posted_max_items,
             }
 
         request.session[REVERT_SESSION_KEY] = {
@@ -559,9 +589,10 @@ def feature_control_panel(request):
                 "header_weather_latitude": current_weather.get("latitude"),
                 "header_weather_longitude": current_weather.get("longitude"),
                 "header_weather_timezone": current_weather.get("timezone"),
+                "backend_layout_max_items_per_list": current_max_items,
             },
         }
-        _apply_form_to_site(site, form_data, weather_payload=weather_payload)
+        _apply_form_to_site(site, form_data, weather_payload=settings_payload)
         _log_audit(request, "import" if import_data else "save", changes_dict)
         logger.info("Feature control saved by %s: changed %s", request.user.username, list(changes_dict.keys()))
         now = timezone.now()
@@ -611,6 +642,14 @@ def feature_control_panel(request):
     can_revert = REVERT_SESSION_KEY in request.session
     last_saved = cache.get(FEATURE_CONTROL_LAST_SAVED_KEY)
     weather_state = _get_weather_selector_state(site)
+    defaults = default_backend_feature_flags()
+    backend_flags = site.backend_feature_flags or defaults
+    backend_layout_max_items_per_list = _clamp_int(
+        backend_flags.get("backend_layout_max_items_per_list"),
+        defaults.get("backend_layout_max_items_per_list", 5),
+        minimum=3,
+        maximum=12,
+    )
     return render(request, "siteconfig/feature_control_panel.html", {
         "categories": categories,
         "active_count": active_count,
@@ -624,6 +663,7 @@ def feature_control_panel(request):
         "weather_state": weather_state,
         "weather_countries": weather_state.get("countries", []),
         "weather_cities": weather_state.get("cities", []),
+        "backend_layout_max_items_per_list": backend_layout_max_items_per_list,
     })
 
 
@@ -642,6 +682,14 @@ def feature_control_api(request):
     site = SiteSettings.get_solo()
     current = _get_site_features(site)
     weather_state = _get_weather_selector_state(site)
+    defaults = default_backend_feature_flags()
+    backend_flags = site.backend_feature_flags or defaults
+    backend_layout_max_items_per_list = _clamp_int(
+        backend_flags.get("backend_layout_max_items_per_list"),
+        defaults.get("backend_layout_max_items_per_list", 5),
+        minimum=3,
+        maximum=12,
+    )
     return JsonResponse({
         "features": current,
         "weather": {
@@ -653,5 +701,6 @@ def feature_control_api(request):
             "longitude": weather_state.get("longitude"),
             "timezone": weather_state.get("timezone"),
         },
+        "backend_layout_max_items_per_list": backend_layout_max_items_per_list,
         "updated_at": site.updated_at.isoformat() if hasattr(site, "updated_at") and site.updated_at else None,
     })

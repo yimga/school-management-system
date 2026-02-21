@@ -44,9 +44,8 @@
                   <td>{{ school.teacher_count|default:0 }}</td>
                   <td>{{ school.member_count|default:0 }}</td>
                   <td>
-                    {% url 'admin:schools_school_change' school.pk as school_edit_url %}
-                    {% if school_edit_url %}
-                      <a href="{{ school_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    {% if school.admin_edit_url %}
+                      <a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                     {% else %}
                       <span class="text-muted small">Edit unavailable</span>
                     {% endif %}

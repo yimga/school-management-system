@@ -3,7 +3,7 @@ Phase 8 Task 11: Monitoring & Observability Tests
 System health checks, performance monitoring, anomaly detection
 """
 
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.utils import timezone
 from datetime import timedelta
 
@@ -270,6 +270,15 @@ class HealthCheckEndpointTestCase(TestCase):
         response = self.client.get('/health/')
         
         self.assertIn(response.status_code, [200, 503])
+
+    @override_settings(
+        SECURE_SSL_REDIRECT=True,
+        SECURE_REDIRECT_EXEMPT=[r"^health/$", r"^healthz/$", r"^ready/$", r"^status/$", r"^api/health/$"],
+    )
+    def test_health_endpoint_exempt_from_ssl_redirect(self):
+        """Health endpoint should stay probe-safe even with SSL redirect enabled."""
+        response = self.client.get('/health/')
+        self.assertEqual(response.status_code, 200)
     
     def test_health_response_format(self):
         """Test health response structure"""

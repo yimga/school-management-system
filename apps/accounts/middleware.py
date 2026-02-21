@@ -51,6 +51,8 @@ class ModuleAccessMiddleware:
         "/.well-known/",
         "/health/",
         "/healthz/",
+        "/ready",
+        "/status/",
         "/metrics/",
         "/siteconfig/preferences",  # Any authenticated user can manage own preferences (theme, dashboard, etc.)
     )
@@ -202,7 +204,7 @@ class RequireMFAMiddleware:
     Phase 4: When SiteSettings.require_mfa_roles contains the user's role,
     redirect to MFA setup if they have no TOTP device (zero-cost MFA for compliance).
     """
-    BYPASS_PREFIXES = ("/static/", "/media/", "/favicon.ico", "/health/", "/healthz/", "/metrics/", "/api/")
+    BYPASS_PREFIXES = ("/static/", "/media/", "/favicon.ico", "/health/", "/healthz/", "/ready", "/status/", "/metrics/", "/api/")
     BYPASS_PATHS = (
         "/authentication/login/",
         "/authentication/logout/",

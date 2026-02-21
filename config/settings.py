@@ -261,6 +261,15 @@ LOGOUT_REDIRECT_URL = "/authentication/login/"
 MAINTENANCE_MODE = False
 
 SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "1") == "1" and not DEBUG
+# Health/readiness probes can come over plain HTTP from platform internals.
+# Exempt these endpoints to avoid redirect loops and failed boot probes.
+SECURE_REDIRECT_EXEMPT = [
+    r"^health/$",
+    r"^healthz/$",
+    r"^ready/$",
+    r"^status/$",
+    r"^api/health/$",
+]
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "1") == "1" and not DEBUG
 CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "1") == "1" and not DEBUG
 SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "60")) if not DEBUG else 0

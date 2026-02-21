@@ -162,6 +162,15 @@ body.portal-backend-dark .badge.text-bg-light {
   opacity: 1 !important;
 }
 
+[data-dashboard-page] .backend-ops-item a,
+[data-dashboard-page] .backend-ops-item strong,
+[data-dashboard-page] .backend-quick-link,
+[data-dashboard-page] .backend-planner-section-head .small,
+[data-dashboard-page] .backend-v2-progress-ring span {
+  color: var(--vis-heading-strong) !important;
+  opacity: 1 !important;
+}
+
 [data-dashboard-page] a:not(.btn):not(.nav-link):not(.dropdown-item) {
   color: var(--vis-link);
 }

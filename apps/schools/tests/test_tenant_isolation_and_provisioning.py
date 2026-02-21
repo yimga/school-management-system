@@ -1,6 +1,8 @@
 """
 Tests for tenant isolation, provisioning job, single-tenant fallback, and feature-flag enforcement (Option B+C).
 """
+import json
+
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 
@@ -9,6 +11,7 @@ from apps.schools.models import School, SchoolMembership
 from apps.schools.tasks import provision_school_sync
 from apps.people.models import StudentProfile
 from apps.academics.models import AcademicYear, Term
+from apps.siteconfig.models import WeatherLocation
 
 
 class TenantIsolationTests(TestCase):
@@ -180,3 +183,55 @@ class OfflineSyncPerSchoolTests(TestCase):
             data = {}
         self.assertIn("error", data)
         self.assertIn("Offline", str(data.get("error", "")))
+
+
+class SuperProvisioningWizardTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.superuser = User.objects.create_superuser(
+            username="root",
+            email="root@test.com",
+            password="testpass123",
+        )
+
+    def test_wizard_renders_country_and_city_selectors(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(reverse("super:create_school_wizard"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="country_code"')
+        self.assertContains(response, 'id="city_id"')
+        self.assertContains(response, "Select country first, then city")
+
+    def test_api_create_school_uses_city_timezone(self):
+        self.client.force_login(self.superuser)
+        location = (
+            WeatherLocation.objects.select_related("region")
+            .filter(is_active=True, region_id="USA", city__iexact="New York")
+            .first()
+        )
+        self.assertIsNotNone(location, "Seeded weather locations should include New York")
+
+        payload = {
+            "name": "Global Academy",
+            "slug": "global-academy",
+            "subdomain": "global-academy",
+            "contact_email": "admin@global.test",
+            "country_code": location.region_id,
+            "city_id": str(location.pk),
+            "region_code": location.region_id,
+            "sub_system": "INT",
+            "primary_color": "#2d5a27",
+            "accent_color": "#f59e0b",
+        }
+        response = self.client.post(
+            reverse("super:api_create_school"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202, response.content)
+        school = School.objects.get(slug="global-academy")
+        self.assertEqual(school.default_region_id, location.region_id)
+        self.assertEqual(school.timezone, location.timezone)
+        location_settings = (school.settings or {}).get("location") or {}
+        self.assertEqual(location_settings.get("country_code"), location.region_id)
+        self.assertEqual(location_settings.get("city"), location.city)

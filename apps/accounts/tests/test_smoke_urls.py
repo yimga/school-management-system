@@ -19,6 +19,12 @@ class SmokeUrlResolutionTests(SimpleTestCase):
     def test_healthz(self):
         self.assertEqual(reverse("healthz"), "/healthz/")
 
+    def test_ready(self):
+        self.assertEqual(reverse("ready"), "/ready/")
+
+    def test_status(self):
+        self.assertEqual(reverse("status"), "/status/")
+
     def test_admin_index(self):
         self.assertEqual(reverse("admin:index"), "/admin/")
 

@@ -26,7 +26,6 @@
             </ul>
           </div>
           <div class="card-body">
-            {% url 'admin:schools_school_change' '00000000-0000-0000-0000-000000000000' as school_admin_edit_template %}
             <form id="wizard-form" data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}">
               {% csrf_token %}
               <div class="tab-content">
@@ -52,13 +51,31 @@
                 </div>
                 <div class="tab-pane fade" id="step2" role="tabpanel">
                   <div class="mb-3">
-                    <label class="form-label" for="region_code">Region</label>
-                    <select class="form-select" id="region_code" name="region_code">
-                      <option value="">-- Select --</option>
-                      {% for r in regions %}
-                        <option value="{{ r.code }}">{{ r.name }} ({{ r.code }})</option>
+                    <label class="form-label" for="country_code">Country</label>
+                    <select class="form-select" id="country_code" name="country_code">
+                      {% for country in countries %}
+                        <option value="{{ country.code }}" {% if country.code == default_country_code %}selected{% endif %}>{{ country.name }}</option>
                       {% endfor %}
                     </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="city_id">City</label>
+                    <select class="form-select" id="city_id" name="city_id">
+                      {% for city in cities %}
+                        <option value="{{ city.id }}" data-country="{{ city.country_code }}" data-timezone="{{ city.timezone }}">
+                          {{ city.city }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                    <div class="form-text">Select country first, then city for timezone and regional defaults.</div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="region_code">Region code</label>
+                    <input type="text" class="form-control" id="region_code" name="region_code" readonly>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="timezone_preview">Timezone</label>
+                    <input type="text" class="form-control" id="timezone_preview" readonly>
                   </div>
                   <div class="mb-3">
                     <label class="form-label" for="sub_system">Sub-system</label>
@@ -140,6 +157,8 @@
         var slug = document.getElementById('slug').value.trim().toLowerCase().replace(/\s+/g, '-');
         var subdomain = document.getElementById('subdomain').value.trim().toLowerCase() || slug;
         var contact_email = document.getElementById('contact_email').value.trim();
+        var country_code = document.getElementById('country_code').value.trim().toUpperCase();
+        var city_id = document.getElementById('city_id').value.trim();
         var region_code = document.getElementById('region_code').value.trim();
         var sub_system = document.getElementById('sub_system').value;
         var primary_color = document.getElementById('primary_color').value;
@@ -150,6 +169,8 @@
           slug: slug,
           subdomain: subdomain,
           contact_email: contact_email,
+          country_code: country_code,
+          city_id: city_id,
           region_code: region_code,
           sub_system: sub_system,
           primary_color: primary_color,
@@ -197,6 +218,33 @@
         if (!document.getElementById('slug').value) document.getElementById('slug').value = s;
         if (!document.getElementById('subdomain').value) document.getElementById('subdomain').value = s;
       });
+
+      var countrySelect = document.getElementById('country_code');
+      var citySelect = document.getElementById('city_id');
+      var regionCodeInput = document.getElementById('region_code');
+      var timezonePreview = document.getElementById('timezone_preview');
+
+      function syncCities() {
+        if (!countrySelect || !citySelect) return;
+        var selectedCountry = countrySelect.value || '';
+        var firstVisible = null;
+        var selectedVisible = false;
+        Array.prototype.forEach.call(citySelect.options, function (opt) {
+          var visible = !selectedCountry || opt.getAttribute('data-country') === selectedCountry;
+          opt.hidden = !visible;
+          opt.disabled = !visible;
+          if (visible && !firstVisible) firstVisible = opt;
+          if (visible && opt.selected) selectedVisible = true;
+        });
+        if (!selectedVisible && firstVisible) firstVisible.selected = true;
+        var selectedOption = citySelect.options[citySelect.selectedIndex];
+        if (regionCodeInput) regionCodeInput.value = selectedCountry;
+        if (timezonePreview) timezonePreview.value = selectedOption ? (selectedOption.getAttribute('data-timezone') || '') : '';
+      }
+
+      if (countrySelect) countrySelect.addEventListener('change', syncCities);
+      if (citySelect) citySelect.addEventListener('change', syncCities);
+      syncCities();
     })();
   </script>
 {% endblock %}

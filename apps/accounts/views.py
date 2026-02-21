@@ -18,7 +18,7 @@ from apps.portal.models import PendingGuardianInvite
 from apps.people.models import StudentGuardian, StudentProfile, TeacherAttendance, TeacherProfile, Badge, BadgeType
 from apps.academics.models import AcademicYear, Classroom
 from apps.reports.models import TermPublishStatus
-from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
 from apps.academics.services import get_active_year_and_term
 from apps.academics.services_year_setup import clone_academic_year
 from apps.portal.services import link_guardian_via_invite
@@ -1007,6 +1007,52 @@ def backend_dashboard(request):
     
     site = SiteSettings.get_solo()
     year, term = get_active_year_and_term()
+
+    backend_defaults = default_backend_feature_flags()
+    backend_flags = dict(getattr(site, "backend_feature_flags", {}) or {})
+    for key, default_val in backend_defaults.items():
+        backend_flags.setdefault(key, default_val)
+
+    def _clamp_backend_int(value, default, minimum=3, maximum=12):
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            parsed = int(default)
+        return max(minimum, min(maximum, parsed))
+
+    backend_layout_max_items_per_list = _clamp_backend_int(
+        backend_flags.get("backend_layout_max_items_per_list"),
+        backend_defaults.get("backend_layout_max_items_per_list", 5),
+    )
+    backend_max_items_slice = f":{backend_layout_max_items_per_list}"
+
+    backend_module_visibility = {
+        "overview": bool(backend_flags.get("backend_module_overview", True)),
+        "admin_portal": bool(backend_flags.get("backend_module_admin_portal", True)),
+        "welcome": bool(backend_flags.get("backend_module_welcome", True)),
+        "enrollment_trends": bool(backend_flags.get("backend_module_enrollment_trends", True)),
+        "at_risk_students": bool(backend_flags.get("backend_module_at_risk_students", True)),
+        "outstanding_fees": bool(backend_flags.get("backend_module_outstanding_fees", True)),
+        "recent_admissions": bool(backend_flags.get("backend_module_recent_admissions", True)),
+        "recent_activity": bool(backend_flags.get("backend_module_recent_activity", True)),
+        "top_performing": bool(backend_flags.get("backend_module_top_performing", True)),
+        "attendance_today": bool(backend_flags.get("backend_module_attendance_today", True)),
+        "ops_watch": bool(backend_flags.get("backend_module_ops_watch", True)),
+        "quick_links": bool(backend_flags.get("backend_module_quick_links", True)),
+        "planner": bool(backend_flags.get("backend_module_planner", True)),
+    }
+    backend_visual_settings = {
+        "show_trend_ribbons": bool(backend_flags.get("backend_viz_show_trend_ribbons", True)),
+        "show_progress_rings": bool(backend_flags.get("backend_viz_show_progress_rings", True)),
+        "show_rank_sparklines": bool(backend_flags.get("backend_viz_show_rank_sparklines", True)),
+    }
+    backend_theme_settings = {
+        "warm_palette": bool(backend_flags.get("backend_warm_palette", True)),
+        "reduce_card_flatness": bool(backend_flags.get("backend_reduce_card_flatness", True)),
+        "high_depth_surfaces": bool(backend_flags.get("backend_high_depth_surfaces", True)),
+        "balanced_motion": bool(backend_flags.get("backend_balanced_motion", True)),
+        "layout_equal_heights": bool(backend_flags.get("backend_layout_equal_heights", True)),
+    }
     stats = {
         "students": StudentProfile.objects.filter(is_active=True).count(),
         "guardians": StudentGuardian.objects.count(),
@@ -1033,7 +1079,7 @@ def backend_dashboard(request):
         }
     
     # Get recent activity
-    recent_activities = get_recent_activity(limit=10)
+    recent_activities = get_recent_activity(limit=max(backend_layout_max_items_per_list, 5))
     
     finance_overview = {}
     finance_summary = {}
@@ -1355,7 +1401,7 @@ def backend_dashboard(request):
         admissions_qs = StudentProfile.objects.select_related("classroom").filter(is_active=True)
         if year:
             admissions_qs = admissions_qs.filter(academic_year=year)
-        for student in admissions_qs.order_by("-updated_at", "-id")[:6]:
+        for student in admissions_qs.order_by("-updated_at", "-id")[: backend_layout_max_items_per_list]:
             recent_admissions.append(
                 {
                     "name": student.get_full_name(),
@@ -1410,7 +1456,14 @@ def backend_dashboard(request):
         score_rows = []
 
     score_rows.sort(key=lambda item: item.get("score", 0), reverse=True)
-    top_performing_students = score_rows[:5]
+    top_performing_students = score_rows[: backend_layout_max_items_per_list]
+    top_score = max((item.get("score", 0) for item in top_performing_students), default=0)
+    for item in top_performing_students:
+        score_value = float(item.get("score", 0) or 0)
+        if top_score <= 0:
+            item["ribbon_pct"] = 0
+        else:
+            item["ribbon_pct"] = max(8, min(100, int(round((score_value / top_score) * 100))))
 
     at_risk_map = {}
     for row in score_rows:
@@ -1426,7 +1479,7 @@ def backend_dashboard(request):
             "tag": "Low performance",
             "value": f"{row.get('score', 0):.1f}/20",
         }
-        if len(at_risk_map) >= 5:
+        if len(at_risk_map) >= backend_layout_max_items_per_list:
             break
 
     try:
@@ -1456,12 +1509,14 @@ def backend_dashboard(request):
                 "tag": "Overdue invoice",
                 "value": risk_value,
             }
-            if len(at_risk_map) >= 5:
+            if len(at_risk_map) >= backend_layout_max_items_per_list:
                 break
     except Exception:
         pass
 
-    at_risk_students = list(at_risk_map.values())[:5]
+    at_risk_students = list(at_risk_map.values())[: backend_layout_max_items_per_list]
+    total_students = max(stats.get("students", 0), 1)
+    at_risk_ratio_pct = int(round((len(at_risk_students) / total_students) * 100))
 
     # Workflow progress and recommended next steps for dashboard
     workflow_progress = _workflow_progress(year)
@@ -1488,8 +1543,41 @@ def backend_dashboard(request):
             recommended_next_steps.append({"label": "Publish results", "url": reverse("reports:publish_term_results"), "icon": "bi-award"})
     except Exception:
         recommended_next_steps = [{"label": "Workflow Center", "url": reverse("accounts:workflow_center"), "icon": "bi-diagram-3"}]
+
+    backend_main_module_count = sum(
+        1
+        for key in (
+            "enrollment_trends",
+            "outstanding_fees",
+            "at_risk_students",
+            "recent_admissions",
+            "recent_activity",
+            "top_performing",
+            "attendance_today",
+        )
+        if backend_module_visibility.get(key, True)
+    )
+    backend_show_workspace_rail = any(
+        backend_module_visibility.get(key, True)
+        for key in ("ops_watch", "quick_links", "planner")
+    )
+    backend_workspace_fluid = not all(
+        backend_module_visibility.get(key, True)
+        for key in ("enrollment_trends", "outstanding_fees", "at_risk_students")
+    )
+
     context = {
         "site": site,
+        "backend_feature_flags": backend_flags,
+        "backend_module_visibility": backend_module_visibility,
+        "backend_visual_settings": backend_visual_settings,
+        "backend_theme_settings": backend_theme_settings,
+        "backend_layout_max_items_per_list": backend_layout_max_items_per_list,
+        "backend_max_items_slice": backend_max_items_slice,
+        "backend_main_module_count": backend_main_module_count,
+        "backend_show_workspace_rail": backend_show_workspace_rail,
+        "backend_workspace_fluid": backend_workspace_fluid,
+        "at_risk_ratio_pct": at_risk_ratio_pct,
         "stats": stats,
         "dashboard_stats_cards": [],  # Suppress portal_base stats block; backend has its own
         "workflow_progress": workflow_progress,
@@ -1614,6 +1702,21 @@ def backend_dashboard_status_fragment(request):
 @user_passes_test(_is_admin_user)
 def backend_ops_watch_data(request):
     """Lightweight JSON payload for live Ops Watch refresh."""
+    site = SiteSettings.get_solo()
+    backend_defaults = default_backend_feature_flags()
+    backend_flags = dict(getattr(site, "backend_feature_flags", {}) or {})
+    for key, default_val in backend_defaults.items():
+        backend_flags.setdefault(key, default_val)
+
+    if not bool(backend_flags.get("backend_module_ops_watch", True)):
+        return JsonResponse({"success": True, "operations_watch": [], "finance_requests": 0, "updated_at": timezone.localtime().isoformat()})
+
+    try:
+        max_items = int(backend_flags.get("backend_layout_max_items_per_list", backend_defaults.get("backend_layout_max_items_per_list", 5)))
+    except (TypeError, ValueError):
+        max_items = int(backend_defaults.get("backend_layout_max_items_per_list", 5))
+    max_items = max(3, min(12, max_items))
+
     pending_approvals_count = 0
     try:
         from apps.requests.models import AccessRequest
@@ -1646,7 +1749,7 @@ def backend_ops_watch_data(request):
     return JsonResponse(
         {
             "success": True,
-            "operations_watch": extras.get("operations_watch", []),
+            "operations_watch": (extras.get("operations_watch", []) or [])[:max_items],
             "finance_requests": extras.get("ops_watch_finance_requests", 0),
             "updated_at": extras.get("ops_watch_last_updated"),
         }

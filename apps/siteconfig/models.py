@@ -153,6 +153,30 @@ def default_header_weather_config():
 def default_backend_feature_flags():
     weather = default_header_weather_config()
     return {
+        # Backend dashboard experience + visualization controls
+        "backend_warm_palette": True,
+        "backend_reduce_card_flatness": True,
+        "backend_high_depth_surfaces": True,
+        "backend_balanced_motion": True,
+        "backend_layout_equal_heights": True,
+        "backend_layout_max_items_per_list": 5,
+        "backend_viz_show_trend_ribbons": True,
+        "backend_viz_show_progress_rings": True,
+        "backend_viz_show_rank_sparklines": True,
+        # Backend module visibility toggles
+        "backend_module_overview": True,
+        "backend_module_admin_portal": True,
+        "backend_module_welcome": True,
+        "backend_module_enrollment_trends": True,
+        "backend_module_at_risk_students": True,
+        "backend_module_outstanding_fees": True,
+        "backend_module_recent_admissions": True,
+        "backend_module_recent_activity": True,
+        "backend_module_top_performing": True,
+        "backend_module_attendance_today": True,
+        "backend_module_ops_watch": True,
+        "backend_module_quick_links": True,
+        "backend_module_planner": True,
         "enable_entity_console": True,
         "enable_entity_import": True,
         "enable_api_schema_ui": True,

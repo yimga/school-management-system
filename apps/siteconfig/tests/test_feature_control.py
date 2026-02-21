@@ -127,6 +127,42 @@ class FeatureControlPanelTest(TestCase):
         self.assertTrue(flags.get("enable_ministry_api_dgi"))
         self.assertTrue(flags.get("enable_ministry_live_sync"))
 
+    def test_backend_experience_flags_and_list_density(self):
+        """Backend dashboard module/viz toggles and list density are configurable."""
+        self.client.login(username="super", password="testpass123")
+        response = self.client.get(reverse("siteconfig:feature_control_panel"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Backend Warm Palette", response.content)
+        self.assertIn(b"Backend Module: Overview", response.content)
+        self.assertIn(b"Backend Module: Planner", response.content)
+
+        payload = {
+            "action": "save",
+            "feature_backend_flags.backend_warm_palette": "on",
+            "feature_backend_flags.backend_reduce_card_flatness": "on",
+            "feature_backend_flags.backend_high_depth_surfaces": "on",
+            "feature_backend_flags.backend_layout_equal_heights": "on",
+            "feature_backend_flags.backend_viz_show_progress_rings": "on",
+            "feature_backend_flags.backend_module_overview": "on",
+            "feature_backend_flags.backend_module_admin_portal": "on",
+            "feature_backend_flags.backend_module_planner": "on",
+            "backend_layout_max_items_per_list": "7",
+        }
+        response = self.client.post(reverse("siteconfig:feature_control_panel"), data=payload, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        site = SiteSettings.get_solo()
+        flags = site.backend_feature_flags or {}
+        self.assertTrue(flags.get("backend_warm_palette"))
+        self.assertTrue(flags.get("backend_reduce_card_flatness"))
+        self.assertTrue(flags.get("backend_high_depth_surfaces"))
+        self.assertTrue(flags.get("backend_layout_equal_heights"))
+        self.assertTrue(flags.get("backend_viz_show_progress_rings"))
+        self.assertTrue(flags.get("backend_module_overview"))
+        self.assertTrue(flags.get("backend_module_admin_portal"))
+        self.assertTrue(flags.get("backend_module_planner"))
+        self.assertEqual(flags.get("backend_layout_max_items_per_list"), 7)
+
     def test_offline_fallback_page_available(self):
         """Offline fallback route exists for service worker navigation fallback."""
         response = self.client.get(reverse("offline"))

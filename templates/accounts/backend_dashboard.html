@@ -2,7 +2,14 @@
 {% load admin_health i18n static region_format %}
 
 {% block backend_title %}Backend Dashboard{% endblock %}
-{% block body_extra_class %}backend-shell dashboard-page-backend{% endblock %}
+{% block body_extra_class %}
+backend-shell dashboard-page-backend
+{% if backend_theme_settings.warm_palette %} backend-theme-warm{% endif %}
+{% if backend_theme_settings.reduce_card_flatness %} backend-theme-depth{% endif %}
+{% if backend_theme_settings.high_depth_surfaces %} backend-theme-high-depth{% endif %}
+{% if backend_theme_settings.balanced_motion %} backend-motion-balanced{% endif %}
+{% if backend_theme_settings.layout_equal_heights %} backend-equal-heights{% endif %}
+{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -94,8 +101,9 @@
   </script>
 
   <div class="backend-v2-shell">
-    <div class="backend-v2-grid">
+    <div class="backend-v2-grid {% if not backend_module_visibility.admin_portal %}backend-v2-grid--single{% endif %}">
       <section class="backend-v2-main">
+        {% if backend_module_visibility.overview %}
         <div class="backend-v2-overview" data-widget-id="backend-v2-overview">
           <div class="backend-v2-overview-head">
             <div>
@@ -148,7 +156,9 @@
           </div>
           {% endif %}
         </div>
+        {% endif %}
 
+        {% if backend_module_visibility.welcome %}
         <div class="backend-v2-welcome" data-widget-id="backend-v2-welcome">
           <div class="backend-v2-welcome-top">
             <div>
@@ -195,9 +205,20 @@
             {% endfor %}
           </div>
         </div>
+        {% endif %}
+
+        {% if not backend_module_visibility.overview and not backend_module_visibility.welcome %}
+        <article class="card backend-v2-panel backend-v2-panel--empty" data-widget-id="backend-v2-main-empty">
+          <div class="card-body">
+            <h5 class="backend-v2-panel-title mb-1">Dashboard Intro Modules Hidden</h5>
+            <p class="small text-muted mb-0">Enable Overview or Welcome in Feature Control to restore the top workspace blocks.</p>
+          </div>
+        </article>
+        {% endif %}
 
       </section>
 
+      {% if backend_module_visibility.admin_portal %}
       <aside class="backend-v2-side">
         <div class="backend-v2-side-card" data-widget-id="backend-v2-admin-portal">
           <div class="backend-v2-side-head">
@@ -241,10 +262,11 @@
 
         </div>
       </aside>
+      {% endif %}
     </div>
   </div>
 
-  <div class="backend-v2-workspace">
+  <div class="backend-v2-workspace {% if not backend_show_workspace_rail %}backend-v2-workspace--single{% endif %}">
     <div
       id="dashboard-layout"
       class="backend-v2-workbench"
@@ -259,8 +281,11 @@
       data-widget-meta='{{ dashboard_settings.widget_meta|default:"{}"|safe }}'
       data-widget-config='{{ widget_meta_json }}'
       data-widget-chart-types="{{ widget_chart_types_json|default:'{}'|escapejs }}"
-      data-style-preset="{{ dashboard_settings.style_preset|default:'' }}">
-      <div class="backend-v2-main-grid">
+      data-style-preset="{{ dashboard_settings.style_preset|default:'' }}"
+      data-max-list-items="{{ backend_layout_max_items_per_list }}"
+      data-layout-equal-heights="{{ backend_theme_settings.layout_equal_heights|yesno:'true,false' }}">
+      <div class="backend-v2-main-grid{% if backend_workspace_fluid or not backend_theme_settings.layout_equal_heights %} backend-v2-main-grid--fluid{% endif %}">
+        {% if backend_module_visibility.outstanding_fees %}
         <div class="backend-v2-span-2" data-widget-id="backend-outstanding-fees">
           {% if chart_finance_status_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendFinanceStatusChart" chart_type="doughnut" chart_title="Outstanding Fees" chart_data=chart_finance_status_json show_export=False fill_container=True aria_label="Outstanding fees by invoice status" %}
@@ -273,30 +298,43 @@
           </article>
           {% endif %}
         </div>
+        {% endif %}
+
+        {% if backend_module_visibility.at_risk_students %}
         <article class="card backend-v2-panel {% if not at_risk_students %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-at-risk-students">
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">At-Risk Students</h5>
               <span class="badge text-bg-light">{{ at_risk_students|length }}</span>
             </div>
-            <div class="dashboard-card-scroll">
-            <div class="backend-v2-list">
-              {% for student in at_risk_students %}
-              <div class="backend-v2-list-item">
-                <div>
-                  <strong>{{ student.name }}</strong>
-                  <div class="small text-muted">{{ student.classroom }} - {{ student.tag }}</div>
-                </div>
-                <span class="badge text-bg-warning">{{ student.value }}</span>
+            {% if backend_visual_settings.show_progress_rings %}
+            <div class="backend-v2-progress-ring-wrap" aria-hidden="true">
+              <div class="backend-v2-progress-ring" style="--ring-pct: {{ at_risk_ratio_pct|default:0 }};">
+                <span>{{ at_risk_ratio_pct|default:0 }}%</span>
               </div>
-              {% empty %}
-              <p class="small text-muted mb-0">No at-risk learners detected.</p>
-              {% endfor %}
+              <small class="text-muted">Share of tracked students flagged</small>
             </div>
+            {% endif %}
+            <div class="dashboard-card-scroll">
+              <div class="backend-v2-list">
+                {% for student in at_risk_students|slice:backend_max_items_slice %}
+                <div class="backend-v2-list-item">
+                  <div>
+                    <strong>{{ student.name }}</strong>
+                    <div class="small text-muted">{{ student.classroom }} - {{ student.tag }}</div>
+                  </div>
+                  <span class="badge text-bg-warning">{{ student.value }}</span>
+                </div>
+                {% empty %}
+                <p class="small text-muted mb-0">No at-risk learners detected.</p>
+                {% endfor %}
+              </div>
             </div>
           </div>
         </article>
+        {% endif %}
 
+        {% if backend_module_visibility.enrollment_trends %}
         <div class="backend-v2-span-2" data-widget-id="backend-enrollment-trends">
           {% if chart_enrollment_trend_json %}
           {% include "components/dashboard_chart.html" with chart_id="backendEnrollmentTrendChart" chart_type="line" chart_title="Enrollment Trends" chart_data=chart_enrollment_trend_json show_export=False fill_container=True aria_label="Enrollment trend over recent months" %}
@@ -309,7 +347,9 @@
           </article>
           {% endif %}
         </div>
+        {% endif %}
 
+        {% if backend_module_visibility.recent_admissions %}
         <article class="card backend-v2-panel" data-widget-id="backend-recent-admissions">
           <div class="card-body">
             <div class="backend-v2-panel-head">
@@ -317,23 +357,28 @@
               <a href="{{ quick_student_create_url }}" class="btn btn-sm btn-outline-primary">Add student</a>
             </div>
             <div class="dashboard-card-scroll">
-            <div class="backend-v2-list">
-              {% for student in recent_admissions %}
-              <div class="backend-v2-list-item">
-                <div>
-                  <strong>{{ student.name }}</strong>
-                  <div class="small text-muted">{{ student.classroom }}</div>
+              <div class="backend-v2-list">
+                {% for student in recent_admissions|slice:backend_max_items_slice %}
+                <div class="backend-v2-list-item">
+                  <div>
+                    <strong>{{ student.name }}</strong>
+                    <div class="small text-muted">{{ student.classroom }}</div>
+                    {% if backend_visual_settings.show_trend_ribbons %}
+                    <div class="backend-v2-trend-ribbon" aria-hidden="true"><span style="width: calc(42% + {{ forloop.counter0 }} * 9%);"></span></div>
+                    {% endif %}
+                  </div>
+                  <span class="badge text-bg-light">{{ student.admission_number }}</span>
                 </div>
-                <span class="badge text-bg-light">{{ student.admission_number }}</span>
+                {% empty %}
+                <div class="small text-muted">No recent admissions yet.</div>
+                {% endfor %}
               </div>
-              {% empty %}
-              <div class="small text-muted">No recent admissions yet.</div>
-              {% endfor %}
-            </div>
             </div>
           </div>
         </article>
+        {% endif %}
 
+        {% if backend_module_visibility.recent_activity %}
         <article class="card backend-v2-panel" data-widget-id="backend-recent-activity">
           <div class="card-body">
             <div class="backend-v2-panel-head">
@@ -341,23 +386,25 @@
               <span class="badge text-bg-light">Live feed</span>
             </div>
             <div class="dashboard-card-scroll">
-            <div class="backend-v2-list">
-              {% for activity in recent_activities|slice:":6" %}
-              <div class="backend-v2-list-item">
-                <div>
-                  <strong>{{ activity.object|truncatechars:40 }}</strong>
-                  <div class="small text-muted">{{ activity.user.get_full_name|default:activity.user.username }} - {{ activity.action }}</div>
+              <div class="backend-v2-list">
+                {% for activity in recent_activities|slice:backend_max_items_slice %}
+                <div class="backend-v2-list-item">
+                  <div>
+                    <strong>{{ activity.object|truncatechars:40 }}</strong>
+                    <div class="small text-muted">{{ activity.user.get_full_name|default:activity.user.username }} - {{ activity.action }}</div>
+                  </div>
+                  <span class="small text-muted">{{ activity.time_ago }} ago</span>
                 </div>
-                <span class="small text-muted">{{ activity.time_ago }} ago</span>
+                {% empty %}
+                <div class="small text-muted">No recent activity available.</div>
+                {% endfor %}
               </div>
-              {% empty %}
-              <div class="small text-muted">No recent activity available.</div>
-              {% endfor %}
-            </div>
             </div>
           </div>
         </article>
+        {% endif %}
 
+        {% if backend_module_visibility.top_performing %}
         <article class="card backend-v2-panel" data-widget-id="backend-top-performing">
           <div class="card-body">
             <div class="backend-v2-panel-head">
@@ -365,23 +412,28 @@
               <span class="badge text-bg-light">This term</span>
             </div>
             <div class="dashboard-card-scroll">
-            <div class="backend-v2-list">
-              {% for student in top_performing_students %}
-              <div class="backend-v2-list-item">
-                <div>
-                  <strong>{{ student.name }}</strong>
-                  <div class="small text-muted">{{ student.classroom }}</div>
+              <div class="backend-v2-list">
+                {% for student in top_performing_students|slice:backend_max_items_slice %}
+                <div class="backend-v2-list-item">
+                  <div>
+                    <strong>{{ student.name }}</strong>
+                    <div class="small text-muted">{{ student.classroom }}</div>
+                    {% if backend_visual_settings.show_rank_sparklines %}
+                    <div class="backend-v2-rank-ribbon" aria-hidden="true"><span style="width: {{ student.ribbon_pct|default:0 }}%;"></span></div>
+                    {% endif %}
+                  </div>
+                  <span class="badge text-bg-success">{{ student.score }}/20</span>
                 </div>
-                <span class="badge text-bg-success">{{ student.score }}/20</span>
+                {% empty %}
+                <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
+                {% endfor %}
               </div>
-              {% empty %}
-              <div class="small text-muted">Top-performing metrics will appear once marks are entered.</div>
-              {% endfor %}
-            </div>
             </div>
           </div>
         </article>
+        {% endif %}
 
+        {% if backend_module_visibility.attendance_today %}
         <article class="card backend-v2-panel backend-v2-panel--attendance" data-widget-id="backend-attendance-today">
           <div class="card-body">
             <div class="backend-v2-panel-head">
@@ -402,10 +454,22 @@
             <a class="backend-empty-quick-action mt-2 d-inline-block" href="{% url 'portal:teacher_attendance' %}">View teacher attendance</a>
           </div>
         </article>
+        {% endif %}
+
+        {% if backend_main_module_count == 0 %}
+        <article class="card backend-v2-panel backend-v2-panel--empty" data-widget-id="backend-modules-disabled">
+          <div class="card-body">
+            <h5 class="backend-v2-panel-title mb-1">Dashboard Modules Hidden</h5>
+            <p class="small text-muted mb-0">Enable backend modules in Feature Control to populate this workspace.</p>
+          </div>
+        </article>
+        {% endif %}
       </div>
     </div>
 
+    {% if backend_show_workspace_rail %}
     <aside class="backend-v2-rail" data-widget-id="backend-command-sidebar">
+      {% if backend_module_visibility.ops_watch %}
       <div class="card mb-3 backend-ops-watch-card backend-v2-rail-card backend-v2-rail-card--ops" data-widget-id="backend-ops-watch">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -413,7 +477,7 @@
             <span class="badge bg-light text-dark" id="backendOpsWatchUpdatedAt">Live - {{ local_time|date:"h:i A" }}</span>
           </div>
           <div class="d-grid gap-2 mb-3 small js-ops-watch-list" data-refresh-url="{{ ops_watch_refresh_url }}" data-finance-url="{{ finance_request_link }}">
-            {% for item in operations_watch %}
+            {% for item in operations_watch|slice:backend_max_items_slice %}
             <div class="backend-ops-item {% if item.status == 'warn' %}is-warn{% elif item.status == 'danger' %}is-danger{% endif %}" data-ops-key="{{ item.key }}">
               <div class="backend-ops-item-left">
                 <span class="backend-ops-dot"></span>
@@ -436,7 +500,9 @@
           </div>
         </div>
       </div>
+      {% endif %}
 
+      {% if backend_module_visibility.quick_links %}
       <div class="card mb-3 backend-quick-links-card backend-v2-rail-card backend-v2-rail-card--links {% if not quick_links %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-quick-links">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -444,7 +510,7 @@
             <span class="badge bg-light text-dark">Shortcuts</span>
           </div>
           <div class="backend-quick-links-list">
-            {% for quick in quick_links %}
+            {% for quick in quick_links|slice:backend_max_items_slice %}
             <a class="backend-quick-link" href="{{ quick.url }}" data-quick-link-id="{{ quick.id|default:'' }}">
               <span><i class="bi {{ quick.icon }} me-1"></i>{{ quick.label }}</span>
               <i class="bi bi-chevron-right small"></i>
@@ -456,7 +522,9 @@
           </div>
         </div>
       </div>
+      {% endif %}
 
+      {% if backend_module_visibility.planner %}
       <div class="card mb-3 backend-quick-links-card backend-v2-planner-card backend-v2-rail-card backend-v2-rail-card--planner {% if not upcoming_events and not recommended_next_steps %}backend-v2-panel--empty{% endif %}" data-widget-id="backend-planner">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -469,7 +537,7 @@
                 <span class="small fw-semibold text-muted">Upcoming events</span>
               </div>
               <div class="backend-planner-list backend-planner-events">
-                {% for item in upcoming_events|slice:":3" %}
+                {% for item in upcoming_events|slice:backend_max_items_slice %}
                 <div class="backend-quick-link d-flex align-items-start gap-2 small py-1">
                   <span class="badge bg-secondary text-white flex-shrink-0 backend-planner-date-badge">{{ item.when|format_date }}</span>
                   <div class="min-width-0">
@@ -490,7 +558,7 @@
                 {% endif %}
               </div>
               <div class="backend-planner-list backend-planner-next">
-                {% for step in recommended_next_steps|slice:":3" %}
+                {% for step in recommended_next_steps|slice:backend_max_items_slice %}
                 <a href="{{ step.url }}" class="backend-quick-link d-flex align-items-center gap-2 text-decoration-none small">
                   <span>{% if step.icon %}<i class="bi {{ step.icon }} me-1"></i>{% endif %}{{ step.label }}</span>
                   <i class="bi bi-chevron-right ms-auto"></i>
@@ -507,7 +575,9 @@
           </div>
         </div>
       </div>
+      {% endif %}
     </aside>
+    {% endif %}
   </div>
   {{ command_palette|json_script:"backend-command-palette-data" }}
   <div id="backendCommandPalette" class="backend-cmd-palette" aria-hidden="true">
