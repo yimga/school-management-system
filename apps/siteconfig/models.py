@@ -616,6 +616,26 @@ class SiteSettings(models.Model):
         related_name="admin_site_settings",
         help_text="Theme for staff dashboards: /admin and /backend. Shared between both.",
     )
+    teacher_theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="site_settings_teacher",
+        help_text="Optional: Theme pack for teachers on the portal. If unset, portal theme pack is used.",
+    )
+    parent_theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="site_settings_parent",
+        help_text="Optional: Theme pack for parents on the portal. If unset, portal theme pack is used.",
+    )
+    skip_theme_publish_guard = models.BooleanField(
+        default=False,
+        help_text="When enabled, theme pack and high-impact theme changes save without requiring live preview confirmation. Use only in low-risk environments.",
+    )
     preview_mode_enabled = models.BooleanField(default=False)
     preview_note = models.CharField(max_length=255, blank=True, default="")
 
@@ -1435,6 +1455,8 @@ class SiteSettings(models.Model):
         fk_guards = (
             ("theme_pack", "siteconfig", "ThemePack"),
             ("admin_theme_pack", "siteconfig", "ThemePack"),
+            ("teacher_theme_pack", "siteconfig", "ThemePack"),
+            ("parent_theme_pack", "siteconfig", "ThemePack"),
             ("default_term_report_style", "siteconfig", "ReportCardStyle"),
             ("default_annual_report_style", "siteconfig", "ReportCardStyle"),
             ("compliance_profile", "finance", "ComplianceProfile"),
@@ -1577,6 +1599,36 @@ class SiteSettings(models.Model):
             return fallback or site_pack
         except (OperationalError, DatabaseError):
             return site_pack
+
+    def get_portal_theme(self, user=None, effective_role: str | None = None) -> "ThemePack | None":
+        """
+        Return the theme pack for the portal (role-based when per-role packs are set).
+        effective_role should be TEACHER or PARENT from get_effective_portal_role(request).
+        If effective_role is TEACHER and teacher_theme_pack is set, use it; if PARENT and
+        parent_theme_pack is set, use it; otherwise use active_theme (portal theme pack).
+        """
+        role = (effective_role or "").strip().upper() or (
+            getattr(user, "role", "") or ""
+        ).strip().upper() if user and getattr(user, "is_authenticated", False) else ""
+        if role == "TEACHER" and self.teacher_theme_pack_id:
+                try:
+                    pack = ThemePack.objects.filter(
+                        pk=self.teacher_theme_pack_id, is_active=True
+                    ).first()
+                    if pack:
+                        return pack
+                except (OperationalError, DatabaseError):
+                    pass
+        if role == "PARENT" and self.parent_theme_pack_id:
+                try:
+                    pack = ThemePack.objects.filter(
+                        pk=self.parent_theme_pack_id, is_active=True
+                    ).first()
+                    if pack:
+                        return pack
+                except (OperationalError, DatabaseError):
+                    pass
+        return self.active_theme
 
 
 class ThemePack(models.Model):
@@ -2150,7 +2202,8 @@ class RegionConfig(models.Model):
     )
     term_count_per_year = models.IntegerField(
         default=3,
-        choices=[(2, '2 terms'), (3, '3 terms'), (4, '4 terms')]
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        help_text="Number of instructional periods in a school year (1-12).",
     )
     
     # Legal/compliance
@@ -2220,6 +2273,133 @@ class RegionConfig(models.Model):
             }
         )
         return region
+
+
+def default_education_term_labels():
+    return ["Term 1", "Term 2", "Term 3"]
+
+
+def default_education_subject_seed():
+    return [
+        {"name": "Mathematics", "category": "GENERAL"},
+        {"name": "English", "category": "GENERAL"},
+        {"name": "Science", "category": "GENERAL"},
+    ]
+
+
+class EducationSystemProfile(models.Model):
+    """
+    Country/sub-system template used when provisioning a new school.
+    Encodes curriculum defaults without hardcoding logic in tasks.
+    """
+
+    class SubSystem(models.TextChoices):
+        ANY = "ANY", "Any"
+        FR = "FR", "French sub-system"
+        EN = "EN", "English sub-system"
+        INT = "INT", "International"
+
+    code = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=160)
+    region = models.ForeignKey(
+        RegionConfig,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="education_profiles",
+    )
+    sub_system = models.CharField(max_length=10, choices=SubSystem.choices, default=SubSystem.ANY)
+    is_default = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    academic_year_start_month = models.IntegerField(
+        default=9,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+    )
+    term_count_per_year = models.IntegerField(
+        default=3,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+    )
+    term_labels = models.JSONField(
+        default=default_education_term_labels,
+        blank=True,
+        help_text='Ordered labels for terms/semesters (e.g. ["Term 1", "Term 2", "Term 3"]).',
+    )
+    grading_scale = models.CharField(max_length=20, default="0-100")
+    default_language = models.CharField(max_length=10, default="en")
+    default_currency = models.CharField(max_length=3, default="USD")
+    default_timezone = models.CharField(max_length=64, default="UTC")
+    subject_seed = models.JSONField(
+        default=default_education_subject_seed,
+        blank=True,
+        help_text='Default subjects to seed when onboarding a school.',
+    )
+    config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Additional profile settings (grading logic, compliance tags, etc.).",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name", "code"]
+
+    def __str__(self):
+        scope = self.region.code if self.region_id else "GLOBAL"
+        return f"{self.name} [{scope}/{self.sub_system}]"
+
+    def normalized_term_labels(self) -> list[str]:
+        labels = [str(item).strip() for item in (self.term_labels or []) if str(item).strip()]
+        if len(labels) >= int(self.term_count_per_year or 0):
+            return labels
+        labels.extend([f"Term {idx + 1}" for idx in range(len(labels), int(self.term_count_per_year or 0))])
+        return labels
+
+    def normalized_subject_seed(self) -> list[dict]:
+        rows = []
+        for item in self.subject_seed or []:
+            if isinstance(item, str):
+                name = item.strip()
+                if name:
+                    rows.append({"name": name, "category": "GENERAL"})
+                continue
+            if isinstance(item, dict):
+                name = str(item.get("name") or "").strip()
+                if not name:
+                    continue
+                category = str(item.get("category") or "GENERAL").strip().upper() or "GENERAL"
+                rows.append({"name": name, "category": category})
+        if rows:
+            return rows
+        return default_education_subject_seed()
+
+    @classmethod
+    def for_school(cls, school):
+        """
+        Resolve the best profile for a school:
+        region+subsystem > region+ANY > global+subsystem > global+ANY.
+        """
+        if school is None:
+            return cls.objects.filter(is_active=True, is_default=True).order_by("-updated_at").first()
+        sub_system = (getattr(school, "sub_system", "") or cls.SubSystem.ANY).upper()
+        region_id = getattr(school, "default_region_id", None)
+        matches = []
+        if region_id:
+            matches.append({"region_id": region_id, "sub_system": sub_system})
+            matches.append({"region_id": region_id, "sub_system": cls.SubSystem.ANY})
+        matches.append({"region__isnull": True, "sub_system": sub_system})
+        matches.append({"region__isnull": True, "sub_system": cls.SubSystem.ANY})
+
+        for cond in matches:
+            profile = (
+                cls.objects.filter(is_active=True, **cond)
+                .order_by("-is_default", "name")
+                .first()
+            )
+            if profile:
+                return profile
+        return None
 
 
 class GradingScaleConfig(models.Model):

@@ -9,7 +9,10 @@
 {% include "admin/components/theme_preview_assets.html" %}
 <div class="theme-experience-page container-fluid py-2">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-    <h1 class="h4 mb-0">{% trans "Theme & Experience" %}</h1>
+    <div>
+      <h1 class="h4 mb-0">{% trans "Theme & Experience" %}</h1>
+      <p class="small text-muted mb-0 mt-1">{% trans "These settings apply to Site Settings (Theme pack & Admin theme pack)." %}</p>
+    </div>
     {% if back_url %}
     <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm">
       <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1rem;">arrow_back</span>
@@ -17,6 +20,12 @@
     </a>
     {% endif %}
   </div>
+
+  {% if preview_mode_active %}
+  <div class="alert alert-info py-2 mb-2" role="status">
+    <strong>{% trans "Preview mode is ON." %}</strong> {% trans "You are viewing draft theme. Other users see the last saved theme." %}
+  </div>
+  {% endif %}
 
   <form method="post" id="theme-colors-form">
     {% csrf_token %}
@@ -85,6 +94,7 @@
           {% if theme_recent_change_meta %}
             {% if theme_recent_change_meta.status == "blocked" %}
               {% trans "Last attempt blocked:" %}
+              <span class="d-block mt-1">{% trans "Complete Live preview and confirm to publish." %}</span>
             {% else %}
               {% trans "Last publish:" %}
             {% endif %}
@@ -94,6 +104,22 @@
           {% else %}
             {% trans "No recent theme publish audit for this session." %}
           {% endif %}
+        </div>
+        <details class="small mt-2" id="theme-checklist-details">
+          <summary class="text-muted">{% trans "Theme checklist" %}</summary>
+          <ul class="mb-0 mt-1 ps-3">
+            <li>{% trans "Portal / everyone: set Portal theme (everyone). Use Live preview → Confirm → Save if required." %}</li>
+            <li>{% trans "Admin / backend: set Admin & backend theme (staff). Same save flow if guarded." %}</li>
+            <li>{% trans "Same look everywhere: set both to the same pack, or use the button below." %}</li>
+            <li>{% trans "Backend console theme: only applies if the selected Admin theme pack does not override it." %}</li>
+          </ul>
+        </details>
+        <div class="small mt-1 border-top pt-1">
+          <strong>{% trans "Who sees which theme" %}</strong>
+          <ul class="mb-0 ps-3">
+            <li>{% trans "Portal & login (everyone):" %} <strong id="theme-who-portal">{% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}</strong></li>
+            <li>{% trans "Admin & backend (staff):" %} <strong id="theme-who-admin">{% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans "None selected" %}{% endif %}</strong></li>
+          </ul>
         </div>
       </div>
     </div>
@@ -129,21 +155,33 @@
               <div class="col-4"><div class="mb-0">{{ form.danger_color.label_tag }}{{ form.danger_color }}{% if form.danger_color.errors %}<div class="invalid-feedback d-block">{{ form.danger_color.errors.0 }}</div>{% endif %}</div></div>
             </div>
 
+            <p class="small text-muted mb-1">{% trans "Changing theme packs or high-impact colors requires: Live preview → then tick Confirm and publish → then Save." %}</p>
             {# Theme + checkboxes in one row #}
             <div class="row g-1 mb-1">
               <div class="col-md-3"><div class="mb-0">{{ form.theme_brightness.label_tag }}{{ form.theme_brightness }}</div></div>
               <div class="col-md-3"><div class="mb-0">{{ form.backend_console_theme.label_tag }}{{ form.backend_console_theme }}</div><small class="text-muted">{% trans "If the selected Admin theme pack has a console theme set, it overrides this." %}</small></div>
-              <div class="col-md-3"><div class="mb-0">{{ form.theme_pack.label_tag }}{{ form.theme_pack }}</div></div>
-              <div class="col-md-3"><div class="mb-0">{{ form.admin_theme_pack.label_tag }}{{ form.admin_theme_pack }}</div></div>
+              <div class="col-md-3"><div class="mb-0">{{ form.theme_pack.label_tag }}{{ form.theme_pack }}</div><small id="help-theme-pack" class="form-text text-muted">{{ form.theme_pack.help_text }}</small></div>
+              <div class="col-md-3"><div class="mb-0">{{ form.admin_theme_pack.label_tag }}{{ form.admin_theme_pack }}</div><small id="help-admin-theme-pack" class="form-text text-muted">{{ form.admin_theme_pack.help_text }}</small></div>
+              <div class="col-12">
+                <button type="button" id="theme-use-same-pack" class="btn btn-outline-secondary btn-sm mt-1">{% trans "Use same pack for portal and admin" %}</button>
+              </div>
+              {% if not site_settings.theme_pack_id or not site_settings.admin_theme_pack_id or site_settings.theme_pack_id != site_settings.admin_theme_pack_id %}
+              <div class="col-12">
+                <small class="text-muted">{% trans "For one look everywhere, set Portal theme and Admin theme to the same pack, or use the button above." %}</small>
+              </div>
+              {% endif %}
               <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
                 <div class="form-check mb-0">{{ form.use_dark_mode }}<label class="form-check-label" for="id_use_dark_mode">{{ form.use_dark_mode.label }}</label></div>
                 <div class="form-check mb-0">{{ form.admin_use_site_primary }}<label class="form-check-label" for="id_admin_use_site_primary">{{ form.admin_use_site_primary.label }}</label></div>
               </div>
               <div class="col-12">
-                <small class="text-muted">
-                  {% trans "For a unified look across portal, backend, and admin, set Site theme pack and Admin theme pack to the same pack." %}
-                </small>
-                <br>
+                <div class="form-check mb-0">
+                  <input type="checkbox" id="theme-confirm-publish" class="form-check-input" name="confirm_publish_checkbox">
+                  <label class="form-check-label" for="theme-confirm-publish">{% trans "I've previewed and want to publish (required for high-impact changes)" %}</label>
+                </div>
+                <small class="text-muted d-block mt-1">{% trans "Tick after using Live preview, then Save." %}</small>
+              </div>
+              <div class="col-12">
                 <small class="text-muted">
                   {% trans "If 'Admin use site primary' is enabled, admin primary/accent will follow site primary/accent even when an admin pack is selected." %}
                 </small>
@@ -151,6 +189,16 @@
                   {% trans "Admin/site color lock is ON: pack clicks will keep Site theme pack aligned so admin primary/accent stay consistent." %}
                 </div>
               </div>
+              <div class="col-12">
+                <div class="form-check mb-0">{{ form.skip_theme_publish_guard }}<label class="form-check-label" for="id_skip_theme_publish_guard">{{ form.skip_theme_publish_guard.label }}</label></div>
+                <small class="text-muted">{% trans "When enabled, theme changes save without live preview confirmation. Use only in low-risk environments." %}</small>
+              </div>
+            </div>
+            {# Per-role portal themes #}
+            <div class="row g-1 mb-1 border-top pt-1 mt-1">
+              <div class="col-12"><strong class="small">{% trans "Per-role portal themes (optional)" %}</strong></div>
+              <div class="col-md-6"><div class="mb-0">{{ form.teacher_theme_pack.label_tag }}{{ form.teacher_theme_pack }}</div><small class="text-muted">{% trans "Leave blank to use Portal theme for teachers." %}</small></div>
+              <div class="col-md-6"><div class="mb-0">{{ form.parent_theme_pack.label_tag }}{{ form.parent_theme_pack }}</div><small class="text-muted">{% trans "Leave blank to use Portal theme for parents." %}</small></div>
             </div>
 
             {# Typography #}
@@ -280,6 +328,8 @@
   var trackedFieldNames = colorFieldNames.concat([
     'theme_pack',
     'admin_theme_pack',
+    'teacher_theme_pack',
+    'parent_theme_pack',
     'theme_brightness',
     'backend_console_theme',
     'use_dark_mode',
@@ -291,7 +341,8 @@
     'default_refresh_rate',
     'default_term_report_style',
     'default_annual_report_style',
-    'report_downloads_enabled'
+    'report_downloads_enabled',
+    'skip_theme_publish_guard'
   ]);
   var savedSnapshot = {};
   var draftBadge = null;
@@ -429,9 +480,37 @@
         updatePackParityNote();
         var previewConfirmedField = document.getElementById('theme-preview-confirmed');
         if (previewConfirmedField) previewConfirmedField.value = '0';
+        var confirmCheck = document.getElementById('theme-confirm-publish');
+        if (confirmCheck && previewConfirmedField) previewConfirmedField.value = confirmCheck.checked ? '1' : '0';
       });
       form.addEventListener('submit', function() {
         setSource('{% trans "Source: saving current form values..." %}');
+        var confirmCheck = document.getElementById('theme-confirm-publish');
+        var previewConfirmedField = document.getElementById('theme-preview-confirmed');
+        if (confirmCheck && previewConfirmedField && confirmCheck.checked) previewConfirmedField.value = '1';
+      });
+    }
+
+    var useSamePackBtn = document.getElementById('theme-use-same-pack');
+    if (useSamePackBtn && form) {
+      useSamePackBtn.addEventListener('click', function() {
+        var siteSelect = document.getElementById('id_theme_pack');
+        var adminSelect = document.getElementById('id_admin_theme_pack');
+        if (siteSelect && adminSelect && siteSelect.value) {
+          adminSelect.value = siteSelect.value;
+          adminSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          writeActiveLabel('theme-active-admin-pack', 'id_admin_theme_pack');
+          updatePackParityNote();
+          updateDraftState();
+        }
+      });
+    }
+
+    var confirmCheck = document.getElementById('theme-confirm-publish');
+    var previewConfirmedField = document.getElementById('theme-preview-confirmed');
+    if (confirmCheck && previewConfirmedField) {
+      confirmCheck.addEventListener('change', function() {
+        previewConfirmedField.value = confirmCheck.checked ? '1' : '0';
       });
     }
 

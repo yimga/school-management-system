@@ -24,6 +24,7 @@ from .models import (
     ThemePack,
     UserPreference,
     RegionConfig,
+    EducationSystemProfile,
     GradingScaleConfig,
     HolidayCalendar,
     WeatherLocation,
@@ -420,7 +421,7 @@ class SiteSettingsAdmin(ModelAdmin):
         }),
         ("Theme & Experience", {
             "classes": ("tab",),
-            "description": "Theme editing is centralized in the dedicated Theme & Experience studio to keep one source of truth.",
+            "description": "Theme & Experience is managed on a dedicated page (link below). Changes there are saved here (Theme pack & Admin theme pack). One source of truth for portal and staff themes.",
             "fields": (
                 "theme_color_tools_link_block",
             )
@@ -758,7 +759,7 @@ class SiteSettingsAdmin(ModelAdmin):
             url = "/siteconfig/theme-colors/"
         return format_html(
             '<p class="mb-2 text-muted">{}</p><a href="{}" class="btn btn-primary">{}</a>',
-            "Theme editing is managed on a single page. Use the button below to open the Theme & Experience studio.",
+            "Theme editing is managed on a single page. These settings (Theme pack, Admin theme pack, per-role packs) apply here. Use the button below to open the Theme & Experience studio.",
             url,
             "Open Theme & Experience",
         )
@@ -1717,6 +1718,23 @@ class WeatherLocationAdmin(ModelAdmin):
     ordering = ("region__name", "sort_order", "city")
 
 
+class EducationSystemProfileAdmin(ModelAdmin):
+    list_display = (
+        "code",
+        "name",
+        "region",
+        "sub_system",
+        "term_count_per_year",
+        "grading_scale",
+        "is_default",
+        "is_active",
+    )
+    list_filter = ("sub_system", "is_default", "is_active", "region")
+    search_fields = ("code", "name", "region__name", "region__code")
+    ordering = ("name", "code")
+    readonly_fields = ("created_at", "updated_at")
+
+
 class FeatureToggleDefinitionAdmin(ModelAdmin):
     list_display = ("key", "label", "category", "scope", "default_enabled", "is_active", "updated_at")
     list_filter = ("category", "scope", "default_enabled", "is_active")
@@ -1741,6 +1759,7 @@ admin_site.register(ReportCardStyle, ReportCardStyleAdmin)
 admin_site.register(ReportCardStyleAssignment, ReportCardStyleAssignmentAdmin)
 admin_site.register(Integration, IntegrationAdmin)
 admin_site.register(RegionConfig, RegionConfigAdmin)
+admin_site.register(EducationSystemProfile, EducationSystemProfileAdmin)
 admin_site.register(GradingScaleConfig, GradingScaleConfigAdmin)
 admin_site.register(HolidayCalendar, HolidayCalendarAdmin)
 admin_site.register(WeatherLocation, WeatherLocationAdmin)

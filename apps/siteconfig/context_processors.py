@@ -182,7 +182,7 @@ def site_settings(request):
 
     if preview_settings:
         for key, value in preview_settings.items():
-            if key in {"admin_theme_pack", "theme_pack"} and value is not None:
+            if key in {"admin_theme_pack", "theme_pack", "teacher_theme_pack", "parent_theme_pack"} and value is not None:
                 id_attr = f"{key}_id"
                 if hasattr(site, id_attr):
                     try:
@@ -297,20 +297,23 @@ def site_settings(request):
         or "/authentication/backend" in request.path
     )
     # Cache portal "hat" checks before building sidebar (so get_effective_portal_role can use them)
+    effective_portal_role = None
     if request.user.is_authenticated:
         try:
-            from apps.accounts.portal_roles import has_teacher_hat, has_parent_hat
+            from apps.accounts.portal_roles import has_teacher_hat, has_parent_hat, get_effective_portal_role
             request._portal_teacher_hat = has_teacher_hat(request.user)
             request._portal_parent_hat = has_parent_hat(request.user)
+            effective_portal_role = get_effective_portal_role(request)
         except Exception:
             request._portal_teacher_hat = False
             request._portal_parent_hat = False
+    site_theme = site.get_portal_theme(user=request.user if getattr(request, "user", None) else None, effective_role=effective_portal_role)
     weather_defaults = default_header_weather_config()
     ctx = {
         "SITE": site,
         "SITE_SETTINGS": site,
         "is_backend_context": is_backend_context,
-        "SITE_THEME": site.active_theme,
+        "SITE_THEME": site_theme,
         "SITE_ADMIN_THEME": admin_theme,
         "ADMIN_RESOLVED_PRIMARY": admin_primary,
         "ADMIN_RESOLVED_ACCENT": admin_accent,

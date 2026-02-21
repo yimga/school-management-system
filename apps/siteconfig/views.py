@@ -24,7 +24,12 @@ from apps.academics.models import Classroom
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentProfile
 from apps.reports.models import ReportCard
-from apps.reports.services import CAMEROON_REPORT_LABELS, annual_report_context, term_report_context
+from apps.reports.services import (
+    GLOBAL_REPORT_LABELS,
+    annual_report_context,
+    resolve_report_labels,
+    term_report_context,
+)
 from apps.reports.weasy import render_pdf
 
 from types import SimpleNamespace
@@ -77,6 +82,8 @@ PREVIEW_FROM_FORM_KEYS = [
     "backend_console_theme",
     "theme_pack",
     "admin_theme_pack",
+    "teacher_theme_pack",
+    "parent_theme_pack",
 ]
 
 PREVIEW_BOOLEAN_KEYS = frozenset({
@@ -108,7 +115,7 @@ def _normalize_preview_value(key, val):
         return val in ("on", "true", "1", 1, True)
     if val is None or val == "":
         return None
-    if key in ("admin_theme_pack", "theme_pack"):
+    if key in ("admin_theme_pack", "theme_pack", "teacher_theme_pack", "parent_theme_pack"):
         if isinstance(val, str) and val.strip().isdigit():
             return int(val.strip())
         if isinstance(val, int):
@@ -468,6 +475,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
     site = SiteSettings.get_solo()
     metadata = _build_style_metadata(site)
     year, term = get_active_year_and_term()
+    labels = resolve_report_labels(student=student)
     context = {
         "report_style": style,
         "metadata": metadata,
@@ -475,7 +483,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
         "preview_mode": True,
         "student": student,
         "student_name": f"{student.last_name} {student.first_name}",
-        "labels": CAMEROON_REPORT_LABELS,
+        "labels": labels,
     }
     if report_type == ReportCard.Type.TERM:
         if year and term:
@@ -504,9 +512,9 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
                     },
                     "weights": SimpleNamespace(seq1_weight=20, seq2_weight=20, exam_weight=60, mock_weight=0, practical_weight=0),
                     "sequence_cues": [
-                        {"key": "seq1", "label": CAMEROON_REPORT_LABELS["sequence_1"], "weight": 20},
-                        {"key": "seq2", "label": CAMEROON_REPORT_LABELS["sequence_2"], "weight": 20},
-                        {"key": "exam", "label": CAMEROON_REPORT_LABELS["exam"], "weight": 60},
+                        {"key": "seq1", "label": labels.get("sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]), "weight": 20},
+                        {"key": "seq2", "label": labels.get("sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]), "weight": 20},
+                        {"key": "exam", "label": labels.get("exam", GLOBAL_REPORT_LABELS["exam"]), "weight": 60},
                     ],
                 }
             )
@@ -527,7 +535,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
             "promotion_average": None,
             "demotion_average": None,
             "teacher_remark": "Pending results.",
-            "labels": CAMEROON_REPORT_LABELS,
+            "labels": labels,
         }
         context.update(annual_ctx)
         context.update({"year": year or SimpleNamespace(name="2025/2026")})
@@ -548,7 +556,7 @@ def reportcard_style_preview(request, slug: str):
         rows = base_ctx["rows"][:6]
         summary = base_ctx["summary"]
         weights = base_ctx["weights"]
-        labels = base_ctx.get("labels", CAMEROON_REPORT_LABELS)
+        labels = base_ctx.get("labels", resolve_report_labels(student=student))
         sequence_cues = base_ctx.get("sequence_cues", [])
         student_obj = student
         student_name = f"{student.last_name} {student.first_name}"
@@ -579,11 +587,11 @@ def reportcard_style_preview(request, slug: str):
             "teacher_remark": "Consistent dedication.",
         }
         weights = SimpleNamespace(seq1_weight=20, seq2_weight=20, exam_weight=60, mock_weight=0, practical_weight=0)
-        labels = CAMEROON_REPORT_LABELS
+        labels = resolve_report_labels(student=student_obj)
         sequence_cues = [
-            {"key": "seq1", "label": CAMEROON_REPORT_LABELS["sequence_1"], "weight": 20},
-            {"key": "seq2", "label": CAMEROON_REPORT_LABELS["sequence_2"], "weight": 20},
-            {"key": "exam", "label": CAMEROON_REPORT_LABELS["exam"], "weight": 60},
+            {"key": "seq1", "label": labels.get("sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]), "weight": 20},
+            {"key": "seq2", "label": labels.get("sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]), "weight": 20},
+            {"key": "exam", "label": labels.get("exam", GLOBAL_REPORT_LABELS["exam"]), "weight": 60},
         ]
 
     context = {
@@ -919,6 +927,8 @@ def theme_colors_page(request):
                 if str(previous_value) != str(next_value):
                     changed_fields.append(field_name)
             preview_confirmed = request.POST.get("preview_confirmed") in ("1", "true", "on")
+            if getattr(site, "skip_theme_publish_guard", False):
+                preview_confirmed = True
 
             changed_labels = []
             for field_name in changed_fields:
@@ -951,7 +961,7 @@ def theme_colors_page(request):
                 messages.error(
                     request,
                     "Live preview confirmation is required before publishing high-impact theme changes: "
-                    f"{preview_hint}",
+                    f"{preview_hint}. Use Live preview, then tick Confirm and publish, then Save again.",
                 )
             else:
                 form.save()
@@ -1025,6 +1035,7 @@ def theme_colors_page(request):
             "theme_recent_change_meta": theme_recent_change_meta,
             "theme_contrast_report": contrast_report,
             "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
+            "skip_theme_publish_guard": getattr(site, "skip_theme_publish_guard", False),
         },
     )
 

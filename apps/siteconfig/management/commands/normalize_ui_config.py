@@ -84,8 +84,24 @@ class Command(BaseCommand):
                     site.admin_theme_pack = None
                     site.save(update_fields=["admin_theme_pack"])
 
+            for attr, label in (("teacher_theme_pack", "teacher_theme_pack"), ("parent_theme_pack", "parent_theme_pack")):
+                pack_id = getattr(site, f"{attr}_id", None)
+                if not pack_id:
+                    continue
+                pack = ThemePack.objects.filter(pk=pack_id).first()
+                if pack is None:
+                    changed_messages.append(f"Cleared invalid {attr} reference id={pack_id}.")
+                    if not dry_run:
+                        setattr(site, attr, None)
+                        site.save(update_fields=[attr])
+                elif not pack.is_active:
+                    changed_messages.append(f"Cleared inactive {attr} id={pack.pk} ({pack.name}).")
+                    if not dry_run:
+                        setattr(site, attr, None)
+                        site.save(update_fields=[attr])
+
             # If admin theme is implicit and the site theme is not admin-capable, pin a deterministic admin theme.
-            site.refresh_from_db(fields=["theme_pack", "admin_theme_pack"])
+            site.refresh_from_db(fields=["theme_pack", "admin_theme_pack", "teacher_theme_pack", "parent_theme_pack"])
             if site.admin_theme_pack_id is None:
                 site_theme = site.theme_pack
                 theme_covers_admin = bool(site_theme and site_theme.applies_to_admin and site_theme.is_active)

@@ -466,7 +466,7 @@ class SiteSettingsForm(forms.ModelForm):
 
 class UserPreferenceForm(forms.ModelForm):
     timezone = forms.ChoiceField(
-        choices=[(tz, tz) for tz in pytz.common_timezones],
+        choices=[(tz, tz) for tz in pytz.all_timezones],
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
     )
@@ -563,7 +563,7 @@ class UserPreferenceForm(forms.ModelForm):
     def clean_timezone(self):
         """Allow empty timezone - model default will be used."""
         timezone = self.cleaned_data.get("timezone") or ""
-        if timezone and timezone not in pytz.common_timezones:
+        if timezone and timezone not in pytz.all_timezones:
             raise forms.ValidationError("Invalid timezone selected.")
         return timezone
 
@@ -701,7 +701,10 @@ THEME_EXPERIENCE_FIELD_NAMES = [
     "use_dark_mode",
     "theme_pack",
     "admin_theme_pack",
+    "teacher_theme_pack",
+    "parent_theme_pack",
     "admin_use_site_primary",
+    "skip_theme_publish_guard",
     "backend_console_theme",
     "secondary_font",
     "use_secondary_font_for_headings",
@@ -736,8 +739,11 @@ class ThemeColorsForm(forms.ModelForm):
             "danger_color": ColorInputWithPreview(attrs={"placeholder": "#ef4444"}),
             "theme_brightness": forms.Select(attrs={"class": "form-select"}),
             "use_dark_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "theme_pack": forms.Select(attrs={"class": "form-select"}),
-            "admin_theme_pack": forms.Select(attrs={"class": "form-select"}),
+            "theme_pack": forms.Select(attrs={"class": "form-select", "aria-describedby": "help-theme-pack"}),
+            "admin_theme_pack": forms.Select(attrs={"class": "form-select", "aria-describedby": "help-admin-theme-pack"}),
+            "teacher_theme_pack": forms.Select(attrs={"class": "form-select"}),
+            "parent_theme_pack": forms.Select(attrs={"class": "form-select"}),
+            "skip_theme_publish_guard": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "admin_use_site_primary": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "backend_console_theme": forms.Select(attrs={"class": "form-select"}),
             "secondary_font": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. Georgia, serif"}),
@@ -781,6 +787,26 @@ class ThemeColorsForm(forms.ModelForm):
                 )
         self.fields["admin_theme_pack"].queryset = admin_qs
 
+        # Per-role portal packs: include current selection if set
+        portal_qs = ThemePack.objects.filter(is_active=True).order_by("-is_default", "name")
+        for attr in ("teacher_theme_pack_id", "parent_theme_pack_id"):
+            pid = getattr(instance, attr, None) if instance else None
+            if pid:
+                portal_qs = (
+                    ThemePack.objects.filter(Q(is_active=True) | Q(pk=pid))
+                    .order_by("-is_default", "name")
+                    .distinct()
+                )
+                break
+        self.fields["teacher_theme_pack"].queryset = portal_qs
+        self.fields["parent_theme_pack"].queryset = portal_qs
+
+        # Clearer labels for who sees what
+        self.fields["theme_pack"].label = "Portal theme (everyone)"
+        self.fields["theme_pack"].help_text = "Used for portal and login for all users (parents, teachers, students)."
+        self.fields["admin_theme_pack"].label = "Admin & backend theme (staff)"
+        self.fields["admin_theme_pack"].help_text = "Used for Django Admin and Backend (Workflow Center) only."
+
     def clean(self):
         cleaned = super().clean()
 
@@ -822,6 +848,10 @@ class ThemeColorsForm(forms.ModelForm):
             self.add_error("admin_theme_pack", "Selected pack is not admin-capable.")
         if admin_pack and not admin_pack.is_active:
             self.add_error("admin_theme_pack", "Selected admin pack is inactive.")
+        for field_name, label in (("teacher_theme_pack", "Teacher"), ("parent_theme_pack", "Parent")):
+            pack = cleaned.get(field_name)
+            if pack and not pack.is_active:
+                self.add_error(field_name, f"Selected {label} pack is inactive.")
 
         self._contrast_report = contrast_report
         return cleaned
