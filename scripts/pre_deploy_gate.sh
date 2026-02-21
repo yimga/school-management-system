@@ -9,6 +9,9 @@ python manage.py check
 echo "[pre_deploy_gate] Migrations (no unapplied changes)"
 python manage.py makemigrations --check --dry-run
 
+echo "[pre_deploy_gate] Tenant model audit"
+python manage.py audit_tenant_models --strict
+
 echo "[pre_deploy_gate] Smoke URLs"
 python manage.py test apps.accounts.tests.test_smoke_urls -v 1
 
@@ -17,6 +20,24 @@ python manage.py test apps.siteconfig.tests.test_theme_visibility_matrix -v 1
 
 echo "[pre_deploy_gate] Phase checks (targeted tests)"
 python manage.py test apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_dashboard_api_rbac -v 1
+
+echo "[pre_deploy_gate] Multi-tenant coverage checks"
+# Run only tests that are committed on main (omit test_global_catalog, test_tenant_audit if not yet merged)
+python manage.py test \
+  apps.siteconfig.tests.test_education_profile_engine \
+  apps.schools.tests.test_feature_registry \
+  apps.schools.tests.test_tenant_isolation_and_provisioning \
+  -v 1
+
+echo "[pre_deploy_gate] Render startup command sanity"
+if ! grep -q "render_start_web.sh" render.yaml; then
+  echo "render.yaml must reference scripts/release/render_start_web.sh" >&2
+  exit 1
+fi
+if ! grep -q "render_start_web.sh" Procfile; then
+  echo "Procfile must reference scripts/release/render_start_web.sh" >&2
+  exit 1
+fi
 
 echo "[pre_deploy_gate] PASSED"
 exit 0
