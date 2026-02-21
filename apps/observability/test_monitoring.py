@@ -273,12 +273,21 @@ class HealthCheckEndpointTestCase(TestCase):
 
     @override_settings(
         SECURE_SSL_REDIRECT=True,
-        SECURE_REDIRECT_EXEMPT=[r"^health/$", r"^healthz/$", r"^ready/$", r"^status/$", r"^api/health/$"],
+        SECURE_REDIRECT_EXEMPT=[r"^$", r"^health/$", r"^healthz/$", r"^ready/$", r"^status/$", r"^api/health/$"],
     )
     def test_health_endpoint_exempt_from_ssl_redirect(self):
         """Health endpoint should stay probe-safe even with SSL redirect enabled."""
         response = self.client.get('/health/')
         self.assertEqual(response.status_code, 200)
+
+    @override_settings(
+        SECURE_SSL_REDIRECT=True,
+        SECURE_REDIRECT_EXEMPT=[r"^$", r"^health/$", r"^healthz/$", r"^ready/$", r"^status/$", r"^api/health/$"],
+    )
+    def test_root_endpoint_exempt_from_ssl_redirect(self):
+        """Root should avoid HTTP->HTTPS redirect so platform startup probes can pass."""
+        response = self.client.get('/')
+        self.assertNotEqual(response.status_code, 301)
     
     def test_health_response_format(self):
         """Test health response structure"""

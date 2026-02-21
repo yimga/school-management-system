@@ -260,10 +260,15 @@ LOGOUT_REDIRECT_URL = "/authentication/login/"
 # --- Site behavior ---
 MAINTENANCE_MODE = False
 
-SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "1") == "1" and not DEBUG
+# Render terminates TLS at the edge. Internal platform probes may hit HTTP
+# without X-Forwarded-Proto and get redirected, which can break startup scans.
+_is_render = os.getenv("RENDER", "").lower() == "true"
+_secure_ssl_redirect_default = "0" if _is_render else "1"
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", _secure_ssl_redirect_default) == "1" and not DEBUG
 # Health/readiness probes can come over plain HTTP from platform internals.
 # Exempt these endpoints to avoid redirect loops and failed boot probes.
 SECURE_REDIRECT_EXEMPT = [
+    r"^$",
     r"^health/$",
     r"^healthz/$",
     r"^ready/$",
