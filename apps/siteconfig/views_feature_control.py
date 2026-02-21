@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import never_cache
 
 from apps.accounts.decorators import permission_required
+from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import (
     SiteSettings,
     WeatherLocation,
@@ -232,50 +233,87 @@ def _get_weather_selector_state(site: SiteSettings) -> dict:
     longitude = _safe_float(flags.get("header_weather_longitude"), defaults["header_weather_longitude"])
     timezone_name = str(flags.get("header_weather_timezone") or defaults["header_weather_timezone"])
 
-    locations = _list_weather_locations()
-    selected = None
+    selected_city = None
     if location_id:
-        try:
-            selected = next((loc for loc in locations if loc.pk == int(location_id)), None)
-        except (TypeError, ValueError):
-            selected = None
-    if selected is None and country_code and city_name:
-        selected = next(
-            (
-                loc
-                for loc in locations
-                if loc.region_id == country_code and loc.city.lower() == city_name.lower()
-            ),
-            None,
+        selected_city = GlobalGeoCatalog.get_city(str(location_id), country_code=country_code)
+    if selected_city is None and country_code and city_name:
+        rows = GlobalGeoCatalog.search_cities(country_code=country_code, query=city_name, limit=50)
+        selected_city = next(
+            (row for row in rows if str(row.get("city", "")).lower() == city_name.lower()),
+            rows[0] if rows else None,
         )
-    if selected is None and country_code:
-        selected = next((loc for loc in locations if loc.region_id == country_code), None)
-    if selected is not None:
-        location_id = selected.pk
-        country_code = selected.region_id
-        city_name = selected.city
-        label = selected.display_label
-        latitude = float(selected.latitude)
-        longitude = float(selected.longitude)
-        timezone_name = selected.timezone or selected.region.timezone or timezone_name
+    if selected_city is not None:
+        location_id = str(selected_city.get("id") or location_id or "")
+        country_code = str(selected_city.get("country_code") or country_code)
+        city_name = str(selected_city.get("city") or city_name)
+        label = str(selected_city.get("label") or city_name)
+        latitude = _safe_float(selected_city.get("latitude"), latitude)
+        longitude = _safe_float(selected_city.get("longitude"), longitude)
+        timezone_name = str(selected_city.get("timezone") or timezone_name or "UTC")
 
-    countries = []
-    seen = set()
-    for loc in locations:
-        if loc.region_id in seen:
-            continue
-        seen.add(loc.region_id)
-        countries.append({"code": loc.region_id, "name": loc.region.name})
+    countries = [
+        {"code": str(item.get("code") or ""), "name": str(item.get("name") or "")}
+        for item in GlobalGeoCatalog.list_countries()
+        if item.get("code")
+    ]
     cities = [
         {
-            "id": loc.pk,
-            "country_code": loc.region_id,
-            "city": loc.city,
-            "label": loc.display_label,
-            "timezone": loc.timezone or loc.region.timezone or "UTC",
+            "id": str(row.get("id") or ""),
+            "country_code": str(row.get("country_code") or ""),
+            "city": str(row.get("city") or ""),
+            "label": str(row.get("label") or row.get("city") or ""),
+            "timezone": str(row.get("timezone") or "UTC"),
         }
-        for loc in locations
+        for row in GlobalGeoCatalog.search_cities(country_code=country_code, limit=220)
     ]
+
+    if not countries or not cities:
+        # Backward-compatible fallback if global catalog deps are unavailable.
+        locations = _list_weather_locations()
+        selected = None
+        if location_id:
+            try:
+                selected = next((loc for loc in locations if loc.pk == int(location_id)), None)
+            except (TypeError, ValueError):
+                selected = None
+        if selected is None and country_code and city_name:
+            selected = next(
+                (
+                    loc
+                    for loc in locations
+                    if loc.region_id == country_code and loc.city.lower() == city_name.lower()
+                ),
+                None,
+            )
+        if selected is None and country_code:
+            selected = next((loc for loc in locations if loc.region_id == country_code), None)
+        if selected is not None:
+            location_id = selected.pk
+            country_code = selected.region_id
+            city_name = selected.city
+            label = selected.display_label
+            latitude = float(selected.latitude)
+            longitude = float(selected.longitude)
+            timezone_name = selected.timezone or selected.region.timezone or timezone_name
+
+        countries = []
+        seen = set()
+        for loc in locations:
+            if loc.region_id in seen:
+                continue
+            seen.add(loc.region_id)
+            countries.append({"code": loc.region_id, "name": loc.region.name})
+        cities = [
+            {
+                "id": loc.pk,
+                "country_code": loc.region_id,
+                "city": loc.city,
+                "label": loc.display_label,
+                "timezone": loc.timezone or loc.region.timezone or "UTC",
+            }
+            for loc in locations
+            if not country_code or loc.region_id == country_code
+        ]
 
     return {
         "location_id": location_id,
@@ -292,11 +330,35 @@ def _get_weather_selector_state(site: SiteSettings) -> dict:
 
 def _resolve_weather_payload_from_post(site: SiteSettings, post_data) -> tuple[dict, dict]:
     current = _get_weather_selector_state(site)
-    locations = _list_weather_locations()
 
     selected_country = (post_data.get("weather_country_code") or current.get("country_code") or "").strip().upper()
     selected_city_id = (post_data.get("weather_city_id") or "").strip()
+    selected_city = GlobalGeoCatalog.get_city(selected_city_id, country_code=selected_country)
 
+    if selected_city is not None:
+        payload = {
+            "header_weather_location_id": str(selected_city.get("id") or ""),
+            "header_weather_country_code": str(selected_city.get("country_code") or selected_country or ""),
+            "header_weather_city": str(selected_city.get("city") or ""),
+            "header_weather_label": str(selected_city.get("label") or selected_city.get("city") or ""),
+            "header_weather_latitude": _safe_float(selected_city.get("latitude"), current.get("latitude") or 0.0),
+            "header_weather_longitude": _safe_float(selected_city.get("longitude"), current.get("longitude") or 0.0),
+            "header_weather_timezone": str(selected_city.get("timezone") or "UTC"),
+        }
+        state = {
+            "location_id": payload["header_weather_location_id"],
+            "country_code": payload["header_weather_country_code"],
+            "city": payload["header_weather_city"],
+            "label": payload["header_weather_label"],
+            "latitude": payload["header_weather_latitude"],
+            "longitude": payload["header_weather_longitude"],
+            "timezone": payload["header_weather_timezone"],
+            "countries": current.get("countries", []),
+            "cities": current.get("cities", []),
+        }
+        return payload, state
+
+    locations = _list_weather_locations()
     selected = None
     if selected_city_id:
         try:
@@ -673,6 +735,35 @@ def feature_control_audit_log(request):
     """View recent Feature Control changes."""
     entries = FeatureControlAudit.objects.select_related("user").order_by("-created_at")[:50]
     return render(request, "siteconfig/feature_control_audit.html", {"entries": entries})
+
+
+@permission_required("settings.feature_control")
+@require_http_methods(["GET"])
+def feature_control_weather_cities(request):
+    country_code = GlobalGeoCatalog.normalize_country_code(request.GET.get("country_code"))
+    query = (request.GET.get("q") or "").strip()
+    limit = _clamp_int(request.GET.get("limit"), 220, minimum=10, maximum=500)
+    cities = [
+        {
+            "id": str(row.get("id") or ""),
+            "country_code": str(row.get("country_code") or ""),
+            "city": str(row.get("city") or ""),
+            "label": str(row.get("label") or row.get("city") or ""),
+            "timezone": str(row.get("timezone") or "UTC"),
+        }
+        for row in GlobalGeoCatalog.search_cities(
+            country_code=country_code,
+            query=query,
+            limit=limit,
+        )
+    ]
+    return JsonResponse(
+        {
+            "country_code": country_code,
+            "query": query,
+            "cities": cities,
+        }
+    )
 
 
 @permission_required("settings.feature_control")

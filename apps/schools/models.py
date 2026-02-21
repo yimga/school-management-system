@@ -105,6 +105,81 @@ class School(models.Model):
         return base or "your-platform.com"
 
 
+class SchoolProvisioningEvent(models.Model):
+    """Audit trail for school onboarding and domain-verification lifecycle."""
+
+    class EventType(models.TextChoices):
+        REQUEST_RECEIVED = "REQUEST_RECEIVED", "Request Received"
+        QUEUED = "QUEUED", "Queued"
+        STARTED = "STARTED", "Started"
+        PROFILE_APPLIED = "PROFILE_APPLIED", "Profile Applied"
+        ACADEMIC_YEAR_READY = "ACADEMIC_YEAR_READY", "Academic Year Ready"
+        SUBJECTS_READY = "SUBJECTS_READY", "Subjects Ready"
+        DOMAIN_PENDING = "DOMAIN_PENDING", "Domain Pending"
+        DOMAIN_VERIFIED = "DOMAIN_VERIFIED", "Domain Verified"
+        DOMAIN_UNVERIFIED = "DOMAIN_UNVERIFIED", "Domain Unverified"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+
+    class Status(models.TextChoices):
+        INFO = "INFO", "Info"
+        SUCCESS = "SUCCESS", "Success"
+        WARNING = "WARNING", "Warning"
+        ERROR = "ERROR", "Error"
+
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="provisioning_events",
+    )
+    event_type = models.CharField(max_length=40, choices=EventType.choices)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.INFO)
+    message = models.CharField(max_length=255, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="school_provisioning_events",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["school", "-created_at"]),
+            models.Index(fields=["event_type"]),
+        ]
+        verbose_name = "School provisioning event"
+        verbose_name_plural = "School provisioning events"
+
+    def __str__(self):
+        return f"{self.school.name}: {self.event_type} ({self.status})"
+
+    @classmethod
+    def log_event(
+        cls,
+        *,
+        school: School | None,
+        event_type: str,
+        status: str = Status.INFO,
+        message: str = "",
+        payload: dict | None = None,
+        created_by=None,
+    ):
+        if school is None:
+            return None
+        return cls.objects.create(
+            school=school,
+            event_type=event_type,
+            status=status,
+            message=message or "",
+            payload=payload or {},
+            created_by=created_by if getattr(created_by, "pk", None) else None,
+        )
+
+
 class SchoolMembership(models.Model):
     """Links a user to a school with a role. User can belong to multiple schools."""
 

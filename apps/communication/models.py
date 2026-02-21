@@ -1,12 +1,12 @@
-from django.conf import settings
-from django.utils import timezone
-from django.db.models import Max
-from apps.academics.models import Classroom, Department
-from django.db import models
-from django.utils import timezone
-from datetime import timedelta
-from apps.academics.models import Classroom, Department
 import uuid
+from datetime import timedelta
+
+from django.conf import settings
+from django.db import models
+from django.db.models import Max
+from django.utils import timezone
+
+from apps.academics.models import Classroom, Department
 
 from apps.accounts.validators import validate_kb_attachment_file, validate_file_size_10mb
 
@@ -14,6 +14,38 @@ from apps.accounts.validators import validate_kb_attachment_file, validate_file_
 def get_default_expiry():
     """Default expiry date: 30 days from now"""
     return timezone.now() + timedelta(days=30)
+
+
+def _primary_school_id_for_user(user):
+    if not user:
+        return None
+    try:
+        student_profile = getattr(user, "student_profile", None)
+        if student_profile and getattr(student_profile, "school_id", None):
+            return student_profile.school_id
+    except Exception:
+        pass
+    try:
+        teacher_profile = getattr(user, "teacher_profile", None)
+        if teacher_profile and getattr(teacher_profile, "school_id", None):
+            return teacher_profile.school_id
+    except Exception:
+        pass
+    try:
+        return (
+            user.school_memberships.order_by("-is_primary", "id")
+            .values_list("school_id", flat=True)
+            .first()
+        )
+    except Exception:
+        return None
+
+
+def _pick_school_id(*candidates):
+    for candidate in candidates:
+        if candidate:
+            return candidate
+    return None
 
 
 class Message(models.Model):
@@ -30,6 +62,13 @@ class Message(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='received_messages'
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="messages",
     )
     subject = models.CharField(max_length=255)
     body = models.TextField()
@@ -66,6 +105,14 @@ class Message(models.Model):
         """Short preview of message body"""
         return self.body[:100] + '...' if len(self.body) > 100 else self.body
 
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                _primary_school_id_for_user(getattr(self, "sender", None)),
+                _primary_school_id_for_user(getattr(self, "recipient", None)),
+            )
+        super().save(*args, **kwargs)
+
 
 class DirectConversation(models.Model):
     """
@@ -81,6 +128,13 @@ class DirectConversation(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="direct_conversations_as_user2",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="direct_conversations",
     )
     closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -114,6 +168,14 @@ class DirectConversation(models.Model):
         conv = cls.objects.filter(user1=u1, user2=u2).first()
         return conv.closed_at is not None if conv else False
 
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                _primary_school_id_for_user(getattr(self, "user1", None)),
+                _primary_school_id_for_user(getattr(self, "user2", None)),
+            )
+        super().save(*args, **kwargs)
+
 
 class Announcement(models.Model):
     """
@@ -143,6 +205,13 @@ class Announcement(models.Model):
 
     title = models.CharField(max_length=255)
     content = models.TextField()
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="announcements",
+    )
     announcement_type = models.CharField(
         max_length=20,
         choices=AnnouncementType.choices,
@@ -209,6 +278,11 @@ class Announcement(models.Model):
         delta = self.expiry_date - timezone.now()
         return delta.days
 
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _primary_school_id_for_user(getattr(self, "created_by", None))
+        super().save(*args, **kwargs)
+
 
 class AnnouncementAuditLog(models.Model):
     """
@@ -227,6 +301,13 @@ class AnnouncementAuditLog(models.Model):
         Announcement,
         on_delete=models.CASCADE,
         related_name='audit_logs',
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="announcement_audit_logs",
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -251,6 +332,14 @@ class AnnouncementAuditLog(models.Model):
     def __str__(self):
         return f"{self.get_action_display()} by {self.user} on {self.announcement_id}"
 
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                getattr(self.announcement, "school_id", None) if getattr(self, "announcement", None) else None,
+                _primary_school_id_for_user(getattr(self, "user", None)),
+            )
+        super().save(*args, **kwargs)
+
 
 def log_announcement_audit(announcement, user, action: str, notes: str = ""):
     """Record an audit entry for an announcement (create, update, approve, deactivate)."""
@@ -262,6 +351,7 @@ def log_announcement_audit(announcement, user, action: str, notes: str = ""):
         action_val = AnnouncementAuditLog.Action.UPDATED
     AnnouncementAuditLog.objects.create(
         announcement=announcement,
+        school=getattr(announcement, "school", None),
         user=user,
         action=action_val,
         notes=(notes or "")[:500],
@@ -280,6 +370,13 @@ class ClassAnnouncement(models.Model):
 
     title = models.CharField(max_length=200)
     body = models.TextField()
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="class_announcements",
+    )
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True, related_name="announcements")
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True, related_name="announcements")
     audience = models.CharField(max_length=20, choices=Audience.choices, default=Audience.ALL)
@@ -300,6 +397,15 @@ class ClassAnnouncement(models.Model):
         scope = self.classroom or self.department or "General"
         return f"{self.title} ({scope})"
 
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                getattr(self.classroom, "school_id", None) if getattr(self, "classroom", None) else None,
+                getattr(self.department, "school_id", None) if getattr(self, "department", None) else None,
+                _primary_school_id_for_user(getattr(self, "created_by", None)),
+            )
+        super().save(*args, **kwargs)
+
 
 class MessageThread(models.Model):
     """
@@ -314,6 +420,13 @@ class MessageThread(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="message_threads",
+    )
     scope = models.CharField(max_length=20, choices=Scope.choices, default=Scope.CLASSROOM)
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True, related_name="message_threads")
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True, related_name="message_threads")
@@ -349,6 +462,15 @@ class MessageThread(models.Model):
         self.last_message_at = latest or timezone.now()
         self.save(update_fields=["last_message_at", "updated_at"])
 
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                getattr(self.classroom, "school_id", None) if getattr(self, "classroom", None) else None,
+                getattr(self.department, "school_id", None) if getattr(self, "department", None) else None,
+                _primary_school_id_for_user(getattr(self, "created_by", None)),
+            )
+        super().save(*args, **kwargs)
+
 
 class ThreadMessage(models.Model):
     """
@@ -358,6 +480,13 @@ class ThreadMessage(models.Model):
         MessageThread,
         on_delete=models.CASCADE,
         related_name='messages'
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="thread_messages",
     )
     
     author = models.ForeignKey(
@@ -397,6 +526,11 @@ class ThreadMessage(models.Model):
         return f"Message in {self.thread.title} by {self.author.get_full_name()}"
 
     def save(self, *args, **kwargs):
+        self.school_id = _pick_school_id(
+            getattr(self.thread, "school_id", None) if getattr(self, "thread", None) else None,
+            self.school_id,
+            _primary_school_id_for_user(getattr(self, "author", None)),
+        )
         new = self.pk is None
         if new:
             self.thread.last_message_at = timezone.now()
@@ -415,6 +549,13 @@ class ThreadReadState(models.Model):
         on_delete=models.CASCADE,
         related_name="read_states",
     )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="thread_read_states",
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -427,6 +568,14 @@ class ThreadReadState(models.Model):
     class Meta:
         unique_together = ("thread", "user")
         ordering = ["-updated_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                getattr(self.thread, "school_id", None) if getattr(self, "thread", None) else None,
+                _primary_school_id_for_user(getattr(self, "user", None)),
+            )
+        super().save(*args, **kwargs)
 
 
 class AlertRule(models.Model):
@@ -443,6 +592,13 @@ class AlertRule(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='alert_rules'
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="alert_rules",
     )
     
     name = models.CharField(max_length=255)
@@ -467,6 +623,11 @@ class AlertRule(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.user.get_full_name()})"
+
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _primary_school_id_for_user(getattr(self, "user", None))
+        super().save(*args, **kwargs)
 
 
 class ContactRequest(models.Model):
@@ -498,6 +659,13 @@ class ContactRequest(models.Model):
         OTHER = "OTHER", "Other"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="contact_requests",
+    )
 
     parent = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -570,9 +738,26 @@ class ContactRequest(models.Model):
     def __str__(self) -> str:
         return f"{self.subject} · {self.get_status_display()}"
 
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                getattr(self.student, "school_id", None) if getattr(self, "student", None) else None,
+                _primary_school_id_for_user(getattr(self, "parent", None)),
+                _primary_school_id_for_user(getattr(self, "assigned_to", None)),
+                _primary_school_id_for_user(getattr(self, "triage_owner", None)),
+            )
+        super().save(*args, **kwargs)
+
 
 class ContactRequestAttachment(models.Model):
     request = models.ForeignKey(ContactRequest, on_delete=models.CASCADE, related_name="attachments")
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="contact_request_attachments",
+    )
     file = models.FileField(
         upload_to="communication/contact-requests/%Y/%m/",
         validators=[validate_kb_attachment_file, validate_file_size_10mb],
@@ -588,3 +773,11 @@ class ContactRequestAttachment(models.Model):
 
     class Meta:
         ordering = ["-uploaded_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.school_id:
+            self.school_id = _pick_school_id(
+                getattr(self.request, "school_id", None) if getattr(self, "request", None) else None,
+                _primary_school_id_for_user(getattr(self, "uploaded_by", None)),
+            )
+        super().save(*args, **kwargs)

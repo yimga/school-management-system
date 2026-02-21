@@ -5,7 +5,7 @@ from typing import Iterable, Optional
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.urls import reverse
-from apps.siteconfig.models import SiteSettings, RegionConfig
+from apps.siteconfig.models import SiteSettings, RegionConfig, EducationSystemProfile
 
 from apps.academics.models import Term
 from apps.evals.models import AssessmentWeights, Evaluation
@@ -380,6 +380,76 @@ CAMEROON_REPORT_LABELS = {
 }
 
 
+GLOBAL_REPORT_LABELS = {
+    "student": "Student",
+    "classroom": "Class",
+    "term": "Term",
+    "average": "Average",
+    "class_rank": "Class Rank",
+    "specialty_rank": "Group Rank",
+    "school_rank": "School Rank",
+    "promotion": "Promotion Decision",
+    "teacher_remark": "Teacher Remark",
+    "sequence_1": "Assessment 1",
+    "sequence_2": "Assessment 2",
+    "exam": "Exam",
+    "mock": "Mock",
+    "practical": "Practical",
+    "total": "Total",
+}
+
+
+def _profile_report_labels_for_school(school) -> dict:
+    if not school:
+        return {}
+    school_settings = dict(getattr(school, "settings", None) or {})
+    profile_code = str(school_settings.get("education_profile_code") or "").strip()
+    profile = None
+    if profile_code:
+        profile = (
+            EducationSystemProfile.objects.filter(code=profile_code, is_active=True)
+            .only("config")
+            .first()
+        )
+    if profile is None:
+        profile = EducationSystemProfile.for_school(school)
+    profile_config = dict(getattr(profile, "config", None) or {})
+    profile_labels = profile_config.get("report_labels")
+    if not isinstance(profile_labels, dict):
+        return {}
+    return {str(key): str(value) for key, value in profile_labels.items() if value is not None}
+
+
+def resolve_report_labels(student: Optional[StudentProfile] = None, school=None) -> dict:
+    """
+    Resolve report labels with deterministic precedence:
+    global defaults -> region defaults -> profile overrides -> school overrides.
+    """
+    labels = dict(GLOBAL_REPORT_LABELS)
+
+    if school is None and student is not None:
+        school = getattr(student, "school", None)
+
+    if school and getattr(school, "default_region_id", None) == "CMR":
+        labels.update(CAMEROON_REPORT_LABELS)
+    elif str(getattr(settings, "REGION_CODE", "")).strip().upper() == "CMR":
+        # Backward-compatible fallback for single-tenant deployments.
+        labels.update(CAMEROON_REPORT_LABELS)
+
+    labels.update(_profile_report_labels_for_school(school))
+
+    school_settings = dict(getattr(school, "settings", None) or {})
+    custom_labels = school_settings.get("report_labels")
+    if isinstance(custom_labels, dict):
+        labels.update({str(key): str(value) for key, value in custom_labels.items() if value is not None})
+
+    return labels
+
+
+def _resolve_report_labels(student: StudentProfile) -> dict:
+    return resolve_report_labels(student=student)
+
+
 def _rank_display(position: Optional[int], size: int) -> str:
     pos = position if position is not None else "-"
     total = size if size else "-"
@@ -422,13 +492,13 @@ def _subject_rankings_for_student(student: StudentProfile, academic_year, term: 
     return ranking_map
 
 
-def _sequence_weight_cues(weights) -> list[dict]:
+def _sequence_weight_cues(weights, labels: dict) -> list[dict]:
     fields = [
-        ("seq1", CAMEROON_REPORT_LABELS["sequence_1"], getattr(weights, "seq1_weight", 0)),
-        ("seq2", CAMEROON_REPORT_LABELS["sequence_2"], getattr(weights, "seq2_weight", 0)),
-        ("exam", CAMEROON_REPORT_LABELS["exam"], getattr(weights, "exam_weight", 0)),
-        ("mock", CAMEROON_REPORT_LABELS["mock"], getattr(weights, "mock_weight", 0)),
-        ("practical", CAMEROON_REPORT_LABELS["practical"], getattr(weights, "practical_weight", 0)),
+        ("seq1", labels.get("sequence_1", GLOBAL_REPORT_LABELS["sequence_1"]), getattr(weights, "seq1_weight", 0)),
+        ("seq2", labels.get("sequence_2", GLOBAL_REPORT_LABELS["sequence_2"]), getattr(weights, "seq2_weight", 0)),
+        ("exam", labels.get("exam", GLOBAL_REPORT_LABELS["exam"]), getattr(weights, "exam_weight", 0)),
+        ("mock", labels.get("mock", GLOBAL_REPORT_LABELS["mock"]), getattr(weights, "mock_weight", 0)),
+        ("practical", labels.get("practical", GLOBAL_REPORT_LABELS["practical"]), getattr(weights, "practical_weight", 0)),
     ]
     cues = []
     for key, label, weight in fields:
@@ -509,6 +579,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         classroom=student.classroom,
         term=term,
     )
+    labels = _resolve_report_labels(student)
 
     rows = []
     total_weighted = 0.0
@@ -584,8 +655,8 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "rows": rows,
         "summary": summary,
         "weights": weights,
-        "sequence_cues": _sequence_weight_cues(weights),
-        "labels": CAMEROON_REPORT_LABELS,
+        "sequence_cues": _sequence_weight_cues(weights, labels),
+        "labels": labels,
         "metadata": _school_report_metadata(),
     }
     ctx.update(_region_display_context())
@@ -628,6 +699,7 @@ def _annual_average_for_student(student: StudentProfile, terms: Iterable[Term]) 
 
 
 def annual_report_context(student: StudentProfile, academic_year) -> dict:
+    labels = _resolve_report_labels(student)
     terms = terms_for_student(academic_year, student.classroom)
 
     term_rows = []
@@ -710,7 +782,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "promotion_average": thresholds.get("promotion_average"),
         "demotion_average": thresholds.get("demotion_average"),
         "teacher_remark": _auto_teacher_remark(annual_average),
-        "labels": CAMEROON_REPORT_LABELS,
+        "labels": labels,
         "metadata": _school_report_metadata(),
     }
     ctx.update(_region_display_context())

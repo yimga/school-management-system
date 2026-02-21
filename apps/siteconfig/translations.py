@@ -16,26 +16,45 @@ class Regionalizer:
 
     @staticmethod
     def get_region_for_country(country_code: str) -> str:
-        # Example: 'NG' -> 'west_africa', 'KE' -> 'east_africa'
-        mapping = {"NG": "west_africa", "KE": "east_africa"}
-        return mapping.get(country_code, "west_africa")
+        mapping = {
+            "NG": "west_africa",
+            "GH": "west_africa",
+            "SL": "west_africa",
+            "KE": "east_africa",
+            "UG": "east_africa",
+            "TZ": "east_africa",
+            "RW": "east_africa",
+            "CM": "central_africa",
+            "FR": "europe_west",
+            "GB": "europe_west",
+            "US": "north_america",
+            "CA": "north_america",
+        }
+        return mapping.get((country_code or "").upper(), "global")
 
     @staticmethod
     def get_region_settings(region: str) -> dict:
-        # Example settings for 'west_africa'
         if region == "west_africa":
             return {"currency": "NGN", "languages": ["en", "fr", "pid", "ha", "yo"]}
         if region == "east_africa":
             return {"currency": "KES", "languages": ["en", "sw"]}
+        if region == "central_africa":
+            return {"currency": "XAF", "languages": ["en", "fr"]}
+        if region == "europe_west":
+            return {"currency": "EUR", "languages": ["en", "fr"]}
+        if region == "north_america":
+            return {"currency": "USD", "languages": ["en", "fr"]}
         return {"currency": "USD", "languages": ["en"]}
 
     @staticmethod
     def get_recommended_languages(country_code: str) -> list:
-        # Example: 'NG' -> ['en', 'fr', 'pid', 'ha', 'yo']
-        if country_code == "NG":
+        code = (country_code or "").upper()
+        if code == "NG":
             return ["en", "fr", "pid", "ha", "yo"]
-        if country_code == "KE":
+        if code in {"KE", "UG", "TZ"}:
             return ["en", "sw"]
+        if code == "CM":
+            return ["en", "fr", "pid"]
         return ["en"]
 
 

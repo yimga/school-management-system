@@ -134,7 +134,7 @@ class Command(BaseCommand):
                 'fixable': False,
             })
 
-        if region.term_count_per_year < 1 or region.term_count_per_year > 4:
+        if region.term_count_per_year < 1 or region.term_count_per_year > 12:
             issues.append({
                 'code': 'INVALID_TERM_COUNT',
                 'message': f'Invalid term count: {region.term_count_per_year}',

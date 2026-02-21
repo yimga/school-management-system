@@ -59,7 +59,7 @@
         <i class="bi bi-search me-2"></i>No features match your search. Try different keywords.
       </div>
 
-      <form method="post" action="{% url 'siteconfig:feature_control_panel' %}" id="featureControlForm" enctype="multipart/form-data">
+      <form method="post" action="{% url 'siteconfig:feature_control_panel' %}" id="featureControlForm" enctype="multipart/form-data" data-weather-city-url="{% url 'siteconfig:feature_control_weather_cities' %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="save">
 
@@ -86,6 +86,13 @@
             </div>
             <div class="col-12 col-md-3">
               <label for="weatherCitySelect" class="form-label small text-muted">City</label>
+              <input
+                type="search"
+                class="form-control form-control-sm mb-2"
+                id="weatherCitySearch"
+                placeholder="Search city..."
+                autocomplete="off"
+              >
               <select class="form-select form-select-sm" id="weatherCitySelect" name="weather_city_id">
                 {% for city in weather_cities %}
                 <option
@@ -261,28 +268,17 @@
   const currentState = {{ current_json|safe }};
   const weatherCountrySelect = document.getElementById('weatherCountrySelect');
   const weatherCitySelect = document.getElementById('weatherCitySelect');
+  const weatherCitySearch = document.getElementById('weatherCitySearch');
   const weatherLocationPreview = document.getElementById('weatherLocationPreview');
   const weatherTimezonePreview = document.getElementById('weatherTimezonePreview');
+  const weatherCityUrl = form.getAttribute('data-weather-city-url') || '';
+  const initialWeatherCityId = weatherCitySelect ? String(weatherCitySelect.value || '') : '';
+  let weatherCityDebounce = null;
+  let weatherCityFetchToken = 0;
   let searchTimeout = null;
 
   function syncWeatherCityOptions() {
-    if (!weatherCountrySelect || !weatherCitySelect) return;
-    const selectedCountry = weatherCountrySelect.value || '';
-    let firstVisible = null;
-    let hasSelectedVisible = false;
-
-    Array.from(weatherCitySelect.options).forEach(function(opt) {
-      const visible = !selectedCountry || opt.dataset.country === selectedCountry;
-      opt.hidden = !visible;
-      opt.disabled = !visible;
-      if (visible && !firstVisible) firstVisible = opt;
-      if (visible && opt.selected) hasSelectedVisible = true;
-    });
-
-    if (!hasSelectedVisible && firstVisible) {
-      firstVisible.selected = true;
-    }
-
+    if (!weatherCitySelect) return;
     const selectedOpt = weatherCitySelect.options[weatherCitySelect.selectedIndex];
     const label = selectedOpt ? (selectedOpt.dataset.label || selectedOpt.textContent || 'Weather location') : 'Weather location';
     const tz = selectedOpt ? (selectedOpt.dataset.timezone || 'UTC') : 'UTC';
@@ -290,16 +286,73 @@
     if (weatherTimezonePreview) weatherTimezonePreview.textContent = tz;
   }
 
+  function renderWeatherCities(cities) {
+    if (!weatherCitySelect) return;
+    const previous = String(weatherCitySelect.value || initialWeatherCityId || '');
+    weatherCitySelect.innerHTML = '';
+    if (!cities || !cities.length) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No matching cities';
+      weatherCitySelect.appendChild(opt);
+      syncWeatherCityOptions();
+      return;
+    }
+    cities.forEach(function(city) {
+      const opt = document.createElement('option');
+      opt.value = String(city.id || '');
+      opt.dataset.country = city.country_code || '';
+      opt.dataset.label = city.label || city.city || '';
+      opt.dataset.timezone = city.timezone || 'UTC';
+      opt.textContent = city.city || city.label || '';
+      weatherCitySelect.appendChild(opt);
+    });
+    if (previous && Array.prototype.some.call(weatherCitySelect.options, function(opt) { return opt.value === previous; })) {
+      weatherCitySelect.value = previous;
+    } else {
+      weatherCitySelect.selectedIndex = 0;
+    }
+    syncWeatherCityOptions();
+  }
+
+  function fetchWeatherCities(query) {
+    if (!weatherCountrySelect || !weatherCitySelect || !weatherCityUrl) {
+      syncWeatherCityOptions();
+      return;
+    }
+    const country = (weatherCountrySelect.value || '').toUpperCase();
+    const q = (query || '').trim();
+    const token = ++weatherCityFetchToken;
+    const url = weatherCityUrl + '?country_code=' + encodeURIComponent(country) + '&q=' + encodeURIComponent(q) + '&limit=220';
+    fetch(url, { credentials: 'same-origin' })
+      .then(function(resp) { return resp.ok ? resp.json() : null; })
+      .then(function(data) {
+        if (!data || token !== weatherCityFetchToken) return;
+        renderWeatherCities(data.cities || []);
+      })
+      .catch(function() {
+        if (token === weatherCityFetchToken) syncWeatherCityOptions();
+      });
+  }
+
   if (weatherCountrySelect && weatherCitySelect) {
     weatherCountrySelect.addEventListener('change', function() {
-      syncWeatherCityOptions();
+      fetchWeatherCities(weatherCitySearch ? weatherCitySearch.value : '');
       formDirty = true;
     });
     weatherCitySelect.addEventListener('change', function() {
       syncWeatherCityOptions();
       formDirty = true;
     });
-    syncWeatherCityOptions();
+    if (weatherCitySearch) {
+      weatherCitySearch.addEventListener('input', function() {
+        clearTimeout(weatherCityDebounce);
+        weatherCityDebounce = setTimeout(function() {
+          fetchWeatherCities(weatherCitySearch.value || '');
+        }, 220);
+      });
+    }
+    fetchWeatherCities(weatherCitySearch ? weatherCitySearch.value : '');
   }
 
   function updateStatusBadges() {

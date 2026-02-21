@@ -2,6 +2,8 @@
 Django>=5.0,<6.0
 python-dotenv>=1.0
 pytz>=2024.1
+pycountry>=24.6.1
+geonamescache>=2.0.0
 
 # Database
 psycopg[binary]>=3.1
@@ -9,7 +11,7 @@ dj-database-url>=2.1
 
 # Production server & static
 whitenoise>=6.6
-gunicorn>=21.2
+gunicorn>=21.2,<25
 
 # PDF & documents (WeasyPrint needs Pillow; reportlab for programmatic PDFs)
 WeasyPrint>=61.0

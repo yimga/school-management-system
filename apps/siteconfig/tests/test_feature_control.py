@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import SiteSettings
 
 User = get_user_model()
@@ -168,3 +169,34 @@ class FeatureControlPanelTest(TestCase):
         response = self.client.get(reverse("offline"))
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"You are currently offline", response.content)
+
+    def test_weather_city_api_returns_global_catalog_city(self):
+        self.client.login(username="super", password="testpass123")
+        response = self.client.get(
+            reverse("siteconfig:feature_control_weather_cities"),
+            {"country_code": "JPN", "q": "Tokyo", "limit": 20},
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        payload = response.json()
+        self.assertEqual(payload.get("country_code"), "JPN")
+        city_names = [str(item.get("city", "")).lower() for item in payload.get("cities", [])]
+        self.assertIn("tokyo", city_names)
+
+    def test_feature_control_save_accepts_global_city_ids(self):
+        self.client.login(username="super", password="testpass123")
+        cities = GlobalGeoCatalog.search_cities(country_code="JPN", query="Tokyo", limit=5)
+        self.assertTrue(cities)
+        city = cities[0]
+        payload = {
+            "action": "save",
+            "weather_country_code": "JPN",
+            "weather_city_id": str(city["id"]),
+        }
+        response = self.client.post(reverse("siteconfig:feature_control_panel"), data=payload, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        site = SiteSettings.get_solo()
+        flags = site.backend_feature_flags or {}
+        self.assertEqual(str(flags.get("header_weather_country_code")), "JPN")
+        self.assertEqual(str(flags.get("header_weather_city")), str(city["city"]))
+        self.assertEqual(str(flags.get("header_weather_timezone")), str(city["timezone"]))

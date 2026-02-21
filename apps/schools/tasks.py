@@ -12,15 +12,75 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+def _record_school_event(
+    school,
+    *,
+    event_type: str,
+    status: str = "INFO",
+    message: str = "",
+    payload: dict | None = None,
+):
+    if school is None:
+        return
+    try:
+        from .models import SchoolProvisioningEvent
+
+        SchoolProvisioningEvent.log_event(
+            school=school,
+            event_type=event_type,
+            status=status,
+            message=message,
+            payload=payload or {},
+        )
+    except Exception:
+        logger.exception("Failed to record provisioning event %s for school %s", event_type, getattr(school, "id", None))
+
+
+def _record_school_event_by_id(
+    school_id: str,
+    *,
+    event_type: str,
+    status: str = "ERROR",
+    message: str = "",
+    payload: dict | None = None,
+):
+    try:
+        from .models import School, SchoolProvisioningEvent
+
+        school = School.objects.filter(id=school_id).first()
+        if not school:
+            return
+        SchoolProvisioningEvent.log_event(
+            school=school,
+            event_type=event_type,
+            status=status,
+            message=message,
+            payload=payload or {},
+        )
+    except Exception:
+        logger.exception("Failed to record provisioning event %s for school %s", event_type, school_id)
+
+
 def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
     """Run provisioning synchronously (no Celery)."""
-    with transaction.atomic():
-        _do_provision(school_id, contact_email=contact_email, **kwargs)
+    try:
+        with transaction.atomic():
+            _do_provision(school_id, contact_email=contact_email, **kwargs)
+    except Exception as exc:
+        _record_school_event_by_id(
+            school_id,
+            event_type="FAILED",
+            status="ERROR",
+            message="Provisioning failed",
+            payload={"error": str(exc)},
+        )
+        raise
 
 
 def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     from .models import School, SchoolMembership
     from apps.academics.models import AcademicYear, Term, Subject
+    from apps.siteconfig.education_profile_engine import resolve_profile_for_school
     from django.utils import timezone
     from datetime import date, timedelta
 
@@ -31,6 +91,12 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     if school.is_active:
         logger.info("School %s already active, skip provisioning", school_id)
         return
+    _record_school_event(
+        school,
+        event_type="STARTED",
+        status="INFO",
+        message="Provisioning job started.",
+    )
 
     # Create default admin user if contact_email provided and no user exists
     admin_user = None
@@ -56,14 +122,58 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
 
-    # Seed academic year and terms from school's region or defaults
+    # Seed academic year and terms from education profile + region defaults
     region = school.default_region
+    requested_profile_code = str((school.settings or {}).get("education_profile_code") or "").strip()
+    profile = resolve_profile_for_school(
+        school,
+        requested_profile_code=requested_profile_code,
+        auto_create=True,
+    )
     term_count = 3
+    term_labels = []
     if region:
         term_count = getattr(region, "term_count_per_year", 3) or 3
     start_month = 9
     if region:
         start_month = getattr(region, "academic_year_start_month", 9) or 9
+    if profile:
+        term_count = int(getattr(profile, "term_count_per_year", term_count) or term_count)
+        start_month = int(getattr(profile, "academic_year_start_month", start_month) or start_month)
+        term_labels = profile.normalized_term_labels()
+        profile_config = {
+            "education_profile_code": profile.code,
+            "grading_scale": profile.grading_scale,
+            "default_language": profile.default_language,
+            "default_currency": profile.default_currency,
+            "term_labels": term_labels,
+        }
+        merged_settings = dict(school.settings or {})
+        merged_settings.update({key: val for key, val in profile_config.items() if val})
+        if getattr(profile, "config", None):
+            profile_settings = dict(merged_settings.get("education_profile", {}))
+            profile_settings.update(profile.config or {})
+            merged_settings["education_profile"] = profile_settings
+        school.settings = merged_settings
+        _record_school_event(
+            school,
+            event_type="PROFILE_APPLIED",
+            status="SUCCESS",
+            message=f"Applied education profile {profile.code}.",
+            payload={
+                "profile_code": profile.code,
+                "profile_version": getattr(profile, "version", ""),
+                "sub_system": school.sub_system,
+            },
+        )
+    else:
+        _record_school_event(
+            school,
+            event_type="PROFILE_APPLIED",
+            status="WARNING",
+            message="No approved education profile resolved; using fallback defaults.",
+            payload={"sub_system": school.sub_system},
+        )
 
     now = timezone.now().date()
     year_start = date(now.year, start_month, 1)
@@ -96,10 +206,15 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             else:
                 next_term_start = _month_start_add(year_start, (i + 1) * months_per_term)
                 t_end = next_term_start - timedelta(days=1)
+            term_name = (
+                term_labels[i]
+                if i < len(term_labels) and str(term_labels[i]).strip()
+                else f"Term {i + 1}"
+            )
             Term.objects.get_or_create(
                 school=school,
                 academic_year=ay,
-                name=f"Term {i + 1}",
+                name=term_name,
                 defaults={
                     "position": i + 1,
                     "start_date": t_start,
@@ -108,24 +223,62 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 },
             )
         logger.info("Seeded academic year and %s terms for school %s", term_count, school_id)
+    _record_school_event(
+        school,
+        event_type="ACADEMIC_YEAR_READY",
+        status="SUCCESS",
+        message="Academic year and terms prepared.",
+        payload={
+            "academic_year": ay.name,
+            "created": bool(created),
+            "term_count": int(term_count),
+        },
+    )
 
     # Optional: seed default subjects. Subject name is unique per school (school_id, name).
+    subject_created = 0
     if not Subject.objects.filter(school=school).exists():
-        for name, cat in [
-            ("Mathematics", Subject.Category.GENERAL),
-            ("English", Subject.Category.GENERAL),
-            ("French", Subject.Category.GENERAL),
-            ("Science", Subject.Category.GENERAL),
-        ]:
-            Subject.objects.get_or_create(
+        subject_seed = []
+        if profile:
+            subject_seed = profile.normalized_subject_seed()
+        if not subject_seed:
+            subject_seed = [
+                {"name": "Mathematics", "category": Subject.Category.GENERAL},
+                {"name": "English", "category": Subject.Category.GENERAL},
+                {"name": "French", "category": Subject.Category.GENERAL},
+                {"name": "Science", "category": Subject.Category.GENERAL},
+            ]
+        valid_categories = {choice[0] for choice in Subject.Category.choices}
+        for item in subject_seed:
+            name = str(item.get("name") if isinstance(item, dict) else "").strip()
+            if not name:
+                continue
+            raw_category = str(item.get("category", Subject.Category.GENERAL) if isinstance(item, dict) else Subject.Category.GENERAL).upper()
+            category = raw_category if raw_category in valid_categories else Subject.Category.GENERAL
+            _, created_subject = Subject.objects.get_or_create(
                 school=school,
                 name=name,
-                defaults={"category": cat},
+                defaults={"category": category},
             )
+            if created_subject:
+                subject_created += 1
         logger.info("Seeded default subjects for school %s", school_id)
+    _record_school_event(
+        school,
+        event_type="SUBJECTS_READY",
+        status="SUCCESS",
+        message="Default subjects prepared.",
+        payload={"subjects_created": int(subject_created)},
+    )
 
     school.is_active = True
-    school.save(update_fields=["is_active", "updated_at"])
+    school.save(update_fields=["is_active", "settings", "updated_at"])
+    _record_school_event(
+        school,
+        event_type="COMPLETED",
+        status="SUCCESS",
+        message="Provisioning completed successfully.",
+    )
     logger.info("School %s provisioning complete", school_id)
 
 
@@ -140,6 +293,13 @@ try:
                 _do_provision(school_id, contact_email=contact_email, **kwargs)
         except Exception as exc:
             logger.exception("Provisioning failed for %s", school_id)
+            _record_school_event_by_id(
+                school_id,
+                event_type="FAILED",
+                status="ERROR",
+                message="Provisioning failed",
+                payload={"error": str(exc)},
+            )
             raise self.retry(exc=exc)
 except ImportError:
     def provision_school_task(*args, **kwargs):

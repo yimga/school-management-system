@@ -2299,8 +2299,25 @@ class EducationSystemProfile(models.Model):
         EN = "EN", "English sub-system"
         INT = "INT", "International"
 
+    class ApprovalStatus(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        IN_REVIEW = "IN_REVIEW", "In Review"
+        APPROVED = "APPROVED", "Approved"
+        DEPRECATED = "DEPRECATED", "Deprecated"
+
     code = models.SlugField(max_length=80, unique=True)
     name = models.CharField(max_length=160)
+    lineage_key = models.SlugField(
+        max_length=80,
+        blank=True,
+        default="",
+        help_text="Stable pack lineage key across versions (defaults to code for legacy packs).",
+    )
+    version = models.CharField(
+        max_length=20,
+        default="1.0.0",
+        help_text="Semantic version for this pack (e.g. 1.0.0).",
+    )
     region = models.ForeignKey(
         RegionConfig,
         on_delete=models.CASCADE,
@@ -2311,6 +2328,19 @@ class EducationSystemProfile(models.Model):
     sub_system = models.CharField(max_length=10, choices=SubSystem.choices, default=SubSystem.ANY)
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    approval_status = models.CharField(
+        max_length=20,
+        choices=ApprovalStatus.choices,
+        default=ApprovalStatus.APPROVED,
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_education_profiles",
+    )
 
     academic_year_start_month = models.IntegerField(
         default=9,
@@ -2347,7 +2377,12 @@ class EducationSystemProfile(models.Model):
 
     def __str__(self):
         scope = self.region.code if self.region_id else "GLOBAL"
-        return f"{self.name} [{scope}/{self.sub_system}]"
+        return f"{self.name} [{scope}/{self.sub_system}] v{self.version}"
+
+    def save(self, *args, **kwargs):
+        if not self.lineage_key:
+            self.lineage_key = str(self.code or "").strip()
+        super().save(*args, **kwargs)
 
     def normalized_term_labels(self) -> list[str]:
         labels = [str(item).strip() for item in (self.term_labels or []) if str(item).strip()]
@@ -2381,7 +2416,15 @@ class EducationSystemProfile(models.Model):
         region+subsystem > region+ANY > global+subsystem > global+ANY.
         """
         if school is None:
-            return cls.objects.filter(is_active=True, is_default=True).order_by("-updated_at").first()
+            return (
+                cls.objects.filter(
+                    is_active=True,
+                    is_default=True,
+                    approval_status=cls.ApprovalStatus.APPROVED,
+                )
+                .order_by("-approved_at", "-updated_at")
+                .first()
+            )
         sub_system = (getattr(school, "sub_system", "") or cls.SubSystem.ANY).upper()
         region_id = getattr(school, "default_region_id", None)
         matches = []
@@ -2393,8 +2436,12 @@ class EducationSystemProfile(models.Model):
 
         for cond in matches:
             profile = (
-                cls.objects.filter(is_active=True, **cond)
-                .order_by("-is_default", "name")
+                cls.objects.filter(
+                    is_active=True,
+                    approval_status=cls.ApprovalStatus.APPROVED,
+                    **cond,
+                )
+                .order_by("-is_default", "-approved_at", "name")
                 .first()
             )
             if profile:

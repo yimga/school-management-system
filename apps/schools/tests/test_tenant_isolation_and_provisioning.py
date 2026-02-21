@@ -2,16 +2,19 @@
 Tests for tenant isolation, provisioning job, single-tenant fallback, and feature-flag enforcement (Option B+C).
 """
 import json
+from unittest.mock import patch
 
+from django.core.management import call_command
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.schools.models import School, SchoolMembership
+from apps.schools.models import School, SchoolMembership, SchoolProvisioningEvent
 from apps.schools.tasks import provision_school_sync
 from apps.people.models import StudentProfile
-from apps.academics.models import AcademicYear, Term
-from apps.siteconfig.models import WeatherLocation
+from apps.academics.models import AcademicYear, Term, Subject
+from apps.siteconfig.models import EducationSystemProfile, RegionConfig
+from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 
 class TenantIsolationTests(TestCase):
@@ -82,6 +85,80 @@ class ProvisioningJobTests(TestCase):
         self.assertEqual(SchoolMembership.objects.filter(school=school).count(), 1)
         self.assertTrue(AcademicYear.objects.filter(school=school).exists())
         self.assertTrue(Term.objects.filter(school=school).exists())
+
+    def test_provision_school_applies_education_profile_defaults(self):
+        uganda, _ = RegionConfig.objects.get_or_create(
+            code="UGA",
+            defaults={
+                "name": "Uganda",
+                "default_language": "en",
+                "timezone": "Africa/Kampala",
+                "grading_scale": "0-100",
+                "default_currency": "UGX",
+                "academic_year_start_month": 2,
+                "term_count_per_year": 3,
+            },
+        )
+        school = School.objects.create(
+            name="Kampala Academy",
+            slug="kampala-academy",
+            subdomain="kampala-academy",
+            is_active=False,
+            default_region=uganda,
+            sub_system=School.SubSystem.EN,
+        )
+        provision_school_sync(str(school.id), contact_email="principal@kampalaacademy.ug")
+        school.refresh_from_db()
+        term_names = list(
+            Term.objects.filter(school=school)
+            .order_by("position")
+            .values_list("name", flat=True)
+        )
+        self.assertEqual(term_names[:3], ["Term I", "Term II", "Term III"])
+        subjects = set(Subject.objects.filter(school=school).values_list("name", flat=True))
+        self.assertIn("Biology", subjects)
+        self.assertIn("Mathematics", subjects)
+        self.assertEqual((school.settings or {}).get("education_profile_code"), "uga-national-default")
+
+    def test_provision_school_auto_generates_country_profile_when_missing(self):
+        japan, _ = RegionConfig.objects.get_or_create(
+            code="JPN",
+            defaults={
+                "name": "Japan",
+                "default_language": "ja",
+                "timezone": "Asia/Tokyo",
+                "grading_scale": "0-100",
+                "default_currency": "JPY",
+                "academic_year_start_month": 4,
+                "term_count_per_year": 3,
+            },
+        )
+        school = School.objects.create(
+            name="Tokyo Academy",
+            slug="tokyo-academy",
+            subdomain="tokyo-academy",
+            is_active=False,
+            default_region=japan,
+            sub_system=School.SubSystem.EN,
+        )
+
+        self.assertFalse(
+            EducationSystemProfile.objects.filter(region=japan).exists(),
+            "Precondition: no explicit Japan profile should exist before provisioning.",
+        )
+
+        provision_school_sync(str(school.id), contact_email="admin@tokyoacademy.jp")
+        school.refresh_from_db()
+        profile_code = (school.settings or {}).get("education_profile_code")
+        self.assertTrue(profile_code)
+        self.assertEqual(profile_code, "jpn-en-auto")
+
+        profile = EducationSystemProfile.objects.get(code=profile_code)
+        self.assertEqual(profile.region_id, "JPN")
+        self.assertTrue((profile.config or {}).get("generated"))
+
+        term_names = list(Term.objects.filter(school=school).order_by("position").values_list("name", flat=True))
+        self.assertEqual(term_names[:3], ["Term 1", "Term 2", "Term 3"])
 
 
 @override_settings(SINGLE_TENANT="true")
@@ -200,25 +277,48 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="country_code"')
         self.assertContains(response, 'id="city_id"')
+        self.assertContains(response, 'id="city_search"')
         self.assertContains(response, "Select country first, then city")
+
+    def test_api_geo_cities_returns_country_matches(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("super:api_geo_cities"),
+            {"country_code": "UGA", "q": "Kamp", "limit": 30},
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        payload = response.json()
+        self.assertEqual(payload.get("country_code"), "UGA")
+        city_names = [str(item.get("city", "")).lower() for item in payload.get("cities", [])]
+        self.assertIn("kampala", city_names)
+
+    def test_api_education_profiles_returns_country_pack(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("super:api_education_profiles"),
+            {"country_code": "JPN", "sub_system": "EN"},
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        payload = response.json()
+        self.assertEqual(payload.get("country_code"), "JPN")
+        self.assertIn("auto_option", payload)
+        profile_codes = [str(item.get("code") or "") for item in payload.get("profiles", [])]
+        self.assertIn("jpn-en-auto", profile_codes)
 
     def test_api_create_school_uses_city_timezone(self):
         self.client.force_login(self.superuser)
-        location = (
-            WeatherLocation.objects.select_related("region")
-            .filter(is_active=True, region_id="USA", city__iexact="New York")
-            .first()
-        )
-        self.assertIsNotNone(location, "Seeded weather locations should include New York")
+        cities = GlobalGeoCatalog.search_cities(country_code="USA", query="New York", limit=10)
+        self.assertTrue(cities, "Global city catalog should include New York")
+        city = cities[0]
 
         payload = {
             "name": "Global Academy",
             "slug": "global-academy",
             "subdomain": "global-academy",
             "contact_email": "admin@global.test",
-            "country_code": location.region_id,
-            "city_id": str(location.pk),
-            "region_code": location.region_id,
+            "country_code": city["country_code"],
+            "city_id": str(city["id"]),
+            "region_code": city["country_code"],
             "sub_system": "INT",
             "primary_color": "#2d5a27",
             "accent_color": "#f59e0b",
@@ -230,8 +330,170 @@ class SuperProvisioningWizardTests(TestCase):
         )
         self.assertEqual(response.status_code, 202, response.content)
         school = School.objects.get(slug="global-academy")
-        self.assertEqual(school.default_region_id, location.region_id)
-        self.assertEqual(school.timezone, location.timezone)
+        self.assertEqual(school.default_region_id, city["country_code"])
+        self.assertEqual(school.timezone, city["timezone"])
         location_settings = (school.settings or {}).get("location") or {}
-        self.assertEqual(location_settings.get("country_code"), location.region_id)
-        self.assertEqual(location_settings.get("city"), location.city)
+        self.assertEqual(location_settings.get("country_code"), city["country_code"])
+        self.assertEqual(location_settings.get("city"), city["city"])
+
+    def test_api_create_school_persists_explicit_education_profile(self):
+        self.client.force_login(self.superuser)
+        cities = GlobalGeoCatalog.search_cities(country_code="UGA", query="Kampala", limit=10)
+        self.assertTrue(cities, "Global city catalog should include Kampala")
+        city = cities[0]
+        profile = EducationSystemProfile.objects.filter(code="uga-national-default", is_active=True).first()
+        self.assertIsNotNone(profile)
+
+        payload = {
+            "name": "Explicit Profile School",
+            "slug": "explicit-profile-school",
+            "subdomain": "explicit-profile-school",
+            "contact_email": "principal@explicit-profile.test",
+            "country_code": city["country_code"],
+            "city_id": str(city["id"]),
+            "region_code": city["country_code"],
+            "sub_system": "EN",
+            "education_profile_code": "uga-national-default",
+            "primary_color": "#2d5a27",
+            "accent_color": "#f59e0b",
+        }
+        response = self.client.post(
+            reverse("super:api_create_school"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202, response.content)
+        school = School.objects.get(slug="explicit-profile-school")
+        self.assertEqual((school.settings or {}).get("education_profile_code"), "uga-national-default")
+        self.assertEqual(
+            ((school.settings or {}).get("provisioning") or {}).get("education_profile_mode"),
+            "explicit",
+        )
+
+    def test_api_create_school_rejects_non_approved_explicit_profile(self):
+        self.client.force_login(self.superuser)
+        uganda = RegionConfig.objects.get(code="UGA")
+        draft_profile = EducationSystemProfile.objects.create(
+            code="uga-explicit-draft-api",
+            name="Uganda Draft API Pack",
+            region=uganda,
+            sub_system=EducationSystemProfile.SubSystem.EN,
+            approval_status=EducationSystemProfile.ApprovalStatus.DRAFT,
+            is_active=True,
+        )
+        cities = GlobalGeoCatalog.search_cities(country_code="UGA", query="Kampala", limit=10)
+        self.assertTrue(cities, "Global city catalog should include Kampala")
+        city = cities[0]
+
+        payload = {
+            "name": "Draft Profile API School",
+            "slug": "draft-profile-api-school",
+            "subdomain": "draft-profile-api-school",
+            "contact_email": "principal@draft-profile-api.test",
+            "country_code": city["country_code"],
+            "city_id": str(city["id"]),
+            "region_code": city["country_code"],
+            "sub_system": "EN",
+            "education_profile_code": draft_profile.code,
+            "primary_color": "#2d5a27",
+            "accent_color": "#f59e0b",
+        }
+        response = self.client.post(
+            reverse("super:api_create_school"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400, response.content)
+        data = response.json()
+        self.assertIn("errors", data)
+        self.assertTrue(any("education_profile_code" in str(err) for err in data.get("errors", [])))
+
+    def test_api_create_school_records_provisioning_events_and_timeline_url(self):
+        self.client.force_login(self.superuser)
+        cities = GlobalGeoCatalog.search_cities(country_code="USA", query="Boston", limit=10)
+        self.assertTrue(cities, "Global city catalog should include Boston")
+        city = cities[0]
+
+        payload = {
+            "name": "Timeline School",
+            "slug": "timeline-school",
+            "subdomain": "timeline-school",
+            "contact_email": "timeline-admin@test.com",
+            "country_code": city["country_code"],
+            "city_id": str(city["id"]),
+            "region_code": city["country_code"],
+            "sub_system": "INT",
+            "primary_color": "#2d5a27",
+            "accent_color": "#f59e0b",
+        }
+        response = self.client.post(
+            reverse("super:api_create_school"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202, response.content)
+        body = response.json()
+        self.assertIn("timeline_url", body)
+        school = School.objects.get(slug="timeline-school")
+        event_types = set(
+            SchoolProvisioningEvent.objects.filter(school=school).values_list("event_type", flat=True)
+        )
+        self.assertIn("REQUEST_RECEIVED", event_types)
+        self.assertIn("QUEUED", event_types)
+        self.assertTrue({"STARTED", "COMPLETED"} & event_types)
+
+    def test_api_school_timeline_returns_ordered_events(self):
+        self.client.force_login(self.superuser)
+        school = School.objects.create(
+            name="Timeline Endpoint School",
+            slug="timeline-endpoint-school",
+            subdomain="timeline-endpoint-school",
+            is_active=False,
+        )
+        SchoolProvisioningEvent.log_event(
+            school=school,
+            event_type=SchoolProvisioningEvent.EventType.REQUEST_RECEIVED,
+            status=SchoolProvisioningEvent.Status.INFO,
+            message="Request accepted",
+        )
+        SchoolProvisioningEvent.log_event(
+            school=school,
+            event_type=SchoolProvisioningEvent.EventType.QUEUED,
+            status=SchoolProvisioningEvent.Status.INFO,
+            message="Queued",
+        )
+        response = self.client.get(reverse("super:api_school_timeline", args=[school.id]))
+        self.assertEqual(response.status_code, 200, response.content)
+        payload = response.json()
+        self.assertEqual(payload.get("school_id"), str(school.id))
+        events = payload.get("events") or []
+        self.assertGreaterEqual(len(events), 2)
+        self.assertEqual(events[0].get("event_type"), SchoolProvisioningEvent.EventType.QUEUED)
+        self.assertEqual(events[1].get("event_type"), SchoolProvisioningEvent.EventType.REQUEST_RECEIVED)
+
+
+class CustomDomainVerificationCommandTests(TestCase):
+    def test_verify_custom_domains_logs_verification_event(self):
+        school = School.objects.create(
+            name="Domain School",
+            slug="domain-school",
+            subdomain="domain-school",
+            custom_domain="portal.domainschool.edu",
+            custom_domain_verified=False,
+            is_active=True,
+        )
+
+        with patch("apps.schools.management.commands.verify_custom_domains.socket.getaddrinfo", return_value=[("ok",)]):
+            call_command("verify_custom_domains")
+
+        school.refresh_from_db()
+        self.assertTrue(school.custom_domain_verified)
+        custom_domain_payload = (school.settings or {}).get("custom_domain") or {}
+        self.assertEqual(custom_domain_payload.get("status"), "verified")
+        self.assertTrue(custom_domain_payload.get("verified"))
+        self.assertTrue(
+            SchoolProvisioningEvent.objects.filter(
+                school=school,
+                event_type=SchoolProvisioningEvent.EventType.DOMAIN_VERIFIED,
+            ).exists()
+        )

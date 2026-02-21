@@ -26,7 +26,13 @@
             </ul>
           </div>
           <div class="card-body">
-            <form id="wizard-form" data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}">
+            <form
+              id="wizard-form"
+              data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}"
+              data-timeline-url-template="{% url 'super:api_school_timeline' '00000000-0000-0000-0000-000000000000' %}"
+              data-city-search-url="{% url 'super:api_geo_cities' %}"
+              data-profile-search-url="{% url 'super:api_education_profiles' %}"
+            >
               {% csrf_token %}
               <div class="tab-content">
                 <div class="tab-pane fade show active" id="step1" role="tabpanel">
@@ -60,6 +66,13 @@
                   </div>
                   <div class="mb-3">
                     <label class="form-label" for="city_id">City</label>
+                    <input
+                      type="search"
+                      class="form-control mb-2"
+                      id="city_search"
+                      placeholder="Type city name (e.g. Kampala)"
+                      autocomplete="off"
+                    >
                     <select class="form-select" id="city_id" name="city_id">
                       {% for city in cities %}
                         <option value="{{ city.id }}" data-country="{{ city.country_code }}" data-timezone="{{ city.timezone }}">
@@ -80,10 +93,20 @@
                   <div class="mb-3">
                     <label class="form-label" for="sub_system">Sub-system</label>
                     <select class="form-select" id="sub_system" name="sub_system">
-                      <option value="EN">English</option>
-                      <option value="FR">Francophone</option>
-                      <option value="INT">International</option>
+                      <option value="EN" {% if default_sub_system == "EN" %}selected{% endif %}>English</option>
+                      <option value="FR" {% if default_sub_system == "FR" %}selected{% endif %}>Francophone</option>
+                      <option value="INT" {% if default_sub_system == "INT" %}selected{% endif %}>International</option>
                     </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="education_profile_code">Education template</label>
+                    <select class="form-select" id="education_profile_code" name="education_profile_code">
+                      <option value="">Auto by Country and Sub-system (Recommended)</option>
+                      {% for profile in education_profiles %}
+                        <option value="{{ profile.code }}">{{ profile.name }}{% if profile.is_auto_generated %} (Auto pack){% endif %}</option>
+                      {% endfor %}
+                    </select>
+                    <div class="form-text">Pick an explicit template only when a school requires a non-default curriculum pack.</div>
                   </div>
                 </div>
                 <div class="tab-pane fade" id="step3" role="tabpanel">
@@ -161,6 +184,7 @@
         var city_id = document.getElementById('city_id').value.trim();
         var region_code = document.getElementById('region_code').value.trim();
         var sub_system = document.getElementById('sub_system').value;
+        var education_profile_code = document.getElementById('education_profile_code').value.trim();
         var primary_color = document.getElementById('primary_color').value;
         var accent_color = document.getElementById('accent_color').value;
         var custom_domain = (document.getElementById('custom_domain') && document.getElementById('custom_domain').value) ? document.getElementById('custom_domain').value.trim() : '';
@@ -173,6 +197,7 @@
           city_id: city_id,
           region_code: region_code,
           sub_system: sub_system,
+          education_profile_code: education_profile_code,
           primary_color: primary_color,
           accent_color: accent_color,
           custom_domain: custom_domain
@@ -193,8 +218,16 @@
                 var msg = 'School created. Provisioning started.';
                 if (data.school_id) {
                   var editUrl = (form.getAttribute('data-edit-school-url-template') || '').replace('00000000-0000-0000-0000-000000000000', data.school_id);
+                  var timelineTemplate = form.getAttribute('data-timeline-url-template') || '';
+                  var timelineUrl = (data.timeline_url || '').trim();
+                  if (!timelineUrl && timelineTemplate) {
+                    timelineUrl = timelineTemplate.replace('00000000-0000-0000-0000-000000000000', data.school_id);
+                  }
                   if (editUrl) {
                     msg += ' <a href="' + editUrl + '" class="alert-link">Edit school</a> (e.g. set logo, verify custom domain).';
+                  }
+                  if (timelineUrl) {
+                    msg += ' <a href="' + timelineUrl + '" class="alert-link">View provisioning timeline</a>.';
                   }
                 }
                 successEl.innerHTML = msg;
@@ -221,10 +254,45 @@
 
       var countrySelect = document.getElementById('country_code');
       var citySelect = document.getElementById('city_id');
+      var citySearch = document.getElementById('city_search');
       var regionCodeInput = document.getElementById('region_code');
       var timezonePreview = document.getElementById('timezone_preview');
+      var citySearchUrl = form.getAttribute('data-city-search-url') || '';
+      var profileSearchUrl = form.getAttribute('data-profile-search-url') || '';
+      var cityFetchToken = 0;
+      var cityDebounce = null;
+      var profileFetchToken = 0;
 
-      function syncCities() {
+      function syncTimezonePreview() {
+        if (!citySelect) return;
+        var selectedOption = citySelect.options[citySelect.selectedIndex] || null;
+        if (timezonePreview) timezonePreview.value = selectedOption ? (selectedOption.getAttribute('data-timezone') || '') : '';
+      }
+
+      function renderCityOptions(cities) {
+        if (!citySelect) return;
+        citySelect.innerHTML = '';
+        if (!cities || !cities.length) {
+          var emptyOpt = document.createElement('option');
+          emptyOpt.value = '';
+          emptyOpt.textContent = 'No matching cities';
+          citySelect.appendChild(emptyOpt);
+          syncTimezonePreview();
+          return;
+        }
+        cities.forEach(function (city) {
+          var opt = document.createElement('option');
+          opt.value = String(city.id || '');
+          opt.setAttribute('data-country', city.country_code || '');
+          opt.setAttribute('data-timezone', city.timezone || '');
+          opt.textContent = city.city || city.label || '';
+          citySelect.appendChild(opt);
+        });
+        citySelect.selectedIndex = 0;
+        syncTimezonePreview();
+      }
+
+      function syncStaticCities() {
         if (!countrySelect || !citySelect) return;
         var selectedCountry = countrySelect.value || '';
         var firstVisible = null;
@@ -237,13 +305,96 @@
           if (visible && opt.selected) selectedVisible = true;
         });
         if (!selectedVisible && firstVisible) firstVisible.selected = true;
-        var selectedOption = citySelect.options[citySelect.selectedIndex];
+        syncTimezonePreview();
+      }
+
+      function fetchCities(query) {
+        if (!countrySelect || !citySelect || !citySearchUrl) {
+          syncStaticCities();
+          return;
+        }
+        var selectedCountry = (countrySelect.value || '').toUpperCase();
+        var q = (query || '').trim();
+        var token = ++cityFetchToken;
+        var url = citySearchUrl + '?country_code=' + encodeURIComponent(selectedCountry) + '&q=' + encodeURIComponent(q) + '&limit=160';
+        fetch(url, { credentials: 'same-origin' })
+          .then(function (resp) { return resp.ok ? resp.json() : null; })
+          .then(function (data) {
+            if (!data || token !== cityFetchToken) return;
+            renderCityOptions(data.cities || []);
+          })
+          .catch(function () {
+            if (token === cityFetchToken) syncStaticCities();
+          });
+      }
+
+      function syncCities() {
+        if (!countrySelect) return;
+        var selectedCountry = countrySelect.value || '';
         if (regionCodeInput) regionCodeInput.value = selectedCountry;
-        if (timezonePreview) timezonePreview.value = selectedOption ? (selectedOption.getAttribute('data-timezone') || '') : '';
+        fetchCities(citySearch ? citySearch.value : '');
+        fetchEducationProfiles();
+      }
+
+      function renderEducationProfiles(profiles) {
+        var select = document.getElementById('education_profile_code');
+        if (!select) return;
+        var previous = select.value || '';
+        select.innerHTML = '';
+
+        var autoOption = document.createElement('option');
+        autoOption.value = '';
+        autoOption.textContent = 'Auto by Country and Sub-system (Recommended)';
+        select.appendChild(autoOption);
+
+        (profiles || []).forEach(function(profile) {
+          if (!profile || !profile.code) return;
+          var option = document.createElement('option');
+          option.value = profile.code;
+          option.textContent = profile.name + (profile.is_auto_generated ? ' (Auto pack)' : '');
+          select.appendChild(option);
+        });
+        if (previous && Array.prototype.some.call(select.options, function(opt) { return opt.value === previous; })) {
+          select.value = previous;
+        } else {
+          select.value = '';
+        }
+      }
+
+      function fetchEducationProfiles() {
+        if (!countrySelect || !profileSearchUrl) return;
+        var subSystemInput = document.getElementById('sub_system');
+        var subSystem = subSystemInput ? (subSystemInput.value || 'EN') : 'EN';
+        var selectedCountry = (countrySelect.value || '').toUpperCase();
+        var token = ++profileFetchToken;
+        var url = profileSearchUrl + '?country_code=' + encodeURIComponent(selectedCountry) + '&sub_system=' + encodeURIComponent(subSystem);
+        fetch(url, { credentials: 'same-origin' })
+          .then(function(resp) { return resp.ok ? resp.json() : null; })
+          .then(function(data) {
+            if (!data || token !== profileFetchToken) return;
+            renderEducationProfiles(data.profiles || []);
+          })
+          .catch(function() {
+            if (token === profileFetchToken) renderEducationProfiles([]);
+          });
       }
 
       if (countrySelect) countrySelect.addEventListener('change', syncCities);
-      if (citySelect) citySelect.addEventListener('change', syncCities);
+      if (citySelect) citySelect.addEventListener('change', syncTimezonePreview);
+      var subSystemSelect = document.getElementById('sub_system');
+      if (subSystemSelect) {
+        subSystemSelect.addEventListener('change', function() {
+          fetchEducationProfiles();
+        });
+      }
+      if (citySearch) {
+        citySearch.addEventListener('input', function () {
+          clearTimeout(cityDebounce);
+          cityDebounce = setTimeout(function () {
+            fetchCities(citySearch.value || '');
+          }, 220);
+        });
+      }
       syncCities();
     })();
   </script>

@@ -5,7 +5,7 @@ Uses socket.getaddrinfo to check that the custom_domain resolves; optional CNAME
 """
 import socket
 from django.core.management.base import BaseCommand
-from apps.schools.models import School
+from apps.schools.models import School, SchoolProvisioningEvent
 
 
 class Command(BaseCommand):
@@ -25,7 +25,25 @@ class Command(BaseCommand):
                 if not school.custom_domain_verified:
                     if not dry_run:
                         school.custom_domain_verified = True
-                        school.save(update_fields=["custom_domain_verified", "updated_at"])
+                        settings_payload = dict(school.settings or {})
+                        custom_domain_payload = dict(settings_payload.get("custom_domain") or {})
+                        custom_domain_payload.update(
+                            {
+                                "hostname": domain,
+                                "status": "verified",
+                                "verified": True,
+                            }
+                        )
+                        settings_payload["custom_domain"] = custom_domain_payload
+                        school.settings = settings_payload
+                        school.save(update_fields=["custom_domain_verified", "settings", "updated_at"])
+                        SchoolProvisioningEvent.log_event(
+                            school=school,
+                            event_type=SchoolProvisioningEvent.EventType.DOMAIN_VERIFIED,
+                            status=SchoolProvisioningEvent.Status.SUCCESS,
+                            message=f"Custom domain {domain} verified via DNS resolution.",
+                            payload={"hostname": domain},
+                        )
                     self.stdout.write(self.style.SUCCESS(f"{school.name}: {domain} resolves -> verified"))
                 else:
                     self.stdout.write(f"{school.name}: {domain} already verified")
@@ -33,7 +51,25 @@ class Command(BaseCommand):
                 if school.custom_domain_verified:
                     if not dry_run:
                         school.custom_domain_verified = False
-                        school.save(update_fields=["custom_domain_verified", "updated_at"])
+                        settings_payload = dict(school.settings or {})
+                        custom_domain_payload = dict(settings_payload.get("custom_domain") or {})
+                        custom_domain_payload.update(
+                            {
+                                "hostname": domain,
+                                "status": "unverified",
+                                "verified": False,
+                            }
+                        )
+                        settings_payload["custom_domain"] = custom_domain_payload
+                        school.settings = settings_payload
+                        school.save(update_fields=["custom_domain_verified", "settings", "updated_at"])
+                        SchoolProvisioningEvent.log_event(
+                            school=school,
+                            event_type=SchoolProvisioningEvent.EventType.DOMAIN_UNVERIFIED,
+                            status=SchoolProvisioningEvent.Status.WARNING,
+                            message=f"Custom domain {domain} no longer resolves.",
+                            payload={"hostname": domain},
+                        )
                     self.stdout.write(self.style.WARNING(f"{school.name}: {domain} no longer resolves -> unverified"))
                 else:
                     self.stdout.write(self.style.NOTICE(f"{school.name}: {domain} does not resolve ({e})"))

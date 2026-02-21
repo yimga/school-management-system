@@ -7,6 +7,7 @@ from django.utils.html import format_html
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 from django.db import models
 import csv
 from datetime import datetime
@@ -1722,17 +1723,117 @@ class EducationSystemProfileAdmin(ModelAdmin):
     list_display = (
         "code",
         "name",
+        "version",
+        "approval_status",
         "region",
+        "lineage_key",
         "sub_system",
         "term_count_per_year",
         "grading_scale",
         "is_default",
         "is_active",
+        "approved_at",
     )
-    list_filter = ("sub_system", "is_default", "is_active", "region")
+    list_filter = ("approval_status", "sub_system", "is_default", "is_active", "region")
     search_fields = ("code", "name", "region__name", "region__code")
-    ordering = ("name", "code")
-    readonly_fields = ("created_at", "updated_at")
+    ordering = ("lineage_key", "name", "version")
+    readonly_fields = ("created_at", "updated_at", "approved_at", "approved_by")
+    actions = [
+        "mark_profiles_in_review",
+        "approve_profiles",
+        "deprecate_profiles",
+        "clone_profiles_next_version",
+    ]
+
+    def mark_profiles_in_review(self, request, queryset):
+        updated = queryset.update(
+            approval_status=EducationSystemProfile.ApprovalStatus.IN_REVIEW,
+            approved_at=None,
+            approved_by=None,
+        )
+        self.message_user(request, f"{updated} profile(s) moved to In Review.", messages.SUCCESS)
+
+    mark_profiles_in_review.short_description = "Mark selected profiles as In Review"
+
+    def approve_profiles(self, request, queryset):
+        now = timezone.now()
+        approver_id = request.user.pk if getattr(request, "user", None) and request.user.is_authenticated else None
+        updated = queryset.update(
+            approval_status=EducationSystemProfile.ApprovalStatus.APPROVED,
+            approved_at=now,
+            approved_by_id=approver_id,
+        )
+        self.message_user(request, f"{updated} profile(s) approved.", messages.SUCCESS)
+
+    approve_profiles.short_description = "Approve selected profiles"
+
+    def deprecate_profiles(self, request, queryset):
+        updated = queryset.update(
+            approval_status=EducationSystemProfile.ApprovalStatus.DEPRECATED,
+            is_active=False,
+        )
+        self.message_user(
+            request,
+            f"{updated} profile(s) deprecated and deactivated.",
+            messages.WARNING,
+        )
+
+    deprecate_profiles.short_description = "Deprecate selected profiles"
+
+    def clone_profiles_next_version(self, request, queryset):
+        import re
+
+        created = 0
+        for profile in queryset:
+            major, minor, patch = 1, 0, 0
+            match = re.match(r"^\s*(\d+)\.(\d+)\.(\d+)\s*$", str(profile.version or ""))
+            if match:
+                major = int(match.group(1))
+                minor = int(match.group(2))
+                patch = int(match.group(3))
+            patch += 1
+            next_version = f"{major}.{minor}.{patch}"
+            base_code = profile.lineage_key or profile.code
+            clone_code = f"{base_code}-v{major}-{minor}-{patch}"[:80]
+            suffix = 2
+            while EducationSystemProfile.objects.filter(code=clone_code).exists():
+                tail = f"-r{suffix}"
+                clone_code = f"{(f'{base_code}-v{major}-{minor}-{patch}')[: max(1, 80 - len(tail))]}{tail}"
+                suffix += 1
+            clone = EducationSystemProfile.objects.create(
+                code=clone_code,
+                name=profile.name,
+                lineage_key=profile.lineage_key or profile.code,
+                version=next_version,
+                region=profile.region,
+                sub_system=profile.sub_system,
+                is_default=False,
+                is_active=True,
+                approval_status=EducationSystemProfile.ApprovalStatus.DRAFT,
+                academic_year_start_month=profile.academic_year_start_month,
+                term_count_per_year=profile.term_count_per_year,
+                term_labels=list(profile.term_labels or []),
+                grading_scale=profile.grading_scale,
+                default_language=profile.default_language,
+                default_currency=profile.default_currency,
+                default_timezone=profile.default_timezone,
+                subject_seed=list(profile.subject_seed or []),
+                config=dict(profile.config or {}),
+            )
+            created += 1
+            self.message_user(
+                request,
+                f"Cloned {profile.code} -> {clone.code} ({clone.version})",
+                messages.INFO,
+            )
+        if created:
+            self.message_user(
+                request,
+                f"{created} next-version profile clone(s) created as Draft.",
+                messages.SUCCESS,
+            )
+
+    clone_profiles_next_version.short_description = "Clone selected profiles as next semantic version (Draft)"
 
 
 class FeatureToggleDefinitionAdmin(ModelAdmin):

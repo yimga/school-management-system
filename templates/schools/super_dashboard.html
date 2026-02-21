@@ -20,7 +20,10 @@
                 <th>Name</th>
                 <th>Slug</th>
                 <th>Subdomain</th>
+                <th>Template</th>
+                <th>Domain</th>
                 <th>Status</th>
+                <th>Provisioning</th>
                 <th>Students</th>
                 <th>Teachers</th>
                 <th>Members</th>
@@ -34,16 +37,54 @@
                   <td><code>{{ school.slug }}</code></td>
                   <td><code>{{ school.subdomain|default:"--" }}</code></td>
                   <td>
+                    {% with code=school.settings.education_profile_code %}
+                      {% if code %}
+                        <code>{{ code }}</code>
+                      {% else %}
+                        <span class="text-muted small">Auto</span>
+                      {% endif %}
+                    {% endwith %}
+                  </td>
+                  <td>
+                    {% if school.custom_domain %}
+                      <div><code>{{ school.custom_domain }}</code></div>
+                      {% if school.custom_domain_verified %}
+                        <span class="badge bg-success-subtle text-success border">Verified</span>
+                      {% else %}
+                        <span class="badge bg-warning-subtle text-warning border">Pending</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted small">Not configured</span>
+                    {% endif %}
+                  </td>
+                  <td>
                     {% if school.is_active %}
                       <span class="badge bg-success">Active</span>
                     {% else %}
                       <span class="badge bg-secondary">Inactive</span>
                     {% endif %}
                   </td>
+                  <td>
+                    {% if school.latest_event_type %}
+                      <div>
+                        <span class="badge {% if school.latest_event_status == 'ERROR' %}bg-danger{% elif school.latest_event_status == 'WARNING' %}bg-warning text-dark{% elif school.latest_event_status == 'SUCCESS' %}bg-success{% else %}bg-info text-dark{% endif %}">
+                          {{ school.latest_event_type }}
+                        </span>
+                      </div>
+                      {% if school.latest_event_created_at %}
+                        <div class="text-muted small">{{ school.latest_event_created_at|date:"Y-m-d H:i" }}</div>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted small">No events yet</span>
+                    {% endif %}
+                  </td>
                   <td>{{ school.student_count|default:0 }}</td>
                   <td>{{ school.teacher_count|default:0 }}</td>
                   <td>{{ school.member_count|default:0 }}</td>
                   <td>
+                    {% if school.timeline_url %}
+                      <a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info me-1">Timeline</a>
+                    {% endif %}
                     {% if school.admin_edit_url %}
                       <a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                     {% else %}
@@ -53,7 +94,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="8" class="text-muted text-center py-4">No schools yet. Create one to get started.</td>
+                  <td colspan="11" class="text-muted text-center py-4">No schools yet. Create one to get started.</td>
                 </tr>
               {% endfor %}
             </tbody>

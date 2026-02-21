@@ -28,6 +28,7 @@ from .views_feature_control import (
     feature_control_export,
     feature_control_audit_log,
     feature_control_api,
+    feature_control_weather_cities,
 )
 from .dashboard_views import (
     update_theme,
@@ -62,4 +63,5 @@ urlpatterns = [
     path("feature-control/export/", feature_control_export, name="feature_control_export"),
     path("feature-control/audit/", feature_control_audit_log, name="feature_control_audit"),
     path("feature-control/api/", feature_control_api, name="feature_control_api"),
+    path("feature-control/weather-cities/", feature_control_weather_cities, name="feature_control_weather_cities"),
 ]
