@@ -113,9 +113,10 @@ class ScheduleTestCase(TestCase):
     def setUp(self):
         from apps.academics.models import AcademicYear, Term
         
+        uid = id(self)
         self.user = User.objects.create_user(
-            username='admin',
-            email='admin@example.com',
+            username='scheduling_schedule_admin_%s' % uid,
+            email='sched_admin_%s@example.com' % uid,
             password='password123'
         )
         
@@ -167,15 +168,16 @@ class ScheduleEntryTestCase(TestCase):
         
         self.department = Department.objects.create(name="Science", code="SCI")
         
+        uid = id(self)
         self.user = User.objects.create_user(
-            username='admin',
-            email='admin@example.com',
+            username='scheduling_entry_admin_%s' % uid,
+            email='entry_admin_%s@example.com' % uid,
             password='password123'
         )
         
         self.teacher = User.objects.create_user(
-            username='teacher1',
-            email='teacher1@example.com',
+            username='scheduling_teacher_%s' % uid,
+            email='entry_teacher_%s@example.com' % uid,
             password='password123'
         )
         
@@ -275,9 +277,10 @@ class TimetableGeneratorTestCase(TestCase):
     def setUp(self):
         from apps.academics.models import AcademicYear, Term
         
+        uid = id(self)
         self.user = User.objects.create_user(
-            username='admin',
-            email='admin@example.com',
+            username='scheduling_timetable_admin_%s' % uid,
+            email='timetable_admin_%s@example.com' % uid,
             password='password123'
         )
         

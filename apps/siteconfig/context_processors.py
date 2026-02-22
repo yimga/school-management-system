@@ -176,7 +176,8 @@ def site_settings(request):
         _reset_db_state()
         site = SiteSettings()
 
-    preview_settings = request.session.get(SESSION_KEY)
+    session = getattr(request, "session", None)
+    preview_settings = session.get(SESSION_KEY) if session else None
     preview_mode_enabled = getattr(request, "preview_mode_enabled", False) or getattr(site, "preview_mode_enabled", False)
     preview_flag = bool(preview_settings) or preview_mode_enabled
 
@@ -192,7 +193,7 @@ def site_settings(request):
             elif hasattr(site, key):
                 setattr(site, key, value)
 
-    act_as_role = request.session.get(ACT_AS_ROLE_SESSION_KEY)
+    act_as_role = session.get(ACT_AS_ROLE_SESSION_KEY) if session else None
     act_as_choices = [{"value": code, "label": label} for code, label in User.Role.choices]
     setattr(site, "is_preview", preview_flag)
 
@@ -214,10 +215,11 @@ def site_settings(request):
     theme_pref = "system"
     sidebar_collapsed = False
     user_visual_preset = "soft-glass"
-    if request.user.is_authenticated:
+    user = getattr(request, "user", None)
+    if user and getattr(user, "is_authenticated", False):
         try:
-            if hasattr(request.user, "preference"):
-                pref = request.user.preference
+            if hasattr(user, "preference"):
+                pref = user.preference
                 show_background_logo = pref.show_background_logo
                 if pref.background_logo_opacity is not None:
                     logo_opacity = pref.background_logo_opacity
@@ -229,14 +231,14 @@ def site_settings(request):
         try:
             default_collapsed = getattr(site, "default_sidebar_collapsed", False)
             dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
-                user=request.user,
+                user=user,
                 defaults={"sidebar_collapsed": default_collapsed},
             )
             theme_pref = (dashboard_pref.theme_preference or "system").lower()
             high_contrast_mode = high_contrast_mode or bool(getattr(dashboard_pref, "high_contrast", False))
             reduced_motion = reduced_motion or bool(getattr(dashboard_pref, "reduced_motion", False))
             sidebar_collapsed = bool(getattr(dashboard_pref, "sidebar_collapsed", False))
-            user_visual_preset = dashboard_pref.get_visual_preset(getattr(request.user, "role", None))
+            user_visual_preset = dashboard_pref.get_visual_preset(getattr(user, "role", None))
         except DatabaseError:
             _reset_db_state()
             theme_pref = "system"
@@ -252,14 +254,14 @@ def site_settings(request):
         finance_request_url = "/requests/"
     finance_request_alerts = 0
     notifications_unread_count = 0
-    if request.user.is_authenticated:
+    if user and getattr(user, "is_authenticated", False):
         finance_request_alerts = Notification.objects.filter(
-            recipient=request.user,
+            recipient=user,
             title__icontains="finance access request",
             is_read=False,
         ).count()
         notifications_unread_count = Notification.objects.filter(
-            recipient=request.user,
+            recipient=user,
             is_read=False,
         ).count()
     feature_flags = dict(default_backend_feature_flags())
@@ -286,10 +288,10 @@ def site_settings(request):
     _pack_console = getattr(admin_theme, "backend_console_theme", None) or ""
     resolved_backend_console_theme = _pack_console.strip() or getattr(site, "backend_console_theme", None) or "dark"
     can_manage_settings = False
-    if request.user.is_authenticated:
+    if user and getattr(user, "is_authenticated", False):
         can_manage_settings = bool(
-            getattr(request.user, "is_superuser", False)
-            or getattr(request.user, "has_feature_permission", lambda _code: False)("settings.manage")
+            getattr(user, "is_superuser", False)
+            or getattr(user, "has_feature_permission", lambda _code: False)("settings.manage")
         )
 
     is_backend_context = (
@@ -298,16 +300,17 @@ def site_settings(request):
     )
     # Cache portal "hat" checks before building sidebar (so get_effective_portal_role can use them)
     effective_portal_role = None
-    if request.user.is_authenticated:
+    if user and getattr(user, "is_authenticated", False):
         try:
             from apps.accounts.portal_roles import has_teacher_hat, has_parent_hat, get_effective_portal_role
-            request._portal_teacher_hat = has_teacher_hat(request.user)
-            request._portal_parent_hat = has_parent_hat(request.user)
+            request._portal_teacher_hat = has_teacher_hat(user)
+            request._portal_parent_hat = has_parent_hat(user)
             effective_portal_role = get_effective_portal_role(request)
         except Exception:
             request._portal_teacher_hat = False
             request._portal_parent_hat = False
-    site_theme = site.get_portal_theme(user=request.user if getattr(request, "user", None) else None, effective_role=effective_portal_role)
+    _get_theme = getattr(site, "get_portal_theme", None)
+    site_theme = (_get_theme(user=user, effective_role=effective_portal_role) if callable(_get_theme) else None)
     weather_defaults = default_header_weather_config()
     ctx = {
         "SITE": site,
@@ -374,18 +377,18 @@ def site_settings(request):
         "PORTAL_SIDEBAR_ITEMS": _get_portal_sidebar_items(request, site),
     }
     # Dual-role (Teacher + Parent): show role switcher when user has both hats (cache already set above)
-    if request.user.is_authenticated:
+    if user and getattr(user, "is_authenticated", False):
         try:
             from apps.accounts.portal_roles import get_effective_portal_role
             has_teacher = getattr(request, "_portal_teacher_hat", False)
             has_parent = getattr(request, "_portal_parent_hat", False)
             ctx["SHOW_ROLE_SWITCHER"] = has_teacher and has_parent
-            ctx["EFFECTIVE_PORTAL_ROLE"] = get_effective_portal_role(request) or (getattr(request.user, "role", "") or "").upper()
+            ctx["EFFECTIVE_PORTAL_ROLE"] = get_effective_portal_role(request) or (getattr(user, "role", "") or "").upper()
             ctx["HAS_TEACHER_HAT"] = has_teacher
             ctx["HAS_PARENT_HAT"] = has_parent
         except Exception:
             ctx["SHOW_ROLE_SWITCHER"] = False
-            ctx["EFFECTIVE_PORTAL_ROLE"] = (getattr(request.user, "role", "") or "").upper()
+            ctx["EFFECTIVE_PORTAL_ROLE"] = (getattr(user, "role", "") or "").upper()
             ctx["HAS_TEACHER_HAT"] = False
             ctx["HAS_PARENT_HAT"] = False
     else:
@@ -451,10 +454,12 @@ def region_settings(request):
             grading_scale = settings_overrides.get("grading_scale") or region.grading_scale
             default_language = settings_overrides.get("default_language") or getattr(region, "default_language", "en")
         else:
-            region_code = request.session.get('region_code', settings.REGION_CODE)
-            if request.user.is_authenticated:
+            _session = getattr(request, "session", None)
+            region_code = _session.get('region_code', settings.REGION_CODE) if _session else settings.REGION_CODE
+            _user = getattr(request, "user", None)
+            if _user and getattr(_user, "is_authenticated", False):
                 try:
-                    pref = getattr(request.user, 'preferences', None)
+                    pref = getattr(_user, 'preferences', None)
                     if pref and getattr(pref, 'preferred_region', ''):
                         region_code = pref.preferred_region
                 except Exception:
@@ -534,9 +539,10 @@ def language_context(request):
             current_language = cookie_language
     else:
         # Prefer persisted user language, then region-based default
-        if request.user and request.user.is_authenticated:
+        _user = getattr(request, "user", None)
+        if _user and getattr(_user, "is_authenticated", False):
             try:
-                pref = getattr(request.user, 'preferences', None)
+                pref = getattr(_user, 'preferences', None)
                 if pref and getattr(pref, 'preferred_language', ''):
                     lang = pref.preferred_language
                     if lang in SUPPORTED_LANGUAGES:
@@ -560,9 +566,9 @@ def language_context(request):
                 # Not set from preference: try region-based auto-detection
                 try:
                     region = RegionConfig.get_default()
-                    if request.user and request.user.is_authenticated:
+                    if _user and getattr(_user, "is_authenticated", False):
                         try:
-                            pref = getattr(request.user, 'preferences', None)
+                            pref = getattr(_user, 'preferences', None)
                             if pref and getattr(pref, 'preferred_region', ''):
                                 region = RegionConfig.objects.get(code=pref.preferred_region)
                             else:
@@ -604,16 +610,17 @@ def ai_copilot_settings(request):
     import os
     
     # Get user role
+    _user = getattr(request, "user", None)
     user_role = 'USER'
-    if request.user and request.user.is_authenticated:
-        user_role = (getattr(request.user, 'role', 'USER') or '').upper()
+    if _user and getattr(_user, "is_authenticated", False):
+        user_role = (getattr(_user, 'role', 'USER') or '').upper()
     
     admin_roles = {"ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN"}
-    is_admin_like = request.user.is_superuser or request.user.is_staff or user_role in admin_roles
+    is_admin_like = bool(_user and (getattr(_user, "is_superuser", False) or getattr(_user, "is_staff", False) or user_role in admin_roles))
 
     # Determine AI permissions based on role
     ai_permissions = {
-        'can_access_ai': request.user and request.user.is_authenticated,
+        'can_access_ai': bool(_user and getattr(_user, "is_authenticated", False)),
         'can_analyze_data': False,
         'can_view_financial': False,
         'can_view_compliance': False,

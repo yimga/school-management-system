@@ -205,9 +205,12 @@ class PortalPreferencesService:
     @staticmethod
     def update_preferences(parent_id, preferences_dict):
         """Update preferences"""
+        from django.contrib.auth import get_user_model
         from apps.portal.portal_models import PortalPreferences
-        
-        prefs, created = PortalPreferences.objects.get_or_create(parent_id=parent_id)
+
+        User = get_user_model()
+        parent = User.objects.get(pk=parent_id)
+        prefs, created = PortalPreferences.objects.get_or_create(parent_id=parent)
         
         for key, value in preferences_dict.items():
             if hasattr(prefs, key):

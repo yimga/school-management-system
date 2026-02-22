@@ -17,7 +17,7 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured("SECRET_KEY must be set in production.")
 
-ALLOWED_HOSTS_RAW = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.local")
+ALLOWED_HOSTS_RAW = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.local,.localhost")
 ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_RAW.split(",") if host.strip()]
 # Render.com: allow *.onrender.com so login and all URLs work without setting ALLOWED_HOSTS in dashboard
 if os.getenv("RENDER") == "true":

@@ -11,7 +11,8 @@ from apps.compliance.validators import StudentIDValidator, CertificateValidator,
 
 class ComplianceRuleTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', email='admin@test.com', password='pass')
+        uid = id(self)
+        self.user = User.objects.create_user(username='compliance_rule_%s' % uid, email='rule_%s@test.com' % uid, password='pass')
     
     def test_create_rule(self):
         rule = ComplianceRule.objects.create(name='Data Retention', rule_type='data_retention', description='Test', created_by=self.user)
@@ -23,8 +24,9 @@ class ComplianceRuleTestCase(TestCase):
 
 class RegionalComplianceRequirementTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', email='admin@test.com', password='pass')
-        self.region = RegionConfig.objects.create(name='TestCMR', code='TMR', default_language='en', timezone='Africa/Douala')
+        uid = id(self)
+        self.user = User.objects.create_user(username='compliance_req_%s' % uid, email='req_%s@test.com' % uid, password='pass')
+        self.region, _ = RegionConfig.objects.get_or_create(code='TMR', defaults={'name': 'TestCMR', 'default_language': 'en', 'timezone': 'Africa/Douala', 'date_format': 'DD/MM/YYYY'})
         self.rule = ComplianceRule.objects.create(name='Data Protection', rule_type='privacy_policy', description='Test', created_by=self.user)
     
     def test_create_requirement(self):
@@ -38,11 +40,12 @@ class RegionalComplianceRequirementTestCase(TestCase):
 
 class ComplianceCheckTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='checker', email='checker@test.com', password='pass')
-        self.admin = User.objects.create_user(username='admin', email='admin@test.com', password='pass')
-        self.region = RegionConfig.objects.create(name='TestKEN', code='TKN', default_language='en', timezone='Africa/Nairobi')
+        uid = id(self)
+        self.user = User.objects.create_user(username='compliance_checker_%s' % uid, email='checker_%s@test.com' % uid, password='pass')
+        self.admin = User.objects.create_user(username='compliance_admin_%s' % uid, email='admin_%s@test.com' % uid, password='pass')
+        self.region, _ = RegionConfig.objects.get_or_create(code='TKN', defaults={'name': 'TestKEN', 'default_language': 'en', 'timezone': 'Africa/Nairobi', 'date_format': 'DD/MM/YYYY'})
         self.rule = ComplianceRule.objects.create(name='Document Validation', rule_type='document_validation', description='Test', created_by=self.admin)
-        self.requirement = RegionalComplianceRequirement.objects.create(region=self.region, rule=self.rule, created_by=self.admin)
+        self.requirement = RegionalComplianceRequirement.objects.create(region=self.region, rule=self.rule, status='active', created_by=self.admin)
     
     def test_create_compliance_check(self):
         check = ComplianceCheck.objects.create(region=self.region, requirement=self.requirement, check_type='format_validation', status='pass', findings='OK', checked_by=self.user)
@@ -50,8 +53,9 @@ class ComplianceCheckTestCase(TestCase):
 
 class LegalDocumentTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', email='admin@test.com', password='pass')
-        self.region = RegionConfig.objects.create(name='TestNGA', code='TNG', default_language='en', timezone='Africa/Lagos')
+        uid = id(self)
+        self.user = User.objects.create_user(username='compliance_legal_%s' % uid, email='legal_%s@test.com' % uid, password='pass')
+        self.region, _ = RegionConfig.objects.get_or_create(code='TNG', defaults={'name': 'TestNGA', 'default_language': 'en', 'timezone': 'Africa/Lagos', 'date_format': 'DD/MM/YYYY'})
     
     def test_create_document(self):
         doc = LegalDocument.objects.create(region=self.region, document_type='privacy_policy', language='en', title='Privacy', content='<h1>Policy</h1>', version=1, effective_date=timezone.now().date(), created_by=self.user)
@@ -65,7 +69,7 @@ class LegalDocumentTestCase(TestCase):
 
 class StudentIDValidatorTestCase(TestCase):
     def setUp(self):
-        self.region = RegionConfig.objects.create(name='TestCMR2', code='TC2', default_language='en', timezone='Africa/Douala')
+        self.region, _ = RegionConfig.objects.get_or_create(code='TC2', defaults={'name': 'TestCMR2', 'default_language': 'en', 'timezone': 'Africa/Douala', 'date_format': 'DD/MM/YYYY'})
         self.validator = StudentIDValidator(self.region)
     
     def test_valid_student_id(self):
@@ -75,7 +79,7 @@ class StudentIDValidatorTestCase(TestCase):
 
 class CertificateValidatorTestCase(TestCase):
     def setUp(self):
-        self.region = RegionConfig.objects.create(name='TestKEN2', code='TK2', default_language='en', timezone='Africa/Nairobi')
+        self.region, _ = RegionConfig.objects.get_or_create(code='TK2', defaults={'name': 'TestKEN2', 'default_language': 'en', 'timezone': 'Africa/Nairobi', 'date_format': 'DD/MM/YYYY'})
         self.validator = CertificateValidator(self.region)
     
     def test_valid_certificate(self):
@@ -85,8 +89,9 @@ class CertificateValidatorTestCase(TestCase):
 
 class ComplianceAuditLogTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='auditor', email='auditor@test.com', password='pass')
-        self.region = RegionConfig.objects.create(name='TestUSA', code='TUS', default_language='en', timezone='America/New_York')
+        uid = id(self)
+        self.user = User.objects.create_user(username='compliance_auditor_%s' % uid, email='auditor_%s@test.com' % uid, password='pass')
+        self.region, _ = RegionConfig.objects.get_or_create(code='TUS', defaults={'name': 'TestUSA', 'default_language': 'en', 'timezone': 'America/New_York', 'date_format': 'DD/MM/YYYY'})
     
     def test_audit_log_creation(self):
         log = ComplianceAuditLog.objects.create(region=self.region, action_type='check_performed', description='Check done', user=self.user, severity='medium')
@@ -94,8 +99,9 @@ class ComplianceAuditLogTestCase(TestCase):
 
 class RegionalComplianceValidatorTestCase(TestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='admin', email='admin@test.com', password='pass')
-        self.region = RegionConfig.objects.create(name='TestNGA2', code='TN2', default_language='en', timezone='Africa/Lagos')
+        uid = id(self)
+        self.user = User.objects.create_user(username='compliance_validator_%s' % uid, email='validator_%s@test.com' % uid, password='pass')
+        self.region, _ = RegionConfig.objects.get_or_create(code='TN2', defaults={'name': 'TestNGA2', 'default_language': 'en', 'timezone': 'Africa/Lagos', 'date_format': 'DD/MM/YYYY'})
         self.validator = RegionalComplianceValidator(self.region)
     
     def test_compliance_score(self):

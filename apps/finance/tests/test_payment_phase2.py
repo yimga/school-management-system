@@ -20,10 +20,11 @@ class PaymentMethodTestCase(TestCase):
     """Test payment method models."""
     
     def setUp(self):
-        self.region = RegionConfig.objects.create(
-            name='Test', code='TST', default_language='en', timezone='UTC'
+        uid = id(self)
+        self.region, _ = RegionConfig.objects.get_or_create(
+            code='TST', defaults={'name': 'Test', 'default_language': 'en', 'timezone': 'UTC', 'date_format': 'DD/MM/YYYY'}
         )
-        self.user = User.objects.create_user('admin', 'admin@test.com', 'pass')
+        self.user = User.objects.create_user('finance_pm_%s' % uid, 'pm_%s@test.com' % uid, 'pass')
     
     def test_payment_method_creation(self):
         """Test creating payment method."""
@@ -51,10 +52,11 @@ class PaymentTestCase(TestCase):
     """Test payment models."""
     
     def setUp(self):
-        self.region = RegionConfig.objects.create(
-            name='Test', code='TST', default_language='en', timezone='UTC'
+        uid = id(self)
+        self.region, _ = RegionConfig.objects.get_or_create(
+            code='TST', defaults={'name': 'Test', 'default_language': 'en', 'timezone': 'UTC', 'date_format': 'DD/MM/YYYY'}
         )
-        self.user = User.objects.create_user('admin', 'admin@test.com', 'pass')
+        self.user = User.objects.create_user('finance_pay_%s' % uid, 'pay_%s@test.com' % uid, 'pass')
         self.method = PaymentMethod.objects.create(
             name='Card', method_type='card', gateway='stripe',
             region=self.region, created_by=self.user
@@ -114,16 +116,19 @@ class PaymentAuditLoggingTestCase(TestCase):
     """Ensure status changes emit audit entries."""
 
     def setUp(self):
-        self.region = RegionConfig.objects.create(
-            name='Audit', code='AUD', default_language='en', timezone='UTC'
+        uid = id(self)
+        self.region, _ = RegionConfig.objects.get_or_create(
+            code='AUD', defaults={'name': 'Audit', 'default_language': 'en', 'timezone': 'UTC', 'date_format': 'DD/MM/YYYY'}
         )
-        self.user = User.objects.create_user('auditor', 'audit@test.com', 'pass')
+        self.user = User.objects.create_user('finance_auditor_%s' % uid, 'audit_%s@test.com' % uid, 'pass')
         self.method = PaymentMethod.objects.create(
             name='Audit Card', method_type='card', gateway='stripe',
             region=self.region, created_by=self.user
         )
         self.student = StudentProfile.objects.create(
-            user=self.user, admission_number='AUD001'
+            first_name='Audit',
+            last_name='Student',
+            admission_number='AUD001_%s' % uid,
         )
         self.payment = Payment.objects.create(
             reference_number='AUDPAY',
@@ -172,10 +177,11 @@ class TransactionTestCase(TestCase):
     """Test transaction models."""
     
     def setUp(self):
-        self.region = RegionConfig.objects.create(
-            name='Test', code='TST', default_language='en', timezone='UTC'
+        uid = id(self)
+        self.region, _ = RegionConfig.objects.get_or_create(
+            code='TST', defaults={'name': 'Test', 'default_language': 'en', 'timezone': 'UTC', 'date_format': 'DD/MM/YYYY'}
         )
-        self.user = User.objects.create_user('admin', 'admin@test.com', 'pass')
+        self.user = User.objects.create_user('finance_tx_%s' % uid, 'tx_%s@test.com' % uid, 'pass')
         self.method = PaymentMethod.objects.create(
             name='Card', method_type='card', gateway='stripe',
             region=self.region, created_by=self.user
@@ -330,10 +336,13 @@ class RefundRequestTestCase(TestCase):
     """Test refund request models."""
     
     def setUp(self):
-        self.region = RegionConfig.objects.create(
-            name='Test', code='TST', default_language='en', timezone='UTC'
+        uid = id(self)
+        self.region, _ = RegionConfig.objects.get_or_create(
+            code='TST', defaults={'name': 'Test', 'default_language': 'en', 'timezone': 'UTC', 'date_format': 'DD/MM/YYYY'}
         )
-        self.user = User.objects.create_user('admin', 'admin@test.com', 'pass')
+        self.user = User.objects.create_user(
+            username='finance_refund_%s' % uid, email='refund_%s@test.com' % uid, password='pass'
+        )
         self.method = PaymentMethod.objects.create(
             name='Card', method_type='card', gateway='stripe',
             region=self.region, created_by=self.user
@@ -341,7 +350,7 @@ class RefundRequestTestCase(TestCase):
         self.student = StudentProfile.objects.create(
             first_name="Test",
             last_name="Student",
-            admission_number="STU001",
+            admission_number='STU001_%s' % uid,
         )
         self.payment = Payment.objects.create(
             reference_number='PAY001',
@@ -371,10 +380,11 @@ class PaymentAuditLogTestCase(TestCase):
     """Test payment audit logs."""
     
     def setUp(self):
-        self.region = RegionConfig.objects.create(
-            name='Test', code='TST', default_language='en', timezone='UTC'
+        uid = id(self)
+        self.region, _ = RegionConfig.objects.get_or_create(
+            code='TST', defaults={'name': 'Test', 'default_language': 'en', 'timezone': 'UTC', 'date_format': 'DD/MM/YYYY'}
         )
-        self.user = User.objects.create_user('admin', 'admin@test.com', 'pass')
+        self.user = User.objects.create_user('finance_auditlog_%s' % uid, 'auditlog_%s@test.com' % uid, 'pass')
     
     def test_audit_log_creation(self):
         """Test creating audit log."""

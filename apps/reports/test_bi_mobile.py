@@ -15,9 +15,10 @@ class ExecutiveReportingServiceTestCase(TestCase):
     """Test executive reporting services"""
     
     def setUp(self):
+        uid = id(self)
         self.user = User.objects.create_user(
-            username='admin',
-            email='admin@test.com',
+            username='reports_exec_%s' % uid,
+            email='exec_%s@test.com' % uid,
             password='testpass123'
         )
     
@@ -48,9 +49,10 @@ class ReportDefinitionTestCase(TestCase):
     """Test report definition model"""
     
     def setUp(self):
+        uid = id(self)
         self.user = User.objects.create_user(
-            username='reporter',
-            email='reporter@test.com',
+            username='reports_def_%s' % uid,
+            email='def_%s@test.com' % uid,
             password='testpass123'
         )
     
@@ -73,9 +75,10 @@ class MobileDeviceTestCase(TestCase):
     """Test mobile device registration"""
     
     def setUp(self):
+        uid = id(self)
         self.user = User.objects.create_user(
-            username='mobile_user',
-            email='mobile@test.com',
+            username='reports_mobile_%s' % uid,
+            email='mobile_%s@test.com' % uid,
             password='testpass123'
         )
     

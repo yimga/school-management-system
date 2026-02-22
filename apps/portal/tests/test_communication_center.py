@@ -13,14 +13,17 @@ class CommunicationCenterTests(TestCase):
         site.save()
 
     def test_whatsapp_phone_email_links_render(self):
+        uid = id(self)
         Integration.objects.create(
             name="WhatsApp Support",
+            slug="whatsapp-support-cc-%s" % uid,
             provider="other",
             enabled=True,
             config={"phone": "+1 800 555 0000"},
         )
         Integration.objects.create(
             name="Zoom Helpdesk",
+            slug="zoom-helpdesk-cc-%s" % uid,
             provider="other",
             enabled=True,
             config={"url": "https://zoom.example.com/help"},
@@ -47,6 +50,8 @@ class CommunicationCenterTests(TestCase):
         site = SiteSettings.get_solo()
         site.company_phone = ""
         site.company_email = ""
+        site.whatsapp_support_number = ""
+        setattr(site, "footer_whatsapp_url", "")
         site.save()
         Integration.objects.all().delete()
 

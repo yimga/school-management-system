@@ -439,17 +439,18 @@ class PermissionHierarchyTest(TestCase):
     """Test role hierarchy and permission functions."""
 
     def setUp(self):
+        uid = id(self)
         self.admin_user = User.objects.create_user(
-            username="admin", role="ADMIN"
+            username="finance_ph_admin_%s" % uid, role="ADMIN"
         )
         self.bursar_user = User.objects.create_user(
-            username="bursar", role="BURSAR"
+            username="finance_ph_bursar_%s" % uid, role="BURSAR"
         )
         self.teacher_user = User.objects.create_user(
-            username="teacher", role="TEACHER"
+            username="finance_ph_teacher_%s" % uid, role="TEACHER"
         )
         self.parent_user = User.objects.create_user(
-            username="parent", role="PARENT"
+            username="finance_ph_parent_%s" % uid, role="PARENT"
         )
 
     def test_role_hierarchy_admin_superior(self):
@@ -470,7 +471,7 @@ class PermissionHierarchyTest(TestCase):
     def test_superuser_always_allowed(self):
         """Test superuser bypasses hierarchy checks."""
         superuser = User.objects.create_superuser(
-            username="super", password="pass", email="super@test.com"
+            username="finance_ph_super_%s" % id(self), password="pass", email="super_%s@test.com" % id(self)
         )
         self.assertTrue(has_role_hierarchy(superuser, "ADMIN"))
         self.assertTrue(has_role_hierarchy(superuser, "BURSAR"))
@@ -490,18 +491,19 @@ class InvoicePermissionTest(TestCase):
         )
         self.department = Department.objects.create(name="General", code="GEN")
         
-        # Users
+        # Users (unique usernames to avoid cross-test UNIQUE constraint)
+        uid = id(self)
         self.admin = User.objects.create_user(
-            username="admin", role="ADMIN"
+            username="finance_inv_admin_%s" % uid, role="ADMIN"
         )
         self.bursar = User.objects.create_user(
-            username="bursar", role="BURSAR"
+            username="finance_inv_bursar_%s" % uid, role="BURSAR"
         )
         self.parent = User.objects.create_user(
-            username="parent", role="PARENT"
+            username="finance_inv_parent_%s" % uid, role="PARENT"
         )
         self.other_parent = User.objects.create_user(
-            username="other_parent", role="PARENT"
+            username="finance_inv_other_parent_%s" % uid, role="PARENT"
         )
         
         # Student with guardian link
@@ -565,7 +567,7 @@ class PayrollRBACTest(TestCase):
 
     def test_teacher_cannot_access_payroll_run_detail(self):
         """Teacher must not access payroll run detail (staff-only); expect 403."""
-        self.client.login(username="teacher_rbac", password="testpass")
+        self.client.login(username=self.teacher.username, password="testpass")
         response = self.client.get("/payroll/runs/1/", follow=False)
         self.assertIn(
             response.status_code,

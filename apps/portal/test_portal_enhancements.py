@@ -64,8 +64,8 @@ class NotificationServiceTestCase(TestCase):
             message='Score: 85/100'
         )
         
-        self.assertEqual(result['status'], 'success')
         self.assertIn('notification_id', result)
+        self.assertIn('created_at', result)
     
     def test_get_unread_notifications(self):
         """Test getting unread notifications"""
@@ -93,15 +93,20 @@ class PortalPreferencesServiceTestCase(TestCase):
     
     def test_update_preferences(self):
         """Test updating preferences"""
+        from django.contrib.auth import get_user_model
         from apps.portal.portal_services import PortalPreferencesService
         
+        User = get_user_model()
+        user = User.objects.create_user(
+            username='portal_prefs_%s' % id(self), email='prefs@test.com', password='pass'
+        )
         prefs_dict = {
             'language': 'fr',
             'theme': 'dark',
             'notification_email': False,
         }
         
-        result = PortalPreferencesService.update_preferences(1, prefs_dict)
+        result = PortalPreferencesService.update_preferences(user.id, prefs_dict)
         
         self.assertEqual(result['status'], 'updated')
 

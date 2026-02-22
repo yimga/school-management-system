@@ -1,11 +1,15 @@
 """Compliance Tests"""
 
+from django.utils import timezone
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from apps.compliance.models import (
     ComplianceRule, RegionalComplianceRequirement, ComplianceCheck,
     LegalDocument, ComplianceAuditLog, StudentIDFormat, CertificateTemplate
 )
+from apps.siteconfig.models import RegionConfig
+
+User = get_user_model()
 
 
 class ComplianceRuleTestCase(TestCase):
@@ -46,11 +50,15 @@ class ComplianceRuleTestCase(TestCase):
 
 class ComplianceCheckTestCase(TestCase):
     """Test compliance check functionality"""
-    
+
     def setUp(self):
         self.user = User.objects.create_user(
             username='testuser',
             password='testpass123'
+        )
+        self.region, _ = RegionConfig.objects.get_or_create(
+            code="TEST",
+            defaults={"name": "Test Region", "default_language": "en", "date_format": "DD/MM/YYYY"},
         )
         self.rule = ComplianceRule.objects.create(
             name='Test Rule',
@@ -58,17 +66,24 @@ class ComplianceCheckTestCase(TestCase):
             description='Test',
             created_by=self.user
         )
-    
+        self.requirement = RegionalComplianceRequirement.objects.create(
+            region=self.region,
+            rule=self.rule,
+            status='active',
+        )
+
     def test_create_compliance_check(self):
         """Test creating a compliance check"""
         check = ComplianceCheck.objects.create(
-            rule=self.rule,
-            status='passed',
+            region=self.region,
+            requirement=self.requirement,
+            check_type='policy_review',
+            status='pass',
+            findings='All good',
             checked_by=self.user
         )
-        
-        self.assertEqual(check.status, 'passed')
-        self.assertEqual(check.rule, self.rule)
+        self.assertEqual(check.status, 'pass')
+        self.assertEqual(check.requirement, self.requirement)
 
 
 class LegalDocumentTestCase(TestCase):
@@ -82,13 +97,20 @@ class LegalDocumentTestCase(TestCase):
     
     def test_create_legal_document(self):
         """Test creating a legal document"""
+        region, _ = RegionConfig.objects.get_or_create(
+            code="TEST",
+            defaults={"name": "Test Region", "default_language": "en", "date_format": "DD/MM/YYYY"},
+        )
+        today = timezone.now().date()
         doc = LegalDocument.objects.create(
-            name='Terms of Service',
+            region=region,
             document_type='terms_of_service',
+            language='en',
+            title='Terms of Service',
             content='Our Terms of Service...',
-            version='1.0',
+            version=1,
+            effective_date=today,
             created_by=self.user
         )
-        
-        self.assertEqual(doc.name, 'Terms of Service')
-        self.assertEqual(doc.version, '1.0')
+        self.assertEqual(doc.title, 'Terms of Service')
+        self.assertEqual(doc.version, 1)
