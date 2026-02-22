@@ -11,6 +11,7 @@ from django.utils.deprecation import MiddlewareMixin
 logger = logging.getLogger(__name__)
 
 # Paths that do not require a resolved school (Super Admin, static, health, etc.)
+# /admin/ is NOT skipped: on base domain we resolve no tenant → Main (Public) Admin; on tenant subdomain we redirect to Backend
 SUPER_PREFIXES = ("/super/",)
 STATIC_PREFIXES = ("/static/", "/media/", "/favicon.ico", "/api/schema", "/offline/")
 HEALTH_PREFIXES = ("/health", "/ready", "/api/health")
@@ -37,6 +38,16 @@ def _extract_subdomain(host: str, base_domain: str | None) -> str | None:
     if len(parts) >= 3:
         return parts[0]
     return None
+
+
+def _is_base_domain(host: str, base_domain: str) -> bool:
+    """
+    True if this host is the primary/base domain (no tenant subdomain).
+    On base domain we never assign a tenant: Main (Public) Admin only; tenants use subdomain/custom domain.
+    """
+    if base_domain:
+        return host == base_domain
+    return host in ("localhost", "127.0.0.1")
 
 
 def _resolve_school_from_request(request) -> "School | None":
@@ -71,7 +82,11 @@ def _resolve_school_from_request(request) -> "School | None":
         if school:
             return school
 
-    # 3. Single-tenant: one school in DB or SINGLE_TENANT=true
+    # Base domain: never assign a tenant (Main Admin only; tenants must use subdomain or custom domain)
+    if _is_base_domain(host, base_domain):
+        return None
+
+    # 3. Single-tenant fallback only when NOT on base domain (e.g. legacy or no MULTI_TENANT_BASE_DOMAIN set)
     if os.getenv("SINGLE_TENANT", "").lower() in ("1", "true", "yes"):
         return _get_single_tenant_school()
     single = _get_single_tenant_school()
@@ -90,16 +105,19 @@ class TenantMiddleware(MiddlewareMixin):
     def process_request(self, request):
         path = request.path or ""
 
-        # Skip paths that don't need a school
+        # Skip paths that don't need a school (except /admin/: we resolve tenant so we can redirect tenant /admin/ to Backend)
         for prefix in SUPER_PREFIXES + STATIC_PREFIXES + HEALTH_PREFIXES:
             if path.startswith(prefix):
                 request.school = None
                 return None
 
-        # Resolve school from host (subdomain/custom domain) or from session (e.g. main domain after login)
+        # Resolve school from host (subdomain/custom domain) or from session when not on base domain
+        host = (request.get_host() or "").split(":")[0].lower()
+        base_domain = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip().lower()
         try:
             school = _resolve_school_from_request(request)
-            if school is None and request.session.get("school_id"):
+            # Session fallback only when we're not on the base domain (tenant URLs are subdomain/custom only)
+            if school is None and not _is_base_domain(host, base_domain) and request.session.get("school_id"):
                 from apps.schools.models import School
                 school = School.objects.filter(
                     id=request.session["school_id"],
@@ -110,6 +128,13 @@ class TenantMiddleware(MiddlewareMixin):
             school = None
 
         request.school = school
+        # Tenant backend admin dashboard: on tenant subdomain /admin/ → redirect to /authentication/backend/
+        if school and path.startswith("/admin/"):
+            try:
+                from apps.schools.tenant_url import build_tenant_backend_url
+                return HttpResponseRedirect(build_tenant_backend_url(request, school, path="/authentication/backend/"))
+            except Exception:
+                pass
         if school:
             request.session["school_id"] = str(school.id)
             # Phase A: RLS/timezone — use merged tenant locale (useLocalSettings)

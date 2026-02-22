@@ -23,6 +23,14 @@ ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_RAW.split(",") if host.s
 if os.getenv("RENDER") == "true":
     if ".onrender.com" not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(".onrender.com")
+# Multi-tenant: allow main host and subdomains when MULTI_TENANT_BASE_DOMAIN is set (see RENDER_URL_MAPPING_PLAN.md)
+_multi_tenant_base = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip().lower()
+if _multi_tenant_base:
+    if _multi_tenant_base not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_multi_tenant_base)
+    _dotted_base = f".{_multi_tenant_base}"
+    if _dotted_base not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_dotted_base)
 if not DEBUG and not ALLOWED_HOSTS:
     raise ImproperlyConfigured("ALLOWED_HOSTS must be configured for production.")
 
@@ -35,6 +43,13 @@ if _csrf_origins:
     CSRF_TRUSTED_ORIGINS = [s.strip() for s in _csrf_origins.split(",") if s.strip()]
 elif _render_host:
     CSRF_TRUSTED_ORIGINS = [f"https://{_render_host}"]
+else:
+    CSRF_TRUSTED_ORIGINS = []
+# Multi-tenant: ensure main domain HTTPS origin is trusted when MULTI_TENANT_BASE_DOMAIN is set
+if _multi_tenant_base:
+    _origin = f"https://{_multi_tenant_base}"
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_origin]
 
 INSTALLED_APPS = [
     # Admin theme (must be first)

@@ -692,10 +692,24 @@ def redirect_view(request):
     prevents hard-coded URLs from drifting. Respects "Dashboard view" preference
     (Overview, Workflow Center, Finance, etc.) for backend, teacher, and parent.
     Preserves GET params (e.g. preview_section for config preview) on the target URL.
+    When on base domain and user has a school membership, redirect to tenant subdomain (Backend is subdomain-only).
     """
     user = request.user
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
+
+    # Base domain: send users with a school membership to the tenant subdomain
+    if not getattr(request, "school", None):
+        try:
+            from apps.schools.models import SchoolMembership
+            from apps.schools.tenant_url import is_base_domain, build_tenant_backend_url
+            if is_base_domain(request):
+                m = SchoolMembership.objects.filter(user=user).select_related("school").order_by("-is_primary").first()
+                if m and m.school:
+                    target = build_tenant_backend_url(request, m.school)
+                    return redirect(target)
+        except Exception:
+            pass
 
     def _redirect_with_params(name_or_url, *args, **kwargs):
         target = reverse(name_or_url, args=args, kwargs=kwargs)
@@ -1022,8 +1036,20 @@ def rbac_dashboard(request):
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def backend_dashboard(request):
+    # Tenant Backend is subdomain-only: on base domain redirect to tenant subdomain
+    if not getattr(request, "school", None):
+        try:
+            from apps.schools.models import SchoolMembership
+            from apps.schools.tenant_url import is_base_domain, build_tenant_backend_url
+            if is_base_domain(request):
+                m = SchoolMembership.objects.filter(user=request.user).select_related("school").order_by("-is_primary").first()
+                if m and m.school:
+                    return redirect(build_tenant_backend_url(request, m.school))
+        except Exception:
+            pass
+
     from .activity_helper import get_recent_activity
-    
+
     site = SiteSettings.get_solo()
     year, term = get_active_year_and_term()
 
@@ -2399,12 +2425,11 @@ def login_view(request):
             else:
                 from apps.schools.models import SchoolMembership
                 primary = SchoolMembership.objects.filter(user=user, is_primary=True).select_related("school").first()
+                first_m = SchoolMembership.objects.filter(user=user).select_related("school").first()
                 if primary:
                     request.session["school_id"] = str(primary.school_id)
-                else:
-                    first_m = SchoolMembership.objects.filter(user=user).select_related("school").first()
-                    if first_m:
-                        request.session["school_id"] = str(first_m.school_id)
+                elif first_m:
+                    request.session["school_id"] = str(first_m.school_id)
 
             # Security Powerhouse: log successful login (tenant-scoped audit).
             try:
@@ -2484,6 +2509,26 @@ def login_view(request):
                     return redirect(reverse("accounts:mfa_verify"))
             except Exception:
                 pass
+
+            # When on base domain and user has a school membership, send them to tenant subdomain (Backend is subdomain-only)
+            if not getattr(request, "school", None):
+                try:
+                    from apps.schools.models import SchoolMembership
+                    from apps.schools.tenant_url import is_base_domain, build_tenant_backend_url
+                    if is_base_domain(request):
+                        m = SchoolMembership.objects.filter(user=user).select_related("school").order_by("-is_primary").first()
+                        if m and m.school:
+                            if next_url:
+                                from django.utils.http import url_has_allowed_host_and_scheme
+                                if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                                    target = build_tenant_backend_url(request, m.school, path=next_url)
+                                else:
+                                    target = build_tenant_backend_url(request, m.school)
+                            else:
+                                target = build_tenant_backend_url(request, m.school)
+                            return redirect(target)
+                except Exception:
+                    pass
 
             if next_url:
                 return redirect(next_url)
