@@ -739,7 +739,14 @@ def user_preferences(request):
 
 @permission_required("settings.manage")
 def report_library(request):
+    from django.db.models import Q
+    from apps.siteconfig.tenant_config import get_report_template_family_for_school
     templates = ReportTemplate.objects.filter(is_active=True)
+    school = getattr(request, "school", None)
+    if school:
+        family = get_report_template_family_for_school(school)
+        if family:
+            templates = templates.filter(Q(template_family="") | Q(template_family=family))
     return render(request, "siteconfig/report_library.html", {"reports": templates})
 
 
@@ -1112,6 +1119,13 @@ def _report_filename(slug, fmt):
 @permission_required("settings.manage")
 def download_report(request, slug):
     template = get_object_or_404(ReportTemplate, slug=slug, is_active=True)
+    school = getattr(request, "school", None)
+    if school and template.template_family:
+        from apps.siteconfig.tenant_config import get_report_template_family_for_school
+        family = get_report_template_family_for_school(school)
+        if family and template.template_family != family:
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden("This report template is not available for your school's configuration.")
     headers, rows = template.get_export_data()
 
     if not headers:
@@ -1377,3 +1391,41 @@ def region_grading_scales_view(request):
     }
     
     return render(request, 'admin/region_grading_scales.html', context)
+
+
+@login_required
+def branding_api(request):
+    """
+    Phase F: Return tenant branding (logo, primary_color, accent_color) for frontend injection.
+    When BrandSettings exists for the school, use it; else use School fields.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return JsonResponse(
+            {"logo_url": "", "primary_color": "#0d6efd", "accent_color": "#198754", "custom_css": ""},
+            safe=False,
+        )
+    try:
+        from .models import BrandSettings
+        brand = BrandSettings.objects.filter(school=school).first()
+    except Exception:
+        brand = None
+    if brand:
+        return JsonResponse(
+            {
+                "logo_url": brand.logo_url or "",
+                "primary_color": brand.primary_color or "#0d6efd",
+                "accent_color": brand.accent_color or "#198754",
+                "custom_css": brand.custom_css or "",
+            },
+            safe=False,
+        )
+    return JsonResponse(
+        {
+            "logo_url": getattr(school, "logo_url", "") or "",
+            "primary_color": getattr(school, "primary_color", None) or "#0d6efd",
+            "accent_color": getattr(school, "accent_color", None) or "#198754",
+            "custom_css": "",
+        },
+        safe=False,
+    )

@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static region_format %}
+{% load static region_format tenant_hook %}
 {# Backend UI: distinct from /admin; uses portal backend light theme. #}
 {% block backend_title %}Students - Backend{% endblock %}
 
@@ -58,6 +58,7 @@
                   <th scope="col">Admission Number</th>
                   <th scope="col">Classroom</th>
                   <th scope="col">Specialty</th>
+                  <th scope="col">Tags</th>
                   <th scope="col">Status</th>
                   <th scope="col">Actions</th>
                 </tr>
@@ -82,6 +83,15 @@
                   <td>{{ student.classroom.name|default:"-" }}</td>
                   <td>{{ student.specialty.name|default:"-" }}</td>
                   <td>
+                    {% for tag in student.tags.all %}
+                      {% if not tag.is_private or can_see_private_tags %}
+                        <span class="badge me-1" style="background-color: {{ tag.color_hex }}; color: #fff;" title="{{ tag.get_category_display }}{% if tag.is_private %} (private){% endif %}">{{ tag.name }}</span>
+                      {% endif %}
+                    {% empty %}
+                      <span class="text-muted small">—</span>
+                    {% endfor %}
+                  </td>
+                  <td>
                     <span class="badge bg-{% if student.status == 'ACTIVE' %}success{% elif student.status == 'NEW' %}info{% else %}warning{% endif %}">
                       {{ student.get_status_display|default:student.status }}
                     </span>
@@ -105,6 +115,9 @@
           {% if page_obj %}
           {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=show_page_size page_size=page_size page_size_options=page_size_options %}
           {% endif %}
+        </div>
+        <div class="card-footer border-top bg-light">
+          {% tenant_hook 'STUDENT_LIST_FOOTER' %}
         </div>
       </div>
     </div>

@@ -1511,7 +1511,15 @@
       <div class="col-lg-8" data-dashboard-column="main">
         
         <!-- My Children -->
-        <section class="metrics-section dashboard-clear parent-children-section" id="children" aria-labelledby="children-heading">
+        <section class="metrics-section dashboard-clear parent-children-section" id="children" aria-labelledby="children-heading" {% if is_rtl %}dir="rtl"{% endif %}>
+          {% if guardian_students_for_switcher|length > 1 %}
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="small text-muted">Focus:</span>
+            {% for s in guardian_students_for_switcher %}
+            <a href="{% url 'portal:parent_set_active_child' s.id %}" class="btn btn-sm {% if active_child_id == s.id %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ s.display_name }}</a>
+            {% endfor %}
+          </div>
+          {% endif %}
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
             <h2 id="children-heading" class="h6 mb-0"><i class="bi bi-people-fill"></i> My Children {% if links %}({{ links|length }}){% endif %}</h2>
             <a href="{% url 'portal:parent_medal_case' %}" class="btn btn-sm btn-outline-primary">Medal case</a>

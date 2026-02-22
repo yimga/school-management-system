@@ -1931,3 +1931,211 @@ class SuspensePaymentAllocation(models.Model):
 
     def __str__(self) -> str:
         return f"{self.suspense_payment_id} -> {self.invoice_id} ({self.amount})"
+
+
+# =============================================================================
+# Financial Aid & Scholarships (Phase 1 — global platform, any region)
+# =============================================================================
+
+
+class AwardSource(models.Model):
+    """
+    Fund bucket for scholarships/grants. Tenant-scoped (school_id).
+    total_budget / remaining_funds; currency for multi-currency support.
+    """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="award_sources",
+    )
+    name = models.CharField(max_length=200, help_text="e.g. Endowment Fund, Donor X Grant")
+    total_budget = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    remaining_funds = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    currency = models.CharField(max_length=3, default="USD")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Award source"
+        verbose_name_plural = "Award sources"
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.school_id})"
+
+
+class Scholarship(models.Model):
+    """
+    Scholarship definition linked to an AwardSource. eligibility_criteria is JSON-Logic
+    (evaluated via nuance engine / check_eligibility). award_amount per award; is_renewable.
+    """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="scholarships",
+    )
+    source = models.ForeignKey(
+        AwardSource,
+        on_delete=models.PROTECT,
+        related_name="scholarships",
+    )
+    title = models.CharField(max_length=200)
+    eligibility_criteria = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="JSON-Logic rules; context: gpa, sibling_count, student_tags, custom_attributes, attendance_rate, fee_status",
+    )
+    award_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    is_renewable = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["title"]
+        verbose_name = "Scholarship"
+        verbose_name_plural = "Scholarships"
+
+    def __str__(self) -> str:
+        return f"{self.title} ({self.source.name})"
+
+
+class FinancialAidApplication(models.Model):
+    """
+    Student application for a scholarship. Status flow: SUBMITTED -> APPROVED/REJECTED -> DISBURSED.
+    eligibility_failure_reason stored for appeals; dispute_link for AccessRequest (SCHOLARSHIP_APPEAL).
+    """
+    class Status(models.TextChoices):
+        SUBMITTED = "SUBMITTED", "Submitted"
+        UNDER_REVIEW = "UNDER_REVIEW", "Under review"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+        DISBURSED = "DISBURSED", "Disbursed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="financial_aid_applications",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name="financial_aid_applications",
+    )
+    scholarship = models.ForeignKey(
+        Scholarship,
+        on_delete=models.PROTECT,
+        related_name="applications",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.SUBMITTED,
+    )
+    amount_approved = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    eligibility_failure_reason = models.TextField(
+        blank=True,
+        help_text="Reason from check_eligibility or AI for appeal/dispute",
+    )
+    disbursed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="financial_aid_applications_created",
+    )
+    # Optional link to dispute/appeal (AccessRequest with type SCHOLARSHIP_APPEAL)
+    dispute_link = models.ForeignKey(
+        "requests.AccessRequest",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="financial_aid_applications",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Financial aid application"
+        verbose_name_plural = "Financial aid applications"
+        indexes = [
+            models.Index(fields=["school", "status"]),
+            models.Index(fields=["student", "scholarship"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.student} — {self.scholarship.title} ({self.get_status_display()})"
+
+
+class AidAuditLog(models.Model):
+    """Log every AwardSource balance change and disbursement for audit trail."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="aid_audit_logs",
+    )
+    source = models.ForeignKey(
+        AwardSource,
+        on_delete=models.CASCADE,
+        related_name="audit_logs",
+    )
+    action = models.CharField(
+        max_length=40,
+        help_text="e.g. disbursement, donation, adjustment, refund",
+    )
+    amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    balance_after = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="remaining_funds after this action",
+    )
+    reason = models.CharField(max_length=255, blank=True)
+    application = models.ForeignKey(
+        FinancialAidApplication,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="audit_log_entries",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="aid_audit_log_entries",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Aid audit log"
+        verbose_name_plural = "Aid audit logs"
+
+    def __str__(self) -> str:
+        return f"{self.source.name} {self.action} {self.amount} @ {self.created_at}"

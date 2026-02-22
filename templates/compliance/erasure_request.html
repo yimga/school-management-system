@@ -1,0 +1,24 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}Request erasure (GDPR) – {{ school.name }}{% endblock %}
+{% block backend_title %}Request erasure (GDPR Art. 17){% endblock %}
+
+{% block content %}
+  <div class="container-fluid py-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="h4 mb-3">Right to Erasure</h1>
+        <p class="text-muted">Submit a request to erase a student's personal data (GDPR Art. 17). An administrator will process the request.</p>
+        <form method="post" action="">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="student_id">Student ID</label>
+            <input type="number" class="form-control" id="student_id" name="student_id" required placeholder="e.g. 123">
+          </div>
+          <button type="submit" class="btn btn-primary">Submit request</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

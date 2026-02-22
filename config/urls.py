@@ -19,6 +19,13 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from config.admin import admin_site
+from apps.schools.section8_views import (
+    verify_caddy_domain,
+    global_login_discovery,
+    lti_launch_placeholder,
+    jwks_json,
+    frozen_account,
+)
 
 
 def home(request):
@@ -157,6 +164,7 @@ urlpatterns = [
     path('admin/siteconfig/customizer/', admin_siteconfig_customizer_redirect),
 
     # API Routes
+    path("verify/<str:token>/", __import__("apps.siteconfig.views_verify", fromlist=["verify_student_id"]).verify_student_id, name="verify_student_id"),
     path('api/', include(('apps.api.urls', 'api'), namespace='api')),
 
     # Apps
@@ -178,6 +186,12 @@ urlpatterns = [
     path('requests/', include(('apps.requests.urls', 'requests'), namespace='requests')),
     # Super Admin (multi-tenant provisioning)
     path('super/', include(('apps.schools.super_urls', 'super'), namespace='super')),
+    # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)
+    path('api/caddy-check/', verify_caddy_domain),
+    path('discover/', global_login_discovery, name='global_login_discovery'),
+    path('lti/launch/<str:tool_id>/', lti_launch_placeholder, name='lti_launch'),
+    path('lti/jwks.json', jwks_json, name='lti_jwks'),
+    path('account-frozen/', frozen_account, name='account_frozen'),
 ]
 
 if settings.DEBUG:

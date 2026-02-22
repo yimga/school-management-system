@@ -12,6 +12,7 @@ from apps.compliance.views import (
     CriticalItemsAPI,
 )
 from apps.compliance.views_api import mute_threats
+from apps.compliance.views_gdpr import data_portability_export, erasure_request_view
 
 app_name = 'compliance'
 
@@ -32,4 +33,7 @@ urlpatterns = [
     
     # Phase 4: Compliance reporting
     path('reports/', include('apps.compliance.urls_reporting')),
+    # Phase Compliance optional: GDPR data portability (MFA required) and erasure request
+    path('gdpr/export/', data_portability_export, name='data_portability_export'),
+    path('gdpr/erasure-request/', erasure_request_view, name='erasure_request'),
 ]

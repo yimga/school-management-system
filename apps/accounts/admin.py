@@ -5,7 +5,17 @@ from config.admin import admin_site
 
 from unfold.admin import ModelAdmin
 
-from .models import User, AccessRole, Permission, UserPreference, TemporaryRoleGrant, Delegation, DelegationActionLog
+from .models import (
+    User,
+    AccessRole,
+    Permission,
+    UserPreference,
+    TemporaryRoleGrant,
+    Delegation,
+    DelegationActionLog,
+    SecurityAuditLog,
+    UserPasskey,
+)
 
 class UserPreferenceAdmin(ModelAdmin):
     list_display = ("user", "show_background_logo", "background_logo_opacity", "updated_at")
@@ -129,3 +139,22 @@ admin_site.register(Group, GroupAdmin)
 admin_site.register(UserPreference, UserPreferenceAdmin)
 admin_site.register(Delegation, DelegationAdmin)
 admin_site.register(DelegationActionLog, DelegationActionLogAdmin)
+
+
+class SecurityAuditLogAdmin(ModelAdmin):
+    list_display = ("user", "event_type", "ip_address", "is_suspicious", "created_at")
+    list_filter = ("event_type", "is_suspicious")
+    search_fields = ("user__username", "ip_address")
+    raw_id_fields = ("user", "school")
+    readonly_fields = ("school", "user", "event_type", "ip_address", "user_agent", "location_data", "is_suspicious", "initiator", "created_at", "last_seen")
+    date_hierarchy = "created_at"
+
+
+class UserPasskeyAdmin(ModelAdmin):
+    list_display = ("user", "name", "credential_id", "created_at")
+    search_fields = ("user__username", "name")
+    raw_id_fields = ("user",)
+
+
+admin_site.register(SecurityAuditLog, SecurityAuditLogAdmin)
+admin_site.register(UserPasskey, UserPasskeyAdmin)

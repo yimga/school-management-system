@@ -1,10 +1,13 @@
 """
 Signal handlers for people models.
 """
-from django.db.models.signals import post_save
+import logging
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from apps.communication.models import MessageThread
-from apps.people.models import TeacherProfile, StudentGuardian
+from apps.people.models import TeacherProfile, StudentGuardian, StudentProfile
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=StudentGuardian)
@@ -52,3 +55,75 @@ def sync_teacher_department_thread(sender, instance, created, **kwargs):
             # Get old department from previous state (if available)
             # For now, we'll just ensure they're in the current department thread
             pass
+
+
+def _get_school_leadership_for_assignment(school):
+    """Return a user to assign (e.g. Principal/Leadership/Admin) for the school, or None."""
+    if not school:
+        return None
+    try:
+        from apps.schools.models import SchoolMembership
+        membership = (
+            SchoolMembership.objects.filter(school=school)
+            .filter(role__in=["LEADERSHIP", "ADMIN", "PRINCIPAL", "IT_ADMIN"])
+            .select_related("user")
+            .first()
+        )
+        return membership.user if membership and membership.user_id else None
+    except Exception:
+        return None
+
+
+@receiver(m2m_changed, sender=StudentProfile.tags.through)
+def on_student_critical_tag_added(sender, instance, action, pk_set, **kwargs):
+    """
+    When a critical InformationTag is added to a student: log, create an AccessRequest
+    (OTHER) for the support/dispute workflow, and assign to school leadership if available.
+    """
+    if action != "post_add" or not pk_set:
+        return
+    from apps.people.models import InformationTag
+    from django.contrib.contenttypes.models import ContentType
+
+    critical_tags = list(InformationTag.objects.filter(pk__in=pk_set, is_critical=True).values_list("name", flat=True))
+    if not critical_tags:
+        return
+    student = instance
+    school = getattr(student, "school", None)
+    school_id = getattr(student, "school_id", None)
+    tags_str = ", ".join(critical_tags)
+    logger.info(
+        "Critical tag(s) added to student: student_id=%s school_id=%s tags=%s",
+        student.pk,
+        school_id,
+        critical_tags,
+    )
+    try:
+        from apps.requests.models import AccessRequest
+        student_ct = ContentType.objects.get_for_model(StudentProfile)
+        title = f"Critical tag(s) added: {tags_str}"
+        summary = (
+            f"Student {student.get_full_name()} (ID {student.pk}) was assigned critical tag(s): {tags_str}. "
+            "Review and take action if needed (e.g. support or dispute workflow)."
+        )
+        assigned_to = _get_school_leadership_for_assignment(school)
+        AccessRequest.objects.create(
+            request_type=AccessRequest.RequestType.OTHER,
+            status=AccessRequest.Status.PENDING,
+            title=title[:200],
+            summary=summary,
+            details={
+                "source": "critical_information_tag",
+                "student_id": student.pk,
+                "school_id": str(school_id) if school_id else None,
+                "tags": critical_tags,
+                "student_name": student.get_full_name(),
+            },
+            requester=None,
+            assigned_to=assigned_to,
+            target_content_type=student_ct,
+            target_object_id=str(student.pk),
+        )
+        logger.info("Created AccessRequest for critical tag(s); assigned_to=%s", assigned_to)
+    except Exception as e:
+        logger.warning("Could not create AccessRequest for critical tag: %s", e, exc_info=True)

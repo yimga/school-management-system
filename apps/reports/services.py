@@ -536,8 +536,11 @@ def _school_report_metadata() -> dict:
     }
 
 
-def _region_display_context() -> dict:
-    """Return region-based display settings for report templates (date_format, currency, etc.)."""
+def _region_display_context(school=None) -> dict:
+    """
+    Return region-based display settings for report templates (date_format, currency, etc.).
+    Phase C: When school is provided, merge get_tenant_locale(school) so tenant config overrides.
+    """
     from apps.siteconfig.currency import get_currency_symbol
     try:
         region_code = getattr(settings, "REGION_CODE", "CMR")
@@ -545,13 +548,32 @@ def _region_display_context() -> dict:
     except Exception:
         region = RegionConfig.get_default()
     cur_code = getattr(region, "default_currency", "XAF")
+    date_fmt = getattr(region, "date_format", "DD/MM/YYYY")
+    grading_scale = getattr(region, "grading_scale", "0-20")
+    decimal_sep = getattr(region, "decimal_separator", ".")
+    thousands_sep = getattr(region, "thousands_separator", ",")
+    report_template_family = None
+    if school:
+        try:
+            from apps.siteconfig.tenant_config import get_tenant_locale, get_report_template_family_for_school
+            locale = get_tenant_locale(school=school)
+            if locale.get("date_format"):
+                date_fmt = locale["date_format"]
+            if locale.get("currency"):
+                cur_code = locale["currency"]
+            if locale.get("grading_scale"):
+                grading_scale = locale["grading_scale"]
+            report_template_family = get_report_template_family_for_school(school)
+        except Exception:
+            pass
     return {
         "region": region,
-        "date_format": getattr(region, "date_format", "DD/MM/YYYY"),
+        "date_format": date_fmt,
         "currency_symbol": get_currency_symbol(cur_code),
-        "decimal_separator": getattr(region, "decimal_separator", "."),
-        "thousands_separator": getattr(region, "thousands_separator", ","),
-        "grading_scale": getattr(region, "grading_scale", "0-20"),
+        "decimal_separator": decimal_sep,
+        "thousands_separator": thousands_sep,
+        "grading_scale": grading_scale,
+        "report_template_family": report_template_family,
     }
 
 
@@ -659,7 +681,7 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "labels": labels,
         "metadata": _school_report_metadata(),
     }
-    ctx.update(_region_display_context())
+    ctx.update(_region_display_context(getattr(student, "school", None)))
     return ctx
 
 
@@ -785,7 +807,7 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "labels": labels,
         "metadata": _school_report_metadata(),
     }
-    ctx.update(_region_display_context())
+    ctx.update(_region_display_context(getattr(student, "school", None)))
     return ctx
 
 

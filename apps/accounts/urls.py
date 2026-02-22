@@ -1,5 +1,5 @@
 from django.urls import path, reverse_lazy
-from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView
+from django.contrib.auth.views import PasswordChangeDoneView
 
 from .views import (
     academic_rules,
@@ -7,6 +7,7 @@ from .views import (
     automation_hub,
     backend_dashboard,
     backend_dashboard_status_fragment,
+    request_waiver,
     backend_ops_watch_data,
     import_hub,
     backend_entity_import,
@@ -17,6 +18,7 @@ from .views import (
     direct_thread,
     login_view,
     logout_view,
+    PasswordChangeView,
     profile_edit,
     redirect_view,
     rbac_dashboard,
@@ -44,6 +46,12 @@ from .views_certification import (
     certification_session_override,
 )
 from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
+from .views_security import (
+    api_security_strength,
+    api_security_activity,
+    api_security_export_log,
+    api_security_lockdown,
+)
 
 try:
     from apps.people.views_backend import (
@@ -88,6 +96,7 @@ urlpatterns = [
     path("documentation/", user_documentation, name="user_documentation"),
     path("rbac/", rbac_dashboard, name="rbac"),
     path("backend/", backend_dashboard, name="backend_dashboard"),
+    path("backend/request-waiver/", request_waiver, name="request_waiver"),
     path("backend/status/fragment/", backend_dashboard_status_fragment, name="backend_dashboard_status_fragment"),
     path("backend/ops-watch/", backend_ops_watch_data, name="backend_ops_watch_data"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
@@ -109,6 +118,10 @@ urlpatterns = [
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
     path("mfa/dismiss-banner/", dismiss_mfa_banner, name="dismiss_mfa_banner"),
     path("mfa/verify/", mfa_verify, name="mfa_verify"),
+    path("profile/security/strength/", api_security_strength, name="api_security_strength"),
+    path("profile/security/activity/", api_security_activity, name="api_security_activity"),
+    path("profile/security/export/", api_security_export_log, name="api_security_export_log"),
+    path("profile/security/lockdown/", api_security_lockdown, name="api_security_lockdown"),
     
     # Backend UI for People Management
     path("backend/students/", backend_student_list, name="backend_student_list") if BACKEND_PEOPLE_AVAILABLE else None,

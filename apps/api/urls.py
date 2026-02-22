@@ -40,6 +40,8 @@ from apps.schools.api_views import SchoolConfigAPI
 from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 from apps.api.offline_replay_views import OfflineReplayBatchAPI, PrefetchUrlsAPI, QueueMetricsAPI
 from apps.api.sync_delta_api import DeltaSyncAPI
+from apps.api.lead_capture_api import LeadCaptureAPI
+from apps.api.interop_stubs import oneroster_stub, lti13_stub
 
 router = DefaultRouter()
 router.register(r'devices', MobileDeviceViewSet, basename='mobile-device')
@@ -76,6 +78,11 @@ urlpatterns = [
     path('finance/analytics/', FinancialAnalyticsAPI.as_view(), name='finance-analytics'),
     path('dashboard/layout/<str:page>/', DashboardLayoutAPI.as_view(), name='dashboard-layout'),
     path('portal-preferences/', PortalPreferencesAPI.as_view(), name='portal-preferences'),
+    # Phase 5: Admissions CRM — Lead Capture (public POST by school_slug)
+    path('admissions/lead/', LeadCaptureAPI.as_view(), name='lead-capture'),
+    # Interoperability stubs (OneRoster, LTI 1.3) — implement per official specs
+    path('interop/oneroster/', oneroster_stub, name='interop-oneroster'),
+    path('interop/lti13/', lti13_stub, name='interop-lti13'),
     # Phase 5: Digital ID for wallet / partner apps
     path('portal/digital-id/', DigitalIDAPI.as_view(), name='digital-id'),
     path('portal/digital-id/children/', DigitalIDChildrenAPI.as_view(), name='digital-id-children'),

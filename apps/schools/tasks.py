@@ -148,6 +148,8 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             "default_currency": profile.default_currency,
             "term_labels": term_labels,
         }
+        if isinstance(getattr(profile, "config", None), dict) and profile.config.get("report_template_family"):
+            profile_config["report_template_family"] = profile.config.get("report_template_family")
         merged_settings = dict(school.settings or {})
         merged_settings.update({key: val for key, val in profile_config.items() if val})
         if getattr(profile, "config", None):
@@ -166,6 +168,20 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 "sub_system": school.sub_system,
             },
         )
+        # Phase Global: deep hydration (modality, terminology from profile)
+        try:
+            from apps.siteconfig.system_morph import hydrate_school_from_profile
+            applied = hydrate_school_from_profile(school)
+            if applied:
+                _record_school_event(
+                    school,
+                    event_type="PROFILE_APPLIED",
+                    status="INFO",
+                    message="Deep hydration applied (modality/terminology).",
+                    payload=applied,
+                )
+        except Exception:
+            logger.debug("SystemMorphService hydrate skipped", exc_info=True)
     else:
         _record_school_event(
             school,
@@ -174,6 +190,29 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             message="No approved education profile resolved; using fallback defaults.",
             payload={"sub_system": school.sub_system},
         )
+
+    # Phase B: Tenant Provisioning Engine — create TenantSystem rows from wizard selection (multi-system)
+    provisioning = (school.settings or {}).get("provisioning") or {}
+    education_system_ids = provisioning.get("education_system_ids") or []
+    if not isinstance(education_system_ids, list):
+        education_system_ids = []
+    profile_codes = [str(c).strip() for c in education_system_ids if c]
+    if not profile_codes and profile and getattr(profile, "code", None):
+        profile_codes = [profile.code]
+    if profile_codes:
+        from apps.siteconfig.models import EducationSystemProfile, TenantSystem
+        approved = EducationSystemProfile.objects.filter(
+            code__in=profile_codes,
+            is_active=True,
+            approval_status=EducationSystemProfile.ApprovalStatus.APPROVED,
+        )
+        for prof in approved:
+            TenantSystem.objects.get_or_create(school=school, system=prof, defaults={})
+        try:
+            from apps.siteconfig.tenant_config import sync_tenant_modules_to_school_features
+            sync_tenant_modules_to_school_features(school)
+        except Exception as e:
+            logger.debug("Optional sync_tenant_modules_to_school_features: %s", e)
 
     now = timezone.now().date()
     year_start = date(now.year, start_month, 1)
@@ -280,6 +319,15 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         message="Provisioning completed successfully.",
     )
     logger.info("School %s provisioning complete", school_id)
+
+    # Phase Welcome: send welcome email (async if Celery available)
+    if (contact_email or "").strip():
+        try:
+            from apps.schools.welcome_email import send_welcome_email_task
+            send_welcome_email_task.delay(str(school.id), contact_email=contact_email)
+        except Exception:
+            from apps.schools.welcome_email import send_welcome_email
+            send_welcome_email(str(school.id), contact_email)
 
 
 # Celery task (optional)

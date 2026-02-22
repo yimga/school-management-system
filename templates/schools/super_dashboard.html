@@ -8,10 +8,165 @@
   <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
       <h1 class="h4 mb-0">Schools</h1>
-      <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create School</a>
+      <div class="d-flex gap-2 flex-wrap">
+        {% if registry_url %}
+        <a href="{{ registry_url }}" class="btn btn-outline-secondary">Global registry (Education systems)</a>
+        {% endif %}
+        <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create School</a>
+      </div>
     </div>
 
+    {% if total_mrr is not None or total_waived is not None %}
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <h2 class="h6 text-muted mb-2">Financial Mission Control ({{ revenue_snapshot_month|date:"F Y" }})</h2>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="text-muted small">Total MRR</div>
+            <div class="h4 text-success mb-0">${{ total_mrr|floatformat:2|default:"0.00" }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="text-muted small">Waived value</div>
+            <div class="h4 text-primary mb-0">${{ total_waived|floatformat:2|default:"0.00" }}</div>
+            <div class="small text-muted">Giving back</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="text-muted small">Waiver %</div>
+            <div class="h4 mb-0">{{ waiver_percentage|default:0 }}%</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="text-muted small">Billing model split</div>
+            <ul class="list-unstyled small mb-0">
+              {% for row in billing_model_breakdown %}
+              <li>{{ row.billing_model|default:"—" }}: {{ row.count }} school(s)</li>
+              {% empty %}
+              <li class="text-muted">No data yet</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% if revenue_by_country %}
+      <div class="col-12">
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-light">
+            <strong>Revenue by country</strong>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>Country</th><th>Actual</th><th>Waived</th></tr></thead>
+              <tbody>
+                {% for row in revenue_by_country %}
+                <tr>
+                  <td><code>{{ row.country_code|default:"—" }}</code></td>
+                  <td>${{ row.actual|floatformat:2|default:"0.00" }}</td>
+                  <td>${{ row.waived|floatformat:2|default:"0.00" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if health_top_tables or health_schema_stats %}
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <h2 class="h6 text-muted mb-2">Health (Section 8.8 — resource hogs)</h2>
+      </div>
+      {% if health_schema_stats %}
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-header bg-light"><strong>Storage by schema</strong></div>
+          <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>Schema</th><th>Size</th><th>Tables</th></tr></thead>
+              <tbody>
+                {% for row in health_schema_stats %}
+                <tr>
+                  <td><code>{{ row.schema_name }}</code></td>
+                  <td>{{ row.pretty_size }}</td>
+                  <td>{{ row.table_count }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if health_top_tables %}
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-header bg-light"><strong>Top 10 largest tables</strong></div>
+          <div class="card-body p-0">
+            <table class="table table-sm mb-0">
+              <thead><tr><th>Schema.Table</th><th>Total size</th><th>Rows (est.)</th></tr></thead>
+              <tbody>
+                {% for row in health_top_tables %}
+                <tr>
+                  <td><code>{{ row.schema_name }}.{{ row.table_name }}</code></td>
+                  <td>{{ row.total_pretty }}</td>
+                  <td>{{ row.row_count|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if pending_approval_count and pending_schools %}
+    <div class="card shadow-sm border-warning mb-4">
+      <div class="card-header bg-warning bg-opacity-10">
+        <strong>Pending approval ({{ pending_approval_count }})</strong>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>School</th><th>Slug</th><th>Systems</th><th>Created</th><th></th></tr></thead>
+          <tbody>
+            {% for school in pending_schools %}
+            <tr>
+              <td>{{ school.name }}</td>
+              <td><code>{{ school.slug }}</code></td>
+              <td class="small">{% for s in school.selected_systems %}{{ s }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+              <td class="small text-muted">{{ school.created_at|date:"Y-m-d H:i" }}</td>
+              <td>
+                <button type="button" class="btn btn-sm btn-success approve-btn" data-school-id="{{ school.id }}" data-csrftoken="{{ csrf_token }}">Approve</button>
+                {% if school.admin_edit_url %}<a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary ms-1">Edit</a>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="card shadow-sm">
+      <div class="card-header">
+        <span>All schools</span>
+      </div>
       <div class="card-body p-0">
         <div class="dashboard-card-scroll table-responsive">
           <table class="table table-hover mb-0">
@@ -20,13 +175,14 @@
                 <th>Name</th>
                 <th>Slug</th>
                 <th>Subdomain</th>
-                <th>Template</th>
+                <th>Template / Systems</th>
                 <th>Domain</th>
                 <th>Status</th>
                 <th>Provisioning</th>
                 <th>Students</th>
                 <th>Teachers</th>
                 <th>Members</th>
+                <th class="text-muted small">Last activity</th>
                 <th></th>
               </tr>
             </thead>
@@ -37,13 +193,17 @@
                   <td><code>{{ school.slug }}</code></td>
                   <td><code>{{ school.subdomain|default:"--" }}</code></td>
                   <td>
-                    {% with code=school.settings.education_profile_code %}
-                      {% if code %}
-                        <code>{{ code }}</code>
-                      {% else %}
-                        <span class="text-muted small">Auto</span>
-                      {% endif %}
-                    {% endwith %}
+                    {% if school.selected_systems %}
+                      <span class="small">{% for s in school.selected_systems %}{{ s }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+                    {% else %}
+                      {% with code=school.settings.education_profile_code %}
+                        {% if code %}
+                          <code>{{ code }}</code>
+                        {% else %}
+                          <span class="text-muted small">Auto</span>
+                        {% endif %}
+                      {% endwith %}
+                    {% endif %}
                   </td>
                   <td>
                     {% if school.custom_domain %}
@@ -81,9 +241,13 @@
                   <td>{{ school.student_count|default:0 }}</td>
                   <td>{{ school.teacher_count|default:0 }}</td>
                   <td>{{ school.member_count|default:0 }}</td>
+                  <td class="text-muted small">{{ school.updated_at|date:"Y-m-d H:i"|default:"—" }}</td>
                   <td>
                     {% if school.timeline_url %}
                       <a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info me-1">Timeline</a>
+                    {% endif %}
+                    {% if school.sync_repair_url %}
+                      <a href="{{ school.sync_repair_url }}" class="btn btn-sm btn-outline-warning me-1">Sync repair</a>
                     {% endif %}
                     {% if school.admin_edit_url %}
                       <a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>
@@ -94,7 +258,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="11" class="text-muted text-center py-4">No schools yet. Create one to get started.</td>
+                  <td colspan="12" class="text-muted text-center py-4">No schools yet. Create one to get started.</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -103,4 +267,17 @@
       </div>
     </div>
   </div>
+  <script>
+    document.querySelectorAll('.approve-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (!confirm('Approve this school?')) return;
+        var schoolId = this.getAttribute('data-school-id');
+        var csrf = this.getAttribute('data-csrftoken');
+        var url = '{% url "super:api_approve_school" "00000000-0000-0000-0000-000000000000" %}'.replace('00000000-0000-0000-0000-000000000000', schoolId);
+        fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/json' }, body: '{}', credentials: 'same-origin' })
+          .then(function(r) { if (r.ok) window.location.reload(); else r.json().then(function(d) { alert(d.error || 'Failed'); }); })
+          .catch(function() { alert('Request failed'); });
+      });
+    });
+  </script>
 {% endblock %}

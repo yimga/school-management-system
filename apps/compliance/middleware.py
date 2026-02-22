@@ -11,7 +11,7 @@ from time import time
 from django.utils.deprecation import MiddlewareMixin
 from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.conf import settings
 from django.db import DatabaseError, connection, transaction
 from django.db.transaction import TransactionManagementError
@@ -366,3 +366,68 @@ def log_access_denial(user, action, resource, reason, ip_address='', severity='H
         )
     except Exception as e:
         logger.warning(f"Failed to log access denial: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Phase Compliance (plan 3.9): Region → feature_code → status guard
+# ---------------------------------------------------------------------------
+
+COMPLIANCE_GUARD_PATH_MAP = {
+    # Path prefix -> feature_code checked against RegionFeatureCompliance
+    # Example: "/api/export/student-data/": "Export_All_Student_Data",
+}
+
+
+class ComplianceGuardMiddleware(MiddlewareMixin):
+    """
+    After TenantMiddleware. For request.school.default_region, load RegionFeatureCompliance.
+    If path matches COMPLIANCE_GUARD_PATH_MAP and rule status is DISABLED/RESTRICTED, return 403.
+    """
+
+    def process_request(self, request):
+        school = getattr(request, "school", None)
+        if not school:
+            return None
+        path = (request.path or "").strip()
+        for prefix, feature_code in COMPLIANCE_GUARD_PATH_MAP.items():
+            if not feature_code:
+                continue
+            if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path == prefix.rstrip("/"):
+                if self._is_blocked(school, feature_code):
+                    return self._block_response(request, feature_code)
+                break
+        return None
+
+    def _is_blocked(self, school, feature_code):
+        region_id = getattr(school, "default_region_id", None)
+        if not region_id:
+            return False
+        try:
+            from apps.compliance.models import RegionFeatureCompliance
+            rule = RegionFeatureCompliance.objects.filter(
+                region_id=region_id,
+                feature_code=feature_code,
+            ).first()
+            if not rule:
+                return False
+            return rule.status in (
+                RegionFeatureCompliance.Status.DISABLED,
+                RegionFeatureCompliance.Status.RESTRICTED,
+            )
+        except Exception as e:
+            logger.debug("ComplianceGuard check failed: %s", e)
+            return False
+
+    def _block_response(self, request, feature_code):
+        if request.path.startswith("/api/") or (request.headers.get("Accept") or "").find("application/json") >= 0:
+            return JsonResponse(
+                {
+                    "error": "compliance_restricted",
+                    "feature": feature_code,
+                    "detail": "This action is not permitted for your region (compliance policy).",
+                },
+                status=403,
+            )
+        return HttpResponseForbidden(
+            f"<h1>403 Forbidden</h1><p>This action ({feature_code}) is not permitted for your region (compliance policy).</p>"
+        )

@@ -400,9 +400,16 @@ def site_settings(request):
             ctx["SITE_LOGO_URL"] = school.logo_url
         ctx["SITE_PRIMARY_COLOR"] = getattr(school, "primary_color", None) or "#0d6efd"
         ctx["SITE_ACCENT_COLOR"] = getattr(school, "accent_color", None) or "#198754"
+        # Phase A: useLocalSettings — merged timezone, locale, currency, date_format, grading_scale for templates
+        try:
+            from .tenant_config import use_local_settings
+            ctx["TENANT_LOCALE"] = use_local_settings(request=request, school=school)
+        except Exception:
+            ctx["TENANT_LOCALE"] = {}
     else:
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None
+        ctx["TENANT_LOCALE"] = {}
     # Offline: global Feature Control must be on; in multi-tenant, school must also have offline_mode module.
     ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and (
         not school or school.has_feature("offline_mode")

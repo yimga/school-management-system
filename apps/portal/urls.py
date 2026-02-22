@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     badge_verify,
     parent_dashboard,
+    parent_set_active_child,
     parent_workflow_center,
     parent_medal_case,
     unified_calendar,
@@ -88,6 +89,7 @@ urlpatterns = [
     path("parent/results/<int:student_id>/", parent_child_results, name="parent_child_results"),
     path("parent/link-child/", link_child_wizard, name="link_child"),  # New wizard as default
     path("parent/link-child/legacy/", link_child, name="link_child_legacy"),  # Keep old view for compatibility
+    path("parent/set-active-child/<int:child_id>/", parent_set_active_child, name="parent_set_active_child"),
     path("parent/claim-invite/", claim_invite, name="claim_invite"),
     path("parent/claim-invite/<str:token>/", claim_invite, name="claim_invite_token"),
     path("parent/finance/", parent_finance, name="parent_finance"),

@@ -249,6 +249,122 @@ class CertificateTemplate(models.Model):
 
 
 # ============================================
+# Parental Permission & Consent Hub (plan 3.18)
+# ============================================
+
+
+class ConsentRequest(models.Model):
+    """
+    School-created consent event (e.g. field trip, photo usage, privacy policy).
+    When document is updated, mark prior consents outdated and trigger new request.
+    """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="consent_requests",
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=80, blank=True, help_text="e.g. field_trip, photo_usage, privacy_policy")
+    document_type = models.CharField(max_length=50, blank=True)
+    document_version_id = models.IntegerField(null=True, blank=True, help_text="LegalDocument version or template version")
+    document_text = models.TextField(blank=True, help_text="Snapshot of text at creation for hash")
+    due_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["school", "is_active"])]
+
+    def __str__(self):
+        return f"{self.school.name}: {self.title}"
+
+
+class ConsentRecord(models.Model):
+    """
+    Parent signature: SHA-256 hash of document at sign time; tenant-isolated.
+    Withdrawal stores withdrawn_at and document version for audit.
+    """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="consent_records",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="consent_records",
+    )
+    consent_request = models.ForeignKey(
+        ConsentRequest,
+        on_delete=models.CASCADE,
+        related_name="records",
+        null=True,
+        blank=True,
+    )
+    title = models.CharField(max_length=255)
+    document_hash = models.CharField(max_length=64, help_text="SHA-256 of document text at sign time")
+    signed_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    withdrawn_at = models.DateTimeField(null=True, blank=True)
+    document_version_at_sign = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-signed_at"]
+        indexes = [
+            models.Index(fields=["user", "school"]),
+            models.Index(fields=["school", "signed_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} signed {self.title} @ {self.signed_at}"
+
+
+# ============================================
+# Phase Compliance (plan 3.9): Region → feature_code → status for guard
+# ============================================
+
+class RegionFeatureCompliance(models.Model):
+    """
+    Maps region to feature_code and status (ENABLED/DISABLED/RESTRICTED).
+    Used by ComplianceGuardMiddleware to block restricted actions per region (e.g. EU GDPR).
+    """
+    class Status(models.TextChoices):
+        ENABLED = "ENABLED", "Enabled"
+        DISABLED = "DISABLED", "Disabled"
+        RESTRICTED = "RESTRICTED", "Restricted (block with structured error)"
+
+    region = models.ForeignKey(
+        RegionConfig,
+        on_delete=models.CASCADE,
+        related_name="feature_compliance_rules",
+    )
+    feature_code = models.CharField(
+        max_length=80,
+        help_text="e.g. Right_to_Erasure, Export_All_Student_Data, COPPA_consent",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.ENABLED,
+    )
+    notes = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["region", "feature_code"]
+        unique_together = [("region", "feature_code")]
+        verbose_name = "Region feature compliance"
+        verbose_name_plural = "Region feature compliance rules"
+
+    def __str__(self):
+        return f"{self.region.code}: {self.feature_code}={self.status}"
+
+
+# ============================================
 # Phase 4: Audit & Monitoring Models
 # ============================================
 # Import audit models from models_audit.py for organization

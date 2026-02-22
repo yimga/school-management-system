@@ -38,7 +38,10 @@ class CurrencyLocalization:
 
     @staticmethod
     def format_currency_by_region(amount, region):
-        symbol = {'west_africa': '₦', 'east_africa': 'KSh'}.get(region, '$')
+        # Phase C: use single source of truth for symbols (no hardcoded ₦, KSh, $).
+        currency = CurrencyLocalization.get_regional_currency(region)
+        from apps.siteconfig.currency import get_currency_symbol
+        symbol = get_currency_symbol(currency)
         return f"{symbol}{amount:,.2f}"
 """
 Certificate and report localization services.

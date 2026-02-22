@@ -1,7 +1,11 @@
 from functools import wraps
 
+from django.contrib.auth.decorators import login_required as _login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponseForbidden
+
+# Re-export for views that import from apps.accounts.decorators
+login_required = _login_required
 
 from apps.siteconfig.models import SiteSettings
 

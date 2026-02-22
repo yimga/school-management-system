@@ -28,6 +28,10 @@ Adds these keys to the template context:
 | `thousands_separator` | e.g. `","`, `" "` |
 | `enable_multi_region` | From settings; toggles multi-region UI |
 
+**Phase C – Report template family:** When building report context with a school, `_region_display_context(school)` also sets `report_template_family` from the school’s education system config (`EducationSystemProfile.config["report_template_family"]`). Use it to select layout (e.g. French Lycée vs UK standard). See `apps.siteconfig.tenant_config.get_report_template_family_for_school`.
+
+**Custom field definitions:** School-level custom fields for students/staff are defined in `School.settings["custom_field_definitions"]` with keys `students` and `staff` (lists of `{key, label, type}`). Use `get_custom_field_definitions(school, "students")` or `("staff")` in admin or reports.
+
 **Resolution order for region:**
 
 1. Authenticated user’s **preferred_region** (from `UserPreference`)

@@ -10,6 +10,7 @@ from apps.siteconfig.models import SiteSettings
 from config.admin import admin_site
 from .models import (
     TeacherProfile,
+    InformationTag,
     StudentProfile,
     StudentGuardian,
     StudentResourceReturn,
@@ -135,6 +136,13 @@ class TeacherProfileAdmin(ModelAdmin):
                 "mark_reminder_opt_in",
             )
         }),
+        (
+            "Custom attributes (Phase C)",
+            {
+                "fields": ("custom_attributes",),
+                "description": _("Key/value pairs for school-defined custom fields. Define keys in School → Settings → custom_field_definitions.staff (e.g. [{\"key\": \"certifications\", \"label\": \"Certifications\", \"type\": \"text\"}])."),
+            },
+        ),
     )
     actions = ["apply_pay_scale_to_teachers"]
     
@@ -238,10 +246,36 @@ class StudentProfileAdmin(ModelAdmin):
                 )
             },
         ),
+        (
+            "Custom attributes (Phase C)",
+            {
+                "fields": ("custom_attributes",),
+                "description": _("Key/value pairs for school-defined custom fields. Define keys in School → Settings → custom_field_definitions.students (e.g. [{\"key\": \"blood_group\", \"label\": \"Blood Group\", \"type\": \"text\"}])."),
+            },
+        ),
+        (
+            "Information tags",
+            {
+                "fields": ("tags",),
+                "description": _("School-defined tags (e.g. Scholarship, Early Bird, Allergy). Used by the AI Nuance Engine for discounts and workflows. Manage tags in Site Settings → Tag Manager."),
+            },
+        ),
         ("Flags", {"fields": ("is_active", "uses_transport")}),
     )
 
+    filter_horizontal = ("tags",)
     actions = ("create_guardian_invites", "issue_referral_rewards")
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "tags":
+            from .models import InformationTag
+            obj = kwargs.get("obj")
+            school_id = (obj.school_id if obj else None) or request.session.get("school_id")
+            if school_id:
+                kwargs["queryset"] = InformationTag.objects.filter(school_id=school_id, is_active=True).order_by("sort_order", "name")
+            else:
+                kwargs["queryset"] = InformationTag.objects.filter(is_active=True).order_by("school", "sort_order", "name")
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def student_display_in_list(self, obj):
         """Display student with photo thumbnail in list view"""
@@ -493,7 +527,16 @@ class TeacherAttendanceAdmin(ModelAdmin):
     autocomplete_fields = ("teacher",)
 
 
+class InformationTagAdmin(ModelAdmin):
+    list_display = ("name", "school", "category", "is_private", "is_critical", "is_active", "sort_order")
+    list_filter = ("category", "is_private", "is_critical", "is_active")
+    search_fields = ("name", "description")
+    raw_id_fields = ("school",)
+    ordering = ("school", "sort_order", "name")
+
+
 # Register all models with custom admin site
+admin_site.register(InformationTag, InformationTagAdmin)
 admin_site.register(TeacherProfile, TeacherProfileAdmin)
 admin_site.register(StudentProfile, StudentProfileAdmin)
 admin_site.register(StudentGuardian, StudentGuardianAdmin)

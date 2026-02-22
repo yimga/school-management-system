@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
+{% load region_format tenant_hook %}
 {% load static %}
 {% block title %}Finance Dashboard{% endblock %}
 
@@ -57,6 +57,9 @@
       <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:payments' %}">Payments</a>
       <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:trial_balance' %}">Trial Balance</a>
     </div>
+  </div>
+  <div class="finance-dashboard-extra mb-3">
+    {% tenant_hook 'FINANCE_DASHBOARD_EXTRA' %}
   </div>
 
   <div class="row g-3 mb-3" data-dashboard-column="hero">
@@ -132,6 +135,9 @@
         </div>
       </div>
     </div>
+  </div>
+  <div class="finance-summary-footer mt-3 pt-3 border-top">
+    {% tenant_hook 'FINANCE_SUMMARY_FOOTER' %}
   </div>
 </div> <!-- /finance-dashboard-widgets -->
 {% endblock %}

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
@@ -373,6 +374,7 @@ def list_profile_options(
     *,
     country_code: str | None = None,
     sub_system: str | None = None,
+    province_id: int | None = None,
 ) -> list[dict[str, Any]]:
     normalized_country = GlobalGeoCatalog.normalize_country_code(country_code)
     normalized_sub = normalize_sub_system(sub_system)
@@ -384,6 +386,11 @@ def list_profile_options(
         queryset = queryset.filter(region__code=normalized_country)
     else:
         queryset = queryset.filter(region__isnull=True)
+
+    if province_id is not None:
+        queryset = queryset.filter(
+            Q(province_id=province_id) | Q(province__isnull=True)
+        )
 
     if normalized_sub != EducationSystemProfile.SubSystem.ANY:
         queryset = queryset.filter(
@@ -431,3 +438,37 @@ def list_profile_options(
                 ).as_dict()
             ]
     return []
+
+
+def get_system_blueprint(
+    region_id: str | None,
+    flavor: str | None = None,
+) -> dict[str, Any]:
+    """
+    Phase Global: Return merged UI/manifest for a region + flavor (sub_system or profile code).
+    Used by Environment Discovery and onboarding to preview grading, labels, term structure.
+    """
+    sub_system = normalize_sub_system(flavor or "ANY")
+    profile = None
+    if region_id:
+        region = RegionConfig.objects.filter(code=region_id).first()
+        if region:
+            profile = ensure_country_profile(region=region, sub_system=sub_system)
+    if not profile:
+        return {
+            "primary_language": "en",
+            "grading_scale": "0-100",
+            "term_labels": ["Term 1", "Term 2", "Term 3"],
+            "report_template_family": "global",
+            "labels_map": {},
+            "modality": "in_person",
+        }
+    cfg = getattr(profile, "config", None) or {}
+    return {
+        "primary_language": getattr(profile, "default_language", None) or "en",
+        "grading_scale": getattr(profile, "grading_scale", None) or "0-100",
+        "term_labels": profile.normalized_term_labels(),
+        "report_template_family": (cfg.get("report_template_family") or "global"),
+        "labels_map": dict(cfg.get("labels_map") or {}),
+        "modality": str(cfg.get("modality") or "in_person"),
+    }

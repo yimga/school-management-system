@@ -188,7 +188,7 @@ def backend_student_list(request):
     """List students in user-friendly backend UI with search, filters, and pagination."""
     qs = StudentProfile.objects.select_related(
         'academic_year', 'classroom', 'specialty'
-    ).filter(is_active=True).order_by('last_name', 'first_name')
+    ).prefetch_related('tags').filter(is_active=True).order_by('last_name', 'first_name')
 
     search = (request.GET.get('q') or '').strip()
     if search:
@@ -217,6 +217,13 @@ def backend_student_list(request):
     years = AcademicYear.objects.order_by('-start_date')
     classrooms = Classroom.objects.order_by('name')
 
+    # Private tags: only ADMIN, IT_ADMIN, LEADERSHIP (or staff) can see is_private tags
+    role = (getattr(request.user, 'role', '') or '').upper()
+    can_see_private_tags = (
+        request.user.is_staff
+        or role in ('ADMIN', 'IT_ADMIN', 'LEADERSHIP')
+    )
+
     return render(request, 'people/backend_student_list.html', {
         'students': page_obj.object_list,
         'page_obj': page_obj,
@@ -230,6 +237,7 @@ def backend_student_list(request):
         'page_size': per_page,
         'page_size_options': [20, 50, 100],
         'show_page_size': True,
+        'can_see_private_tags': can_see_private_tags,
     })
 
 

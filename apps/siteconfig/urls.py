@@ -2,6 +2,7 @@ from django.urls import path
 from django.shortcuts import redirect
 
 from .views import (
+    branding_api,
     maintenance_view,
     customizer,
     grading_settings,
@@ -33,6 +34,11 @@ from .views_feature_control import (
 from .dashboard_views import (
     update_theme,
 )
+from .views_waiver import request_waiver
+from .views_custom_requirement import request_custom_requirement
+from .views_sync_center import sync_center, sync_center_resolve
+from .views_school_theme import school_theme_settings
+from .views_tag_manager import tag_manager, tag_manager_edit
 
 app_name = "siteconfig"
 
@@ -64,4 +70,12 @@ urlpatterns = [
     path("feature-control/audit/", feature_control_audit_log, name="feature_control_audit"),
     path("feature-control/api/", feature_control_api, name="feature_control_api"),
     path("feature-control/weather-cities/", feature_control_weather_cities, name="feature_control_weather_cities"),
+    path("request-waiver/", request_waiver, name="request_waiver"),
+    path("request-custom-requirement/", request_custom_requirement, name="request_custom_requirement"),
+    path("sync-center/", sync_center, name="sync_center"),
+    path("sync-center/resolve/<int:conflict_id>/", sync_center_resolve, name="sync_center_resolve"),
+    path("school-theme/", school_theme_settings, name="school_theme_settings"),
+    path("tag-manager/", tag_manager, name="tag_manager"),
+    path("tag-manager/<int:tag_id>/", tag_manager_edit, name="tag_manager_edit"),
+    path("api/branding/", branding_api, name="branding_api"),
 ]

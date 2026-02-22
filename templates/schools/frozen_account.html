@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Account on hold" %}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <h1 class="h3 mb-4">{% trans "Account on hold" %}</h1>
+      <p class="text-muted">
+        {% if frozen_reason == "STORAGE" %}
+          {% trans "This school account has been paused due to storage limits. Please upgrade or free up space to continue." %}
+        {% elif frozen_reason == "BILLING" %}
+          {% trans "This school account has been paused for billing reasons. Please update payment or contact support." %}
+        {% else %}
+          {% trans "This school account is temporarily on hold. Please contact your administrator or support." %}
+        {% endif %}
+      </p>
+      <p>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">{% trans "Sign out" %}</a>
+        {% if request.user.is_staff or request.user.is_superuser %}
+          <a href="/super/" class="btn btn-outline-primary ms-2">{% trans "Super Admin" %}</a>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -242,6 +242,13 @@ class Subject(models.Model):
     )
     name = models.CharField(max_length=120)
     category = models.CharField(max_length=20, choices=Category.choices, default=Category.OTHER)
+    credits = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Optional: credit units for Higher Ed degree audit (e.g. 3.0).",
+    )
 
     class Meta:
         ordering = ["name"]
@@ -973,3 +980,135 @@ class CurriculumNode(models.Model):
 
     def __str__(self):
         return f"{self.code} – {self.title}"
+
+
+# =============================================================================
+# Higher Ed: Degree Audit, Graduate Research (Phases 3–4, global platform)
+# =============================================================================
+
+
+class DegreeProgram(models.Model):
+    """Degree program (e.g. BSc Computer Science). requirements_json defines required courses/credits/milestones."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="degree_programs",
+    )
+    name = models.CharField(max_length=200)
+    level = models.CharField(
+        max_length=20,
+        choices=[
+            ("ASC", "Associate"),
+            ("BSC", "Bachelor"),
+            ("MSC", "Master"),
+            ("PHD", "PhD"),
+        ],
+        default="BSC",
+    )
+    requirements_json = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Required credits, course codes, min_gpa, optional milestones_required list.",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Degree program"
+        verbose_name_plural = "Degree programs"
+
+    def __str__(self):
+        return f"{self.name} ({self.get_level_display()})"
+
+
+class StudentDegreeEnrollment(models.Model):
+    """Student enrolled in a degree program; used for run_degree_audit."""
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="degree_enrollments",
+    )
+    program = models.ForeignKey(
+        DegreeProgram,
+        on_delete=models.PROTECT,
+        related_name="enrollments",
+    )
+    start_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-start_date"]
+        unique_together = [("student", "program")]
+        verbose_name = "Student degree enrollment"
+        verbose_name_plural = "Student degree enrollments"
+
+    def __str__(self):
+        return f"{self.student} — {self.program.name}"
+
+
+class TransferCredit(models.Model):
+    """External credits transferred in (for degree audit)."""
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="transfer_credits",
+    )
+    external_institution = models.CharField(max_length=200)
+    course_code = models.CharField(max_length=80)
+    credits = models.DecimalField(max_digits=6, decimal_places=2)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Transfer credit"
+        verbose_name_plural = "Transfer credits"
+
+    def __str__(self):
+        return f"{self.course_code} ({self.credits}) from {self.external_institution}"
+
+
+class GraduateMilestone(models.Model):
+    """Thesis/dissertation milestone (proposal, candidacy, defense, submission). Gate: graduate_research addon."""
+    class Type(models.TextChoices):
+        PROPOSAL = "PROPOSAL", "Proposal"
+        CANDIDACY = "CANDIDACY", "Candidacy"
+        DEFENSE = "DEFENSE", "Defense"
+        SUBMISSION = "SUBMISSION", "Submission"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="graduate_milestones",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="graduate_milestones",
+    )
+    type = models.CharField(max_length=20, choices=Type.choices)
+    committee_chair = models.ForeignKey(
+        "people.TeacherProfile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="graduate_milestones_chaired",
+    )
+    status = models.CharField(max_length=40, default="PENDING")  # PENDING, COMPLETED, etc.
+    target_date = models.DateField(null=True, blank=True)
+    completion_date = models.DateField(null=True, blank=True)
+    is_signed_off = models.BooleanField(default=False)
+    sign_off_timestamp = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["student", "type"]
+        verbose_name = "Graduate milestone"
+        verbose_name_plural = "Graduate milestones"
+
+    def __str__(self):
+        return f"{self.student} — {self.get_type_display()} ({self.status})"

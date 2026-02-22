@@ -1,12 +1,15 @@
 from datetime import timedelta
 
+from django import forms
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.views import PasswordChangeView as DjangoPasswordChangeView
 from django.db.models import Avg, Count, Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden, JsonResponse
-from django.urls import reverse, NoReverseMatch
+from django.urls import reverse, reverse_lazy, NoReverseMatch
+from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 import json
@@ -340,6 +343,22 @@ def user_profile(request):
         context["active_sessions_count"] = count
     except Exception:
         context["active_sessions_count"] = None
+
+    # PII masking (plan 3.21): full address/DOB masked until re-auth.
+    try:
+        from apps.accounts.pii_masking import can_show_pii, mask_date
+        context["can_show_pii"] = can_show_pii(request)
+        dob = None
+        if teacher_profile and getattr(teacher_profile, "date_of_birth", None):
+            dob = teacher_profile.date_of_birth
+        if not context["can_show_pii"] and dob is not None:
+            context["pii_masked_dob"] = mask_date(dob)
+        else:
+            context["pii_masked_dob"] = None
+    except Exception:
+        context["can_show_pii"] = True
+        context["pii_masked_dob"] = None
+
     return render(request, "accounts/profile.html", context)
 
 
@@ -2333,6 +2352,24 @@ def academic_rules(request):
     )
 
 
+class PasswordChangeView(DjangoPasswordChangeView):
+    """Clear requires_password_change after successful change (Security Powerhouse)."""
+    success_url = reverse_lazy("accounts:password_change_done")
+
+    def form_valid(self, form):
+        from apps.accounts.models import User
+        User.objects.filter(pk=form.user.pk).update(requires_password_change=False)
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        next_url = self.request.session.pop("password_change_next", None)
+        if next_url:
+            from django.utils.http import url_has_allowed_host_and_scheme
+            if url_has_allowed_host_and_scheme(next_url, allowed_hosts={self.request.get_host()}):
+                return next_url
+        return str(self.success_url)
+
+
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.method == "POST":
@@ -2368,6 +2405,29 @@ def login_view(request):
                     first_m = SchoolMembership.objects.filter(user=user).select_related("school").first()
                     if first_m:
                         request.session["school_id"] = str(first_m.school_id)
+
+            # Security Powerhouse: log successful login (tenant-scoped audit).
+            try:
+                from apps.accounts.security_audit import log_security_event
+                from apps.accounts.models import SecurityAuditLog
+                log_security_event(
+                    user,
+                    SecurityAuditLog.EventType.LOGIN,
+                    request=request,
+                    school=getattr(request, "school", None),
+                )
+            except Exception:
+                pass
+
+            # Enforce requires_password_change (e.g. after Emergency Lockdown).
+            if getattr(user, "requires_password_change", False):
+                password_change_url = reverse("accounts:password_change")
+                if next_url:
+                    from django.utils.http import url_has_allowed_host_and_scheme
+                    if url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                        request.session["password_change_next"] = next_url
+                messages.warning(request, "You must set a new password to continue.")
+                return redirect(password_change_url)
 
             # MFA enforcement: if required or configured, route to setup/verify first.
             try:
@@ -2477,4 +2537,61 @@ def claim_invite(request):
         return redirect("portal:parent_dashboard")
 
     return render(request, "accounts/claim_invite.html", {"form": form})
+
+
+# Phase E (optional): School-facing Request Waiver — form and view
+class RequestWaiverForm(forms.Form):
+    """Reason and optional proof file for a subscription waiver request."""
+    reason = forms.CharField(
+        required=True,
+        max_length=2000,
+        widget=forms.Textarea(attrs={"rows": 4, "placeholder": "e.g. NGO / non-profit partnership, pilot program"}),
+        label="Reason for waiver",
+    )
+    proof_file = forms.FileField(required=False, label="Proof document (optional)")
+
+
+@login_required
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["GET", "POST"])
+def request_waiver(request):
+    """
+    Phase E (optional): School staff submit a waiver request (reason + optional proof).
+    Super Admin approves/denies in Django admin (WaiverRequest).
+    """
+    from apps.siteconfig.models import WaiverRequest as WaiverRequestModel
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(request, "Select a school first.")
+        return redirect(reverse("accounts:backend_dashboard"))
+    if request.method == "POST":
+        form = RequestWaiverForm(request.POST, request.FILES)
+        if form.is_valid():
+            proof = form.cleaned_data.get("proof_file")
+            WaiverRequestModel.objects.create(
+                school=school,
+                reason=(form.cleaned_data["reason"] or "").strip()[:2000],
+                proof_file=proof,
+                status=WaiverRequestModel.Status.PENDING,
+            )
+            messages.success(
+                request,
+                "Your waiver request has been submitted. Platform support will review it and notify you.",
+            )
+            return redirect("accounts:backend_dashboard")
+    else:
+        form = RequestWaiverForm()
+    return render(
+        request,
+        "accounts/request_waiver.html",
+        {
+            "form": form,
+            "school": school,
+            "breadcrumbs": [
+                {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+                {"label": "Request subscription waiver", "url": "", "active": True},
+            ],
+        },
+    )
 

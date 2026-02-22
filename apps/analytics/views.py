@@ -9,7 +9,7 @@ import logging
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -488,3 +488,25 @@ def strategic_report(request: HttpRequest):
         "dashboard_context": dashboard_context,
     }
     return render(request, "analytics/strategic_report.html", context)
+
+
+@login_required
+def forecaster_api(request: HttpRequest):
+    """
+    Phase Welcome (optional): Academic Forecaster API — anonymized indicators, at-risk hint, principal forecast.
+    Returns JSON for request.school; 403 if no school. No PII.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("School context required.")
+    from apps.analytics.forecaster import (
+        get_anonymized_indicators,
+        at_risk_hint,
+        principal_forecast_teachers,
+    )
+    ratio = _parse_int(request.GET.get("ratio"), 25, min_val=5, max_val=100)
+    return JsonResponse({
+        "indicators": get_anonymized_indicators(school),
+        "at_risk": at_risk_hint(school),
+        "principal_forecast": principal_forecast_teachers(school, target_ratio=float(ratio)),
+    })

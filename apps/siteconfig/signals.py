@@ -1,6 +1,6 @@
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-from .models import SiteSettings, ThemePack
+from .models import SiteSettings, ThemePack, TenantSystem
 from django.contrib.auth import get_user_model
 import logging
 
@@ -34,3 +34,19 @@ def log_theme_pack_change(sender, instance, **kwargs):
     changes = get_changed_fields(instance)
     if changes:
         logger.info(f"ThemePack changed: {changes}")
+
+
+# Phase A optional: sync School.features when TenantSystem is added or removed
+@receiver(post_save, sender=TenantSystem)
+@receiver(post_delete, sender=TenantSystem)
+def sync_school_features_on_tenant_system(sender, instance, **kwargs):
+    try:
+        from .tenant_config import sync_tenant_modules_to_school_features
+        from apps.schools.models import School
+        school_id = getattr(instance, "school_id", None)
+        if school_id:
+            school = School.objects.filter(pk=school_id).first()
+            if school:
+                sync_tenant_modules_to_school_features(school, persist=True)
+    except Exception as e:
+        logger.debug("sync_tenant_modules_to_school_features after TenantSystem change: %s", e)

@@ -44,14 +44,8 @@ def _date_format_to_django(pattern: str) -> str:
 @register.filter
 def format_date(value, date_format_pattern=None):
     """Format a date/datetime.
-
-    Usage in templates:
-        {{ some_date|format_date }}            -> DD/MM/YYYY (default)
-        {{ some_date|format_date:"YYYY-MM-DD" }} -> 2026-02-05
-
-    Note: takes_context=True is NOT supported on Django filters (only on tags).
-    The previous implementation silently broke because Django passed the piped
-    value as the first arg and None as the second, so it always returned "".
+    When request is in context (e.g. RequestContext), uses tenant locale date_format.
+    Usage: {{ some_date|format_date }} or {{ some_date|format_date:"YYYY-MM-DD" }}
     """
     if value is None:
         return ""
@@ -65,7 +59,7 @@ def format_date(value, date_format_pattern=None):
 
 @register.filter
 def format_currency(value):
-    """Format a number as currency. Uses DEFAULT_CURRENCY and default separators (no context)."""
+    """Format a number as currency. Uses context tenant_locale when available else DEFAULT_CURRENCY."""
     if value is None:
         return ""
     try:
@@ -76,6 +70,35 @@ def format_currency(value):
     s = f"{amount:,.2f}"
     s = s.replace(".", "\x00").replace(",", thousands_sep).replace("\x00", dec_sep)
     return f"{symbol}{s}" if symbol else s
+
+
+@register.simple_tag(takes_context=True)
+def format_date_tenant(context, value):
+    """Phase C: Format date using tenant locale (request.school -> get_tenant_locale)."""
+    if value is None:
+        return ""
+    request = context.get("request")
+    school = getattr(request, "school", None) if request else None
+    try:
+        from apps.siteconfig.tenant_config import format_date_tenant as _fmt
+        return _fmt(value, request=request, school=school)
+    except Exception:
+        from django.utils import dateformat
+        return dateformat.format(value, "d/m/Y") if value else ""
+
+
+@register.simple_tag(takes_context=True)
+def format_currency_tenant(context, value):
+    """Phase C: Format amount as currency using tenant locale."""
+    if value is None:
+        return ""
+    request = context.get("request")
+    school = getattr(request, "school", None) if request else None
+    try:
+        from apps.siteconfig.tenant_config import format_currency_tenant as _fmt
+        return _fmt(value, request=request, school=school)
+    except Exception:
+        return str(value)
 
 
 @register.filter

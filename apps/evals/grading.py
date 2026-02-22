@@ -149,6 +149,20 @@ def scale_for_assessment_weights(weights) -> str:
     return ASSESSMENT_WEIGHTS_SCALE_MAP.get(scale, '0-20')
 
 
+def get_scale_for_school(school) -> str:
+    """
+    Phase C: Return grading scale id for the school from tenant config (useLocalSettings / get_grading_schema_for_school).
+    Use when grading or reporting in a tenant context so scale is not hardcoded.
+    """
+    if school is None:
+        return '0-100'
+    try:
+        from apps.siteconfig.tenant_config import get_grading_schema_for_school
+        return get_grading_schema_for_school(school).get("scale") or "0-100"
+    except Exception:
+        return "0-100"
+
+
 def get_grade_letter(score, scale='0-20'):
     """
     Get letter grade (A-F) from numerical score.

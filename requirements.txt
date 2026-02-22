@@ -63,3 +63,9 @@ celery>=5.3.0
 django-celery-results>=2.5.0
 django-celery-beat>=2.5.0
 django-redis>=5.4.0
+
+# Multi-tenant schema-per-tenant (Phase I / optional: set USE_DJANGO_TENANTS=1)
+django-tenants>=1.6.0
+
+# Nuance Engine (Section 7): safe JSON-Logic execution per school
+json-logic>=0.6.0

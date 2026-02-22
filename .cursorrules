@@ -1,0 +1,45 @@
+# Global Powerhouse Phase H: Visual & UX standards
+
+## Visual excellence (apply to every UI change)
+
+- **No shortcuts:** No default browser buttons, inputs, or scrollbars. Use Shadcn/UI or project design system exclusively. Consistent padding (p-4 or p-6), rounded corners (rounded-xl or rounded-2xl).
+- **Hierarchy:** Use font weights and colors (e.g. Slate-900 vs Slate-500) for a clear path for the eye. Sticky headers and zebra-striping for high-density data (e.g. gradebooks).
+- **Micro-interactions:** Use Framer Motion (or equivalent) for status changes (e.g. green pulse when a grade is saved). Slide/fade for step transitions.
+- **Empty states:** Never a blank screen. Provide a clear "Empty State" with icon and helpful call-to-action (e.g. "Your schedule is clear for today").
+- **Loading:** Skeleton screens, not "Loading..." text.
+- **Contextual actions:** Prefer "More" (vertical dots) menus for secondary actions; avoid button clutter.
+- **Emotional state:** Before shipping UI, consider the user—e.g. parent (anxious), teacher (in a hurry), admin (overwhelmed). Reduce friction with clear hierarchy and calm colors.
+
+## Master design system (Tailwind)
+
+- **Colors:** Sophisticated Navy or Deep Slate for text/sidebar; single Brand Primary (e.g. Indigo-600 or Violet-600); Success Green, Warning Amber, Destructive Red for status. Base: Slate or Zinc; subtle borders (`border-slate-200`) over heavy shadows.
+- **Radii:** `rounded-2xl` (16px) for cards; `rounded-lg` (8px) for buttons. Avoid sharp corners.
+- **Shadows:** Very subtle—`shadow-sm` or custom `0 1px 3px rgba(0,0,0,0.05)`.
+- **Typography:** Inter or Geist Sans; clear hierarchy with font weights and muted text for secondary info.
+
+## Dashboard and lists
+
+- **Bento grid:** Each widget is a self-contained card (white/theme surface, subtle border). Charts use the school's primary brand color when available.
+- **Cmd+K / Global search:** Command palette on key pages so admins can jump to any student, teacher, or setting. Breadcrumbs show location (e.g. Academics > Gradebook > Class 10A).
+- **Empty states:** Always show an empty state with icon, short message, and primary action instead of a blank table or list.
+
+## Django Admin (Unfold)
+
+- Use Unfold's tabs, conditional fields, and advanced filters in ModelAdmin for long forms.
+- Per-tenant branding: when `request.school` is set, inject school logo and primary colors in admin context.
+- Bento-style admin index via dashboard_callback when configured.
+
+## Feature gate in UI
+
+- When plan doesn't include a module (e.g. Design Studio, Inventory): show Upgrade Modal or friendly paywall instead of empty/broken screen. No module visible without entitlement check.
+
+## AUDIT & QUALITY LAWS
+
+Before considering any task done, verify:
+
+- **Tenant Leak Check:** Every DB query must use a tenant scope (e.g. `school_id` filter or `schema_context`). Flag raw SQL or ORM without tenant scope.
+- **HTMX Partial Integrity:** Every HTMX response must be a valid partial or full base swap. Check for missing `hx-target` IDs.
+- **Localization Audit:** No hardcoded user-facing strings; use `_()` or `{% trans %}`.
+- **Offline Sync Gaps:** Every POST/PUT that changes data must have corresponding IndexedDB offline buffering logic where offline is supported.
+- **Usage Limit Enforcement:** Before any "Create" action (e.g. new student), verify middleware or decorator enforces the tenant Plan limits (max_students / max_staff).
+- **Sentry / logging:** Tag errors with tenant/school context (e.g. `sentry_sdk.set_tag("school_id", school_id)`) so support can filter by tenant.

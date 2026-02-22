@@ -24,6 +24,7 @@
                 <button class="nav-link" id="step4-tab" data-bs-toggle="tab" data-bs-target="#step4" type="button" role="tab">4. Domain</button>
               </li>
             </ul>
+            <p class="mb-0 mt-2 small text-muted" id="wizard-progress-text">Step 1 of 4</p>
           </div>
           <div class="card-body">
             <form
@@ -32,6 +33,8 @@
               data-timeline-url-template="{% url 'super:api_school_timeline' '00000000-0000-0000-0000-000000000000' %}"
               data-city-search-url="{% url 'super:api_geo_cities' %}"
               data-profile-search-url="{% url 'super:api_education_profiles' %}"
+              data-provinces-url="{% url 'super:api_provinces' %}"
+              data-plans-configurator-url="{% url 'super:api_plans_configurator' %}"
             >
               {% csrf_token %}
               <div class="tab-content">
@@ -63,6 +66,13 @@
                         <option value="{{ country.code }}" {% if country.code == default_country_code %}selected{% endif %}>{{ country.name }}</option>
                       {% endfor %}
                     </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="province_id">Province / State (optional)</label>
+                    <select class="form-select" id="province_id" name="province_id">
+                      <option value="">— None —</option>
+                    </select>
+                    <div class="form-text">Filter education systems by region when available.</div>
                   </div>
                   <div class="mb-3">
                     <label class="form-label" for="city_id">City</label>
@@ -99,17 +109,52 @@
                     </select>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label" for="education_profile_code">Education template</label>
+                    <label class="form-label" for="education_profile_code">Education template (primary)</label>
                     <select class="form-select" id="education_profile_code" name="education_profile_code">
                       <option value="">Auto by Country and Sub-system (Recommended)</option>
                       {% for profile in education_profiles %}
                         <option value="{{ profile.code }}">{{ profile.name }}{% if profile.is_auto_generated %} (Auto pack){% endif %}</option>
                       {% endfor %}
                     </select>
-                    <div class="form-text">Pick an explicit template only when a school requires a non-default curriculum pack.</div>
+                    <div class="form-text">Primary template for provisioning. Optional: add more systems below.</div>
                   </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="education_system_ids">Additional education systems (optional, multiple)</label>
+                    <select class="form-select" id="education_system_ids" name="education_system_ids" multiple size="4">
+                      {% for profile in education_profiles %}
+                        <option value="{{ profile.code }}">{{ profile.name }}{% if profile.is_auto_generated %} (Auto){% endif %}</option>
+                      {% endfor %}
+                    </select>
+                    <div class="form-text">Hold Ctrl/Cmd to select multiple. Combined with primary template for feature set.</div>
+                  </div>
+                  <hr class="my-3">
+                  <h6 class="text-muted">Plan & billing (optional)</h6>
+                  <div class="mb-3">
+                    <label class="form-label" for="plan_id">Plan</label>
+                    <select class="form-select" id="plan_id" name="plan_id">
+                      <option value="">— None (set later) —</option>
+                    </select>
+                  </div>
+                  <div class="mb-3" id="addons-container" style="display:none;">
+                    <label class="form-label">Add-ons</label>
+                    <div id="addons-list"></div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="estimated_students">Estimated students (for price)</label>
+                    <input type="number" class="form-control" id="estimated_students" name="estimated_students" min="0" value="100" placeholder="100">
+                  </div>
+                  <p class="small text-muted" id="estimated-price-display">Select country and plan to see estimated price.</p>
                 </div>
                 <div class="tab-pane fade" id="step3" role="tabpanel">
+                  <div class="mb-3">
+                    <label class="form-label" for="theme_choice">Admin theme</label>
+                    <select class="form-select" id="theme_choice" name="theme_choice">
+                      <option value="UNFOLD" selected>Unfold (Modern) — recommended</option>
+                      <option value="JAZZMIN">Jazzmin (Classic)</option>
+                      <option value="SNEAT">Sneat (Enterprise)</option>
+                    </select>
+                    <div class="form-text">You can change this later in School settings → Theme & branding.</div>
+                  </div>
                   <div class="mb-3">
                     <label class="form-label" for="primary_color">Primary color</label>
                     <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" value="#0d6efd">
@@ -166,6 +211,12 @@
         });
         btnNext.classList.toggle('d-none', i === totalSteps - 1);
         btnSubmit.classList.toggle('d-none', i !== totalSteps - 1);
+        var progressEl = document.getElementById('wizard-progress-text');
+        if (progressEl) progressEl.textContent = 'Step ' + (i + 1) + ' of ' + totalSteps;
+        if (i === 1 && typeof fetchPlansConfigurator === 'function') {
+          var cc = document.getElementById('country_code') && document.getElementById('country_code').value;
+          fetchPlansConfigurator(cc || '');
+        }
       }
 
       btnNext.addEventListener('click', function () {
@@ -187,21 +238,41 @@
         var education_profile_code = document.getElementById('education_profile_code').value.trim();
         var primary_color = document.getElementById('primary_color').value;
         var accent_color = document.getElementById('accent_color').value;
+        var theme_choice = (document.getElementById('theme_choice') && document.getElementById('theme_choice').value) ? document.getElementById('theme_choice').value : 'UNFOLD';
         var custom_domain = (document.getElementById('custom_domain') && document.getElementById('custom_domain').value) ? document.getElementById('custom_domain').value.trim() : '';
+        var plan_id = (document.getElementById('plan_id') && document.getElementById('plan_id').value) ? document.getElementById('plan_id').value.trim() : '';
+        var province_id = (document.getElementById('province_id') && document.getElementById('province_id').value) ? document.getElementById('province_id').value.trim() : '';
+        var education_system_ids = [];
+        var multiSel = document.getElementById('education_system_ids');
+        if (multiSel) {
+          for (var i = 0; i < multiSel.options.length; i++) {
+            if (multiSel.options[i].selected) education_system_ids.push(multiSel.options[i].value);
+          }
+        }
+        if (education_profile_code && education_system_ids.indexOf(education_profile_code) === -1) {
+          education_system_ids.unshift(education_profile_code);
+        }
+        var addons = [];
+        document.querySelectorAll('#addons-list input[type="checkbox"]:checked').forEach(function (cb) { addons.push(cb.value); });
         var payload = {
           name: name,
           slug: slug,
           subdomain: subdomain,
+          theme_choice: theme_choice,
           contact_email: contact_email,
           country_code: country_code,
           city_id: city_id,
           region_code: region_code,
           sub_system: sub_system,
           education_profile_code: education_profile_code,
+          education_system_ids: education_system_ids,
           primary_color: primary_color,
           accent_color: accent_color,
           custom_domain: custom_domain
         };
+        if (plan_id) payload.plan_id = plan_id;
+        if (province_id) payload.province_id = province_id;
+        if (addons.length) payload.addons = addons;
         var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
         fetch('{% url "super:api_create_school" %}', {
           method: 'POST',
@@ -259,6 +330,7 @@
       var timezonePreview = document.getElementById('timezone_preview');
       var citySearchUrl = form.getAttribute('data-city-search-url') || '';
       var profileSearchUrl = form.getAttribute('data-profile-search-url') || '';
+      var provincesUrl = form.getAttribute('data-provinces-url') || '';
       var cityFetchToken = 0;
       var cityDebounce = null;
       var profileFetchToken = 0;
@@ -328,36 +400,140 @@
           });
       }
 
+      function fetchProvinces(countryCode) {
+        var provinceSelect = document.getElementById('province_id');
+        if (!provinceSelect || !provincesUrl) return;
+        provinceSelect.innerHTML = '<option value="">— None —</option>';
+        if (!countryCode) return;
+        fetch(provincesUrl + '?country_code=' + encodeURIComponent(countryCode), { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            (data.provinces || []).forEach(function (p) {
+              var opt = document.createElement('option');
+              opt.value = String(p.id);
+              opt.textContent = p.name || p.code || '';
+              provinceSelect.appendChild(opt);
+            });
+          });
+      }
+
       function syncCities() {
         if (!countrySelect) return;
         var selectedCountry = countrySelect.value || '';
         if (regionCodeInput) regionCodeInput.value = selectedCountry;
         fetchCities(citySearch ? citySearch.value : '');
+        fetchProvinces(selectedCountry);
         fetchEducationProfiles();
+        fetchPlansConfigurator(selectedCountry);
       }
+
+      var plansConfig = null;
+      function fetchPlansConfigurator(countryCode) {
+        var url = (form.getAttribute('data-plans-configurator-url') || '').trim();
+        if (!url) return;
+        url = url + (countryCode ? '?country_code=' + encodeURIComponent(countryCode) : '');
+        fetch(url, { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            plansConfig = data;
+            var planSelect = document.getElementById('plan_id');
+            var addonsList = document.getElementById('addons-list');
+            var addonsContainer = document.getElementById('addons-container');
+            if (!planSelect) return;
+            planSelect.innerHTML = '<option value="">— None (set later) —</option>';
+            (data.plans || []).forEach(function (p) {
+              var opt = document.createElement('option');
+              opt.value = String(p.id);
+              opt.textContent = (p.name || p.slug || '') + (p.price_per_student != null ? ' (per student)' : '');
+              planSelect.appendChild(opt);
+            });
+            addonsList.innerHTML = '';
+            if (data.addons && data.addons.length) {
+              addonsContainer.style.display = 'block';
+              data.addons.forEach(function (a) {
+                var label = document.createElement('label');
+                label.className = 'd-block';
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = a.code || '';
+                cb.className = 'form-check-input me-2';
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode((a.name || a.code) + (a.price != null ? ' (+' + a.price + ')' : '')));
+                addonsList.appendChild(label);
+              });
+            } else {
+              addonsContainer.style.display = 'none';
+            }
+            updateEstimatedPrice();
+          })
+          .catch(function () { plansConfig = null; });
+      }
+
+      function updateEstimatedPrice() {
+        var el = document.getElementById('estimated-price-display');
+        if (!el || !plansConfig) {
+          if (el) el.textContent = 'Select country and plan to see estimated price.';
+          return;
+        }
+        var planId = (document.getElementById('plan_id') && document.getElementById('plan_id').value) || '';
+        var students = parseInt(document.getElementById('estimated_students') && document.getElementById('estimated_students').value, 10) || 0;
+        var mul = plansConfig.country_multiplier != null ? plansConfig.country_multiplier : 1;
+        var total = 0;
+        var plan = (plansConfig.plans || []).filter(function (p) { return String(p.id) === planId; })[0];
+        if (plan) {
+          if (plan.billing_model === 'PER_STUDENT' && plan.price_per_student != null) {
+            total += students * plan.price_per_student * mul;
+          } else if (plan.base_price != null) {
+            total += plan.base_price * mul;
+          }
+        }
+        document.querySelectorAll('#addons-list input[type="checkbox"]:checked').forEach(function (cb) {
+          var addon = (plansConfig.addons || []).filter(function (a) { return a.code === cb.value; })[0];
+          if (addon && addon.price != null) total += addon.price * mul;
+        });
+        el.textContent = total > 0 ? 'Estimated price (with PPP): ' + total.toFixed(2) : 'Select a plan to see estimated price.';
+      }
+
+      var planSelect = document.getElementById('plan_id');
+      if (planSelect) {
+        planSelect.addEventListener('change', updateEstimatedPrice);
+      }
+      document.getElementById('estimated_students').addEventListener('input', updateEstimatedPrice);
+      document.getElementById('addons-list').addEventListener('change', updateEstimatedPrice);
 
       function renderEducationProfiles(profiles) {
         var select = document.getElementById('education_profile_code');
-        if (!select) return;
-        var previous = select.value || '';
-        select.innerHTML = '';
-
-        var autoOption = document.createElement('option');
-        autoOption.value = '';
-        autoOption.textContent = 'Auto by Country and Sub-system (Recommended)';
-        select.appendChild(autoOption);
-
+        var multiSel = document.getElementById('education_system_ids');
+        var previous = select ? (select.value || '') : '';
+        if (select) {
+          select.innerHTML = '';
+          var autoOption = document.createElement('option');
+          autoOption.value = '';
+          autoOption.textContent = 'Auto by Country and Sub-system (Recommended)';
+          select.appendChild(autoOption);
+        }
+        if (multiSel) multiSel.innerHTML = '';
         (profiles || []).forEach(function(profile) {
           if (!profile || !profile.code) return;
-          var option = document.createElement('option');
-          option.value = profile.code;
-          option.textContent = profile.name + (profile.is_auto_generated ? ' (Auto pack)' : '');
-          select.appendChild(option);
+          if (select) {
+            var option = document.createElement('option');
+            option.value = profile.code;
+            option.textContent = profile.name + (profile.is_auto_generated ? ' (Auto pack)' : '');
+            select.appendChild(option);
+          }
+          if (multiSel) {
+            var mOpt = document.createElement('option');
+            mOpt.value = profile.code;
+            mOpt.textContent = profile.name + (profile.is_auto_generated ? ' (Auto)' : '');
+            multiSel.appendChild(mOpt);
+          }
         });
-        if (previous && Array.prototype.some.call(select.options, function(opt) { return opt.value === previous; })) {
-          select.value = previous;
-        } else {
-          select.value = '';
+        if (select) {
+          if (previous && Array.prototype.some.call(select.options, function(opt) { return opt.value === previous; })) {
+            select.value = previous;
+          } else {
+            select.value = '';
+          }
         }
       }
 
@@ -366,8 +542,11 @@
         var subSystemInput = document.getElementById('sub_system');
         var subSystem = subSystemInput ? (subSystemInput.value || 'EN') : 'EN';
         var selectedCountry = (countrySelect.value || '').toUpperCase();
+        var provinceInput = document.getElementById('province_id');
+        var provinceId = provinceInput ? (provinceInput.value || '') : '';
         var token = ++profileFetchToken;
         var url = profileSearchUrl + '?country_code=' + encodeURIComponent(selectedCountry) + '&sub_system=' + encodeURIComponent(subSystem);
+        if (provinceId) url += '&province_id=' + encodeURIComponent(provinceId);
         fetch(url, { credentials: 'same-origin' })
           .then(function(resp) { return resp.ok ? resp.json() : null; })
           .then(function(data) {
@@ -381,6 +560,27 @@
 
       if (countrySelect) countrySelect.addEventListener('change', syncCities);
       if (citySelect) citySelect.addEventListener('change', syncTimezonePreview);
+      var provinceSelect = document.getElementById('province_id');
+      if (provinceSelect) provinceSelect.addEventListener('change', fetchEducationProfiles);
+      var profileSelect = document.getElementById('education_profile_code');
+      if (profileSelect) {
+        profileSelect.addEventListener('change', function() {
+          var multiSel = document.getElementById('education_system_ids');
+          if (!multiSel || !this.value) return;
+          var opt = this.options[this.selectedIndex];
+          var text = (opt && opt.textContent || '').toLowerCase();
+          var code = (opt && opt.value || '').toLowerCase();
+          var isTrade = text.indexOf('trade') >= 0 || text.indexOf('vocational') >= 0 || text.indexOf('technical') >= 0 || code.indexOf('trade') >= 0 || code.indexOf('voc') >= 0;
+          if (isTrade) {
+            for (var i = 0; i < multiSel.options.length; i++) {
+              if (multiSel.options[i].value === this.value) {
+                multiSel.options[i].selected = true;
+                break;
+              }
+            }
+          }
+        });
+      }
       var subSystemSelect = document.getElementById('sub_system');
       if (subSystemSelect) {
         subSystemSelect.addEventListener('change', function() {

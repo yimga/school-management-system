@@ -492,6 +492,56 @@ def _bulk_create_invoice_notify_guardians_skip():
         _skip_new_invoice_notify.reset(token)
 
 
+def _apply_fee_discount_nuance(invoice: Invoice, student: StudentProfile) -> None:
+    """Section 7: If school has an active fee_discount nuance, apply result as a discount line (capped at total)."""
+    try:
+        from apps.siteconfig.nuance_engine import apply_nuance
+    except ImportError:
+        return
+    total = invoice.lines.aggregate(s=Sum("amount"))["s"] or Decimal("0")
+    if total <= 0:
+        return
+    context = {
+        "fee": float(total),
+        "student_id": student.pk,
+    }
+    # Optional: add gpa, sibling_count if available on student
+    if hasattr(student, "gpa") and student.gpa is not None:
+        context["gpa"] = float(student.gpa)
+    if hasattr(student, "sibling_count") and student.sibling_count is not None:
+        context["sibling_count"] = int(student.sibling_count)
+    # Information tags for AI Nuance: e.g. {"in": ["Early Bird", {"var": "student_tags"}]} → 10% off
+    if hasattr(student, "tags"):
+        context["student_tags"] = list(
+            student.tags.filter(is_active=True).values_list("name", flat=True)
+        )
+    else:
+        context["student_tags"] = []
+    result = apply_nuance(invoice.school, "fee_discount", context)
+    if result is None:
+        return
+    try:
+        val = float(result)
+    except (TypeError, ValueError):
+        return
+    if val <= 0:
+        return
+    if val <= 1:
+        discount = total * Decimal(str(val))
+    else:
+        discount = min(Decimal(str(val)), total)
+    if discount <= 0:
+        return
+    InvoiceLine.objects.create(
+        invoice=invoice,
+        description="Custom discount (nuance)",
+        quantity=Decimal("1.00"),
+        unit_price=-discount,
+        amount=-discount,
+        fee_item=None,
+    )
+
+
 @transaction.atomic
 def create_fee_invoices(
     *,
@@ -540,6 +590,8 @@ def create_fee_invoices(
                         amount=item.amount,
                         fee_item=item,
                     )
+                # Section 7 Nuance Engine: optional fee_discount from school custom logic
+                _apply_fee_discount_nuance(invoice, student)
 
             recalculate_invoice(invoice)
             invoices.append(invoice)

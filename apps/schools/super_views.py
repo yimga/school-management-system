@@ -48,11 +48,24 @@ def _ensure_region_for_country(country_code: str, timezone_hint: str = "UTC"):
     return ensure_region_for_country_record(country_code, timezone_hint=timezone_hint)
 
 
+def _safe_registry_url():
+    """URL to Global Registry (EducationSystemProfile CRUD in admin). Phase H."""
+    try:
+        return reverse("admin:siteconfig_educationsystemprofile_changelist")
+    except NoReverseMatch:
+        return ""
+
+
 def super_dashboard(request):
-    """List all schools with basic stats (student/teacher counts for usage/billing)."""
+    """List all schools with basic stats. Phase E: Financial Bento. Phase H: Registry link, selected education systems."""
+    from django.db.models import Sum
+    from django.utils import timezone
+    from apps.siteconfig.models import RevenueSnapshot
+
     latest_event_query = SchoolProvisioningEvent.objects.filter(school_id=OuterRef("pk")).order_by("-created_at", "-id")
     schools = list(
         School.objects.all()
+        .prefetch_related("tenant_systems__system")
         .order_by("name")
         .annotate(member_count=Count("memberships"))
         .annotate(student_count=Count("student_profiles", distinct=True))
@@ -64,10 +77,75 @@ def super_dashboard(request):
     for school in schools:
         school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.timeline_url = _safe_school_timeline_url(school.pk)
+        school.sync_repair_url = reverse("super:sync_repair", args=[school.pk])
+        school.selected_systems = [ts.system.name for ts in getattr(school, "tenant_systems", []) if getattr(ts, "system", None)]
+
+    # Phase E: Financial Mission Control / Bento (latest month); resilient if RevenueSnapshot not migrated
+    total_mrr = total_waived = waiver_percentage = 0
+    revenue_by_country = []
+    billing_model_breakdown = []
+    first_of_month = timezone.now().date().replace(day=1)
+    try:
+        snapshots = RevenueSnapshot.objects.filter(snapshot_date=first_of_month)
+        agg = snapshots.aggregate(total_actual=Sum("actual_revenue"), total_waived=Sum("waived_amount"))
+        total_mrr = (agg["total_actual"] or 0)
+        total_waived = (agg["total_waived"] or 0)
+        total_all = total_mrr + total_waived
+        waiver_percentage = (float(total_waived) / float(total_all) * 100) if total_all else 0
+        revenue_by_country = list(
+            snapshots.values("country_code")
+            .annotate(actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
+            .order_by("-actual", "-waived")[:20]
+        )
+        billing_model_breakdown = list(
+            snapshots.values("billing_model")
+            .annotate(count=Count("id"), actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
+            .order_by("-actual", "-waived")
+        )
+    except Exception:
+        pass
+
+    # Phase H optional: approval workflow — count and list pending schools
+    pending_schools = list(
+        School.objects.filter(is_approved=False)
+        .prefetch_related("tenant_systems__system")
+        .order_by("-created_at")
+        .annotate(member_count=Count("memberships"))
+        .annotate(student_count=Count("student_profiles", distinct=True))
+    )
+    for school in pending_schools:
+        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
+        school.timeline_url = _safe_school_timeline_url(school.pk)
+        school.selected_systems = [ts.system.name for ts in getattr(school, "tenant_systems", []) if getattr(ts, "system", None)]
+    pending_approval_count = len(pending_schools)
+
+    # Section 8.7–8.8: Health / resource hogs (PostgreSQL table sizes)
+    health_top_tables = []
+    health_schema_stats = []
+    try:
+        from .health_utils import get_top_tables_by_size, get_global_health_stats
+        health_top_tables = get_top_tables_by_size(limit=10)
+        health_schema_stats = get_global_health_stats()
+    except Exception:
+        pass
+
     return render(
         request,
         "schools/super_dashboard.html",
-        {"schools": schools},
+        {
+            "schools": schools,
+            "pending_schools": pending_schools,
+            "pending_approval_count": pending_approval_count,
+            "total_mrr": total_mrr,
+            "total_waived": total_waived,
+            "waiver_percentage": round(waiver_percentage, 1),
+            "revenue_by_country": revenue_by_country,
+            "billing_model_breakdown": billing_model_breakdown,
+            "revenue_snapshot_month": first_of_month,
+            "registry_url": _safe_registry_url(),
+            "health_top_tables": health_top_tables,
+            "health_schema_stats": health_schema_stats,
+        },
     )
 
 
@@ -165,18 +243,49 @@ def api_geo_timezones(request):
 
 
 @require_http_methods(["GET"])
+def api_provinces(request):
+    """Phase B: List provinces/states for a country (for wizard and systems filter)."""
+    country_code = GlobalGeoCatalog.normalize_country_code(request.GET.get("country_code") or "")
+    if not country_code:
+        return JsonResponse({"country_code": "", "provinces": []})
+    from apps.siteconfig.models import RegionConfig, Province
+    region = RegionConfig.objects.filter(code=country_code).first()
+    if not region:
+        return JsonResponse({"country_code": country_code, "provinces": []})
+    provinces = list(
+        Province.objects.filter(region=region)
+        .order_by("name")
+        .values("id", "code", "name")
+    )
+    return JsonResponse({"country_code": country_code, "provinces": provinces})
+
+
+@require_http_methods(["GET"])
 def api_education_profiles(request):
     country_code = GlobalGeoCatalog.normalize_country_code(request.GET.get("country_code"))
     sub_system = (request.GET.get("sub_system") or School.SubSystem.EN).strip().upper()
     valid_subsystems = {School.SubSystem.EN, School.SubSystem.FR, School.SubSystem.INT}
     if sub_system not in valid_subsystems:
         sub_system = School.SubSystem.EN
+    province_id = request.GET.get("province_id")
+    if province_id is not None and province_id != "":
+        try:
+            province_id = int(province_id)
+        except (TypeError, ValueError):
+            province_id = None
+    else:
+        province_id = None
 
-    profiles = list_profile_options(country_code=country_code, sub_system=sub_system)
+    profiles = list_profile_options(
+        country_code=country_code,
+        sub_system=sub_system,
+        province_id=province_id,
+    )
     return JsonResponse(
         {
             "country_code": country_code,
             "sub_system": sub_system,
+            "province_id": province_id,
             "profiles": profiles,
             "auto_option": {
                 "code": "",
@@ -185,6 +294,65 @@ def api_education_profiles(request):
             },
         }
     )
+
+
+@require_http_methods(["GET"])
+def api_system_blueprint(request):
+    """
+    Phase Global: Environment Discovery — get merged blueprint for region + flavor.
+    GET ?region_id=CMR&flavor=EN returns primary_language, grading_scale, term_labels, etc.
+    """
+    from apps.siteconfig.education_profile_engine import get_system_blueprint
+    region_id = (request.GET.get("region_id") or "").strip() or None
+    flavor = (request.GET.get("flavor") or "").strip() or None
+    blueprint = get_system_blueprint(region_id=region_id, flavor=flavor)
+    return JsonResponse(blueprint)
+
+
+@require_http_methods(["GET"])
+def api_plans_configurator(request):
+    """
+    Plan Configurator API (Phase E): GET plans, addons, country_multiplier.
+    Same contract for onboarding billing step and PlanConfigurator component.
+    Version: 1.
+    """
+    from apps.siteconfig.models import Plan, PlanAddon, CountryMultiplier
+    from decimal import Decimal
+
+    country_code = (request.GET.get("country_code") or "").strip().upper()[:3]
+    plans = []
+    for p in Plan.objects.filter(is_active=True).order_by("name"):
+        plans.append({
+            "id": p.pk,
+            "name": p.name,
+            "slug": p.slug,
+            "billing_model": p.billing_model or "FLAT",
+            "base_price": float(p.base_price) if p.base_price is not None else None,
+            "price_per_student": float(p.price_per_student) if p.price_per_student is not None else None,
+            "tier_rules": p.tier_rules if isinstance(p.tier_rules, list) else [],
+            "max_students": p.max_students,
+            "max_staff": p.max_staff,
+            "included_features": p.included_features or [],
+        })
+    addons = []
+    for a in PlanAddon.objects.filter(is_active=True).order_by("name"):
+        addons.append({
+            "code": a.code,
+            "name": a.name,
+            "price": float(a.price),
+        })
+    multiplier = Decimal("1")
+    if country_code:
+        row = CountryMultiplier.objects.filter(country_code=country_code, is_active=True).first()
+        if row:
+            multiplier = row.multiplier
+    return JsonResponse({
+        "version": 1,
+        "country_code": country_code or "",
+        "country_multiplier": float(multiplier),
+        "plans": plans,
+        "addons": addons,
+    })
 
 
 @require_http_methods(["GET"])
@@ -206,6 +374,15 @@ def api_school_timeline(request, school_id):
             "events": events,
         }
     )
+
+
+@require_http_methods(["POST"])
+def api_approve_school(request, school_id):
+    """Phase H optional: Set school is_approved=True. Super Admin only."""
+    school = get_object_or_404(School, id=school_id)
+    school.is_approved = True
+    school.save(update_fields=["is_approved", "updated_at"])
+    return JsonResponse({"ok": True, "school_id": str(school.id), "message": "School approved."})
 
 
 @require_POST
@@ -235,9 +412,31 @@ def api_create_school(request):
     if sub_system not in valid_subsystems:
         sub_system = School.SubSystem.EN
     education_profile_code = (data.get("education_profile_code") or "").strip()
+    education_system_ids = data.get("education_system_ids")  # Phase B: list of profile codes (multi-select)
+    if not isinstance(education_system_ids, list):
+        education_system_ids = []
+    education_system_ids = [str(x).strip() for x in education_system_ids if x]
+    province_id = data.get("province_id")  # Phase B: optional province for geo filtering
+    if province_id is not None and province_id != "":
+        try:
+            province_id = int(province_id)
+        except (TypeError, ValueError):
+            province_id = None
     primary_color = (data.get("primary_color") or "#0d6efd").strip()
     accent_color = (data.get("accent_color") or "#198754").strip()
+    theme_choice = (data.get("theme_choice") or "UNFOLD").strip().upper()
+    if theme_choice not in {"UNFOLD", "JAZZMIN", "SNEAT"}:
+        theme_choice = "UNFOLD"
     custom_domain = (data.get("custom_domain") or "").strip()
+    plan_id = data.get("plan_id")
+    if plan_id is not None and plan_id != "":
+        try:
+            plan_id = int(plan_id)
+        except (TypeError, ValueError):
+            plan_id = None
+    addons = data.get("addons")
+    if not isinstance(addons, list):
+        addons = []
 
     errors = []
     if not name:
@@ -333,7 +532,7 @@ def api_create_school(request):
             }
         )
 
-    school = School.objects.create(
+    create_kw = dict(
         name=name,
         slug=slug,
         subdomain=subdomain or slug,
@@ -344,11 +543,14 @@ def api_create_school(request):
         accent_color=accent_color,
         custom_domain=custom_domain or "",
         is_active=False,
+        is_approved=not (__import__("os").getenv("ENABLE_SCHOOL_APPROVAL_WORKFLOW", "").strip().lower() in ("1", "true", "yes")),
         settings={
             "contact_email": contact_email,
             "provisioning": {
                 "logo_uploaded": False,
                 "education_profile_mode": "explicit" if explicit_profile else "auto",
+                "education_system_ids": education_system_ids,
+                "province_id": province_id,
             },
             "education_profile_code": explicit_profile.code if explicit_profile else "",
             "location": location_payload,
@@ -359,6 +561,16 @@ def api_create_school(request):
             },
         },
     )
+    if hasattr(School, "theme_choice"):
+        create_kw["theme_choice"] = theme_choice
+    if plan_id and hasattr(School, "plan_id"):
+        from apps.siteconfig.models import Plan
+        if Plan.objects.filter(pk=plan_id, is_active=True).exists():
+            create_kw["plan_id"] = plan_id
+    if addons and hasattr(School, "addons"):
+        addons = [str(x).strip() for x in addons if x]
+        create_kw["addons"] = addons
+    school = School.objects.create(**create_kw)
     SchoolProvisioningEvent.log_event(
         school=school,
         event_type=SchoolProvisioningEvent.EventType.REQUEST_RECEIVED,
@@ -417,4 +629,72 @@ def api_create_school(request):
             "timeline_url": _safe_school_timeline_url(school.id),
         },
         status=202,
+    )
+
+
+# ---------- Phase G: Emergency Sync Repair (Super Admin) ----------
+
+def _sync_repair_force_overwrite_conflict(conflict, resolved_by):
+    """Apply client_data to entity and mark conflict RESOLVED_CLIENT. Call inside transaction.atomic()."""
+    from django.utils import timezone
+    from apps.api.sync_services import _get_entity_config
+    conflict.resolved_by = resolved_by
+    conflict.resolved_at = timezone.now()
+    conflict.status = "RESOLVED_CLIENT"
+    config = _get_entity_config()
+    if conflict.entity_type in config:
+        model, allowed = config[conflict.entity_type]
+        updates = {k: v for k, v in (conflict.client_data or {}).items() if k in allowed}
+        if updates:
+            try:
+                instance = model.objects.get(pk=conflict.entity_id)
+                for key, value in updates.items():
+                    setattr(instance, key, value)
+                update_fields = list(updates.keys())
+                if hasattr(instance, "updated_at"):
+                    update_fields.append("updated_at")
+                instance.save(update_fields=update_fields)
+            except model.DoesNotExist:
+                pass
+    conflict.save(update_fields=["status", "resolved_at", "resolved_by"])
+
+
+@require_http_methods(["GET", "POST"])
+def sync_repair(request, school_id):
+    """
+    Phase G: Super Admin Emergency Sync Repair. List SyncConflict for a school;
+    side-by-side client vs server; Force Overwrite applies client_data with transaction.atomic().
+    """
+    from django.db import transaction
+    from django.shortcuts import redirect
+    from django.contrib import messages
+    from apps.siteconfig.models import SyncConflict
+
+    school = get_object_or_404(School, pk=school_id)
+    if not (getattr(request.user, "is_superuser", False)):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Superuser required for Sync Repair.")
+
+    if request.method == "POST":
+        conflict_id = request.POST.get("conflict_id")
+        if conflict_id:
+            try:
+                conflict = SyncConflict.objects.get(pk=int(conflict_id), school_id=school_id, status=SyncConflict.Status.PENDING)
+            except (ValueError, SyncConflict.DoesNotExist):
+                messages.error(request, "Conflict not found or already resolved.")
+            else:
+                with transaction.atomic():
+                    _sync_repair_force_overwrite_conflict(conflict, request.user)
+                messages.success(request, f"Conflict #{conflict_id} resolved (client version applied).")
+            return redirect("super:sync_repair", school_id=school_id)
+
+    conflicts = list(
+        SyncConflict.objects.filter(school_id=school_id)
+        .select_related("reported_by")
+        .order_by("-created_at")[:100]
+    )
+    return render(
+        request,
+        "schools/super_sync_repair.html",
+        {"school": school, "conflicts": conflicts, "dashboard_url": reverse("super:dashboard")},
     )

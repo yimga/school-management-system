@@ -22,6 +22,8 @@ from .models import (
     ReportCardStyleAssignment,
     ReportTemplate,
     SiteSettings,
+    ServiceIntegration,
+    WebhookSubscription,
     ThemePack,
     UserPreference,
     RegionConfig,
@@ -31,6 +33,18 @@ from .models import (
     WeatherLocation,
     FeatureToggleDefinition,
     FeatureToggleState,
+    Plan,
+    PlanAddon,
+    CountryMultiplier,
+    RevenueSnapshot,
+    BillingWaiverAuditLog,
+    WaiverRequest,
+    DesignTemplate,
+    BrandSettings,
+    CustomFeatureTicket,
+    FeatureFragment,
+    CustomNuance,
+    PendingNuance,
 )
 from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout, FeatureControlAudit
 from .context_processors import SESSION_KEY
@@ -38,6 +52,7 @@ from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from apps.academics.models import AcademicYear
 from .models import default_backend_feature_flags
 from apps.accounts.models import User
+from apps.schools.models import School
 
 
 # ==========================
@@ -947,9 +962,9 @@ class UserPreferenceAdmin(ModelAdmin):
 
 
 class ReportTemplateAdmin(ModelAdmin):
-    list_display = ("name", "slug", "preferred_format", "is_active", "updated_at")
-    list_filter = ("preferred_format", "is_active")
-    search_fields = ("name", "slug")
+    list_display = ("name", "slug", "template_family", "preferred_format", "is_active", "updated_at")
+    list_filter = ("template_family", "preferred_format", "is_active")
+    search_fields = ("name", "slug", "template_family")
     readonly_fields = ("created_at", "updated_at")
 
 
@@ -1867,6 +1882,275 @@ admin_site.register(WeatherLocation, WeatherLocationAdmin)
 admin_site.register(FeatureToggleDefinition, FeatureToggleDefinitionAdmin)
 admin_site.register(FeatureToggleState, FeatureToggleStateAdmin)
 
+
+class PlanAdmin(ModelAdmin):
+    """Phase D: Subscription plan (included_features, max_students, max_staff, billing)."""
+    list_display = ("name", "slug", "billing_model", "max_students", "max_staff", "is_active", "created_at")
+    list_filter = ("billing_model", "is_active")
+    search_fields = ("name", "slug")
+    prepopulated_fields = {"slug": ("name",)}
+    readonly_fields = ("created_at", "updated_at")
+    fieldsets = (
+        (None, {"fields": ("name", "slug", "is_active")}),
+        ("Limits", {"fields": ("max_students", "max_staff", "included_features")}),
+        ("Billing", {"fields": ("billing_model", "base_price", "price_per_student", "tier_rules")}),
+        ("Meta", {"fields": ("created_at", "updated_at")}),
+    )
+
+
+admin_site.register(Plan, PlanAdmin)
+
+
+class PlanAddonAdmin(ModelAdmin):
+    list_display = ("code", "name", "price", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("code", "name")
+
+
+admin_site.register(PlanAddon, PlanAddonAdmin)
+
+
+class CountryMultiplierAdmin(ModelAdmin):
+    list_display = ("country_code", "name", "multiplier", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("country_code", "name")
+
+
+admin_site.register(CountryMultiplier, CountryMultiplierAdmin)
+
+
+class RevenueSnapshotAdmin(ModelAdmin):
+    list_display = ("school", "snapshot_date", "actual_revenue", "waived_amount", "billing_model", "country_code", "created_at")
+    list_filter = ("snapshot_date", "billing_model", "country_code")
+    search_fields = ("school__name",)
+    readonly_fields = ("school", "snapshot_date", "actual_revenue", "waived_amount", "billing_model", "country_code", "student_count", "created_at")
+    date_hierarchy = "snapshot_date"
+
+
+admin_site.register(RevenueSnapshot, RevenueSnapshotAdmin)
+
+
+class BillingWaiverAuditLogAdmin(ModelAdmin):
+    list_display = ("school", "changed_by", "old_billing_type", "new_billing_type", "created_at")
+    list_filter = ("new_billing_type",)
+    search_fields = ("school__name", "new_waiver_note")
+    readonly_fields = ("school", "changed_by", "old_billing_type", "new_billing_type", "old_waiver_note", "new_waiver_note", "created_at")
+    date_hierarchy = "created_at"
+
+
+admin_site.register(BillingWaiverAuditLog, BillingWaiverAuditLogAdmin)
+
+
+class WaiverRequestAdmin(ModelAdmin):
+    list_display = ("school", "status", "reason_short", "decided_by", "decided_at", "created_at")
+    list_filter = ("status",)
+    search_fields = ("school__name", "reason")
+    readonly_fields = ("school", "proof_file", "reason", "created_at", "updated_at")
+    date_hierarchy = "created_at"
+    actions = ["approve_waiver_requests", "deny_waiver_requests"]
+
+    def reason_short(self, obj):
+        return (obj.reason[:50] + "…") if obj.reason and len(obj.reason) > 50 else (obj.reason or "—")
+    reason_short.short_description = "Reason"
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.status != WaiverRequest.Status.PENDING:
+            return list(self.readonly_fields) + ["status", "decided_by", "decided_at", "decision_note"]
+        return list(self.readonly_fields)
+
+    @admin.action(description="Approve selected waiver requests")
+    def approve_waiver_requests(self, request, queryset):
+        from django.db import transaction
+        pending = queryset.filter(status=WaiverRequest.Status.PENDING).select_related("school")
+        count = 0
+        for wr in pending:
+            try:
+                with transaction.atomic():
+                    school = wr.school
+                    old_bt = getattr(school, "billing_type", "") or ""
+                    old_wn = (getattr(school, "waiver_note", None) or "")[:500]
+                    waiver_note = (wr.reason or "")[:500]
+                    school.billing_type = School.BillingType.COMPLIMENTARY
+                    school.waiver_note = waiver_note
+                    school.save(update_fields=["billing_type", "waiver_note"])
+                    BillingWaiverAuditLog.objects.create(
+                        school=school,
+                        changed_by=request.user,
+                        old_billing_type=old_bt,
+                        new_billing_type=School.BillingType.COMPLIMENTARY,
+                        old_waiver_note=old_wn,
+                        new_waiver_note=waiver_note,
+                    )
+                    wr.status = WaiverRequest.Status.APPROVED
+                    wr.decided_by = request.user
+                    wr.decided_at = timezone.now()
+                    wr.save(update_fields=["status", "decided_by", "decided_at", "updated_at"])
+                    count += 1
+            except Exception as e:
+                self.message_user(request, f"Failed to approve {wr}: {e}", level=messages.ERROR)
+        if count:
+            self.message_user(request, f"Approved {count} waiver request(s).", level=messages.SUCCESS)
+
+    @admin.action(description="Deny selected waiver requests")
+    def deny_waiver_requests(self, request, queryset):
+        pending = queryset.filter(status=WaiverRequest.Status.PENDING)
+        now = timezone.now()
+        updated = pending.update(
+            status=WaiverRequest.Status.DENIED,
+            decided_by_id=request.user.pk,
+            decided_at=now,
+            decision_note="Denied by admin",
+            updated_at=now,
+        )
+        if updated:
+            self.message_user(request, f"Denied {updated} waiver request(s).", level=messages.SUCCESS)
+
+
+admin_site.register(WaiverRequest, WaiverRequestAdmin)
+
+
+# ============================================================================
+# Section 7: Nuance Engine — CustomNuance, PendingNuance (human-in-the-loop)
+# ============================================================================
+
+
+class CustomNuanceAdmin(ModelAdmin):
+    list_display = ("school", "hook_point", "human_description_short", "is_active", "updated_at")
+    list_filter = ("hook_point", "is_active")
+    search_fields = ("school__name", "human_description")
+    raw_id_fields = ("school",)
+
+    def human_description_short(self, obj):
+        if not obj.human_description:
+            return "—"
+        return (obj.human_description[:60] + "…") if len(obj.human_description) > 60 else obj.human_description
+    human_description_short.short_description = "Description"
+
+    def save_model(self, request, obj, form, change):
+        from .nuance_engine import nuance_engine_enabled
+        if not nuance_engine_enabled(obj.school):
+            messages.warning(
+                request,
+                "Nuance Engine is not enabled for this school (plan/addon). Rule saved but may not run until enabled.",
+            )
+        super().save_model(request, obj, form, change)
+
+
+admin_site.register(CustomNuance, CustomNuanceAdmin)
+
+
+# Default test contexts for safety verification (fee-related hooks)
+def _default_nuance_test_contexts(hook_point):
+    if hook_point in ("tuition_calc", "fee_discount"):
+        return [
+            {"fee": 1000, "gpa": 3.5, "sibling_count": 0},
+            {"fee": 2000, "gpa": 4.0, "sibling_count": 2},
+        ]
+    if hook_point == "grade_weight":
+        return [{"score": 85, "weight": 0.3, "category": "exam"}]
+    return [{"value": 1}]
+
+
+class PendingNuanceAdmin(ModelAdmin):
+    list_display = ("school", "hook_point", "human_explanation_short", "status", "reviewed_by", "reviewed_at", "created_at")
+    list_filter = ("status", "hook_point")
+    search_fields = ("school__name", "human_explanation")
+    raw_id_fields = ("school", "reviewed_by")
+    readonly_fields = ("created_at", "updated_at")
+    actions = ["approve_pending_nuances"]
+
+    def human_explanation_short(self, obj):
+        if not obj.human_explanation:
+            return "—"
+        return (obj.human_explanation[:50] + "…") if len(obj.human_explanation) > 50 else obj.human_explanation
+    human_explanation_short.short_description = "Explanation"
+
+    @admin.action(description="Approve selected pending nuances")
+    def approve_pending_nuances(self, request, queryset):
+        from django.db import transaction
+        from .nuance_engine import verify_nuance_safety
+        from .models import CustomNuance
+
+        pending = queryset.filter(status=PendingNuance.Status.PENDING).select_related("school")
+        count = 0
+        errors = []
+        for pn in pending:
+            test_contexts = _default_nuance_test_contexts(pn.hook_point)
+            ok, msg = verify_nuance_safety(pn.proposed_logic, test_contexts, reject_negative_fee=True)
+            if not ok:
+                errors.append(f"{pn.school.name} / {pn.hook_point}: {msg}")
+                continue
+            try:
+                with transaction.atomic():
+                    CustomNuance.objects.update_or_create(
+                        school=pn.school,
+                        hook_point=pn.hook_point,
+                        defaults={
+                            "logic_data": pn.proposed_logic,
+                            "human_description": pn.human_explanation or "",
+                            "is_active": True,
+                        },
+                    )
+                    pn.status = PendingNuance.Status.APPROVED
+                    pn.reviewed_by = request.user
+                    pn.reviewed_at = timezone.now()
+                    pn.save(update_fields=["status", "reviewed_by", "reviewed_at", "updated_at"])
+                    count += 1
+            except Exception as e:
+                errors.append(f"{pn.school.name} / {pn.hook_point}: {e}")
+        if count:
+            self.message_user(request, f"Approved {count} pending nuance(s).", level=messages.SUCCESS)
+        for err in errors:
+            self.message_user(request, err, level=messages.ERROR)
+
+
+admin_site.register(PendingNuance, PendingNuanceAdmin)
+
+
+class CustomFeatureTicketAdmin(ModelAdmin):
+    list_display = ("school", "title", "status", "created_at")
+    list_filter = ("status",)
+    search_fields = ("title", "description")
+    raw_id_fields = ("school", "created_by")
+
+
+class FeatureFragmentAdmin(ModelAdmin):
+    list_display = ("school", "target_hook", "name", "is_active", "schema_version")
+    list_filter = ("is_active", "target_hook")
+    search_fields = ("name", "target_hook")
+    raw_id_fields = ("school", "ticket")
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "target_hook":
+            from .hooks import get_hook_choices
+            kwargs["choices"] = get_hook_choices()
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+
+
+admin_site.register(CustomFeatureTicket, CustomFeatureTicketAdmin)
+admin_site.register(FeatureFragment, FeatureFragmentAdmin)
+
+
+class DesignTemplateAdmin(ModelAdmin):
+    list_display = ("name", "school", "document_type", "is_default", "created_at")
+    list_filter = ("document_type", "is_default")
+    search_fields = ("name", "school__name")
+    raw_id_fields = ("school",)
+    readonly_fields = ("created_at", "updated_at")
+
+
+admin_site.register(DesignTemplate, DesignTemplateAdmin)
+
+
+class BrandSettingsAdmin(ModelAdmin):
+    list_display = ("school", "primary_color", "accent_color", "updated_at")
+    raw_id_fields = ("school",)
+    readonly_fields = ("created_at", "updated_at")
+
+
+admin_site.register(BrandSettings, BrandSettingsAdmin)
+
+
 # Register dashboard preference and widget models for admin configurability
 admin_site.register(DashboardUserPreference, DashboardUserPreferenceAdmin)
 admin_site.register(DashboardWidget, DashboardWidgetAdmin)
@@ -1888,3 +2172,101 @@ class FeatureControlAuditAdmin(ModelAdmin):
 
 
 admin_site.register(FeatureControlAudit, FeatureControlAuditAdmin)
+
+
+# Section 8: Industry Interoperability — ServiceIntegration, WebhookSubscription
+class ServiceIntegrationAdmin(ModelAdmin):
+    list_display = ("school", "service_name", "service_type", "is_active", "updated_at")
+    list_filter = ("service_type", "is_active")
+    raw_id_fields = ("school",)
+    search_fields = ("service_name",)
+    ordering = ("school", "service_name")
+
+
+class WebhookSubscriptionAdmin(ModelAdmin):
+    list_display = ("school", "event_type", "target_url", "is_active", "updated_at")
+    list_filter = ("is_active", "event_type")
+    raw_id_fields = ("school",)
+    search_fields = ("event_type", "target_url")
+    ordering = ("school", "event_type")
+
+
+admin_site.register(ServiceIntegration, ServiceIntegrationAdmin)
+admin_site.register(WebhookSubscription, WebhookSubscriptionAdmin)
+
+
+# ============================================================================
+# Phase G: Sync Center – conflict queue for offline delta-sync
+# ============================================================================
+
+
+# Phase G: SyncConflict model and admin (uncomment when SyncConflict exists in siteconfig.models)
+# def _resolve_sync_conflict(conflict, resolution, resolved_by): ...
+# class SyncConflictAdmin(ModelAdmin): ...
+# admin_site.register(SyncConflict, SyncConflictAdmin)
+try:
+    from .models import SyncConflict
+    def _resolve_sync_conflict(conflict, resolution, resolved_by):
+        from django.utils import timezone
+        conflict.resolved_by = resolved_by
+        conflict.resolved_at = timezone.now()
+        conflict.status = resolution
+        if resolution == SyncConflict.Status.RESOLVED_CLIENT:
+            from apps.api.sync_services import _get_entity_config
+            config = _get_entity_config()
+            if conflict.entity_type in config:
+                model, allowed = config[conflict.entity_type]
+                updates = {k: v for k, v in (conflict.client_data or {}).items() if k in allowed}
+                if updates:
+                    try:
+                        instance = model.objects.get(pk=conflict.entity_id)
+                        for key, value in updates.items():
+                            setattr(instance, key, value)
+                        instance.save(update_fields=list(updates.keys()) + ["updated_at"])
+                    except model.DoesNotExist:
+                        pass
+        conflict.save(update_fields=["status", "resolved_at", "resolved_by"])
+
+    class SyncConflictAdmin(ModelAdmin):
+        list_display = ("id", "school", "entity_type", "entity_id", "status", "reported_by", "created_at")
+        list_filter = ("school", "status", "entity_type")
+        search_fields = ("entity_type", "entity_id", "resolution_note")
+        readonly_fields = (
+            "school", "entity_type", "entity_id", "client_data", "server_data",
+            "client_updated_at", "server_updated_at", "reported_by", "created_at",
+        )
+        date_hierarchy = "created_at"
+        list_per_page = 25
+        actions = ["resolve_keep_server", "resolve_keep_client", "resolve_discard"]
+
+        def has_add_permission(self, request):
+            return False
+
+        def get_queryset(self, request):
+            qs = super().get_queryset(request)
+            school = getattr(request, "school", None)
+            if school and not request.user.is_superuser:
+                return qs.filter(school_id=school.id)
+            return qs
+
+        @admin.action(description="Keep server version")
+        def resolve_keep_server(self, request, queryset):
+            for obj in queryset.filter(status=SyncConflict.Status.PENDING):
+                _resolve_sync_conflict(obj, SyncConflict.Status.RESOLVED_SERVER, request.user)
+            self.message_user(request, f"Resolved {queryset.filter(status=SyncConflict.Status.PENDING).count()} conflict(s) (server).")
+
+        @admin.action(description="Keep client version")
+        def resolve_keep_client(self, request, queryset):
+            for obj in queryset.filter(status=SyncConflict.Status.PENDING):
+                _resolve_sync_conflict(obj, SyncConflict.Status.RESOLVED_CLIENT, request.user)
+            self.message_user(request, f"Resolved {queryset.filter(status=SyncConflict.Status.PENDING).count()} conflict(s) (client).")
+
+        @admin.action(description="Discard")
+        def resolve_discard(self, request, queryset):
+            for obj in queryset.filter(status=SyncConflict.Status.PENDING):
+                _resolve_sync_conflict(obj, SyncConflict.Status.DISCARDED, request.user)
+            self.message_user(request, f"Discarded {queryset.filter(status=SyncConflict.Status.PENDING).count()} conflict(s).")
+
+    admin_site.register(SyncConflict, SyncConflictAdmin)
+except ImportError:
+    pass

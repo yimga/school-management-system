@@ -11,6 +11,56 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Specialty, Department, Term
 
 
+# -----------------------------------------------------------------------------
+# Information Tagging (zero hardcoding): school-defined categories for students
+# -----------------------------------------------------------------------------
+
+
+class InformationTag(models.Model):
+    """
+    School-defined tags (e.g. "Scholarship Student", "Athletic Team A", "Allergy: Nut").
+    No hardcoded columns on Student — all nuance is data-driven for the AI Nuance Engine.
+    Security: tags are scoped by school (tenant). is_private = only Medical/Admin can see.
+    is_critical = when added to a student, can trigger dispute workflow / Principal notification.
+    """
+    class Category(models.TextChoices):
+        MEDICAL = "MED", _("Medical")
+        FINANCIAL = "FIN", _("Financial")
+        ACADEMIC = "ACA", _("Academic")
+        GENERAL = "GEN", _("General")
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="information_tags",
+    )
+    name = models.CharField(max_length=50, help_text=_("e.g. Asthma, Early Bird, Scholarship"))
+    category = models.CharField(max_length=3, choices=Category.choices, default=Category.GENERAL)
+    color_hex = models.CharField(max_length=7, default="#3498db")
+    description = models.TextField(blank=True, help_text=_("Metadata for the AI Nuance Engine"))
+    is_private = models.BooleanField(
+        default=False,
+        help_text=_("Only users with Medical or Admin permissions can see this tag on students."),
+    )
+    is_critical = models.BooleanField(
+        default=False,
+        help_text=_("When this tag is added to a student, a notification or support workflow can be triggered."),
+    )
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["school", "sort_order", "name"]
+        unique_together = [("school", "name")]
+        verbose_name = _("Information tag")
+        verbose_name_plural = _("Information tags")
+
+    def __str__(self):
+        return f"{self.get_category_display()}: {self.name}"
+
+
 class TeacherProfile(models.Model):
     # Phase 4: Enable audit logging for this model (teacher record changes)
     audit_enabled = True
@@ -302,6 +352,14 @@ class StudentProfile(models.Model):
         help_text="User who last updated this student record"
     )
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    # Zero-hardcoding: school-defined tags (Scholarship, Allergy, Early Bird, etc.)
+    tags = models.ManyToManyField(
+        InformationTag,
+        blank=True,
+        related_name="students",
+        help_text=_("School-defined information tags for nuance, discounts, and workflows."),
+    )
 
     class Meta:
         ordering = ["last_name", "first_name"]
@@ -715,3 +773,100 @@ class BadgeScanEvent(models.Model):
     def __str__(self):
         subject = self.user or self.student or f"Badge#{self.badge_id}"
         return f"Scan {self.verified_at.isoformat()} – {subject} ({self.token_kind})"
+
+
+# =============================================================================
+# Admissions CRM (Phase 5) & Student Success / Retention (Phase 6), global platform
+# =============================================================================
+
+
+class Applicant(models.Model):
+    """Lead/applicant for admissions funnel. ENROLLED stage triggers creation of StudentProfile (same tenant)."""
+    class Stage(models.TextChoices):
+        LEAD = "LEAD", "Lead"
+        APPLIED = "APPLIED", "Applied"
+        UNDER_REVIEW = "UNDER_REVIEW", "Under review"
+        ACCEPTED = "ACCEPTED", "Accepted"
+        REJECTED = "REJECTED", "Rejected"
+        ENROLLED = "ENROLLED", "Enrolled"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="applicants",
+    )
+    first_name = models.CharField(max_length=120)
+    last_name = models.CharField(max_length=120)
+    email = models.EmailField()
+    lead_source = models.CharField(max_length=80, blank=True)
+    stage = models.CharField(max_length=20, choices=Stage.choices, default=Stage.LEAD)
+    yield_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="AI/rule-based probability of enrollment (0–100).",
+    )
+    assigned_recruiter = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_applicants",
+    )
+    extra_data = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Applicant"
+        verbose_name_plural = "Applicants"
+        indexes = [
+            models.Index(fields=["school", "stage"]),
+            models.Index(fields=["email", "school"]),
+        ]
+
+    def __str__(self):
+        return f"{self.last_name}, {self.first_name} ({self.stage})"
+
+
+class RetentionAlert(models.Model):
+    """At-risk student alert for advisor dashboard. Sovereign AI: analysis_summary must be human-readable."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="retention_alerts",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name="retention_alerts",
+    )
+    risk_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="0–100 risk score",
+    )
+    alert_level = models.CharField(max_length=20, default="MEDIUM")  # LOW, MEDIUM, HIGH, CRITICAL
+    analysis_summary = models.TextField(
+        blank=True,
+        help_text="Human-readable explanation (Sovereign AI: why this flag was raised).",
+    )
+    primary_reason = models.CharField(max_length=255, blank=True)
+    recommended_action = models.CharField(max_length=255, blank=True)
+    is_resolved = models.BooleanField(default=False)
+    intervention_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-risk_score", "-created_at"]
+        verbose_name = "Retention alert"
+        verbose_name_plural = "Retention alerts"
+        indexes = [models.Index(fields=["school", "is_resolved"])]
+
+    def __str__(self):
+        return f"{self.student} — risk {self.risk_score} ({self.alert_level})"

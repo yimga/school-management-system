@@ -120,6 +120,9 @@ class User(AbstractUser):
     roles = models.ManyToManyField(AccessRole, blank=True, related_name="users")
     feature_permissions = models.ManyToManyField(Permission, blank=True, related_name="users")
     profile_photo = models.ImageField(upload_to="profiles/", blank=True, null=True)
+    # Security Powerhouse: lockdown forces password reset; cooldown uses last_lockdown_at
+    requires_password_change = models.BooleanField(default=False, help_text="Set by Emergency Lockdown; user must set new password on next login.")
+    last_lockdown_at = models.DateTimeField(null=True, blank=True, help_text="Last time user triggered Emergency Lockdown (for 24h cooldown).")
 
     def has_feature_permission(self, code: str) -> bool:
         if self.is_superuser:
@@ -278,3 +281,87 @@ class DelegationActionLog(models.Model):
 
     def __str__(self):
         return f"{self.actor.username} (for {self.acting_for.username}): {self.action_taken} @ {self.created_at}"
+
+
+# =============================================================================
+# Security & Identity Powerhouse (plan 3.13–3.23): Audit log, passkeys
+# =============================================================================
+
+class SecurityAuditLog(models.Model):
+    """
+    Tenant-scoped security event log: LOGIN, MFA_CHANGE, PWD_RESET, DATA_EXPORT, LOCKDOWN_TRIGGERED.
+    django-ipware for IP; GeoIP for city/country; is_suspicious when country != school.
+    Dedupe: same device/IP within 1h → update last_seen (handled in service layer).
+    """
+    class EventType(models.TextChoices):
+        LOGIN = "LOGIN", "Login"
+        LOGIN_FAILED = "LOGIN_FAILED", "Login failed"
+        MFA_CHANGE = "MFA_CHANGE", "MFA changed"
+        PWD_RESET = "PWD_RESET", "Password reset"
+        DATA_EXPORT = "DATA_EXPORT", "Data export"
+        LOCKDOWN_TRIGGERED = "LOCKDOWN_TRIGGERED", "Emergency lockdown"
+        SESSION_REVOKED = "SESSION_REVOKED", "Sessions revoked"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="security_audit_logs",
+        help_text="Tenant (school); null for platform-level events.",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="security_audit_logs",
+    )
+    event_type = models.CharField(max_length=40, choices=EventType.choices)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+    location_data = models.JSONField(default=dict, blank=True, help_text="e.g. {city, country, country_code}")
+    is_suspicious = models.BooleanField(default=False)
+    last_seen = models.DateTimeField(auto_now=True, help_text="Updated on dedupe (same IP/device within 1h).")
+    created_at = models.DateTimeField(auto_now_add=True)
+    initiator = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="self = user triggered; admin = admin triggered lockdown.",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["school", "created_at"]),
+            models.Index(fields=["event_type", "created_at"]),
+        ]
+        verbose_name = "Security audit log"
+        verbose_name_plural = "Security audit logs"
+
+    def __str__(self):
+        return f"{self.user_id} {self.event_type} @ {self.created_at}"
+
+
+class UserPasskey(models.Model):
+    """
+    WebAuthn/Passkeys: store public key for biometric login (SimpleWebAuthn registration).
+    Tenant-scoped via user → school membership.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="passkeys",
+    )
+    name = models.CharField(max_length=120, blank=True, help_text="e.g. iPhone Face ID")
+    credential_id = models.CharField(max_length=255, unique=True)
+    public_key = models.TextField()
+    sign_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "User passkey"
+        verbose_name_plural = "User passkeys"
+
+    def __str__(self):
+        return f"{self.user_id} {self.name or self.credential_id[:16]}"

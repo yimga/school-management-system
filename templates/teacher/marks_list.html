@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load tenant_hook %}
 {% block title %}My Marks{% endblock %}
 
 {% block content %}
@@ -64,8 +65,8 @@
 
 <div class="card">
   <div class="card-body table-responsive">
-    <table class="table table-sm table-striped align-middle">
-      <thead>
+    <table class="table table-sm table-striped align-middle gradebook-table">
+      <thead class="gradebook-thead-sticky">
         <tr>
           <th>Updated</th>
           <th>Student</th>
@@ -102,6 +103,9 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+  <div class="card-footer border-top bg-light">
+    {% tenant_hook 'GRADEBOOK_CARD_FOOTER' %}
   </div>
 </div>
 {% endblock %}

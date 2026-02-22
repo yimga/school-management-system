@@ -37,4 +37,9 @@ else
   echo "[predeploy] ADMIN_PASSWORD not set; skipping seed_render_users."
 fi
 
+# Phase I: DB health check before traffic (so orchestrator only routes when DB is ready)
+if [[ -f "scripts/release/run_health_check.sh" ]]; then
+  bash scripts/release/run_health_check.sh
+fi
+
 echo "[predeploy] complete"

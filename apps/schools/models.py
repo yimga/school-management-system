@@ -1,10 +1,59 @@
 """
 Multi-tenant School and SchoolMembership models (Option B+C).
 School is the tenant; SchoolMembership links users to schools with a role.
+Phase D: Plan + addons; is_feature_enabled(tenant, code) for feature gate.
 """
 import uuid
 from django.conf import settings
 from django.db import models
+
+
+def is_feature_enabled(school, code: str) -> bool:
+    """
+    Return True if the tenant (school) has the feature/module enabled.
+    Phase D: (1) plan.included_features, (2) school.addons, (3) School.features + FeatureToggleState.
+    Phase E: When billing_type is COMPLIMENTARY or MANUAL_OVERRIDE, grant full access (return True).
+    """
+    if school is None:
+        return False
+    # Phase E: Billing waiver — skip plan/feature checks and grant full access
+    billing_type = getattr(school, "billing_type", None)
+    if billing_type in ("COMPLIMENTARY", "MANUAL_OVERRIDE"):
+        return True
+    normalized = (code or "").strip().lower()
+    if not normalized:
+        return False
+    plan = getattr(school, "plan", None)
+    if plan and getattr(plan, "included_features", None):
+        included = [str(x).strip().lower() for x in plan.included_features if x]
+        if normalized in included:
+            return True
+    addons = getattr(school, "addons", None) or []
+    if isinstance(addons, list):
+        addon_set = [str(x).strip().lower() for x in addons if x]
+        if normalized in addon_set:
+            return True
+    # Phase A: getTenantModules — union of feature keys from TenantSystem + SystemFeature
+    try:
+        from apps.siteconfig.tenant_config import get_tenant_modules
+        if normalized in (get_tenant_modules(school) or []):
+            return True
+    except Exception:
+        pass
+    return _has_feature_fallback(school, code)
+
+
+def _has_feature_fallback(school, code: str) -> bool:
+    """Legacy: School.features + resolve_module_enabled."""
+    normalized = (code or "").strip().lower()
+    if not normalized:
+        return False
+    fallback = bool(school.features.get(normalized)) if isinstance(getattr(school, "features", None), dict) else False
+    try:
+        from apps.siteconfig.feature_toggles import resolve_module_enabled
+        return resolve_module_enabled(normalized, school=school, fallback=fallback)
+    except Exception:
+        return fallback
 
 
 def _get_role_choices():
@@ -74,8 +123,74 @@ class School(models.Model):
         help_text="Custom domain e.g. portal.school.edu",
     )
     custom_domain_verified = models.BooleanField(default=False)
+    # Phase B/H: Admin theme choice (Unfold [RECOMMENDED], Jazzmin, Sneat); optional "Change theme" in settings.
+    theme_choice = models.CharField(
+        max_length=20,
+        choices=[
+            ("UNFOLD", "Unfold (Modern)"),
+            ("JAZZMIN", "Jazzmin (Classic)"),
+            ("SNEAT", "Sneat (Enterprise)"),
+        ],
+        default="UNFOLD",
+        blank=True,
+        help_text="Admin/backend theme. Change theme in School edit or Site settings.",
+    )
+    plan = models.ForeignKey(
+        "siteconfig.Plan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="schools",
+        help_text="Subscription plan; included_features + addons determine enabled modules.",
+    )
+    addons = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Additional feature codes beyond plan (e.g. ['design_studio', 'inventory'])",
+    )
+    class BillingType(models.TextChoices):
+        REGULAR = "REGULAR", "Regular (paying)"
+        FREE_TRIAL = "FREE_TRIAL", "Free trial"
+        COMPLIMENTARY = "COMPLIMENTARY", "Complimentary (waived)"
+        MANUAL_OVERRIDE = "MANUAL_OVERRIDE", "Manual override (full access)"
+
+    billing_type = models.CharField(
+        max_length=20,
+        choices=BillingType.choices,
+        default=BillingType.REGULAR,
+        help_text="When COMPLIMENTARY or MANUAL_OVERRIDE, billing checks are skipped; waiver_note required.",
+    )
+    waiver_note = models.TextField(
+        blank=True,
+        help_text="Required when billing_type is COMPLIMENTARY or MANUAL_OVERRIDE (e.g. partnership with NGO).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Phase H: Optional approval workflow; Super Admin can list/filter unapproved schools.
+    is_approved = models.BooleanField(
+        default=True,
+        help_text="When False, school is pending approval. Default True for backward compatibility.",
+    )
+    last_activity = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Phase H optional: last request time for this tenant (throttled updates).",
+    )
+    # Section 8.7: Account freeze (storage/billing limit exceeded)
+    is_frozen = models.BooleanField(
+        default=False,
+        help_text="When True, tenant is restricted (e.g. storage or billing); middleware redirects to frozen page except billing/logout.",
+    )
+    frozen_reason = models.CharField(
+        max_length=30,
+        blank=True,
+        choices=[
+            ("", "—"),
+            ("STORAGE", "Storage limit exceeded"),
+            ("BILLING", "Subscription overdue"),
+        ],
+        help_text="Reason for freeze; required when is_frozen is True.",
+    )
 
     class Meta:
         ordering = ["name"]
@@ -86,17 +201,8 @@ class School(models.Model):
         return self.name
 
     def has_feature(self, code: str) -> bool:
-        """Return True if the school has the given feature/module enabled."""
-        normalized = (code or "").strip().lower()
-        if not normalized:
-            return False
-        fallback = bool(self.features.get(normalized)) if isinstance(self.features, dict) else False
-        try:
-            from apps.siteconfig.feature_toggles import resolve_module_enabled
-
-            return resolve_module_enabled(normalized, school=self, fallback=fallback)
-        except Exception:
-            return fallback
+        """Return True if the school has the given feature/module enabled. Phase D: considers plan + addons."""
+        return is_feature_enabled(self, code)
 
     def get_cname_target(self) -> str:
         """Return the hostname schools should CNAME their custom_domain to (whitelabel Phase 4)."""

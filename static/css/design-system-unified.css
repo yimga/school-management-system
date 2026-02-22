@@ -811,3 +811,16 @@ html[data-bs-theme="dark"] .table-zebra tbody tr:nth-of-type(even) {
 .table .cell-success {
   color: var(--brand-success, #22c55e);
 }
+
+/* Phase C: Gradebook sticky header (teacher marks list, evals tables) */
+.table-responsive { position: relative; }
+.gradebook-thead-sticky th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bs-table-bg, #fff);
+  box-shadow: 0 1px 0 0 var(--bs-border-color, #dee2e6);
+}
+[data-bs-theme="dark"] .gradebook-thead-sticky th {
+  background: var(--bs-body-bg);
+}

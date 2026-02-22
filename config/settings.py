@@ -92,6 +92,10 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "apps.schools.middleware.TenantMiddleware",  # Multi-tenant: resolve request.school from subdomain/custom domain
+    "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
+    "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
+    "apps.schools.middleware.TenantLastActivityMiddleware",  # Phase H: optional last_activity per tenant
+    "apps.schools.middleware.DynamicThemeMiddleware",  # Phase B: admin theme per school (Unfold/Jazzmin/Sneat)
     "django.middleware.locale.LocaleMiddleware",  # Add for i18n
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -100,6 +104,11 @@ MIDDLEWARE = [
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
     "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
+    "apps.schools.middleware.FeatureGatekeeperMiddleware",  # Phase D: enforce plan feature by path
+    "apps.schools.middleware.UsageLimitMiddleware",  # Phase D (optional, on by default): Plan max_students/max_staff; set DISABLE_USAGE_LIMIT_MIDDLEWARE=1 to turn off
+]
+MIDDLEWARE += [
+    "apps.compliance.middleware.ComplianceGuardMiddleware",  # Phase Compliance: region → feature_code RESTRICTED/DISABLED
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.siteconfig.middleware.MaintenanceModeMiddleware",
@@ -257,6 +266,26 @@ LOGIN_URL = "/authentication/login/"
 LOGIN_REDIRECT_URL = "/authentication/redirect/"
 LOGOUT_REDIRECT_URL = "/authentication/login/"
 
+# Security Powerhouse (plan 3.21): Account locking after 5 failed attempts.
+# Install: pip install django-defender. Set DEFENDER_ENABLED=1 to enable.
+DEFENDER_ENABLED = os.getenv("DEFENDER_ENABLED", "0") in ("1", "true", "yes")
+if DEFENDER_ENABLED:
+    try:
+        __import__("defender")
+    except ImportError:
+        DEFENDER_ENABLED = False
+if DEFENDER_ENABLED:
+    DEFENDER_DISABLE_GET_LOGIN = False
+    DEFENDER_GET_USERNAME_FROM_REQUEST_PATH = "apps.accounts.defender_utils.get_username_from_request"
+    DEFENDER_LOCK_OUT_BY_IP_OR_USERNAME = True
+    DEFENDER_BEHIND_REVERSE_PROXY = os.getenv("RENDER", "0") == "1"
+    DEFENDER_FAILURE_LIMIT = 5
+    DEFENDER_COOLOFF_TIME = 60 * 15  # 15 minutes
+    DEFENDER_DISABLE_IP_LOCKOUT = False
+    INSTALLED_APPS.append("defender")
+    _auth_idx = next((i for i, m in enumerate(MIDDLEWARE) if "AuthenticationMiddleware" in m), len(MIDDLEWARE))
+    MIDDLEWARE.insert(_auth_idx, "defender.middleware.FailedLoginMiddleware")
+
 # --- Site behavior ---
 MAINTENANCE_MODE = False
 
@@ -269,11 +298,14 @@ SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", _secure_ssl_redirect_defa
 # Exempt these endpoints to avoid redirect loops and failed boot probes.
 SECURE_REDIRECT_EXEMPT = [
     r"^$",
-    r"^health/$",
-    r"^healthz/$",
-    r"^ready/$",
-    r"^status/$",
-    r"^api/health/$",
+    r"^health/",
+    r"^healthz/",
+    r"^ready/",
+    r"^status/",
+    r"^api/health/",
+    r"^api/caddy-check/",   # Section 8: Caddy on-demand TLS (often called over HTTP by Caddy)
+    r"^discover/",          # Section 8: Global login discovery (landing page)
+    r"^account-frozen/",    # Section 8: Frozen account page (may be hit before HTTPS)
 ]
 SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "1") == "1" and not DEBUG
 CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "1") == "1" and not DEBUG
@@ -336,6 +368,8 @@ UNFOLD = {
         "show_all_applications": True,
         "navigation": [],
     },
+    # Phase H: Bento-style admin index; injects school logo/colors when request.school is set
+    "DASHBOARD_CALLBACK": "apps.siteconfig.unfold_dashboard.dashboard_callback",
     # Custom CSS (theme-proof, sidebar scroll, dashboard) loaded via admin/base_site.html extrastyle
 }
 
@@ -369,6 +403,8 @@ EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@gileadschool.com")
+# Optional regional SMTP (Phase Welcome): map region_id to from_email; override in local_settings, e.g. REGIONAL_FROM_EMAIL = {"DEU": "noreply@eu.example.com"}
+REGIONAL_FROM_EMAIL = {}
 
 # --- Caching Configuration ---
 CACHES = {
@@ -455,6 +491,11 @@ CELERY_BEAT_SCHEDULE = {
         "task": "finance.update_invoice_statuses",
         "schedule": 86400.0,  # Daily
         "options": {"expires": 600},
+    },
+    "calculate-monthly-revenue-stats": {
+        "task": "siteconfig.calculate_monthly_revenue_stats",
+        "schedule": 86400.0,  # Daily (Phase E: RevenueSnapshot, waiver metrics)
+        "options": {"expires": 3600},
     },
 }
 
@@ -662,4 +703,83 @@ ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true
 
 # --- Application Version ---
 APP_VERSION = '3.2.1'  # System version for dashboard footer
+
+# --- Phase I: Schema-per-tenant (django-tenants) — optional ---
+# Set USE_DJANGO_TENANTS=1 to enable. Requires PostgreSQL. See docs/PHASE_I_SCALE_GAP_ANALYSIS.md.
+USE_DJANGO_TENANTS = os.getenv("USE_DJANGO_TENANTS", "").strip() in ("1", "true", "yes")
+if USE_DJANGO_TENANTS and DATABASES.get("default", {}).get("ENGINE", "").endswith("postgresql"):
+    # Swap to django-tenants PostgreSQL backend
+    _db = DATABASES["default"].copy()
+    _db["ENGINE"] = "django_tenants.postgresql_backend"
+    DATABASES["default"] = _db
+    # Router: route shared vs tenant apps
+    DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
+    # Tenant and domain models (apps.customers)
+    TENANT_MODEL = "customers.Client"
+    TENANT_DOMAIN_MODEL = "customers.Domain"
+    SHARED_APPS = [
+        "django_tenants",
+        "django.contrib.contenttypes",
+        "django.contrib.admin",
+        "django.contrib.auth",
+        "django.contrib.sessions",
+        "django.contrib.messages",
+        "django.contrib.staticfiles",
+        "unfold",
+        "django_otp",
+        "django_otp.plugins.otp_totp",
+        "django_otp.plugins.otp_static",
+        "rest_framework",
+        "rest_framework_simplejwt",
+        "apps.accounts",
+        "apps.schools",
+        "apps.siteconfig",
+        "apps.compliance",
+        "apps.observability",
+        "apps.api",
+        "apps.apicenter",
+        "apps.portal",
+        "apps.automation",
+        "apps.requests",
+        "emis",
+        "django_celery_results",
+        "django_celery_beat",
+        "apps.customers",
+    ]
+    TENANT_APPS = [
+        "apps.academics",
+        "apps.people",
+        "apps.finance",
+        "apps.evals",
+        "apps.reports",
+        "apps.communication",
+        "apps.analytics",
+        "apps.payroll",
+    ]
+    INSTALLED_APPS = list(SHARED_APPS) + [a for a in TENANT_APPS if a not in SHARED_APPS]
+    # Middleware: TenantMainMiddleware must be first so request.tenant is set
+    MIDDLEWARE = [
+        "django_tenants.middleware.main.TenantMainMiddleware",
+        "django.middleware.security.SecurityMiddleware",
+        "whitenoise.middleware.WhiteNoiseMiddleware",
+        "django.contrib.sessions.middleware.SessionMiddleware",
+        "django.middleware.locale.LocaleMiddleware",
+        "django.middleware.common.CommonMiddleware",
+        "django.middleware.csrf.CsrfViewMiddleware",
+        "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
+        "apps.accounts.middleware.ModuleAccessMiddleware",
+        "apps.accounts.middleware.RequireMFAMiddleware",
+        "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",
+        "django_otp.middleware.OTPMiddleware",
+        "django.contrib.messages.middleware.MessageMiddleware",
+        "apps.siteconfig.middleware.MaintenanceModeMiddleware",
+        "apps.siteconfig.middleware.preview_mode.PreviewModeMiddleware",
+        "apps.compliance.middleware.IPCountryAccessMiddleware",
+        "apps.compliance.middleware.AuditLoggingMiddleware",
+        "apps.compliance.middleware.AccessControlMiddleware",
+        "apps.observability.middleware.ObservabilityMiddleware",
+        "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    ]
+    # When using tenants, do not add apps.schools.middleware.TenantMiddleware (TenantMainMiddleware replaces it)
 

@@ -1,0 +1,86 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}Sync Center – {{ school.name }}{% endblock %}
+{% block backend_title %}Sync Center{% endblock %}
+
+{% block content %}
+  <div class="container-fluid py-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="h4 mb-3">Sync conflicts</h1>
+        <p class="text-muted">Conflicts from offline sync. Resolve by keeping server version, client version, or discarding.</p>
+        {% if not sync_available %}
+          <p class="text-warning">Sync conflict model not available.</p>
+        {% elif not conflicts %}
+          <p class="text-muted">No pending conflicts.</p>
+        {% else %}
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Entity</th>
+                  <th>ID</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in conflicts %}
+                  <tr>
+                    <td>{{ c.entity_type }}</td>
+                    <td>{{ c.entity_id }}</td>
+                    <td>{{ c.get_status_display }}</td>
+                    <td>{{ c.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                      {% if c.client_data or c.server_data %}
+                        <button type="button" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="collapse" data-bs-target="#sync-payload-{{ c.id }}" aria-expanded="false">Side-by-side</button>
+                      {% endif %}
+                      {% if c.status == "PENDING" %}
+                        <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
+                          {% csrf_token %}
+                          <input type="hidden" name="resolution" value="server">
+                          <button type="submit" class="btn btn-sm btn-outline-primary">Keep server</button>
+                        </form>
+                        <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
+                          {% csrf_token %}
+                          <input type="hidden" name="resolution" value="client">
+                          <button type="submit" class="btn btn-sm btn-outline-secondary">Keep client</button>
+                        </form>
+                        <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
+                          {% csrf_token %}
+                          <input type="hidden" name="resolution" value="discard">
+                          <button type="submit" class="btn btn-sm btn-outline-danger">Discard</button>
+                        </form>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% if c.client_data or c.server_data %}
+                  <tr class="collapse" id="sync-payload-{{ c.id }}">
+                    <td colspan="5" class="p-0">
+                      <div class="row g-0 border-top bg-light small">
+                        <div class="col-md-6 p-2 border-end">
+                          <strong>Server version</strong>
+                          <pre class="mb-0 mt-1 small">{{ c.server_data }}</pre>
+                        </div>
+                        <div class="col-md-6 p-2">
+                          <strong>Client/offline version</strong>
+                          <pre class="mb-0 mt-1 small">{{ c.client_data }}</pre>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+        <a href="{% url 'siteconfig:user_preferences' %}" class="btn btn-outline-secondary mt-2">Back to preferences</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

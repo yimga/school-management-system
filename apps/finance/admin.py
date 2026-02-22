@@ -7,8 +7,10 @@ from config.admin import admin_site
 from unfold.admin import ModelAdmin
 
 from .models import (
+    AidAuditLog,
     Asset,
     AssetCategory,
+    AwardSource,
     BankAccount,
     BankStatementEntry,
     BankStatementUpload,
@@ -21,6 +23,8 @@ from .models import (
     FeeInstallment,
     FeeItem,
     FeePlan,
+    FinancialAidApplication,
+    FinanceRequestAudit,
     Grant,
     GrantAllocation,
     Invoice,
@@ -28,12 +32,12 @@ from .models import (
     JournalEntry,
     JournalLine,
     LedgerAccount,
-    FinanceRequestAudit,
     Payment,
     PaymentProofUpload,
+    ReferralReward,
+    Scholarship,
     SuspensePayment,
     SuspensePaymentAllocation,
-    ReferralReward,
     TaxBracket,
     PaymentReminder,
     PaymentReminderLog,
@@ -729,6 +733,44 @@ class SuspensePaymentAdmin(ModelAdmin):
     def remaining_amount_display(self, obj):
         return obj.remaining_amount
 
+
+# ----- Financial Aid & Scholarships (Phase 1, global platform) -----
+class AwardSourceAdmin(ModelAdmin):
+    list_display = ("name", "school", "total_budget", "remaining_funds", "currency", "is_active")
+    list_filter = ("school", "is_active", "currency")
+    search_fields = ("name",)
+    list_per_page = 50
+
+
+class ScholarshipAdmin(ModelAdmin):
+    list_display = ("title", "school", "source", "award_amount", "is_renewable", "is_active")
+    list_filter = ("school", "is_active")
+    search_fields = ("title",)
+    list_per_page = 50
+    raw_id_fields = ("source",)
+
+
+class FinancialAidApplicationAdmin(ModelAdmin):
+    list_display = ("student", "scholarship", "status", "amount_approved", "disbursed_at", "created_at")
+    list_filter = ("school", "status")
+    search_fields = ("student__first_name", "student__last_name", "scholarship__title")
+    list_per_page = 50
+    raw_id_fields = ("student", "scholarship", "dispute_link")
+    readonly_fields = ("disbursed_at", "created_at", "updated_at")
+
+
+class AidAuditLogAdmin(ModelAdmin):
+    list_display = ("source", "action", "amount", "balance_after", "created_at", "created_by")
+    list_filter = ("school", "action")
+    search_fields = ("reason",)
+    list_per_page = 50
+    readonly_fields = ("school", "source", "action", "amount", "balance_after", "reason", "application", "created_by", "created_at")
+
+
+admin_site.register(AwardSource, AwardSourceAdmin)
+admin_site.register(Scholarship, ScholarshipAdmin)
+admin_site.register(FinancialAidApplication, FinancialAidApplicationAdmin)
+admin_site.register(AidAuditLog, AidAuditLogAdmin)
 
 admin_site.register(BankAccount, BankAccountAdmin)
 admin_site.register(BankStatementEntry, BankStatementEntryAdmin)

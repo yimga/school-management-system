@@ -89,6 +89,11 @@ from .services import (
     parent_onboarding_score,
     _merged_upcoming_events,
 )
+from .parent_portal_helpers import (
+    get_active_child_id,
+    set_active_child,
+    require_parent_child_access,
+)
 from .forms import (
     LinkChildForm,
     ClaimInviteForm,
@@ -539,6 +544,19 @@ def parent_dashboard(request: HttpRequest):
             .order_by("-paid_at")[:5]
         )
 
+    # Phase F optional: active child for switcher; RTL from school/region
+    active_child_id = get_active_child_id(request)
+    guardian_students_for_switcher = [
+        {"id": s.id, "display_name": (f"{getattr(s, 'first_name', '')} {getattr(s, 'last_name', '')}".strip() or f"Student {s.id}")}
+        for s in students
+    ]
+    if guardian_students_for_switcher and active_child_id not in [s["id"] for s in guardian_students_for_switcher]:
+        set_active_child(request, guardian_students_for_switcher[0]["id"])
+        active_child_id = guardian_students_for_switcher[0]["id"]
+    school = getattr(request, "school", None)
+    region = getattr(school, "default_region", None) if school else None
+    is_rtl = bool(getattr(region, "is_rtl", False) or (school and (school.settings or {}).get("rtl")))
+
     return render(request, "parent/dashboard.html", {
         "links": links,
         "show_parent_dashboard_hint": show_parent_dashboard_hint,
@@ -580,7 +598,21 @@ def parent_dashboard(request: HttpRequest):
         "missing_work_count": missing_work_count,
         "recent_payments": recent_payments,
         "workflow_summary": workflow_summary,
+        "active_child_id": active_child_id,
+        "guardian_students_for_switcher": guardian_students_for_switcher,
+        "is_rtl": is_rtl,
     })
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_set_active_child(request: HttpRequest, child_id: int):
+    """Phase F optional: set session active child and redirect to parent dashboard. Verifies parent has access."""
+    student, err = require_parent_child_access(request, child_id)
+    if err:
+        return err
+    set_active_child(request, child_id)
+    return redirect("portal:parent_dashboard")
 
 
 def _parent_workflow_link(label: str, url_name: str, *args, **kwargs) -> dict:

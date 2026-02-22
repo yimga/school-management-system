@@ -13,7 +13,7 @@ from apps.schools.models import School, SchoolMembership, SchoolProvisioningEven
 from apps.schools.tasks import provision_school_sync
 from apps.people.models import StudentProfile
 from apps.academics.models import AcademicYear, Term, Subject
-from apps.siteconfig.models import EducationSystemProfile, RegionConfig
+from apps.siteconfig.models import EducationSystemProfile, RegionConfig, TenantSystem, SystemFeature
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 
@@ -67,6 +67,44 @@ class TenantIsolationTests(TestCase):
         results = data.get("results") if isinstance(data, dict) else (data if isinstance(data, list) else [])
         ids = [s.get("id") for s in results if isinstance(s, dict) and s.get("id") is not None]
         self.assertNotIn(self.student_b.id, ids, "School A user must not see School B student")
+
+    def test_has_feature_respects_tenant_systems(self):
+        """Phase G optional: has_feature() returns only features from that school's TenantSystems (no cross-tenant leak)."""
+        region = RegionConfig.objects.filter(code="CMR").first() or RegionConfig.objects.create(
+            code="CMR", name="Cameroon", default_language="en", timezone="Africa/Douala", grading_scale="0-20"
+        )
+        profile_workshop, _ = EducationSystemProfile.objects.get_or_create(
+            code="test-workshop-profile",
+            defaults={
+                "name": "Test Workshop",
+                "region": region,
+                "sub_system": EducationSystemProfile.SubSystem.EN,
+                "is_active": True,
+                "approval_status": EducationSystemProfile.ApprovalStatus.APPROVED,
+            },
+        )
+        SystemFeature.objects.get_or_create(system=profile_workshop, feature_key="workshop_management")
+        profile_basic, _ = EducationSystemProfile.objects.get_or_create(
+            code="test-basic-profile",
+            defaults={
+                "name": "Test Basic",
+                "region": region,
+                "sub_system": EducationSystemProfile.SubSystem.EN,
+                "is_active": True,
+                "approval_status": EducationSystemProfile.ApprovalStatus.APPROVED,
+            },
+        )
+        # School A has workshop profile, School B has basic only
+        TenantSystem.objects.get_or_create(school=self.school_a, system=profile_workshop)
+        TenantSystem.objects.get_or_create(school=self.school_b, system=profile_basic)
+        self.assertTrue(
+            self.school_a.has_feature("workshop_management"),
+            "School A has workshop profile so has_feature('workshop_management') must be True",
+        )
+        self.assertFalse(
+            self.school_b.has_feature("workshop_management"),
+            "School B has no workshop profile so has_feature('workshop_management') must be False",
+        )
 
 
 class ProvisioningJobTests(TestCase):

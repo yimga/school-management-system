@@ -24,11 +24,13 @@ from apps.siteconfig.models import RegionConfig
 
 class BankStatementImportServiceTests(TestCase):
     def setUp(self):
-        self.region = RegionConfig.objects.create(
+        self.region, _ = RegionConfig.objects.get_or_create(
             code="CMR",
-            name="Cameroon",
-            default_language="en",
-            timezone="Africa/Douala",
+            defaults={
+                "name": "Cameroon",
+                "default_language": "en",
+                "timezone": "Africa/Douala",
+            },
         )
         self.profile = ComplianceProfile.objects.create(
             name="CM Profile",
