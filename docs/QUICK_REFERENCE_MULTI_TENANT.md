@@ -2,7 +2,7 @@
 
 One-page reference for **Main (Public) Admin**, **Tenant Admin (Backend)**, and **tenant-specific URLs**. Full details: [MULTI_TENANT_ADMIN_AND_URLS.md](MULTI_TENANT_ADMIN_AND_URLS.md), [RENDER_URL_MAPPING_PLAN.md](RENDER_URL_MAPPING_PLAN.md).
 
-**Rule:** **Main Admin = base domain only.** **Tenant Backend = subdomain (or custom domain) only.** The base domain never has a tenant; login on the base domain redirects users with a school to the tenant subdomain.
+**Rule:** **Main Admin = base domain only.** **Tenant pages = not at root on base domain** — use **path-based `/t/<school_slug>/`** (Option A) or subdomain/custom domain (Option B).
 
 ---
 
@@ -32,6 +32,8 @@ These paths are the main entry points for each tenant. They all resolve on the t
 | **Tenant Parent portal/dashboard** | `/portal/parent/` | Parent dashboard and child links. |
 | **Tenant Teacher portal/dashboard** | `/portal/teacher/` | Teacher dashboard (evals/teacher alias). |
 
+On **Option A** (single hostname), the full URL is **base + `/t/<slug>` + path** (e.g. `https://...onrender.com/t/gilead/authentication/login/`).
+
 ---
 
 ## Main vs tenant admin
@@ -49,10 +51,13 @@ These paths are the main entry points for each tenant. They all resolve on the t
 
 | Variable | Example | Purpose |
 |----------|---------|---------|
-| **MULTI_TENANT_BASE_DOMAIN** | **Render:** `school-management-system-2kzk.onrender.com` **Local:** `localhost` | **Required for subdomain-only tenants.** Base domain = no tenant; subdomain extraction; auto-adds to ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS. |
+| **MULTI_TENANT_BASE_DOMAIN** | **Render:** `school-management-system-2kzk.onrender.com` **Local:** `localhost` | Base domain for "no tenant" and subdomain extraction; auto-adds to ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS when set. |
+| **RENDER_EXTERNAL_HOSTNAME** | Set by Render automatically | When MULTI_TENANT_BASE_DOMAIN is not set, used as base domain so `/admin/` on the primary URL is always main admin. |
 | **CSRF_TRUSTED_ORIGINS** | `https://school-management-system-2kzk.onrender.com` | HTTPS form POSTs (login, etc.). |
 | **ALLOWED_HOSTS** | Optional; base + subdomains added when MULTI_TENANT_BASE_DOMAIN is set. | |
-| **SINGLE_TENANT** | (not used when base domain = no tenant) | Legacy: force single-school on main URL when base domain is not distinguished. |
+| **SINGLE_TENANT** | (optional) | Legacy: force single-school on main URL. |
+
+**Option A (single hostname):** Main URL serves only main admin (`/admin/`, `/super/`). Tenant pages live under **`/t/<school_slug>/`** (e.g. `/t/gilead/authentication/login/`). Root-level tenant paths redirect to `/t/<slug>/...` when exactly one school exists.
 
 ---
 

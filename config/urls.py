@@ -32,7 +32,12 @@ def home(request):
     # Redirect based on role/authentication status
     if request.user.is_authenticated:
         return redirect("accounts:redirect")
-    # Everyone else goes to login
+    # Option A: main URL = main admin only; send unauthenticated users to tenant login under /t/<slug>/
+    from apps.schools.tenant_url import is_base_domain, get_single_tenant_slug
+    if is_base_domain(request):
+        slug = get_single_tenant_slug()
+        if slug:
+            return redirect(f"/t/{slug}/authentication/login/")
     return redirect("accounts:login")
 
 

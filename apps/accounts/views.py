@@ -698,7 +698,7 @@ def redirect_view(request):
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
 
-    # Base domain: send users with a school membership to the tenant subdomain
+    # Base domain: send users with a school membership to tenant URL (subdomain or /t/<slug>/)
     if not getattr(request, "school", None):
         try:
             from apps.schools.models import SchoolMembership
@@ -711,8 +711,13 @@ def redirect_view(request):
         except Exception:
             pass
 
+    from apps.schools.tenant_url import get_tenant_prefix
+
     def _redirect_with_params(name_or_url, *args, **kwargs):
         target = reverse(name_or_url, args=args, kwargs=kwargs)
+        prefix = get_tenant_prefix(request)
+        if prefix:
+            target = prefix.rstrip("/") + target
         if request.GET:
             target += "?" if "?" not in target else "&"
             target += request.GET.urlencode()

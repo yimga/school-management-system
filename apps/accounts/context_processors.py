@@ -27,13 +27,20 @@ def dashboard_context(request):
     - System version
     - Role-based metrics
     - User information
+    - tenant_path_prefix for Option A path-based tenant links (e.g. /t/gilead/)
     """
+    try:
+        from apps.schools.tenant_url import get_tenant_prefix
+        tenant_prefix = get_tenant_prefix(request)
+    except Exception:
+        tenant_prefix = ""
     context = {
         'current_time': timezone.now(),
         'system_version': getattr(settings, 'APP_VERSION', '3.2.1'),
         'can_customize_dashboard': False,
         'can_create_school_wide_announcement': False,
         'can_access_school_wide_announcement_create': False,
+        'tenant_path_prefix': tenant_prefix,
     }
 
     if not request.user.is_authenticated:
