@@ -60,13 +60,15 @@ def _extract_slug_from_tenant_path(path: str) -> str | None:
 
 
 def _strip_tenant_path_prefix(path: str, slug: str) -> str:
-    """Return path with /t/<slug> stripped. E.g. /t/gilead/authentication/login/ -> /authentication/login/"""
+    """Return path with /t/<slug> stripped. E.g. /t/gilead/authentication/login/ -> /authentication/login/ (must start with / for Django resolver)."""
     prefix = f"/t/{slug}/"
     prefix_alt = f"/t/{slug}"
     if path.startswith(prefix):
-        return path[len(prefix) :] or "/"
+        rest = path[len(prefix) :].strip("/")
+        return f"/{rest}/" if rest else "/"
     if path == prefix_alt or path.startswith(prefix_alt + "/"):
-        return path[len(prefix_alt) :] or "/"
+        rest = path[len(prefix_alt) :].lstrip("/").strip("/")
+        return f"/{rest}/" if rest else "/"
     return path
 
 
