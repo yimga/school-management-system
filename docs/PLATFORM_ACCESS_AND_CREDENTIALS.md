@@ -108,4 +108,5 @@ See also: [ADMIN_AND_TENANT_URLS.md](ADMIN_AND_TENANT_URLS.md) for all URLs and 
 - **Subdomain (tenant) URLs:** For `http://gilead-school.localhost:8000/` to resolve to the Gilead school, set **`MULTI_TENANT_BASE_DOMAIN=localhost`** in your environment. See [ADMIN_AND_TENANT_URLS.md](ADMIN_AND_TENANT_URLS.md) §7.
 - **ALLOWED_HOSTS:** Default includes `.localhost` so subdomains work. For production, set `ALLOWED_HOSTS` (and optionally `.localhost` for local dev). See [config/settings.py](../config/settings.py).
 - **Deploy checklist:** Pre/post deploy steps, SSL, health endpoints: [DEPLOY_CHECKLIST.md](DEPLOY_CHECKLIST.md).
+- **Render production URL:** Main URL and tenant URL mapping for `school-management-system-2kzk.onrender.com`: [RENDER_PRODUCTION_URL_PLAN.md](RENDER_PRODUCTION_URL_PLAN.md).
 - **Tag Manager:** If you get a TypeError when opening Tag Manager, the decorator in `views_tag_manager.py` uses `raise_exception=True` which this project’s `permission_required` does not support; remove that argument if needed.

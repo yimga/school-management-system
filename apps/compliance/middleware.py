@@ -374,7 +374,14 @@ def log_access_denial(user, action, resource, reason, ip_address='', severity='H
 
 COMPLIANCE_GUARD_PATH_MAP = {
     # Path prefix -> feature_code checked against RegionFeatureCompliance
-    # Example: "/api/export/student-data/": "Export_All_Student_Data",
+    # GDPR/DSAR execution and export
+    "/compliance/gdpr/export/": "Export_All_Student_Data",
+    "/compliance/gdpr/erasure-request/": "Right_to_Erasure",
+    # Public admissions capture (regional privacy policy toggle)
+    "/api/admissions/lead/": "Lead_Capture_API",
+    # Interoperability controls
+    "/api/interop/oneroster/": "OneRoster_Interop",
+    "/api/interop/lti13/": "LTI13_Interop",
 }
 
 

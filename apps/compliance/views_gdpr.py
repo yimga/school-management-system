@@ -27,7 +27,7 @@ def _mfa_verified(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def data_portability_export(request):
-    """Data portability (GDPR Art. 20). Requires MFA verification; returns CEDS-style export (stub)."""
+    """Data portability (GDPR Art. 20). Requires MFA verification and returns export payload."""
     school = getattr(request, "school", None)
     if not school:
         return HttpResponseForbidden("School context required.")
@@ -49,14 +49,39 @@ def data_portability_export(request):
     if not student:
         return JsonResponse({"error": "Student not found"}, status=404)
     from .gdpr_services import export_student_data_portability
-    result = export_student_data_portability(school.id, student_id, format="json")
-    return JsonResponse(result or {"error": "Export not available"})
+    export_format = (request.GET.get("format") or request.POST.get("format") or "json").strip().lower()
+    if export_format not in {"json", "csv"}:
+        return JsonResponse({"error": "format must be json or csv"}, status=400)
+    result = export_student_data_portability(school.id, student_id, format=export_format)
+    if not result:
+        return JsonResponse({"error": "Export not available"}, status=404)
+    # Log successful portability action for regional compliance traceability.
+    try:
+        from .models import ComplianceAuditLog
+        region = getattr(school, "default_region", None)
+        if region:
+            ComplianceAuditLog.objects.create(
+                region=region,
+                action_type="policy_enforced",
+                description="GDPR Art. 20 portability export generated for student_id=%s" % student_id,
+                details={
+                    "student_id": student_id,
+                    "school_id": school.id,
+                    "requested_by": request.user.id,
+                    "format": export_format,
+                },
+                user=request.user,
+                severity="high",
+            )
+    except Exception:
+        pass
+    return JsonResponse(result)
 
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def erasure_request_view(request):
-    """Right to Erasure request (GDPR Art. 17). Submit student_id; logged for admin to process (stub)."""
+    """Right to Erasure request (GDPR Art. 17)."""
     school = getattr(request, "school", None)
     if not school:
         messages.warning(request, "Select your school.")
@@ -76,6 +101,32 @@ def erasure_request_view(request):
         if not student:
             messages.error(request, "Student not found.")
             return redirect("compliance:erasure_request")
+        execute_now = (request.POST.get("execute_now") or "").strip() in {"1", "true", "on", "yes"}
+        dry_run = (request.POST.get("dry_run") or "").strip() in {"1", "true", "on", "yes"}
+
+        if execute_now:
+            if not (request.user.is_staff or request.user.is_superuser):
+                messages.error(request, "Only staff users can execute erasure now.")
+                return redirect("compliance:erasure_request")
+            from .gdpr_services import gdpr_scrub_student
+            result = gdpr_scrub_student(
+                school.id,
+                sid,
+                dry_run=dry_run,
+                requested_by_user_id=request.user.id,
+            )
+            if result.get("ok") or result.get("dry_run"):
+                if dry_run:
+                    messages.success(
+                        request,
+                        "GDPR erasure dry-run completed: %s" % result.get("would_anonymize", {}),
+                    )
+                else:
+                    messages.success(request, "GDPR erasure/anonymization completed.")
+            else:
+                messages.error(request, result.get("error") or "Failed to process erasure.")
+            return redirect("compliance:erasure_request")
+
         try:
             from .models import ComplianceAuditLog
             region = getattr(school, "default_region", None)

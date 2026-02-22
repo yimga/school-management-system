@@ -150,7 +150,7 @@ def execute_disbursement(
             action="disbursement",
             amount=-amount,
             balance_after=source.remaining_funds,
-            reason=f"Disbursement for application {app_id}",
+            reason=f"Disbursement for application {app.pk}",
             application=app,
             created_by_id=user_id,
         )
@@ -187,7 +187,7 @@ def execute_disbursement(
                 completed_at=timezone.now(),
                 created_by_id=user_id,
             )
-    return {"ok": True, "application_id": app_id, "amount": amount}
+    return {"ok": True, "application_id": app.pk, "amount": amount}
 
 
 def get_endowment_health_report(school_id: Any) -> list[dict]:

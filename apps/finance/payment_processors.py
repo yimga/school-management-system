@@ -500,6 +500,6 @@ class MultiGatewayProcessor:
         
         raise ValueError(f'Unknown payment method: {method}')
 
-
-# Phase 2 compatibility: provide simple factory with charge/refund interface
-from .payment_processors_temp import PaymentProcessorFactory  # noqa: E402
+# NOTE:
+# Keep PaymentProcessorFactory from this module as the single source of truth.
+# Avoid late-import overrides that can silently swap class behavior at import time.
