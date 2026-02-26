@@ -2,19 +2,12 @@
 Phase 8 Task 2: Advanced Analytics Tests
 """
 
-import unittest
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import TestCase
+
+from apps.analytics.models import BenchmarkAggregate, GradeImportJob
 
 User = get_user_model()
-from django.utils import timezone
-from datetime import timedelta
-from apps.analytics.models import GradeImportJob
-
-try:
-    from apps.analytics.models_extended import PerformanceMetrics
-except Exception:
-    PerformanceMetrics = None
 
 
 class GradeImportJobTestCase(TestCase):
@@ -95,9 +88,8 @@ class GradeImportJobTestCase(TestCase):
         self.assertEqual(job.failed_count, 5)
 
 
-@unittest.skip("PerformanceMetrics table removed in migration 0007")
 class AdvancedAnalyticsTestCase(TestCase):
-    """Test advanced analytics functionality"""
+    """Test advanced analytics functionality."""
     
     def setUp(self):
         self.user = User.objects.create_user(
@@ -105,80 +97,52 @@ class AdvancedAnalyticsTestCase(TestCase):
             password='pass123'
         )
     
-    def test_performance_metrics_creation(self):
-        """Test creating performance metrics"""
-        from apps.people.models import StudentProfile
-        from apps.academics.models import AcademicYear, Department, Classroom, Specialty
-        from django.utils import timezone
-
-        dept = Department.objects.create(name='Science', code='SCI')
-        ay = AcademicYear.objects.create(name='2025/2026', start_date=timezone.now().date(), end_date=timezone.now().date())
-        classroom = Classroom.objects.create(academic_year=ay, department=dept, name='Form 1A', code='F1A')
-        specialty = Specialty.objects.create(department=dept, name='General', code='GEN')
-
-        student_profile = StudentProfile.objects.create(
-            first_name='Test',
-            last_name='Student',
-            admission_number='STU001',
-            academic_year=ay,
-            classroom=classroom,
-            specialty=specialty
+    def test_benchmark_aggregate_creation(self):
+        """Test creating anonymized benchmark aggregates."""
+        metric = BenchmarkAggregate.objects.create(
+            region_code="CMR",
+            sub_system="GENERAL",
+            subject_id=101,
+            term_id=1,
+            academic_year_id=2026,
+            metric="avg_score",
+            value="75.5000",
+            sample_size=120,
         )
-        
-        metrics = PerformanceMetrics.objects.create(
-            student=student_profile,
-            average_score=75.5,
-            total_evaluations=10,
-            pass_rate=100.0,
-            trend='STABLE',
-            risk_level='LOW'
-        )
-        
-        self.assertEqual(metrics.average_score, 75.5)
-        self.assertEqual(metrics.risk_level, 'LOW')
+        self.assertEqual(metric.region_code, "CMR")
+        self.assertEqual(metric.sub_system, "GENERAL")
+        self.assertEqual(str(metric.value), "75.5000")
+        self.assertEqual(metric.sample_size, 120)
     
-    def test_risk_level_assessment(self):
-        """Test risk level calculation"""
-        from apps.people.models import StudentProfile
-        
-        from apps.academics.models import AcademicYear, Department, Classroom, Specialty
-        from django.utils import timezone
+    def test_benchmark_aggregate_region_and_metric_queries(self):
+        """Test benchmark rollups can be filtered by region and metric."""
+        BenchmarkAggregate.objects.create(
+            region_code="CMR",
+            sub_system="GENERAL",
+            metric="avg_score",
+            value="74.0000",
+            sample_size=90,
+        )
+        BenchmarkAggregate.objects.create(
+            region_code="CMR",
+            sub_system="GENERAL",
+            metric="pass_rate",
+            value="0.8400",
+            sample_size=90,
+        )
+        BenchmarkAggregate.objects.create(
+            region_code="USA",
+            sub_system="GENERAL",
+            metric="avg_score",
+            value="82.0000",
+            sample_size=140,
+        )
 
-        dept = Department.objects.create(name='Science', code='SCI')
-        ay = AcademicYear.objects.create(name='2025/2026', start_date=timezone.now().date(), end_date=timezone.now().date())
-        classroom = Classroom.objects.create(academic_year=ay, department=dept, name='Form 2A', code='F2A')
-        specialty = Specialty.objects.create(department=dept, name='General', code='GEN')
-
-        student_profile = StudentProfile.objects.create(
-            first_name='Test2',
-            last_name='Student2',
-            admission_number='STU002',
-            academic_year=ay,
-            classroom=classroom,
-            specialty=specialty
-        )
-        
-        # Low risk
-        metrics_low = PerformanceMetrics.objects.create(
-            student=student_profile,
-            average_score=80.0,
-            risk_level='LOW'
-        )
-        self.assertEqual(metrics_low.risk_level, 'LOW')
-        
-        # High risk
-        student2 = User.objects.create_user(username='student2', password='pass')
-        # Create profile for student2
-        classroom2 = Classroom.objects.create(academic_year=ay, department=dept, name='Form 3A', code='F3A')
-        profile2 = StudentProfile.objects.create(first_name='High', last_name='Risk', admission_number='STU003', academic_year=ay, classroom=classroom2, specialty=specialty)
-        
-        metrics_high = PerformanceMetrics.objects.create(
-            student=profile2,
-            average_score=35.0,
-            risk_level='CRITICAL'
-        )
-        self.assertEqual(metrics_high.risk_level, 'CRITICAL')
-        self.assertEqual(metrics_low.risk_level, 'LOW')
+        cmr_avg = BenchmarkAggregate.objects.filter(region_code="CMR", metric="avg_score")
+        usa_any = BenchmarkAggregate.objects.filter(region_code="USA")
+        self.assertEqual(cmr_avg.count(), 1)
+        self.assertEqual(str(cmr_avg.first().value), "74.0000")
+        self.assertEqual(usa_any.count(), 1)
         
 
 
