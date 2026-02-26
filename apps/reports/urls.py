@@ -10,6 +10,7 @@ from .views import (
     publish_term_results,
     report_share,
     statistical_return,
+    verify_report_hash,
 )
 
 app_name = 'reports'
@@ -21,6 +22,7 @@ urlpatterns = [
     path("parent/report/<int:student_id>/annual/csv/", parent_download_annual_report_csv, name="parent_download_annual_report_csv"),
     path("parent/report/<int:student_id>/share/<str:report_type>/", parent_share_report, name="parent_share_report"),
     path("share/<str:token>/", report_share, name="report_share"),
+    path("verify-hash/", verify_report_hash, name="verify_report_hash"),
     path("publish/", publish_term_results, name="publish_term_results"),
     path("statistical-return/", statistical_return, name="statistical_return"),
     path("promotion-preview/", promotion_preview, name="promotion_preview"),

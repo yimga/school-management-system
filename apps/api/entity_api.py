@@ -12,6 +12,7 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Specialty
 from apps.people.models import StudentGuardian, StudentProfile, TeacherProfile
 from apps.evals.models import TeacherAssignment
+from apps.schools.models import School
 from apps.siteconfig.models import SiteSettings
 
 from .serializers import (
@@ -43,6 +44,16 @@ def _is_admin_like(user: User) -> bool:
 def _backend_flags() -> dict:
     site = SiteSettings.get_solo()
     return getattr(site, "backend_feature_flags", {}) or {}
+
+
+def _request_school(request):
+    school = getattr(request, "school", None)
+    if school is not None:
+        return school
+    school_id = getattr(request, "session", {}).get("school_id")
+    if not school_id:
+        return None
+    return School.objects.filter(pk=school_id, is_active=True).first()
 
 
 def _check_student_offline_conflict(instance, request):
@@ -79,9 +90,10 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         user = self.request.user
         role = (getattr(user, "role", "") or "").upper()
         base = StudentProfile.objects.select_related("academic_year", "classroom", "specialty")
-        school = getattr(self.request, "school", None)
-        if school is not None:
-            base = base.filter(school=school)
+        school = _request_school(self.request)
+        if school is None:
+            return base.none()
+        base = base.filter(school=school)
 
         if _is_admin_like(user):
             return base
@@ -245,9 +257,10 @@ class TeacherProfileViewSet(viewsets.ModelViewSet):
         user = self.request.user
         role = (getattr(user, "role", "") or "").upper()
         base = TeacherProfile.objects.select_related("user", "department", "reports_to")
-        school = getattr(self.request, "school", None)
-        if school is not None:
-            base = base.filter(school=school)
+        school = _request_school(self.request)
+        if school is None:
+            return base.none()
+        base = base.filter(school=school)
 
         if _is_admin_like(user):
             return base
@@ -274,10 +287,12 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         base = StudentGuardian.objects.select_related("guardian_user", "student")
-        school = getattr(self.request, "school", None)
-        if school is not None and hasattr(StudentGuardian, "school"):
+        school = _request_school(self.request)
+        if school is None:
+            return base.none()
+        if hasattr(StudentGuardian, "school"):
             base = base.filter(school=school)
-        elif school is not None:
+        else:
             base = base.filter(student__school=school)
         if _is_admin_like(user):
             return base
@@ -378,9 +393,10 @@ class ClassroomViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Classroom.objects.select_related("academic_year", "department")
-        school = getattr(self.request, "school", None)
-        if school is not None:
-            qs = qs.filter(school=school)
+        school = _request_school(self.request)
+        if school is None:
+            return qs.none()
+        qs = qs.filter(school=school)
         return qs
 
     def _require_admin(self, request):
@@ -408,7 +424,7 @@ class SessionClaimsView(APIView):
             "is_staff": user.is_staff,
             "is_superuser": user.is_superuser,
         }
-        school = getattr(request, "school", None)
+        school = _request_school(request)
         if school is not None:
             payload["school_id"] = str(school.id)
         return Response(payload)

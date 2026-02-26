@@ -34,7 +34,8 @@ def hydrate_school_from_profile(school) -> dict[str, Any]:
     if cfg.get("labels_map") and isinstance(cfg["labels_map"], dict):
         settings.setdefault("education_profile", {})
         if isinstance(settings["education_profile"], dict):
-            settings["education_profile"]["labels_map"] = {**settings["education_profile"].get("labels_map") or {}, **cfg["labels_map"]}
+            existing_map = settings["education_profile"].get("labels_map") or {}
+            settings["education_profile"]["labels_map"] = {**existing_map, **cfg["labels_map"]}
             applied["labels_map"] = True
     if cfg.get("grading_logic"):
         settings.setdefault("education_profile", {})

@@ -9,6 +9,7 @@ Global Powerhouse Phase A: getTenantModules and useLocalSettings.
 from __future__ import annotations
 
 import logging
+from copy import deepcopy
 from typing import Any
 
 from django.db.models import QuerySet
@@ -316,3 +317,399 @@ def sync_tenant_modules_to_school_features(school, *, persist: bool = True) -> d
         school.features = current
         school.save(update_fields=["features", "updated_at"])
     return features
+
+
+# -----------------------------------------------------------------------------
+# Titan Config Compiler (CFG-101/CFG-102/CFG-103 baseline)
+# -----------------------------------------------------------------------------
+
+# Regional policy packs are versioned artifacts with default settings + lock metadata.
+# Non-locked keys remain tenant-configurable in school.settings.
+REGIONAL_POLICY_PACKS: dict[str, dict[str, Any]] = {
+    "US": {
+        "code": "US",
+        "version": "2026.1",
+        "name": "United States Education Pack",
+        "defaults": {
+            "privacy_framework": "FERPA_COPPA",
+            "data_residency_region": "us-east-1",
+            "default_language": "en",
+            "currency": "USD",
+            "date_format": "MM/DD/YYYY",
+            "grading_scale": "0-100",
+            "offline_mode_default": False,
+            "consent_mode": "guardian_opt_in",
+        },
+        "locks": {
+            "privacy_framework": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+            "data_residency_region": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+        },
+    },
+    "EU": {
+        "code": "EU",
+        "version": "2026.1",
+        "name": "European Union Education Pack",
+        "defaults": {
+            "privacy_framework": "GDPR",
+            "data_residency_region": "eu-central-1",
+            "default_language": "en",
+            "currency": "EUR",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-20",
+            "offline_mode_default": False,
+            "consent_mode": "explicit_consent",
+        },
+        "locks": {
+            "privacy_framework": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+            "data_residency_region": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+            "consent_mode": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+        },
+    },
+    "BRA": {
+        "code": "BRA",
+        "version": "2026.1",
+        "name": "Brazil LGPD Pack",
+        "defaults": {
+            "privacy_framework": "LGPD",
+            "data_residency_region": "sa-east-1",
+            "default_language": "pt",
+            "currency": "BRL",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-100",
+            "offline_mode_default": False,
+            "consent_mode": "explicit_consent",
+        },
+        "locks": {
+            "privacy_framework": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+            "data_residency_region": {"compliance_locked": True, "tenant_editable": False, "requires_approval": True},
+        },
+    },
+    "LCA": {
+        "code": "LCA",
+        "version": "2026.1",
+        "name": "Low-Connectivity Africa Pack",
+        "defaults": {
+            "privacy_framework": "regional_default",
+            "data_residency_region": "af-south-1",
+            "default_language": "en",
+            "currency": "XAF",
+            "date_format": "DD/MM/YYYY",
+            "grading_scale": "0-20",
+            "offline_mode_default": True,
+            "offline_sync_strategy": "background_retry",
+            "mobile_money_default": True,
+        },
+        "locks": {
+            "offline_mode_default": {"compliance_locked": False, "tenant_editable": False, "requires_approval": True},
+        },
+    },
+}
+
+# Internal keys used to store compiled config metadata in School.settings.
+# These keys must not be treated as tenant-authored overrides.
+INTERNAL_TENANT_SETTINGS_KEYS = {
+    "tenant_compiled_config",
+    "tenant_config_metadata",
+    "tenant_config_layers",
+    "tenant_policy_pack",
+    "tenant_config_compiled_at",
+}
+
+
+def _global_config_defaults() -> dict[str, Any]:
+    return {
+        "privacy_framework": "regional_default",
+        "data_residency_region": "global",
+        "default_language": "en",
+        "currency": "USD",
+        "date_format": "DD/MM/YYYY",
+        "grading_scale": "0-100",
+        "offline_mode_default": False,
+        "consent_mode": "standard",
+        "feature_modules": [],
+    }
+
+
+def get_regional_policy_pack(region_code: str | None) -> dict[str, Any]:
+    """
+    Resolve policy pack by region code.
+    Known aliases:
+    - USA -> US
+    - GBR/FRA/DEU/ESP/ITA/... -> EU
+    - BRA -> BRA
+    - CMR/UGA/KEN/NGA/... -> LCA
+    """
+    code = (region_code or "").strip().upper()
+    if not code:
+        return {}
+    if code in REGIONAL_POLICY_PACKS:
+        return deepcopy(REGIONAL_POLICY_PACKS[code])
+    if code in {"USA", "US"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["US"])
+    if code in {"EU", "GBR", "FRA", "DEU", "ESP", "ITA", "NLD", "BEL", "SWE", "DNK", "FIN"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["EU"])
+    if code == "BRA":
+        return deepcopy(REGIONAL_POLICY_PACKS["BRA"])
+    if code in {"CMR", "UGA", "KEN", "NGA", "RWA", "ETH", "GHA", "TZA", "ZAF"}:
+        return deepcopy(REGIONAL_POLICY_PACKS["LCA"])
+    return {}
+
+
+def compile_effective_tenant_config(
+    school,
+    *,
+    campus_overrides: dict[str, Any] | None = None,
+    user_overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """
+    Compile effective tenant configuration using deterministic precedence:
+    1. global defaults
+    2. regional policy pack
+    3. education profile defaults/config
+    4. plan/add-on derived features
+    5. tenant overrides (school.settings)
+    6. campus overrides
+    7. user overrides
+
+    Returns:
+      {
+        "effective": {...},
+        "metadata": {
+            "<key>": {
+                "source": "...",
+                "auto_applied": bool,
+                "tenant_editable": bool,
+                "compliance_locked": bool,
+                "requires_approval": bool
+            }
+        },
+        "pack": {"code": "...", "version": "..."} | {},
+        "layers": ["global", "..."],
+      }
+    """
+    if school is None:
+        return {"effective": {}, "metadata": {}, "pack": {}, "layers": []}
+
+    effective = _global_config_defaults()
+    metadata: dict[str, dict[str, Any]] = {}
+    layers = ["global"]
+
+    def apply_layer(values: dict[str, Any], source: str, *, auto_applied: bool, default_editable: bool = True):
+        if not isinstance(values, dict):
+            return
+        for key, value in values.items():
+            effective[key] = deepcopy(value)
+            current = metadata.get(key, {})
+            metadata[key] = {
+                "source": source,
+                "auto_applied": bool(auto_applied),
+                "tenant_editable": bool(current.get("tenant_editable", default_editable)),
+                "compliance_locked": bool(current.get("compliance_locked", False)),
+                "requires_approval": bool(current.get("requires_approval", False)),
+            }
+
+    # Layer 2: regional policy pack
+    region_code = getattr(getattr(school, "default_region", None), "code", None) or getattr(school, "default_region_id", None)
+    pack = get_regional_policy_pack(region_code)
+    if pack:
+        apply_layer(pack.get("defaults") or {}, f"region_pack:{pack.get('code')}", auto_applied=True, default_editable=True)
+        for key, lock in (pack.get("locks") or {}).items():
+            if key not in metadata:
+                metadata[key] = {
+                    "source": f"region_pack:{pack.get('code')}",
+                    "auto_applied": True,
+                    "tenant_editable": True,
+                    "compliance_locked": False,
+                    "requires_approval": False,
+                }
+            if isinstance(lock, dict):
+                metadata[key]["tenant_editable"] = bool(lock.get("tenant_editable", metadata[key]["tenant_editable"]))
+                metadata[key]["compliance_locked"] = bool(lock.get("compliance_locked", False))
+                metadata[key]["requires_approval"] = bool(lock.get("requires_approval", False))
+        layers.append("region_pack")
+
+    # Layer 3: education profile (if available)
+    try:
+        from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+        profile = resolve_profile_for_school(school, auto_create=True)
+    except Exception:
+        profile = None
+    if profile:
+        profile_values = {
+            "default_language": getattr(profile, "default_language", "") or effective.get("default_language"),
+            "currency": getattr(profile, "default_currency", "") or effective.get("currency"),
+            "grading_scale": getattr(profile, "grading_scale", "") or effective.get("grading_scale"),
+            "date_format": (getattr(profile, "config", {}) or {}).get("date_format") or effective.get("date_format"),
+            "education_profile_code": getattr(profile, "code", ""),
+            "education_profile_version": getattr(profile, "version", ""),
+            "term_labels": profile.normalized_term_labels() if hasattr(profile, "normalized_term_labels") else [],
+        }
+        apply_layer(profile_values, "education_profile", auto_applied=True, default_editable=True)
+        if isinstance(getattr(profile, "config", None), dict):
+            apply_layer(profile.config, "education_profile_config", auto_applied=True, default_editable=True)
+        layers.append("education_profile")
+
+    # Layer 4: plan/add-ons to feature_modules
+    modules = []
+    plan = getattr(school, "plan", None)
+    if plan and isinstance(getattr(plan, "included_features", None), list):
+        modules.extend([str(x).strip().lower() for x in plan.included_features if str(x).strip()])
+    addons = getattr(school, "addons", None) or []
+    if isinstance(addons, list):
+        modules.extend([str(x).strip().lower() for x in addons if str(x).strip()])
+    tenant_modules = get_tenant_modules(school)
+    modules.extend([str(x).strip().lower() for x in tenant_modules if str(x).strip()])
+    if modules:
+        uniq_modules = sorted(set(modules))
+        apply_layer({"feature_modules": uniq_modules}, "plan_addons", auto_applied=True, default_editable=True)
+        layers.append("plan_addons")
+
+    # Layer 5: tenant overrides
+    tenant_overrides = getattr(school, "settings", None) or {}
+    if isinstance(tenant_overrides, dict):
+        filtered_tenant_overrides = {
+            key: value
+            for key, value in tenant_overrides.items()
+            if key not in INTERNAL_TENANT_SETTINGS_KEYS
+        }
+        apply_layer(filtered_tenant_overrides, "tenant_override", auto_applied=False, default_editable=True)
+        layers.append("tenant_override")
+
+    # Layer 6: campus overrides
+    if isinstance(campus_overrides, dict) and campus_overrides:
+        apply_layer(campus_overrides, "campus_override", auto_applied=False, default_editable=True)
+        layers.append("campus_override")
+
+    # Layer 7: user overrides
+    if isinstance(user_overrides, dict) and user_overrides:
+        apply_layer(user_overrides, "user_override", auto_applied=False, default_editable=True)
+        layers.append("user_override")
+
+    # Fill metadata defaults for keys without explicit lock metadata.
+    for key in effective.keys():
+        if key not in metadata:
+            metadata[key] = {
+                "source": "global",
+                "auto_applied": key in _global_config_defaults(),
+                "tenant_editable": True,
+                "compliance_locked": False,
+                "requires_approval": False,
+            }
+
+    return {
+        "effective": effective,
+        "metadata": metadata,
+        "pack": {"code": pack.get("code"), "version": pack.get("version")} if pack else {},
+        "layers": layers,
+    }
+
+
+def is_tenant_setting_editable(compiled: dict[str, Any], key: str) -> bool:
+    """Helper for governance flows: can tenant edit this key directly?"""
+    info = (compiled.get("metadata") or {}).get(key) or {}
+    return bool(info.get("tenant_editable", True)) and not bool(info.get("compliance_locked", False))
+
+
+def persist_compiled_tenant_config(
+    school,
+    *,
+    campus_overrides: dict[str, Any] | None = None,
+    user_overrides: dict[str, Any] | None = None,
+    persist: bool = True,
+) -> dict[str, Any]:
+    """
+    Compile and optionally persist tenant config snapshot into School.settings.
+
+    Stored keys:
+    - tenant_compiled_config
+    - tenant_config_metadata
+    - tenant_config_layers
+    - tenant_policy_pack
+    - tenant_config_compiled_at
+    """
+    compiled = compile_effective_tenant_config(
+        school,
+        campus_overrides=campus_overrides,
+        user_overrides=user_overrides,
+    )
+    if not school or not persist:
+        return compiled
+
+    from django.utils import timezone
+
+    settings = dict(getattr(school, "settings", None) or {})
+    settings["tenant_compiled_config"] = compiled.get("effective") or {}
+    settings["tenant_config_metadata"] = compiled.get("metadata") or {}
+    settings["tenant_config_layers"] = compiled.get("layers") or []
+    settings["tenant_policy_pack"] = compiled.get("pack") or {}
+    settings["tenant_config_compiled_at"] = timezone.now().isoformat()
+
+    school.settings = settings
+    school.save(update_fields=["settings", "updated_at"])
+    return compiled
+
+
+def apply_tenant_settings_overrides(
+    school,
+    overrides: dict[str, Any] | None,
+    *,
+    actor_is_superadmin: bool = False,
+    force_override: bool = False,
+    persist: bool = True,
+) -> dict[str, Any]:
+    """
+    Apply tenant overrides with policy metadata enforcement.
+
+    Behavior:
+    - `compliance_locked=True` keys are blocked unless superadmin force override.
+    - `tenant_editable=False` keys are blocked unless superadmin force override.
+    - `requires_approval=True` keys are reported separately when blocked.
+    """
+    payload = overrides if isinstance(overrides, dict) else {}
+    if not school:
+        return {
+            "applied": {},
+            "blocked": {},
+            "requires_approval": {},
+            "saved": False,
+        }
+
+    compiled = compile_effective_tenant_config(school)
+    metadata = compiled.get("metadata") or {}
+
+    blocked: dict[str, str] = {}
+    requires_approval: dict[str, str] = {}
+    applied: dict[str, Any] = {}
+
+    for key, value in payload.items():
+        if key in INTERNAL_TENANT_SETTINGS_KEYS:
+            blocked[key] = "internal_key_not_editable"
+            continue
+        info = metadata.get(key) or {}
+        tenant_editable = bool(info.get("tenant_editable", True))
+        compliance_locked = bool(info.get("compliance_locked", False))
+        approval_needed = bool(info.get("requires_approval", False))
+
+        if (compliance_locked or not tenant_editable) and not (actor_is_superadmin and force_override):
+            reason = "compliance_locked" if compliance_locked else "tenant_not_editable"
+            blocked[key] = reason
+            if approval_needed:
+                requires_approval[key] = reason
+            continue
+        applied[key] = value
+
+    saved = False
+    if persist and applied:
+        settings = dict(getattr(school, "settings", None) or {})
+        settings.update(applied)
+        school.settings = settings
+        school.save(update_fields=["settings", "updated_at"])
+        saved = True
+
+    return {
+        "applied": applied,
+        "blocked": blocked,
+        "requires_approval": requires_approval,
+        "saved": saved,
+        "metadata": {k: metadata.get(k, {}) for k in payload.keys()},
+    }

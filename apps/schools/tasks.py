@@ -151,7 +151,13 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         if isinstance(getattr(profile, "config", None), dict) and profile.config.get("report_template_family"):
             profile_config["report_template_family"] = profile.config.get("report_template_family")
         merged_settings = dict(school.settings or {})
-        merged_settings.update({key: val for key, val in profile_config.items() if val})
+        # Respect explicit tenant-entered values while applying profile defaults.
+        for key, value in profile_config.items():
+            if not value:
+                continue
+            existing = merged_settings.get(key)
+            if existing in (None, "", [], {}):
+                merged_settings[key] = value
         if getattr(profile, "config", None):
             profile_settings = dict(merged_settings.get("education_profile", {}))
             profile_settings.update(profile.config or {})
@@ -213,6 +219,24 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             sync_tenant_modules_to_school_features(school)
         except Exception as e:
             logger.debug("Optional sync_tenant_modules_to_school_features: %s", e)
+
+    # Compile and persist tenant config snapshot (region pack + locks + effective config).
+    try:
+        from apps.siteconfig.tenant_config import persist_compiled_tenant_config
+
+        compiled = persist_compiled_tenant_config(school, persist=True)
+        _record_school_event(
+            school,
+            event_type="PROFILE_APPLIED",
+            status="INFO",
+            message="Tenant config compiled from region/profile/overrides.",
+            payload={
+                "policy_pack": compiled.get("pack") or {},
+                "layers": compiled.get("layers") or [],
+            },
+        )
+    except Exception:
+        logger.exception("Failed to compile tenant config snapshot for school %s", school_id)
 
     now = timezone.now().date()
     year_start = date(now.year, start_month, 1)

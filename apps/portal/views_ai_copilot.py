@@ -6,8 +6,6 @@ import json
 import logging
 import os
 import time
-import urllib.error
-import urllib.request
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -18,6 +16,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
+from apps.portal.ai_provider import generate_ai_response, get_ai_provider_status
 
 logger = logging.getLogger(__name__)
 AI_COPILOT_ENABLED = getattr(settings, "AI_COPILOT_ENABLED", True)
@@ -302,55 +301,19 @@ def ai_copilot_query(request):
             sensitivity=AuditLog.Sensitivity.LOW,
         )
         
-        # Build contextual prompt and call Gemini if configured
+        # Build contextual prompt and call configured provider chain
         permissions = get_ai_permissions(request.user)
         prompt = build_contextual_prompt(request.user, user_query)
-
-        response_text = None
-        api_key = os.environ.get('GEMINI_API_KEY', '')
-        if api_key:
-            try:
-                url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}'
-                payload = {
-                    "contents": [{
-                        "parts": [{"text": prompt}]
-                    }],
-                    "generationConfig": {
-                        "temperature": 0.7,
-                        "maxOutputTokens": 500,
-                    },
-                    "safetySettings": [
-                        {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-                        {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"}
-                    ]
-                }
-                req = urllib.request.Request(
-                    url,
-                    data=json.dumps(payload).encode('utf-8'),
-                    headers={'Content-Type': 'application/json'},
-                    method='POST'
-                )
-                with urllib.request.urlopen(req, timeout=20) as resp:
-                    data = json.loads(resp.read().decode('utf-8'))
-                    # Safely extract text
-                    response_text = (
-                        data.get('candidates', [{}])[0]
-                            .get('content', {})
-                            .get('parts', [{}])[0]
-                            .get('text')
-                    ) or "I'm here to help."
-            except urllib.error.HTTPError as e:
-                logger.error(f'Gemini HTTPError: {e.code} {e.reason}', exc_info=True)
-            except Exception as e:
-                logger.error(f'Gemini request failed: {str(e)}', exc_info=True)
-
-        if not response_text:
-            # Fallback response if API key missing or error occurred
-            response_text = (
-                f"I understand you're asking about: {user_query}. "
-                f"Your role is {permissions.get('scope', 'general')}. "
-                f"For AI-powered answers, ensure GEMINI_API_KEY is configured."
-            )
+        response_text, provider_meta = generate_ai_response(
+            prompt,
+            user_query=user_query,
+            metadata={
+                "user_id": getattr(request.user, "id", None),
+                "role": getattr(request.user, "role", "USER"),
+                # Keep tenant metadata out of prompt/provider payload.
+                "school_id": getattr(getattr(request, "school", None), "id", None),
+            },
+        )
 
         _increment_usage_metrics(request.user, allowed=True)
         try:
@@ -363,6 +326,7 @@ def ai_copilot_query(request):
             'permissions': permissions,
             'user_role': getattr(request.user, 'role', 'USER'),
             'response': response_text,
+            'provider': provider_meta.get("provider"),
         })
         
     except json.JSONDecodeError:
@@ -456,13 +420,24 @@ def ai_copilot_limits(request):
 @login_required
 def ai_copilot_config(request):
     """Return AI Copilot backend config visibility for frontend widgets."""
-    api_key = os.environ.get('GEMINI_API_KEY', '')
-    enabled = bool(api_key)
-    model = 'gemini-pro' if enabled else None
+    status = get_ai_provider_status()
+    enabled = bool(status.get("has_live_provider")) or bool(status.get("rules_fallback_enabled"))
+    model = None
+    for provider in status.get("preference", []):
+        if provider == "ollama" and status.get("ollama", {}).get("configured"):
+            model = status.get("ollama", {}).get("model")
+            break
+        if provider == "gemini" and status.get("gemini", {}).get("configured"):
+            model = status.get("gemini", {}).get("model")
+            break
+        if provider == "rules":
+            model = "rules-fallback"
+            break
     return JsonResponse({
         'success': True,
         'enabled': enabled,
         'model': model,
+        'provider_status': status,
         'rate_limit': RATE_LIMIT_PER_MIN,
         'window_seconds': RATE_LIMIT_WINDOW,
         'user_role': (getattr(request.user, 'role', 'USER') or '').upper(),

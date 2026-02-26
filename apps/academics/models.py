@@ -1071,6 +1071,77 @@ class TransferCredit(models.Model):
         return f"{self.course_code} ({self.credits}) from {self.external_institution}"
 
 
+class TransferCourseEquivalency(models.Model):
+    """Reviewable mapping from external transfer course to internal course requirement."""
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="transfer_course_equivalencies",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="transfer_course_equivalencies",
+    )
+    program = models.ForeignKey(
+        DegreeProgram,
+        on_delete=models.CASCADE,
+        related_name="transfer_course_equivalencies",
+        null=True,
+        blank=True,
+        help_text="Optional program-specific mapping. Blank means cross-program for the student.",
+    )
+    transfer_credit = models.ForeignKey(
+        TransferCredit,
+        on_delete=models.SET_NULL,
+        related_name="equivalency_links",
+        null=True,
+        blank=True,
+    )
+    external_course_code = models.CharField(max_length=80)
+    internal_course_code = models.CharField(max_length=80)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    request_notes = models.TextField(blank=True)
+    reviewer_notes = models.TextField(blank=True)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="requested_transfer_equivalencies",
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_transfer_equivalencies",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "program", "external_course_code", "internal_course_code"],
+                name="academics_transfer_equiv_unique_per_student_program_course_pair",
+            ),
+        ]
+        verbose_name = "Transfer course equivalency"
+        verbose_name_plural = "Transfer course equivalencies"
+
+    def __str__(self):
+        return f"{self.external_course_code} -> {self.internal_course_code} ({self.status})"
+
+
 class GraduateMilestone(models.Model):
     """Thesis/dissertation milestone (proposal, candidacy, defense, submission). Gate: graduate_research addon."""
     class Type(models.TextChoices):
@@ -1102,6 +1173,29 @@ class GraduateMilestone(models.Model):
     completion_date = models.DateField(null=True, blank=True)
     is_signed_off = models.BooleanField(default=False)
     sign_off_timestamp = models.DateTimeField(null=True, blank=True)
+    committee_member_count = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Total committee members on the milestone review panel.",
+    )
+    external_member_count = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Number of external (non-department/non-internal) committee members.",
+    )
+    embargo_until = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Optional thesis/dissertation embargo end date for submission milestones.",
+    )
+    embargo_reason = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Reason for embargo (e.g. patent filing in progress).",
+    )
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Extensible milestone metadata for institution-specific research requirements.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1109,6 +1203,18 @@ class GraduateMilestone(models.Model):
         ordering = ["student", "type"]
         verbose_name = "Graduate milestone"
         verbose_name_plural = "Graduate milestones"
+    def clean(self):
+        if self.external_member_count > self.committee_member_count:
+            raise ValidationError(
+                {"external_member_count": "External member count cannot exceed total committee members."}
+            )
+        if self.embargo_until and self.type != self.Type.SUBMISSION:
+            raise ValidationError({"embargo_until": "Embargo can only be set for submission milestones."})
+        if self.embargo_until and self.completion_date and self.embargo_until < self.completion_date:
+            raise ValidationError({"embargo_until": "Embargo end date cannot be before completion date."})
+        if self.embargo_until and not (self.embargo_reason or "").strip():
+            raise ValidationError({"embargo_reason": "Provide an embargo reason when embargo_until is set."})
 
     def __str__(self):
         return f"{self.student} — {self.get_type_display()} ({self.status})"
+

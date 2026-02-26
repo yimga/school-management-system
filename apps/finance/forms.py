@@ -3,6 +3,8 @@ from django.utils import timezone
 
 from django import forms
 
+from apps.people.models import StudentGuardian
+
 from .models import BankAccount, PaymentMethodCode, ReportRequest
 
 
@@ -20,6 +22,13 @@ class SplitAllocationForm(forms.Form):
     """Form to record a single payment split across fee types (Tuition, Sports, Workshop, etc.)."""
 
     NUM_ROWS = 5
+    NUM_PAYER_ROWS = 4
+    SPLIT_MODE_CHOICES = (
+        ("none", "No payer split"),
+        ("equal", "Auto-split equally across guardians"),
+        ("custom", "Custom guardian split"),
+    )
+
     student = forms.ModelChoiceField(
         queryset=None,
         required=True,
@@ -40,11 +49,19 @@ class SplitAllocationForm(forms.Form):
         label="Payment method",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+    split_mode = forms.ChoiceField(
+        choices=SPLIT_MODE_CHOICES,
+        required=False,
+        initial="none",
+        label="Payer split mode",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
 
-    def __init__(self, *args, student_queryset=None, **kwargs):
+    def __init__(self, *args, student_queryset=None, guardian_queryset=None, **kwargs):
         super().__init__(*args, **kwargs)
         if student_queryset is not None:
             self.fields["student"].queryset = student_queryset
+        self._guardian_queryset = guardian_queryset if guardian_queryset is not None else StudentGuardian.objects.none()
         for i in range(1, self.NUM_ROWS + 1):
             self.fields[f"desc_{i}"] = forms.CharField(
                 required=False,
@@ -60,6 +77,21 @@ class SplitAllocationForm(forms.Form):
                 label=f"Line {i} amount",
                 widget=forms.NumberInput(attrs={"class": "form-control allocation-amount", "step": "0.01", "placeholder": "0"}),
             )
+        for i in range(1, self.NUM_PAYER_ROWS + 1):
+            self.fields[f"payer_guardian_{i}"] = forms.ModelChoiceField(
+                queryset=self._guardian_queryset,
+                required=False,
+                label=f"Payer {i}",
+                widget=forms.Select(attrs={"class": "form-select"}),
+            )
+            self.fields[f"payer_amount_{i}"] = forms.DecimalField(
+                required=False,
+                min_value=Decimal("0"),
+                max_digits=12,
+                decimal_places=2,
+                label=f"Payer {i} amount",
+                widget=forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "placeholder": "0"}),
+            )
 
     def get_allocations(self):
         """Return list of (description, amount) for rows with amount > 0."""
@@ -70,6 +102,17 @@ class SplitAllocationForm(forms.Form):
                 continue
             desc = (self.cleaned_data.get(f"desc_{i}") or "").strip() or f"Line {i}"
             out.append((desc, amt))
+        return out
+
+    def get_payer_allocations(self):
+        """Return list of (guardian_link, amount) for custom payer rows."""
+        out = []
+        for i in range(1, self.NUM_PAYER_ROWS + 1):
+            guardian = self.cleaned_data.get(f"payer_guardian_{i}")
+            amt = self.cleaned_data.get(f"payer_amount_{i}")
+            if guardian is None or amt is None or amt <= 0:
+                continue
+            out.append((guardian, amt))
         return out
 
     def clean(self):
@@ -92,6 +135,37 @@ class SplitAllocationForm(forms.Form):
                 None,
                 f"Allocation total ({sum_alloc}) must equal total amount ({total}).",
             )
+
+        split_mode = (data.get("split_mode") or "none").strip().lower()
+        if split_mode == "equal":
+            if not self._guardian_queryset.exists():
+                self.add_error("split_mode", "Selected student has no finance-enabled guardians for equal split.")
+            return data
+        if split_mode == "custom":
+            payer_total = Decimal("0.00")
+            payer_count = 0
+            guardian_ids = set()
+            for i in range(1, self.NUM_PAYER_ROWS + 1):
+                guardian = data.get(f"payer_guardian_{i}")
+                amount = data.get(f"payer_amount_{i}")
+                has_guardian = guardian is not None
+                has_amount = amount is not None and amount > 0
+                if has_guardian != has_amount:
+                    self.add_error(None, f"Payer row {i} requires both guardian and amount.")
+                    continue
+                if not has_guardian:
+                    continue
+                if guardian.id in guardian_ids:
+                    self.add_error(None, "A guardian can only appear once in custom split.")
+                    continue
+                guardian_ids.add(guardian.id)
+                payer_total += amount
+                payer_count += 1
+            if payer_count == 0:
+                self.add_error("split_mode", "Add at least one payer allocation for custom split.")
+                return data
+            if payer_total != total:
+                self.add_error(None, f"Payer split total ({payer_total}) must equal total amount ({total}).")
         return data
 
 

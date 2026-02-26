@@ -1,9 +1,36 @@
-"""Interoperability readiness endpoints for OneRoster and LTI 1.3."""
+"""Interoperability discovery/readiness endpoints for OneRoster and LTI 1.3."""
 
 from django.http import JsonResponse
+from django.urls import reverse
 
+from apps.api.rate_limit import throttle_ip_request
 from apps.schools.models import School
+from apps.siteconfig.integration_registry import resolve_active_integration
 from apps.siteconfig.models import ServiceIntegration
+
+INTEROP_DISCOVERY_RATE_LIMIT_WINDOW = 60 * 15
+INTEROP_DISCOVERY_RATE_LIMIT_MAX = 120
+
+
+def _interop_rate_limited(request, service: str):
+    allowed, retry_after = throttle_ip_request(
+        request,
+        scope=f"interop_discovery:{service}",
+        max_count=INTEROP_DISCOVERY_RATE_LIMIT_MAX,
+        window_seconds=INTEROP_DISCOVERY_RATE_LIMIT_WINDOW,
+    )
+    if allowed:
+        return None
+    return JsonResponse(
+        {
+            "service": service,
+            "status": "rate_limited",
+            "implemented": True,
+            "detail": "Too many discovery requests. Retry later.",
+            "retry_after": retry_after,
+        },
+        status=429,
+    )
 
 
 def _resolve_school(request):
@@ -16,13 +43,13 @@ def _resolve_school(request):
     return School.objects.filter(slug=school_slug, is_active=True).first()
 
 
-def _integration_payload(*, service: str, school, service_type: str) -> tuple[dict, int]:
+def _integration_payload(*, service: str, school, service_type: str, service_name_hint: str = "") -> tuple[dict, int]:
     payload = {
         "service": service,
         "service_type": service_type,
         "spec": "1EdTech",
-        "status": "not_configured",
-        "implemented": False,
+        "status": "needs_configuration",
+        "implemented": True,
     }
 
     if not school:
@@ -37,18 +64,52 @@ def _integration_payload(*, service: str, school, service_type: str) -> tuple[di
         )
         return payload, 400
 
-    integration = (
-        ServiceIntegration.objects.filter(
-            school=school,
-            service_type=service_type,
-            is_active=True,
-        )
-        .order_by("-updated_at")
-        .first()
+    integration_qs = ServiceIntegration.objects.filter(
+        school=school,
+        service_type=service_type,
+        is_active=True,
     )
+    if service_name_hint:
+        integration_qs = integration_qs.filter(service_name__icontains=service_name_hint)
+    integration = integration_qs.order_by("-updated_at").first()
+    integration_record = None
+    if integration:
+        cfg = integration.config or {}
+        integration_record = {
+            "source": "service_integration",
+            "integration_id": integration.pk,
+            "integration_name": integration.service_name,
+            "endpoint_url": integration.endpoint_url,
+            "enabled_scopes": integration.enabled_scopes,
+            "config": cfg,
+            "has_auth_credentials": bool(
+                (cfg or {}).get("bearer_token")
+                or (cfg or {}).get("token")
+                or (cfg or {}).get("api_key")
+                or integration.client_secret
+            ),
+        }
+    else:
+        fallback = resolve_active_integration(school, service_name_hint or service)
+        if fallback and fallback.service_type == service_type:
+            cfg = fallback.config or {}
+            integration_record = {
+                "source": fallback.source,
+                "integration_id": fallback.integration_id,
+                "integration_name": fallback.service_name,
+                "endpoint_url": fallback.endpoint_url,
+                "enabled_scopes": fallback.enabled_scopes,
+                "config": cfg,
+                "has_auth_credentials": bool(
+                    (cfg or {}).get("bearer_token")
+                    or (cfg or {}).get("token")
+                    or (cfg or {}).get("api_key")
+                    or (cfg or {}).get("client_secret")
+                ),
+            }
 
     payload.update({"school_id": school.pk, "school_slug": school.slug})
-    if not integration:
+    if not integration_record:
         payload.update(
             {
                 "detail": "No active integration configuration for this service.",
@@ -62,48 +123,95 @@ def _integration_payload(*, service: str, school, service_type: str) -> tuple[di
 
     payload.update(
         {
-            "integration_id": integration.pk,
-            "integration_name": integration.service_name,
-            "endpoint_url": integration.endpoint_url,
-            "enabled_scopes": integration.enabled_scopes,
+            "integration_id": integration_record["integration_id"],
+            "integration_name": integration_record["integration_name"],
+            "integration_source": integration_record["source"],
+            "endpoint_url": integration_record["endpoint_url"],
+            "enabled_scopes": integration_record["enabled_scopes"],
+            "has_auth_credentials": integration_record["has_auth_credentials"],
             "status": "configured",
-            "implemented": bool(integration.endpoint_url),
+            "implemented": True,
         }
     )
-
-    if not integration.endpoint_url:
-        payload.update(
-            {
-                "status": "misconfigured",
-                "detail": "Integration exists but endpoint_url is empty.",
-            }
-        )
-        return payload, 503
 
     return payload, 200
 
 
-def oneroster_stub(request):
-    """OneRoster readiness endpoint."""
+def oneroster_readiness(request):
+    """OneRoster readiness/discovery endpoint."""
+    rl = _interop_rate_limited(request, "oneroster")
+    if rl:
+        return rl
     school = _resolve_school(request)
     payload, status = _integration_payload(
         service="oneroster",
         school=school,
         service_type=ServiceIntegration.ServiceType.OAUTH,
+        service_name_hint="oneroster",
     )
     payload["standard"] = "OneRoster 1.1"
     payload["resources"] = ["academicSessions", "classes", "students", "teachers", "enrollments"]
+    if school:
+        payload["endpoints"] = {
+            "manifest": request.build_absolute_uri(reverse("api:oneroster-manifest")),
+            "classes": request.build_absolute_uri(reverse("api:oneroster-classes")),
+            "students": request.build_absolute_uri(reverse("api:oneroster-students")),
+            "teachers": request.build_absolute_uri(reverse("api:oneroster-teachers")),
+            "enrollments": request.build_absolute_uri(reverse("api:oneroster-enrollments")),
+        }
+    if status == 200:
+        auth_ready = bool(payload.get("has_auth_credentials"))
+        payload["status"] = "ready" if auth_ready else "needs_configuration"
+        if not auth_ready:
+            status = 503
+            payload["detail"] = "Integration exists but no OneRoster auth credential is configured."
     return JsonResponse(payload, status=status)
 
 
-def lti13_stub(request):
-    """LTI 1.3 readiness endpoint."""
+def lti13_readiness(request):
+    """LTI 1.3 readiness/discovery endpoint."""
+    rl = _interop_rate_limited(request, "lti13")
+    if rl:
+        return rl
     school = _resolve_school(request)
     payload, status = _integration_payload(
         service="lti13",
         school=school,
         service_type=ServiceIntegration.ServiceType.LTI,
+        service_name_hint="lti",
     )
     payload["standard"] = "LTI 1.3"
     payload["capabilities"] = ["oidc_login", "resource_link_launch", "ags", "nrps"]
+    if status == 200:
+        integration_id = payload.get("integration_id")
+        integration = ServiceIntegration.objects.filter(pk=integration_id).first() if integration_id else None
+        cfg = (integration.config if integration else {}) or {}
+        auth_endpoint = (cfg.get("authorization_endpoint") or integration.endpoint_url or "").strip() if integration else ""
+        client_id = (integration.client_id or cfg.get("client_id") or "").strip() if integration else ""
+        deployment_id = (cfg.get("deployment_id") or "").strip() if integration else ""
+        if not (auth_endpoint and client_id and deployment_id):
+            payload["status"] = "needs_configuration"
+            payload["detail"] = "LTI integration missing one or more required fields: authorization_endpoint, client_id, deployment_id."
+            status = 503
+        else:
+            payload["status"] = "ready"
+        if integration:
+            payload["endpoints"] = {
+                "oidc_login": request.build_absolute_uri(reverse("lti_launch", args=[integration.pk])),
+                "oidc_callback": request.build_absolute_uri(reverse("lti_launch_callback", args=[integration.pk])),
+                "jwks": request.build_absolute_uri(reverse("lti_jwks")),
+                "ags_lineitems": request.build_absolute_uri(reverse("lti_ags_lineitems", args=[integration.pk])),
+                "nrps_memberships": request.build_absolute_uri(reverse("lti_nrps_memberships", args=[integration.pk])),
+                "deep_linking": request.build_absolute_uri(reverse("lti_deep_linking", args=[integration.pk])),
+            }
     return JsonResponse(payload, status=status)
+
+
+def oneroster_stub(request):
+    """Backward-compatible alias."""
+    return oneroster_readiness(request)
+
+
+def lti13_stub(request):
+    """Backward-compatible alias."""
+    return lti13_readiness(request)

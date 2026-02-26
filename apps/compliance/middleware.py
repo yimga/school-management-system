@@ -382,6 +382,10 @@ COMPLIANCE_GUARD_PATH_MAP = {
     # Interoperability controls
     "/api/interop/oneroster/": "OneRoster_Interop",
     "/api/interop/lti13/": "LTI13_Interop",
+    "/api/oneroster/v1p1/": "OneRoster_Interop",
+    "/api/scim/v2/": "SCIM_Provisioning",
+    "/lti/launch/": "LTI13_Interop",
+    "/lti/jwks.json": "LTI13_Interop",
 }
 
 

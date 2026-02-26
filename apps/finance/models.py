@@ -472,6 +472,22 @@ class Invoice(models.Model):
     def __str__(self) -> str:
         return f"{self.invoice_type} {self.reference or self.id}"
 
+    def delete(self, using=None, keep_parents=False, hard_delete: bool = False):
+        """
+        Soft delete by default for legal/compliance traceability.
+        """
+        if hard_delete:
+            return super().delete(using=using, keep_parents=keep_parents)
+        if self.deleted_at:
+            return (0, {})
+        self.deleted_at = timezone.now()
+        fields = ["deleted_at", "updated_at"]
+        if self.status != self.Status.VOID:
+            self.status = self.Status.VOID
+            fields.append("status")
+        self.save(update_fields=fields)
+        return (1, {self._meta.label: 1})
+
 class InvoiceLine(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="lines")
     description = models.CharField(max_length=200)
@@ -672,6 +688,22 @@ class Payment(models.Model):
             return f"{self.invoice} {self.amount}"
         return f"Payment {self.pk} {self.amount}"
 
+    def delete(self, using=None, keep_parents=False, hard_delete: bool = False):
+        """
+        Soft delete by default for payment audit integrity.
+        """
+        if hard_delete:
+            return super().delete(using=using, keep_parents=keep_parents)
+        if self.deleted_at:
+            return (0, {})
+        self.deleted_at = timezone.now()
+        fields = ["deleted_at"]
+        if self.status != "cancelled":
+            self.status = "cancelled"
+            fields.append("status")
+        self.save(update_fields=fields)
+        return (1, {self._meta.label: 1})
+
     def _get_audit_region(self):
         """Region for audit log: payment.region or payment_method.region."""
         if self.region_id:
@@ -739,6 +771,113 @@ class Payment(models.Model):
                 details={"reason": reason},
                 severity="high",
             )
+
+
+class InvoicePayerShare(models.Model):
+    """
+    Split-billing obligations per guardian for one invoice.
+    Allows independent reminders/late-fee workflows per payer.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", "Open"
+        PARTIAL = "PARTIAL", "Partially Paid"
+        PAID = "PAID", "Paid"
+        OVERDUE = "OVERDUE", "Overdue"
+
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name="payer_shares",
+    )
+    guardian = models.ForeignKey(
+        StudentGuardian,
+        on_delete=models.CASCADE,
+        related_name="invoice_payer_shares",
+    )
+    allocated_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    late_fee_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.OPEN)
+    is_active = models.BooleanField(default=True)
+    last_reminder_at = models.DateTimeField(null=True, blank=True)
+    last_late_fee_applied_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["invoice_id", "guardian_id"]
+        unique_together = [("invoice", "guardian")]
+
+    def __str__(self) -> str:
+        return f"Invoice {self.invoice_id} / Guardian {self.guardian_id} ({self.allocated_amount})"
+
+    def clean(self):
+        if self.allocated_amount <= Decimal("0.00"):
+            raise ValidationError({"allocated_amount": "Allocated amount must be positive."})
+        if self.paid_amount < Decimal("0.00"):
+            raise ValidationError({"paid_amount": "Paid amount cannot be negative."})
+        if self.invoice_id and self.guardian_id:
+            if self.invoice.student_id and self.guardian.student_id != self.invoice.student_id:
+                raise ValidationError({"guardian": "Guardian must belong to the invoice student."})
+
+    @property
+    def total_due(self) -> Decimal:
+        return max((self.allocated_amount or Decimal("0.00")) + (self.late_fee_amount or Decimal("0.00")), Decimal("0.00"))
+
+    @property
+    def outstanding_amount(self) -> Decimal:
+        return max(self.total_due - (self.paid_amount or Decimal("0.00")), Decimal("0.00"))
+
+    def refresh_status(self, *, save: bool = True) -> str:
+        now_date = timezone.localdate()
+        if self.outstanding_amount <= Decimal("0.00"):
+            next_status = self.Status.PAID
+        elif self.paid_amount > Decimal("0.00"):
+            next_status = self.Status.PARTIAL
+        elif self.due_date and self.due_date < now_date:
+            next_status = self.Status.OVERDUE
+        else:
+            next_status = self.Status.OPEN
+        if self.status != next_status:
+            self.status = next_status
+            if save:
+                self.save(update_fields=["status", "updated_at"])
+        return next_status
+
+
+class InvoicePayerSharePaymentAllocation(models.Model):
+    """
+    Allocation rows to make payer-share payment application idempotent.
+    """
+
+    payer_share = models.ForeignKey(
+        InvoicePayerShare,
+        on_delete=models.CASCADE,
+        related_name="payment_allocations",
+    )
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.CASCADE,
+        related_name="payer_share_allocations",
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        unique_together = [("payer_share", "payment")]
+
+    def clean(self):
+        if self.amount <= Decimal("0.00"):
+            raise ValidationError({"amount": "Allocation amount must be positive."})
+        if self.payer_share_id and self.payment_id:
+            if self.payer_share.invoice_id != self.payment.invoice_id:
+                raise ValidationError({"payer_share": "Allocation payer-share must match payment invoice."})
+
+    def __str__(self) -> str:
+        return f"Payment {self.payment_id} -> Share {self.payer_share_id} ({self.amount})"
 
 
 class CashOfficeClosure(models.Model):

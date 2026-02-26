@@ -5,6 +5,7 @@ Uses nuance engine (JSON-Logic) for eligibility; audit log on every balance chan
 from __future__ import annotations
 
 from decimal import Decimal
+from datetime import timedelta
 from typing import Any
 
 from django.db import transaction
@@ -23,6 +24,7 @@ from .models import (
     InvoiceLine,
     Payment,
 )
+from .services import recalculate_invoice, post_scholarship_disbursement_to_ledger
 
 
 def _student_context(student: StudentProfile) -> dict[str, Any]:
@@ -163,6 +165,7 @@ def execute_disbursement(
             student=app.student,
             status__in=(Invoice.Status.ISSUED, Invoice.Status.PARTIAL, Invoice.Status.PAID),
         ).order_by("-issued_date").first()
+        created_payment = None
         if invoice:
             InvoiceLine.objects.create(
                 invoice=invoice,
@@ -172,32 +175,61 @@ def execute_disbursement(
                 amount=-amount,
                 fee_item=None,
             )
-            invoice.total_amount = (invoice.total_amount or Decimal("0")) - amount
-            invoice.save(update_fields=["total_amount", "updated_at"])
+            recalculate_invoice(invoice)
         else:
-            Payment.objects.create(
+            created_payment = Payment.objects.create(
                 school_id=school_id,
                 student=app.student,
                 amount=amount,
                 currency_code=getattr(app.scholarship.source, "currency", "USD"),
                 purpose="tuition",
                 description=f"Scholarship disbursement: {app.scholarship.title}",
+                method="BANK",
                 status="completed",
                 paid_at=timezone.now(),
                 completed_at=timezone.now(),
                 created_by_id=user_id,
             )
+        post_scholarship_disbursement_to_ledger(
+            application=app,
+            amount=amount,
+            invoice=invoice,
+            payment=created_payment,
+        )
+        try:
+            from apps.siteconfig.webhook_delivery import enqueue_webhook_event
+
+            enqueue_webhook_event(
+                school=app.student.school,
+                event_type="finance.aid_disbursed",
+                event_id=f"aid-disbursed-{app.pk}",
+                data={
+                    "application_id": app.pk,
+                    "student_id": app.student_id,
+                    "scholarship_id": app.scholarship_id,
+                    "source_id": source.pk,
+                    "amount": str(amount),
+                    "currency": source.currency,
+                    "invoice_id": getattr(invoice, "pk", None),
+                    "payment_id": getattr(created_payment, "pk", None),
+                },
+            )
+        except Exception:
+            # Webhook enqueue failures should not roll back core finance disbursement.
+            pass
     return {"ok": True, "application_id": app.pk, "amount": amount}
 
 
-def get_endowment_health_report(school_id: Any) -> list[dict]:
+def get_endowment_health_report(school_id: Any, *, years_ahead: int = 4) -> list[dict]:
     """
     Phase 2: For each AwardSource, sum committed (APPROVED/UNDER_REVIEW not disbursed) vs remaining_funds.
     Returns list of {name, total_budget, remaining_funds, committed, net_liquidity, status}.
     """
     from django.db.models import Sum
+    years_ahead = max(1, min(int(years_ahead), 6))
     sources = AwardSource.objects.filter(school_id=school_id, is_active=True)
     result = []
+    trailing_window_start = timezone.now() - timedelta(days=365)
     for src in sources:
         committed = (
             FinancialAidApplication.objects.filter(
@@ -211,8 +243,31 @@ def get_endowment_health_report(school_id: Any) -> list[dict]:
         committed = committed or Decimal("0.00")
         if not isinstance(committed, Decimal):
             committed = Decimal(str(committed))
+
+        # Use trailing 12-month disbursement activity as a conservative annual burn estimate.
+        burn_aggregate = (
+            AidAuditLog.objects.filter(
+                source=src,
+                action="disbursement",
+                created_at__gte=trailing_window_start,
+            ).aggregate(s=Sum("amount"))["s"]
+            or Decimal("0.00")
+        )
+        annual_burn_estimate = abs(Decimal(str(burn_aggregate)))
+
         net = src.remaining_funds - committed
         status = "HEALTHY" if net >= Decimal("0") else "CRITICAL"
+        projections = []
+        projected = net
+        for year in range(1, years_ahead + 1):
+            projected = projected - annual_burn_estimate
+            projections.append(
+                {
+                    "year_offset": year,
+                    "projected_net_liquidity": projected,
+                    "status": "HEALTHY" if projected >= Decimal("0") else "CRITICAL",
+                }
+            )
         result.append({
             "id": src.pk,
             "name": src.name,
@@ -222,6 +277,8 @@ def get_endowment_health_report(school_id: Any) -> list[dict]:
             "net_liquidity": net,
             "status": status,
             "currency": src.currency,
+            "annual_burn_estimate": annual_burn_estimate,
+            "projections": projections,
         })
     return result
 

@@ -2,19 +2,20 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from collections import defaultdict
 from calendar import monthrange
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, ROUND_DOWN
 from typing import Iterable
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.apicenter.gating import is_integration_allowed
-from apps.people.models import StudentProfile
+from apps.people.models import StudentProfile, StudentGuardian
 from apps.siteconfig.models import Integration, SiteSettings
 
 from .models import (
@@ -23,6 +24,8 @@ from .models import (
     FeeItem,
     FeePlan,
     Invoice,
+    InvoicePayerShare,
+    InvoicePayerSharePaymentAllocation,
     InvoiceLine,
     JournalEntry,
     JournalLine,
@@ -38,9 +41,28 @@ PAYMENT_METHOD_PROVIDER_SLUGS = {
     PaymentMethodCode.MTN_MOMO: "mtn_momo",
     PaymentMethodCode.ORANGE_MOMO: "orange_momo",
 }
-PROVIDER_SLUG_TO_METHOD = {v: k for k, v in PAYMENT_METHOD_PROVIDER_SLUGS.items()}
+PROVIDER_SLUG_ALIASES = {
+    "mtn": "mtn_momo",
+    "mtnmomo": "mtn_momo",
+    "orange": "orange_momo",
+    "orange_money": "orange_momo",
+}
+PROVIDER_SLUG_TO_METHOD = {
+    "mtn_momo": PaymentMethodCode.MTN_MOMO,
+    "mtn": PaymentMethodCode.MTN_MOMO,
+    "orange_momo": PaymentMethodCode.ORANGE_MOMO,
+    "orange_money": PaymentMethodCode.ORANGE_MOMO,
+    "orange": PaymentMethodCode.ORANGE_MOMO,
+}
 DEFAULT_SIGNATURE_FORMAT = "{invoice_id}:{amount}"
 DEFAULT_SIGNATURE_HEADER = "X-Signature"
+
+
+def normalize_provider_slug(slug: str | None) -> str:
+    value = (slug or "").strip().lower()
+    if not value:
+        return ""
+    return PROVIDER_SLUG_ALIASES.get(value, value)
 
 
 def _signature_mapping(data: dict) -> dict:
@@ -79,11 +101,21 @@ def get_payment_integration_by_method(method: str) -> Integration | None:
 
 
 def get_payment_integration_by_slug(slug: str) -> Integration | None:
-    integration = Integration.objects.filter(
-        provider="payments",
-        enabled=True,
-        config__provider_slug=slug,
-    ).order_by("-id").first()
+    normalized = normalize_provider_slug(slug)
+    candidates = {normalized}
+    if slug:
+        candidates.add((slug or "").strip().lower())
+    if normalized == "orange_momo":
+        candidates.add("orange_money")
+    if normalized == "mtn_momo":
+        candidates.add("mtn")
+
+    integration = (
+        Integration.objects.filter(provider="payments", enabled=True)
+        .filter(Q(config__provider_slug__in=candidates) | Q(slug__in=candidates))
+        .order_by("-id")
+        .first()
+    )
     if integration and not is_integration_allowed(integration):
         return None
     return integration
@@ -290,6 +322,94 @@ def post_payment_to_ledger(payment: Payment) -> None:
     )
 
 
+def post_scholarship_disbursement_to_ledger(
+    *,
+    application,
+    amount: Decimal,
+    invoice: Invoice | None = None,
+    payment: Payment | None = None,
+) -> JournalEntry | None:
+    """
+    Post scholarship disbursement as balanced journal entry.
+
+    Debit: Scholarship Aid Expense (658)
+    Credit: Student Receivables (411) when applied as invoice credit;
+            otherwise a cash/bank/mobile-money asset account.
+    """
+    amount = Decimal(str(amount or "0"))
+    if amount <= 0:
+        return None
+
+    profile = None
+    if invoice and invoice.profile_id:
+        profile = invoice.profile
+    elif payment and payment.invoice_id:
+        profile = payment.invoice.profile
+    else:
+        site = SiteSettings.get_solo()
+        profile = getattr(site, "compliance_profile", None) or ComplianceProfile.objects.filter(is_active=True).first()
+    if not profile:
+        return None
+
+    entry = JournalEntry.objects.filter(
+        source_type="financial_aid_disbursement",
+        source_id=application.id,
+    ).first()
+
+    expense_account = _account(profile, "658", "Scholarship Aid Expense", LedgerAccount.AccountType.EXPENSE)
+    if invoice:
+        credit_account = _account(profile, "411", "Student Receivables", LedgerAccount.AccountType.ASSET)
+    else:
+        cash_account = _account(profile, "531", "Cash", LedgerAccount.AccountType.ASSET)
+        bank_account = _account(profile, "512", "Bank", LedgerAccount.AccountType.ASSET)
+        mobile_account = _account(profile, "514", "Mobile Money", LedgerAccount.AccountType.ASSET)
+        method = (getattr(payment, "method", "") or "").strip()
+        if method in {PaymentMethodCode.MTN_MOMO, PaymentMethodCode.ORANGE_MOMO}:
+            credit_account = mobile_account
+        elif method == PaymentMethodCode.CASH:
+            credit_account = cash_account
+        else:
+            credit_account = bank_account
+
+    reference = f"AID-{application.id}"
+    memo = f"Scholarship disbursement: {application.scholarship.title}"
+    entry_date = timezone.now().date()
+    if entry:
+        entry.entry_date = entry_date
+        entry.reference = reference
+        entry.memo = memo
+        entry.posted_at = entry.posted_at or timezone.now()
+        entry.save(update_fields=["entry_date", "reference", "memo", "posted_at"])
+        entry.lines.all().delete()
+    else:
+        entry = JournalEntry.objects.create(
+            profile=profile,
+            entry_date=entry_date,
+            reference=reference,
+            memo=memo,
+            source_type="financial_aid_disbursement",
+            source_id=application.id,
+            posted_at=timezone.now(),
+        )
+
+    line_desc = f"Application {application.id}"
+    JournalLine.objects.create(
+        entry=entry,
+        account=expense_account,
+        description=line_desc,
+        debit=amount,
+        credit=Decimal("0.00"),
+    )
+    JournalLine.objects.create(
+        entry=entry,
+        account=credit_account,
+        description=line_desc,
+        debit=Decimal("0.00"),
+        credit=amount,
+    )
+    return entry
+
+
 def _invoice_status(total: Decimal, balance: Decimal) -> str:
     if total <= 0:
         return Invoice.Status.DRAFT
@@ -324,7 +444,160 @@ def apply_payment(payment: Payment) -> None:
     if not payment or not payment.invoice:
         return
     recalculate_invoice(payment.invoice)
+    allocate_payment_to_payer_shares(payment)
     post_payment_to_ledger(payment)
+
+
+def split_amount_equally(total_amount: Decimal, count: int) -> list[Decimal]:
+    """
+    Deterministic split with cent-level remainder distribution.
+    Example: 100.00 / 3 -> [33.34, 33.33, 33.33]
+    """
+    if count <= 0:
+        return []
+    quant = Decimal("0.01")
+    total = Decimal(str(total_amount)).quantize(quant)
+    base = (total / Decimal(count)).quantize(quant, rounding=ROUND_DOWN)
+    parts = [base for _ in range(count)]
+    distributed = base * count
+    remainder_steps = int(((total - distributed) / quant).to_integral_value())
+    for idx in range(remainder_steps):
+        parts[idx] = (parts[idx] + quant).quantize(quant)
+    return parts
+
+
+@transaction.atomic
+def assign_invoice_payer_shares(
+    invoice: Invoice,
+    payer_allocations: list[tuple[StudentGuardian, Decimal]],
+    *,
+    due_date=None,
+) -> list[InvoicePayerShare]:
+    """
+    Set payer-share splits for an invoice. Replaces existing active shares.
+    """
+    if not invoice or not invoice.id:
+        return []
+    if not payer_allocations:
+        InvoicePayerShare.objects.filter(invoice=invoice).delete()
+        return []
+
+    quant = Decimal("0.01")
+    grouped: dict[int, Decimal] = defaultdict(lambda: Decimal("0.00"))
+    guardian_by_id: dict[int, StudentGuardian] = {}
+    for guardian, amount in payer_allocations:
+        if guardian is None:
+            continue
+        amt = Decimal(str(amount or "0")).quantize(quant)
+        if amt <= Decimal("0.00"):
+            continue
+        if invoice.student_id and guardian.student_id != invoice.student_id:
+            raise ValueError("Guardian allocation does not match invoice student.")
+        grouped[guardian.id] += amt
+        guardian_by_id[guardian.id] = guardian
+
+    if not grouped:
+        InvoicePayerShare.objects.filter(invoice=invoice).delete()
+        return []
+
+    expected_total = Decimal(str(invoice.total_amount or "0")).quantize(quant)
+    split_total = sum(grouped.values(), Decimal("0.00")).quantize(quant)
+    if split_total != expected_total:
+        raise ValueError(f"Payer split total ({split_total}) must match invoice total ({expected_total}).")
+
+    InvoicePayerShare.objects.filter(invoice=invoice).delete()
+    rows = []
+    for guardian_id, amount in grouped.items():
+        rows.append(
+            InvoicePayerShare(
+                invoice=invoice,
+                guardian=guardian_by_id[guardian_id],
+                allocated_amount=amount,
+                due_date=due_date or invoice.due_date,
+                status=InvoicePayerShare.Status.OPEN,
+            )
+        )
+    created = InvoicePayerShare.objects.bulk_create(rows)
+    return list(created)
+
+
+@transaction.atomic
+def assign_equal_invoice_payer_shares(invoice: Invoice) -> list[InvoicePayerShare]:
+    """
+    Equal split across finance-enabled guardians for the invoice student.
+    """
+    if not invoice or not invoice.student_id:
+        return []
+    guardians = list(
+        StudentGuardian.objects.filter(
+            student_id=invoice.student_id,
+            can_view_finance=True,
+            guardian_user__is_active=True,
+        ).select_related("guardian_user")
+    )
+    if not guardians:
+        return []
+    parts = split_amount_equally(Decimal(str(invoice.total_amount or "0.00")), len(guardians))
+    allocations = list(zip(guardians, parts))
+    return assign_invoice_payer_shares(invoice, allocations, due_date=invoice.due_date)
+
+
+@transaction.atomic
+def allocate_payment_to_payer_shares(payment: Payment) -> None:
+    """
+    Apply a payment to payer-share obligations once (idempotent via allocation rows).
+    Preference: payer's own share first, then oldest due.
+    """
+    if not payment or not payment.invoice_id:
+        return
+    shares = list(
+        InvoicePayerShare.objects.filter(
+            invoice_id=payment.invoice_id,
+            is_active=True,
+        ).select_related("guardian", "guardian__guardian_user")
+    )
+    if not shares:
+        return
+
+    already_allocated = (
+        InvoicePayerSharePaymentAllocation.objects.filter(payment=payment).aggregate(total=Sum("amount")).get("total")
+        or Decimal("0.00")
+    )
+    remaining = Decimal(str(payment.amount or "0.00")) - Decimal(str(already_allocated))
+    if remaining <= Decimal("0.00"):
+        for share in shares:
+            share.refresh_status()
+        return
+
+    preferred_guardian_user_id = getattr(getattr(payment, "created_by", None), "id", None)
+    ordered = sorted(
+        shares,
+        key=lambda share: (
+            0 if preferred_guardian_user_id and share.guardian.guardian_user_id == preferred_guardian_user_id else 1,
+            share.due_date or date.max,
+            share.id,
+        ),
+    )
+
+    for share in ordered:
+        if remaining <= Decimal("0.00"):
+            break
+        outstanding = share.outstanding_amount
+        if outstanding <= Decimal("0.00"):
+            continue
+        applied = min(remaining, outstanding)
+        if applied <= Decimal("0.00"):
+            continue
+
+        InvoicePayerSharePaymentAllocation.objects.create(
+            payer_share=share,
+            payment=payment,
+            amount=applied,
+        )
+        share.paid_amount = (share.paid_amount or Decimal("0.00")) + applied
+        share.refresh_status(save=False)
+        share.save(update_fields=["paid_amount", "status", "updated_at"])
+        remaining -= applied
 
 
 def carry_forward_arrears(source_year, target_year) -> int:

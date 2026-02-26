@@ -199,6 +199,40 @@ class ProvisioningJobTests(TestCase):
         term_names = list(Term.objects.filter(school=school).order_by("position").values_list("name", flat=True))
         self.assertEqual(term_names[:3], ["Term 1", "Term 2", "Term 3"])
 
+    def test_provision_school_persists_compiled_tenant_config_snapshot(self):
+        cmr, _ = RegionConfig.objects.get_or_create(
+            code="CMR",
+            defaults={
+                "name": "Cameroon",
+                "default_language": "en",
+                "timezone": "Africa/Douala",
+                "grading_scale": "0-20",
+                "default_currency": "XAF",
+                "academic_year_start_month": 9,
+                "term_count_per_year": 3,
+            },
+        )
+        school = School.objects.create(
+            name="Snapshot School",
+            slug="snapshot-school",
+            subdomain="snapshot-school",
+            is_active=False,
+            default_region=cmr,
+            sub_system=School.SubSystem.EN,
+            settings={"default_language": "fr"},
+        )
+        provision_school_sync(str(school.id), contact_email="ops@snapshot-school.cm")
+        school.refresh_from_db()
+        settings = school.settings or {}
+
+        self.assertIn("tenant_compiled_config", settings)
+        self.assertIn("tenant_config_metadata", settings)
+        self.assertIn("tenant_config_layers", settings)
+        self.assertIn("tenant_policy_pack", settings)
+        self.assertIn("tenant_config_compiled_at", settings)
+        self.assertEqual((settings.get("tenant_policy_pack") or {}).get("code"), "LCA")
+        self.assertEqual((settings.get("tenant_compiled_config") or {}).get("default_language"), "fr")
+
 
 @override_settings(SINGLE_TENANT="true")
 class SingleTenantFallbackTests(TestCase):

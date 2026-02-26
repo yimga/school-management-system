@@ -1,6 +1,7 @@
 """
 Section 8: Tests for Industry Interoperability views — Caddy ask, discovery, LTI placeholder, frozen page.
 """
+import json
 from django.test import TestCase, RequestFactory, Client
 from django.urls import reverse
 
@@ -86,6 +87,15 @@ class VerifyCaddyDomainTests(TestCase):
             response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 200)
 
+    def test_caddy_rate_limit_returns_429_when_exceeded(self):
+        from unittest.mock import patch
+        from apps.schools.section8_views import verify_caddy_domain
+        with patch("apps.schools.section8_views.throttle_ip_request", return_value=(False, 900)):
+            request = self.factory.get("/api/caddy-check/", {"domain": "greenwood.yoursystem.com"})
+            request.META["REMOTE_ADDR"] = "10.0.0.1"
+            response = verify_caddy_domain(request)
+        self.assertEqual(response.status_code, 429)
+
 
 class GlobalLoginDiscoveryTests(TestCase):
     """GET/POST /discover/ — form, redirect to school subdomain or login, or error."""
@@ -155,10 +165,11 @@ class GlobalLoginDiscoveryTests(TestCase):
         self.assertIn(b"Too many attempts", response.content)
 
 
-class LtiLaunchPlaceholderTests(TestCase):
-    """GET /lti/launch/<tool_id>/ returns 501 for valid LTI tool, 404 for invalid."""
+class LtiLaunchRuntimeTests(TestCase):
+    """LTI launch endpoints perform OIDC initiation and callback checks."""
 
     def setUp(self):
+        self.client = Client()
         self.school = School.objects.create(
             name="LTI School",
             slug="lti-school",
@@ -169,38 +180,271 @@ class LtiLaunchPlaceholderTests(TestCase):
             school=self.school,
             service_name="Moodle",
             service_type=ServiceIntegration.ServiceType.LTI,
+            endpoint_url="https://lms.example.com/oidc/auth",
+            client_id="client-123",
+            config={
+                "deployment_id": "dep-1",
+                "public_jwk": {"kty": "RSA", "kid": "kid-1", "alg": "RS256", "use": "sig", "n": "abc", "e": "AQAB"},
+            },
             is_active=True,
         )
 
-    def test_valid_tool_id_returns_501(self):
-        from apps.schools.section8_views import lti_launch_placeholder
-        factory = RequestFactory()
-        request = factory.get(f"/lti/launch/{self.integration.pk}/")
-        response = lti_launch_placeholder(request, str(self.integration.pk))
-        self.assertEqual(response.status_code, 501)
+    @staticmethod
+    def _b64(obj):
         import json
-        data = json.loads(response.content)
-        self.assertIn("message", data)
-        self.assertIn("LTI 1.3", data["message"])
+        import base64
+        raw = json.dumps(obj, separators=(",", ":")).encode("utf-8")
+        return base64.urlsafe_b64encode(raw).decode("utf-8").rstrip("=")
+
+    def _unsigned_id_token(self, *, nonce: str, deployment_id: str = "dep-1"):
+        header = {"alg": "none", "typ": "JWT"}
+        payload = {
+            "sub": "student-1",
+            "nonce": nonce,
+            "https://purl.imsglobal.org/spec/lti/claim/deployment_id": deployment_id,
+        }
+        return f"{self._b64(header)}.{self._b64(payload)}."
+
+    def test_valid_tool_id_redirects_to_oidc_provider(self):
+        response = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("https://lms.example.com/oidc/auth", response["Location"])
+        self.assertIn("client_id=client-123", response["Location"])
+        self.assertIn("response_type=id_token", response["Location"])
 
     def test_invalid_tool_id_returns_404(self):
-        from apps.schools.section8_views import lti_launch_placeholder
-        factory = RequestFactory()
-        request = factory.get("/lti/launch/99999/")
-        response = lti_launch_placeholder(request, "99999")
+        response = self.client.get(reverse("lti_launch", args=["99999"]))
         self.assertEqual(response.status_code, 404)
-        import json
-        data = json.loads(response.content)
-        self.assertIn("error", data)
+        self.assertIn("error", response.json())
 
     def test_inactive_tool_returns_404(self):
         self.integration.is_active = False
         self.integration.save()
-        from apps.schools.section8_views import lti_launch_placeholder
-        factory = RequestFactory()
-        request = factory.get(f"/lti/launch/{self.integration.pk}/")
-        response = lti_launch_placeholder(request, str(self.integration.pk))
+        response = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
         self.assertEqual(response.status_code, 404)
+
+    def test_misconfigured_tool_returns_400(self):
+        self.integration.client_id = ""
+        self.integration.save(update_fields=["client_id"])
+        response = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("required", response.json())
+
+    def test_callback_with_matching_nonce_returns_200(self):
+        init = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
+        self.assertEqual(init.status_code, 302)
+        from urllib.parse import parse_qs, urlparse
+        parsed = urlparse(init["Location"])
+        state = parse_qs(parsed.query)["state"][0]
+        session_key = f"lti_oidc:{self.integration.pk}:{state}"
+        nonce = self.client.session[session_key]["nonce"]
+
+        callback = self.client.post(
+            reverse("lti_launch_callback", args=[self.integration.pk]),
+            data={"state": state, "id_token": self._unsigned_id_token(nonce=nonce)},
+        )
+        self.assertEqual(callback.status_code, 200)
+        self.assertEqual(callback.json().get("status"), "ok")
+
+    def test_callback_with_bad_nonce_returns_403(self):
+        init = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
+        from urllib.parse import parse_qs, urlparse
+        state = parse_qs(urlparse(init["Location"]).query)["state"][0]
+        callback = self.client.post(
+            reverse("lti_launch_callback", args=[self.integration.pk]),
+            data={"state": state, "id_token": self._unsigned_id_token(nonce="wrong")},
+        )
+        self.assertEqual(callback.status_code, 403)
+
+    def test_jwks_returns_configured_keys(self):
+        response = self.client.get(reverse("lti_jwks"))
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertIn("keys", payload)
+        self.assertTrue(any(k.get("kid") == "kid-1" for k in payload["keys"]))
+
+    def test_lti_launch_and_jwks_rate_limit_429_when_exceeded(self):
+        from unittest.mock import patch
+        with patch("apps.schools.section8_views.throttle_ip_request", return_value=(False, 60)):
+            launch = self.client.get(reverse("lti_launch", args=[self.integration.pk]))
+            callback = self.client.post(
+                reverse("lti_launch_callback", args=[self.integration.pk]),
+                data={"state": "s", "id_token": "a.b.c"},
+            )
+            jwks = self.client.get(reverse("lti_jwks"))
+        self.assertEqual(launch.status_code, 429)
+        self.assertEqual(callback.status_code, 429)
+        self.assertEqual(jwks.status_code, 429)
+        self.assertEqual(launch["Retry-After"], "60")
+
+
+class LtiServicesRuntimeTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.school = School.objects.create(
+            name="LTI Services School",
+            slug="lti-services-school",
+            subdomain="lti-services-school",
+            is_active=True,
+        )
+        self.teacher = User.objects.create_user(
+            username="lti-teacher",
+            email="lti-teacher@example.com",
+            password="x",
+            role=User.Role.TEACHER,
+        )
+        self.student = User.objects.create_user(
+            username="lti-student",
+            email="lti-student@example.com",
+            password="x",
+            role=User.Role.STUDENT,
+        )
+        SchoolMembership.objects.create(
+            school=self.school,
+            user=self.teacher,
+            role=User.Role.TEACHER,
+            is_primary=True,
+        )
+        SchoolMembership.objects.create(
+            school=self.school,
+            user=self.student,
+            role=User.Role.STUDENT,
+            is_primary=True,
+        )
+        self.integration = ServiceIntegration.objects.create(
+            school=self.school,
+            service_name="Canvas",
+            service_type=ServiceIntegration.ServiceType.LTI,
+            endpoint_url="https://canvas.example.com/lti/auth",
+            client_id="canvas-client",
+            client_secret="canvas-secret",
+            config={
+                "deployment_id": "dep-services",
+                "service_bearer_token": "svc-token-1",
+            },
+            is_active=True,
+        )
+        self.other_school = School.objects.create(
+            name="LTI Other School",
+            slug="lti-other-school",
+            subdomain="lti-other-school",
+            is_active=True,
+        )
+        self.other_integration = ServiceIntegration.objects.create(
+            school=self.other_school,
+            service_name="Canvas Other",
+            service_type=ServiceIntegration.ServiceType.LTI,
+            endpoint_url="https://canvas.example.com/lti/auth",
+            client_id="canvas-client-other",
+            client_secret="canvas-secret-other",
+            config={
+                "deployment_id": "dep-services-other",
+                "service_bearer_token": "svc-token-other",
+            },
+            is_active=True,
+        )
+
+    def _auth(self):
+        return {"HTTP_AUTHORIZATION": "Bearer svc-token-1"}
+
+    def test_lineitem_create_score_and_results(self):
+        create_lineitem = self.client.post(
+            reverse("lti_ags_lineitems", args=[self.integration.pk]),
+            data=json.dumps({"label": "Quiz 1", "scoreMaximum": 20}),
+            content_type="application/json",
+            **self._auth(),
+        )
+        self.assertEqual(create_lineitem.status_code, 201)
+        lineitem_id = create_lineitem.json()["id"]
+
+        score_resp = self.client.post(
+            reverse("lti_ags_scores", args=[self.integration.pk, lineitem_id]),
+            data=json.dumps(
+                {
+                    "userId": str(self.student.pk),
+                    "scoreGiven": 18,
+                    "scoreMaximum": 20,
+                    "comment": "Good job",
+                }
+            ),
+            content_type="application/json",
+            **self._auth(),
+        )
+        self.assertEqual(score_resp.status_code, 201)
+
+        results = self.client.get(
+            reverse("lti_ags_results", args=[self.integration.pk, lineitem_id]),
+            **self._auth(),
+        )
+        self.assertEqual(results.status_code, 200)
+        payload = results.json()
+        self.assertIn("results", payload)
+        self.assertTrue(any(r.get("userId") == str(self.student.pk) for r in payload["results"]))
+
+    def test_nrps_memberships_returns_school_scoped_members(self):
+        response = self.client.get(
+            reverse("lti_nrps_memberships", args=[self.integration.pk]),
+            **self._auth(),
+        )
+        self.assertEqual(response.status_code, 200)
+        members = response.json().get("members", [])
+        ids = {m.get("user_id") for m in members}
+        self.assertIn(str(self.teacher.pk), ids)
+        self.assertIn(str(self.student.pk), ids)
+
+    def test_deep_linking_accepts_content_items(self):
+        response = self.client.post(
+            reverse("lti_deep_linking", args=[self.integration.pk]),
+            data=json.dumps(
+                {
+                    "content_items": [
+                        {"type": "ltiResourceLink", "title": "Cell Biology", "url": "https://publisher.example.com/cell-bio"}
+                    ]
+                }
+            ),
+            content_type="application/json",
+            **self._auth(),
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload.get("status"), "ok")
+        self.assertEqual(len(payload.get("accepted", [])), 1)
+
+    def test_services_reject_invalid_token(self):
+        response = self.client.get(reverse("lti_nrps_memberships", args=[self.integration.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_services_reject_cross_tenant_token(self):
+        response = self.client.get(
+            reverse("lti_nrps_memberships", args=[self.integration.pk]),
+            HTTP_AUTHORIZATION="Bearer svc-token-other",
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_lti_service_endpoints_rate_limit_429_when_exceeded(self):
+        from unittest.mock import patch
+
+        checks = [
+            ("get", reverse("lti_ags_lineitems", args=[self.integration.pk]), None),
+            ("get", reverse("lti_ags_lineitem_detail", args=[self.integration.pk, "line-1"]), None),
+            ("get", reverse("lti_ags_scores", args=[self.integration.pk, "line-1"]), None),
+            ("get", reverse("lti_ags_results", args=[self.integration.pk, "line-1"]), None),
+            ("get", reverse("lti_nrps_memberships", args=[self.integration.pk]), None),
+            ("post", reverse("lti_deep_linking", args=[self.integration.pk]), {"content_items": []}),
+        ]
+        with patch("apps.schools.section8_views.throttle_ip_request", return_value=(False, 90)):
+            for method, url, payload in checks:
+                if method == "post":
+                    response = self.client.post(
+                        url,
+                        data=json.dumps(payload),
+                        content_type="application/json",
+                        **self._auth(),
+                    )
+                else:
+                    response = self.client.get(url, **self._auth())
+                self.assertEqual(response.status_code, 429, msg=url)
+                self.assertEqual(response["Retry-After"], "90", msg=url)
 
 
 class FrozenAccountViewTests(TestCase):

@@ -2,12 +2,21 @@
 Section 8: Industry Interoperability — landing, Caddy ask, LTI placeholder, global login.
 """
 import os
+import json
+import base64
+import secrets
+from urllib.parse import urlencode
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import redirect
 from django.db.models import Q
+from django.urls import reverse
+from django.utils import timezone
+
+from apps.api.rate_limit import throttle_ip_request
+from apps.siteconfig.integration_registry import resolve_service_integration
 
 
 def _caddy_ip_allowed(request) -> bool:
@@ -17,6 +26,10 @@ def _caddy_ip_allowed(request) -> bool:
         return True
     remote = (request.META.get("REMOTE_ADDR") or "").strip()
     return remote in [ip.strip() for ip in allowed.split(",") if ip.strip()]
+
+
+CADDY_CHECK_RATE_LIMIT_WINDOW = 60 * 15
+CADDY_CHECK_RATE_LIMIT_MAX = 180
 
 
 @require_GET
@@ -29,6 +42,16 @@ def verify_caddy_domain(request):
     """
     if not _caddy_ip_allowed(request):
         return HttpResponseForbidden("IP not allowed")
+    allowed, retry_after = throttle_ip_request(
+        request,
+        scope="caddy_domain_check",
+        max_count=CADDY_CHECK_RATE_LIMIT_MAX,
+        window_seconds=CADDY_CHECK_RATE_LIMIT_WINDOW,
+    )
+    if not allowed:
+        response = HttpResponse("Too many requests", status=429)
+        response["Retry-After"] = str(retry_after)
+        return response
     domain = (request.GET.get("domain") or "").strip()
     if not domain:
         return HttpResponseNotFound("Missing domain parameter")
@@ -53,6 +76,8 @@ def verify_caddy_domain(request):
 DISCOVERY_RATE_LIMIT_KEY = "discovery_post:{ip}"
 DISCOVERY_RATE_LIMIT_MAX = 10
 DISCOVERY_RATE_LIMIT_WINDOW = 60 * 15  # 15 minutes
+LTI_RATE_LIMIT_WINDOW = 60 * 15
+LTI_RATE_LIMIT_MAX = 240
 
 
 def _discovery_rate_limit_exceeded(request) -> bool:
@@ -74,6 +99,20 @@ def _discovery_rate_limit_incr(request) -> None:
         cache.set(key, count, timeout=DISCOVERY_RATE_LIMIT_WINDOW)
     except Exception:
         pass
+
+
+def _lti_rate_limited(request, scope: str):
+    allowed, retry_after = throttle_ip_request(
+        request,
+        scope=f"lti:{scope}",
+        max_count=LTI_RATE_LIMIT_MAX,
+        window_seconds=LTI_RATE_LIMIT_WINDOW,
+    )
+    if allowed:
+        return None
+    response = JsonResponse({"error": "Too many requests"}, status=429)
+    response["Retry-After"] = str(retry_after)
+    return response
 
 
 @require_http_methods(["GET", "POST"])
@@ -124,33 +163,506 @@ def global_login_discovery(request):
 
 
 @require_GET
-def lti_launch_placeholder(request, tool_id):
+def lti_launch(request, tool_id):
     """
-    Section 8.3: Single launcher /lti/launch/<tool_id>/.
-    Placeholder: load ServiceIntegration by tool_id (pk or slug), return 501 or redirect when LTI 1.3 implemented.
+    Section 8.3: LTI 1.3 OIDC login initiation.
+    Loads active ServiceIntegration and redirects to provider authorization endpoint.
     """
-    from apps.siteconfig.models import ServiceIntegration
-    from django.shortcuts import get_object_or_404
-    try:
-        pk = int(tool_id)
-        integration = ServiceIntegration.objects.filter(pk=pk, service_type="LTI", is_active=True).select_related("school").first()
-    except ValueError:
-        integration = None
+    rl = _lti_rate_limited(request, "launch")
+    if rl:
+        return rl
+    integration = _resolve_lti_integration_for_request(request, tool_id)
+
     if not integration:
         return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
-    return JsonResponse({
-        "message": "LTI 1.3 launch not yet implemented. Configure PyLTI1p3 and AGS/NRPS for full support.",
-        "school": str(integration.school_id),
-        "service_name": integration.service_name,
-    }, status=501)
+
+    cfg = integration.config or {}
+    authorization_endpoint = (
+        (cfg.get("authorization_endpoint") or "").strip()
+        or (integration.endpoint_url or "").strip()
+    )
+    client_id = (integration.client_id or cfg.get("client_id") or "").strip()
+    deployment_id = (cfg.get("deployment_id") or "").strip()
+    if not authorization_endpoint or not client_id or not deployment_id:
+        return JsonResponse(
+            {
+                "error": "LTI tool misconfigured.",
+                "required": ["authorization_endpoint", "client_id", "deployment_id"],
+            },
+            status=400,
+        )
+
+    state = secrets.token_urlsafe(24)
+    nonce = secrets.token_urlsafe(24)
+    session_key = f"lti_oidc:{integration.pk}:{state}"
+    request.session[session_key] = {"nonce": nonce, "tool_id": integration.pk}
+    request.session.modified = True
+
+    redirect_uri = (
+        (cfg.get("redirect_uri") or "").strip()
+        or request.build_absolute_uri(reverse("lti_launch_callback", args=[integration.pk]))
+    )
+    params = {
+        "response_type": "id_token",
+        "response_mode": "form_post",
+        "scope": "openid",
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "login_hint": request.GET.get("login_hint") or getattr(request.user, "email", "") or "",
+        "lti_message_hint": request.GET.get("lti_message_hint", ""),
+        "nonce": nonce,
+        "state": state,
+    }
+    if request.GET.get("iss"):
+        params["iss"] = request.GET.get("iss")
+    if request.GET.get("target_link_uri"):
+        params["target_link_uri"] = request.GET.get("target_link_uri")
+
+    params = {k: v for k, v in params.items() if str(v).strip()}
+    joiner = "&" if "?" in authorization_endpoint else "?"
+    return redirect(f"{authorization_endpoint}{joiner}{urlencode(params)}")
+
+
+def lti_launch_placeholder(request, tool_id):
+    """
+    Backward-compatible alias.
+    """
+    return lti_launch(request, tool_id)
+
+
+def _decode_unverified_jwt(id_token: str) -> dict:
+    """Decode JWT payload without signature verification for baseline launch checks."""
+    try:
+        parts = id_token.split(".")
+        if len(parts) < 2:
+            return {}
+        payload = parts[1] + ("=" * (-len(parts[1]) % 4))
+        decoded = base64.urlsafe_b64decode(payload.encode("utf-8")).decode("utf-8")
+        data = json.loads(decoded)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _resolve_lti_integration_for_request(request, tool_id):
+    from apps.siteconfig.models import ServiceIntegration
+    from apps.schools.models import School
+
+    try:
+        pk = int(tool_id)
+        integration = ServiceIntegration.objects.filter(
+            pk=pk,
+            service_type=ServiceIntegration.ServiceType.LTI,
+            is_active=True,
+        ).select_related("school").first()
+    except ValueError:
+        integration = None
+
+    if integration:
+        return integration
+
+    school = getattr(request, "school", None)
+    if not school:
+        school_slug = (request.GET.get("school_slug") or "").strip()
+        if school_slug:
+            school = School.objects.filter(slug=school_slug, is_active=True).first()
+    if not school:
+        return None
+    return resolve_service_integration(
+        school,
+        service_type=ServiceIntegration.ServiceType.LTI,
+        service_name=str(tool_id).strip(),
+        name_hints=[str(tool_id).strip(), "lti"],
+        allow_legacy_backfill=True,
+    )
+
+
+def _extract_bearer_token(request) -> str:
+    auth = (request.headers.get("Authorization") or "").strip()
+    if not auth.lower().startswith("bearer "):
+        return ""
+    return auth[7:].strip()
+
+
+def _authorize_lti_service_request(request, integration):
+    cfg = integration.config or {}
+    expected = (
+        str(cfg.get("service_bearer_token") or "").strip()
+        or str(cfg.get("bearer_token") or "").strip()
+        or str(integration.client_secret or "").strip()
+    )
+    provided = _extract_bearer_token(request)
+    if expected and provided and secrets.compare_digest(expected, provided):
+        return None
+    return JsonResponse({"error": "Unauthorized"}, status=403)
+
+
+def _lti_state(integration):
+    cfg = dict(integration.config or {})
+    cfg.setdefault("_lti_lineitems", [])
+    cfg.setdefault("_lti_scores", {})
+    cfg.setdefault("_lti_deep_links", [])
+    return cfg
+
+
+def _save_lti_state(integration, cfg):
+    integration.config = cfg
+    integration.save(update_fields=["config", "updated_at"])
+
+
+def _json_body(request):
+    try:
+        return json.loads((request.body or b"{}").decode("utf-8"))
+    except Exception:
+        return {}
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def lti_launch_callback(request, tool_id):
+    """
+    Section 8.3: LTI 1.3 OIDC callback (response_mode=form_post).
+    Baseline validation: tool active, state present, nonce matches.
+    """
+    rl = _lti_rate_limited(request, "launch_callback")
+    if rl:
+        return rl
+    integration = _resolve_lti_integration_for_request(request, tool_id)
+    if not integration:
+        return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
+
+    state = (request.POST.get("state") or "").strip()
+    id_token = (request.POST.get("id_token") or "").strip()
+    if not state or not id_token:
+        return JsonResponse({"error": "Missing state or id_token"}, status=400)
+
+    session_key = f"lti_oidc:{integration.pk}:{state}"
+    pending = request.session.get(session_key) or {}
+    if not pending:
+        return JsonResponse({"error": "Invalid or expired state"}, status=403)
+
+    claims = _decode_unverified_jwt(id_token)
+    expected_nonce = str(pending.get("nonce") or "")
+    if not claims or str(claims.get("nonce") or "") != expected_nonce:
+        return JsonResponse({"error": "Invalid nonce"}, status=403)
+
+    expected_deployment = str((integration.config or {}).get("deployment_id") or "").strip()
+    claim_deployment = str(
+        claims.get("https://purl.imsglobal.org/spec/lti/claim/deployment_id") or ""
+    ).strip()
+    if expected_deployment and claim_deployment and claim_deployment != expected_deployment:
+        return JsonResponse({"error": "Deployment mismatch"}, status=403)
+
+    try:
+        del request.session[session_key]
+        request.session.modified = True
+    except Exception:
+        pass
+
+    launch_target = str((integration.config or {}).get("launch_target") or "").strip()
+    if launch_target:
+        return redirect(launch_target)
+    return JsonResponse(
+        {
+            "status": "ok",
+            "school": str(integration.school_id),
+            "service_name": integration.service_name,
+            "subject": claims.get("sub"),
+            "capabilities": ["oidc_login", "resource_link_launch", "ags", "nrps"],
+        },
+        status=200,
+    )
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def lti_ags_lineitems(request, tool_id):
+    """
+    Minimal LTI AGS line item service.
+    """
+    rl = _lti_rate_limited(request, "ags_lineitems")
+    if rl:
+        return rl
+    integration = _resolve_lti_integration_for_request(request, tool_id)
+    if not integration:
+        return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
+    auth_err = _authorize_lti_service_request(request, integration)
+    if auth_err:
+        return auth_err
+
+    cfg = _lti_state(integration)
+    items = list(cfg.get("_lti_lineitems") or [])
+    if request.method == "GET":
+        return JsonResponse({"lineItems": items}, status=200)
+
+    body = _json_body(request)
+    lineitem_id = str(secrets.token_hex(8))
+    lineitem = {
+        "id": lineitem_id,
+        "label": str(body.get("label") or f"Line Item {len(items) + 1}"),
+        "resourceId": str(body.get("resourceId") or ""),
+        "tag": str(body.get("tag") or ""),
+        "scoreMaximum": float(body.get("scoreMaximum") or 100.0),
+        "createdAt": timezone.now().isoformat(),
+    }
+    items.append(lineitem)
+    cfg["_lti_lineitems"] = items
+    _save_lti_state(integration, cfg)
+    return JsonResponse(lineitem, status=201)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def lti_ags_lineitem_detail(request, tool_id, lineitem_id):
+    rl = _lti_rate_limited(request, "ags_lineitem_detail")
+    if rl:
+        return rl
+    integration = _resolve_lti_integration_for_request(request, tool_id)
+    if not integration:
+        return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
+    auth_err = _authorize_lti_service_request(request, integration)
+    if auth_err:
+        return auth_err
+    cfg = _lti_state(integration)
+    items = list(cfg.get("_lti_lineitems") or [])
+    idx = next((i for i, row in enumerate(items) if str(row.get("id")) == str(lineitem_id)), -1)
+    if idx < 0:
+        return JsonResponse({"error": "Line item not found"}, status=404)
+
+    if request.method == "GET":
+        return JsonResponse(items[idx], status=200)
+    if request.method == "DELETE":
+        items.pop(idx)
+        scores = dict(cfg.get("_lti_scores") or {})
+        scores.pop(str(lineitem_id), None)
+        cfg["_lti_lineitems"] = items
+        cfg["_lti_scores"] = scores
+        _save_lti_state(integration, cfg)
+        return HttpResponse(status=204)
+
+    body = _json_body(request)
+    lineitem = dict(items[idx])
+    for key in ("label", "resourceId", "tag"):
+        if key in body:
+            lineitem[key] = str(body.get(key) or "")
+    if "scoreMaximum" in body:
+        lineitem["scoreMaximum"] = float(body.get("scoreMaximum") or 100.0)
+    items[idx] = lineitem
+    cfg["_lti_lineitems"] = items
+    _save_lti_state(integration, cfg)
+    return JsonResponse(lineitem, status=200)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def lti_ags_scores(request, tool_id, lineitem_id):
+    rl = _lti_rate_limited(request, "ags_scores")
+    if rl:
+        return rl
+    integration = _resolve_lti_integration_for_request(request, tool_id)
+    if not integration:
+        return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
+    auth_err = _authorize_lti_service_request(request, integration)
+    if auth_err:
+        return auth_err
+    cfg = _lti_state(integration)
+    items = cfg.get("_lti_lineitems") or []
+    if not any(str(i.get("id")) == str(lineitem_id) for i in items):
+        return JsonResponse({"error": "Line item not found"}, status=404)
+
+    scores = dict(cfg.get("_lti_scores") or {})
+    entries = list(scores.get(str(lineitem_id)) or [])
+
+    if request.method == "GET":
+        return JsonResponse({"scores": entries}, status=200)
+
+    body = _json_body(request)
+    entry = {
+        "id": str(secrets.token_hex(8)),
+        "userId": str(body.get("userId") or ""),
+        "scoreGiven": float(body.get("scoreGiven") or 0.0),
+        "scoreMaximum": float(body.get("scoreMaximum") or 100.0),
+        "activityProgress": str(body.get("activityProgress") or "Completed"),
+        "gradingProgress": str(body.get("gradingProgress") or "FullyGraded"),
+        "comment": str(body.get("comment") or ""),
+        "timestamp": str(body.get("timestamp") or timezone.now().isoformat()),
+    }
+    if not entry["userId"]:
+        return JsonResponse({"error": "userId is required"}, status=400)
+    entries.append(entry)
+    scores[str(lineitem_id)] = entries
+    cfg["_lti_scores"] = scores
+    _save_lti_state(integration, cfg)
+    return JsonResponse(entry, status=201)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def lti_ags_results(request, tool_id, lineitem_id):
+    rl = _lti_rate_limited(request, "ags_results")
+    if rl:
+        return rl
+    integration = _resolve_lti_integration_for_request(request, tool_id)
+    if not integration:
+        return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
+    auth_err = _authorize_lti_service_request(request, integration)
+    if auth_err:
+        return auth_err
+    cfg = _lti_state(integration)
+    scores = list((cfg.get("_lti_scores") or {}).get(str(lineitem_id)) or [])
+    by_user = {}
+    for score in scores:
+        uid = str(score.get("userId") or "").strip()
+        if not uid:
+            continue
+        by_user[uid] = score
+    results = []
+    for uid, score in by_user.items():
+        results.append(
+            {
+                "userId": uid,
+                "resultScore": float(score.get("scoreGiven") or 0.0),
+                "resultMaximum": float(score.get("scoreMaximum") or 100.0),
+                "comment": str(score.get("comment") or ""),
+            }
+        )
+    return JsonResponse({"results": results}, status=200)
+
+
+def _map_membership_role(role: str) -> str:
+    role_upper = str(role or "").upper()
+    if role_upper in {"ADMIN", "IT_ADMIN", "LEADERSHIP"}:
+        return "Administrator"
+    if role_upper == "TEACHER":
+        return "Instructor"
+    if role_upper == "PARENT":
+        return "Guardian"
+    return "Learner"
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def lti_nrps_memberships(request, tool_id):
+    """
+    Minimal LTI NRPS memberships service (tenant scoped).
+    """
+    rl = _lti_rate_limited(request, "nrps_memberships")
+    if rl:
+        return rl
+    integration = _resolve_lti_integration_for_request(request, tool_id)
+    if not integration:
+        return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
+    auth_err = _authorize_lti_service_request(request, integration)
+    if auth_err:
+        return auth_err
+
+    from apps.schools.models import SchoolMembership
+    memberships = (
+        SchoolMembership.objects.filter(school=integration.school)
+        .select_related("user")
+        .order_by("user_id")
+    )
+    members = []
+    for membership in memberships:
+        user = membership.user
+        members.append(
+            {
+                "user_id": str(user.pk),
+                "name": user.get_full_name() or user.username,
+                "email": user.email or "",
+                "roles": [_map_membership_role(membership.role or user.role)],
+                "status": "Active" if user.is_active else "Inactive",
+            }
+        )
+    return JsonResponse({"id": str(integration.pk), "members": members}, status=200)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def lti_deep_linking(request, tool_id):
+    """
+    Minimal LTI Deep Linking response service.
+    """
+    rl = _lti_rate_limited(request, "deep_linking")
+    if rl:
+        return rl
+    integration = _resolve_lti_integration_for_request(request, tool_id)
+    if not integration:
+        return JsonResponse({"error": "LTI tool not found or inactive."}, status=404)
+    auth_err = _authorize_lti_service_request(request, integration)
+    if auth_err:
+        return auth_err
+    cfg = _lti_state(integration)
+    body = _json_body(request)
+    content_items = body.get("content_items")
+    if not isinstance(content_items, list):
+        content_items = body.get("contentItems")
+    if not isinstance(content_items, list):
+        return JsonResponse({"error": "content_items must be an array"}, status=400)
+
+    accepted = []
+    for item in content_items:
+        if not isinstance(item, dict):
+            continue
+        accepted.append(
+            {
+                "type": str(item.get("type") or "ltiResourceLink"),
+                "title": str(item.get("title") or "LTI Resource"),
+                "text": str(item.get("text") or ""),
+                "url": str(item.get("url") or ""),
+                "lineItem": item.get("lineItem") if isinstance(item.get("lineItem"), dict) else {},
+            }
+        )
+
+    deep_links = list(cfg.get("_lti_deep_links") or [])
+    deep_links.append(
+        {
+            "id": str(secrets.token_hex(8)),
+            "createdAt": timezone.now().isoformat(),
+            "items": accepted,
+        }
+    )
+    cfg["_lti_deep_links"] = deep_links[-100:]
+    _save_lti_state(integration, cfg)
+    return JsonResponse({"status": "ok", "accepted": accepted}, status=200)
 
 
 @require_GET
 def jwks_json(request):
     """
-    Section 8.3: Public keys endpoint for LTI 1.3. Placeholder: return empty keys until keys stored in DB.
+    Section 8.3: Public keys endpoint for LTI 1.3.
+    Collect keys from active LTI integrations via config.jwks or config.public_jwk.
     """
-    return JsonResponse({"keys": []})
+    rl = _lti_rate_limited(request, "jwks")
+    if rl:
+        return rl
+    from apps.siteconfig.models import ServiceIntegration
+
+    school = getattr(request, "school", None)
+    qs = ServiceIntegration.objects.filter(
+        service_type=ServiceIntegration.ServiceType.LTI,
+        is_active=True,
+    )
+    if school:
+        qs = qs.filter(school=school)
+
+    keys = []
+    seen_kids = set()
+    for integration in qs.only("config"):
+        cfg = integration.config or {}
+        candidates = []
+        if isinstance(cfg.get("jwks"), list):
+            candidates.extend([k for k in cfg.get("jwks") if isinstance(k, dict)])
+        if isinstance(cfg.get("public_jwk"), dict):
+            candidates.append(cfg.get("public_jwk"))
+        for key in candidates:
+            kid = str(key.get("kid") or "")
+            if kid and kid in seen_kids:
+                continue
+            if kid:
+                seen_kids.add(kid)
+            keys.append(key)
+    return JsonResponse({"keys": keys})
 
 
 def frozen_account(request):

@@ -3,6 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.apps import apps as django_apps
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 import re
 import uuid
@@ -378,6 +379,23 @@ class StudentProfile(models.Model):
         if self.user:
             return self.user.get_full_name() or self.user.username
         return self.student_code or "Student"
+
+    def delete(self, using=None, keep_parents=False, hard_delete: bool = False):
+        """
+        Soft delete by default to preserve academic/legal audit history.
+        Pass hard_delete=True only for explicit data-purge workflows.
+        """
+        if hard_delete:
+            return super().delete(using=using, keep_parents=keep_parents)
+        if self.deleted_at:
+            return (0, {})
+        self.deleted_at = timezone.now()
+        fields = ["deleted_at", "updated_at"]
+        if self.is_active:
+            self.is_active = False
+            fields.append("is_active")
+        self.save(update_fields=fields)
+        return (1, {self._meta.label: 1})
 
     @property
     def parent_completeness(self) -> int:

@@ -13,6 +13,7 @@ class AutomationCommandAvailabilityTest(TestCase):
         commands = get_commands()
         self.assertIn("run_payroll_cycle", commands)
         self.assertIn("send_payment_reminders", commands)
+        self.assertIn("apply_split_late_fees", commands)
         self.assertIn("run_phase7_checks", commands)
 
 

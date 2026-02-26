@@ -20,7 +20,7 @@
         {% endif %}
         <div class="p-3 border rounded-3 bg-light mb-3">
           <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label for="id_student" class="form-label">{{ form.student.label }}</label>
               {{ form.student }}
               {% if form.student.errors %}<div class="invalid-feedback d-block">{{ form.student.errors }}</div>{% endif %}
@@ -35,7 +35,32 @@
               {{ form.method }}
               {% if form.method.errors %}<div class="invalid-feedback d-block">{{ form.method.errors }}</div>{% endif %}
             </div>
+            <div class="col-md-2">
+              <label for="id_split_mode" class="form-label">{{ form.split_mode.label }}</label>
+              {{ form.split_mode }}
+              {% if form.split_mode.errors %}<div class="invalid-feedback d-block">{{ form.split_mode.errors }}</div>{% endif %}
+            </div>
           </div>
+        </div>
+        <div class="mb-3">
+          <h6 class="mb-2">Payer Split (Optional)</h6>
+          <div class="small text-muted mb-2">
+            Use <strong>Equal</strong> to split across finance-enabled guardians, or <strong>Custom</strong> to set exact guardian shares.
+          </div>
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Guardian</th>
+                <th class="text-end" style="width: 180px;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>{{ form.payer_guardian_1 }}</td><td class="text-end">{{ form.payer_amount_1 }}</td></tr>
+              <tr><td>{{ form.payer_guardian_2 }}</td><td class="text-end">{{ form.payer_amount_2 }}</td></tr>
+              <tr><td>{{ form.payer_guardian_3 }}</td><td class="text-end">{{ form.payer_amount_3 }}</td></tr>
+              <tr><td>{{ form.payer_guardian_4 }}</td><td class="text-end">{{ form.payer_amount_4 }}</td></tr>
+            </tbody>
+          </table>
         </div>
         <div class="mb-3">
           <table class="table table-sm">

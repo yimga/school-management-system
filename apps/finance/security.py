@@ -146,7 +146,12 @@ class WebhookSecurityValidator:
         if not signature_header:
             logger.warning("No signature provided in webhook request")
             return False
-        
+        signature_value = str(signature_header).strip()
+        if "=" in signature_value:
+            maybe_alg, maybe_sig = signature_value.split("=", 1)
+            if maybe_alg.lower() in {"sha256", "hmac-sha256", "v1"} and maybe_sig.strip():
+                signature_value = maybe_sig.strip()
+
         # Compute expected signature
         try:
             expected_signature = hmac.new(
@@ -159,12 +164,12 @@ class WebhookSecurityValidator:
             return False
         
         # Timing-safe comparison (prevents timing attacks)
-        is_valid = hmac.compare_digest(signature_header, expected_signature)
+        is_valid = hmac.compare_digest(signature_value.lower(), expected_signature.lower())
         
         if not is_valid:
             logger.warning(
                 f"Webhook signature mismatch. Expected: {expected_signature[:8]}..., "
-                f"Got: {signature_header[:8]}..."
+                f"Got: {signature_value[:8]}..."
             )
         
         return is_valid

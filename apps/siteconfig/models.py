@@ -3067,6 +3067,56 @@ class WebhookSubscription(models.Model):
         return f"{self.school.name} — {self.event_type} → {self.target_url}"
 
 
+class WebhookDelivery(models.Model):
+    """
+    Delivery ledger for outbound webhook events with retry and dead-letter support.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        RETRYING = "RETRYING", "Retrying"
+        DELIVERED = "DELIVERED", "Delivered"
+        DEAD_LETTER = "DEAD_LETTER", "Dead letter"
+
+    subscription = models.ForeignKey(
+        "siteconfig.WebhookSubscription",
+        on_delete=models.CASCADE,
+        related_name="deliveries",
+    )
+    event_id = models.CharField(max_length=64)
+    event_type = models.CharField(max_length=80)
+    payload = models.JSONField(default=dict, blank=True)
+    signature = models.CharField(max_length=255, blank=True)
+
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    max_attempts = models.PositiveSmallIntegerField(default=4)
+    next_attempt_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    last_attempt_at = models.DateTimeField(null=True, blank=True)
+    last_status_code = models.PositiveSmallIntegerField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["next_attempt_at", "created_at"]
+        indexes = [
+            models.Index(fields=["status", "next_attempt_at"], name="siteconfig_webhook_queue_idx"),
+            models.Index(fields=["event_type", "created_at"], name="siteconfig_webhook_event_idx"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["subscription", "event_id"],
+                name="siteconfig_unique_subscription_event_delivery",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.subscription_id}:{self.event_type}:{self.event_id} [{self.status}]"
+
+
 # ============================================================================
 # Request-to-Feature & Feature Fragment (plan 3.20, 3.26)
 # ============================================================================

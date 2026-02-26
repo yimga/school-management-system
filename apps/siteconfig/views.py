@@ -57,6 +57,7 @@ from .models import (
 )
 from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
+from .tenant_config import apply_tenant_settings_overrides
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import User
 logger = logging.getLogger(__name__)
@@ -274,14 +275,26 @@ def grading_settings(request):
         new_grading = (request.POST.get("grading_scale") or "").strip() or None
         new_language = (request.POST.get("default_language") or "").strip() or None
         if new_grading or new_language is not None:
-            settings = dict(current_settings)
+            requested_overrides = {}
             if new_grading:
-                settings["grading_scale"] = new_grading
+                requested_overrides["grading_scale"] = new_grading
             if new_language is not None:
-                settings["default_language"] = new_language
-            school.settings = settings
-            school.save(update_fields=["settings", "updated_at"])
-            messages.success(request, "Grading and language settings updated.")
+                requested_overrides["default_language"] = new_language
+            result = apply_tenant_settings_overrides(
+                school,
+                requested_overrides,
+                actor_is_superadmin=bool(request.user.is_superuser),
+                force_override=False,
+                persist=True,
+            )
+            if result.get("applied"):
+                messages.success(request, "Grading and language settings updated.")
+            if result.get("blocked"):
+                blocked_keys = ", ".join(sorted(result["blocked"].keys()))
+                messages.warning(
+                    request,
+                    f"Some settings were blocked by policy: {blocked_keys}",
+                )
             return redirect("siteconfig:grading_settings")
     return render(request, "siteconfig/grading_settings.html", {
         "school": school,

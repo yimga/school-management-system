@@ -107,6 +107,47 @@ class ReportCardAudit(models.Model):
         return f"{self.report_card} - {self.action} @ {self.created_at:%Y-%m-%d %H:%M}"
 
 
+class ReportDocumentHash(models.Model):
+    """
+    Immutable verification ledger entry for generated report PDFs.
+    Stores the SHA-256 digest used by external verifiers.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="report_document_hashes",
+        null=True,
+        blank=True,
+    )
+    report_card = models.OneToOneField(
+        ReportCard,
+        on_delete=models.CASCADE,
+        related_name="document_hash",
+    )
+    sha256_hash = models.CharField(max_length=64, db_index=True)
+    file_size_bytes = models.PositiveIntegerField(default=0)
+    generated_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="generated_report_hashes",
+    )
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["sha256_hash", "created_at"], name="reports_rep_sha256_9bb6cb_idx"),
+            models.Index(fields=["school", "created_at"], name="reports_rep_school__6d1cfb_idx"),
+        ]
+
+    def __str__(self):
+        return f"Report hash {self.sha256_hash[:12]}... ({self.report_card_id})"
+
+
 class PromotionRule(models.Model):
     """Promotion thresholds per academic year with optional classroom overrides."""
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name="promotion_rules")

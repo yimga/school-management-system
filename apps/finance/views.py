@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db import models, transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, Prefetch
 from django.db.models.functions import Coalesce
 from typing import Optional
 from django.http import (
@@ -53,6 +53,7 @@ from .models import (
     ComplianceProfile,
     FeePlan,
     Invoice,
+    InvoicePayerShare,
     InvoiceLine,
     LedgerAccount,
     Notification,
@@ -69,6 +70,8 @@ from .fraud_detection import ReceiptFraudDetector
 from .receipt_verification import ReceiptVerificationService
 from .ocr_runtime import get_ocr_runtime_status
 from .services import (
+    assign_invoice_payer_shares,
+    split_amount_equally,
     apply_payment,
     create_payment_from_receipt,
     PROVIDER_SLUG_TO_METHOD,
@@ -76,8 +79,8 @@ from .services import (
     finance_dashboard_data,
     generate_payment_link,
     get_payment_integration_by_slug,
+    normalize_provider_slug,
     record_provider_payment,
-    verify_payment_signature,
 )
 from .security import (
     PaymentValidator,
@@ -273,7 +276,18 @@ def invoice_list(request: HttpRequest):
     search = (request.GET.get("q") or "").strip()
     qs = Invoice.objects.filter(profile=profile).select_related(
         "student", "academic_year", "profile"
-    ).prefetch_related("payments")
+    ).prefetch_related(
+        "payments",
+        "student__guardian_links",
+        Prefetch(
+            "payer_shares",
+            queryset=(
+                InvoicePayerShare.objects.filter(is_active=True)
+                .select_related("guardian", "guardian__guardian_user")
+            ),
+            to_attr="active_payer_shares",
+        ),
+    )
     
     # Filter invoices based on user role
     if request.user.role == User.Role.PARENT:
@@ -374,6 +388,26 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
     q = request.GET.copy()
     q.pop("page", None)
     pagination_extra_query = q.urlencode()
+
+    # Add split-billing summaries for list rendering without extra template logic.
+    current_user_id = getattr(request.user, "id", None)
+    for inv in page_obj.object_list:
+        shares = getattr(inv, "active_payer_shares", []) or []
+        inv.split_payer_count = len(shares)
+        inv.split_outstanding_total = sum(
+            (share.outstanding_amount for share in shares),
+            Decimal("0.00"),
+        )
+        inv.my_split_outstanding = None
+        inv.my_split_status = ""
+        if current_user_id and shares:
+            mine = next(
+                (share for share in shares if share.guardian.guardian_user_id == current_user_id),
+                None,
+            )
+            if mine:
+                inv.my_split_outstanding = mine.outstanding_amount
+                inv.my_split_status = mine.get_status_display()
 
     return render(request, "finance/invoices.html", {
         "invoices": page_obj,
@@ -618,7 +652,7 @@ def split_allocation(request: HttpRequest):
     Creates an invoice with multiple lines, one payment for the total, then applies
     payment and posts to OHADA ledger.
     """
-    from apps.people.models import StudentProfile
+    from apps.people.models import StudentProfile, StudentGuardian
 
     profile = _active_profile()
     if not profile:
@@ -632,16 +666,44 @@ def split_allocation(request: HttpRequest):
         })
 
     students = StudentProfile.objects.filter(academic_year=active_year).order_by("last_name", "first_name")
-    form = SplitAllocationForm(request.POST or None, student_queryset=students)
+    selected_student_id = (request.POST.get("student") or request.GET.get("student") or "").strip()
+    guardians = StudentGuardian.objects.none()
+    if selected_student_id.isdigit():
+        guardians = StudentGuardian.objects.filter(
+            student_id=int(selected_student_id),
+            student__academic_year=active_year,
+            can_view_finance=True,
+            guardian_user__is_active=True,
+        ).select_related("guardian_user")
+
+    form = SplitAllocationForm(
+        request.POST or None,
+        student_queryset=students,
+        guardian_queryset=guardians,
+    )
 
     if request.method == "POST" and form.is_valid():
         student = form.cleaned_data["student"]
         total_amount = form.cleaned_data["total_amount"]
         method = form.cleaned_data["method"]
+        split_mode = (form.cleaned_data.get("split_mode") or "none").strip().lower()
         allocations = form.get_allocations()
         today = timezone.now().date()
         short_id = uuid.uuid4().hex[:8].upper()
         reference = f"SPLIT-{student.id}-{today.isoformat()}-{short_id}"
+        payer_allocations = []
+        if split_mode == "custom":
+            payer_allocations = form.get_payer_allocations()
+        elif split_mode == "equal":
+            student_guardians = list(
+                StudentGuardian.objects.filter(
+                    student=student,
+                    can_view_finance=True,
+                    guardian_user__is_active=True,
+                ).select_related("guardian_user")
+            )
+            equal_parts = split_amount_equally(total_amount, len(student_guardians))
+            payer_allocations = list(zip(student_guardians, equal_parts))
 
         with transaction.atomic():
             invoice = Invoice.objects.create(
@@ -664,6 +726,8 @@ def split_allocation(request: HttpRequest):
                     unit_price=amount,
                     amount=amount,
                 )
+            if payer_allocations:
+                assign_invoice_payer_shares(invoice, payer_allocations, due_date=today)
             payment = Payment.objects.create(
                 invoice=invoice,
                 student=student,
@@ -965,6 +1029,31 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
             "currently have finance access."
         )
 
+    payer_shares = []
+    guardian_share = None
+    if invoice.student_id:
+        payer_shares = list(
+            invoice.payer_shares.filter(is_active=True).select_related("guardian", "guardian__guardian_user")
+        )
+        if payer_shares:
+            current_guardian_share = next(
+                (
+                    share
+                    for share in payer_shares
+                    if share.guardian.guardian_user_id == getattr(request.user, "id", None)
+                ),
+                None,
+            )
+            if current_guardian_share:
+                guardian_share = {
+                    "allocated": current_guardian_share.allocated_amount,
+                    "paid": current_guardian_share.paid_amount,
+                    "late_fee": current_guardian_share.late_fee_amount,
+                    "outstanding": current_guardian_share.outstanding_amount,
+                    "status": current_guardian_share.get_status_display(),
+                    "due_date": current_guardian_share.due_date,
+                }
+
     # Get payment proof uploads for this invoice
     payment_proof_uploads = PaymentProofUpload.objects.filter(
         invoice=invoice
@@ -982,6 +1071,8 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         "finance_request_url": reverse("finance:invoice_request_access", args=[invoice.id]),
         "finance_guardian_count": access_state["finance_count"],
         "guardian_link_count": access_state["guardian_count"],
+        "guardian_share": guardian_share,
+        "payer_share_count": len(payer_shares),
     })
 
 
@@ -1663,6 +1754,78 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         HttpResponseForbidden/HttpResponseBadRequest on validation failure
     """
     
+    def _provider_code() -> str:
+        configured = normalize_provider_slug((integration.config or {}).get("provider_slug")) if integration else ""
+        return configured or normalize_provider_slug(provider_slug) or (provider_slug or "").strip().lower()
+
+    def _first_present(payload: dict, keys: list[str]):
+        for key in keys:
+            if key in payload and payload.get(key) not in (None, ""):
+                return payload.get(key)
+        return None
+
+    def _as_dict(value):
+        return value if isinstance(value, dict) else {}
+
+    def _extract_reference(payload: dict) -> str:
+        metadata = _as_dict(payload.get("metadata"))
+        data_block = _as_dict(payload.get("data"))
+        txn_block = _as_dict(payload.get("transaction"))
+        value = (
+            _first_present(payload, ["reference", "payment_reference", "transaction_id", "transactionId", "external_reference", "txid", "id"])
+            or _first_present(data_block, ["reference", "payment_reference", "transaction_id", "transactionId", "external_reference", "txid", "id"])
+            or _first_present(txn_block, ["reference", "payment_reference", "transaction_id", "transactionId", "external_reference", "txid", "id"])
+            or _first_present(metadata, ["reference", "payment_reference", "transaction_id", "transactionId", "external_reference", "txid"])
+        )
+        return str(value or "").strip()
+
+    def _extract_invoice_id(payload: dict) -> int | None:
+        metadata = _as_dict(payload.get("metadata"))
+        data_block = _as_dict(payload.get("data"))
+        candidates = [
+            _first_present(payload, ["invoice_id", "invoice", "invoiceId", "invoiceID"]),
+            _first_present(data_block, ["invoice_id", "invoice", "invoiceId", "invoiceID"]),
+            _first_present(metadata, ["invoice_id", "invoice", "invoiceId", "invoiceID"]),
+        ]
+        for value in candidates:
+            if value is None:
+                continue
+            try:
+                text = str(value).strip()
+                if not text:
+                    continue
+                return int(text)
+            except (TypeError, ValueError):
+                continue
+        return None
+
+    def _extract_amount(payload: dict):
+        metadata = _as_dict(payload.get("metadata"))
+        data_block = _as_dict(payload.get("data"))
+        txn_block = _as_dict(payload.get("transaction"))
+        return (
+            _first_present(payload, ["amount", "paid_amount", "transaction_amount"])
+            or _first_present(data_block, ["amount", "paid_amount", "transaction_amount"])
+            or _first_present(txn_block, ["amount", "paid_amount", "transaction_amount"])
+            or _first_present(metadata, ["amount", "paid_amount", "transaction_amount"])
+        )
+
+    def _extract_method(payload: dict, provider_code: str) -> str:
+        raw_method = _first_present(payload, ["method", "payment_method", "channel"]) or ""
+        normalized_method = str(raw_method).strip().upper().replace("-", "_")
+        method_aliases = {
+            "MTN": PaymentMethodCode.MTN_MOMO,
+            "MTN_MOMO": PaymentMethodCode.MTN_MOMO,
+            "MOBILE_MONEY_MTN": PaymentMethodCode.MTN_MOMO,
+            "ORANGE": PaymentMethodCode.ORANGE_MOMO,
+            "ORANGE_MONEY": PaymentMethodCode.ORANGE_MOMO,
+            "ORANGE_MOMO": PaymentMethodCode.ORANGE_MOMO,
+            "MOBILE_MONEY_ORANGE": PaymentMethodCode.ORANGE_MOMO,
+        }
+        if normalized_method in method_aliases:
+            return method_aliases[normalized_method]
+        return PROVIDER_SLUG_TO_METHOD.get(provider_code) or PROVIDER_SLUG_TO_METHOD.get(provider_slug) or PaymentMethodCode.MTN_MOMO
+
     integration = get_payment_integration_by_slug(provider_slug)
     if not integration:
         logger.warning(f"Webhook request for unknown provider: {provider_slug}")
@@ -1683,14 +1846,15 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return HttpResponseBadRequest("Invalid JSON payload.")
 
     # Initialize security validator
+    provider_code = _provider_code()
     validator = WebhookSecurityValidator(integration.config or {})
     client_ip = validator.get_client_ip(request)
-    reference_id = data.get("reference") or data.get("payment_reference") or "unknown"
+    reference_id = _extract_reference(data) or "unknown"
 
     # Step 1: IP whitelist check
     if not validator.validate_ip_whitelist(client_ip):
         WebhookLog.objects.create(
-            provider=provider_slug,
+            provider=provider_code,
             reference_id=reference_id,
             client_ip=client_ip,
             status=WebhookLog.Status.INVALID,
@@ -1714,7 +1878,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     signature_valid = validator.validate_signature(request_body, signature or "")
     if not signature_valid:
         WebhookLog.objects.create(
-            provider=provider_slug,
+            provider=provider_code,
             reference_id=reference_id,
             client_ip=client_ip,
             signature_valid=False,
@@ -1726,9 +1890,9 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return HttpResponseForbidden("Invalid signature.")
 
     # Step 4: Idempotency check (prevent duplicate payments)
-    if not validator.validate_idempotency(provider_slug, reference_id):
+    if not validator.validate_idempotency(provider_code, reference_id):
         webhook_log = WebhookLog.objects.create(
-            provider=provider_slug,
+            provider=provider_code,
             reference_id=reference_id,
             client_ip=client_ip,
             signature_valid=True,
@@ -1739,15 +1903,15 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return JsonResponse({"status": "ignored", "reason": "duplicate"})
 
     # Step 5: Extract and validate payment data
-    invoice_id = data.get("invoice_id") or data.get("invoice")
-    amount = data.get("amount")
-    method = data.get("method") or PROVIDER_SLUG_TO_METHOD.get(provider_slug)
+    invoice_id = _extract_invoice_id(data)
+    amount = _extract_amount(data)
+    method = _extract_method(data, provider_code)
 
     # Validate amount
     is_valid, error_msg = PaymentValidator.validate_amount(amount)
     if not is_valid:
         WebhookLog.objects.create(
-            provider=provider_slug,
+            provider=provider_code,
             reference_id=reference_id,
             client_ip=client_ip,
             signature_valid=True,
@@ -1760,7 +1924,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
 
     if not invoice_id:
         WebhookLog.objects.create(
-            provider=provider_slug,
+            provider=provider_code,
             reference_id=reference_id,
             client_ip=client_ip,
             signature_valid=True,
@@ -1775,7 +1939,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         invoice = Invoice.objects.get(id=invoice_id)
     except Invoice.DoesNotExist:
         WebhookLog.objects.create(
-            provider=provider_slug,
+            provider=provider_code,
             reference_id=reference_id,
             client_ip=client_ip,
             signature_valid=True,
@@ -1810,7 +1974,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         with transaction.atomic():
             # Create WebhookLog first (in PROCESSING state)
             webhook_log = WebhookLog.objects.create(
-                provider=provider_slug,
+                provider=provider_code,
                 reference_id=reference_id,
                 client_ip=client_ip,
                 signature_valid=True,
@@ -1824,7 +1988,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
                 invoice=invoice,
                 amount=amount,
                 method=method or PaymentMethodCode.MTN_MOMO,
-                reference=data.get("reference", ""),
+                reference=_extract_reference(data),
                 external_reference=reference_id,
             )
 
@@ -1856,13 +2020,13 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         # Handle any transaction errors
         logger.exception(f"Transaction error processing webhook {reference_id}: {e}")
         try:
-            webhook_log = WebhookLog.objects.get(reference_id=reference_id, provider=provider_slug)
+            webhook_log = WebhookLog.objects.get(reference_id=reference_id, provider=provider_code)
             webhook_log.status = WebhookLog.Status.FAILED
             webhook_log.error_message = f"Transaction error: {str(e)[:200]}"
             webhook_log.save(update_fields=["status", "error_message"])
         except WebhookLog.DoesNotExist:
             WebhookLog.objects.create(
-                provider=provider_slug,
+                provider=provider_code,
                 reference_id=reference_id,
                 client_ip=client_ip,
                 signature_valid=True,

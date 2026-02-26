@@ -52,6 +52,8 @@ from .views_security import (
     api_security_export_log,
     api_security_lockdown,
 )
+from .views_oidc import oidc_start, oidc_callback
+from .views_saml import saml_start, saml_acs, saml_metadata
 
 try:
     from apps.people.views_backend import (
@@ -122,6 +124,11 @@ urlpatterns = [
     path("profile/security/activity/", api_security_activity, name="api_security_activity"),
     path("profile/security/export/", api_security_export_log, name="api_security_export_log"),
     path("profile/security/lockdown/", api_security_lockdown, name="api_security_lockdown"),
+    path("oidc/start/<str:integration_ref>/", oidc_start, name="oidc_start"),
+    path("oidc/callback/<int:integration_id>/", oidc_callback, name="oidc_callback"),
+    path("saml/start/<str:integration_ref>/", saml_start, name="saml_start"),
+    path("saml/acs/<int:integration_id>/", saml_acs, name="saml_acs"),
+    path("saml/metadata/<int:integration_id>/", saml_metadata, name="saml_metadata"),
     
     # Backend UI for People Management
     path("backend/students/", backend_student_list, name="backend_student_list") if BACKEND_PEOPLE_AVAILABLE else None,

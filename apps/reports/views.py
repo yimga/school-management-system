@@ -4,10 +4,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 import csv
+import hashlib
 from types import SimpleNamespace
 
 from apps.accounts.decorators import role_required, parent_portal_required, permission_required
@@ -15,7 +17,7 @@ from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import StudentGuardian, StudentProfile
-from apps.reports.models import ReportCard, ReportCardAudit, TermPublishStatus
+from apps.reports.models import ReportCard, ReportCardAudit, ReportDocumentHash, TermPublishStatus
 from apps.siteconfig.models import SiteSettings
 from apps.reports.services import (
     annual_report_context,
@@ -110,6 +112,30 @@ def _log_report_card_action(user: User, report_card: ReportCard, action: str, me
     )
 
 
+def _record_report_hash(user: User, report_card: ReportCard, pdf_bytes: bytes):
+    """
+    Persist SHA-256 digest for generated PDF so external verifiers can validate
+    transcript/report authenticity.
+    """
+    digest = hashlib.sha256(pdf_bytes).hexdigest()
+    ReportDocumentHash.objects.update_or_create(
+        report_card=report_card,
+        defaults={
+            "school": getattr(report_card, "school", None),
+            "sha256_hash": digest,
+            "file_size_bytes": len(pdf_bytes or b""),
+            "generated_by": user if getattr(user, "is_authenticated", False) else None,
+            "metadata": {
+                "student_id": report_card.student_id,
+                "academic_year_id": report_card.academic_year_id,
+                "term_id": report_card.term_id,
+                "type": report_card.type,
+            },
+        },
+    )
+    _log_report_card_action(user, report_card, "hash-recorded", {"sha256": digest})
+
+
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def parent_download_term_report(request: HttpRequest, student_id: int):
@@ -168,6 +194,7 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
     )
     filename = f"report_{student.student_code}_{year.name}_{term.name}.pdf".replace("/", "-")
     rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
+    _record_report_hash(request.user, rc, pdf_bytes)
 
     _log_report_card_action(request.user, rc, "download-term", {"filename": filename})
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
@@ -294,11 +321,50 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
     )
     filename = f"annual_report_{student.student_code}_{year.name}.pdf".replace("/", "-")
     rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
+    _record_report_hash(request.user, rc, pdf_bytes)
 
     _log_report_card_action(request.user, rc, "download-annual", {"filename": filename})
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
+
+
+@require_http_methods(["GET"])
+def verify_report_hash(request: HttpRequest):
+    """
+    Public verification endpoint for report hash ledger.
+    Query:
+      - hash=<sha256> OR
+      - report_card_id=<id>
+    """
+    sha = (request.GET.get("hash") or "").strip().lower()
+    report_card_id = (request.GET.get("report_card_id") or "").strip()
+    row = None
+    if sha:
+        row = ReportDocumentHash.objects.filter(sha256_hash=sha).select_related("report_card").first()
+    elif report_card_id.isdigit():
+        row = ReportDocumentHash.objects.filter(report_card_id=int(report_card_id)).select_related("report_card").first()
+    else:
+        return JsonResponse({"verified": False, "error": "Provide hash or report_card_id"}, status=400)
+
+    if not row:
+        return JsonResponse({"verified": False, "error": "Hash not found"}, status=404)
+
+    rc = row.report_card
+    return JsonResponse(
+        {
+            "verified": True,
+            "sha256": row.sha256_hash,
+            "report_card_id": rc.pk,
+            "student_id": rc.student_id,
+            "type": rc.type,
+            "academic_year_id": rc.academic_year_id,
+            "term_id": rc.term_id,
+            "file_size_bytes": row.file_size_bytes,
+            "created_at": row.created_at.isoformat(),
+        },
+        status=200,
+    )
 
 
 @parent_portal_required

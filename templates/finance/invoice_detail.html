@@ -81,6 +81,32 @@
           <div class="d-flex justify-content-between">
             <span>Due</span><strong>{{ invoice.due_date|format_date|default:"TBD" }}</strong>
           </div>
+          {% if guardian_share %}
+          <div class="border-top mt-2 pt-2">
+            <div class="small text-muted mb-1">Your payer split</div>
+            <div class="d-flex justify-content-between">
+              <span>Allocated</span><strong>{{ guardian_share.allocated|format_currency }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Paid</span><strong>{{ guardian_share.paid|format_currency }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Outstanding</span><strong>{{ guardian_share.outstanding|format_currency }}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span>Status</span><strong>{{ guardian_share.status }}</strong>
+            </div>
+            {% if guardian_share.due_date %}
+            <div class="d-flex justify-content-between">
+              <span>Share due</span><strong>{{ guardian_share.due_date|format_date }}</strong>
+            </div>
+            {% endif %}
+          </div>
+          {% elif payer_share_count %}
+          <div class="small text-muted mt-2 pt-2 border-top">
+            This invoice uses split billing per guardian.
+          </div>
+          {% endif %}
           {% if invoice.payment_code %}
           <div class="d-flex justify-content-between mt-2 pt-2 border-top">
             <span class="small text-muted">Payment code (quote for MoMo)</span><strong class="small">{{ invoice.payment_code }}</strong>

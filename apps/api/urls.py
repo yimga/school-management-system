@@ -5,7 +5,7 @@ REST endpoints for mobile applications and dashboard APIs
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from apps.api.auth_views import RateLimitedTokenObtainPairView, RateLimitedTokenRefreshView
 from apps.api.mobile_api import (
     MobileDeviceViewSet,
     PushNotificationViewSet,
@@ -41,7 +41,21 @@ from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 from apps.api.offline_replay_views import OfflineReplayBatchAPI, PrefetchUrlsAPI, QueueMetricsAPI
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.lead_capture_api import LeadCaptureAPI
-from apps.api.interop_stubs import oneroster_stub, lti13_stub
+from apps.api.interop_stubs import oneroster_readiness, lti13_readiness
+from apps.api.scim_views import (
+    scim_service_provider_config,
+    scim_users,
+    scim_user_detail,
+    scim_groups,
+    scim_group_detail,
+)
+from apps.api.oneroster_views import (
+    manifest as oneroster_manifest,
+    classes as oneroster_classes,
+    students as oneroster_students,
+    teachers as oneroster_teachers,
+    enrollments as oneroster_enrollments,
+)
 
 router = DefaultRouter()
 router.register(r'devices', MobileDeviceViewSet, basename='mobile-device')
@@ -62,8 +76,8 @@ urlpatterns = [
     # Benchmark comparison (Phase 4)
     path('benchmark/comparison/', BenchmarkComparisonAPI.as_view(), name='benchmark-comparison'),
     # JWT Authentication
-    path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/token/', RateLimitedTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('auth/token/refresh/', RateLimitedTokenRefreshView.as_view(), name='token_refresh'),
     path('auth/profile/', ProfileView.as_view(), name='auth-profile'),
     path('session/claims/', SessionClaimsView.as_view(), name='session-claims'),
     path('entities/teacher-roster/', TeacherRosterView.as_view(), name='teacher-roster'),
@@ -81,8 +95,20 @@ urlpatterns = [
     # Phase 5: Admissions CRM — Lead Capture (public POST by school_slug)
     path('admissions/lead/', LeadCaptureAPI.as_view(), name='lead-capture'),
     # Interoperability stubs (OneRoster, LTI 1.3) — implement per official specs
-    path('interop/oneroster/', oneroster_stub, name='interop-oneroster'),
-    path('interop/lti13/', lti13_stub, name='interop-lti13'),
+    path('interop/oneroster/', oneroster_readiness, name='interop-oneroster'),
+    path('interop/lti13/', lti13_readiness, name='interop-lti13'),
+    # SCIM 2.0 baseline (tenant-scoped provisioning)
+    path('scim/v2/ServiceProviderConfig', scim_service_provider_config, name='scim-service-provider-config'),
+    path('scim/v2/Users', scim_users, name='scim-users'),
+    path('scim/v2/Users/<str:user_id>', scim_user_detail, name='scim-user-detail'),
+    path('scim/v2/Groups', scim_groups, name='scim-groups'),
+    path('scim/v2/Groups/<str:group_id>', scim_group_detail, name='scim-group-detail'),
+    # OneRoster 1.1 baseline roster exchange
+    path('oneroster/v1p1/manifest', oneroster_manifest, name='oneroster-manifest'),
+    path('oneroster/v1p1/classes', oneroster_classes, name='oneroster-classes'),
+    path('oneroster/v1p1/students', oneroster_students, name='oneroster-students'),
+    path('oneroster/v1p1/teachers', oneroster_teachers, name='oneroster-teachers'),
+    path('oneroster/v1p1/enrollments', oneroster_enrollments, name='oneroster-enrollments'),
     # Phase 5: Digital ID for wallet / partner apps
     path('portal/digital-id/', DigitalIDAPI.as_view(), name='digital-id'),
     path('portal/digital-id/children/', DigitalIDChildrenAPI.as_view(), name='digital-id-children'),

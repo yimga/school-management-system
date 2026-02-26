@@ -17,6 +17,7 @@ from django.utils.dateparse import parse_datetime
 from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
 from apps.api.permissions import IsAdminUser
+from apps.schools.models import School
 
 
 FINANCE_WRITE_ROLES = {"ADMIN", "BURSAR", "ACCOUNTANT", "FINANCE_STAFF", "LEADERSHIP", "PRINCIPAL"}
@@ -28,6 +29,16 @@ def _can_write_finance(user) -> bool:
     if user.is_superuser or user.is_staff:
         return True
     return (getattr(user, "role", "") or "").upper() in FINANCE_WRITE_ROLES
+
+
+def _request_school(request):
+    school = getattr(request, "school", None)
+    if school is not None:
+        return school
+    school_id = getattr(request, "session", {}).get("school_id")
+    if not school_id:
+        return None
+    return School.objects.filter(pk=school_id, is_active=True).first()
 
 
 def _parse_client_updated_at(value):
@@ -82,9 +93,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         base = Invoice.objects.all().select_related('student__user')
-        school = getattr(self.request, "school", None)
-        if school is not None:
-            base = base.filter(school=school)
+        school = _request_school(self.request)
+        if school is None:
+            return base.none()
+        base = base.filter(school=school)
 
         if user.is_staff or user.role in ['ADMIN', 'BURSAR', 'LEADERSHIP', 'HOD']:
             return base
@@ -144,7 +156,28 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        return super().create(request, *args, **kwargs)
+        school = _request_school(request)
+        if school is None:
+            return Response(
+                {'error': 'School context required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        student = serializer.validated_data.get("student")
+        if student and student.school_id != school.id:
+            return Response(
+                {'error': 'Cross-tenant student reference is not allowed'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        invoice = serializer.save(
+            school=school,
+            created_by=request.user,
+            updated_by=request.user,
+        )
+        output = self.get_serializer(invoice)
+        headers = self.get_success_headers(output.data)
+        return Response(output.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -230,9 +263,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         base = Payment.objects.all().select_related('invoice__student__user')
-        school = getattr(self.request, "school", None)
-        if school is not None:
-            base = base.filter(school=school)
+        school = _request_school(self.request)
+        if school is None:
+            return base.none()
+        base = base.filter(school=school)
 
         if _can_write_finance(user):
             return base
@@ -259,6 +293,12 @@ class PaymentViewSet(viewsets.ModelViewSet):
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        school = _request_school(request)
+        if school is None:
+            return Response(
+                {'error': 'School context required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         idem_key = (request.headers.get("X-Idempotency-Key") or request.META.get("HTTP_X_IDEMPOTENCY_KEY") or "").strip()[:64]
         if idem_key:
             cache_key = f"offline_payment_idempotency:{request.user.pk}:{idem_key}"
@@ -268,8 +308,27 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        invoice = serializer.validated_data.get("invoice")
+        student = serializer.validated_data.get("student")
+        if invoice:
+            invoice_school_id = getattr(invoice, "school_id", None)
+            if invoice_school_id and invoice_school_id != school.id:
+                return Response(
+                    {'error': 'Cross-tenant invoice reference is not allowed'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            if invoice.student_id and getattr(invoice.student, "school_id", None) != school.id:
+                return Response(
+                    {'error': 'Cross-tenant invoice student reference is not allowed'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        if student and student.school_id != school.id:
+            return Response(
+                {'error': 'Cross-tenant student reference is not allowed'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-        payment = serializer.save()
+        payment = serializer.save(school=school, created_by=request.user)
         
         invoice = payment.invoice
         if invoice:
@@ -360,11 +419,17 @@ class FinancialAnalyticsAPI(APIView):
     
     def get(self, request):
         """Get comprehensive financial analytics"""
+        school = _request_school(request)
+        if school is None:
+            return Response(
+                {'error': 'School context required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         from_date = request.query_params.get('from_date')
         to_date = request.query_params.get('to_date')
         
-        queryset_invoices = Invoice.objects.all()
-        queryset_payments = Payment.objects.all()
+        queryset_invoices = Invoice.objects.filter(school=school)
+        queryset_payments = Payment.objects.filter(school=school)
         
         if from_date and to_date:
             queryset_invoices = queryset_invoices.filter(

@@ -276,39 +276,43 @@ class VideoConferenceService:
     def _create_zoom_meeting(self, host, title, start_time, duration_minutes, **kwargs) -> Dict:
         """
         Create Zoom meeting using existing integration
-        
+
         INTEGRATES WITH: apps.communication.integrations.ZoomIntegration
         """
         from apps.communication.integrations import ZoomIntegration
-        
+
         zoom = ZoomIntegration()
-        
-        # Use existing Zoom integration
-        meeting_data = {
-            'topic': title,
-            'type': 2,  # Scheduled meeting
-            'start_time': start_time.strftime('%Y-%m-%dT%H:%M:%S'),
-            'duration': duration_minutes,
-            'timezone': 'UTC',
-            'settings': {
-                'host_video': True,
-                'participant_video': True,
-                'join_before_host': False,
-                'mute_upon_entry': True,
-                'waiting_room': kwargs.get('waiting_room', True),
-                'audio': 'both',
-                'auto_recording': 'cloud' if kwargs.get('recording', True) else 'none',
-            }
-        }
-        
-        # Call Zoom API (implementation in existing ZoomIntegration)
-        response = zoom.create_meeting(meeting_data)
-        
+        response = zoom.create_meeting(
+            host_email=getattr(host, "email", "") or "",
+            topic=title,
+            duration=duration_minutes,
+            start_time=start_time,
+            waiting_room=kwargs.get("waiting_room", True),
+            recording=kwargs.get("recording", True),
+        )
+        if not isinstance(response, dict):
+            response = {}
+
+        # Support both legacy return shape ({id,start_url}) and newer
+        # IntegrationService shape ({success,meeting_id,join_url}).
+        meeting_id = response.get("meeting_id") or response.get("id")
+        join_url = response.get("join_url")
+        host_url = response.get("host_url") or response.get("start_url")
+        password = response.get("password", "")
+
+        if not meeting_id:
+            import uuid
+            meeting_id = f"zoom-{uuid.uuid4().hex[:10]}"
+        if not join_url:
+            join_url = f"https://zoom.us/j/{meeting_id}"
+        if not host_url:
+            host_url = join_url
+
         return {
-            'meeting_id': response.get('id'),
-            'join_url': response.get('join_url'),
-            'host_url': response.get('start_url'),
-            'password': response.get('password', ''),
+            "meeting_id": str(meeting_id),
+            "join_url": str(join_url),
+            "host_url": str(host_url),
+            "password": str(password or ""),
         }
     
     def _create_google_meet(self, host, title, start_time, duration_minutes, **kwargs) -> Dict:

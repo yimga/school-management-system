@@ -108,6 +108,7 @@
             {% if user.is_staff or user.is_superuser %}
             <th scope="col">Parent access</th>
             {% endif %}
+            <th scope="col">Split billing</th>
             <th scope="col" class="text-end">Total</th>
             <th scope="col" class="text-end">Balance</th>
             <th scope="col" class="text-end">Attachment</th>
@@ -127,7 +128,7 @@
               <td>{{ inv.due_date|format_date|default:"-" }}</td>
               <td>{{ inv.student|default:"-" }}</td>
               {% if user.is_staff or user.is_superuser %}
-              {% with guardians=inv.student.studentguardian_set.all %}
+              {% with guardians=inv.student.guardian_links.all %}
               <td class="small">
                 {% if guardians|length %}
                   {% with guardian=guardians|dictsort:"-can_view_finance"|first %}
@@ -143,6 +144,21 @@
               </td>
               {% endwith %}
               {% endif %}
+              <td class="small">
+                {% if inv.split_payer_count %}
+                  {% if inv.my_split_outstanding is not None %}
+                    <div class="fw-semibold">{{ inv.my_split_outstanding|format_currency }}</div>
+                    <div class="text-muted">{{ inv.my_split_status }}</div>
+                  {% elif user.is_staff or user.is_superuser %}
+                    <div class="fw-semibold">{{ inv.split_payer_count }} payer{{ inv.split_payer_count|pluralize }}</div>
+                    <div class="text-muted">Due {{ inv.split_outstanding_total|format_currency }}</div>
+                  {% else %}
+                    <span class="text-muted">Split configured</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
               <td class="text-end">{{ inv.total_amount|format_currency }}</td>
               <td class="text-end {% if inv.status == 'OVERDUE' %}cell-overdue fw-bold{% endif %}">{{ inv.balance_amount|format_currency }}</td>
               <td class="text-end">
@@ -186,6 +202,7 @@
             {% if user.is_staff or user.is_superuser %}
             <th scope="col">Parent access</th>
             {% endif %}
+            <th scope="col">Split billing</th>
             <th scope="col" class="text-end">Total</th>
             <th scope="col" class="text-end">Balance</th>
             <th scope="col" class="text-end">Attachment</th>
@@ -194,7 +211,7 @@
         </thead>
         <tbody>
           <tr>
-            <td colspan="{% if user.is_staff or user.is_superuser %}9{% else %}8{% endif %}" class="text-muted py-4">
+            <td colspan="{% if user.is_staff or user.is_superuser %}11{% else %}10{% endif %}" class="text-muted py-4">
               Finance access is not enabled yet. Request access to see invoices for your linked students.
             </td>
           </tr>

@@ -22,7 +22,14 @@ from config.admin import admin_site
 from apps.schools.section8_views import (
     verify_caddy_domain,
     global_login_discovery,
-    lti_launch_placeholder,
+    lti_launch,
+    lti_launch_callback,
+    lti_ags_lineitems,
+    lti_ags_lineitem_detail,
+    lti_ags_scores,
+    lti_ags_results,
+    lti_nrps_memberships,
+    lti_deep_linking,
     jwks_json,
     frozen_account,
 )
@@ -194,7 +201,14 @@ urlpatterns = [
     # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)
     path('api/caddy-check/', verify_caddy_domain),
     path('discover/', global_login_discovery, name='global_login_discovery'),
-    path('lti/launch/<str:tool_id>/', lti_launch_placeholder, name='lti_launch'),
+    path('lti/launch/<str:tool_id>/', lti_launch, name='lti_launch'),
+    path('lti/launch/<str:tool_id>/callback/', lti_launch_callback, name='lti_launch_callback'),
+    path('lti/service/<str:tool_id>/lineitems', lti_ags_lineitems, name='lti_ags_lineitems'),
+    path('lti/service/<str:tool_id>/lineitems/<str:lineitem_id>', lti_ags_lineitem_detail, name='lti_ags_lineitem_detail'),
+    path('lti/service/<str:tool_id>/lineitems/<str:lineitem_id>/scores', lti_ags_scores, name='lti_ags_scores'),
+    path('lti/service/<str:tool_id>/lineitems/<str:lineitem_id>/results', lti_ags_results, name='lti_ags_results'),
+    path('lti/service/<str:tool_id>/memberships', lti_nrps_memberships, name='lti_nrps_memberships'),
+    path('lti/service/<str:tool_id>/deep-linking', lti_deep_linking, name='lti_deep_linking'),
     path('lti/jwks.json', jwks_json, name='lti_jwks'),
     path('account-frozen/', frozen_account, name='account_frozen'),
 ]

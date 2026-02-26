@@ -17,7 +17,15 @@ from django.db import transaction
 
 from celery import shared_task
 
-from apps.finance.models import PaymentReminder, PaymentReminderLog, Invoice, FeePlan, PaymentProofUpload
+from apps.finance.models import (
+    PaymentReminder,
+    PaymentReminderLog,
+    Invoice,
+    InvoiceLine,
+    InvoicePayerShare,
+    FeePlan,
+    PaymentProofUpload,
+)
 from apps.finance.services import generate_payment_link, create_fee_invoices, recalculate_invoice, create_payment_from_receipt
 from apps.finance.receipt_verification import ReceiptVerificationService
 from apps.finance.fraud_detection import ReceiptFraudDetector
@@ -29,6 +37,18 @@ from apps.automation.helpers import get_cached_site_settings, get_current_academ
 from apps.evals.notifications import NotificationService
 
 logger = logging.getLogger(__name__)
+
+ALPHA2_TO_ALPHA3_COUNTRY_CODE = {
+    "CM": "CMR",
+    "US": "USA",
+    "GB": "GBR",
+    "BR": "BRA",
+    "NG": "NGA",
+    "KE": "KEN",
+    "GH": "GHA",
+    "CI": "CIV",
+    "SN": "SEN",
+}
 
 
 def _get_payment_instructions(invoice: Invoice) -> dict:
@@ -48,13 +68,29 @@ def _get_payment_instructions(invoice: Invoice) -> dict:
     }
     
     try:
-        # Get region from invoice's profile
         profile = invoice.profile
-        region = profile.region if hasattr(profile, 'region') else None
-        
+        region = None
+
         if not region:
-            # Try to get default region
-            region = RegionConfig.objects.filter(is_active=True).first()
+            profile_country = str(getattr(profile, "country_code", "") or "").strip().upper()
+            profile_currency = str(getattr(profile, "currency_code", "") or "").strip().upper()
+            candidate_codes = []
+            if profile_country:
+                candidate_codes.append(profile_country)
+                if len(profile_country) == 2:
+                    mapped = ALPHA2_TO_ALPHA3_COUNTRY_CODE.get(profile_country)
+                    if mapped:
+                        candidate_codes.append(mapped)
+            if candidate_codes:
+                region = RegionConfig.objects.filter(code__in=candidate_codes).first()
+            if not region and profile_currency:
+                region = RegionConfig.objects.filter(default_currency__iexact=profile_currency).first()
+
+        if not region:
+            if hasattr(RegionConfig, "is_active"):
+                region = RegionConfig.objects.filter(is_active=True).first()
+            else:
+                region = RegionConfig.objects.order_by("id").first()
         
         if region:
             # Get bank accounts for this region
@@ -92,6 +128,117 @@ def _send_payment_email(to_email: str, subject: str, body: str, integration: Int
     email.send(fail_silently=True)
 
 
+def _split_late_fee_policy() -> dict:
+    """
+    Config lives in SiteSettings.backend_feature_flags to avoid hardcoding.
+    """
+    flags = {}
+    try:
+        flags = (SiteSettings.get_solo().backend_feature_flags or {}).copy()
+    except Exception:
+        flags = {}
+    return {
+        "enabled": bool(flags.get("finance_split_late_fee_enabled", False)),
+        "grace_days": max(int(flags.get("finance_split_late_fee_grace_days", 3) or 0), 0),
+        "mode": str(flags.get("finance_split_late_fee_mode", "percentage") or "percentage").lower(),
+        "percent": Decimal(str(flags.get("finance_split_late_fee_percent", "2.00"))),
+        "fixed_amount": Decimal(str(flags.get("finance_split_late_fee_fixed_amount", "500.00"))),
+        "cap_percent": Decimal(str(flags.get("finance_split_late_fee_cap_percent", "20.00"))),
+    }
+
+
+def _compute_split_late_fee(share: InvoicePayerShare, policy: dict) -> Decimal:
+    outstanding = share.outstanding_amount
+    if outstanding <= Decimal("0.00"):
+        return Decimal("0.00")
+    if policy["mode"] == "fixed":
+        fee = policy["fixed_amount"]
+    else:
+        fee = (outstanding * policy["percent"] / Decimal("100.00")).quantize(Decimal("0.01"))
+    if fee <= Decimal("0.00"):
+        return Decimal("0.00")
+
+    # Cap cumulative late fee against original allocation.
+    cap_amount = (share.allocated_amount * policy["cap_percent"] / Decimal("100.00")).quantize(Decimal("0.01"))
+    if cap_amount > Decimal("0.00"):
+        remaining_cap = max(cap_amount - (share.late_fee_amount or Decimal("0.00")), Decimal("0.00"))
+        fee = min(fee, remaining_cap)
+    return max(fee, Decimal("0.00"))
+
+
+def run_split_late_fees(dry_run: bool = False) -> dict:
+    """
+    Apply per-payer late fees to overdue split obligations.
+    Creates invoice late-fee lines so invoice/ledger totals stay in sync.
+    """
+    now = timezone.now()
+    today = timezone.localdate()
+    policy = _split_late_fee_policy()
+    if not policy["enabled"]:
+        return {"status": "disabled", "applied": 0, "total_fee": Decimal("0.00"), "dry_run": dry_run}
+
+    threshold = today - timedelta(days=policy["grace_days"])
+    shares = list(
+        InvoicePayerShare.objects.filter(
+            is_active=True,
+            due_date__lt=threshold,
+        )
+        .exclude(status=InvoicePayerShare.Status.PAID)
+        .select_related("invoice", "guardian", "guardian__guardian_user")
+    )
+    if not shares:
+        return {"status": "ok", "applied": 0, "total_fee": Decimal("0.00"), "checked": 0, "dry_run": dry_run}
+
+    applied = 0
+    total_fee = Decimal("0.00")
+    for share in shares:
+        if share.outstanding_amount <= Decimal("0.00"):
+            share.refresh_status()
+            continue
+        if share.last_late_fee_applied_at and share.last_late_fee_applied_at.date() == today:
+            continue
+        fee = _compute_split_late_fee(share, policy)
+        if fee <= Decimal("0.00"):
+            continue
+        if dry_run:
+            applied += 1
+            total_fee += fee
+            continue
+
+        with transaction.atomic():
+            share.late_fee_amount = (share.late_fee_amount or Decimal("0.00")) + fee
+            share.last_late_fee_applied_at = now
+            share.refresh_status(save=False)
+            share.save(update_fields=["late_fee_amount", "last_late_fee_applied_at", "status", "updated_at"])
+
+            InvoiceLine.objects.create(
+                invoice=share.invoice,
+                description=f"Late fee (split share #{share.id})",
+                quantity=Decimal("1.00"),
+                unit_price=fee,
+                amount=fee,
+            )
+            recalculate_invoice(share.invoice)
+
+        applied += 1
+        total_fee += fee
+
+    return {
+        "status": "ok",
+        "applied": applied,
+        "checked": len(shares),
+        "total_fee": total_fee.quantize(Decimal("0.01")),
+        "dry_run": dry_run,
+        "policy": {
+            "mode": policy["mode"],
+            "grace_days": policy["grace_days"],
+            "percent": str(policy["percent"]),
+            "fixed_amount": str(policy["fixed_amount"]),
+            "cap_percent": str(policy["cap_percent"]),
+        },
+    }
+
+
 def run_payment_reminders(dry_run: bool = False) -> dict:
     """
     Send payment reminders for upcoming invoice due dates. Supports multi-channel (email, SMS, WhatsApp).
@@ -120,11 +267,35 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
             continue
         try:
             invoice = reminder.invoice
-            guardians = StudentGuardian.objects.filter(
-                student=invoice.student,
-                can_view_finance=True,
-                guardian_user__is_active=True,
-            ).select_related("guardian_user", "guardian_user__preferences")
+            guardian_share_map = {}
+            invoice_shares = list(
+                invoice.payer_shares.filter(is_active=True)
+                .select_related("guardian", "guardian__guardian_user", "guardian__guardian_user__preferences")
+            )
+            if invoice_shares:
+                guardians = []
+                for share in invoice_shares:
+                    prior_status = share.status
+                    share.refresh_status(save=False)
+                    if share.status != prior_status:
+                        share.save(update_fields=["status", "updated_at"])
+                    if share.outstanding_amount <= Decimal("0.00"):
+                        continue
+                    guardian = share.guardian
+                    if not guardian.can_view_finance or not guardian.guardian_user_id:
+                        continue
+                    if not guardian.guardian_user.is_active:
+                        continue
+                    guardians.append(guardian)
+                    guardian_share_map[guardian.id] = share
+            else:
+                guardians = list(
+                    StudentGuardian.objects.filter(
+                        student=invoice.student,
+                        can_view_finance=True,
+                        guardian_user__is_active=True,
+                    ).select_related("guardian_user", "guardian_user__preferences")
+                )
 
             if not guardians:
                 logger.info("No guardians configured for invoice %s.", invoice)
@@ -141,6 +312,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
             for guardian in guardians:
                 guardian_user = guardian.guardian_user
                 guardian_name = guardian_user.get_full_name() or guardian_user.username
+                guardian_share = guardian_share_map.get(guardian.id)
 
                 # Get user-specific channels (respects UserPreference)
                 user_channels = get_notification_channels(guardian_user, "payment_reminder")
@@ -188,12 +360,18 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
 
                 # Get payment instructions from bank accounts
                 payment_instructions = _get_payment_instructions(invoice)
+                amount_due = guardian_share.outstanding_amount if guardian_share else invoice.balance_amount
+                due_for_guardian = (
+                    guardian_share.due_date
+                    if guardian_share and guardian_share.due_date
+                    else due_display
+                )
 
                 context = {
                     "guardian": guardian_name,
-                    "amount": invoice.balance_amount,
+                    "amount": amount_due,
                     "invoice": invoice.reference or invoice.id,
-                    "due_date": due_display,
+                    "due_date": due_for_guardian,
                     "link": link_display,
                     "payment_code": getattr(invoice, "payment_code", "") or "",
                     "receipt_upload_link": f"{default_link}finance/invoices/{invoice.id}/",
@@ -202,6 +380,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
 
                 for channel in active_channels:
                     reminder_active_channels.add(channel)
+                    guardian_reminded = False
                     try:
                         template = reminder.get_message_template(channel)
                         # Format template with payment instructions
@@ -226,6 +405,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                                 )
                                 channel_counts["email"] += 1
                                 sent_count += 1
+                                guardian_reminded = True
 
                         elif channel == "sms":
                             phone = getattr(guardian, "phone", None) or getattr(guardian_user, "phone", None)
@@ -238,6 +418,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                                 )
                                 channel_counts["sms"] += 1
                                 sent_count += 1
+                                guardian_reminded = True
 
                         elif channel == "whatsapp":
                             phone = getattr(guardian, "phone", None) or getattr(guardian, "whatsapp_number", None) or getattr(guardian_user, "phone", None)
@@ -250,6 +431,7 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                                 )
                                 channel_counts["whatsapp"] += 1
                                 sent_count += 1
+                                guardian_reminded = True
 
                     except Exception as e:
                         logger.error("Error sending %s reminder for invoice %s: %s", channel, invoice.reference or invoice.id, str(e))
@@ -258,6 +440,9 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                             status="FAILED",
                             note=f"Failed to send {channel}: {str(e)}",
                         )
+                    if guardian_reminded and guardian_share:
+                        guardian_share.last_reminder_at = now
+                        guardian_share.save(update_fields=["last_reminder_at", "updated_at"])
 
             reminder.last_sent_at = now
             reminder.schedule_next()
@@ -358,6 +543,41 @@ def retry_failed_payment_reminders_task(self, dry_run: bool = False) -> dict:
         return {"reset": reset_count, "dry_run": dry_run}
     except Exception as e:
         logger.exception("retry_failed_payment_reminders_task failed")
+        execution_log.mark_completed(
+            AutomationExecutionLog.Status.FAILED,
+            error_message=str(e),
+        )
+        raise
+
+
+@shared_task(bind=True, name="finance.apply_split_late_fees")
+def apply_split_late_fees_task(self, dry_run: bool = False) -> dict:
+    """
+    Apply configured late fees to overdue payer shares.
+    """
+    execution_log = AutomationExecutionLog.objects.create(
+        task_name="finance.apply_split_late_fees",
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN if dry_run else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        status=AutomationExecutionLog.Status.PENDING,
+    )
+    try:
+        result = run_split_late_fees(dry_run=dry_run)
+        applied = int(result.get("applied", 0) or 0)
+        execution_log.mark_completed(
+            AutomationExecutionLog.Status.SUCCESS,
+            records_processed=applied,
+            summary={
+                "applied": applied,
+                "checked": int(result.get("checked", 0) or 0),
+                "total_fee": str(result.get("total_fee", Decimal("0.00"))),
+                "status": result.get("status", "ok"),
+                "dry_run": dry_run,
+                "policy": result.get("policy", {}),
+            },
+        )
+        return result
+    except Exception as e:
+        logger.exception("apply_split_late_fees_task failed")
         execution_log.mark_completed(
             AutomationExecutionLog.Status.FAILED,
             error_message=str(e),
