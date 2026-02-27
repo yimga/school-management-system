@@ -1,30 +1,18 @@
 """
 Tests for teacher timetable view (portal:teacher_timetable).
-Skipped when scheduling tables were removed (e.g. migration 0011); re-enable when scheduling is restored.
 """
 from datetime import date, time
-import unittest
 
 from django.test import TestCase
 from django.urls import reverse
-from django.db import connection
 
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Term, Classroom, Subject, Department, Specialty
 from apps.people.models import TeacherProfile
 
-try:
-    from apps.academics.scheduling import Schedule, ScheduleEntry, Room, TimeSlot
-except Exception:
-    Schedule = ScheduleEntry = Room = TimeSlot = None
+from apps.academics.scheduling import Schedule, ScheduleEntry, Room, TimeSlot
 
 
-def _scheduling_tables_exist():
-    with connection.cursor() as c:
-        return "academics_room" in connection.introspection.table_names(cursor=c)
-
-
-@unittest.skipUnless(_scheduling_tables_exist(), "Scheduling tables (Room, Schedule, etc.) not in DB")
 class TeacherTimetableViewTests(TestCase):
     def setUp(self):
         self.year = AcademicYear.objects.create(
