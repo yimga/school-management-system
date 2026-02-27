@@ -781,3 +781,13 @@ class ContactRequestAttachment(models.Model):
                 _primary_school_id_for_user(getattr(self, "uploaded_by", None)),
             )
         super().save(*args, **kwargs)
+
+
+# Register video conferencing models under the communication app so migrations
+# and app model loading include them consistently.
+from .video_conferencing import (  # noqa: E402,F401
+    BreakoutRoom,
+    SessionParticipant,
+    SessionRecording,
+    VirtualClassroom,
+)

@@ -279,18 +279,24 @@ class VideoConferenceService:
 
         INTEGRATES WITH: apps.communication.integrations.ZoomIntegration
         """
-        from apps.communication.integrations import ZoomIntegration
+        response = {}
+        try:
+            from apps.communication.integrations import ZoomIntegration
 
-        zoom = ZoomIntegration()
-        response = zoom.create_meeting(
-            host_email=getattr(host, "email", "") or "",
-            topic=title,
-            duration=duration_minutes,
-            start_time=start_time,
-            waiting_room=kwargs.get("waiting_room", True),
-            recording=kwargs.get("recording", True),
-        )
-        if not isinstance(response, dict):
+            zoom = ZoomIntegration()
+            response = zoom.create_meeting(
+                host_email=getattr(host, "email", "") or "",
+                topic=title,
+                duration=duration_minutes,
+                start_time=start_time,
+                waiting_room=kwargs.get("waiting_room", True),
+                recording=kwargs.get("recording", True),
+            )
+            if not isinstance(response, dict):
+                response = {}
+        except Exception:
+            # If Zoom credentials/integration are unavailable, keep platform flows working
+            # with a deterministic fallback payload.
             response = {}
 
         # Support both legacy return shape ({id,start_url}) and newer

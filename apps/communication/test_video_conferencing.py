@@ -8,13 +8,8 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db import connection
 from datetime import timedelta
 
-# Legacy integration tests rely on video conferencing DB models that are not migrated yet.
-# Active replacement coverage lives in:
-# apps/communication/tests/test_video_conferencing_runtime_contract.py
-# Keep these scenarios as deferred integration coverage until migration support lands.
 from apps.communication.video_conferencing import (
     VirtualClassroom,
     SessionParticipant,
@@ -25,28 +20,6 @@ from apps.communication.video_conferencing import (
 )
 
 User = get_user_model()
-
-VIDEO_CONFERENCING_SKIP = "Deferred integration suite: video conferencing models not migrated; runtime contract coverage is active in communication/tests."
-
-
-def _video_models_ready() -> bool:
-    """
-    Run legacy DB-backed scenarios only when video conferencing tables are migrated.
-    """
-    required = {
-        "communication_virtualclassroom",
-        "communication_sessionparticipant",
-        "communication_sessionrecording",
-        "communication_breakoutroom",
-    }
-    try:
-        existing = set(connection.introspection.table_names())
-    except Exception:
-        return False
-    return required.issubset(existing)
-
-
-@unittest.skipUnless(_video_models_ready(), VIDEO_CONFERENCING_SKIP)
 class VirtualClassroomTestCase(TestCase):
     """Test virtual classroom model"""
     
@@ -141,7 +114,6 @@ class VirtualClassroomTestCase(TestCase):
         self.assertEqual(session.duration_minutes, 45)
 
 
-@unittest.skipUnless(_video_models_ready(), VIDEO_CONFERENCING_SKIP)
 class SessionParticipantTestCase(TestCase):
     """Test session participant tracking"""
     
@@ -200,7 +172,6 @@ class SessionParticipantTestCase(TestCase):
         self.assertEqual(participant.duration_minutes, 30)
 
 
-@unittest.skipUnless(_video_models_ready(), VIDEO_CONFERENCING_SKIP)
 class VideoConferenceServiceTestCase(TestCase):
     """Test video conference service"""
     
@@ -382,7 +353,6 @@ class VideoConferenceServiceTestCase(TestCase):
         self.assertEqual(analytics['average_duration_minutes'], 30.0)
 
 
-@unittest.skipUnless(_video_models_ready(), VIDEO_CONFERENCING_SKIP)
 class BreakoutRoomTestCase(TestCase):
     """Test breakout room functionality"""
     
