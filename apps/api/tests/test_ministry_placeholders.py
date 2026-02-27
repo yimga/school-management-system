@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.test import TestCase
 
@@ -131,3 +132,19 @@ class MinistryPlaceholderApiTests(TestCase):
 
         response = self.client.get("/api/ministry/dgi/")
         self.assertEqual(response.status_code, 503)
+
+    def test_cartescolaire_rate_limit_returns_429(self):
+        with patch("apps.api.ministry_placeholders.throttle_ip_request", return_value=(False, 900)):
+            response = self.client.get("/api/ministry/cartescolaire/")
+        self.assertEqual(response.status_code, 429)
+        payload = response.json()
+        self.assertEqual(payload.get("status"), "rate_limited")
+        self.assertEqual(payload.get("service"), "cartescolaire")
+
+    def test_dgi_rate_limit_returns_429(self):
+        with patch("apps.api.ministry_placeholders.throttle_ip_request", return_value=(False, 900)):
+            response = self.client.get("/api/ministry/dgi/")
+        self.assertEqual(response.status_code, 429)
+        payload = response.json()
+        self.assertEqual(payload.get("status"), "rate_limited")
+        self.assertEqual(payload.get("service"), "dgi")

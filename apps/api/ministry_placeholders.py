@@ -16,6 +16,7 @@ from django.http import JsonResponse
 from django.utils.dateparse import parse_date
 
 from apps.academics.models import AcademicYear
+from apps.api.rate_limit import throttle_ip_request
 from apps.finance.models import Invoice, Payment
 from apps.people.models import StudentProfile
 from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
@@ -24,6 +25,9 @@ from apps.api.ministry_connectors import (
     submit_cartescolaire,
     submit_dgi,
 )
+
+MINISTRY_API_RATE_LIMIT_WINDOW = 60 * 15
+MINISTRY_API_RATE_LIMIT_MAX = 120
 
 
 def _as_float(value) -> float:
@@ -56,6 +60,25 @@ def _wants_sync(request) -> bool:
     return str(request.GET.get("sync", "")).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _ministry_rate_limited(request, scope: str):
+    allowed, retry_after = throttle_ip_request(
+        request,
+        scope=f"ministry:{scope}",
+        max_count=MINISTRY_API_RATE_LIMIT_MAX,
+        window_seconds=MINISTRY_API_RATE_LIMIT_WINDOW,
+    )
+    if allowed:
+        return None
+    return JsonResponse(
+        {
+            "status": "rate_limited",
+            "service": scope,
+            "retry_after": retry_after,
+        },
+        status=429,
+    )
+
+
 def cartescolaire_placeholder(request):
     """
     Export registry-like student payload for ministry school-map ingestion.
@@ -68,6 +91,9 @@ def cartescolaire_placeholder(request):
             {"status": "disabled", "message": "Cartescolaire integration is disabled in Feature Control."},
             status=503,
         )
+    rl = _ministry_rate_limited(request, "cartescolaire")
+    if rl:
+        return rl
 
     year_id = request.GET.get("academic_year_id")
     active_year = (
@@ -167,6 +193,9 @@ def dgi_placeholder(request):
             {"status": "disabled", "message": "DGI integration is disabled in Feature Control."},
             status=503,
         )
+    rl = _ministry_rate_limited(request, "dgi")
+    if rl:
+        return rl
 
     start = parse_date(request.GET.get("start") or "")
     end = parse_date(request.GET.get("end") or "")
