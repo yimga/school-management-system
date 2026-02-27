@@ -15,6 +15,7 @@ from apps.siteconfig.education_profile_engine import (
 )
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import EducationSystemProfile
+from apps.siteconfig.tenant_config import apply_tenant_settings_overrides
 from .models import School, SchoolProvisioningEvent
 
 
@@ -532,6 +533,23 @@ def api_create_school(request):
             }
         )
 
+    school_settings_overrides = {
+        "contact_email": contact_email,
+        "provisioning": {
+            "logo_uploaded": False,
+            "education_profile_mode": "explicit" if explicit_profile else "auto",
+            "education_system_ids": education_system_ids,
+            "province_id": province_id,
+        },
+        "education_profile_code": explicit_profile.code if explicit_profile else "",
+        "location": location_payload,
+        "custom_domain": {
+            "hostname": custom_domain or "",
+            "status": "pending_verification" if custom_domain else "not_configured",
+            "verified": False,
+        },
+    }
+
     create_kw = dict(
         name=name,
         slug=slug,
@@ -544,22 +562,7 @@ def api_create_school(request):
         custom_domain=custom_domain or "",
         is_active=False,
         is_approved=not (__import__("os").getenv("ENABLE_SCHOOL_APPROVAL_WORKFLOW", "").strip().lower() in ("1", "true", "yes")),
-        settings={
-            "contact_email": contact_email,
-            "provisioning": {
-                "logo_uploaded": False,
-                "education_profile_mode": "explicit" if explicit_profile else "auto",
-                "education_system_ids": education_system_ids,
-                "province_id": province_id,
-            },
-            "education_profile_code": explicit_profile.code if explicit_profile else "",
-            "location": location_payload,
-            "custom_domain": {
-                "hostname": custom_domain or "",
-                "status": "pending_verification" if custom_domain else "not_configured",
-                "verified": False,
-            },
-        },
+        settings={},
     )
     if hasattr(School, "theme_choice"):
         create_kw["theme_choice"] = theme_choice
@@ -571,6 +574,13 @@ def api_create_school(request):
         addons = [str(x).strip() for x in addons if x]
         create_kw["addons"] = addons
     school = School.objects.create(**create_kw)
+    apply_tenant_settings_overrides(
+        school=school,
+        overrides=school_settings_overrides,
+        actor_is_superadmin=bool(getattr(request.user, "is_superuser", False)),
+        force_override=False,
+        persist=True,
+    )
     SchoolProvisioningEvent.log_event(
         school=school,
         event_type=SchoolProvisioningEvent.EventType.REQUEST_RECEIVED,
