@@ -485,12 +485,15 @@ class SuperProvisioningWizardTests(TestCase):
         self.assertIn("errors", data)
         self.assertTrue(any("education_profile_code" in str(err) for err in data.get("errors", [])))
 
-    @unittest.skip("Requires global city catalog data/fixture (Boston) to be loaded.")
     def test_api_create_school_records_provisioning_events_and_timeline_url(self):
         self.client.force_login(self.superuser)
-        cities = GlobalGeoCatalog.search_cities(country_code="USA", query="Boston", limit=10)
-        self.assertTrue(cities, "Global city catalog should include Boston")
-        city = cities[0]
+        city = None
+        for query in ("Boston", "New York", "Los Angeles", "Chicago"):
+            cities = GlobalGeoCatalog.search_cities(country_code="USA", query=query, limit=10)
+            if cities:
+                city = cities[0]
+                break
+        self.assertIsNotNone(city, "Global city catalog should include at least one major US city")
 
         payload = {
             "name": "Timeline School",
