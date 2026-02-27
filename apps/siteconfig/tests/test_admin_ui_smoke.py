@@ -35,6 +35,9 @@ class AdminUiSmokeTests(TestCase):
     def setUp(self):
         self.site = SiteSettings.get_solo()
         self.factory = RequestFactory()
+        # Keep admin smoke assertions on the base-domain admin path.
+        # Tenant middleware redirects /admin/* on tenant hosts to backend.
+        self.client.defaults["HTTP_HOST"] = "localhost"
         self.superuser = User.objects.create_superuser(
             username="admin-ui-super",
             email="admin-ui-super@example.com",
