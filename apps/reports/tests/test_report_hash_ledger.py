@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
@@ -88,3 +89,9 @@ class ReportHashLedgerTests(TestCase):
         payload = response.json()
         self.assertTrue(payload.get("verified"))
         self.assertEqual(payload.get("student_id"), self.student.pk)
+
+    def test_verify_report_hash_rate_limited_returns_429(self):
+        with patch("apps.reports.views.throttle_ip_request", return_value=(False, 60)):
+            response = self.client.get(reverse("reports:verify_report_hash"), {"report_card_id": self.report_card.pk})
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response["Retry-After"], "60")

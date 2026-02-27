@@ -16,6 +16,7 @@ from apps.accounts.decorators import role_required, parent_portal_required, perm
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services import get_active_year_and_term
+from apps.api.rate_limit import throttle_ip_request
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.reports.models import ReportCard, ReportCardAudit, ReportDocumentHash, TermPublishStatus
 from apps.siteconfig.models import SiteSettings
@@ -59,6 +60,8 @@ REPORT_PREVIEW_TEMPLATES = {
     ReportCard.Type.TERM: "reports/preview_term_card.html",
     ReportCard.Type.ANNUAL: "reports/preview_annual_card.html",
 }
+VERIFY_REPORT_HASH_RATE_LIMIT_WINDOW = 60 * 15
+VERIFY_REPORT_HASH_RATE_LIMIT_MAX = 120
 
 
 def _sample_student() -> StudentProfile:
@@ -337,6 +340,17 @@ def verify_report_hash(request: HttpRequest):
       - hash=<sha256> OR
       - report_card_id=<id>
     """
+    allowed, retry_after = throttle_ip_request(
+        request,
+        scope="reports:verify_hash",
+        max_count=VERIFY_REPORT_HASH_RATE_LIMIT_MAX,
+        window_seconds=VERIFY_REPORT_HASH_RATE_LIMIT_WINDOW,
+    )
+    if not allowed:
+        response = JsonResponse({"verified": False, "error": "Too many requests"}, status=429)
+        response["Retry-After"] = str(retry_after)
+        return response
+
     sha = (request.GET.get("hash") or "").strip().lower()
     report_card_id = (request.GET.get("report_card_id") or "").strip()
     row = None
