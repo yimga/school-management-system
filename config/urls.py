@@ -150,6 +150,7 @@ urlpatterns = [
     path('status/', obs_views.public_health, name='status'),
     path('metrics/', obs_views.metrics, name='metrics'),
     path('api/observability/copilot-metrics/', obs_views.copilot_metrics_json, name='copilot_metrics_json'),
+    path('api/observability/slo-dashboard/', obs_views.api_operational_slo_dashboard, name='api_operational_slo_dashboard'),
     
     # Legacy alias: /admin/dashboard/ resolves to canonical /admin/
     path('admin/dashboard/', obs_views.admin_dashboard, name='admin_dashboard'),

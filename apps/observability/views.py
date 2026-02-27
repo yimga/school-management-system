@@ -3,6 +3,8 @@ Observability endpoints: /healthz and /metrics.
 """
 
 import logging
+import math
+from datetime import timedelta
 from functools import wraps
 from urllib.parse import urlencode
 
@@ -53,6 +55,20 @@ def _safe_float(value, default: float) -> float:
         return float(value)
     except (TypeError, ValueError):
         return default
+
+
+def _percent(numerator: int, denominator: int, fallback: float = 100.0) -> float:
+    if denominator <= 0:
+        return float(fallback)
+    return round((float(numerator) / float(denominator)) * 100.0, 2)
+
+
+def _p95(values: list[float]) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(float(v) for v in values)
+    index = max(int(math.ceil(len(ordered) * 0.95)) - 1, 0)
+    return round(ordered[index], 2)
 
 
 def _build_admin_weather_config() -> dict:
@@ -634,6 +650,238 @@ def api_dashboard_charts(request):
             "status": "error",
             "error": str(exc)
         }, status=500)
+
+
+@require_GET
+@observability_auth_required
+def api_operational_slo_dashboard(request):
+    """Regional go-live SLO dashboard (SEC-608)."""
+    from apps.schools.models import School
+    from apps.siteconfig.models import SyncConflict, WebhookDelivery
+
+    try:
+        raw_hours = int(request.GET.get("hours", 24))
+    except (TypeError, ValueError):
+        raw_hours = 24
+    window_hours = max(1, min(raw_hours, 24 * 30))
+
+    now = timezone.now()
+    window_start = now - timedelta(hours=window_hours)
+    webhook_success_target = float(getattr(settings, "WEBHOOK_SUCCESS_SLO_PERCENT", 99.0))
+    webhook_latency_target_ms = float(getattr(settings, "WEBHOOK_P95_LATENCY_SLO_MS", 15000.0))
+    pending_conflict_target = int(getattr(settings, "SYNC_CONFLICT_PENDING_SLO_MAX", 10))
+
+    region_metrics: dict[str, dict] = {}
+
+    def get_region_bucket(region_code: str, region_name: str) -> dict:
+        bucket = region_metrics.get(region_code)
+        if bucket is None:
+            bucket = {
+                "region_code": region_code,
+                "region_name": region_name,
+                "active_schools": 0,
+                "webhook_total": 0,
+                "webhook_delivered": 0,
+                "webhook_dead_letter": 0,
+                "webhook_inflight": 0,
+                "delivery_latencies_ms": [],
+                "delivery_latency_breaches": 0,
+                "sync_conflicts_total_window": 0,
+                "sync_conflicts_resolved_window": 0,
+                "sync_conflicts_pending": 0,
+            }
+            region_metrics[region_code] = bucket
+        return bucket
+
+    schools = list(
+        School.objects.filter(is_active=True)
+        .select_related("default_region")
+        .only("id", "default_region_id", "default_region__name")
+    )
+    for school in schools:
+        region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
+        region_name = (
+            str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
+            if region_code == "UNASSIGNED"
+            else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
+        )
+        get_region_bucket(region_code, region_name)["active_schools"] += 1
+
+    deliveries = (
+        WebhookDelivery.objects.filter(created_at__gte=window_start)
+        .select_related("subscription__school__default_region")
+        .only(
+            "status",
+            "created_at",
+            "delivered_at",
+            "last_attempt_at",
+            "subscription__school__default_region_id",
+            "subscription__school__default_region__name",
+        )
+    )
+    for delivery in deliveries:
+        school = getattr(getattr(delivery, "subscription", None), "school", None)
+        region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
+        region_name = (
+            str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
+            if region_code == "UNASSIGNED"
+            else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
+        )
+        bucket = get_region_bucket(region_code, region_name)
+        bucket["webhook_total"] += 1
+
+        status = str(getattr(delivery, "status", "") or "")
+        if status == "DELIVERED":
+            bucket["webhook_delivered"] += 1
+        elif status == "DEAD_LETTER":
+            bucket["webhook_dead_letter"] += 1
+        elif status in {"PENDING", "RETRYING"}:
+            bucket["webhook_inflight"] += 1
+
+        if status == "DELIVERED":
+            end_at = getattr(delivery, "delivered_at", None) or getattr(delivery, "last_attempt_at", None)
+            start_at = getattr(delivery, "created_at", None)
+            if start_at and end_at and end_at >= start_at:
+                latency_ms = (end_at - start_at).total_seconds() * 1000.0
+                bucket["delivery_latencies_ms"].append(latency_ms)
+                if latency_ms > webhook_latency_target_ms:
+                    bucket["delivery_latency_breaches"] += 1
+
+    conflict_window = (
+        SyncConflict.objects.filter(created_at__gte=window_start)
+        .select_related("school__default_region")
+        .only("status", "school__default_region_id", "school__default_region__name")
+    )
+    for conflict in conflict_window:
+        school = getattr(conflict, "school", None)
+        region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
+        region_name = (
+            str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
+            if region_code == "UNASSIGNED"
+            else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
+        )
+        bucket = get_region_bucket(region_code, region_name)
+        bucket["sync_conflicts_total_window"] += 1
+        if str(getattr(conflict, "status", "")) != "PENDING":
+            bucket["sync_conflicts_resolved_window"] += 1
+
+    pending_conflicts = (
+        SyncConflict.objects.filter(status=SyncConflict.Status.PENDING)
+        .select_related("school__default_region")
+        .only("school__default_region_id", "school__default_region__name")
+    )
+    for conflict in pending_conflicts:
+        school = getattr(conflict, "school", None)
+        region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
+        region_name = (
+            str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
+            if region_code == "UNASSIGNED"
+            else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
+        )
+        bucket = get_region_bucket(region_code, region_name)
+        bucket["sync_conflicts_pending"] += 1
+
+    region_rows: list[dict] = []
+    summary = {
+        "regions": 0,
+        "healthy_regions": 0,
+        "warning_regions": 0,
+        "critical_regions": 0,
+        "active_schools": len(schools),
+    }
+
+    for region_code in sorted(region_metrics.keys()):
+        bucket = region_metrics[region_code]
+        webhook_total = int(bucket["webhook_total"])
+        webhook_delivered = int(bucket["webhook_delivered"])
+        webhook_success_rate = _percent(webhook_delivered, webhook_total, fallback=100.0)
+        webhook_error_rate = round(max(0.0, 100.0 - webhook_success_rate), 2)
+        allowed_error_rate = round(max(0.0, 100.0 - webhook_success_target), 2)
+        error_budget_remaining = round(max(0.0, allowed_error_rate - webhook_error_rate), 2)
+        error_budget_burn = round(max(0.0, webhook_error_rate - allowed_error_rate), 2)
+
+        latencies = [float(v) for v in bucket["delivery_latencies_ms"]]
+        p95_latency_ms = _p95(latencies)
+        latency_breach_rate = _percent(
+            int(bucket["delivery_latency_breaches"]),
+            len(latencies),
+            fallback=0.0,
+        )
+
+        sync_total_window = int(bucket["sync_conflicts_total_window"])
+        sync_resolved_window = int(bucket["sync_conflicts_resolved_window"])
+        sync_resolution_rate = _percent(sync_resolved_window, sync_total_window, fallback=100.0)
+        sync_pending = int(bucket["sync_conflicts_pending"])
+
+        status = "healthy"
+        if (
+            webhook_success_rate < max(0.0, webhook_success_target - 2.0)
+            or sync_pending > (pending_conflict_target * 2)
+        ):
+            status = "critical"
+        elif (
+            webhook_success_rate < webhook_success_target
+            or latency_breach_rate > 5.0
+            or sync_pending > pending_conflict_target
+        ):
+            status = "warning"
+
+        if status == "healthy":
+            summary["healthy_regions"] += 1
+        elif status == "warning":
+            summary["warning_regions"] += 1
+        else:
+            summary["critical_regions"] += 1
+
+        region_rows.append(
+            {
+                "region_code": bucket["region_code"],
+                "region_name": bucket["region_name"],
+                "status": status,
+                "active_schools": int(bucket["active_schools"]),
+                "webhook": {
+                    "total": webhook_total,
+                    "delivered": webhook_delivered,
+                    "dead_letter": int(bucket["webhook_dead_letter"]),
+                    "inflight": int(bucket["webhook_inflight"]),
+                    "success_rate_percent": webhook_success_rate,
+                    "p95_latency_ms": p95_latency_ms,
+                    "latency_breach_rate_percent": latency_breach_rate,
+                },
+                "error_budget": {
+                    "target_success_percent": webhook_success_target,
+                    "allowed_error_rate_percent": allowed_error_rate,
+                    "actual_error_rate_percent": webhook_error_rate,
+                    "remaining_percent": error_budget_remaining,
+                    "burn_percent": error_budget_burn,
+                },
+                "sync_conflicts": {
+                    "pending": sync_pending,
+                    "pending_target_max": pending_conflict_target,
+                    "total_window": sync_total_window,
+                    "resolved_window": sync_resolved_window,
+                    "resolution_rate_percent": sync_resolution_rate,
+                },
+            }
+        )
+
+    summary["regions"] = len(region_rows)
+
+    return JsonResponse(
+        {
+            "status": "success",
+            "generated_at": now.isoformat(),
+            "window_hours": window_hours,
+            "window_start": window_start.isoformat(),
+            "slo_targets": {
+                "webhook_success_percent": webhook_success_target,
+                "webhook_p95_latency_ms": webhook_latency_target_ms,
+                "pending_sync_conflicts_max": pending_conflict_target,
+            },
+            "summary": summary,
+            "regions": region_rows,
+        }
+    )
 
 
 # ============================================
