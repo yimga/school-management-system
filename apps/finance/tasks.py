@@ -195,7 +195,8 @@ def run_split_late_fees(dry_run: bool = False) -> dict:
         if share.outstanding_amount <= Decimal("0.00"):
             share.refresh_status()
             continue
-        if share.last_late_fee_applied_at and share.last_late_fee_applied_at.date() == today:
+        # Compare in local timezone, not UTC date(), to keep same-day idempotency stable.
+        if share.last_late_fee_applied_at and timezone.localdate(share.last_late_fee_applied_at) == today:
             continue
         fee = _compute_split_late_fee(share, policy)
         if fee <= Decimal("0.00"):
