@@ -130,6 +130,22 @@ class WebhookSecurityValidatorTest(TestCase):
         
         self.assertFalse(self.validator.validate_signature(request_body, ""))
 
+    def test_validate_timestamp_within_tolerance(self):
+        validator = WebhookSecurityValidator({
+            "require_timestamp": True,
+            "timestamp_tolerance_seconds": 60,
+        })
+        now_ts = int(timezone.now().timestamp())
+        self.assertTrue(validator.validate_timestamp(str(now_ts)))
+
+    def test_validate_timestamp_rejects_stale(self):
+        validator = WebhookSecurityValidator({
+            "require_timestamp": True,
+            "timestamp_tolerance_seconds": 30,
+        })
+        stale_ts = int(timezone.now().timestamp()) - 120
+        self.assertFalse(validator.validate_timestamp(str(stale_ts)))
+
     def test_validate_rate_limit_allows_within_limit(self):
         """Test rate limiting allows requests within limit."""
         for i in range(5):

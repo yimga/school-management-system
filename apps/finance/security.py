@@ -9,6 +9,7 @@ Includes:
 import hashlib
 import hmac
 import logging
+from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from functools import wraps
 from typing import Optional
@@ -68,10 +69,14 @@ class WebhookSecurityValidator:
                 - 'webhook_ips': list of allowed IPs
                 - 'webhook_secret': API key for HMAC signing
                 - 'rate_limit': requests per minute (default: 100)
+                - 'require_timestamp': enforce replay-protection timestamp header
+                - 'timestamp_tolerance_seconds': accepted clock skew window (default: 300)
         """
         self.webhook_ips = provider_config.get("webhook_ips", [])
         self.webhook_secret = provider_config.get("webhook_secret", "")
         self.rate_limit = provider_config.get("rate_limit", 100)
+        self.require_timestamp = bool(provider_config.get("require_timestamp", False))
+        self.timestamp_tolerance_seconds = int(provider_config.get("timestamp_tolerance_seconds", 300) or 300)
 
     @staticmethod
     def get_client_ip(request: HttpRequest) -> str:
@@ -173,6 +178,48 @@ class WebhookSecurityValidator:
             )
         
         return is_valid
+
+    def validate_timestamp(self, timestamp_header: str | None, now=None) -> bool:
+        """
+        Validate webhook timestamp to reduce replay attacks.
+
+        Accepted formats:
+        - Unix epoch seconds (int)
+        - ISO datetime string (e.g. 2026-02-27T10:15:00Z)
+        """
+        if not self.require_timestamp and not timestamp_header:
+            return True
+        if not timestamp_header:
+            logger.warning("Missing required webhook timestamp header")
+            return False
+
+        ts_value = str(timestamp_header).strip()
+        if not ts_value:
+            logger.warning("Empty webhook timestamp header")
+            return False
+
+        parsed_ts: float | None = None
+        try:
+            parsed_ts = float(ts_value)
+        except (TypeError, ValueError):
+            try:
+                normalized = ts_value.replace("Z", "+00:00")
+                parsed_dt = datetime.fromisoformat(normalized)
+                parsed_ts = parsed_dt.timestamp()
+            except (ValueError, TypeError):
+                logger.warning("Invalid webhook timestamp format: %s", ts_value)
+                return False
+
+        now_ts = (now or timezone.now()).timestamp()
+        skew = abs(now_ts - parsed_ts)
+        if skew > max(self.timestamp_tolerance_seconds, 0):
+            logger.warning(
+                "Webhook timestamp outside tolerance: skew=%ss, tolerance=%ss",
+                int(skew),
+                self.timestamp_tolerance_seconds,
+            )
+            return False
+        return True
 
     def validate_idempotency(self, provider: str, reference_id: str) -> bool:
         """

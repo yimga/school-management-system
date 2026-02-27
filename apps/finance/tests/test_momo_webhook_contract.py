@@ -82,17 +82,26 @@ class MobileMoneyWebhookContractTests(TestCase):
         secret: str,
         signature_header: str = "X-Signature",
         signature_prefix: str = "",
+        signature_override: str | None = None,
+        timestamp_header: str | None = None,
+        timestamp_value: str | int | None = None,
     ):
         raw_body = json.dumps(payload).encode("utf-8")
         signature = self._signature(secret, raw_body)
         if signature_prefix:
             signature = f"{signature_prefix}={signature}"
+        if signature_override is not None:
+            signature = signature_override
         header_key = f"HTTP_{signature_header.upper().replace('-', '_')}"
+        headers = {header_key: signature}
+        if timestamp_header:
+            ts_key = f"HTTP_{timestamp_header.upper().replace('-', '_')}"
+            headers[ts_key] = str(timestamp_value or "")
         return self.client.post(
             reverse("finance:payment_webhook", kwargs={"provider_slug": provider_slug}),
             data=raw_body,
             content_type="application/json",
-            **{header_key: signature},
+            **headers,
         )
 
     def test_mtn_contract_accepts_invoice_id_and_transaction_id(self):
@@ -184,3 +193,64 @@ class MobileMoneyWebhookContractTests(TestCase):
         self.assertEqual(second.status_code, 200)
         self.assertEqual(second.json().get("status"), "ignored")
         self.assertEqual(Payment.objects.filter(external_reference="orange-dup-1").count(), 1)
+
+    def test_mtn_contract_rejects_stale_timestamp_when_required(self):
+        secret = "mtn-ts-secret"
+        Integration.objects.create(
+            name="MTN Timestamp",
+            slug="mtn-payments-ts",
+            provider="payments",
+            enabled=True,
+            config={
+                "provider_slug": "mtn_momo",
+                "webhook_secret": secret,
+                "require_timestamp": True,
+                "timestamp_header": "X-Timestamp",
+                "timestamp_tolerance_seconds": 30,
+            },
+        )
+        stale_ts = int(timezone.now().timestamp()) - 120
+        response = self._post_webhook(
+            provider_slug="mtn_momo",
+            secret=secret,
+            timestamp_header="X-Timestamp",
+            timestamp_value=stale_ts,
+            payload={
+                "provider": "mtn",
+                "invoiceId": self.invoice.pk,
+                "amount": "20.00",
+                "transaction_id": "mtn-stale-001",
+                "status": "successful",
+            },
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Invalid timestamp", response.content.decode("utf-8"))
+        self.assertFalse(Payment.objects.filter(external_reference="mtn-stale-001").exists())
+
+    def test_orange_contract_rejects_tampered_prefixed_signature(self):
+        secret = "orange-secret-tamper"
+        Integration.objects.create(
+            name="Orange Tamper",
+            slug="orange-payments-tamper",
+            provider="payments",
+            enabled=True,
+            config={
+                "provider_slug": "orange_money",
+                "webhook_secret": secret,
+            },
+        )
+        response = self._post_webhook(
+            provider_slug="orange_money",
+            secret=secret,
+            signature_prefix="sha256",
+            signature_override="sha256=deadbeef",
+            payload={
+                "invoice": self.invoice.pk,
+                "amount": "15.00",
+                "payment_reference": "orange-tamper-1",
+                "status": "completed",
+            },
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Invalid signature", response.content.decode("utf-8"))
+        self.assertFalse(Payment.objects.filter(external_reference="orange-tamper-1").exists())

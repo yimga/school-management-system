@@ -1889,7 +1889,26 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         logger.warning(f"Invalid signature from {provider_slug} ({client_ip})")
         return HttpResponseForbidden("Invalid signature.")
 
-    # Step 4: Idempotency check (prevent duplicate payments)
+    # Step 4: Optional timestamp replay protection
+    timestamp_header = integration.config.get("timestamp_header", "X-Timestamp") if integration.config else "X-Timestamp"
+    request_timestamp = (
+        request.headers.get(timestamp_header)
+        or request.META.get(f"HTTP_{timestamp_header.upper().replace('-', '_')}")
+    )
+    if not validator.validate_timestamp(request_timestamp):
+        WebhookLog.objects.create(
+            provider=provider_code,
+            reference_id=reference_id,
+            client_ip=client_ip,
+            signature_valid=True,
+            status=WebhookLog.Status.INVALID,
+            error_message="Invalid or stale webhook timestamp",
+            request_body=request_body.decode()[:500],
+        )
+        logger.warning(f"Invalid timestamp from {provider_slug} ({client_ip})")
+        return HttpResponseForbidden("Invalid timestamp.")
+
+    # Step 5: Idempotency check (prevent duplicate payments)
     if not validator.validate_idempotency(provider_code, reference_id):
         webhook_log = WebhookLog.objects.create(
             provider=provider_code,
@@ -1902,7 +1921,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         logger.info(f"Duplicate webhook from {provider_slug}: {reference_id}")
         return JsonResponse({"status": "ignored", "reason": "duplicate"})
 
-    # Step 5: Extract and validate payment data
+    # Step 6: Extract and validate payment data
     invoice_id = _extract_invoice_id(data)
     amount = _extract_amount(data)
     method = _extract_method(data, provider_code)
@@ -1934,7 +1953,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         )
         return HttpResponseBadRequest("Missing invoice_id.")
 
-    # Step 6: Fetch invoice
+    # Step 7: Fetch invoice
     try:
         invoice = Invoice.objects.get(id=invoice_id)
     except Invoice.DoesNotExist:
@@ -1949,7 +1968,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         logger.warning(f"Invoice {invoice_id} not found from webhook {provider_slug}")
         return HttpResponseBadRequest(f"Invoice {invoice_id} not found.")
 
-    # Step 7: Validate amount against invoice balance
+    # Step 8: Validate amount against invoice balance
     invoice_paid = sum(invoice.payments.values_list("amount", flat=True)) or Decimal("0")
     is_valid, error_msg = PaymentValidator.validate_against_invoice(
         Decimal(str(amount)),
@@ -1969,7 +1988,7 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         logger.warning(f"Payment amount validation failed for invoice {invoice_id}: {error_msg}")
         return HttpResponseBadRequest(error_msg)
 
-    # Step 8: Record payment within transaction (atomic)
+    # Step 9: Record payment within transaction (atomic)
     try:
         with transaction.atomic():
             # Create WebhookLog first (in PROCESSING state)
