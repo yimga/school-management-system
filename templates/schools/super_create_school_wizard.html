@@ -115,11 +115,18 @@
                     <label class="form-label" for="education_profile_code">Education template (primary)</label>
                     <select class="form-select" id="education_profile_code" name="education_profile_code">
                       <option value="">Auto by Country and Sub-system (Recommended)</option>
-                      {% for profile in education_profiles %}
+                      <optgroup label="One-click templates">
+                        {% for t in education_templates_standard %}
+                        <option value="{{ t.code }}">{{ t.name }} — {{ t.description }}</option>
+                        {% endfor %}
+                      </optgroup>
+                      <optgroup label="By country / region">
+                        {% for profile in education_profiles %}
                         <option value="{{ profile.code }}">{{ profile.name }}{% if profile.is_auto_generated %} (Auto pack){% endif %}</option>
-                      {% endfor %}
+                        {% endfor %}
+                      </optgroup>
                     </select>
-                    <div class="form-text">Primary template for provisioning. Optional: add more systems below.</div>
+                    <div class="form-text">Primary template for provisioning. One-click: British, WAEC, Francophone, Vocational. Optional: add more systems below.</div>
                   </div>
                   <div class="mb-3">
                     <label class="form-label" for="education_system_ids">Additional education systems (optional, multiple)</label>

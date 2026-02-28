@@ -72,6 +72,12 @@
     </ol>
   </nav>
 
+  {% if workflow_empty_state %}
+  <div class="alert alert-info mb-3" role="status">
+    <strong>No classes assigned yet.</strong> Contact your administrator to be assigned to classes. Once assigned, you'll see the full workflow here (marks, attendance, and more).
+  </div>
+  {% endif %}
+
   <div class="workflow-hero">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
       <div>
@@ -86,9 +92,11 @@
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'portal:teacher_dashboard_alias' %}">
           <i class="bi bi-pin-angle me-1"></i>Use Dashboard as default view
         </a>
+        {% if not workflow_empty_state %}
         <a class="btn btn-sm btn-primary" href="{% url 'evals:teacher_marks_entry' %}">
           <i class="bi bi-pencil-square me-1"></i>Enter marks
         </a>
+        {% endif %}
       </div>
     </div>
     <div class="mt-2 small text-muted">

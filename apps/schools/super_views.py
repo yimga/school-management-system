@@ -181,6 +181,60 @@ def super_usage(request):
     )
 
 
+def super_pulse(request):
+    """S13: Global Pulse Map — HTML view for super dashboard link. Same data as API v1 super/pulse."""
+    from django.db.models import Sum
+    from django.utils import timezone
+    from apps.siteconfig.models import RevenueSnapshot
+
+    schools = list(
+        School.objects.filter(is_active=True)
+        .annotate(student_count=Count("student_profiles", distinct=True))
+        .values("id", "name", "slug", "subdomain", "default_region_id", "student_count", "last_activity")
+    )
+    first_of_month = timezone.now().date().replace(day=1)
+    try:
+        snapshots = RevenueSnapshot.objects.filter(snapshot_date=first_of_month).aggregate(
+            total=Sum("actual_revenue"), waived=Sum("waived_amount")
+        )
+        total_revenue = (snapshots["total"] or 0) + (snapshots["waived"] or 0)
+    except Exception:
+        total_revenue = 0
+    total_students = sum(s["student_count"] for s in schools)
+    by_country = list(
+        School.objects.filter(is_active=True)
+        .values("default_region_id")
+        .annotate(school_count=Count("id"), student_count=Count("student_profiles", distinct=True))
+    )
+    return render(
+        request,
+        "schools/super_pulse.html",
+        {
+            "tenants": schools,
+            "total_students": total_students,
+            "total_revenue": total_revenue,
+            "by_country": by_country,
+        },
+    )
+
+
+def super_tenant_health(request):
+    """S13: Tenant Health Monitor — HTML view for super dashboard link. Same data as API v1 super/tenant-health."""
+    schools = list(
+        School.objects.all()
+        .annotate(student_count=Count("student_profiles", distinct=True))
+        .order_by("name")
+        .values("id", "name", "slug", "is_active", "is_approved", "last_activity", "student_count")
+    )
+    for s in schools:
+        s["admin_edit_url"] = _safe_school_admin_change_url(s["id"])
+    return render(
+        request,
+        "schools/super_tenant_health.html",
+        {"tenants": schools},
+    )
+
+
 def billing_dashboard(request):
     """Plan X: Billing dashboard — trial schools, trial_end_date, usage; Stripe integration via webhooks (see docs)."""
     from django.db.models import Sum
@@ -240,6 +294,13 @@ def create_school_wizard(request):
         country_code=default_country_code,
         sub_system=default_sub_system,
     )
+    # S2: One-click education templates (British/WAEC/Vocational) — same as API config/education-templates
+    education_templates_standard = [
+        {"code": "BRITISH_IGCSE", "name": "British / IGCSE", "description": "Michaelmas, Lent, Trinity; A*–G or 9–1."},
+        {"code": "WAEC", "name": "West African (WAEC)", "description": "First, Second, Third term; A1–F9; CA 30% + Exam 70%."},
+        {"code": "FRANCOPHONE_BAC", "name": "Francophone (Bac)", "description": "Trimestre 1–3; 20-point scale."},
+        {"code": "VOCATIONAL", "name": "Vocational / Trade", "description": "Competency checklists; clock hours; skill badges."},
+    ]
     if not countries or not cities:
         # Backward-compatible fallback when optional catalog dependencies are unavailable.
         WeatherLocation.ensure_seed_data()
@@ -278,6 +339,7 @@ def create_school_wizard(request):
             "default_country_code": default_country_code or defaults.get("header_weather_country_code", "CMR"),
             "default_sub_system": default_sub_system,
             "education_profiles": education_profiles,
+            "education_templates_standard": education_templates_standard,
             "school_admin_edit_template": _safe_school_admin_change_url("00000000-0000-0000-0000-000000000000"),
             "geo_city_search_min_chars": 1,
         },
@@ -531,6 +593,8 @@ def api_create_school(request):
     if subdomain and School.objects.filter(subdomain=subdomain).exists():
         return JsonResponse({"errors": ["subdomain already exists"]}, status=400)
 
+    # S2: Allow standard one-click template codes (API config/education-templates) without requiring DB record
+    STANDARD_TEMPLATE_CODES = {"BRITISH_IGCSE", "WAEC", "FRANCOPHONE_BAC", "VOCATIONAL"}
     explicit_profile = None
     if education_profile_code:
         explicit_profile = EducationSystemProfile.objects.filter(
@@ -538,9 +602,9 @@ def api_create_school(request):
             is_active=True,
             approval_status=EducationSystemProfile.ApprovalStatus.APPROVED,
         ).first()
-        if explicit_profile is None:
+        if explicit_profile is None and education_profile_code not in STANDARD_TEMPLATE_CODES:
             errors.append("education_profile_code is invalid")
-        elif explicit_profile.sub_system not in {
+        elif explicit_profile is not None and explicit_profile.sub_system not in {
             EducationSystemProfile.SubSystem.ANY,
             sub_system,
         }:
@@ -617,7 +681,7 @@ def api_create_school(request):
             "education_system_ids": education_system_ids,
             "province_id": province_id,
         },
-        "education_profile_code": explicit_profile.code if explicit_profile else "",
+        "education_profile_code": (explicit_profile.code if explicit_profile else education_profile_code or ""),
         "location": location_payload,
         "custom_domain": {
             "hostname": custom_domain or "",
@@ -665,7 +729,7 @@ def api_create_school(request):
         payload={
             "country_code": country_code or (default_region.code if default_region else ""),
             "sub_system": sub_system,
-            "education_profile_code": explicit_profile.code if explicit_profile else "",
+            "education_profile_code": (explicit_profile.code if explicit_profile else education_profile_code or ""),
             "custom_domain": custom_domain or "",
         },
         created_by=request.user if getattr(request, "user", None) and request.user.is_authenticated else None,

@@ -649,8 +649,17 @@ def parent_workflow_center(request: HttpRequest):
     finance_balance = widget_data.get("finance", {}).get("balance") or Decimal("0.00")
     finance_overdue = widget_data.get("finance", {}).get("overdue", 0)
 
+    flags = {**default_backend_feature_flags(), **(SiteSettings.get_solo().backend_feature_flags or {})}
+    require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
+    can_request_finance_access = require_finance_opt_in and links.exists() and not can_view_finance
+
     def _filter_links(link_list):
         return [lnk for lnk in link_list if lnk is not None and lnk.get("url")]
+
+    finance_step_links = (
+        [_parent_workflow_link("Finance", "portal:parent_finance")] if can_view_finance
+        else ([_parent_workflow_link("Request finance access", "finance:finance_request_access")] if can_request_finance_access else [])
+    )
 
     steps = [
         {
@@ -684,9 +693,7 @@ def parent_workflow_center(request: HttpRequest):
             "icon": "bi-cash-stack",
             "progress_label": f"Balance: {finance_balance}" if can_view_finance else "Finance access not granted",
             "tip": "Pay fees and view payment history. Request access if you don't see finance.",
-            "links": _filter_links([
-                _parent_workflow_link("Finance", "portal:parent_finance"),
-            ]) if can_view_finance else [],
+            "links": _filter_links(finance_step_links),
         },
         {
             "title": "4) Communication",

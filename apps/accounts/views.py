@@ -1728,15 +1728,22 @@ def backend_dashboard(request):
     # W1-6: First-login checklist (dismissible, deep links to classrooms, first student, attendance).
     try:
         from apps.siteconfig.models_dashboard import DashboardUserPreference
+        from apps.people.models import TeacherProfile
         pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
         layout = pref.dashboard_layout or {}
         context["first_login_checklist_show"] = not layout.get("first_login_checklist_dismissed")
         context["first_login_checklist_dismiss_url"] = reverse("accounts:dismiss_first_login_checklist")
         _safe = _safe_reverse
+        # Role-aware attendance link: teachers get portal "Take attendance", others get admin "View attendance"
+        has_teacher_profile = TeacherProfile.objects.filter(user=request.user).exists()
+        if has_teacher_profile:
+            attendance_label, attendance_url = _("Take attendance"), _safe("portal:teacher_attendance") or "#"
+        else:
+            attendance_label, attendance_url = _("View attendance"), _safe("admin:people_teacherattendance_changelist") or "#"
         context["first_login_checklist_items"] = [
             {"label": _("Classrooms"), "url": _safe("admin:academics_classroom_changelist") or "#"},
             {"label": _("Add first student"), "url": context.get("quick_student_create_url") or _safe("admin:people_studentprofile_add") or "#"},
-            {"label": _("Take attendance"), "url": _safe("portal:teacher_attendance") or "#"},
+            {"label": attendance_label, "url": attendance_url},
         ]
         # W2-2: Sensible defaults copy (what was auto-created + link to settings).
         context["first_login_settings_url"] = _safe("siteconfig:customizer") or _safe("admin:index") or "#"

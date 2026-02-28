@@ -12,6 +12,8 @@
         {% if registry_url %}
         <a href="{{ registry_url }}" class="btn btn-outline-secondary">Global registry (Education systems)</a>
         {% endif %}
+        <a href="{% url 'super:pulse' %}" class="btn btn-outline-info">Pulse Map</a>
+        <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-info">Tenant Health</a>
         <a href="{% url 'super:usage' %}" class="btn btn-outline-primary">Usage &amp; quotas</a>
         <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create School</a>
       </div>

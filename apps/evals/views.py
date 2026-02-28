@@ -908,6 +908,34 @@ def teacher_workflow_center(request: HttpRequest):
     if teacher_profile is None:
         return HttpResponseForbidden("Teacher profile or assignments missing. Contact an administrator.")
 
+    # Empty state: profile exists but no class assignments yet
+    if not assignments:
+        def _filter_links(links):
+            return [lnk for lnk in links if lnk is not None and lnk.get("url")]
+        steps = [
+            {
+                "title": "Get class assignments",
+                "subtitle": "You don't have any classes assigned yet.",
+                "step_key": "assignments",
+                "icon": "bi-person-badge",
+                "progress_label": "No classes assigned",
+                "tip": "Contact your administrator to be assigned to classes. Once assigned, you'll see marks entry, attendance, and other workflow steps here.",
+                "links": _filter_links([
+                    _teacher_workflow_link("Teacher hub", "portal:teacher_dashboard_alias"),
+                    _teacher_workflow_link("Syllabus", "portal:portal_syllabus"),
+                ]),
+                "step_index": 1,
+                "total_steps": 1,
+            },
+        ]
+        return render(request, "teacher/workflow_center.html", {
+            "active_year": year,
+            "active_term": term,
+            "steps": steps,
+            "workflow_progress": {"assignments": 0, "completion_pct": 0, "pending_marks": 0, "present_today": False, "pending_leaves": 0},
+            "workflow_empty_state": True,
+        })
+
     progress = {}
     for a in assignments:
         sa = a.subject_assignment

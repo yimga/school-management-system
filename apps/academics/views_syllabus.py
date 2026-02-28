@@ -9,7 +9,7 @@ from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.academics.models import CourseSyllabus, SubjectAssignment
+from apps.academics.models import CourseSyllabus, SubjectAssignment, CurriculumNode
 from apps.academics.services import get_active_year_and_term
 from apps.people.models import TeacherProfile
 from apps.evals.models import TeacherAssignment
@@ -96,14 +96,41 @@ def syllabus_builder(request, subject_assignment_id: int):
         syllabus.builder_data = data
         syllabus.status = CourseSyllabus.Status.DRAFT
         syllabus.save()
+        # W6-2: Tag with standards — update curriculum_nodes from curriculum_node_ids
+        node_ids = request.POST.getlist("curriculum_node_ids")
+        if node_ids is not None:
+            try:
+                valid_ids = [int(x) for x in node_ids if str(x).isdigit()]
+                school_id = getattr(sa.academic_year, "school_id", None)
+                if school_id is not None:
+                    qs = CurriculumNode.objects.filter(
+                        pk__in=valid_ids,
+                        standard__school_id__in=(school_id, None),
+                    )
+                    syllabus.curriculum_nodes.set(qs)
+                else:
+                    syllabus.curriculum_nodes.set(CurriculumNode.objects.filter(pk__in=valid_ids))
+            except (ValueError, TypeError):
+                pass
         messages.success(request, "Syllabus draft saved.")
         return redirect("academics:teacher_syllabus_hub")
     import json
     builder_json = json.dumps(syllabus.builder_data, indent=2) if syllabus.builder_data else "{}"
+    # W6-2: Load curriculum nodes for "Tag with standards" (school-scoped or global)
+    school_id = getattr(sa.academic_year, "school_id", None)
+    if school_id is not None:
+        available_nodes = CurriculumNode.objects.filter(
+            standard__school_id__in=(school_id, None),
+        ).select_related("standard").order_by("standard__name", "code")[:200]
+    else:
+        available_nodes = CurriculumNode.objects.select_related("standard").order_by("code")[:200]
+    selected_node_ids = list(syllabus.curriculum_nodes.values_list("pk", flat=True))
     return render(request, "academics/syllabus_builder.html", {
         "syllabus": syllabus,
         "subject_assignment": sa,
         "builder_data_json": builder_json,
+        "available_curriculum_nodes": available_nodes,
+        "selected_curriculum_node_ids": selected_node_ids,
     })
 
 

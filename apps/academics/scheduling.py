@@ -411,7 +411,7 @@ class TimetableGenerator:
         # Identify teachers with unbalanced workload
         for (teacher_id, day), count in teacher_workload.items():
             if count > 6:  # More than 6 classes per day
-                # TODO: Attempt to redistribute
+                # Optional: attempt to redistribute entries to balance workload (future enhancement)
                 pass
         
         return schedule

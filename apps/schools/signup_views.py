@@ -163,7 +163,13 @@ def verify_signup(request: HttpRequest):
         pass
 
     login_url = (settings.LOGIN_URL or "/authentication/login/").lstrip("/")
-    return redirect(f"/{login_url}?next=/")
+    # Optional: send new school admin to backend dashboard after first login
+    try:
+        from django.urls import reverse
+        next_path = reverse("accounts:backend_dashboard")
+    except Exception:
+        next_path = "/"
+    return redirect(f"/{login_url}?next={next_path}")
 
 
 @require_POST
