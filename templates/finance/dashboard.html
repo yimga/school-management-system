@@ -54,6 +54,7 @@
     <div class="d-flex flex-wrap gap-2">
       <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:generate_fees' %}">Generate Fee Invoices</a>
       <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:invoices' %}">All Invoices</a>
+      <a class="btn btn-outline-warning btn-sm" href="{% url 'finance:invoices' %}?status=OVERDUE">Overdue</a>
       <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:payments' %}">Payments</a>
       <a class="btn btn-outline-light btn-sm border-0" style="background:rgba(255,255,255,0.1);" href="{% url 'finance:trial_balance' %}">Trial Balance</a>
     </div>

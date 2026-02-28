@@ -71,6 +71,7 @@ class CourseSyllabusAdmin(ModelAdmin):
     search_fields = ("subject_assignment__subject__name", "subject_assignment__classroom__name")
     raw_id_fields = ("reviewed_by", "created_by")
     readonly_fields = ("created_at", "updated_at", "submitted_at", "reviewed_at")
+    filter_horizontal = ("curriculum_nodes",)
 
 
 class ClassBooklistAdmin(ModelAdmin):

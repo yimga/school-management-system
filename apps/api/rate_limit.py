@@ -1,12 +1,20 @@
-"""Small cache-backed throttling helpers for unauthenticated API surfaces."""
+"""Small cache-backed throttling helpers for unauthenticated and per-tenant API surfaces."""
 
 from __future__ import annotations
 
 import logging
 
+from django.conf import settings
 from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
+
+# Plan I: per-tenant API quotas (default requests per window when tenant is set)
+API_TENANT_RATE_LIMIT_KEY = "api_tenant"
+DEFAULT_TENANT_MAX_PER_MINUTE = getattr(
+    settings, "API_TENANT_MAX_REQUESTS_PER_MINUTE", 600
+)
+DEFAULT_TENANT_WINDOW_SECONDS = 60
 
 
 def client_ip(request) -> str:
@@ -14,6 +22,24 @@ def client_ip(request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return (request.META.get("REMOTE_ADDR") or "unknown").strip()
+
+
+def _throttle(key: str, max_count: int, window_seconds: int) -> tuple[bool, int]:
+    """Shared fixed-window throttle logic. Returns (allowed, retry_after_seconds)."""
+    try:
+        if cache.add(key, 1, timeout=window_seconds):
+            return True, 0
+        try:
+            count = int(cache.incr(key))
+        except Exception:
+            count = int(cache.get(key, 0) or 0) + 1
+            cache.set(key, count, timeout=window_seconds)
+        if count > int(max_count):
+            return False, int(window_seconds)
+        return True, 0
+    except Exception:
+        logger.debug("Rate-limit cache unavailable for key=%s", key)
+        return True, 0
 
 
 def throttle_ip_request(
@@ -31,18 +57,123 @@ def throttle_ip_request(
     """
     ip = client_ip(request)
     key = f"rate_limit:{scope}:{ip}"
-    try:
-        if cache.add(key, 1, timeout=window_seconds):
+    return _throttle(key, max_count, window_seconds)
+
+
+def _check_tenant_quota_limit(school, limit_type: str = "api_calls") -> tuple[bool, int]:
+    """
+    If school has TenantQuotaLimit for limit_type, check TenantApiUsage for current period.
+    Returns (allowed, retry_after_seconds). Caches result 60s per school to avoid DB on every request.
+    """
+    if not school or not getattr(school, "pk", None):
+        return True, 0
+    cache_key = f"quota_check:{school.pk}:{limit_type}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        if cached is True:
             return True, 0
-        try:
-            count = int(cache.incr(key))
-        except Exception:
-            count = int(cache.get(key, 0) or 0) + 1
-            cache.set(key, count, timeout=window_seconds)
-        if count > int(max_count):
-            return False, int(window_seconds)
-        return True, 0
+        if isinstance(cached, dict):
+            return cached.get("allowed", True), cached.get("retry", 0)
+    try:
+        from django.utils import timezone
+        from django.db.models import Sum
+        from apps.schools.models import TenantQuotaLimit, TenantApiUsage
+
+        limit_row = (
+            TenantQuotaLimit.objects.filter(school_id=school.pk, limit_type=limit_type, is_active=True)
+            .values("limit_value", "period_days")
+            .first()
+        )
+        if not limit_row:
+            cache.set(cache_key, True, timeout=60)
+            return True, 0
+        limit_value = int(limit_row["limit_value"])
+        period_days = limit_row.get("period_days")
+        today = timezone.now().date()
+        if period_days:
+            from datetime import timedelta
+            period_start = today - timedelta(days=period_days)
+            usage = (
+                TenantApiUsage.objects.filter(
+                    school_id=school.pk,
+                    limit_type=limit_type,
+                    period_date__gte=period_start,
+                    period_date__lte=today,
+                )
+                .aggregate(total=Sum("request_count"))
+            )
+        else:
+            usage = (
+                TenantApiUsage.objects.filter(
+                    school_id=school.pk,
+                    limit_type=limit_type,
+                    period_date=today,
+                )
+                .aggregate(total=Sum("request_count"))
+            )
+        total = int(usage.get("total") or 0)
+        allowed = total < limit_value
+        retry = 60 if period_days else 60
+        cache.set(cache_key, {"allowed": allowed, "retry": retry}, timeout=60)
+        return allowed, retry if not allowed else 0
     except Exception:
-        # Never block critical auth/discovery flows if cache backend is unavailable.
-        logger.debug("Rate-limit cache unavailable for scope=%s ip=%s", scope, ip)
+        logger.debug("_check_tenant_quota_limit failed", exc_info=True)
         return True, 0
+
+
+def throttle_tenant_request(
+    request,
+    *,
+    scope: str = API_TENANT_RATE_LIMIT_KEY,
+    max_count: int | None = None,
+    window_seconds: int | None = None,
+) -> tuple[bool, int]:
+    """
+    Plan I: Per-tenant API rate limit. Use when request.school is set (e.g. after TenantMiddleware).
+    Also enforces TenantQuotaLimit (e.g. api_calls per month) when set for the school.
+    Returns (allowed, retry_after_seconds).
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return True, 0
+    tenant_id = str(getattr(school, "pk", ""))
+    if not tenant_id:
+        return True, 0
+    # Optional: enforce stored quota limit (api_calls or api_calls_per_month)
+    quota_allowed, quota_retry = _check_tenant_quota_limit(school, limit_type="api_calls")
+    if not quota_allowed:
+        return False, quota_retry
+    max_count = max_count if max_count is not None else DEFAULT_TENANT_MAX_PER_MINUTE
+    window_seconds = window_seconds if window_seconds is not None else DEFAULT_TENANT_WINDOW_SECONDS
+    key = f"rate_limit:{scope}:tenant:{tenant_id}"
+    allowed, retry = _throttle(key, max_count, window_seconds)
+    if allowed:
+        record_tenant_api_usage(school)
+    return allowed, retry
+
+
+def record_tenant_api_usage(school, limit_type: str = "api_calls"):
+    """
+    Record one API request for the tenant (for billing/usage dashboard).
+    Throttled to ~1 write per 6 seconds per school to avoid DB load.
+    """
+    if not school or not getattr(school, "pk", None):
+        return
+    try:
+        cache_key = f"usage_record:{school.pk}:{limit_type}"
+        if cache.get(cache_key):
+            return
+        cache.set(cache_key, 1, timeout=6)
+        from django.utils import timezone
+        from django.db.models import F
+        from apps.schools.models import TenantApiUsage
+        today = timezone.now().date()
+        obj, _ = TenantApiUsage.objects.get_or_create(
+            school_id=school.pk,
+            period_date=today,
+            limit_type=limit_type,
+            defaults={"request_count": 0},
+        )
+        TenantApiUsage.objects.filter(pk=obj.pk).update(request_count=F("request_count") + 1)
+    except Exception:
+        logger.debug("record_tenant_api_usage failed", exc_info=True)

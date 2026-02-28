@@ -21,6 +21,9 @@
         Select source and target year, then choose the next class for each student (or keep the suggestion) and apply.
         Optionally lock the source year after rollover to prevent further grade edits.
       </p>
+      <p class="mb-2 small">
+        <a href="{% url 'accounts:rollover_queue' %}">Rollover queue</a> — prepare a proposal, review suggested classes, approve, then apply.
+      </p>
       <form method="get" action="" class="row g-3 align-items-end mb-0">
         <div class="col-md-4">
           <label for="source_year" class="form-label">Source year (current)</label>
@@ -44,6 +47,14 @@
           <button type="submit" class="btn btn-outline-primary w-100">Show students</button>
         </div>
       </form>
+      {% if source_year and target_year and not source_year.is_locked %}
+      <form method="post" action="{% url 'accounts:rollover_prepare' %}" class="mt-2">
+        {% csrf_token %}
+        <input type="hidden" name="source_year" value="{{ source_year.id }}">
+        <input type="hidden" name="target_year" value="{{ target_year.id }}">
+        <button type="submit" class="btn btn-outline-secondary">Prepare and add to queue</button>
+      </form>
+      {% endif %}
     </div>
   </div>
 

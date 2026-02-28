@@ -1917,6 +1917,10 @@ def evaluation_admin(request: HttpRequest):
         "required_fields": required_fields,
         "export_csv_query": export_csv_params.urlencode(),
         "export_pdf_query": export_pdf_params.urlencode(),
+        "BREADCRUMBS": [
+            {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+            {"label": "Evaluation Admin", "url": "", "active": True},
+        ],
     })
 
 
@@ -1971,7 +1975,11 @@ def grade_import_upload_view(request: HttpRequest):
             reader = csv.DictReader(io.TextIOWrapper(upload, encoding="utf-8"))
             preview = preview_import(reader)
         except Exception as exc:  # pragma: no cover - defensive
-            messages.error(request, f"Could not read CSV: {exc}")
+            logger.exception("Grade import: failed to read CSV")
+            messages.error(
+                request,
+                "We couldn't read your CSV. Check that the file is UTF-8 and that column headers match the template.",
+            )
         else:
             if preview.errors:
                 messages.error(request, "Please fix the errors below before applying.")
@@ -1979,8 +1987,15 @@ def grade_import_upload_view(request: HttpRequest):
                 if not active_year:
                     messages.error(request, "No active academic year found.")
                 else:
-                    result = apply_import(preview, active_year)
-                    messages.success(request, f"Imported grades (created: {result['created']}, updated: {result['updated']}).")
+                    try:
+                        result = apply_import(preview, active_year)
+                        messages.success(request, f"Imported grades (created: {result['created']}, updated: {result['updated']}).")
+                    except Exception as exc:
+                        logger.exception("Grade import: apply failed")
+                        messages.error(
+                            request,
+                            "Import failed while saving grades. Check your data matches the template (student codes, subject assignment and term IDs).",
+                        )
     return render(request, "evals/grade_import_upload.html", {
         "form": form,
         "preview": preview,
@@ -2277,7 +2292,15 @@ def grade_import_preview_api(request):
         }), content_type='application/json')
     
     except Exception as e:
-        return HttpResponse(json.dumps({'error': str(e)}), content_type='application/json', status=400)
+        logger.exception("Grade import preview API failed")
+        return HttpResponse(
+            json.dumps({
+                'error': "We couldn't read your CSV. Check that the file is UTF-8 and that column headers match the template.",
+                'detail': str(e),
+            }),
+            content_type='application/json',
+            status=400,
+        )
 
 
 @staff_member_required
@@ -2324,15 +2347,19 @@ def grade_import_apply_api(request):
         }), content_type='application/json')
     
     except Exception as e:
+        logger.exception("Grade import apply API failed")
         job.status = 'failed'
         job.failed_count += 1
         job.error_log = [str(e)]
         job.save()
-        
+        user_message = (
+            "Import failed while saving grades. Check your data matches the template (student codes, subject assignment and term IDs)."
+        )
         return HttpResponse(json.dumps({
             'job_id': job.id,
             'status': 'failed',
-            'error': str(e),
+            'error': user_message,
+            'detail': str(e),
         }), content_type='application/json', status=400)
 
 

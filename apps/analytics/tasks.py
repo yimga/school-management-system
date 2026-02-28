@@ -9,6 +9,7 @@ import logging
 from datetime import timedelta
 
 from celery import shared_task
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.academics.models import SubjectAssignment
@@ -135,3 +136,103 @@ def send_deadline_reminders_task(self, days_str: str | None = None, dry_run: boo
             error_message=str(e),
         )
         raise
+
+
+def _write_student_signals_for_school(school, today, last_30):
+    """Pipeline: write StudentSignals (e.g. attendance_ratio_30d) for risk scoring (Plan XVIII)."""
+    from decimal import Decimal
+    from django.db.models import Count
+    from apps.analytics.models import StudentSignals
+    from apps.people.models import StudentProfile
+    from apps.academics.models import Attendance
+
+    written = 0
+    for student in StudentProfile.objects.filter(school=school).values_list("id", flat=True):
+        att = Attendance.objects.filter(
+            school=school, student_id=student, date__gte=last_30
+        ).aggregate(
+            total=Count("id"),
+            absent=Count("id", filter=Q(status="absent")),
+        )
+        total = att["total"] or 0
+        absent = att["absent"] or 0
+        ratio = (float(total - absent) / total) if total else 1.0
+        StudentSignals.objects.create(
+            school=school,
+            student_id=student,
+            signal_type=StudentSignals.SignalType.ATTENDANCE_RATIO_30D,
+            value=Decimal(str(round(ratio, 4))),
+            payload={"total_days": total, "absent": absent},
+        )
+        written += 1
+    return written
+
+
+@shared_task(bind=True, name="analytics.compute_risk_factors")
+def compute_risk_factors_task(self, school_id: str) -> dict:
+    """
+    Compute at-risk scores (0-100) for all students in a school.
+    Writes StudentSignals (attendance_ratio_30d) then creates/updates RiskFactor rows.
+    Used by nightly_risk_factors and POST /api/v1/intervention/calculate-risk.
+    """
+    from decimal import Decimal
+    from django.utils import timezone
+    from django.db.models import Count
+    from datetime import timedelta
+    from apps.schools.models import School
+    from apps.analytics.models import RiskFactor
+    from apps.people.models import StudentProfile
+    from apps.academics.models import Attendance
+
+    school = School.objects.filter(id=school_id).first()
+    if not school:
+        return {"status": "error", "message": "School not found"}
+    today = timezone.now().date()
+    last_30 = today - timedelta(days=30)
+    signals_written = _write_student_signals_for_school(school, today, last_30)
+    students = StudentProfile.objects.filter(school=school).values_list("id", flat=True)
+    created = 0
+    RiskFactor.objects.filter(school=school).delete()
+    for sid in students:
+        att = Attendance.objects.filter(school=school, student_id=sid, date__gte=last_30).aggregate(
+            total=Count("id"),
+            absent=Count("id", filter=Q(status="absent")),
+        )
+        total = att["total"] or 0
+        absent = att["absent"] or 0
+        if total:
+            pct_absent = float(absent) / float(total) * 100
+            score = min(100, Decimal(str(round(pct_absent * 0.4 + 20, 2))))
+        else:
+            score = Decimal("20.00")
+        reason = f"Attendance last 30 days: {total - absent}/{total} present"
+        RiskFactor.objects.create(
+            school=school,
+            student_id=sid,
+            score=score,
+            reason_summary=reason[:500],
+        )
+        created += 1
+    return {
+        "status": "ok",
+        "school_id": school_id,
+        "students_updated": created,
+        "signals_written": signals_written,
+    }
+
+
+@shared_task(bind=True, name="analytics.nightly_risk_factors")
+def nightly_risk_factors_task(self) -> dict:
+    """
+    Nightly Celery Beat task: compute and write RiskFactor for all active schools.
+    Dispatches one compute_risk_factors_task per school.
+    """
+    from apps.schools.models import School
+
+    schools = School.objects.filter(is_active=True).values_list("id", flat=True)
+    count = 0
+    for school_id in schools:
+        compute_risk_factors_task.delay(str(school_id))
+        count += 1
+    logger.info("nightly_risk_factors: dispatched %s schools", count)
+    return {"status": "ok", "schools_dispatched": count}

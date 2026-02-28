@@ -154,6 +154,25 @@
           <p>No results found</p>
           <small>Try different keywords</small>
         </div>
+
+        <!-- Error state (W2-11) -->
+        <div class="search-error" id="searchError" style="display: none;">
+          <i class="bi bi-exclamation-triangle text-warning"></i>
+          <p class="mb-1">Search temporarily unavailable</p>
+          <small class="text-muted">Please try again in a moment.</small>
+        </div>
+
+        <!-- Search tips (W2-11) -->
+        <div class="search-tips-section mt-3 pt-3 border-top" id="searchTipsSection">
+          <div class="search-section-header small text-muted mb-1">
+            <span><i class="bi bi-lightbulb"></i> Tips</span>
+          </div>
+          <ul class="small text-muted mb-0 ps-3">
+            <li>Use at least 2 characters for better results</li>
+            <li>Check spelling or try a different keyword</li>
+            <li>Search by student name, teacher, class, or invoice number</li>
+          </ul>
+        </div>
       </div>
 
       <div class="search-modal-footer">
@@ -463,6 +482,13 @@
   border-radius: 3px;
 }
 
+.search-error {
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+.search-error i { font-size: 2rem; }
+.search-error p { margin-bottom: 0.25rem; }
+
 @media (max-width: 768px) {
   .global-search {
     max-width: none;
@@ -484,6 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const searchResultItems = document.getElementById('searchResultItems');
   const searchLoading = document.getElementById('searchLoading');
   const searchEmpty = document.getElementById('searchEmpty');
+  const searchError = document.getElementById('searchError');
   const recentSearches = document.getElementById('recentSearches');
   const recentItems = document.getElementById('recentItems');
   const clearHistory = document.getElementById('clearHistory');
@@ -516,6 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
       searchClear.style.display = 'none';
       searchResultsSection.style.display = 'none';
       searchEmpty.style.display = 'none';
+      if (searchError) searchError.style.display = 'none';
       recentSearches.style.display = 'block';
       if (searchHelpSection) searchHelpSection.style.display = 'block';
       return;
@@ -537,6 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
     searchClear.style.display = 'none';
     searchResultsSection.style.display = 'none';
     searchEmpty.style.display = 'none';
+    if (searchError) searchError.style.display = 'none';
     recentSearches.style.display = 'block';
     if (searchHelpSection) searchHelpSection.style.display = 'block';
   });
@@ -546,23 +575,41 @@ document.addEventListener('DOMContentLoaded', function() {
     searchLoading.style.display = 'flex';
     searchResultsSection.style.display = 'none';
     searchEmpty.style.display = 'none';
+    if (searchError) searchError.style.display = 'none';
 
     try {
       const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}`);
-      const data = await response.json();
+      const data = response.ok ? await response.json().catch(() => ({})) : {};
 
       searchLoading.style.display = 'none';
+
+      if (!response.ok) {
+        if (searchError) {
+          searchError.querySelector('p').textContent = 'Search temporarily unavailable';
+          searchError.style.display = 'block';
+        } else {
+          searchEmpty.querySelector('p').textContent = 'Search temporarily unavailable';
+          searchEmpty.style.display = 'block';
+        }
+        return;
+      }
 
       if (data.results && data.results.length > 0) {
         renderResults(data.results);
         saveToHistory(query);
       } else {
+        searchEmpty.querySelector('p').textContent = 'No results found';
         searchEmpty.style.display = 'block';
       }
     } catch (error) {
       console.error('Search error:', error);
       searchLoading.style.display = 'none';
-      searchEmpty.style.display = 'block';
+      if (searchError) {
+        searchError.style.display = 'block';
+      } else {
+        searchEmpty.querySelector('p').textContent = 'Search temporarily unavailable';
+        searchEmpty.style.display = 'block';
+      }
     }
   }
 

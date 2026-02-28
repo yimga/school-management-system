@@ -33,6 +33,8 @@ from .models import (
     WeatherLocation,
     FeatureToggleDefinition,
     FeatureToggleState,
+    TourStep,
+    FeatureUsageEvent,
     Plan,
     PlanAddon,
     CountryMultiplier,
@@ -1881,6 +1883,23 @@ admin_site.register(HolidayCalendar, HolidayCalendarAdmin)
 admin_site.register(WeatherLocation, WeatherLocationAdmin)
 admin_site.register(FeatureToggleDefinition, FeatureToggleDefinitionAdmin)
 admin_site.register(FeatureToggleState, FeatureToggleStateAdmin)
+
+
+class TourStepAdmin(ModelAdmin):
+    list_display = ("code", "title", "school")
+    list_filter = ("school",)
+    search_fields = ("code", "title")
+
+
+class FeatureUsageEventAdmin(ModelAdmin):
+    list_display = ("feature_code", "school", "user", "created_at")
+    list_filter = ("feature_code", "school")
+    readonly_fields = ("created_at",)
+    date_hierarchy = "created_at"
+
+
+admin_site.register(TourStep, TourStepAdmin)
+admin_site.register(FeatureUsageEvent, FeatureUsageEventAdmin)
 
 
 class PlanAdmin(ModelAdmin):

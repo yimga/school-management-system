@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from apps.finance.models import Invoice, Payment, Notification, ComplianceProfile
+from apps.finance.services import pay_invoice_with_wallet
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
 from apps.api.permissions import IsAdminUser
 from apps.schools.models import School
@@ -218,6 +219,51 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             'marked_at': timezone.now().isoformat()
         })
     
+    @action(detail=True, methods=["post"])
+    def pay_with_wallet(self, request, pk=None):
+        """
+        Pay (part of) this invoice using the current user's parent wallet.
+        Body: optional {"amount": "100.00"} (default: full outstanding balance).
+        """
+        school = _request_school(request)
+        if school is None:
+            return Response(
+                {"error": "School context required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        invoice = self.get_object()
+        if getattr(invoice, "school_id", None) and invoice.school_id != school.id:
+            return Response(
+                {"error": "Invoice does not belong to this school"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        amount_raw = request.data.get("amount")
+        amount = None
+        if amount_raw is not None:
+            try:
+                amount = str(amount_raw).strip()
+            except (TypeError, AttributeError):
+                amount = None
+        try:
+            payment, wallet = pay_invoice_with_wallet(
+                school=school,
+                user=request.user,
+                invoice=invoice,
+                amount=amount,
+            )
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        invoice.refresh_from_db()
+        from apps.api.serializers import PaymentSerializer as PaySer
+        return Response({
+            "payment": PaySer(payment).data,
+            "wallet_balance_after": str(wallet.balance),
+            "invoice_balance_after": str(invoice.computed_balance),
+        }, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'])
     def summary(self, request):
         """Get invoice summary statistics"""

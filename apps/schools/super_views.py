@@ -16,7 +16,7 @@ from apps.siteconfig.education_profile_engine import (
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import EducationSystemProfile
 from apps.siteconfig.tenant_config import apply_tenant_settings_overrides
-from .models import School, SchoolProvisioningEvent
+from .models import School, SchoolProvisioningEvent, TenantApiUsage, TenantQuotaLimit
 
 
 def _safe_school_admin_change_url(school_id) -> str:
@@ -146,6 +146,65 @@ def super_dashboard(request):
             "registry_url": _safe_registry_url(),
             "health_top_tables": health_top_tables,
             "health_schema_stats": health_schema_stats,
+        },
+    )
+
+
+def super_usage(request):
+    """Plan I: Per-tenant API usage and quota limits for super-admin billing/health."""
+    from django.db.models import Sum
+    schools = list(
+        School.objects.filter(is_active=True)
+        .annotate(student_count=Count("student_profiles", distinct=True))
+        .order_by("name")
+    )
+    school_ids = [s.pk for s in schools]
+    usage_agg = {
+        (r["school_id"], r["limit_type"]): r["total"]
+        for r in TenantApiUsage.objects.filter(school_id__in=school_ids)
+        .values("school_id", "limit_type")
+        .annotate(total=Sum("request_count"))
+    }
+    quotas = {}
+    for q in TenantQuotaLimit.objects.filter(school_id__in=school_ids, is_active=True).values(
+        "school_id", "limit_type", "limit_value", "period_days"
+    ):
+        quotas.setdefault(q["school_id"], []).append(q)
+    for school in schools:
+        school.api_usage = {k: v for (sid, k), v in usage_agg.items() if sid == school.pk}
+        school.quota_limits = quotas.get(school.pk, [])
+        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
+    return render(
+        request,
+        "schools/super_usage.html",
+        {"schools": schools},
+    )
+
+
+def billing_dashboard(request):
+    """Plan X: Billing dashboard — trial schools, trial_end_date, usage; Stripe integration via webhooks (see docs)."""
+    from django.db.models import Sum
+    from django.utils import timezone
+    trial_schools = list(
+        School.objects.filter(is_active=True, billing_type=School.BillingType.FREE_TRIAL)
+        .annotate(student_count=Count("student_profiles", distinct=True))
+        .order_by("trial_end_date", "name")
+    )
+    school_ids = [s.pk for s in trial_schools]
+    usage_agg = {}
+    if school_ids:
+        for r in TenantApiUsage.objects.filter(school_id__in=school_ids).values("school_id").annotate(total=Sum("request_count")):
+            usage_agg[r["school_id"]] = r["total"]
+    for school in trial_schools:
+        school.api_requests = usage_agg.get(school.pk, 0)
+        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
+        school.trial_expired = school.trial_end_date and school.trial_end_date < timezone.now().date()
+    return render(
+        request,
+        "schools/billing_dashboard.html",
+        {
+            "trial_schools": trial_schools,
+            "usage_url": reverse("super:usage"),
         },
     )
 
@@ -386,11 +445,20 @@ def api_approve_school(request, school_id):
     return JsonResponse({"ok": True, "school_id": str(school.id), "message": "School approved."})
 
 
+def _slug_from_name(name: str) -> str:
+    """W1-1: Derive URL-safe slug from school name for minimal create path."""
+    import re
+    s = (name or "").strip().lower()
+    s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+    return s[:120] if s else "school"
+
+
 @require_POST
 def api_create_school(request):
     """
     Validate payload, create School row (is_active=False), enqueue provisioning task.
     Returns 202 + job_id or 400 with errors.
+    W1-1: Minimal path: name, contact_email, country_code (optional); slug/subdomain derived from name when omitted.
     """
     import json
 
@@ -401,6 +469,8 @@ def api_create_school(request):
 
     name = (data.get("name") or "").strip()
     slug = (data.get("slug") or "").strip().lower().replace(" ", "-")
+    if not slug and name:
+        slug = _slug_from_name(name)
     subdomain = (data.get("subdomain") or slug or "").strip().lower()
     contact_email = (data.get("contact_email") or "").strip()
     region_code = GlobalGeoCatalog.normalize_country_code((data.get("region_code") or "").strip())
@@ -439,13 +509,19 @@ def api_create_school(request):
     if not isinstance(addons, list):
         addons = []
 
+    if not subdomain and slug:
+        subdomain = slug
     errors = []
     if not name:
         errors.append("name is required")
+    # W1-1: slug optional; derived from name when omitted.
+    if not slug and name:
+        slug = _slug_from_name(name)
     if not slug:
-        errors.append("slug is required")
-    if slug and not subdomain:
-        subdomain = slug
+        errors.append("slug could not be derived from name; provide slug or name")
+    # W1-3: Contact email required for provisioning and welcome email.
+    if not contact_email:
+        errors.append("contact_email is required")
 
     if errors:
         return JsonResponse({"errors": errors}, status=400)

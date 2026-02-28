@@ -3,7 +3,13 @@ from django.contrib.admin import SimpleListFilter
 from django.utils.html import format_html
 
 from config.admin import admin_site
-from apps.communication.models import Message, Announcement, AnnouncementAuditLog
+from apps.communication.models import (
+    Message,
+    Announcement,
+    AnnouncementAuditLog,
+    FeedItem,
+    OutboundMessageQueue,
+)
 
 
 class FinanceRequestFilter(SimpleListFilter):
@@ -56,3 +62,25 @@ class AnnouncementAuditLogAdmin(admin.ModelAdmin):
     def notes_preview(self, obj):
         return (obj.notes or "")[:60] + ("..." if len(obj.notes or "") > 60 else "")
     notes_preview.short_description = "Notes"
+
+
+@admin.register(FeedItem, site=admin_site)
+class FeedItemAdmin(admin.ModelAdmin):
+    list_display = ("title", "item_type", "school", "student", "created_at", "created_by")
+    list_filter = ("item_type", "school")
+    search_fields = ("title", "body")
+    readonly_fields = ("created_at",)
+
+
+@admin.register(OutboundMessageQueue, site=admin_site)
+class OutboundMessageQueueAdmin(admin.ModelAdmin):
+    list_display = ("recipient_identifier", "channel", "status", "school", "created_at", "sent_at")
+    list_filter = ("channel", "status", "school")
+    search_fields = ("recipient_identifier", "body")
+    readonly_fields = ("created_at", "sent_at")
+    actions = ["mark_retry_pending"]
+
+    def mark_retry_pending(self, request, queryset):
+        n = queryset.filter(status="failed").update(status="pending")
+        self.message_user(request, f"{n} item(s) set to pending for retry.")
+    mark_retry_pending.short_description = "Retry failed (set to pending)"

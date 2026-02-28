@@ -41,6 +41,7 @@ def dashboard_context(request):
         'can_create_school_wide_announcement': False,
         'can_access_school_wide_announcement_create': False,
         'tenant_path_prefix': tenant_prefix,
+        'simple_mode': False,  # Plan XIV: simplified UI; set from UserPreference below when authenticated
     }
 
     if not request.user.is_authenticated:
@@ -51,6 +52,13 @@ def dashboard_context(request):
         return context
 
     user = request.user
+    # Plan XIV: simple_mode from UserPreference (consumer-grade simplified UI)
+    try:
+        prefs = getattr(user, "preferences", None)
+        context["simple_mode"] = bool(getattr(prefs, "simple_mode", False))
+    except Exception:
+        context["simple_mode"] = False
+
     try:
         from apps.communication.views_announcements import (
             _can_create_school_wide_announcement,

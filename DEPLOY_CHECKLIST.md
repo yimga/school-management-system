@@ -2,6 +2,8 @@
 
 Run through this before testing and deploying.
 
+**Full deployment (render.yaml, wildcard SSL, CDN, RLS, health, go-live):** See **[docs/RUNMYCAMPUS_DEPLOYMENT.md](docs/RUNMYCAMPUS_DEPLOYMENT.md)** (B9).
+
 ## Quick start
 
 ```bash

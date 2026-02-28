@@ -8,7 +8,7 @@
   <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
     <div>
       <h1 class="h4 mb-1 fw-bold">Import Hub</h1>
-      <p class="text-muted small mb-0">Bulk import students, grades, and data</p>
+      <p class="text-muted small mb-0">Bulk import students, grades, and data. Use the Migration Wizard for upload → mapping → preview → run.</p>
     </div>
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:workflow_center' %}">
       <i class="bi bi-arrow-left me-1"></i>Workflow Center
@@ -17,14 +17,28 @@
 
   <div class="row g-4">
     <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100 border-primary">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-magic text-primary" style="font-size: 1.5rem;"></i>
+            <h5 class="mb-0">Migration Wizard</h5>
+          </div>
+          <p class="text-muted small mb-3">Upload CSV → map columns → preview → run. Students or grades.</p>
+          <a class="btn btn-primary btn-sm" href="{% url 'accounts:migration_wizard' %}">
+            Start wizard <i class="bi bi-chevron-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex align-items-center gap-2 mb-2">
-            <i class="bi bi-upload text-primary" style="font-size: 1.5rem;"></i>
+            <i class="bi bi-upload text-secondary" style="font-size: 1.5rem;"></i>
             <h5 class="mb-0">Entity Import</h5>
           </div>
-          <p class="text-muted small mb-3">Import students, teachers, classrooms via CSV.</p>
-          <a class="btn btn-primary btn-sm" href="{% url 'accounts:backend_entity_import' %}">
+          <p class="text-muted small mb-3">Import students, teachers, classrooms via CSV (paste).</p>
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:backend_entity_import' %}">
             Open Entity Import <i class="bi bi-chevron-right ms-1"></i>
           </a>
         </div>

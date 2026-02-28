@@ -1,15 +1,83 @@
 """
 Provisioning task: after School row is created, create admin user, school_members, seed terms/subjects, logo path.
 Can be run as Celery task or synchronously.
+When USE_DJANGO_TENANTS is True, ensures Client and Domain exist and runs tenant-scoped creation in tenant_context.
 """
 import logging
+import os
 import secrets
+from contextlib import contextmanager
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+
+def _use_django_tenants():
+    return os.getenv("USE_DJANGO_TENANTS", "").strip().lower() in ("1", "true", "yes")
+
+
+def _ensure_tenant_client(school):
+    """
+    When USE_DJANGO_TENANTS: get or create Client and Domain for this school (public schema).
+    Returns the Client or None if not using django-tenants.
+    """
+    if not _use_django_tenants():
+        return None
+    try:
+        from django.db import connection
+        if connection.vendor != "postgresql":
+            return None
+        from apps.customers.models import Client, Domain
+    except ImportError:
+        return None
+    schema_name = (school.slug or "school").strip().lower().replace("-", "_")[:63]
+    if not schema_name:
+        schema_name = "tenant"
+    client = Client.objects.filter(school=school).first()
+    if client:
+        return client
+    client = Client.objects.filter(schema_name=schema_name).first()
+    if client:
+        if not client.school_id:
+            client.school = school
+            client.save(update_fields=["school"])
+        return client
+    client = Client(
+        schema_name=schema_name,
+        name=school.name,
+        school=school,
+    )
+    client.save()
+    base_domain = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip() or "localhost"
+    domain_str = f"{school.subdomain or school.slug}.{base_domain}".lower()
+    Domain.objects.get_or_create(
+        domain=domain_str,
+        defaults={"tenant": client, "is_primary": True},
+    )
+    if school.custom_domain and school.custom_domain_verified:
+        Domain.objects.get_or_create(
+            domain=school.custom_domain.strip().lower(),
+            defaults={"tenant": client, "is_primary": False},
+        )
+    logger.info("Created Client schema_name=%s for school %s", schema_name, school.id)
+    return client
+
+
+@contextmanager
+def _optional_tenant_context(client):
+    """If client is set, run inside django_tenants.utils.tenant_context(client); else no-op."""
+    if client is None:
+        yield
+        return
+    try:
+        from django_tenants.utils import tenant_context
+        with tenant_context(client):
+            yield
+    except ImportError:
+        yield
 
 
 def _record_school_event(
@@ -122,7 +190,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             defaults={"role": User.Role.ADMIN, "is_primary": True},
         )
 
-    # Seed academic year and terms from education profile + region defaults
+    # Seed academic year and terms from education profile + region defaults.
+    # W1-9: When no education_profile_code is set, resolve_profile_for_school uses school.default_region_id
+    # (from country_code at create) and returns one approved profile per country via for_school() + ensure_country_profile().
     region = school.default_region
     requested_profile_code = str((school.settings or {}).get("education_profile_code") or "").strip()
     profile = resolve_profile_for_school(
@@ -197,151 +267,202 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             payload={"sub_system": school.sub_system},
         )
 
-    # Phase B: Tenant Provisioning Engine — create TenantSystem rows from wizard selection (multi-system)
-    provisioning = (school.settings or {}).get("provisioning") or {}
-    education_system_ids = provisioning.get("education_system_ids") or []
-    if not isinstance(education_system_ids, list):
-        education_system_ids = []
-    profile_codes = [str(c).strip() for c in education_system_ids if c]
-    if not profile_codes and profile and getattr(profile, "code", None):
-        profile_codes = [profile.code]
-    if profile_codes:
-        from apps.siteconfig.models import EducationSystemProfile, TenantSystem
-        approved = EducationSystemProfile.objects.filter(
-            code__in=profile_codes,
-            is_active=True,
-            approval_status=EducationSystemProfile.ApprovalStatus.APPROVED,
-        )
-        for prof in approved:
-            TenantSystem.objects.get_or_create(school=school, system=prof, defaults={})
-        try:
-            from apps.siteconfig.tenant_config import sync_tenant_modules_to_school_features
-            sync_tenant_modules_to_school_features(school)
-        except Exception as e:
-            logger.debug("Optional sync_tenant_modules_to_school_features: %s", e)
+    # Schema-per-tenant: ensure Client and Domain exist so tenant schema is available
+    tenant_client = _ensure_tenant_client(school)
 
-    # Compile and persist tenant config snapshot (region pack + locks + effective config).
-    try:
-        from apps.siteconfig.tenant_config import persist_compiled_tenant_config
-
-        compiled = persist_compiled_tenant_config(school, persist=True)
-        _record_school_event(
-            school,
-            event_type="PROFILE_APPLIED",
-            status="INFO",
-            message="Tenant config compiled from region/profile/overrides.",
-            payload={
-                "policy_pack": compiled.get("pack") or {},
-                "layers": compiled.get("layers") or [],
-            },
-        )
-    except Exception:
-        logger.exception("Failed to compile tenant config snapshot for school %s", school_id)
-
-    now = timezone.now().date()
-    year_start = date(now.year, start_month, 1)
-    if now.month < start_month:
-        year_start = date(now.year - 1, start_month, 1)
-    year_end = date(year_start.year + 1, start_month, 1)
-    year_end = year_end - timedelta(days=1)
-
-    ay, created = AcademicYear.objects.get_or_create(
-        school=school,
-        name=f"{year_start.year}/{year_end.year}",
-        defaults={
-            "start_date": year_start,
-            "end_date": year_end,
-            "is_active": True,
-        },
-    )
-    if created:
-        # Create terms
-        def _month_start_add(base_date: date, months: int) -> date:
-            year = base_date.year + ((base_date.month - 1 + months) // 12)
-            month = ((base_date.month - 1 + months) % 12) + 1
-            return date(year, month, 1)
-
-        months_per_term = 12 // term_count
-        for i in range(term_count):
-            t_start = _month_start_add(year_start, i * months_per_term)
-            if i == term_count - 1:
-                t_end = year_end
-            else:
-                next_term_start = _month_start_add(year_start, (i + 1) * months_per_term)
-                t_end = next_term_start - timedelta(days=1)
-            term_name = (
-                term_labels[i]
-                if i < len(term_labels) and str(term_labels[i]).strip()
-                else f"Term {i + 1}"
+    # Tenant-scoped creation: run inside tenant_context when using schema-per-tenant
+    with _optional_tenant_context(tenant_client):
+        # Phase B: Tenant Provisioning Engine — create TenantSystem rows from wizard selection (multi-system)
+        provisioning = (school.settings or {}).get("provisioning") or {}
+        education_system_ids = provisioning.get("education_system_ids") or []
+        if not isinstance(education_system_ids, list):
+            education_system_ids = []
+        profile_codes = [str(c).strip() for c in education_system_ids if c]
+        if not profile_codes and profile and getattr(profile, "code", None):
+            profile_codes = [profile.code]
+        if profile_codes:
+            from apps.siteconfig.models import EducationSystemProfile, TenantSystem
+            approved = EducationSystemProfile.objects.filter(
+                code__in=profile_codes,
+                is_active=True,
+                approval_status=EducationSystemProfile.ApprovalStatus.APPROVED,
             )
-            Term.objects.get_or_create(
-                school=school,
-                academic_year=ay,
-                name=term_name,
-                defaults={
-                    "position": i + 1,
-                    "start_date": t_start,
-                    "end_date": t_end,
-                    "is_active": i == 0,
+            for prof in approved:
+                TenantSystem.objects.get_or_create(school=school, system=prof, defaults={})
+            try:
+                from apps.siteconfig.tenant_config import sync_tenant_modules_to_school_features
+                sync_tenant_modules_to_school_features(school)
+            except Exception as e:
+                logger.debug("Optional sync_tenant_modules_to_school_features: %s", e)
+
+        # Compile and persist tenant config snapshot (region pack + locks + effective config).
+        try:
+            from apps.siteconfig.tenant_config import persist_compiled_tenant_config
+
+            compiled = persist_compiled_tenant_config(school, persist=True)
+            _record_school_event(
+                school,
+                event_type="PROFILE_APPLIED",
+                status="INFO",
+                message="Tenant config compiled from region/profile/overrides.",
+                payload={
+                    "policy_pack": compiled.get("pack") or {},
+                    "layers": compiled.get("layers") or [],
                 },
             )
+        except Exception:
+            logger.exception("Failed to compile tenant config snapshot for school %s", school_id)
+
+        now = timezone.now().date()
+        year_start = date(now.year, start_month, 1)
+        if now.month < start_month:
+            year_start = date(now.year - 1, start_month, 1)
+        year_end = date(year_start.year + 1, start_month, 1)
+        year_end = year_end - timedelta(days=1)
+
+        ay, created = AcademicYear.objects.get_or_create(
+            school=school,
+            name=f"{year_start.year}/{year_end.year}",
+            defaults={
+                "start_date": year_start,
+                "end_date": year_end,
+                "is_active": True,
+            },
+        )
+        if created:
+            # Create terms
+            def _month_start_add(base_date: date, months: int) -> date:
+                year = base_date.year + ((base_date.month - 1 + months) // 12)
+                month = ((base_date.month - 1 + months) % 12) + 1
+                return date(year, month, 1)
+
+            months_per_term = 12 // term_count
+            for i in range(term_count):
+                t_start = _month_start_add(year_start, i * months_per_term)
+                if i == term_count - 1:
+                    t_end = year_end
+                else:
+                    next_term_start = _month_start_add(year_start, (i + 1) * months_per_term)
+                    t_end = next_term_start - timedelta(days=1)
+                term_name = (
+                    term_labels[i]
+                    if i < len(term_labels) and str(term_labels[i]).strip()
+                    else f"Term {i + 1}"
+                )
+                Term.objects.get_or_create(
+                    school=school,
+                    academic_year=ay,
+                    name=term_name,
+                    defaults={
+                        "position": i + 1,
+                        "start_date": t_start,
+                        "end_date": t_end,
+                        "is_active": i == 0,
+                    },
+                )
         logger.info("Seeded academic year and %s terms for school %s", term_count, school_id)
-    _record_school_event(
-        school,
-        event_type="ACADEMIC_YEAR_READY",
-        status="SUCCESS",
-        message="Academic year and terms prepared.",
-        payload={
-            "academic_year": ay.name,
-            "created": bool(created),
-            "term_count": int(term_count),
-        },
-    )
+        _record_school_event(
+            school,
+            event_type="ACADEMIC_YEAR_READY",
+            status="SUCCESS",
+            message="Academic year and terms prepared.",
+            payload={
+                "academic_year": ay.name,
+                "created": bool(created),
+                "term_count": int(term_count),
+            },
+        )
 
-    # Optional: seed default subjects. Subject name is unique per school (school_id, name).
-    subject_created = 0
-    if not Subject.objects.filter(school=school).exists():
-        subject_seed = []
-        if profile:
-            subject_seed = profile.normalized_subject_seed()
-        if not subject_seed:
-            subject_seed = [
-                {"name": "Mathematics", "category": Subject.Category.GENERAL},
-                {"name": "English", "category": Subject.Category.GENERAL},
-                {"name": "French", "category": Subject.Category.GENERAL},
-                {"name": "Science", "category": Subject.Category.GENERAL},
-            ]
-        valid_categories = {choice[0] for choice in Subject.Category.choices}
-        for item in subject_seed:
-            name = str(item.get("name") if isinstance(item, dict) else "").strip()
-            if not name:
+        # Optional: seed default subjects. Subject name is unique per school (school_id, name).
+        subject_created = 0
+        if not Subject.objects.filter(school=school).exists():
+            subject_seed = []
+            if profile:
+                subject_seed = profile.normalized_subject_seed()
+            if not subject_seed:
+                subject_seed = [
+                    {"name": "Mathematics", "category": Subject.Category.GENERAL},
+                    {"name": "English", "category": Subject.Category.GENERAL},
+                    {"name": "French", "category": Subject.Category.GENERAL},
+                    {"name": "Science", "category": Subject.Category.GENERAL},
+                ]
+            valid_categories = {choice[0] for choice in Subject.Category.choices}
+            for item in subject_seed:
+                name = str(item.get("name") if isinstance(item, dict) else "").strip()
+                if not name:
+                    continue
+                raw_category = str(item.get("category", Subject.Category.GENERAL) if isinstance(item, dict) else Subject.Category.GENERAL).upper()
+                category = raw_category if raw_category in valid_categories else Subject.Category.GENERAL
+                _, created_subject = Subject.objects.get_or_create(
+                    school=school,
+                    name=name,
+                    defaults={"category": category},
+                )
+                if created_subject:
+                    subject_created += 1
+            logger.info("Seeded default subjects for school %s", school_id)
+        _record_school_event(
+            school,
+            event_type="SUBJECTS_READY",
+            status="SUCCESS",
+            message="Default subjects prepared.",
+            payload={"subjects_created": int(subject_created)},
+        )
+
+        # W1-5: Seed 1–3 default classrooms from profile (or generic names).
+        from apps.academics.models import Classroom, Department
+
+        classroom_seed_names = []
+        seed_fn = getattr(profile, "normalized_classroom_seed", None) if profile else None
+        if callable(seed_fn):
+            try:
+                classroom_seed_names = list(seed_fn())[:3]
+            except Exception:
+                pass
+        if not classroom_seed_names:
+            classroom_seed_names = ["Class 1", "Class 2", "Class 3"]
+        dept_code = f"{school.slug}-GEN" if school.slug else f"{school.id.hex[:8]}-GEN"
+        department, _ = Department.objects.get_or_create(
+            code=dept_code,
+            defaults={"school": school, "name": "General"},
+        )
+        if department.school_id != school.id:
+            department.school = school
+            department.save(update_fields=["school"])
+        classroom_created = 0
+        for i, label in enumerate(classroom_seed_names[:3]):
+            name = str(label).strip() or f"Class {i + 1}"
+            code = f"{dept_code}-C{i + 1}"
+            if Classroom.objects.filter(code=code).exists():
                 continue
-            raw_category = str(item.get("category", Subject.Category.GENERAL) if isinstance(item, dict) else Subject.Category.GENERAL).upper()
-            category = raw_category if raw_category in valid_categories else Subject.Category.GENERAL
-            _, created_subject = Subject.objects.get_or_create(
-                school=school,
-                name=name,
-                defaults={"category": category},
+            Classroom.objects.get_or_create(
+                code=code,
+                defaults={
+                    "school": school,
+                    "academic_year": ay,
+                    "department": department,
+                    "name": name,
+                },
             )
-            if created_subject:
-                subject_created += 1
-        logger.info("Seeded default subjects for school %s", school_id)
-    _record_school_event(
-        school,
-        event_type="SUBJECTS_READY",
-        status="SUCCESS",
-        message="Default subjects prepared.",
-        payload={"subjects_created": int(subject_created)},
-    )
+            classroom_created += 1
+        if classroom_created:
+            logger.info("Seeded %s default classrooms for school %s", classroom_created, school_id)
+            _record_school_event(
+                school,
+                event_type="CLASSROOMS_READY",
+                status="SUCCESS",
+                message="Default classrooms prepared.",
+                payload={"classrooms_created": classroom_created},
+            )
 
-    school.is_active = True
-    school.save(update_fields=["is_active", "settings", "updated_at"])
-    _record_school_event(
-        school,
-        event_type="COMPLETED",
-        status="SUCCESS",
-        message="Provisioning completed successfully.",
-    )
+        school.is_active = True
+        school.save(update_fields=["is_active", "settings", "updated_at"])
+        _record_school_event(
+            school,
+            event_type="COMPLETED",
+            status="SUCCESS",
+            message="Provisioning completed successfully.",
+        )
     logger.info("School %s provisioning complete", school_id)
 
     # Phase Welcome: send welcome email (async if Celery available)

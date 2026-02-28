@@ -64,6 +64,14 @@
       </div>
     </section>
 
+    {% if not assignments %}
+    <div class="alert alert-info mb-3" role="status">
+      {% trans "You don't have any classes yet." %}
+      <a href="{% url 'portal:teacher_workflow' %}">{% trans "My Workflow" %}</a>
+      {% trans "or ask your admin to assign you to classes." %}
+    </div>
+    {% endif %}
+
     <section class="tdm-overview-grid dashboard-card-grid dashboard-card-grid--dense">
       <div class="tdm-stat card-glass purple">
         <div class="tdm-stat-label">{% trans "Classes today" %}</div>

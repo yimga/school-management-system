@@ -2,7 +2,7 @@
 URL patterns for communication app.
 """
 from django.urls import path
-from . import views_groups, views_announcements
+from . import views_groups, views_announcements, views_narrative
 
 app_name = 'communication'
 
@@ -23,4 +23,7 @@ urlpatterns = [
     path('announcements/<int:announcement_id>/edit/', views_announcements.announcement_edit, name='announcement_edit'),
     path('announcements/<int:announcement_id>/approve/', views_announcements.announcement_approve, name='announcement_approve'),
     path('announcements/department/', views_announcements.department_announcement_create, name='department_announcement_create'),
+    # AI narrative feedback (teacher-approved parent message)
+    path('narratives/', views_narrative.narrative_list, name='narrative_list'),
+    path('narratives/<int:narrative_id>/approve/', views_narrative.narrative_approve, name='narrative_approve'),
 ]

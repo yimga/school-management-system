@@ -20,7 +20,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: linear-gradient(135deg, {{ SITE.primary_color|default:"#0d6efd" }}, {{ SITE.accent_color|default:"#198754" }});
+      background: linear-gradient(135deg, {{ SITE_PRIMARY_COLOR|default:SITE.primary_color|default:"#0d6efd" }}, {{ SITE_ACCENT_COLOR|default:SITE.accent_color|default:"#198754" }});
       color: white;
       margin-bottom: 0.5rem;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
@@ -138,6 +138,38 @@
       margin-right: 0.35rem;
     }
 
+    .login-split {
+      display: flex;
+      min-height: 100vh;
+    }
+    .login-split__left {
+      flex: 1;
+      min-height: 60vh;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-color: #e9ecef;
+    }
+    .login-split__right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem;
+      background: #f5f7fb;
+    }
+    .login-split .auth-hero {
+      margin-bottom: 0;
+      border-radius: 0;
+    }
+    @media (max-width: 767px) {
+      .login-split {
+        flex-direction: column;
+      }
+      .login-split__left {
+        min-height: 28vh;
+      }
+    }
     @media (max-width: 991px) {
       .info-card {
         flex-direction: column;
@@ -162,8 +194,14 @@
 {% endblock %}
 
 {% block content %}
+  {% if TENANT_WALLPAPER_URL %}
+  <div class="login-split" id="preview-login-page">
+    <div class="login-split__left" style="background-image: url('{{ TENANT_WALLPAPER_URL|escape }}');" role="img" aria-hidden="true"></div>
+    <div class="login-split__right">
+  {% else %}
   <section class="auth-landing py-5" id="preview-login-page">
     <div class="container">
+  {% endif %}
       <div class="auth-hero" id="preview-login-hero" data-preview-label="{% trans 'Login hero (colors & branding)' %}" data-preview-changes="{% trans 'Primary/accent colors, logo, heading' %}">
         <div class="hero-brand" id="preview-login-brand" data-preview-label="{% trans 'Logo & site name' %}" data-preview-changes="{% trans 'Site name, tagline, hero heading' %}">
           <div class="hero-logo">
@@ -189,11 +227,13 @@
           </div>
         {% endif %}
       </div>
+      {% if not TENANT_WALLPAPER_URL %}
       <div class="auth-breadcrumb text-muted text-uppercase small">
         <span>Home / Authentication / Login</span>
       </div>
+      {% endif %}
 
-      <div class="row justify-content-center g-4 align-items-stretch">
+      <div class="row justify-content-center g-4 align-items-stretch {% if TENANT_WALLPAPER_URL %}mx-0{% endif %}">
         <div class="col-lg-5">
           <div class="card shadow-sm login-card" id="preview-login-form" data-preview-label="{% trans 'Sign-in form' %}" data-preview-changes="{% trans 'Form layout and styling' %}">
             <div class="card-body">
@@ -215,8 +255,24 @@
                   <input type="hidden" name="next" value="{{ request.POST.next }}">
                 {% endif %}
                 <div class="mb-3">
+                  <label class="form-label">{% trans "I am signing in as" %}</label>
+                  <select class="form-select" name="role" id="login-role">
+                    <option value="staff">{% trans "Staff" %}</option>
+                    <option value="student">{% trans "Student" %}</option>
+                    <option value="parent">{% trans "Parent" %}</option>
+                  </select>
+                </div>
+                {% if LOGIN_SSO_INTEGRATIONS %}
+                <div class="mb-3">
+                  {% for item in LOGIN_SSO_INTEGRATIONS %}
+                  <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-outline-secondary w-100 mb-2">{{ item.label }}</a>
+                  {% endfor %}
+                  <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
+                </div>
+                {% endif %}
+                <div class="mb-3">
                   <label class="form-label">{% trans "Username" %}</label>
-                  <input class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus>
+                  <input class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required autofocus>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">{% trans "Password" %}</label>
@@ -229,6 +285,9 @@
                 {% trans "Teachers land on the teacher dashboard, admins land on the console, and parents claim invites to link students." %}
                 <br>
                 {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
+              </p>
+              <p class="small text-muted mt-3 mb-0 text-center">
+                <a href="https://runmycampus.com" target="_blank" rel="noopener noreferrer" class="text-muted">Powered by RunMyCampus</a>
               </p>
             </div>
           </div>
@@ -265,6 +324,11 @@
           </div>
         </div>
       </div>
+    {% if TENANT_WALLPAPER_URL %}
+    </div>
+  </div>
+  {% else %}
     </div>
   </section>
+  {% endif %}
 {% endblock %}

@@ -110,6 +110,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
     "apps.schools.middleware.TenantLastActivityMiddleware",  # Phase H: optional last_activity per tenant
+    "apps.schools.middleware.TenantApiQuotaMiddleware",  # Plan I: per-tenant API rate limit
     "apps.schools.middleware.DynamicThemeMiddleware",  # Phase B: admin theme per school (Unfold/Jazzmin/Sneat)
     "django.middleware.locale.LocaleMiddleware",  # Add for i18n
     "django.middleware.common.CommonMiddleware",
@@ -512,6 +513,22 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 86400.0,  # Daily (Phase E: RevenueSnapshot, waiver metrics)
         "options": {"expires": 3600},
     },
+    "nightly-risk-factors": {
+        "task": "analytics.nightly_risk_factors",
+        "schedule": 86400.0,  # Daily; computes RiskFactor per school for at-risk dashboard
+        "options": {"expires": 3600},
+    },
+    "kudos-perfect-attendance-3d": {
+        "task": "communication.kudos_perfect_attendance_3d",
+        "schedule": 86400.0,  # Daily; Plan XIII: 3 days perfect attendance → AchievementEvent + AI narrative
+        "options": {"expires": 600},
+    },
+    "check-badge-expiry-alerts": {
+        "task": "people.check_badge_expiry_alerts",
+        "schedule": 86400.0,  # Daily; Plan XI: certification/badge expiry notifications (e.g. 60 days)
+        "options": {"expires": 600},
+        "kwargs": {"days": 60},
+    },
 }
 
 # --- Logging Configuration ---
@@ -716,13 +733,24 @@ ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true
 # Global grading scales (imported from apps.evals.grading module at runtime)
 # Reference: GRADING_SCALES, CURRENCY_SYMBOLS defined in apps/evals/grading.py
 
+# Optional: exchange rates for GET /api/v1/finance/exchange-rate (e.g. {"USD_XAF": 600, "BASE": "USD"} or Fixer.io key)
+# EXCHANGE_RATES = {}
+
 # --- Application Version ---
 APP_VERSION = '3.2.1'  # System version for dashboard footer
 
-# --- Phase I: Schema-per-tenant (django-tenants) — optional ---
-# Set USE_DJANGO_TENANTS=1 to enable. Requires PostgreSQL. See docs/PHASE_I_SCALE_GAP_ANALYSIS.md.
-USE_DJANGO_TENANTS = os.getenv("USE_DJANGO_TENANTS", "").strip() in ("1", "true", "yes")
-if USE_DJANGO_TENANTS and DATABASES.get("default", {}).get("ENGINE", "").endswith("postgresql"):
+# --- Phase I: Schema-per-tenant (django-tenants) — DEFAULT for PostgreSQL ---
+# Default: schema-per-tenant when using PostgreSQL (RunMyCampus Gold Standard). Set USE_DJANGO_TENANTS=0 to use shared table + RLS.
+# See docs/PHASE_I_SCALE_GAP_ANALYSIS.md.
+_db_engine = DATABASES.get("default", {}).get("ENGINE", "")
+_use_tenants_env = os.getenv("USE_DJANGO_TENANTS", "").strip().lower()
+if _use_tenants_env in ("0", "false", "no"):
+    USE_DJANGO_TENANTS = False
+elif _use_tenants_env in ("1", "true", "yes"):
+    USE_DJANGO_TENANTS = _db_engine.endswith("postgresql")
+else:
+    USE_DJANGO_TENANTS = _db_engine.endswith("postgresql")  # Default: schema-per-tenant for PostgreSQL
+if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
     # Swap to django-tenants PostgreSQL backend
     _db = DATABASES["default"].copy()
     _db["ENGINE"] = "django_tenants.postgresql_backend"
@@ -772,9 +800,10 @@ if USE_DJANGO_TENANTS and DATABASES.get("default", {}).get("ENGINE", "").endswit
         "apps.payroll",
     ]
     INSTALLED_APPS = list(SHARED_APPS) + [a for a in TENANT_APPS if a not in SHARED_APPS]
-    # Middleware: TenantMainMiddleware must be first so request.tenant is set
+    # Middleware: TenantMainMiddleware first; bridge sets request.school from request.tenant.school
     MIDDLEWARE = [
         "django_tenants.middleware.main.TenantMainMiddleware",
+        "apps.schools.middleware.TenantSchemaSchoolBridgeMiddleware",
         "django.middleware.security.SecurityMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
@@ -785,7 +814,14 @@ if USE_DJANGO_TENANTS and DATABASES.get("default", {}).get("ENGINE", "").endswit
         "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
         "apps.accounts.middleware.ModuleAccessMiddleware",
         "apps.accounts.middleware.RequireMFAMiddleware",
+        "apps.schools.middleware.TenantFreezeMiddleware",
+        "apps.schools.middleware.SentryTenantTagMiddleware",
+        "apps.schools.middleware.TenantLastActivityMiddleware",
+        "apps.schools.middleware.TenantApiQuotaMiddleware",
+        "apps.schools.middleware.DynamicThemeMiddleware",
         "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",
+        "apps.schools.middleware.FeatureGatekeeperMiddleware",
+        "apps.schools.middleware.UsageLimitMiddleware",
         "django_otp.middleware.OTPMiddleware",
         "django.contrib.messages.middleware.MessageMiddleware",
         "apps.siteconfig.middleware.MaintenanceModeMiddleware",
@@ -796,5 +832,5 @@ if USE_DJANGO_TENANTS and DATABASES.get("default", {}).get("ENGINE", "").endswit
         "apps.observability.middleware.ObservabilityMiddleware",
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
     ]
-    # When using tenants, do not add apps.schools.middleware.TenantMiddleware (TenantMainMiddleware replaces it)
+    # TenantMiddleware is not used; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware provide request.school
 

@@ -127,6 +127,18 @@ class ReportDocumentHash(models.Model):
     )
     sha256_hash = models.CharField(max_length=64, db_index=True)
     file_size_bytes = models.PositiveIntegerField(default=0)
+    on_chain_status = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        help_text="e.g. anchored, pending, revoked; set when credential is verified on-chain",
+    )
+    blockchain_tx_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Transaction ID or proof identifier from blockchain gateway",
+    )
     generated_by = models.ForeignKey(
         User,
         null=True,

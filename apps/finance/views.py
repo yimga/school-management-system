@@ -183,6 +183,7 @@ def dashboard(request: HttpRequest):
         ],
         "actions": [
             {"label": "All Invoices", "url": "/finance/invoices/"},
+            {"label": "Overdue list", "url": reverse("finance:invoices") + "?status=OVERDUE"},
             {"label": "Payments", "url": "/finance/payments/"},
             {"label": "Suspense Queue", "url": "/finance/reconciliation/suspense/"},
         ],
@@ -1713,10 +1714,15 @@ def invoice_receipt(request: HttpRequest, invoice_id: int, payment_id: int | Non
     except ImportError:
         return HttpResponse("PDF support unavailable (missing WeasyPrint).", status=503)
 
+    school_obj = getattr(invoice, "school", None) or getattr(request, "school", None)
     context = {
         "invoice": invoice,
         "payment": payment,
-        "school": profile.name,
+        "school": getattr(school_obj, "name", None) or profile.name,
+        "school_obj": school_obj,
+        "primary_color": getattr(school_obj, "primary_color", None) or "#0d6efd",
+        "accent_color": getattr(school_obj, "accent_color", None) or "#198754",
+        "logo_url": getattr(school_obj, "logo_url", None) or "",
     }
     html = render_to_string("finance/receipt.html", context)
     pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()

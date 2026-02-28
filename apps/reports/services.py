@@ -682,6 +682,8 @@ def term_report_context(student: StudentProfile, academic_year, term: Term) -> d
         "metadata": _school_report_metadata(),
     }
     ctx.update(_region_display_context(getattr(student, "school", None)))
+    ctx["transcript_track"] = getattr(student, "transcript_track", "") or "ACADEMIC"
+    ctx["dual_transcript"] = (getattr(student, "transcript_track", "") or "").upper() == "DUAL"
     return ctx
 
 
@@ -808,6 +810,8 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "metadata": _school_report_metadata(),
     }
     ctx.update(_region_display_context(getattr(student, "school", None)))
+    ctx["transcript_track"] = getattr(student, "transcript_track", "") or "ACADEMIC"
+    ctx["dual_transcript"] = (getattr(student, "transcript_track", "") or "").upper() == "DUAL"
     return ctx
 
 
@@ -875,3 +879,24 @@ def generate_report_qr_code(share_url: str) -> str:
     img.save(buffer, format="PNG")
     b64 = base64.b64encode(buffer.getvalue()).decode("ascii")
     return f"data:image/png;base64,{b64}"
+
+
+def build_regulatory_export(school, preset_id: str, academic_year_id=None, term_id=None):
+    """
+    Build regulatory/MoE export for the given preset (WAEC, Bulletin, Ofsted, etc.).
+    Returns dict with preset_id, template_family, and optionally pdf_url or job_id if generation is implemented.
+    """
+    from apps.reports.moe_presets import get_moe_preset
+
+    preset = get_moe_preset(preset_id)
+    if not preset:
+        return {"ok": False, "error": f"Unknown preset: {preset_id}"}
+    template_family = preset.get("template_family")
+    result = {
+        "ok": True,
+        "preset_id": preset_id,
+        "template_family": template_family,
+        "name": preset.get("name"),
+        "message": "Use Reports module with this template family for government-compliant PDF. Batch export can be queued via Celery.",
+    }
+    return result

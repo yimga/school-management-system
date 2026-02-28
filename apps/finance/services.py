@@ -30,10 +30,12 @@ from .models import (
     JournalEntry,
     JournalLine,
     LedgerAccount,
+    ParentWallet,
     Payment,
     PaymentMethodCode,
     PaymentProofUpload,
     RefundRequest,
+    WalletTransaction,
 )
 
 
@@ -216,6 +218,89 @@ def record_provider_payment(
     return payment
 
 
+@transaction.atomic
+def pay_invoice_with_wallet(
+    school: "School",
+    user: "User",
+    invoice: Invoice,
+    amount: Decimal | str | float | None = None,
+) -> tuple[Payment, ParentWallet]:
+    """
+    Pay (part of) an invoice using the parent's wallet. Debits wallet, creates Payment
+    with method WALLET and WalletTransaction, applies payment and ledger.
+    Returns (payment, wallet). Raises ValueError if insufficient balance or invalid input.
+    """
+    if getattr(invoice, "school_id", None) and invoice.school_id != school.pk:
+        raise ValueError("Invoice does not belong to this school.")
+    amount_val = Decimal(str(amount)) if amount is not None else invoice.computed_balance
+    if amount_val <= 0:
+        raise ValueError("Amount must be positive.")
+    if amount_val > invoice.computed_balance:
+        raise ValueError("Amount exceeds invoice balance.")
+    wallet, _ = ParentWallet.objects.get_or_create(
+        school=school,
+        user=user,
+        defaults={"currency_code": getattr(school, "currency_code", "XAF") or "XAF"},
+    )
+    if wallet.balance < amount_val:
+        raise ValueError(f"Insufficient wallet balance: {wallet.balance} (need {amount_val}).")
+    ref = f"WALLET-{invoice.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+    payment = Payment.objects.create(
+        invoice=invoice,
+        school=getattr(invoice, "school", None) or school,
+        amount=amount_val,
+        method=PaymentMethodCode.WALLET,
+        reference=ref,
+        external_reference=ref,
+    )
+    new_balance = wallet.balance - amount_val
+    WalletTransaction.objects.create(
+        wallet=wallet,
+        amount=-amount_val,
+        kind=WalletTransaction.Kind.PAYMENT,
+        balance_after=new_balance,
+        payment=payment,
+        reference=ref,
+    )
+    wallet.balance = new_balance
+    wallet.save(update_fields=["balance", "updated_at"])
+    apply_payment(payment)
+    return payment, wallet
+
+
+@transaction.atomic
+def top_up_wallet(
+    school: "School",
+    user: "User",
+    amount: Decimal | str | float,
+    reference: str | None = None,
+) -> tuple[ParentWallet, WalletTransaction]:
+    """
+    Credit the parent's wallet (top-up). Creates wallet if needed, records WalletTransaction TOP_UP.
+    Returns (wallet, transaction). Raises ValueError if amount <= 0.
+    """
+    amount_val = Decimal(str(amount))
+    if amount_val <= 0:
+        raise ValueError("Top-up amount must be positive.")
+    wallet, _ = ParentWallet.objects.get_or_create(
+        school=school,
+        user=user,
+        defaults={"currency_code": getattr(school, "currency_code", "XAF") or "XAF"},
+    )
+    new_balance = wallet.balance + amount_val
+    ref = reference or f"TOPUP-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+    txn = WalletTransaction.objects.create(
+        wallet=wallet,
+        amount=amount_val,
+        kind=WalletTransaction.Kind.TOP_UP,
+        balance_after=new_balance,
+        reference=ref,
+    )
+    wallet.balance = new_balance
+    wallet.save(update_fields=["balance", "updated_at"])
+    return wallet, txn
+
+
 def post_invoice_to_ledger(invoice: Invoice) -> None:
     if invoice.status in {Invoice.Status.DRAFT, Invoice.Status.VOID}:
         return
@@ -280,6 +365,8 @@ def post_payment_to_ledger(payment: Payment) -> None:
         debit_account = cash_account
     elif payment.method in {PaymentMethodCode.MTN_MOMO, PaymentMethodCode.ORANGE_MOMO}:
         debit_account = mobile_account
+    elif payment.method == PaymentMethodCode.WALLET:
+        debit_account = _account(profile, "515", "Parent Wallet", LedgerAccount.AccountType.ASSET)
     else:
         debit_account = bank_account
 

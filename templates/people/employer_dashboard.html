@@ -1,0 +1,35 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}Employer portal — Apprentice progress{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h4 class="mb-3">{% trans "Apprentice progress" %}</h4>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if placements %}
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead><tr><th>Student</th><th>School</th><th>Confirmed hours</th><th>Last confirmed</th><th></th></tr></thead>
+          <tbody>
+            {% for p in placements %}
+            <tr>
+              <td>{{ p.student.get_full_name }}</td>
+              <td>{{ p.school.name }}</td>
+              <td>{{ p.confirmed_hours }}</td>
+              <td>{{ p.last_confirmed_at|date:"M d, Y"|default:"—" }}</td>
+              <td>
+                <a href="{% url 'portal:employer_confirm_hours' placement_id=p.id %}" class="btn btn-sm btn-outline-primary">Confirm hours</a>
+                <a href="{% url 'portal:employer_student_transcript' placement_id=p.id %}" class="btn btn-sm btn-outline-secondary ms-1">Transcript</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0">No apprentice placements assigned to you.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

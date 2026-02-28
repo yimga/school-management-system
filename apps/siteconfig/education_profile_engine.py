@@ -107,6 +107,25 @@ COUNTRY_PACK_OVERRIDES: dict[str, dict[str, dict[str, Any]]] = {
             },
         }
     },
+    "GBR": {
+        "INT": {
+            "name": "British / International (UK)",
+            "term_labels": ["Michaelmas", "Lent", "Trinity"],
+            "grading_scale": "letter",
+            "default_language": "en",
+            "subject_seed": [
+                {"name": "Mathematics", "category": "GENERAL"},
+                {"name": "English", "category": "GENERAL"},
+                {"name": "Science", "category": "GENERAL"},
+                {"name": "History", "category": "GENERAL"},
+                {"name": "Geography", "category": "GENERAL"},
+            ],
+            "config": {
+                "grading_logic": "summative",
+                "report_template_family": "british",
+            },
+        }
+    },
 }
 
 

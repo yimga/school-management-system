@@ -28,8 +28,10 @@ class Command(BaseCommand):
         parser.add_argument("--dry-run", action="store_true", help="Only print what would be created.")
 
     def handle(self, *args, **options):
-        if not os.getenv("USE_DJANGO_TENANTS", "").strip() in ("1", "true", "yes"):
-            self.stdout.write(self.style.WARNING("Set USE_DJANGO_TENANTS=1 to use this command."))
+        from django.conf import settings
+        use_tenants = os.getenv("USE_DJANGO_TENANTS", "").strip().lower() in ("1", "true", "yes")
+        if not use_tenants and not getattr(settings, "USE_DJANGO_TENANTS", False):
+            self.stdout.write(self.style.WARNING("Schema-per-tenant is not enabled. Set USE_DJANGO_TENANTS=1 (or use PostgreSQL for default)."))
             return
         if connection.vendor != "postgresql":
             self.stdout.write(self.style.ERROR("django-tenants requires PostgreSQL."))

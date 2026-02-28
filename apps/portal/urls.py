@@ -14,6 +14,9 @@ from .views import (
     portal_feature_page,
     portal_stats,
     parent_finance,
+    parent_wallet,
+    parent_feed,
+    teacher_feed,
     link_child,
     link_child_wizard,
     claim_invite,
@@ -22,11 +25,14 @@ from .views import (
     teacher_attendance_view,
     take_student_attendance,
     record_teacher_attendance,
+    seating_chart_view,
     teacher_pay_history,
     teacher_leave,
     teacher_attendance_export,
     teacher_timetable,
     teacher_lesson_notes,
+    teacher_lesson_plan_add_attachment,
+    teacher_wellness,
     teacher_hr_status,
     teacher_disciplinary,
     teacher_training_log,
@@ -58,6 +64,7 @@ from .views_photo_upload import (
     photo_upload_qr,
     photo_upload_send_link_page,
 )
+from apps.people.employer_views import employer_confirm_hours, employer_dashboard, employer_student_transcript
 try:
     from .views_documents import (
         document_library_manage,
@@ -93,6 +100,9 @@ urlpatterns = [
     path("parent/claim-invite/", claim_invite, name="claim_invite"),
     path("parent/claim-invite/<str:token>/", claim_invite, name="claim_invite_token"),
     path("parent/finance/", parent_finance, name="parent_finance"),
+    path("parent/wallet/", parent_wallet, name="parent_wallet"),
+    path("parent/feed/", parent_feed, name="parent_feed"),
+    path("teacher/feed/", teacher_feed, name="teacher_feed"),
     path("parent/contact-school/", parent_contact_school, name="parent_contact_school"),
     path("parent/medal-case/", parent_medal_case, name="parent_medal_case"),
     path("parent/child/<int:student_id>/id/", child_digital_id, name="child_digital_id"),
@@ -118,6 +128,8 @@ urlpatterns = [
     path("teacher/leave/", teacher_leave, name="teacher_leave"),
     path("teacher/timetable/", teacher_timetable, name="teacher_timetable"),
     path("teacher/lesson-notes/", teacher_lesson_notes, name="teacher_lesson_notes"),
+    path("teacher/lesson-notes/<int:lesson_plan_id>/add-resource/", teacher_lesson_plan_add_attachment, name="teacher_lesson_plan_add_attachment"),
+    path("teacher/wellness/", teacher_wellness, name="teacher_wellness"),
     path("teacher/hr-status/", teacher_hr_status, name="teacher_hr_status"),
     path("teacher/disciplinary/", teacher_disciplinary, name="teacher_disciplinary"),
     path("teacher/training-log/", teacher_training_log, name="teacher_training_log"),
@@ -133,6 +145,7 @@ urlpatterns = [
     # Staff triage: parent contact requests
     path("attendance/student/", take_student_attendance, name="take_student_attendance"),
     path("attendance/teacher/", record_teacher_attendance, name="record_teacher_attendance"),
+    path("attendance/seating-chart/", seating_chart_view, name="seating_chart"),
     path("staff/contact-requests/", staff_contact_request_list, name="staff_contact_request_list"),
     path("staff/discipline/incidents/", discipline_incidents_list, name="discipline_incidents_list"),
     path("teacher/cahier/", cahier_list, name="cahier_list"),
@@ -166,4 +179,9 @@ urlpatterns = [
     # Parent Signature Interface
     path("parent/signatures/", signature_pending_list, name="signature_pending_list"),
     path("parent/signatures/sign/<int:signature_id>/", signature_sign, name="signature_sign"),
+
+    # Employer portal (apprentice hours verification + dual transcript)
+    path("employer/", employer_dashboard, name="employer_dashboard"),
+    path("employer/<int:placement_id>/confirm/", employer_confirm_hours, name="employer_confirm_hours"),
+    path("employer/<int:placement_id>/transcript/", employer_student_transcript, name="employer_student_transcript"),
 ]

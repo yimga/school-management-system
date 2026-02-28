@@ -1,9 +1,12 @@
 """
 Purge old compliance data based on retention policy.
 Usage:
-    manage.py purge_compliance_data [--dry-run]
+    manage.py purge_compliance_data [--dry-run] [--region=GDPR]
 
-Retention windows are controlled by DATA_RETENTION settings.
+Retention windows are controlled by DATA_RETENTION settings. Use default keys
+(audit_log_days, access_log_days, session_days, report_days) or region-specific
+keys when --region is set (e.g. GDPR_audit_log_days). Respects compliance_region
+by using per-region retention when provided.
 """
 
 from datetime import timedelta
@@ -20,10 +23,18 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true", help="Show counts only, do not delete")
+        parser.add_argument(
+            "--region",
+            type=str,
+            default="",
+            help="Compliance region (e.g. GDPR, FERPA, NDPR). Uses region-prefixed keys in DATA_RETENTION when set.",
+        )
 
     def handle(self, *args, **options):
         retention = getattr(settings, "DATA_RETENTION", {})
         now = timezone.now()
+        region = (options.get("region") or "").strip().upper()
+        prefix = f"{region}_" if region else ""
 
         targets = [
             (AuditLog, "timestamp", "audit_log_days"),
@@ -33,7 +44,7 @@ class Command(BaseCommand):
         ]
 
         for model, field_name, key in targets:
-            days = int(retention.get(key, 0))
+            days = int(retention.get(prefix + key, retention.get(key, 0)))
             if days <= 0:
                 self.stdout.write(self.style.WARNING(f"Skipping {model.__name__}: retention disabled"))
                 continue

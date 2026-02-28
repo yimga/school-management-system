@@ -54,9 +54,9 @@ def render_welcome_email_html(
 <head><meta charset="utf-8"><title>Welcome to {name}</title></head>
 <body style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto; padding: 1rem;">
   <div style="border-left: 4px solid {primary}; padding-left: 1rem;">
-    <h1 style="color: {primary};">Welcome to {name}</h1>
-    <p>Your school has been set up. You can log in with this email address.</p>
-    <p><a href="{login}" style="background: {primary}; color: #fff; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px;">Log in</a></p>
+    <h1 style="color: {primary};">Your school is ready!</h1>
+    <p>Welcome to {name}. Your school has been set up. You can log in with this email address.</p>
+    <p><a href="{login}" style="background: {primary}; color: #fff; padding: 0.5rem 1rem; text-decoration: none; border-radius: 4px;">Open dashboard</a></p>
     {f'<div style="margin-top: 1rem;">{block}</div>' if block else ''}
     <p style="color: #666; font-size: 0.9rem;">If you did not request this, please ignore this email.</p>
   </div>
@@ -84,7 +84,7 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
         if isinstance(cfg, dict) and cfg.get("welcome_block"):
             dynamic_block = str(cfg["welcome_block"])
     html = render_welcome_email_html(school, contact_email, dynamic_block=dynamic_block)
-    subject = f"Welcome to {getattr(school, 'name', 'Your School')}"
+    subject = f"Your school is ready — {getattr(school, 'name', 'Your School')}"
     from_email = _regional_from_email(school)
     try:
         msg = EmailMessage(

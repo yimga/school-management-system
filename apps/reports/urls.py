@@ -8,6 +8,7 @@ from .views import (
     parent_share_report,
     promotion_preview,
     publish_term_results,
+    regulatory_export,
     report_share,
     statistical_return,
     verify_report_hash,
@@ -26,5 +27,6 @@ urlpatterns = [
     path("publish/", publish_term_results, name="publish_term_results"),
     path("statistical-return/", statistical_return, name="statistical_return"),
     path("promotion-preview/", promotion_preview, name="promotion_preview"),
+    path("regulatory-export/", regulatory_export, name="regulatory_export"),
 ]
 

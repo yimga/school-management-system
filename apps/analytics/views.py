@@ -510,3 +510,58 @@ def forecaster_api(request: HttpRequest):
         "at_risk": at_risk_hint(school),
         "principal_forecast": principal_forecast_teachers(school, target_ratio=float(ratio)),
     })
+
+
+@login_required
+def at_risk_dashboard(request: HttpRequest):
+    """
+    At-Risk dashboard: heat map grid (Red/Amber/Green), trend, "Why" column.
+    Uses RiskFactor (nightly-computed) and InterventionLog.
+    """
+    from apps.schools.mixins import get_current_school
+    from apps.analytics.models import RiskFactor, InterventionLog
+
+    school = get_current_school(request)
+    if not school:
+        return HttpResponseForbidden("School context required.")
+    role = (getattr(request.user, "role", "") or "").upper()
+    if role not in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "TEACHER", "HOD", "DEAN") and not request.user.is_staff:
+        return HttpResponseForbidden("Not allowed.")
+
+    # Latest risk score per student (dedupe by student_id, keep most recent)
+    raw = list(
+        RiskFactor.objects.filter(school=school)
+        .select_related("student")
+        .order_by("-computed_at")[:300]
+    )
+    by_student = {}
+    for r in raw:
+        if r.student_id not in by_student:
+            by_student[r.student_id] = r
+    factors = list(by_student.values())
+
+    interventions = list(
+        InterventionLog.objects.filter(school=school, status=InterventionLog.Status.ONGOING)
+        .select_related("student")[:50]
+    )
+    return render(
+        request,
+        "analytics/at_risk_dashboard.html",
+        {"risk_factors": factors, "interventions": interventions, "school": school},
+    )
+
+
+@login_required
+def executive_dashboard(request: HttpRequest):
+    """
+    Unified Executive Dashboard: Finance + HR + student outcomes (ROI view).
+    Stub: links to existing dashboards and key metrics.
+    """
+    from apps.schools.mixins import get_current_school
+    school = get_current_school(request)
+    if not school:
+        return HttpResponseForbidden("School context required.")
+    role = (getattr(request.user, "role", "") or "").upper()
+    if role not in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "PROPRIETOR") and not request.user.is_staff:
+        return HttpResponseForbidden("Not allowed.")
+    return render(request, "analytics/executive_dashboard.html", {"school": school})

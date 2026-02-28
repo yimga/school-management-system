@@ -938,3 +938,80 @@ def promotion_preview(request: HttpRequest):
         },
     )
 
+
+def _regulatory_export_school(request: HttpRequest):
+    """Resolve school for regulatory export: request.school, session, or first membership."""
+    from apps.schools.models import School, SchoolMembership
+    school = getattr(request, "school", None)
+    if school is not None:
+        return school
+    school_id = getattr(request, "session", {}).get("school_id")
+    if school_id:
+        return School.objects.filter(pk=school_id, is_active=True).first()
+    membership = SchoolMembership.objects.filter(user=request.user, school__is_active=True).select_related("school").first()
+    return membership.school if membership else None
+
+
+def regulatory_export(request: HttpRequest):
+    """
+    Regulatory / MoE export: list presets (WAEC, Bulletin de Notes, Ofsted, etc.)
+    and allow one-click export by preset. Staff only.
+    POST: preset_id, academic_year_id?, term_id? → run build_regulatory_export and show result.
+    """
+    from apps.reports.moe_presets import get_moe_presets
+    from apps.reports.services import build_regulatory_export
+
+    if not request.user.is_authenticated:
+        return redirect(settings.LOGIN_URL + "?next=" + request.path)
+    if not (request.user.is_staff or (getattr(request.user, "role", "") or "").upper() in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "BURSAR")):
+        return HttpResponseForbidden("Staff only.")
+    presets = get_moe_presets()
+
+    # POST: run export
+    export_result = None
+    if request.method == "POST":
+        school = _regulatory_export_school(request)
+        if not school:
+            export_result = {"ok": False, "error": "Select a school (backend/session) to run export."}
+        else:
+            preset_id = (request.POST.get("preset_id") or "").strip()
+            if not preset_id:
+                export_result = {"ok": False, "error": "preset_id required."}
+            else:
+                academic_year_id = request.POST.get("academic_year_id") or None
+                term_id = request.POST.get("term_id") or None
+                if academic_year_id:
+                    try:
+                        academic_year_id = int(academic_year_id)
+                    except (TypeError, ValueError):
+                        academic_year_id = None
+                if term_id:
+                    try:
+                        term_id = int(term_id)
+                    except (TypeError, ValueError):
+                        term_id = None
+                export_result = build_regulatory_export(
+                    school, preset_id,
+                    academic_year_id=academic_year_id,
+                    term_id=term_id,
+                )
+        if request.headers.get("Accept", "").find("application/json") >= 0 or request.GET.get("format") == "json":
+            return JsonResponse(export_result or {})
+
+    if request.headers.get("Accept", "").find("application/json") >= 0 or request.GET.get("format") == "json":
+        return JsonResponse({"presets": presets})
+    # Years/terms for dropdowns
+    school_for_years = _regulatory_export_school(request)
+    years = []
+    if school_for_years:
+        years = list(AcademicYear.objects.filter(school=school_for_years).order_by("-start_date")[:20])
+    if not years:
+        years = list(AcademicYear.objects.all().order_by("-start_date")[:20])
+    terms = list(Term.objects.filter(academic_year_id=years[0].id).order_by("start_date")) if years else []
+    return render(request, "reports/regulatory_export.html", {
+        "presets": presets,
+        "export_result": export_result,
+        "academic_years": years,
+        "terms": terms,
+    })
+

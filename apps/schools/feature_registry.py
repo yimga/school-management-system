@@ -24,6 +24,9 @@ FEATURE_REGISTRY: list[ModuleSpec] = [
     {"code": "parent_chat", "name": "Parent Chat", "description": "Direct messaging with parents.", "price": "Free"},
     {"code": "cahier_de_texte", "name": "Cahier de Texte", "description": "Homework and class diary.", "price": "Free"},
     {"code": "offline_mode", "name": "Offline Mode", "description": "Offline sync for marks and attendance (requires Offline Mode enabled globally in Feature Control).", "price": "Free"},
+    # Plan XVI: Blueprint extras
+    {"code": "alumni", "name": "Alumni", "description": "Alumni network and post-graduation tracking.", "price": "Free"},
+    {"code": "dormitory", "name": "Dormitory", "description": "Boarding and dorm management.", "price": "Free"},
 ]
 
 

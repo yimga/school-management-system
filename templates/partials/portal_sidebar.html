@@ -82,6 +82,7 @@
       </a>
       {% if request.user.role == 'TEACHER' %}
         <div class="sidebar-section-title">Communication</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_feed' %}"><i class="bi bi-newspaper me-2"></i>{% trans "Feed" %}</a>
         <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
           <span><i class="bi bi-chat-dots me-2"></i>Messages</span>
           {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
@@ -121,6 +122,7 @@
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_attendance' %}"><i class="bi bi-clipboard-check me-2"></i>Attendance</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_disciplinary' %}"><i class="bi bi-shield-exclamation me-2"></i>Disciplinary</a>
         <div class="sidebar-section-title">HR &amp; Professional Growth</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:teacher_wellness' %}"><i class="bi bi-heart me-2"></i>Wellness</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_hr_status' %}"><i class="bi bi-person-badge me-2"></i>HR &amp; Status</a>
         <a class="nav-link nav-pill" href="{% url 'portal:teacher_training_log' %}"><i class="bi bi-journal-check me-2"></i>Training Log</a>
         <a class="nav-link nav-pill" href="{% url 'payroll:employee_payslips' %}"><i class="bi bi-wallet2 me-2"></i>Payslips</a>
@@ -138,9 +140,11 @@
         <a class="nav-link nav-pill" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2"></i>Portal Stats</a>
         <div class="sidebar-section-title">Finance</div>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_finance' %}"><i class="bi bi-cash-coin me-2"></i>Finance</a>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_wallet' %}"><i class="bi bi-wallet2 me-2"></i>{% trans "Wallet" %}</a>
         <div class="sidebar-section-title">Calendar &amp; Homework</div>
         <a class="nav-link nav-pill" href="{% url 'portal:unified_calendar' %}"><i class="bi bi-calendar3 me-2"></i>Calendar</a>
         <div class="sidebar-section-title">Communication</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:parent_feed' %}"><i class="bi bi-newspaper me-2"></i>{% trans "Feed" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-envelope-paper me-2"></i>Messages</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_contact_school' %}"><i class="bi bi-megaphone me-2"></i>Announcements</a>
         <a class="nav-link nav-pill" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-file-earmark-text me-2"></i>Documents</a>

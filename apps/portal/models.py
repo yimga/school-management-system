@@ -457,6 +457,29 @@ class LessonPlan(models.Model):
         return f"{self.title} – {self.week_start_date}"
 
 
+class LessonPlanAttachment(models.Model):
+    """Extra resource attachments for a lesson plan (Wave 6). One plan can have multiple files."""
+    lesson_plan = models.ForeignKey(
+        LessonPlan,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    file = models.FileField(
+        upload_to="portal/lesson_notes/resources/%Y/%m/",
+        validators=[validate_document_file, validate_file_size_10mb],
+    )
+    label = models.CharField(max_length=120, blank=True, help_text="Optional short label (e.g. Worksheet, Slides)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "Lesson plan attachment"
+        verbose_name_plural = "Lesson plan attachments"
+
+    def __str__(self):
+        return self.label or self.file.name
+
+
 class CahierDeTexteEntry(models.Model):
     """Structured lesson diary entry (Cahier de Texte). Linked to syllabus; supervisor visa workflow."""
     class Status(models.TextChoices):

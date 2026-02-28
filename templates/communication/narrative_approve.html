@@ -1,0 +1,26 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}Approve narrative{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h4 class="mb-3">{% trans "Approve message to parent" %}</h4>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <p><strong>Student:</strong> {{ narrative.student.get_full_name|default:narrative.student_id }}</p>
+          <p><strong>Event:</strong> {{ narrative.achievement_event.event_type|default:"—" }}</p>
+          <p><strong>Message:</strong></p>
+          <p class="border rounded p-3 bg-light">{{ narrative.message_text }}</p>
+          <form method="post" class="d-flex gap-2">
+            {% csrf_token %}
+            <button type="submit" name="approve" class="btn btn-primary">Approve</button>
+            <button type="submit" name="mark_sent" value="1" class="btn btn-success">Approve &amp; mark sent</button>
+            <a href="{% url 'communication:narrative_list' %}" class="btn btn-outline-secondary">Cancel</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

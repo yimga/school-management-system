@@ -41,7 +41,7 @@ if (-not (Test-Path $managePy)) {
 }
 
 $configTarget = Join-Path $configBackupDir ("ui_config_" + $timestamp + ".json")
-& $PythonPath $managePy export_ui_config $configTarget
+& $PythonPath $managePy export_ui_config --output $configTarget
 if ($LASTEXITCODE -ne 0) {
     throw "export_ui_config failed"
 }

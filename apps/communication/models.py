@@ -783,6 +783,158 @@ class ContactRequestAttachment(models.Model):
         super().save(*args, **kwargs)
 
 
+# -----------------------------------------------------------------------------
+# AI narrative feedback: achievement events → LLM-generated parent message (teacher-approved)
+# -----------------------------------------------------------------------------
+
+
+class AchievementEvent(models.Model):
+    """Trigger for AI narrative: e.g. 3 days perfect attendance, grade improved in Math."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="achievement_events",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="achievement_events",
+    )
+    event_type = models.CharField(max_length=80, help_text="e.g. perfect_attendance_3d, grade_improved_math")
+    payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["school", "student", "-created_at"])]
+
+    def __str__(self):
+        return f"{self.student_id} — {self.event_type}"
+
+
+class NarrativeFeedback(models.Model):
+    """AI-generated narrative for parents; teacher approves before sending."""
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        APPROVED = "APPROVED", "Approved"
+        SENT = "SENT", "Sent"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="narrative_feedbacks",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="narrative_feedbacks",
+    )
+    achievement_event = models.ForeignKey(
+        AchievementEvent,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="narrative_feedbacks",
+    )
+    message_text = models.TextField(help_text="AI-generated or edited message for parent")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_narrative_feedbacks",
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["school", "status"])]
+
+    def __str__(self):
+        return f"{self.student_id} — {self.status}"
+
+
+# Plan VI: Social feed (parent/teacher loop) — announcements, achievements, interventions
+class FeedItem(models.Model):
+    """Single item in the parent/teacher feed (announcements, achievements, risk/interventions)."""
+    class ItemType(models.TextChoices):
+        ANNOUNCEMENT = "announcement", "Announcement"
+        ACHIEVEMENT = "achievement", "Achievement"
+        RISK = "risk", "Risk / intervention"
+        EVENT = "event", "Event"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="feed_items",
+    )
+    item_type = models.CharField(max_length=20, choices=ItemType.choices, db_index=True)
+    title = models.CharField(max_length=255)
+    body = models.TextField(blank=True)
+    link_url = models.CharField(max_length=500, blank=True)
+    link_label = models.CharField(max_length=120, blank=True)
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="feed_items",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_feed_items",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["school", "-created_at"]), models.Index(fields=["student", "-created_at"])]
+
+    def __str__(self):
+        return f"{self.get_item_type_display()}: {self.title}"
+
+
+# Plan VI: WhatsApp / outbound message queue (scaffold; needs Meta credentials in prod)
+class OutboundMessageQueue(models.Model):
+    """Queue for outbound WhatsApp/SMS messages; provider sends when configured."""
+    class Channel(models.TextChoices):
+        WHATSAPP = "whatsapp", "WhatsApp"
+        SMS = "sms", "SMS"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="outbound_message_queue",
+        null=True,
+        blank=True,
+    )
+    channel = models.CharField(max_length=20, choices=Channel.choices, default=Channel.WHATSAPP)
+    recipient_identifier = models.CharField(max_length=255, help_text="Phone or WhatsApp ID")
+    body = models.TextField()
+    status = models.CharField(
+        max_length=20,
+        default="pending",
+        choices=[("pending", "Pending"), ("sent", "Sent"), ("failed", "Failed")],
+        db_index=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    error_message = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.channel} to {self.recipient_identifier}: {self.status}"
+
+
 # Register video conferencing models under the communication app so migrations
 # and app model loading include them consistently.
 from .video_conferencing import (  # noqa: E402,F401

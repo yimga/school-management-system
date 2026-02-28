@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}{% trans "Billing dashboard" %}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h1>{% trans "Billing dashboard" %}</h1>
+  <p class="text-muted">{% trans "Trial schools and usage. Configure Stripe webhooks and subscription mapping in settings (see docs/BILLING_STRIPE.md)." %}</p>
+  <p><a href="{% url 'super:usage' %}">{% trans "View full usage" %}</a> | <a href="{% url 'super:dashboard' %}">{% trans "Super dashboard" %}</a></p>
+  <div class="card shadow-sm">
+    <div class="card-header">{% trans "Free trial schools" %}</div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>{% trans "School" %}</th><th>{% trans "Trial end" %}</th><th>{% trans "Students" %}</th><th>{% trans "API requests" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for s in trial_schools %}
+          <tr class="{% if s.trial_expired %}table-warning{% endif %}">
+            <td>{{ s.name }}</td>
+            <td>{{ s.trial_end_date|date:"Y-m-d"|default:"—" }}</td>
+            <td>{{ s.student_count }}</td>
+            <td>{{ s.api_requests }}</td>
+            <td><a href="{{ s.admin_edit_url }}">{% trans "Edit" %}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5">{% trans "No trial schools." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

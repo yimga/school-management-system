@@ -3,13 +3,16 @@ Academics API Views
 Attendance, Grades, Assessments, and Academic Analytics endpoints
 """
 
+import csv
+import io
+from datetime import datetime
+
+from django.db.models import Count, Q, Avg, Case, When, IntegerField
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from django.db.models import Count, Q, Avg, Case, When, IntegerField
-from datetime import datetime
 
 from apps.api.serializers import AttendanceSerializer
 from apps.accounts.permissions import can_view_student_data, can_edit_student_grades
@@ -104,6 +107,27 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         if status_filter:
             queryset = queryset.filter(status=status_filter)
         
+        # CSV export: ?format=csv (no pagination; cap at 10k rows)
+        if request.query_params.get("format") == "csv":
+            queryset = queryset[:10000].select_related("student", "classroom")
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(["id", "student_id", "student_name", "classroom_id", "classroom_name", "date", "status", "remarks"])
+            for a in queryset:
+                writer.writerow([
+                    a.id,
+                    a.student_id,
+                    getattr(a.student, "admission_number", "") or "",
+                    a.classroom_id,
+                    getattr(a.classroom, "name", "") or "",
+                    a.date.isoformat() if a.date else "",
+                    a.status or "",
+                    (a.remarks or "")[:255],
+                ])
+            resp = Response(buf.getvalue(), content_type="text/csv")
+            resp["Content-Disposition"] = 'attachment; filename="attendance_export.csv"'
+            return resp
+
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -203,6 +227,62 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             'date': date_str,
             'message': f'Attendance recorded for {recorded_count} students'
         }, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['patch'], url_path='bulk-update')
+    def bulk_update(self, request):
+        """
+        Bulk update attendance records.
+        Body: { "records": [ { "id": <attendance_id>, "status": "present" } ] }
+        or:   { "records": [ { "student": id, "classroom": id, "date": "YYYY-MM-DD", "status": "present" } ] }
+        """
+        from apps.academics.models import Attendance, Classroom
+
+        user_role = (getattr(request.user, "role", "") or "").upper()
+        if user_role not in ("TEACHER", "ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "CENSOR") and not request.user.is_staff:
+            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+
+        records = request.data.get("records", [])
+        if not records:
+            return Response({"error": "Provide 'records' array"}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.get_queryset()
+        updated = 0
+        for rec in records:
+            pk = rec.get("id")
+            if pk is not None:
+                att = queryset.filter(pk=pk).first()
+                if att and "status" in rec:
+                    att.status = rec["status"]
+                    if "remarks" in rec:
+                        att.remarks = str(rec["remarks"])[:255]
+                    att.save()
+                    updated += 1
+                continue
+            student_id = rec.get("student")
+            classroom_id = rec.get("classroom")
+            date_str = rec.get("date")
+            if student_id is None or classroom_id is None or not date_str or "status" not in rec:
+                continue
+            try:
+                dt = datetime.strptime(date_str, "%Y-%m-%d").date()
+            except ValueError:
+                continue
+            try:
+                classroom = Classroom.objects.get(pk=classroom_id)
+            except Classroom.DoesNotExist:
+                continue
+            att, created = Attendance.objects.update_or_create(
+                student_id=student_id,
+                classroom=classroom,
+                date=dt,
+                defaults={"status": rec["status"], "remarks": str(rec.get("remarks", ""))[:255]},
+            )
+            if att and (att.school_id is None and getattr(request, "school", None)):
+                att.school = request.school
+                att.save(update_fields=["school"])
+            updated += 1
+
+        return Response({"status": "success", "updated": updated})
     
     @action(detail=False, methods=['get'])
     def student_summary(self, request):
@@ -635,4 +715,51 @@ class AssessmentResultsAPI(APIView):
                 'subject_id': subject_id,
                 'term': term
             }
+        })
+
+
+class ScheduleConflictsAPI(APIView):
+    """
+    GET schedule conflicts for a given schedule (teacher/room double-booking).
+    Used by Wave 5 scheduling validation.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, schedule_id):
+        from apps.academics.scheduling import Schedule, TimetableGenerator
+
+        school = getattr(request, 'school', None)
+        if not school:
+            return Response(
+                {'error': 'School context required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        schedule = Schedule.objects.filter(
+            academic_year__school=school,
+            pk=schedule_id
+        ).select_related('academic_year', 'term').first()
+
+        if not schedule:
+            return Response(
+                {'error': 'Schedule not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        generator = TimetableGenerator(schedule.academic_year, schedule.term)
+        conflicts = generator.detect_conflicts(schedule)
+        # De-duplicate by conflict key (same pair can appear twice)
+        seen = set()
+        unique = []
+        for c in conflicts:
+            key = (c['type'], tuple(sorted(c.get('entries', []))))
+            if key not in seen:
+                seen.add(key)
+                unique.append(c)
+
+        return Response({
+            'schedule_id': schedule_id,
+            'schedule_name': schedule.name,
+            'conflicts': unique,
+            'has_conflicts': len(unique) > 0,
         })

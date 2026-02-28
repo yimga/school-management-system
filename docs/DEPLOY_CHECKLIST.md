@@ -9,7 +9,7 @@ Use these env vars and flags to control behavior; avoid hardcoding. Document any
 | Env / flag | Effect | Default / note |
 |------------|--------|----------------|
 | `DEBUG` | Django debug mode; never True in production | `False` in prod |
-| `USE_DJANGO_TENANTS` | Enable schema-per-tenant (django-tenants) | Unset / 0 = single-schema |
+| `USE_DJANGO_TENANTS` | Schema-per-tenant (django-tenants). **Default: 1 (on) for PostgreSQL.** Set to 0 to use shared table + RLS. | 1 = schema-per-tenant (default when PostgreSQL), 0 = shared table |
 | `DISABLE_USAGE_LIMIT_MIDDLEWARE` | Turn off Plan max_students/max_staff enforcement | Unset = middleware on |
 | `ALLOWED_HOSTS` | Comma-separated hosts for the app | Must include subdomains if used |
 | `SECRET_KEY` | Django secret; keep out of repo | Required |
@@ -42,6 +42,12 @@ Before merging a branch that completes a phase or significant feature:
 - **Offline sync (if enabled):** Stress test offline queue and conflict resolution.
 - **Brotli/Gzip:** Static and partials served with compression where configured.
 - **Backup verification (once per release):** Confirm backup job runs (and optionally run a restore in staging) so backups are proven, not only configured.
+
+## CDN / edge (Plan VII)
+
+- **Cache-control:** Set `Cache-Control` and `Vary` on static/asset views (e.g. `max-age=31536000` for hashed assets, `public` for immutable).
+- **Asset versioning:** Use `STATIC_URL` with `?v=` or hashed filenames (e.g. `ManifestStaticFilesStorage`) so CDN and browsers cache by version.
+- **Recommended CDN:** Put a CDN (Cloudflare, Render CDN, or Nginx) in front of the app; configure origin to app URL and optional static-only subdomain. Document in hosting/DNS; actual CDN is infra, not repo.
 
 ## Optional (Phase 5/6)
 

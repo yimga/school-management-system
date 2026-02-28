@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.people.models import StudentGuardian, StudentProfile, TeacherLeaveRequest
-from .models import LessonPlan, TeacherTrainingEntry, AttendanceJustification, CahierDeTexteEntry
+from .models import LessonPlan, LessonPlanAttachment, TeacherTrainingEntry, AttendanceJustification, CahierDeTexteEntry
 from apps.siteconfig.models import SiteSettings
 from apps.academics.models import Term, AcademicYear
 
@@ -612,6 +612,16 @@ class LessonPlanUploadForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["file"].required = True
+
+
+class LessonPlanAttachmentForm(forms.ModelForm):
+    """Add a resource file to an existing lesson plan (Wave 6)."""
+    class Meta:
+        model = LessonPlanAttachment
+        fields = ("file", "label")
+        widgets = {
+            "label": forms.TextInput(attrs={"placeholder": _("e.g. Worksheet, Slides")}),
+        }
 
 
 class TeacherTrainingEntryForm(forms.ModelForm):

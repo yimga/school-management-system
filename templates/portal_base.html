@@ -1,6 +1,6 @@
 {% load static i18n %}
 <!doctype html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:default_language|default:'en' }}"{% if is_rtl %} dir="rtl"{% endif %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1158,7 +1158,12 @@
               {% include 'components/announcement_banner.html' %}
               
               {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">{{ message }}</div>
+                <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
+                  {{ message }}
+                  {% if message.tags == 'error' %}
+                    <p class="mb-0 mt-2 small"><a class="alert-link" href="{% url 'kb:kb_home' %}">{% trans "Learn more in the Help centre" %}</a></p>
+                  {% endif %}
+                </div>
               {% endfor %}
               </div>
             {% endif %}

@@ -510,6 +510,7 @@ class UserPreferenceForm(forms.ModelForm):
             "refresh_rate_minutes",
             "notification_channels",
             "receive_weekly_summary",
+            "simple_mode",
             "theme_preference",
             "high_contrast",
             "preferred_language",
@@ -518,6 +519,7 @@ class UserPreferenceForm(forms.ModelForm):
         widgets = {
             "dashboard_view": forms.Select(attrs={"class": "form-select"}),
             "refresh_rate_minutes": forms.NumberInput(attrs={"class": "form-control", "min": 10}),
+            "simple_mode": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "theme_preference": forms.Select(attrs={"class": "form-select"}),
             "high_contrast": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "preferred_language": forms.Select(attrs={"class": "form-select"}),
@@ -559,6 +561,9 @@ class UserPreferenceForm(forms.ModelForm):
             self.fields["theme_preference"].initial = dashboard_pref.theme_preference
             self.fields["high_contrast"].initial = dashboard_pref.high_contrast
             self.fields["dashboard_visual_preset"].initial = dashboard_pref.get_visual_preset(role)
+        if "simple_mode" in self.fields:
+            self.fields["simple_mode"].label = "Simple mode (consumer-grade UI)"
+            self.fields["simple_mode"].help_text = "Show a simplified, less technical interface when enabled."
 
     def clean_timezone(self):
         """Allow empty timezone - model default will be used."""

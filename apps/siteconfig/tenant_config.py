@@ -69,6 +69,87 @@ def get_tenant_modules(school) -> list[str]:
     return sorted(keys_from_table)
 
 
+def get_compliance_region(school) -> str | None:
+    """
+    Return Compliance Region for tenant: EU (GDPR), US (FERPA), NDPR (Nigeria), or None.
+    Used to auto-enable data masking, retention, and consent flows per region (Universal Education OS XXI).
+    """
+    if not school:
+        return None
+    settings = getattr(school, "settings", None) or {}
+    if isinstance(settings, dict) and settings.get("compliance_region"):
+        return str(settings["compliance_region"]).upper()[:10]
+    try:
+        from apps.siteconfig.models import RegionConfig
+        region = getattr(school, "default_region_id", None) and RegionConfig.objects.filter(pk=school.default_region_id).first()
+        if region and getattr(region, "code", None):
+            code = (region.code or "").upper()
+            if code in ("DE", "FR", "IT", "ES", "NL", "BE", "AT", "PL", "EU"):
+                return "EU"
+            if code == "US":
+                return "US"
+            if code == "NG":
+                return "NDPR"
+    except Exception:
+        pass
+    return None
+
+
+def get_tenant_enum_choices(school, key: str) -> list[tuple[str, str]]:
+    """
+    Return tenant-configurable choices for key enums (W3-1).
+
+    Keys: relationship_choices, student_status_choices, dashboard_view_choices.
+    School.settings[key] may be a list of [value, label] or [{"value": v, "label": l}].
+    If missing or invalid, returns the default model choices.
+    """
+    settings = getattr(school, "settings", None) or {}
+    if not isinstance(settings, dict):
+        settings = {}
+    raw = settings.get(key)
+    if isinstance(raw, list) and raw:
+        out = []
+        for item in raw:
+            if isinstance(item, (list, tuple)) and len(item) >= 2:
+                out.append((str(item[0]), str(item[1])))
+            elif isinstance(item, dict) and item.get("value") is not None:
+                out.append((str(item["value"]), str(item.get("label", item["value"]))))
+            elif isinstance(item, str):
+                out.append((item, item))
+        if out:
+            return out
+    # Defaults from models
+    if key == "relationship_choices":
+        from apps.portal.models import PendingGuardianInvite
+        return list(PendingGuardianInvite.Relationship.choices)
+    if key == "student_status_choices":
+        from apps.people.models import StudentProfile
+        return list(StudentProfile.Status.choices)
+    if key == "dashboard_view_choices":
+        from apps.people.models import TeacherProfile
+        return list(TeacherProfile.DashboardView.choices)
+    return []
+
+
+def get_tenant_validation_rules(school) -> dict[str, Any]:
+    """
+    Return validation & rules from School.settings (W3-2).
+
+    Keys: admission_pattern (regex), file_max_size_mb, allowed_file_types (list),
+    phone_regex, refund_reasons (list or free text).
+    """
+    settings = getattr(school, "settings", None) or {}
+    if not isinstance(settings, dict):
+        settings = {}
+    return {
+        "admission_pattern": settings.get("admission_pattern") or r"^[A-Z0-9\-]+$",
+        "file_max_size_mb": settings.get("file_max_size_mb", 10),
+        "allowed_file_types": settings.get("allowed_file_types") or ["pdf", "jpg", "jpeg", "png"],
+        "phone_regex": settings.get("phone_regex") or r"^\+?[\d\s\-()]{8,20}$",
+        "refund_reasons": settings.get("refund_reasons") or [],
+    }
+
+
 def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
     """
     Merge timezone, locale, currency, date_format, grading_scale from:

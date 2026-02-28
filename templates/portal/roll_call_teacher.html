@@ -17,9 +17,12 @@
         <form method="post" action="{% url 'portal:record_teacher_attendance' %}">
           {% csrf_token %}
           <input type="hidden" name="date" value="{{ date_value }}">
-          <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
             <h6 class="mb-0">Teachers – {{ date_value }}</h6>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="mark-all-present">Mark all present</button>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="mark-all-present">Mark all present</button>
+              <button type="button" class="btn btn-sm btn-success" id="save-all-present">Save all present</button>
+            </div>
           </div>
           <div class="table-responsive">
             <table class="table table-sm align-middle">
@@ -59,9 +62,13 @@
       el.classList.remove('d-none');
       el.textContent = 'Offline. Teacher list will load when you\'re back online. Use student attendance for cached class/student data when offline.';
     })();
+    var presentVal = '{{ TeacherAttendance.PRESENT }}';
     document.getElementById('mark-all-present')?.addEventListener('click', function() {
-      var val = '{{ TeacherAttendance.PRESENT }}';
-      document.querySelectorAll('.status-select').forEach(function(s) { s.value = val; });
+      document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
+    });
+    document.getElementById('save-all-present')?.addEventListener('click', function() {
+      document.querySelectorAll('.status-select').forEach(function(s) { s.value = presentVal; });
+      this.closest('form').submit();
     });
   </script>
 {% endblock %}

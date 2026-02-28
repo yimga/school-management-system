@@ -19,6 +19,8 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from config.admin import admin_site
+from apps.schools.marketing_views import marketing_landing
+from apps.schools.signup_views import signup_school, verify_signup, api_trial_school
 from apps.schools.section8_views import (
     verify_caddy_domain,
     global_login_discovery,
@@ -179,6 +181,7 @@ urlpatterns = [
     # API Routes
     path("verify/<str:token>/", __import__("apps.siteconfig.views_verify", fromlist=["verify_student_id"]).verify_student_id, name="verify_student_id"),
     path('api/', include(('apps.api.urls', 'api'), namespace='api')),
+    path('api/v1/', include(('apps.api.urls_v1', 'api_v1'), namespace='api_v1')),
 
     # Apps
     path('siteconfig/', include(('apps.siteconfig.urls', 'siteconfig'), namespace='siteconfig')),
@@ -202,6 +205,10 @@ urlpatterns = [
     # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)
     path('api/caddy-check/', verify_caddy_domain),
     path('discover/', global_login_discovery, name='global_login_discovery'),
+    path('marketing/', marketing_landing, name='marketing_landing'),
+    path('signup/', signup_school, name='signup_school'),
+    path('verify-signup/', verify_signup, name='verify_signup'),
+    path('api/trial/', api_trial_school, name='api_trial_school'),
     path('lti/launch/<str:tool_id>/', lti_launch, name='lti_launch'),
     path('lti/launch/<str:tool_id>/callback/', lti_launch_callback, name='lti_launch_callback'),
     path('lti/service/<str:tool_id>/lineitems', lti_ags_lineitems, name='lti_ags_lineitems'),

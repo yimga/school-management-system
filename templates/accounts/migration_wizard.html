@@ -1,0 +1,136 @@
+{% extends "backend_base.html" %}
+{% load static %}
+
+{% block backend_title %}Migration Wizard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+    <h1 class="h4 mb-1 fw-bold">Data migration wizard</h1>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:import_hub' %}">Back to Import Hub</a>
+  </div>
+  <p class="text-muted small mb-4">Upload a CSV, map columns to target fields, preview, then run. Backed by students bulk-commit and grade import.</p>
+
+  {% if not has_data %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Step 1: Upload</h2>
+      <form method="post" enctype="multipart/form-data" action="">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Migration type</label>
+            <select name="migration_type" class="form-select" required>
+              {% for key, cfg in migration_types.items %}
+              <option value="{{ key }}">{{ cfg.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">CSV file</label>
+            <input type="file" name="file" class="form-control" accept=".csv" required>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Upload &amp; preview</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h6 mb-2">Step 2: Map columns → target fields</h2>
+      <p class="small text-muted mb-3">Map each CSV column to a target field (or skip). Required: {{ required_fields|join:", " }}.</p>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead><tr><th>CSV column</th><th>→ Target field</th></tr></thead>
+          <tbody id="mapping-body">
+            {% for header in wizard_data.headers %}
+            <tr>
+              <td><code>{{ header }}</code></td>
+              <td>
+                <select class="form-select form-select-sm map-select" data-header="{{ header }}">
+                  <option value="__skip__">— Skip —</option>
+                  {% for f in target_fields %}
+                  <option value="{{ f }}">{{ f }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>Preview (first 15 rows) — {{ wizard_data.row_count }} total</span>
+      <form method="post" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear">
+        <button type="submit" class="btn btn-sm btn-outline-secondary">Clear and start over</button>
+      </form>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              {% for header in wizard_data.headers %}
+              <th>{{ header }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in preview_matrix %}
+            <tr>
+              {% for cell in row %}
+              <td>{{ cell|default:"—" }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h6 mb-2">Step 3: Run import</h2>
+      <form method="post" id="run-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="run">
+        <input type="hidden" name="mapping" id="mapping-input" value="{}">
+        <button type="submit" class="btn btn-success">Run import</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% if has_data %}
+<script>
+(function() {
+  var runForm = document.getElementById('run-form');
+  var mappingInput = document.getElementById('mapping-input');
+  var selects = document.querySelectorAll('.map-select');
+  function buildMapping() {
+    var m = {};
+    selects.forEach(function(s) {
+      var header = s.getAttribute('data-header');
+      var val = s.value;
+      if (header && val) m[header] = val;
+    });
+    mappingInput.value = JSON.stringify(m);
+  }
+  selects.forEach(function(s) { s.addEventListener('change', buildMapping); });
+  runForm.addEventListener('submit', function() { buildMapping(); });
+})();
+</script>
+{% endif %}
+{% endblock %}

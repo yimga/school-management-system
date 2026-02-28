@@ -878,6 +878,12 @@ class CourseSyllabus(models.Model):
         related_name="course_syllabus",
         help_text="Synced to Document Library / syllabus feature on approval.",
     )
+    curriculum_nodes = models.ManyToManyField(
+        "CurriculumNode",
+        blank=True,
+        related_name="course_syllabi",
+        help_text="Curriculum standards/topics this syllabus aligns to (Wave 6 standards tagging).",
+    )
 
     class Meta:
         ordering = ["-updated_at"]
@@ -989,12 +995,22 @@ class CurriculumNode(models.Model):
 
 class DegreeProgram(models.Model):
     """Degree program (e.g. BSc Computer Science). requirements_json defines required courses/credits/milestones."""
+    class TranscriptTrack(models.TextChoices):
+        ACADEMIC = "ACADEMIC", "Academic (degree)"
+        VOCATIONAL = "VOCATIONAL", "Vocational (certificate)"
+
     school = models.ForeignKey(
         "schools.School",
         on_delete=models.CASCADE,
         related_name="degree_programs",
     )
     name = models.CharField(max_length=200)
+    transcript_track = models.CharField(
+        max_length=20,
+        choices=TranscriptTrack.choices,
+        default=TranscriptTrack.ACADEMIC,
+        help_text="Used for dual transcript: export by track (academic vs vocational).",
+    )
     level = models.CharField(
         max_length=20,
         choices=[

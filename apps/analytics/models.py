@@ -1,4 +1,5 @@
 # Imports
+from django.conf import settings
 from django.db import models
 from apps.academics.models import AcademicYear, Term, Classroom
 from apps.accounts.validators import validate_grade_import_file, validate_file_size_5mb
@@ -100,3 +101,204 @@ class BenchmarkAggregate(models.Model):
 
     def __str__(self):
         return f"{self.region_code}/{self.sub_system} {self.metric}={self.value} (n={self.sample_size})"
+
+
+# ========== Predictive Engine: At-Risk Dashboard & Intervention (Plan XVIII–XIX) ==========
+
+
+class RiskFactor(models.Model):
+    """
+    Nightly-computed at-risk score per student (0–100). Red 80–100, Amber 50–79, Green 0–49.
+    Explainable: reason_summary gives "why" (e.g. "High absenteeism (4 days) + dropping grades in Science").
+    """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="risk_factors",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="risk_factors",
+    )
+    score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        help_text="0–100 risk score",
+    )
+    reason_summary = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="AI-generated short summary for 'Why' column.",
+    )
+    computed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-score", "-computed_at"]
+        indexes = [
+            models.Index(fields=["school", "-computed_at"]),
+            models.Index(fields=["school", "student"]),
+        ]
+        get_latest_by = "computed_at"
+
+    def __str__(self):
+        return f"{self.student_id} score={self.score} ({self.computed_at.date()})"
+
+    @property
+    def band(self):
+        """Red / Amber / Green for heat map."""
+        s = float(self.score)
+        if s >= 80:
+            return "red"
+        if s >= 50:
+            return "amber"
+        return "green"
+
+
+class RiskThresholds(models.Model):
+    """
+    Plan XVII: Per-tenant risk band thresholds (0–100).
+    When score >= red_min → Red; when score >= amber_min → Amber; else Green.
+    """
+    school = models.OneToOneField(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="risk_thresholds",
+    )
+    amber_min = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=50,
+        help_text="Score >= this → Amber band",
+    )
+    red_min = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=80,
+        help_text="Score >= this → Red band",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Risk thresholds"
+        verbose_name_plural = "Risk thresholds"
+
+    def __str__(self):
+        return f"{self.school_id} Amber>={self.amber_min} Red>={self.red_min}"
+
+
+def get_risk_band_for_school(score, school):
+    """Return 'red' | 'amber' | 'green' using school's RiskThresholds if set, else defaults 50/80."""
+    try:
+        th = RiskThresholds.objects.get(school=school)
+        s = float(score)
+        if s >= float(th.red_min):
+            return "red"
+        if s >= float(th.amber_min):
+            return "amber"
+        return "green"
+    except RiskThresholds.DoesNotExist:
+        s = float(score)
+        if s >= 80:
+            return "red"
+        if s >= 50:
+            return "amber"
+        return "green"
+
+
+class InterventionLog(models.Model):
+    """Audit trail for automated or manual interventions (Amber/Red levels). Plan XIX: Action Center."""
+    class Status(models.TextChoices):
+        ONGOING = "ONGOING", "Ongoing"
+        RESOLVED = "RESOLVED", "Resolved"
+        DISMISSED = "DISMISSED", "Dismissed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="intervention_logs",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="intervention_logs",
+    )
+    trigger_reason = models.CharField(max_length=255)
+    action_taken = models.CharField(
+        max_length=100,
+        help_text="e.g. Email, Meeting, Resource",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ONGOING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    dismissed_at = models.DateTimeField(null=True, blank=True)
+    dismissed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="dismissed_interventions",
+    )
+    draft_email_subject = models.CharField(max_length=255, blank=True)
+    draft_email_body = models.TextField(blank=True)
+    meeting_link = models.URLField(blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["school", "status"])]
+
+    def __str__(self):
+        return f"{self.student_id} — {self.action_taken} ({self.status})"
+
+
+# ========== Plan XVIII: StudentSignals (time-series for risk scoring) ==========
+
+
+class StudentSignals(models.Model):
+    """
+    Time-series signals per student for tenant-scoped risk scoring: attendance ratio,
+    grade deltas, login gaps, submission latency. Pipeline (tasks/signals) writes here;
+    nightly RiskFactor task can optionally consume this for explainability.
+    """
+    class SignalType(models.TextChoices):
+        ATTENDANCE_RATIO_30D = "attendance_ratio_30d", "Attendance ratio (30 days)"
+        GRADE_DELTA = "grade_delta", "Grade delta vs prior term"
+        LOGIN_GAP_DAYS = "login_gap_days", "Days since last login"
+        SUBMISSION_LATENCY_DAYS = "submission_latency_days", "Assignment submission latency"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="student_signals",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        related_name="signals",
+    )
+    signal_type = models.CharField(max_length=40, choices=SignalType.choices, db_index=True)
+    value = models.DecimalField(
+        max_digits=12,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        help_text="Numeric value (e.g. 0.85 for 85% attendance, -5 for grade drop).",
+    )
+    payload = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional extra context (e.g. subject_id, term_id, counts).",
+    )
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-recorded_at"]
+        indexes = [
+            models.Index(fields=["school", "student", "signal_type"]),
+            models.Index(fields=["school", "-recorded_at"]),
+        ]
+        verbose_name = "Student signal"
+        verbose_name_plural = "Student signals"
+
+    def __str__(self):
+        return f"{self.student_id} {self.signal_type}={self.value} @ {self.recorded_at}"

@@ -39,5 +39,10 @@ if ! grep -q "render_start_web.sh" Procfile; then
   exit 1
 fi
 
+if [[ "${POWERHOUSE_WAVE0_STRICT:-0}" == "1" ]]; then
+  echo "[pre_deploy_gate] Powerhouse Wave 0 strict gate"
+  bash scripts/release/powerhouse_wave0_gate.sh
+fi
+
 echo "[pre_deploy_gate] PASSED"
 exit 0

@@ -9,7 +9,8 @@
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <div class="card shadow-sm">
-          <div class="card-header">
+          <div class="card-header d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div class="nav-tabs-wrap">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
               <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="step1-tab" data-bs-toggle="tab" data-bs-target="#step1" type="button" role="tab">1. Identity</button>
@@ -25,6 +26,8 @@
               </li>
             </ul>
             <p class="mb-0 mt-2 small text-muted" id="wizard-progress-text">Step 1 of 4</p>
+            </div>
+            <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:workflow_center' %}" target="_blank" rel="noopener" title="Help: Create School and setup"><i class="bi bi-question-circle"></i> Help</a>
           </div>
           <div class="card-body">
             <form
@@ -146,6 +149,7 @@
                   <p class="small text-muted" id="estimated-price-display">Select country and plan to see estimated price.</p>
                 </div>
                 <div class="tab-pane fade" id="step3" role="tabpanel">
+                  <p class="text-muted small mb-3">You can set branding and custom domain later in School settings.</p>
                   <div class="mb-3">
                     <label class="form-label" for="theme_choice">Admin theme</label>
                     <select class="form-select" id="theme_choice" name="theme_choice">
@@ -164,14 +168,17 @@
                     <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="#198754">
                   </div>
                   <p class="text-muted small">Logo upload can be done after creation in school settings.</p>
+                  <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="skip-branding">Skip for now</button>
                 </div>
                 <div class="tab-pane fade" id="step4" role="tabpanel">
+                  <p class="text-muted small mb-3">You can set a custom domain later in School settings.</p>
                   <div class="mb-3">
                     <label class="form-label" for="custom_domain">Custom domain (optional)</label>
                     <input type="text" class="form-control" id="custom_domain" name="custom_domain" placeholder="portal.school.edu">
                     <div class="form-text">If the school will use their own domain (e.g. portal.greenwood.edu), enter it here. After creation, they must add a CNAME record pointing to your platform; then verify in school settings.</div>
                   </div>
                   <p class="text-muted small">Otherwise the school will use the subdomain from Step 1 (e.g. <code>slug.yoursystem.com</code>).</p>
+                  <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="skip-domain">Skip for now</button>
                 </div>
               </div>
               <div class="d-flex justify-content-between mt-4">
@@ -222,6 +229,11 @@
       btnNext.addEventListener('click', function () {
         if (currentStep < totalSteps - 1) showStep(currentStep + 1);
       });
+
+      var skipBranding = document.getElementById('skip-branding');
+      var skipDomain = document.getElementById('skip-domain');
+      if (skipBranding) skipBranding.addEventListener('click', function () { showStep(3); });
+      if (skipDomain) skipDomain.addEventListener('click', function () { document.getElementById('btn-submit').focus(); });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();

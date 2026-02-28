@@ -1739,6 +1739,11 @@ class Integration(models.Model):
         ("sms", "SMS"),
         ("payments", "Payments"),
         ("analytics", "Analytics"),
+        ("whatsapp", "WhatsApp Business"),
+        ("push", "Push Notifications"),
+        ("stripe", "Stripe"),
+        ("badges", "Digital Badges"),
+        ("lms", "LMS"),
         ("other", "Other"),
     ]
 
@@ -1749,6 +1754,9 @@ class Integration(models.Model):
         ("LIBRARY", "Library"),
         ("AI", "AI"),
         ("SIS", "SIS"),
+        ("MESSAGING", "Messaging"),
+        ("BADGES", "Badges"),
+        ("BILLING", "Billing"),
         ("OTHER", "Other"),
     ]
 
@@ -1831,6 +1839,10 @@ class UserPreference(models.Model):
         blank=True,
         default="",
         help_text="For users with both Teacher and Parent roles: last selected portal view (TEACHER or PARENT). Restored on login.",
+    )
+    simple_mode = models.BooleanField(
+        default=False,
+        help_text="Plan XIV: When True, show simplified UI (consumer-grade).",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -2268,6 +2280,10 @@ class RegionConfig(models.Model):
     enable_student_portal = models.BooleanField(
         default=True,
         help_text="Enable student self-service portal"
+    )
+    is_rtl = models.BooleanField(
+        default=False,
+        help_text="Right-to-left script (Arabic, Hebrew, Urdu). When True, set <html dir=\"rtl\"> from tenant locale."
     )
     
     # Audit
@@ -2997,6 +3013,10 @@ class ServiceIntegration(models.Model):
         LTI = "LTI", "LTI 1.3"
         OAUTH = "OAUTH", "OAuth 2.0 / OpenID"
         WEBHOOK = "WEBHOOK", "Webhook outbound"
+        WHATSAPP = "WHATSAPP", "WhatsApp Business API"
+        PUSH = "PUSH", "Push Notifications"
+        STRIPE = "STRIPE", "Stripe"
+        BADGES = "BADGES", "Digital Badges / Open Badges"
         OTHER = "OTHER", "Other"
 
     school = models.ForeignKey(
@@ -3678,6 +3698,57 @@ def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> No
 def _clear_site_settings_cache(sender, **kwargs) -> None:
     global _SITE_SETTINGS_CACHE
     _SITE_SETTINGS_CACHE = None
+
+
+# Plan XVI: Onboarding tours and feature-usage analytics
+class TourStep(models.Model):
+    """In-app onboarding tour step; track which users have seen which step."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="tour_steps",
+        null=True,
+        blank=True,
+    )
+    code = models.CharField(max_length=80, db_index=True, help_text="e.g. dashboard_welcome, grades_first_time")
+    title = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["code"]
+        unique_together = [("school", "code")]
+
+    def __str__(self):
+        return f"{self.code}: {self.title or self.code}"
+
+
+class FeatureUsageEvent(models.Model):
+    """Feature-usage analytics: track_event(feature_code, school, user)."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="feature_usage_events",
+        null=True,
+        blank=True,
+    )
+    feature_code = models.CharField(max_length=80, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="feature_usage_events",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["school", "feature_code", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.feature_code} @ {self.created_at}"
 
 
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)

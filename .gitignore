@@ -36,6 +36,7 @@ nul
 # Local release artifacts
 .tmp/
 tmp/
+backups/
 
 # Local ad-hoc dev utilities
 scripts/dev/capture_backend_screenshot.py

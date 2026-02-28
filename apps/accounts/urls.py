@@ -7,9 +7,11 @@ from .views import (
     automation_hub,
     backend_dashboard,
     backend_dashboard_status_fragment,
+    dismiss_first_login_checklist,
     request_waiver,
     backend_ops_watch_data,
     import_hub,
+    migration_wizard,
     backend_entity_import,
     backend_entity_console,
     claim_invite,
@@ -23,6 +25,9 @@ from .views import (
     redirect_view,
     rbac_dashboard,
     rollover_year,
+    rollover_queue,
+    rollover_proposal_detail,
+    rollover_prepare,
     school_picker,
     switch_portal_role,
     user_documentation,
@@ -62,11 +67,12 @@ try:
         backend_teacher_list,
         backend_teacher_create,
         backend_classroom_create,
+        alumni_list,
     )
     BACKEND_PEOPLE_AVAILABLE = True
 except ImportError:
     BACKEND_PEOPLE_AVAILABLE = False
-    backend_student_list = backend_student_create = None
+    backend_student_list = backend_student_create = alumni_list = None
     backend_teacher_list = backend_teacher_create = backend_classroom_create = None
 
 app_name = "accounts"
@@ -100,16 +106,21 @@ urlpatterns = [
     path("backend/", backend_dashboard, name="backend_dashboard"),
     path("backend/request-waiver/", request_waiver, name="request_waiver"),
     path("backend/status/fragment/", backend_dashboard_status_fragment, name="backend_dashboard_status_fragment"),
+    path("backend/dismiss-first-login-checklist/", dismiss_first_login_checklist, name="dismiss_first_login_checklist"),
     path("backend/ops-watch/", backend_ops_watch_data, name="backend_ops_watch_data"),
     path("backend-dashboard/", backend_dashboard, name="backend_dashboard_alt"),
     path("backend/import/", backend_entity_import, name="backend_entity_import"),
     path("backend/import-hub/", import_hub, name="import_hub"),
+    path("backend/migration-wizard/", migration_wizard, name="migration_wizard"),
     path("backend/entities/", backend_entity_console, name="backend_entity_console"),
     path("workflow/", workflow_center, name="workflow_center"),
     path("workflow/approvals/", approval_workflow_hub, name="approval_workflow_hub"),
     path("workflow/automation/", automation_hub, name="automation_hub"),
     path("workflow/clone-year/", clone_year_setup, name="clone_year_setup"),
     path("workflow/rollover/", rollover_year, name="rollover_year"),
+    path("workflow/rollover/queue/", rollover_queue, name="rollover_queue"),
+    path("workflow/rollover/prepare/", rollover_prepare, name="rollover_prepare"),
+    path("workflow/rollover/proposal/<int:proposal_id>/", rollover_proposal_detail, name="rollover_proposal_detail"),
     path("workflow/academic-rules/", academic_rules, name="academic_rules"),
     path("certification/", certification_home, name="certification_home"),
     path("certification/session/<int:session_id>/", certification_session_detail, name="certification_session_detail"),
@@ -132,6 +143,7 @@ urlpatterns = [
     
     # Backend UI for People Management
     path("backend/students/", backend_student_list, name="backend_student_list") if BACKEND_PEOPLE_AVAILABLE else None,
+    path("backend/alumni/", alumni_list, name="backend_alumni_list") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/students/create/", backend_student_create, name="backend_student_create") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/teachers/", backend_teacher_list, name="backend_teacher_list") if BACKEND_PEOPLE_AVAILABLE else None,
     path("backend/teachers/create/", backend_teacher_create, name="backend_teacher_create") if BACKEND_PEOPLE_AVAILABLE else None,

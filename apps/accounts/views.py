@@ -12,6 +12,7 @@ from django.urls import reverse, reverse_lazy, NoReverseMatch
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.utils import translation
 import json
 from django_ratelimit.decorators import ratelimit
 from config.admin import admin_site
@@ -42,7 +43,7 @@ from .forms import (
     UserPermissionForm,
     UserRoleForm,
 )
-from .models import AccessRole, Permission, User, TemporaryRoleGrant
+from .models import AccessRole, Permission, User, TemporaryRoleGrant, RolloverProposal, RolloverProposalItem
 
 
 def _notify_new_direct_message(sender, recipient, message):
@@ -666,7 +667,13 @@ def backend_entity_import(request):
         role = (getattr(request.user, "role", "") or "").upper()
         if role not in allowed_roles and not (request.user.is_staff or request.user.is_superuser):
             return HttpResponseForbidden("You are not allowed to access Entity Import.")
-    return render(request, "accounts/entity_import.html", {})
+    return render(request, "accounts/entity_import.html", {
+        "BREADCRUMBS": [
+            {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
+            {"label": "Import & bulk", "url": reverse("accounts:import_hub")},
+            {"label": "Entity import", "url": "", "active": True},
+        ],
+    })
 
 
 @permission_required("settings.manage")
@@ -693,10 +700,45 @@ def redirect_view(request):
     (Overview, Workflow Center, Finance, etc.) for backend, teacher, and parent.
     Preserves GET params (e.g. preview_section for config preview) on the target URL.
     When on base domain and user has a school membership, redirect to tenant subdomain (Backend is subdomain-only).
+    Respects login_intent_role (Student / Staff / Parent) from login page when set.
     """
     user = request.user
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
+
+    from apps.schools.tenant_url import get_tenant_prefix
+
+    def _redirect_with_params(name_or_url, *args, **kwargs):
+        target = reverse(name_or_url, args=args, kwargs=kwargs)
+        prefix = get_tenant_prefix(request)
+        if prefix:
+            target = prefix.rstrip("/") + target
+        if request.GET:
+            target += "?" if "?" not in target else "&"
+            target += request.GET.urlencode()
+        return redirect(target)
+
+    # Login intent (role selector on login page): send to the chosen portal when no next URL.
+    intent = request.session.pop(LOGIN_INTENT_ROLE_KEY, None)
+    if intent and not request.GET.get("next"):
+        from apps.accounts.portal_roles import (
+            ACTIVE_PORTAL_ROLE_KEY,
+            has_teacher_hat,
+            has_parent_hat,
+        )
+        if intent == "student":
+            if (getattr(user, "role", "") or "").upper() == "STUDENT":
+                return _redirect_with_params("portal:student_portal_grades")
+        elif intent == "parent":
+            if has_parent_hat(user):
+                request.session[ACTIVE_PORTAL_ROLE_KEY] = "PARENT"
+                return _redirect_with_params("portal:parent_dashboard")
+        elif intent == "staff":
+            if has_teacher_hat(user):
+                request.session[ACTIVE_PORTAL_ROLE_KEY] = "TEACHER"
+                return _redirect_with_params("evals:teacher_dashboard")
+            if user.has_feature_permission("settings.manage"):
+                return _redirect_with_params("accounts:backend_dashboard")
 
     # Base domain: send users with a school membership to tenant URL (subdomain or /t/<slug>/)
     if not getattr(request, "school", None):
@@ -710,18 +752,6 @@ def redirect_view(request):
                     return redirect(target)
         except Exception:
             pass
-
-    from apps.schools.tenant_url import get_tenant_prefix
-
-    def _redirect_with_params(name_or_url, *args, **kwargs):
-        target = reverse(name_or_url, args=args, kwargs=kwargs)
-        prefix = get_tenant_prefix(request)
-        if prefix:
-            target = prefix.rstrip("/") + target
-        if request.GET:
-            target += "?" if "?" not in target else "&"
-            target += request.GET.urlencode()
-        return redirect(target)
 
     # Respect the user's "Dashboard view" preference (Portal Preferences) when possible.
     dash_view = None
@@ -1695,6 +1725,30 @@ def backend_dashboard(request):
         ],
         "SHOW_HEADER_CONTEXT_STRIP": False,
     }
+    # W1-6: First-login checklist (dismissible, deep links to classrooms, first student, attendance).
+    try:
+        from apps.siteconfig.models_dashboard import DashboardUserPreference
+        pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
+        layout = pref.dashboard_layout or {}
+        context["first_login_checklist_show"] = not layout.get("first_login_checklist_dismissed")
+        context["first_login_checklist_dismiss_url"] = reverse("accounts:dismiss_first_login_checklist")
+        _safe = _safe_reverse
+        context["first_login_checklist_items"] = [
+            {"label": _("Classrooms"), "url": _safe("admin:academics_classroom_changelist") or "#"},
+            {"label": _("Add first student"), "url": context.get("quick_student_create_url") or _safe("admin:people_studentprofile_add") or "#"},
+            {"label": _("Take attendance"), "url": _safe("portal:teacher_attendance") or "#"},
+        ]
+        # W2-2: Sensible defaults copy (what was auto-created + link to settings).
+        context["first_login_settings_url"] = _safe("siteconfig:customizer") or _safe("admin:index") or "#"
+        context["first_login_sensible_defaults_copy"] = _(
+            "We've set up: academic year, terms, default classrooms, and subjects. You can change these in Settings."
+        )
+    except Exception:
+        context["first_login_checklist_show"] = False
+        context["first_login_checklist_items"] = []
+        context["first_login_checklist_dismiss_url"] = ""
+        context["first_login_settings_url"] = "#"
+        context["first_login_sensible_defaults_copy"] = ""
     try:
         context.update(build_dashboard_extras(request, base=context))
     except Exception:
@@ -1746,6 +1800,24 @@ def backend_dashboard_status_fragment(request):
     })
     cache.set(BACKEND_STATUS_FRAGMENT_CACHE_KEY, html, BACKEND_STATUS_FRAGMENT_CACHE_TTL)
     return HttpResponse(html)
+
+
+@login_required
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+def dismiss_first_login_checklist(request):
+    """W1-6: Dismiss the first-login checklist for this user (persisted in DashboardUserPreference)."""
+    try:
+        from apps.siteconfig.models_dashboard import DashboardUserPreference
+        pref, _ = DashboardUserPreference.objects.get_or_create(user=request.user, defaults={"dashboard_layout": {}})
+        layout = dict(pref.dashboard_layout or {})
+        layout["first_login_checklist_dismissed"] = True
+        pref.dashboard_layout = layout
+        pref.save(update_fields=["dashboard_layout"])
+    except Exception:
+        pass
+    next_url = request.POST.get("next") or request.GET.get("next") or reverse("accounts:backend_dashboard")
+    return redirect(next_url)
 
 
 @permission_required("settings.manage")
@@ -1894,12 +1966,148 @@ def automation_hub(request):
 @login_required
 @user_passes_test(_is_admin_user)
 def import_hub(request):
-    """Hub linking to Entity Import, Grade Import, templates."""
+    """Hub linking to Entity Import, Grade Import, Migration Wizard, templates."""
     return render(request, "accounts/import_hub.html", {
         "BREADCRUMBS": [
             {"label": "Backend", "url": reverse("accounts:backend_dashboard")},
-            {"label": "Import Hub", "url": "", "active": True},
+            {"label": "Import & bulk", "url": "", "active": True},
         ],
+    })
+
+
+# Plan XII: Migration Hub — upload → field mapping → preview → run
+MIGRATION_TYPES = {
+    "students": {
+        "label": "Students",
+        "target_fields": ["first_name", "last_name", "admission_number", "academic_year", "classroom", "specialty", "status"],
+        "required": ["first_name", "last_name"],
+    },
+    "grades": {
+        "label": "Grades",
+        "target_fields": [
+            "student_code", "subject_assignment_id", "term_id", "teacher_username",
+            "seq1", "seq2", "exam", "mock", "practical", "test1", "test2", "remarks",
+        ],
+        "required": ["student_code", "subject_assignment_id", "term_id"],
+    },
+}
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["GET", "POST"])
+def migration_wizard(request):
+    """
+    One-click data migration: upload CSV → optional field mapping → preview → run.
+    Backed by existing bulk-preview/bulk-commit (students) and evals apply_import (grades).
+    """
+    import csv
+    import io
+    import json
+
+    session_key = "migration_wizard"
+    wizard_data = request.session.get(session_key) or {}
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "upload":
+            migration_type = request.POST.get("migration_type")
+            if migration_type not in MIGRATION_TYPES:
+                messages.error(request, "Invalid migration type.")
+                return redirect("accounts:migration_wizard")
+            file_obj = request.FILES.get("file")
+            if not file_obj:
+                messages.error(request, "Please upload a CSV file.")
+                return redirect("accounts:migration_wizard")
+            try:
+                content = file_obj.read().decode("utf-8-sig")
+                reader = csv.DictReader(io.StringIO(content))
+                headers = list(reader.fieldnames or [])
+                rows = list(reader)[:500]
+            except Exception as e:
+                messages.error(request, f"Could not read the CSV file. Use UTF-8 encoding and check the file is not corrupted. Details: {e}")
+                return redirect("accounts:migration_wizard")
+            request.session[session_key] = {
+                "migration_type": migration_type,
+                "headers": headers,
+                "rows": rows,
+                "row_count": len(rows),
+            }
+            return redirect("accounts:migration_wizard")
+
+        if action == "run" and wizard_data:
+            migration_type = wizard_data.get("migration_type")
+            rows = wizard_data.get("rows", [])
+            mapping_json = request.POST.get("mapping")
+            if not rows:
+                messages.error(request, "No data to import. Upload again.")
+                request.session.pop(session_key, None)
+                return redirect("accounts:migration_wizard")
+            mapping = json.loads(mapping_json) if mapping_json else {}
+            # Transform rows: each row dict key = CSV header, value -> map to target field name
+            transformed = []
+            for row in rows:
+                t = {}
+                for csv_col, target_field in mapping.items():
+                    if target_field and target_field != "__skip__":
+                        t[target_field] = row.get(csv_col, "")
+                transformed.append(t)
+            if migration_type == "students":
+                try:
+                    from django.test import Client
+                    from django.urls import reverse as rev
+                    client = Client()
+                    client.force_login(request.user)
+                    for k, v in request.session.items():
+                        client.session[k] = v
+                    client.session.save()
+                    url = rev("api:entity-student-bulk-commit")
+                    resp = client.post(url, data=json.dumps({"rows": transformed}), content_type="application/json")
+                    try:
+                        data = json.loads(resp.content.decode("utf-8"))
+                    except Exception:
+                        data = {}
+                    if resp.status_code in (200, 201):
+                        messages.success(request, f"Students: created {len(data.get('created', []))}, errors {len(data.get('errors', []))}.")
+                    else:
+                        err = data.get("error") or "Student import failed. Check column mapping and required fields (e.g. first_name, last_name)."
+                        messages.error(request, err)
+                except Exception as e:
+                    messages.error(request, f"Import failed: {e}. Check your CSV format and mapping.")
+            elif migration_type == "grades":
+                from apps.academics.services import get_active_year_and_term
+                active_year, _ = get_active_year_and_term()
+                if not active_year:
+                    messages.error(request, "No active academic year. Set one in Academics.")
+                else:
+                    try:
+                        from apps.evals.importers import apply_import
+                        result = apply_import(transformed, active_year)
+                        messages.success(request, f"Grades: created {result.get('created', 0)}, updated {result.get('updated', 0)}.")
+                    except Exception as e:
+                        messages.error(request, f"Grade import failed. Check template headers and data (student codes, subject assignment and term IDs). Details: {e}")
+            request.session.pop(session_key, None)
+            return redirect("accounts:migration_wizard")
+
+        if request.POST.get("action") == "clear":
+            request.session.pop(session_key, None)
+            return redirect("accounts:migration_wizard")
+
+    # GET or after POST without run
+    has_data = bool(wizard_data.get("rows"))
+    config = MIGRATION_TYPES.get(wizard_data.get("migration_type", "")) or {}
+    headers = wizard_data.get("headers", [])
+    rows = wizard_data.get("rows", [])[:15]
+    preview_matrix = []
+    for row in rows:
+        preview_matrix.append([str(row.get(h, "")) for h in headers])
+    return render(request, "accounts/migration_wizard.html", {
+        "migration_types": MIGRATION_TYPES,
+        "wizard_data": wizard_data,
+        "has_data": has_data,
+        "target_fields": config.get("target_fields", []),
+        "required_fields": config.get("required", []),
+        "preview_matrix": preview_matrix,
     })
 
 
@@ -2350,7 +2558,123 @@ def rollover_year(request):
                     "suggested_classroom": suggested,
                     "outstanding_returns": outstanding_counts.get(s.id, 0),
                 })
+    context["rollover_queue_url"] = reverse("accounts:rollover_queue")
     return render(request, "accounts/rollover_year.html", context)
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["GET"])
+def rollover_queue(request):
+    """Plan II: List PENDING and APPROVED rollover proposals for the current school."""
+    school = getattr(request, "school", None)
+    school_id = school.pk if school else None
+    if not school_id:
+        messages.error(request, "School context required.")
+        return redirect("accounts:rollover_year")
+    proposals = list(
+        RolloverProposal.objects.filter(school_id=school_id)
+        .exclude(status__in=[RolloverProposal.Status.APPLIED, RolloverProposal.Status.CANCELLED])
+        .select_related("source_year", "target_year", "created_by")
+        .order_by("-created_at")[:50]
+    )
+    return render(request, "accounts/rollover_queue.html", {"proposals": proposals})
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["GET", "POST"])
+def rollover_proposal_detail(request, proposal_id):
+    """Plan II: Review/edit proposal items (approved_next_classroom, is_graduate) and Approve or Apply."""
+    proposal = get_object_or_404(RolloverProposal, pk=proposal_id)
+    school = getattr(request, "school", None)
+    if not school or proposal.school_id != school.pk:
+        return HttpResponseForbidden()
+    target_classrooms = list(
+        Classroom.objects.filter(academic_year=proposal.target_year).order_by("name")
+    )
+    items = list(
+        RolloverProposalItem.objects.filter(proposal=proposal)
+        .select_related("student", "student__classroom", "suggested_next_classroom", "approved_next_classroom")
+        .order_by("student__last_name", "student__first_name")
+    )
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "approve":
+            for item in items:
+                key_room = f"classroom_{item.id}"
+                key_graduate = f"graduate_{item.id}"
+                room_id = request.POST.get(key_room)
+                if request.POST.get(key_graduate) == "on":
+                    item.is_graduate = True
+                    item.approved_next_classroom_id = None
+                else:
+                    item.is_graduate = False
+                    if room_id:
+                        try:
+                            item.approved_next_classroom_id = int(room_id)
+                        except (ValueError, TypeError):
+                            item.approved_next_classroom_id = item.suggested_next_classroom_id
+                    else:
+                        item.approved_next_classroom_id = item.suggested_next_classroom_id
+                item.save(update_fields=["is_graduate", "approved_next_classroom_id"])
+            proposal.status = RolloverProposal.Status.APPROVED
+            proposal.approved_at = timezone.now()
+            proposal.approved_by = request.user
+            proposal.save(update_fields=["status", "approved_at", "approved_by"])
+            messages.success(request, "Rollover proposal approved. You can now Apply it.")
+            return redirect("accounts:rollover_proposal_detail", proposal_id=proposal_id)
+        if action == "apply":
+            lock_source = request.POST.get("lock_source") == "on"
+            notify_parents = request.POST.get("notify_parents") == "on"
+            allow_outstanding = request.POST.get("allow_outstanding_returns") == "on"
+            carry_arrears = request.POST.get("carry_forward_arrears") == "on"
+            from apps.accounts.tasks import apply_rollover_proposal
+            apply_rollover_proposal.apply(
+                args=[proposal_id],
+                kwargs=dict(lock_source=lock_source, notify_parents=notify_parents, allow_outstanding_returns=allow_outstanding, carry_forward_arrears=carry_arrears),
+            )
+            messages.success(request, "Rollover applied. Students have been moved to the target year.")
+            return redirect("accounts:rollover_queue")
+    return render(
+        request,
+        "accounts/rollover_proposal_detail.html",
+        {"proposal": proposal, "items": items, "target_classrooms": target_classrooms},
+    )
+
+
+@permission_required("settings.manage")
+@user_passes_test(_is_admin_user)
+@require_http_methods(["POST"])
+def rollover_prepare(request):
+    """Plan II: Enqueue or run prepare_rollover_proposal and redirect to proposal detail or queue."""
+    source_id = request.POST.get("source_year")
+    target_id = request.POST.get("target_year")
+    if not source_id or not target_id:
+        messages.error(request, "Select source and target year.")
+        return redirect("accounts:rollover_year")
+    source_year = get_object_or_404(AcademicYear, id=source_id)
+    target_year = get_object_or_404(AcademicYear, id=target_id)
+    school = getattr(request, "school", None)
+    school_id = school.pk if school else None
+    if not school_id:
+        messages.error(request, "School context required.")
+        return redirect("accounts:rollover_year")
+    if getattr(source_year, "is_locked", False):
+        messages.error(request, "Source year is locked.")
+        return redirect("accounts:rollover_year")
+    from apps.accounts.tasks import prepare_rollover_proposal
+    result = prepare_rollover_proposal.apply(
+        args=[school_id, source_year.id, target_year.id],
+        kwargs={"created_by_id": request.user.pk},
+    )
+    if getattr(result, "result", {}).get("ok"):
+        proposal_id = result.result.get("proposal_id")
+        if proposal_id:
+            messages.success(request, f"Rollover proposal created with {result.result.get('items', 0)} students. Review and approve below.")
+            return redirect("accounts:rollover_proposal_detail", proposal_id=proposal_id)
+    messages.error(request, (getattr(result, "result", None) or {}).get("error", "Failed to prepare proposal."))
+    return redirect("accounts:rollover_year")
 
 
 @permission_required("settings.manage")
@@ -2401,9 +2725,95 @@ class PasswordChangeView(DjangoPasswordChangeView):
         return str(self.success_url)
 
 
+LOGIN_INTENT_ROLE_KEY = "login_intent_role"
+
+
+def _get_login_page_language(request):
+    """
+    Return the language code to use for the login page (tenant default or Accept-Language).
+    Used only to activate language for this request; no session or DB change.
+    """
+    school = getattr(request, "school", None)
+    if school:
+        try:
+            from apps.siteconfig.tenant_config import get_tenant_locale
+            locale = get_tenant_locale(request=request, school=school)
+            lang = (locale.get("default_language") or locale.get("locale") or "").strip() or None
+        except Exception:
+            lang = None
+        if not lang and getattr(school, "default_region_id", None):
+            try:
+                region = school.default_region
+                lang = getattr(region, "default_language", None) or ""
+                settings = getattr(school, "settings", None) or {}
+                lang = (settings.get("default_language") or lang or "").strip() or None
+            except Exception:
+                pass
+    else:
+        lang = translation.get_language_from_request(request)
+    if not lang:
+        return None
+    lang = lang.split("-")[0].lower()
+    from django.conf import settings as django_settings
+    supported = [c for c, _ in getattr(django_settings, "LANGUAGES", [("en", "English")])]
+    if not supported:
+        supported = ["en", "fr"]
+    return lang if lang in supported else (supported[0] if supported else "en")
+
+
+# Display names for known SSO integration service_name (OAuth/SAML).
+SSO_LABEL_MAP = {
+    "azure": "Microsoft",
+    "microsoft": "Microsoft",
+    "google": "Google",
+    "saml": "Single Sign-On",
+    "oidc": "Single Sign-On",
+}
+
+
+def _get_login_sso_integrations(request):
+    """Build list of {url, label} for school's active OAuth/SAML integrations (login template)."""
+    school = getattr(request, "school", None)
+    if not school:
+        return []
+    try:
+        from apps.siteconfig.models import ServiceIntegration
+        qs = ServiceIntegration.objects.filter(
+            school=school,
+            service_type=ServiceIntegration.ServiceType.OAUTH,
+            is_active=True,
+        )
+        out = []
+        for integration in qs:
+            ref = integration.service_name or str(integration.pk)
+            config = getattr(integration, "config", None) or {}
+            idp_type = (config.get("idp_type") or "").lower()
+            if idp_type == "saml":
+                url = reverse("accounts:saml_start", args=[ref])
+            else:
+                url = reverse("accounts:oidc_start", args=[ref])
+            label = config.get("display_name") or SSO_LABEL_MAP.get(
+                (integration.service_name or "").lower()
+            ) or integration.service_name or "Single Sign-On"
+            out.append({"url": url, "label": label})
+        return out
+    except Exception:
+        return []
+
+
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
+    # Optional: set login page language from tenant or Accept-Language (this request only).
+    login_lang = _get_login_page_language(request)
+    if login_lang:
+        translation.activate(login_lang)
+
     if request.method == "POST":
+        # Store role intent for post-login redirect (Student / Staff / Parent).
+        role_param = (request.POST.get("role") or request.GET.get("role") or "").strip().lower()
+        if role_param in ("student", "staff", "parent"):
+            request.session[LOGIN_INTENT_ROLE_KEY] = role_param
+
         next_url = request.POST.get("next") or request.GET.get("next", "").strip()
         if next_url:
             from django.utils.http import url_has_allowed_host_and_scheme
@@ -2540,7 +2950,8 @@ def login_view(request):
             return redirect(reverse("accounts:redirect"))
 
         messages.error(request, "Invalid username or password.")
-    return render(request, "auth/login.html")
+    context = {"LOGIN_SSO_INTEGRATIONS": _get_login_sso_integrations(request)}
+    return render(request, "auth/login.html", context)
 
 def logout_view(request):
     logout(request)

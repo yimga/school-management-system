@@ -22,7 +22,7 @@
   </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4" id="bulk-create-section">
   <div class="col-lg-5">
     <div class="card h-100">
       <div class="card-body">
@@ -234,7 +234,17 @@
     </div>
     {% else %}
     <div class="py-4">
-      {% include "components/dashboard_empty_state.html" with icon="bi-clipboard-data" title="No evaluations match" message="Change the filters above (year, term, class, subject) or use Bulk Create to add evaluations for a class." action_url=request.path action_text="Change filters" %}
+      <div class="dashboard-empty-state">
+        <div class="dashboard-empty-icon"><i class="bi bi-clipboard-data"></i></div>
+        <h3 class="dashboard-empty-title">{% trans "First time?" %}</h3>
+        <p class="dashboard-empty-message">
+          {% trans "Use Bulk Create above to add evaluations for a class, then enter marks or import grades." %}
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+          <a href="#bulk-create-section" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>{% trans "Bulk Create" %}</a>
+          <a href="{% url 'evals:grade_import_upload' %}" class="btn btn-outline-primary">{% trans "Grade import" %}</a>
+        </div>
+      </div>
     </div>
     {% endif %}
   </div>

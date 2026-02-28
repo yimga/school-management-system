@@ -23,7 +23,7 @@ from apps.api.dashboard_api import (
 from apps.api.dashboard_layout_api import DashboardLayoutAPI
 from apps.api.user_preferences_api import PortalPreferencesAPI
 from apps.api.search_api import GlobalSearchAPI, SearchSuggestionsAPI
-from apps.academics.api_views import AttendanceViewSet
+from apps.academics.api_views import AttendanceViewSet, ScheduleConflictsAPI
 from apps.api.entity_api import (
     ClassroomViewSet,
     ProfileView,
@@ -41,6 +41,7 @@ from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 from apps.api.offline_replay_views import OfflineReplayBatchAPI, PrefetchUrlsAPI, QueueMetricsAPI
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.lead_capture_api import LeadCaptureAPI
+from apps.api.rosetta_views import RosettaStoneConvertAPI, RosettaStoneScalesAPI
 from apps.api.interop_stubs import oneroster_readiness, lti13_readiness
 from apps.api.scim_views import (
     scim_service_provider_config,
@@ -113,9 +114,14 @@ urlpatterns = [
     path('portal/digital-id/', DigitalIDAPI.as_view(), name='digital-id'),
     path('portal/digital-id/children/', DigitalIDChildrenAPI.as_view(), name='digital-id-children'),
 
+    # Rosetta Stone: cross-tenant / cross-system grade conversion
+    path('rosetta/convert/', RosettaStoneConvertAPI.as_view(), name='rosetta-convert'),
+    path('rosetta/scales/', RosettaStoneScalesAPI.as_view(), name='rosetta-scales'),
     # Search APIs
     path('search/', GlobalSearchAPI.as_view(), name='global-search'),
     path('search/suggestions/', SearchSuggestionsAPI.as_view(), name='search-suggestions'),
+    # Scheduling (Wave 5): conflict check
+    path('schedules/<int:schedule_id>/conflicts/', ScheduleConflictsAPI.as_view(), name='schedule-conflicts'),
     
     # Mobile API endpoints
     path('mobile/', include(router.urls)),

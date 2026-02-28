@@ -104,6 +104,10 @@ class School(models.Model):
         help_text="Enabled modules: {\"library\": true, \"transport\": false}",
     )
     logo_url = models.URLField(blank=True, help_text="URL to school logo (e.g. from tenants/{id}/logo.png)")
+    wallpaper_url = models.URLField(
+        blank=True,
+        help_text="URL to tenant login wallpaper (split-screen left panel image)",
+    )
     primary_color = models.CharField(max_length=20, default="#0d6efd")
     accent_color = models.CharField(max_length=20, default="#198754")
     is_active = models.BooleanField(default=True)
@@ -115,6 +119,13 @@ class School(models.Model):
         blank=True,
         related_name="child_schools",
         help_text="Parent tenant e.g. Catholic Education Secretariat",
+    )
+    # Multi-level hierarchy: materialized path (e.g. "" or "uuid1" or "uuid1/uuid2") for recursive queries
+    hierarchy_path = models.CharField(
+        max_length=1024,
+        blank=True,
+        db_index=True,
+        help_text="Slash-separated UUIDs from root to parent; empty for root. Used for get_descendants/get_ancestors.",
     )
     # Phase 4: whitelabel custom domain
     custom_domain = models.CharField(
@@ -134,6 +145,15 @@ class School(models.Model):
         default="UNFOLD",
         blank=True,
         help_text="Admin/backend theme. Change theme in School edit or Site settings.",
+    )
+    # W3-5: Per-tenant theme pack (portal/login). When set, overrides global SiteSettings theme for this school.
+    theme_pack = models.ForeignKey(
+        "siteconfig.ThemePack",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="schools_using_theme",
+        help_text="Portal/login theme pack for this school. Leave blank to use global default.",
     )
     plan = models.ForeignKey(
         "siteconfig.Plan",
@@ -159,6 +179,11 @@ class School(models.Model):
         choices=BillingType.choices,
         default=BillingType.REGULAR,
         help_text="When COMPLIMENTARY or MANUAL_OVERRIDE, billing checks are skipped; waiver_note required.",
+    )
+    trial_end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="When billing_type is FREE_TRIAL, trial ends on this date.",
     )
     waiver_note = models.TextField(
         blank=True,
@@ -191,6 +216,20 @@ class School(models.Model):
         ],
         help_text="Reason for freeze; required when is_frozen is True.",
     )
+    # Plan XXI: Compliance Region — GDPR (EU), FERPA (US), NDPR (Nigeria). Enables data masking, retention, consent flows.
+    class ComplianceRegion(models.TextChoices):
+        NONE = "", "None (default)"
+        EU = "EU", "EU (GDPR)"
+        US = "US", "US (FERPA)"
+        NDPR = "NDPR", "Nigeria (NDPR)"
+
+    compliance_region = models.CharField(
+        max_length=10,
+        choices=ComplianceRegion.choices,
+        default=ComplianceRegion.NONE,
+        blank=True,
+        help_text="Compliance region for data privacy: EU (GDPR), US (FERPA), Nigeria (NDPR). Affects masking, retention, consent.",
+    )
 
     class Meta:
         ordering = ["name"]
@@ -199,6 +238,19 @@ class School(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # Keep materialized path in sync for multi-level hierarchy
+        if self.parent_school_id:
+            parent = School.objects.filter(pk=self.parent_school_id).first()
+            if parent:
+                base = (getattr(parent, "hierarchy_path", "") or "").strip()
+                self.hierarchy_path = (base + "/" + str(parent.pk)).strip("/") if base else str(parent.pk)
+            else:
+                self.hierarchy_path = str(self.parent_school_id)
+        else:
+            self.hierarchy_path = ""
+        super().save(*args, **kwargs)
 
     def has_feature(self, code: str) -> bool:
         """Return True if the school has the given feature/module enabled. Phase D: considers plan + addons."""
@@ -209,6 +261,76 @@ class School(models.Model):
         import os
         base = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip()
         return base or "your-platform.com"
+
+    def get_ancestor_chain(self) -> list:
+        """
+        Return list of parent schools from this school up to root (for deeper nested tenancy).
+        Order: [immediate_parent, grandparent, ...]. Empty if no parent.
+        """
+        chain = []
+        current = self.parent_school
+        seen = {self.pk}
+        while current and current.pk not in seen:
+            seen.add(current.pk)
+            chain.append(current)
+            current = getattr(current, "parent_school", None)
+        return chain
+
+    def get_root_school(self) -> "School | None":
+        """Return the top-level parent in the tenant hierarchy, or self if no parent."""
+        chain = self.get_ancestor_chain()
+        return chain[-1] if chain else (None if self.parent_school_id else self)
+
+    def get_descendants(self, include_self=False):
+        """Return all schools in the subtree (children, grandchildren, ...). Uses hierarchy_path when set."""
+        from django.db.models import Q
+        # Path format: root has ""; child has "/root_id"; grandchild has "/root_id/parent_id"
+        if self.hierarchy_path:
+            prefix = (self.hierarchy_path + "/" + str(self.pk)).strip("/")
+            qs = School.objects.filter(
+                Q(hierarchy_path=prefix) | Q(hierarchy_path__startswith=prefix + "/"),
+                is_active=True,
+            )
+        else:
+            qs = School.objects.filter(parent_school_id=self.pk, is_active=True)
+        if include_self:
+            qs = School.objects.filter(Q(pk=self.pk) | Q(pk__in=qs.values_list("id", flat=True)), is_active=True)
+        return qs
+
+    def get_ancestors(self):
+        """Return all ancestor schools (parent, grandparent, ...) using hierarchy_path or parent_school walk."""
+        if self.hierarchy_path:
+            uuids = [u.strip() for u in self.hierarchy_path.split("/") if u.strip()]
+            if not uuids:
+                return School.objects.none()
+            return School.objects.filter(pk__in=uuids, is_active=True)
+        return type(self).objects.filter(pk__in=[p.pk for p in self.get_ancestor_chain()])
+
+
+class Campus(models.Model):
+    """
+    Multi-campus: physical site under one School. Optional; use when a school has
+    multiple locations (e.g. Main Campus, North Campus). Student/classroom can link to campus.
+    """
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="campuses",
+    )
+    name = models.CharField(max_length=255)
+    code = models.CharField(max_length=32, blank=True, help_text="Short code e.g. MAIN, NORTH")
+    address = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["school", "name"]
+        verbose_name = "Campus"
+        verbose_name_plural = "Campuses"
+
+    def __str__(self):
+        return f"{self.name} ({self.school.name})"
 
 
 class SchoolProvisioningEvent(models.Model):
@@ -319,3 +441,161 @@ class SchoolMembership(models.Model):
 
     def __str__(self):
         return f"{self.user.username} @ {self.school.name} ({self.role})"
+
+
+class SignupVerification(models.Model):
+    """
+    Token for self-service school signup email verification. School is created
+    with is_active=False; when user clicks link with valid token, school is
+    activated and provisioning runs.
+    """
+    school = models.OneToOneField(
+        School,
+        on_delete=models.CASCADE,
+        related_name="signup_verification",
+    )
+    email = models.EmailField()
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    expires_at = models.DateTimeField()
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Signup verification"
+        verbose_name_plural = "Signup verifications"
+
+    def __str__(self):
+        return f"{self.email} → {self.school.name}"
+
+
+class TenantQuotaLimit(models.Model):
+    """Per-tenant API/quota limits for SaaS billing and fairness (Plan I)."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="quota_limits",
+    )
+    limit_type = models.CharField(
+        max_length=64,
+        help_text="e.g. api_calls_per_month, api_calls_per_minute, storage_mb",
+    )
+    limit_value = models.PositiveIntegerField(help_text="Numeric limit")
+    period_days = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Period length in days (e.g. 30 for monthly); null for per-minute.",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["school", "limit_type"]
+        unique_together = [("school", "limit_type")]
+        verbose_name = "Tenant quota limit"
+        verbose_name_plural = "Tenant quota limits"
+
+    def __str__(self):
+        return f"{self.school.name}: {self.limit_type}={self.limit_value}"
+
+
+class TenantApiUsage(models.Model):
+    """Per-tenant API usage for billing and super-admin dashboard (Plan I)."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="api_usage_records",
+    )
+    period_date = models.DateField(help_text="Date (or first day of period) for aggregation")
+    request_count = models.PositiveIntegerField(default=0)
+    limit_type = models.CharField(
+        max_length=64,
+        default="api_calls",
+        help_text="Matches TenantQuotaLimit.limit_type",
+    )
+
+    class Meta:
+        ordering = ["-period_date", "school"]
+        unique_together = [("school", "period_date", "limit_type")]
+        verbose_name = "Tenant API usage"
+        verbose_name_plural = "Tenant API usage"
+
+    def __str__(self):
+        return f"{self.school.name} {self.period_date}: {self.request_count}"
+
+
+# Plan XVI: Inventory / assets
+class InventoryItem(models.Model):
+    """School inventory/asset item (e.g. lab equipment, books)."""
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="inventory_items",
+    )
+    name = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField(default=1)
+    location = models.CharField(max_length=255, blank=True)
+    notes = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Inventory item"
+        verbose_name_plural = "Inventory items"
+
+    def __str__(self):
+        return f"{self.name} ({self.quantity})"
+
+
+# Plan XVI: Transport — routes, stops, buses
+class Route(models.Model):
+    """Transport route (e.g. Morning North)."""
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="transport_routes")
+    name = models.CharField(max_length=120)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+        unique_together = [("school", "name")]
+
+    def __str__(self):
+        return self.name
+
+
+class Stop(models.Model):
+    """Stop on a route."""
+    route = models.ForeignKey(Route, on_delete=models.CASCADE, related_name="stops")
+    name = models.CharField(max_length=120)
+    sequence = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["route", "sequence"]
+        unique_together = [("route", "sequence")]
+
+    def __str__(self):
+        return f"{self.route.name}: {self.name}"
+
+
+class Bus(models.Model):
+    """Bus/vehicle; optional assignment to route."""
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="buses")
+    identifier = models.CharField(max_length=60, help_text="e.g. Bus 01, Plate number")
+    route = models.ForeignKey(
+        Route,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="buses",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["identifier"]
+        unique_together = [("school", "identifier")]
+
+    def __str__(self):
+        return self.identifier

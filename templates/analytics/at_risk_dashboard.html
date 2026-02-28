@@ -1,0 +1,55 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}At-Risk Dashboard{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h4 class="mb-3">{% trans "At-Risk Dashboard" %}</h4>
+  <p class="text-muted small">Risk score 0–100: Red 80+, Amber 50–79, Green 0–49. Run nightly task to refresh scores.</p>
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Student</th>
+              <th>Score</th>
+              <th>Band</th>
+              <th>Why</th>
+              <th>Computed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in risk_factors %}
+            <tr>
+              <td>{{ r.student.get_full_name|default:r.student_id }}</td>
+              <td>{{ r.score }}</td>
+              <td>
+                {% if r.band == 'red' %}<span class="badge bg-danger">Red</span>
+                {% elif r.band == 'amber' %}<span class="badge bg-warning text-dark">Amber</span>
+                {% else %}<span class="badge bg-success">Green</span>{% endif %}
+              </td>
+              <td>{{ r.reason_summary|default:"—" }}</td>
+              <td>{{ r.computed_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-muted">No risk data yet. Run the nightly at-risk computation task.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% if interventions %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h6 class="mb-2">Ongoing interventions</h6>
+      <ul class="list-unstyled mb-0">
+        {% for i in interventions %}
+        <li>{{ i.student.get_full_name }} — {{ i.action_taken }}: {{ i.trigger_reason }} ({{ i.get_status_display }})</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

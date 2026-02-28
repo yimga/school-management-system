@@ -255,6 +255,23 @@ def get_average_grade(scores, scale='0-20'):
     return average.quantize(Decimal('0.01'))
 
 
+def score_to_normalized(score, school=None):
+    """
+    Convert a raw score to a normalized value in [0.0, 1.0] for cross-tenant/cross-system use (Rosetta Stone).
+    Uses the school's grading scale from tenant config when school is provided.
+    """
+    scale_id = get_scale_for_school(school) if school else "0-20"
+    config = GRADING_SCALES.get(scale_id, GRADING_SCALES["0-20"])
+    mn = config["min"]
+    mx = config["max"]
+    score_decimal = Decimal(str(score))
+    if mx == mn:
+        return Decimal("0")
+    normalized = (score_decimal - mn) / (mx - mn)
+    normalized = max(Decimal("0"), min(Decimal("1"), normalized))
+    return normalized.quantize(Decimal("0.0001"))
+
+
 def scale_score(score, from_min, from_max, to_min=0, to_max=100):
     """
     Scale a score from one range to another (linear transformation).

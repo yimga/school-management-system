@@ -74,6 +74,7 @@ from .models import (
     PortalFeatureItem,
     PendingGuardianInvite,
     LessonPlan,
+    LessonPlanAttachment,
     TeacherTrainingEntry,
     AttendanceJustification,
     CahierDeTexteEntry,
@@ -101,6 +102,7 @@ from .forms import (
     TeacherOnboardingForm,
     StudentOnboardingForm,
     LessonPlanUploadForm,
+    LessonPlanAttachmentForm,
     TeacherTrainingEntryForm,
     AttendanceJustificationForm,
     CahierDeTexteEntryForm,
@@ -902,6 +904,78 @@ def parent_finance(request: HttpRequest):
 
 @parent_portal_required
 @role_required(User.Role.PARENT)
+def parent_wallet(request: HttpRequest):
+    """Plan V: Parent wallet rich UI — balance, history, top-up link."""
+    from apps.finance.models import ParentWallet, WalletTransaction
+    school = getattr(request, "school", None)
+    if not school:
+        messages.info(request, "Select a school to view your wallet.")
+        return redirect("portal:parent_dashboard")
+    wallet = ParentWallet.objects.filter(school=school, user=request.user).first()
+    transactions = []
+    if wallet:
+        transactions = list(
+            WalletTransaction.objects.filter(wallet=wallet).order_by("-created_at")[:50])
+    try:
+        top_up_url = reverse("api_v1:finance-wallet-top-up")
+    except Exception:
+        top_up_url = "/api/v1/finance/wallet/top-up"
+    return render(
+        request,
+        "parent/wallet.html",
+        {
+            "wallet": wallet,
+            "transactions": transactions,
+            "top_up_url": top_up_url,
+        },
+    )
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_feed(request: HttpRequest):
+    """Plan VI: Social feed for parents — announcements, achievements, interventions for their children/school."""
+    from apps.communication.models import FeedItem
+    school = getattr(request, "school", None)
+    if not school:
+        messages.info(request, "Select a school to view the feed.")
+        return redirect("portal:parent_dashboard")
+    student_ids = set(
+        StudentGuardian.objects.filter(guardian_user=request.user)
+        .values_list("student_id", flat=True)
+    )
+    qs = FeedItem.objects.filter(school=school).select_related("student", "created_by").order_by("-created_at")[:100]
+    items = [i for i in qs if i.student_id is None or i.student_id in student_ids]
+    return render(request, "parent/feed.html", {"feed_items": items})
+
+
+def _teacher_feed_school(request: HttpRequest):
+    """Resolve school for teacher feed."""
+    from apps.schools.models import School, SchoolMembership
+    school = getattr(request, "school", None)
+    if school is not None:
+        return school
+    school_id = getattr(request, "session", {}).get("school_id")
+    if school_id:
+        return School.objects.filter(pk=school_id, is_active=True).first()
+    membership = SchoolMembership.objects.filter(user=request.user, school__is_active=True).select_related("school").first()
+    return membership.school if membership else None
+
+
+@role_required(User.Role.TEACHER)
+def teacher_feed(request: HttpRequest):
+    """Plan VI: Social feed for teachers — school announcements, achievements, interventions."""
+    from apps.communication.models import FeedItem
+    school = _teacher_feed_school(request)
+    if not school:
+        messages.info(request, "Select a school to view the feed.")
+        return redirect("portal:teacher_dashboard_alias")
+    items = FeedItem.objects.filter(school=school).select_related("student", "created_by").order_by("-created_at")[:100]
+    return render(request, "teacher/feed.html", {"feed_items": list(items)})
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
 def claim_invite(request: HttpRequest, token: str | None = None):
     """
     Claim a pending guardian invite using a token and link the student to the logged-in parent.
@@ -1634,6 +1708,26 @@ def record_teacher_attendance(request: HttpRequest):
     })
 
 
+@login_required
+def seating_chart_view(request: HttpRequest):
+    """W4-2: Seating chart placeholder — view or link for class layout. Optional ?classroom=id."""
+    if not getattr(request.user, "has_feature_permission", lambda _: False)("attendance.manage"):
+        return HttpResponseForbidden("You do not have permission to view seating chart.")
+    year, _term = get_active_year_and_term()
+    classrooms = list(Classroom.objects.filter(academic_year=year).order_by("name")) if year else []
+    classroom_id = request.GET.get("classroom")
+    classroom_obj = None
+    if classroom_id and classrooms:
+        classroom_obj = next((c for c in classrooms if str(c.id) == str(classroom_id)), None)
+    hero = {"title": "Seating chart", "subtitle": "Class layout view for roll call and attendance.", "actions": []}
+    return render(request, "portal/seating_chart.html", {
+        "hero": hero,
+        "classrooms": classrooms,
+        "classroom": classroom_obj,
+        "classroom_id": classroom_id or "",
+    })
+
+
 def _cahier_enabled(request=None):
     flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
     if not flags.get("enable_cahier_de_texte"):
@@ -1795,7 +1889,7 @@ def teacher_lesson_notes(request: HttpRequest):
     if not profile:
         messages.error(request, "No teacher profile found.")
         return redirect("portal:teacher_dashboard_alias")
-    plans = LessonPlan.objects.filter(teacher=profile).order_by("-week_start_date")[:50]
+    plans = LessonPlan.objects.filter(teacher=profile).prefetch_related("attachments").order_by("-week_start_date")[:50]
     form = LessonPlanUploadForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
         obj = form.save(commit=False)
@@ -1805,6 +1899,37 @@ def teacher_lesson_notes(request: HttpRequest):
         return redirect("portal:teacher_lesson_notes")
     hero = {"title": "Lesson Notes", "subtitle": "Upload weekly lesson plans (PDF)", "actions": []}
     return render(request, "teacher/lesson_notes.html", {"hero": hero, "plans": plans, "form": form})
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_lesson_plan_add_attachment(request: HttpRequest, lesson_plan_id: int):
+    """Add a resource attachment to an existing lesson plan (Wave 6)."""
+    profile = TeacherProfile.objects.filter(user=request.user).first()
+    if not profile:
+        messages.error(request, "No teacher profile found.")
+        return redirect("portal:teacher_dashboard_alias")
+    plan = get_object_or_404(LessonPlan, pk=lesson_plan_id, teacher=profile)
+    if request.method == "POST":
+        form = LessonPlanAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            att = form.save(commit=False)
+            att.lesson_plan = plan
+            att.save()
+            messages.success(request, "Resource attached.")
+            return redirect("portal:teacher_lesson_notes")
+    else:
+        form = LessonPlanAttachmentForm()
+    hero = {"title": "Add resource", "subtitle": f"Attach a file to « {plan.title } »", "actions": []}
+    return render(request, "teacher/lesson_plan_add_attachment.html", {"hero": hero, "plan": plan, "form": form})
+
+
+@teacher_portal_required
+@role_required(User.Role.TEACHER)
+def teacher_wellness(request: HttpRequest):
+    """Teacher wellness / wellbeing: reminder and link to resources (Wave 6)."""
+    hero = {"title": "Wellness", "subtitle": "Take care of yourself", "actions": []}
+    return render(request, "teacher/wellness.html", {"hero": hero})
 
 
 @teacher_portal_required

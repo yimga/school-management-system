@@ -361,6 +361,28 @@ class StudentProfile(models.Model):
         related_name="students",
         help_text=_("School-defined information tags for nuance, discounts, and workflows."),
     )
+    # Lifetime identity: optional link to StudentPassport for cross-school transcript portability
+    passport = models.ForeignKey(
+        "StudentPassport",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="school_profiles",
+        help_text=_("Lifetime student passport (verified transcripts, invite new school to view)."),
+    )
+    # Dual transcript (Plan XI): program/track for academic vs vocational vs dual report templates
+    class TranscriptTrack(models.TextChoices):
+        ACADEMIC = "ACADEMIC", _("Academic")
+        VOCATIONAL = "VOCATIONAL", _("Vocational")
+        DUAL = "DUAL", _("Dual (academic + vocational)")
+
+    transcript_track = models.CharField(
+        max_length=20,
+        choices=TranscriptTrack.choices,
+        default=TranscriptTrack.ACADEMIC,
+        blank=True,
+        help_text=_("Used by report templates for dual transcript (academic + vocational sections)."),
+    )
 
     class Meta:
         ordering = ["last_name", "first_name"]
@@ -888,3 +910,219 @@ class RetentionAlert(models.Model):
 
     def __str__(self):
         return f"{self.student} — risk {self.risk_score} ({self.alert_level})"
+
+
+# -----------------------------------------------------------------------------
+# Student Passport / Identity Vault (lifetime identity, verified docs, cross-school)
+# -----------------------------------------------------------------------------
+
+
+class StudentPassport(models.Model):
+    """
+    Lifetime student identity that survives school churn. One passport can link
+    to many StudentProfiles (different schools). GUID for portability; optional
+    owner (User) for login to view/manage; verified documents attached via
+    PassportDocument; invite schools via PassportSchoolInvite.
+    """
+    guid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    owner = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="student_passport",
+        help_text=_("User account that owns this passport (student or parent)."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name = _("Student passport")
+        verbose_name_plural = _("Student passports")
+
+    def __str__(self):
+        return str(self.guid)
+
+
+class PassportDocument(models.Model):
+    """Verified document (transcript, certificate, diploma) attached to a passport."""
+    class DocType(models.TextChoices):
+        TRANSCRIPT = "TRANSCRIPT", _("Transcript")
+        CERTIFICATE = "CERTIFICATE", _("Certificate")
+        DIPLOMA = "DIPLOMA", _("Diploma")
+        OTHER = "OTHER", _("Other")
+
+    passport = models.ForeignKey(
+        StudentPassport,
+        on_delete=models.CASCADE,
+        related_name="documents",
+    )
+    document_type = models.CharField(max_length=20, choices=DocType.choices, default=DocType.OTHER)
+    title = models.CharField(max_length=255, blank=True)
+    file = models.FileField(upload_to="passport_docs/%Y/%m/", blank=True, null=True)
+    file_url = models.URLField(blank=True, help_text=_("External URL if not uploaded."))
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by_school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        help_text=_("School that verified this document."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = _("Passport document")
+        verbose_name_plural = _("Passport documents")
+
+    def __str__(self):
+        return f"{self.get_document_type_display()} — {self.title or self.pk}"
+
+
+class PassportSchoolInvite(models.Model):
+    """Invite a school to view this passport (read-only). Token-based link."""
+    passport = models.ForeignKey(
+        StudentPassport,
+        on_delete=models.CASCADE,
+        related_name="school_invites",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="passport_invites",
+    )
+    invited_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    expires_at = models.DateTimeField()
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [("passport", "school")]
+        ordering = ["-created_at"]
+        verbose_name = _("Passport school invite")
+        verbose_name_plural = _("Passport school invites")
+
+    def __str__(self):
+        return f"{self.passport_id} → {self.school_id} ({self.token})"
+
+
+# -----------------------------------------------------------------------------
+# Apprenticeship: employer portal (verify apprentice hours, confirm on-site)
+# -----------------------------------------------------------------------------
+
+
+class ApprenticePlacement(models.Model):
+    """Links an employer (User with role EMPLOYER) to a student for on-site hours verification."""
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="apprentice_placements",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name="apprentice_placements",
+    )
+    employer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="apprentice_placements",
+        help_text=_("User with EMPLOYER role who can confirm hours."),
+    )
+    confirmed_hours = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=0,
+        help_text=_("Total on-site hours confirmed by this employer."),
+    )
+    last_confirmed_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("school", "student", "employer")]
+        ordering = ["-updated_at"]
+        verbose_name = _("Apprentice placement")
+        verbose_name_plural = _("Apprentice placements")
+
+    def __str__(self):
+        return f"{self.employer} — {self.student} @ {self.school}"
+
+
+class EmployerProfile(models.Model):
+    """Optional profile for users with EMPLOYER role: company name and school link (Plan XI)."""
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="employer_profile",
+        help_text=_("User with role EMPLOYER."),
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="employer_profiles",
+        null=True,
+        blank=True,
+    )
+    company_name = models.CharField(max_length=255, blank=True)
+    contact_email = models.EmailField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["company_name"]
+        verbose_name = _("Employer profile")
+        verbose_name_plural = _("Employer profiles")
+
+    def __str__(self):
+        return self.company_name or str(self.user)
+
+
+# -----------------------------------------------------------------------------
+# Vocational certifications (industry licenses, expiry tracking, watchdog)
+# -----------------------------------------------------------------------------
+
+
+class VocationalCertification(models.Model):
+    """
+    Industry or vocational certification (e.g. FAA, Nursing, CompTIA).
+    expiry_date drives "Certification Watchdog" alerts (e.g. expiring in 30 days).
+    """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="vocational_certifications",
+    )
+    student = models.ForeignKey(
+        StudentProfile,
+        on_delete=models.CASCADE,
+        related_name="vocational_certifications",
+    )
+    name = models.CharField(max_length=255, help_text=_("e.g. FAA Medical, Nursing License"))
+    issue_date = models.DateField(null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True, help_text=_("When set, used for expiry alerts"))
+    issuing_body = models.CharField(max_length=255, blank=True)
+    credential_id = models.CharField(max_length=120, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-expiry_date", "name"]
+        verbose_name = _("Vocational certification")
+        verbose_name_plural = _("Vocational certifications")
+
+    def __str__(self):
+        return f"{self.student} — {self.name} (expires {self.expiry_date})"

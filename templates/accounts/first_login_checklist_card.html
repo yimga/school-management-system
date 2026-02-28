@@ -1,0 +1,20 @@
+{% load i18n %}
+<div class="card border-primary mb-3 first-login-checklist-card" data-widget-id="first-login-checklist">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <span>{% trans "Get started" %}</span>
+    <a href="{{ first_login_checklist_dismiss_url }}?next={{ request.path|urlencode }}" class="btn btn-sm btn-light" aria-label="{% trans 'Dismiss' %}">×</a>
+  </div>
+  <div class="card-body">
+    {% if first_login_sensible_defaults_copy %}
+    <p class="card-text small text-muted mb-2">{{ first_login_sensible_defaults_copy }} <a href="{{ first_login_settings_url }}">{% trans "Settings" %}</a></p>
+    {% endif %}
+    <p class="card-text small text-muted mb-2">{% trans "Complete these steps to get your school up and running:" %}</p>
+    <ul class="list-unstyled mb-0">
+      {% for item in first_login_checklist_items %}
+      <li class="mb-1">
+        <a href="{{ item.url }}">{{ item.label }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>

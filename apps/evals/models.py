@@ -141,6 +141,52 @@ class AssessmentWeights(models.Model):
             term=term if term is not None else None,
         )
 
+
+class GradingScale(models.Model):
+    """
+    Plan III: Polymorphic grading scale tied to curriculum/school.
+    Schools can define custom scales or use built-in (numeric_0_20, gpa_4_0, etc.).
+    AssessmentWeights can reference this via grading_scale_fk for consistent GradeConverter use.
+    """
+    class ScaleType(models.TextChoices):
+        NUMERIC_0_20 = "numeric_0_20", "Numeric 0–20"
+        LETTER_A_E = "letter_a_e", "Letters A–E"
+        GPA_4_0 = "gpa_4_0", "GPA 4.0"
+        PERCENTAGE = "percentage", "Percentage 0–100"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="grading_scales",
+        help_text="Null = global template (e.g. Apply a Template at signup).",
+    )
+    name = models.CharField(max_length=80, help_text="e.g. Cameroon 0-20, GPA 4.0")
+    scale_type = models.CharField(max_length=50, choices=ScaleType.choices, default=ScaleType.NUMERIC_0_20)
+    config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional: min, max, grade_thresholds (A_min, B_min, ...) for letter conversion.",
+    )
+    is_default = models.BooleanField(
+        default=False,
+        help_text="When true, use as default for this school when no AssessmentWeights override.",
+    )
+
+    class Meta:
+        ordering = ["school_id", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "name"],
+                name="evals_gradingscale_school_name_uniq",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_scale_type_display()})"
+
+
 class TeacherAssignment(models.Model):
     """
     Teacher is allowed to enter marks for a given SubjectAssignment in an AcademicYear.
@@ -267,6 +313,14 @@ class Evaluation(models.Model):
     
     # Final computed score stored for aggregation and reporting (kept in DB for performance)
     final_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    # Normalized score 0.0–1.0 for cross-tenant / cross-system reporting (Rosetta Stone)
+    normalized_value = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        help_text="Score normalized to 0.0–1.0 for cross-system grade conversion and reporting.",
+    )
 
     # Audit logging fields for data integrity
     created_by = models.ForeignKey(
@@ -396,13 +450,24 @@ class Evaluation(models.Model):
                 raise ValidationError("Student class/specialty must match SubjectAssignment class/specialty.")
 
     def save(self, *args, **kwargs):
-        """Call full_clean() before saving to validate scores and persist final_score."""
+        """Call full_clean() before saving to validate scores and persist final_score and normalized_value."""
         self.full_clean()
         # Persist final_score for efficient aggregation/reporting
         try:
             self.final_score = self.total_score
         except Exception:
             self.final_score = None
+        # Persist normalized_value (0.0–1.0) for cross-tenant/cross-system (Rosetta Stone)
+        try:
+            from apps.evals.grading import score_to_normalized
+            from decimal import Decimal
+            school = getattr(self, "school", None)
+            if self.final_score is not None:
+                self.normalized_value = score_to_normalized(float(self.final_score), school)
+            else:
+                self.normalized_value = None
+        except Exception:
+            self.normalized_value = None
         super().save(*args, **kwargs)
 
     def __str__(self):

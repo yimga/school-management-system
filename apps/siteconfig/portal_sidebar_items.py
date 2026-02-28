@@ -320,7 +320,7 @@ def build_portal_sidebar_items(request, site):
             items.append({"id": "approval_hub", "label": "Approval Hub", "url": approval_hub_url, "icon": "bi-clipboard-check", "section": "Admin Panel", "badge": None})
         import_hub_url = _safe_reverse("accounts:import_hub")
         if import_hub_url:
-            items.append({"id": "import_hub", "label": "Import Hub", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
+            items.append({"id": "import_hub", "label": "Import & bulk", "url": import_hub_url, "icon": "bi-upload", "section": "Admin Panel", "badge": None})
         if can_manage_site:
             items.append({"id": "customizer", "label": "Customizer", "url": _safe_reverse("siteconfig:customizer"), "icon": "bi-palette", "section": "Admin Panel", "badge": None})
         # Multi-tenant: Modules and Grading are per-school; show only when a school is in context.

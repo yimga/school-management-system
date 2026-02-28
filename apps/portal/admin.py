@@ -1,7 +1,7 @@
 from django.contrib import admin
 from config.admin import admin_site
 
-from .models import DocumentCategory, Event, PortalFeatureItem, PendingGuardianInvite, Announcement, FormSignature
+from .models import DocumentCategory, Event, PortalFeatureItem, PendingGuardianInvite, Announcement, FormSignature, LessonPlan, LessonPlanAttachment
 from .models_kb import FAQCategory, FAQ, KBCategory, KBArticle, KBArticleAttachment, KBComment, UserContribution
 
 
@@ -111,6 +111,24 @@ class FormSignatureAdmin(admin.ModelAdmin):
 
 
 admin_site.register(FormSignature, FormSignatureAdmin)
+
+
+class LessonPlanAttachmentInline(admin.TabularInline):
+    model = LessonPlanAttachment
+    extra = 0
+    fields = ("file", "label", "created_at")
+
+
+class LessonPlanAdmin(admin.ModelAdmin):
+    list_display = ("title", "teacher", "week_start_date", "created_at")
+    list_filter = ("week_start_date",)
+    search_fields = ("title", "teacher__user__username")
+    autocomplete_fields = ("teacher",)
+    inlines = [LessonPlanAttachmentInline]
+    readonly_fields = ("created_at", "updated_at")
+
+
+admin_site.register(LessonPlan, LessonPlanAdmin)
 
 
 @admin.register(FAQCategory, site=admin_site)

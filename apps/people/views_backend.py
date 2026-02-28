@@ -184,6 +184,18 @@ def _pagination_extra_query(request):
 
 @login_required
 @permission_required('people.view_studentprofile', raise_exception=True)
+def alumni_list(request):
+    """Plan XVI: Dedicated alumni list — redirect to student list filtered by status=ALUMNI."""
+    from django.http import HttpResponseRedirect
+    from urllib.parse import urlencode
+    base = reverse('accounts:backend_student_list')
+    qs = request.GET.copy()
+    qs['status'] = StudentProfile.Status.ALUMNI
+    return HttpResponseRedirect(f"{base}?{qs.urlencode()}")
+
+
+@login_required
+@permission_required('people.view_studentprofile', raise_exception=True)
 def backend_student_list(request):
     """List students in user-friendly backend UI with search, filters, and pagination."""
     qs = StudentProfile.objects.select_related(
@@ -203,6 +215,9 @@ def backend_student_list(request):
     classroom_id = request.GET.get('classroom')
     if classroom_id:
         qs = qs.filter(classroom_id=classroom_id)
+    status_filter = request.GET.get('status', '').strip()
+    if status_filter:
+        qs = qs.filter(status=status_filter)
 
     per_page = min(100, max(10, int(request.GET.get('page_size', 25))))
     paginator = Paginator(qs, per_page)
@@ -224,13 +239,15 @@ def backend_student_list(request):
         or role in ('ADMIN', 'IT_ADMIN', 'LEADERSHIP')
     )
 
+    title = 'Alumni' if status_filter == StudentProfile.Status.ALUMNI else 'Students'
     return render(request, 'people/backend_student_list.html', {
         'students': page_obj.object_list,
         'page_obj': page_obj,
-        'title': 'Students',
+        'title': title,
         'search': search,
         'selected_year': year_id or '',
         'selected_classroom': classroom_id or '',
+        'selected_status': status_filter or '',
         'years': years,
         'classrooms': classrooms,
         'pagination_extra_query': _pagination_extra_query(request),

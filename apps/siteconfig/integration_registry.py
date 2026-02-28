@@ -30,8 +30,16 @@ class IntegrationRecord:
 def map_legacy_provider_to_service_type(legacy: Integration) -> str:
     category = str(getattr(legacy, "category", "") or "").upper()
     provider = str(getattr(legacy, "provider", "") or "").lower()
-    if category == "LMS":
+    if category == "LMS" or provider == "lms":
         return ServiceIntegration.ServiceType.LTI
+    if provider == "whatsapp":
+        return ServiceIntegration.ServiceType.WHATSAPP
+    if provider == "push":
+        return ServiceIntegration.ServiceType.PUSH
+    if provider == "stripe":
+        return ServiceIntegration.ServiceType.STRIPE
+    if provider == "badges":
+        return ServiceIntegration.ServiceType.BADGES
     if provider in {"email", "sms"}:
         return ServiceIntegration.ServiceType.WEBHOOK
     if provider in {"payments", "analytics"}:

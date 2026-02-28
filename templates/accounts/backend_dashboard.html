@@ -100,6 +100,10 @@ backend-shell dashboard-page-backend
     });
   </script>
 
+  {% if first_login_checklist_show %}
+  {% include "accounts/first_login_checklist_card.html" %}
+  {% endif %}
+
   <div class="backend-v2-shell">
     <div class="backend-v2-grid {% if not backend_module_visibility.admin_portal %}backend-v2-grid--single{% endif %}">
       <section class="backend-v2-main">

@@ -1,13 +1,32 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block backend_title %}Entity Import (Beta){% endblock %}
 
 {% block content %}
   {% include 'components/admin_nav_bridge.html' %}
-  <div class="mb-4">
-    <h2 class="fw-bold mb-1">Entity import (beta)</h2>
-    <p class="text-muted">Paste CSV to preview student or guardian imports before syncing to the new entity endpoints.</p>
+  <div class="mb-4 d-flex flex-wrap justify-content-between align-items-start gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">Entity import (beta)</h2>
+      <p class="text-muted mb-0">Paste CSV to preview student or guardian imports before syncing to the new entity endpoints.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:import_hub' %}" title="Back to Import Hub">{% trans "Import Hub" %}</a>
+      <a class="btn btn-outline-info btn-sm" href="{% url 'accounts:import_hub' %}#entity-import" title="{% trans 'Help: Entity import' %}"><i class="bi bi-question-circle"></i> {% trans "Help" %}</a>
+    </div>
+  </div>
+
+  {# W2-3: Empty state + Download sample / Column guide #}
+  <div class="alert alert-info mb-3">
+    <strong>{% trans "First time?" %}</strong>
+    <a href="{% static 'samples/entity_students_sample.csv' %}" download class="alert-link">{% trans "Download sample" %}</a>
+    {% trans "or see the" %}
+    <a href="#column-guide" data-bs-toggle="collapse" class="alert-link">{% trans "Column guide" %}</a>
+    {% trans "for required columns and format." %}
+  </div>
+  <div id="column-guide" class="collapse card card-body bg-light mb-3">
+    <strong>{% trans "Students CSV" %}:</strong> first_name, last_name, admission_number, academic_year, classroom, specialty, status.
+    <strong>{% trans "Guardians CSV" %}:</strong> guardian_user, student, relationship, can_view_results, can_view_finance.
   </div>
 
   <div class="row g-4">
@@ -76,6 +95,13 @@
       let lastStudentPreview = null;
       let lastGuardianPreview = null;
 
+      function formatValidationErrors(errors) {
+        if (!errors || !errors.length) return '';
+        return 'Validation errors:\n' + errors.map(function(e) {
+          return 'Row ' + (e.row || e.index || '?') + ': ' + (e.error || e.message || JSON.stringify(e));
+        }).join('\n');
+      }
+
       async function previewStudents() {
         studentStatus.textContent = 'Previewing…';
         try {
@@ -89,15 +115,25 @@
             body: JSON.stringify({ csv })
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Preview failed');
-          studentStatus.textContent = `${data.preview.length} rows parsed, ${data.errors.length} errors`;
-          studentStatus.className = data.errors.length ? 'small text-warning' : 'small text-success';
-          studentPreview.textContent = JSON.stringify(data, null, 2);
+          if (!res.ok) {
+            const errList = formatValidationErrors(data.errors || data.validation_errors);
+            const msg = data.error || 'Preview failed';
+            studentStatus.textContent = msg + (errList ? ' (see details below)' : '');
+            studentStatus.className = 'small text-danger';
+            studentPreview.textContent = errList || msg + '\n\n' + (data.detail || '');
+            lastStudentPreview = null;
+            return;
+          }
+          studentStatus.textContent = `${data.preview.length} rows parsed, ${(data.errors || []).length} errors`;
+          studentStatus.className = (data.errors && data.errors.length) ? 'small text-warning' : 'small text-success';
+          studentPreview.textContent = (data.errors && data.errors.length)
+            ? formatValidationErrors(data.errors) + '\n\n--- Preview ---\n' + JSON.stringify(data.preview, null, 2)
+            : JSON.stringify(data, null, 2);
           lastStudentPreview = data.preview;
         } catch (err) {
           studentStatus.textContent = err.message || 'Preview failed';
           studentStatus.className = 'small text-danger';
-          studentPreview.textContent = '';
+          studentPreview.textContent = err.message || '';
           lastStudentPreview = null;
         }
       }
@@ -115,15 +151,25 @@
             body: JSON.stringify({ csv })
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Preview failed');
-          guardianStatus.textContent = `${data.preview.length} rows parsed, ${data.errors.length} errors`;
-          guardianStatus.className = data.errors.length ? 'small text-warning' : 'small text-success';
-          guardianPreview.textContent = JSON.stringify(data, null, 2);
+          if (!res.ok) {
+            const errList = formatValidationErrors(data.errors || data.validation_errors);
+            const msg = data.error || 'Preview failed';
+            guardianStatus.textContent = msg + (errList ? ' (see details below)' : '');
+            guardianStatus.className = 'small text-danger';
+            guardianPreview.textContent = errList || msg + '\n\n' + (data.detail || '');
+            lastGuardianPreview = null;
+            return;
+          }
+          guardianStatus.textContent = `${data.preview.length} rows parsed, ${(data.errors || []).length} errors`;
+          guardianStatus.className = (data.errors && data.errors.length) ? 'small text-warning' : 'small text-success';
+          guardianPreview.textContent = (data.errors && data.errors.length)
+            ? formatValidationErrors(data.errors) + '\n\n--- Preview ---\n' + JSON.stringify(data.preview, null, 2)
+            : JSON.stringify(data, null, 2);
           lastGuardianPreview = data.preview;
         } catch (err) {
           guardianStatus.textContent = err.message || 'Preview failed';
           guardianStatus.className = 'small text-danger';
-          guardianPreview.textContent = '';
+          guardianPreview.textContent = err.message || '';
           lastGuardianPreview = null;
         }
       }
@@ -171,9 +217,17 @@
             body: JSON.stringify({ rows: lastGuardianPreview })
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Commit failed');
-          guardianStatus.textContent = `Created ${data.created.length} (errors: ${data.errors.length})`;
-          guardianStatus.className = data.errors.length ? 'small text-warning' : 'small text-success';
+          if (!res.ok) {
+            const errList = formatValidationErrors(data.errors || data.validation_errors);
+            guardianStatus.textContent = (data.error || 'Commit failed') + (errList ? '. See details in preview.' : '');
+            guardianStatus.className = 'small text-danger';
+            guardianPreview.textContent = (data.error || 'Commit failed') + '\n\n' + (errList || data.detail || '');
+            return;
+          }
+          guardianStatus.textContent = `Created ${(data.created || []).length} (errors: ${(data.errors || []).length})`;
+          guardianStatus.className = (data.errors && data.errors.length) ? 'small text-warning' : 'small text-success';
+          if (data.errors && data.errors.length)
+            guardianPreview.textContent = 'Per-row errors:\n' + formatValidationErrors(data.errors) + '\n\nCreated IDs: ' + (data.created || []).join(', ');
         } catch (err) {
           guardianStatus.textContent = err.message || 'Commit failed';
           guardianStatus.className = 'small text-danger';

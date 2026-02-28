@@ -4,6 +4,7 @@ set request.school and session school_id, and set PostgreSQL app.current_school_
 """
 import os
 import logging
+from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
@@ -123,17 +124,39 @@ def _is_base_domain(host: str, base_domain: str) -> bool:
     """
     True if this host is the primary/base domain (no tenant subdomain).
     On base domain we never assign a tenant: Main (Public) Admin only; tenants use subdomain/custom domain.
+    Also treat admin.<base_domain> as base so admin.runmycampus.com serves only super-admin.
     """
     if base_domain:
-        return host == base_domain
-    return host in ("localhost", "127.0.0.1")
+        if host == base_domain:
+            return True
+        if host == f"admin.{base_domain}":
+            return True
+    return host in ("localhost", "127.0.0.1", "admin.localhost")
+
+
+def _tenant_cache_key(host_or_sub: str, kind: str = "host") -> str:
+    """Cache key for optional Redis tenant lookup (<10ms). Use kind='host' or 'subdomain'."""
+    return f"tenant:{kind}:{host_or_sub}"
 
 
 def _resolve_school_from_request(request) -> "School | None":
     from apps.schools.models import School
+    from django.conf import settings as django_settings
+    cache_ttl = getattr(django_settings, "TENANT_CACHE_TTL", 300)
 
     host = request.get_host().split(":")[0].lower()
     base_domain = _get_base_domain()
+
+    # Optional: Redis (or any cache backend) tenant lookup for <10ms resolution
+    try:
+        from django.core.cache import cache
+        cached_id = cache.get(_tenant_cache_key(host, "host"))
+        if cached_id:
+            school = School.objects.filter(pk=cached_id, is_active=True).first()
+            if school:
+                return school
+    except Exception:
+        pass
 
     # 1. Custom domain (Phase 4)
     school = School.objects.filter(
@@ -142,16 +165,33 @@ def _resolve_school_from_request(request) -> "School | None":
         is_active=True,
     ).first()
     if school:
+        try:
+            cache.set(_tenant_cache_key(host, "host"), str(school.id), cache_ttl)
+        except Exception:
+            pass
         return school
 
     # 2. Subdomain
     subdomain = _extract_subdomain(host, base_domain or None)
     if subdomain:
+        cached_id = None
+        try:
+            cached_id = cache.get(_tenant_cache_key(subdomain, "subdomain"))
+            if cached_id:
+                school = School.objects.filter(pk=cached_id, is_active=True).first()
+                if school:
+                    return school
+        except Exception:
+            pass
         school = School.objects.filter(
             subdomain__iexact=subdomain,
             is_active=True,
         ).first()
         if school:
+            try:
+                cache.set(_tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl)
+            except Exception:
+                pass
             return school
         # Also match by slug
         school = School.objects.filter(
@@ -159,6 +199,10 @@ def _resolve_school_from_request(request) -> "School | None":
             is_active=True,
         ).first()
         if school:
+            try:
+                cache.set(_tenant_cache_key(subdomain, "subdomain"), str(school.id), cache_ttl)
+            except Exception:
+                pass
             return school
 
     # Base domain: no tenant from host (Main Admin at /admin/, /super/). Single-tenant is applied in process_request for non-admin paths so the main URL can serve Backend when only one hostname exists (e.g. Render).
@@ -175,10 +219,28 @@ def _resolve_school_from_request(request) -> "School | None":
     return None
 
 
+class TenantSchemaSchoolBridgeMiddleware(MiddlewareMixin):
+    """
+    When using django-tenants (schema-per-tenant), TenantMainMiddleware sets request.tenant (Client).
+    This bridge sets request.school = request.tenant.school so all code that expects request.school works.
+    Must run immediately after TenantMainMiddleware.
+    """
+
+    def process_request(self, request):
+        tenant = getattr(request, "tenant", None)
+        if tenant is not None and hasattr(tenant, "school"):
+            request.school = tenant.school
+            if request.school and getattr(request, "session", None) is not None:
+                request.session["school_id"] = str(request.school.id)
+        else:
+            request.school = None
+
+
 class TenantMiddleware(MiddlewareMixin):
     """
     Resolve the current school from the request host (subdomain or custom domain).
     Sets request.school, request.session['school_id'], and PostgreSQL app.current_school_id.
+    (Not used when USE_DJANGO_TENANTS=1; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware are used instead.)
     """
 
     def process_request(self, request):
@@ -319,6 +381,36 @@ class TenantFreezeMiddleware(MiddlewareMixin):
             return None
         from django.shortcuts import redirect
         return redirect("account_frozen")
+
+
+class TenantApiQuotaMiddleware(MiddlewareMixin):
+    """
+    Plan I: Per-tenant API rate limit. Runs after TenantMiddleware.
+    When request.school is set and path is under /api/, enforces throttle_tenant_request.
+    Set API_TENANT_MAX_REQUESTS_PER_MINUTE in settings (default 600). Disable with DISABLE_TENANT_API_QUOTA=1.
+    """
+    def process_request(self, request):
+        if getattr(settings, "DISABLE_TENANT_API_QUOTA", False):
+            return None
+        path = (request.path or "").strip()
+        if not path.startswith("/api/"):
+            return None
+        school = getattr(request, "school", None)
+        if not school:
+            return None
+        try:
+            from apps.api.rate_limit import throttle_tenant_request
+            allowed, retry_after = throttle_tenant_request(request)
+            if not allowed:
+                from django.http import JsonResponse
+                return JsonResponse(
+                    {"detail": "Request limit exceeded for this school. Retry later.", "retry_after": retry_after},
+                    status=429,
+                    headers={"Retry-After": str(retry_after)} if retry_after else None,
+                )
+        except Exception as e:
+            logger.debug("Tenant API quota check failed: %s", e)
+        return None
 
 
 class SentryTenantTagMiddleware(MiddlewareMixin):

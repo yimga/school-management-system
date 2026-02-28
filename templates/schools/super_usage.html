@@ -1,0 +1,65 @@
+{% extends "backend_base.html" %}
+{% load static %}
+
+{% block title %}Super Admin - API Usage & Quotas{% endblock %}
+{% block backend_title %}API Usage & Quotas{% endblock %}
+
+{% block content %}
+  <div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+      <h1 class="h4 mb-0">Per-tenant API usage & quotas</h1>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">Back to Schools</a>
+    </div>
+    <p class="text-muted small">Usage is sampled (throttled writes). Quotas are configured in Admin → Tenant quota limits.</p>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>School</th>
+                <th>Students</th>
+                <th>API usage (sample)</th>
+                <th>Quota limits</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for school in schools %}
+              <tr>
+                <td>
+                  <strong>{{ school.name }}</strong>
+                  <br><span class="text-muted small">{{ school.slug }}</span>
+                </td>
+                <td>{{ school.student_count|default:0 }}</td>
+                <td>
+                  {% for k, v in school.api_usage.items %}
+                  <span class="badge bg-secondary">{{ k }}: {{ v }}</span>
+                  {% empty %}
+                  <span class="text-muted">—</span>
+                  {% endfor %}
+                </td>
+                <td>
+                  {% for q in school.quota_limits %}
+                  <span class="badge bg-info">{{ q.limit_type }}: {{ q.limit_value }}{% if q.period_days %}/{{ q.period_days }}d{% endif %}</span>
+                  {% empty %}
+                  <span class="text-muted">—</span>
+                  {% endfor %}
+                </td>
+                <td>
+                  {% if school.admin_edit_url %}
+                  <a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-muted">No active schools.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <p class="mt-2 small text-muted">API: <code>GET /api/v1/super/usage</code> returns the same data as JSON (superuser only).</p>
+  </div>
+{% endblock %}

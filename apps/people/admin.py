@@ -20,6 +20,7 @@ from .models import (
     BadgeType,
     Badge,
     BadgeScanEvent,
+    EmployerProfile,
 )
 
 
@@ -610,4 +611,14 @@ class BadgeScanEventAdmin(ModelAdmin):
 admin_site.register(BadgeType, BadgeTypeAdmin)
 admin_site.register(Badge, BadgeAdmin)
 admin_site.register(BadgeScanEvent, BadgeScanEventAdmin)
+
+
+class EmployerProfileAdmin(ModelAdmin):
+    list_display = ("user", "company_name", "school", "is_active", "updated_at")
+    list_filter = ("is_active", "school")
+    search_fields = ("company_name", "user__username")
+    raw_id_fields = ("user", "school")
+
+
+admin_site.register(EmployerProfile, EmployerProfileAdmin)
 

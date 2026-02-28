@@ -7,6 +7,7 @@ from django.core.files.storage import default_storage
 from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
+from django.utils.translation import gettext as _
 from apps.accounts.models import User
 from apps.finance.models import Notification
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
@@ -230,7 +231,7 @@ def site_settings(request):
             pass
         try:
             default_collapsed = getattr(site, "default_sidebar_collapsed", False)
-            dashboard_pref, _ = DashboardUserPreference.objects.get_or_create(
+            dashboard_pref, _created = DashboardUserPreference.objects.get_or_create(
                 user=user,
                 defaults={"sidebar_collapsed": default_collapsed},
             )
@@ -311,6 +312,16 @@ def site_settings(request):
             request._portal_parent_hat = False
     _get_theme = getattr(site, "get_portal_theme", None)
     site_theme = (_get_theme(user=user, effective_role=effective_portal_role) if callable(_get_theme) else None)
+    # W3-5: Per-tenant theme pack — when school has theme_pack set, use it for portal theme
+    school = getattr(request, "school", None)
+    if school and getattr(school, "theme_pack_id", None):
+        try:
+            from .models import ThemePack
+            school_pack = ThemePack.objects.filter(pk=school.theme_pack_id, is_active=True).first()
+            if school_pack:
+                site_theme = school_pack
+        except Exception:
+            pass
     weather_defaults = default_header_weather_config()
     ctx = {
         "SITE": site,
@@ -403,6 +414,9 @@ def site_settings(request):
             ctx["SITE_LOGO_URL"] = school.logo_url
         ctx["SITE_PRIMARY_COLOR"] = getattr(school, "primary_color", None) or "#0d6efd"
         ctx["SITE_ACCENT_COLOR"] = getattr(school, "accent_color", None) or "#198754"
+        ctx["TENANT_WALLPAPER_URL"] = getattr(school, "wallpaper_url", None) or ""
+        # Tenant-specific login placeholder e.g. "Riverfront Arts College" or "School Email"
+        ctx["LOGIN_EMAIL_PLACEHOLDER"] = (getattr(school, "name", None) or "").strip() or _("School Email")
         # Phase A: useLocalSettings — merged timezone, locale, currency, date_format, grading_scale for templates
         try:
             from .tenant_config import use_local_settings
@@ -412,6 +426,8 @@ def site_settings(request):
     else:
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None
+        ctx["TENANT_WALLPAPER_URL"] = ""
+        ctx["LOGIN_EMAIL_PLACEHOLDER"] = _("School Email")
         ctx["TENANT_LOCALE"] = {}
     # Offline: global Feature Control must be on; in multi-tenant, school must also have offline_mode module.
     ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and (
@@ -489,6 +505,7 @@ def region_settings(request):
                 grading_scale="default",
                 decimal_separator=".",
                 thousands_separator=",",
+                is_rtl=False,
             )
             grading_scale = "default"
             default_language = "en"
@@ -503,6 +520,9 @@ def region_settings(request):
 
     currency_symbol = get_currency_symbol(getattr(region, "default_currency", None) or "XAF")
 
+    is_rtl = getattr(region, "is_rtl", False)
+    if school and (school.settings or {}).get("rtl") is True:
+        is_rtl = True
     return {
         'region': region,
         'region_code': getattr(region, "code", "CMR"),
@@ -515,6 +535,7 @@ def region_settings(request):
         'decimal_separator': getattr(region, "decimal_separator", "."),
         'thousands_separator': getattr(region, "thousands_separator", ","),
         'enable_multi_region': getattr(settings, 'ENABLE_MULTI_REGION', False),
+        'is_rtl': is_rtl,
     }
 
 

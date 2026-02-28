@@ -17,5 +17,7 @@ urlpatterns = [
     path("api/system-blueprint/", super_views.api_system_blueprint, name="api_system_blueprint"),
     path("api/plans-configurator/", super_views.api_plans_configurator, name="api_plans_configurator"),
     path("parent-tenant/", parent_tenant_dashboard, name="parent_tenant_dashboard"),
+    path("usage/", super_views.super_usage, name="usage"),
+    path("billing/", super_views.billing_dashboard, name="billing_dashboard"),
     path("sync-repair/<uuid:school_id>/", super_views.sync_repair, name="sync_repair"),
 ]

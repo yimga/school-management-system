@@ -43,6 +43,20 @@ class ComplianceProfile(models.Model):
         ),
     )
 
+    # Plan IV: VAT/GST by location; report in different currency (e.g. invoice in USD, report in AED)
+    vat_rate = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="VAT/GST rate as percentage (e.g. 19.25 for 19.25%%). Applied by location.",
+    )
+    report_currency_code = models.CharField(
+        max_length=3,
+        blank=True,
+        default="",
+        help_text="When set, reports show amounts in this currency (e.g. AED). Leave blank to use currency_code.",
+    )
+
     min_wage = models.DecimalField(max_digits=12, decimal_places=2, default=60000)
     default_hours_per_week = models.DecimalField(max_digits=6, decimal_places=2, default=40)
     overtime_multiplier = models.DecimalField(max_digits=6, decimal_places=2, default=1.5)
@@ -229,6 +243,7 @@ class PaymentMethodCode(models.TextChoices):
     MTN_MOMO = "MTN_MOMO", "MTN MoMo"
     ORANGE_MOMO = "ORANGE_MOMO", "Orange Money"
     CHECK = "CHECK", "Check"
+    WALLET = "WALLET", "Digital Wallet"
     OTHER = "OTHER", "Other"
 
 
@@ -878,6 +893,84 @@ class InvoicePayerSharePaymentAllocation(models.Model):
 
     def __str__(self) -> str:
         return f"Payment {self.payment_id} -> Share {self.payer_share_id} ({self.amount})"
+
+
+class ParentWallet(models.Model):
+    """
+    Per-parent/guardian wallet balance for "Pay with wallet" at checkout.
+    One wallet per (school, user); balance in school currency.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="parent_wallets",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="parent_wallets",
+        help_text="Guardian/parent user who owns this wallet.",
+    )
+    currency_code = models.CharField(max_length=3, default="XAF")
+    balance = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["school_id", "user_id"]
+        unique_together = [("school", "user")]
+
+    def __str__(self) -> str:
+        return f"Wallet {self.user_id} @ {self.school_id} ({self.balance} {self.currency_code})"
+
+
+class WalletTransaction(models.Model):
+    """Audit trail for wallet balance changes: top-up, payment, refund."""
+
+    class Kind(models.TextChoices):
+        TOP_UP = "top_up", "Top-up"
+        PAYMENT = "payment", "Payment"
+        REFUND = "refund", "Refund"
+        ADJUSTMENT = "adjustment", "Adjustment"
+
+    wallet = models.ForeignKey(
+        ParentWallet,
+        on_delete=models.CASCADE,
+        related_name="transactions",
+    )
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Positive = credit (top-up, refund); negative = debit (payment).",
+    )
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    balance_after = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Wallet balance after this transaction.",
+    )
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="wallet_transactions",
+    )
+    reference = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.get_kind_display()} {self.amount} @ {self.created_at}"
 
 
 class CashOfficeClosure(models.Model):
