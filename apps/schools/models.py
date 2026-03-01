@@ -408,6 +408,61 @@ class SchoolProvisioningEvent(models.Model):
         )
 
 
+class SchoolDomain(models.Model):
+    """
+    Multiple domains per tenant (shared schema). Used for subdomain and custom domains;
+    Caddy ask endpoint and middleware resolve tenant from domain. DNS verification
+    uses dns_token (TXT runyourcampus-verify=<token>).
+    """
+
+    class Kind(models.TextChoices):
+        SUBDOMAIN = "SUBDOMAIN", "Subdomain"
+        CUSTOM = "CUSTOM", "Custom domain"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name="domain_entries",
+    )
+    domain = models.CharField(
+        max_length=255,
+        db_index=True,
+        help_text="Hostname e.g. school.runyourcampus.com or portal.school.edu",
+    )
+    is_verified = models.BooleanField(
+        default=False,
+        help_text="True after TXT verification (custom) or when created from School.subdomain (subdomain).",
+    )
+    dns_token = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        db_index=True,
+        help_text="TXT record runyourcampus-verify=<token> for custom domain verification.",
+    )
+    kind = models.CharField(
+        max_length=20,
+        choices=Kind.choices,
+        default=Kind.CUSTOM,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["school", "domain"]
+        unique_together = [("school", "domain")]
+        indexes = [
+            models.Index(fields=["domain"]),
+            models.Index(fields=["is_verified", "domain"]),
+        ]
+        verbose_name = "School domain"
+        verbose_name_plural = "School domains"
+
+    def __str__(self):
+        return f"{self.domain} → {self.school.name}"
+
+
 class SchoolMembership(models.Model):
     """Links a user to a school with a role. User can belong to multiple schools."""
 

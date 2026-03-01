@@ -4,11 +4,13 @@ Can be run as Celery task or synchronously.
 When USE_DJANGO_TENANTS is True, ensures Client and Domain exist and runs tenant-scoped creation in tenant_context.
 """
 import logging
-import os
 import secrets
 from contextlib import contextmanager
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+
+from apps.schools.domain_sync import ensure_tenant_client_for_school, sync_school_domains_to_runtime
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +18,7 @@ User = get_user_model()
 
 
 def _use_django_tenants():
-    return os.getenv("USE_DJANGO_TENANTS", "").strip().lower() in ("1", "true", "yes")
+    return bool(getattr(settings, "USE_DJANGO_TENANTS", False))
 
 
 def _ensure_tenant_client(school):
@@ -26,43 +28,12 @@ def _ensure_tenant_client(school):
     """
     if not _use_django_tenants():
         return None
-    try:
-        from django.db import connection
-        if connection.vendor != "postgresql":
-            return None
-        from apps.customers.models import Client, Domain
-    except ImportError:
-        return None
-    schema_name = (school.slug or "school").strip().lower().replace("-", "_")[:63]
-    if not schema_name:
-        schema_name = "tenant"
-    client = Client.objects.filter(school=school).first()
+    client = ensure_tenant_client_for_school(school)
     if client:
-        return client
-    client = Client.objects.filter(schema_name=schema_name).first()
-    if client:
-        if not client.school_id:
-            client.school = school
-            client.save(update_fields=["school"])
-        return client
-    client = Client(
-        schema_name=schema_name,
-        name=school.name,
-        school=school,
-    )
-    client.save()
-    base_domain = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip() or "localhost"
-    domain_str = f"{school.subdomain or school.slug}.{base_domain}".lower()
-    Domain.objects.get_or_create(
-        domain=domain_str,
-        defaults={"tenant": client, "is_primary": True},
-    )
-    if school.custom_domain and school.custom_domain_verified:
-        Domain.objects.get_or_create(
-            domain=school.custom_domain.strip().lower(),
-            defaults={"tenant": client, "is_primary": False},
-        )
-    logger.info("Created Client schema_name=%s for school %s", schema_name, school.id)
+        try:
+            sync_school_domains_to_runtime(school)
+        except Exception:
+            logger.exception("Failed syncing domains for school %s", school.id)
     return client
 
 
@@ -157,6 +128,10 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         logger.warning("School %s not found for provisioning", school_id)
         return
     if school.is_active:
+        try:
+            sync_school_domains_to_runtime(school)
+        except Exception:
+            logger.exception("Failed syncing domains for already active school %s", school_id)
         logger.info("School %s already active, skip provisioning", school_id)
         return
     _record_school_event(
@@ -269,6 +244,11 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
 
     # Schema-per-tenant: ensure Client and Domain exist so tenant schema is available
     tenant_client = _ensure_tenant_client(school)
+    if tenant_client is None:
+        try:
+            sync_school_domains_to_runtime(school)
+        except Exception:
+            logger.exception("Failed syncing domains for school %s", school.id)
 
     # Tenant-scoped creation: run inside tenant_context when using schema-per-tenant
     with _optional_tenant_context(tenant_client):
