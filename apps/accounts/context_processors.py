@@ -44,14 +44,14 @@ def dashboard_context(request):
         'simple_mode': False,  # Plan XIV: simplified UI; set from UserPreference below when authenticated
     }
 
-    if not request.user.is_authenticated:
+    user = getattr(request, "user", None)
+    if not getattr(user, "is_authenticated", False):
         return context
 
     if connection.needs_rollback:
         _reset_db_state()
         return context
 
-    user = request.user
     # Plan XIV: simple_mode from UserPreference (consumer-grade simplified UI)
     try:
         prefs = getattr(user, "preferences", None)

@@ -15,7 +15,21 @@ run() {
 }
 
 if [[ "${SKIP_DB_MIGRATIONS:-0}" != "1" ]]; then
-  run "${PYTHON_BIN}" manage.py migrate --noinput
+  TENANT_MODE="$("${PYTHON_BIN}" - <<'PY'
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+import django
+django.setup()
+from django.conf import settings
+print("1" if getattr(settings, "USE_DJANGO_TENANTS", False) else "0")
+PY
+)"
+  if [[ "${TENANT_MODE}" == "1" ]]; then
+    run "${PYTHON_BIN}" manage.py migrate_schemas --shared --noinput
+    run "${PYTHON_BIN}" manage.py migrate_schemas --tenant --noinput
+  else
+    run "${PYTHON_BIN}" manage.py migrate --noinput
+  fi
 fi
 
 run "${PYTHON_BIN}" manage.py seed_admin_dashboard_palettes

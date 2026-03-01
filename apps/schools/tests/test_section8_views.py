@@ -2,14 +2,15 @@
 Section 8: Tests for Industry Interoperability views — Caddy ask, discovery, LTI placeholder, frozen page.
 """
 import json
-from django.test import TestCase, RequestFactory, Client
+from django.test import TestCase, RequestFactory, Client, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.schools.models import School, SchoolMembership
+from apps.schools.models import School, SchoolDomain, SchoolMembership
 from apps.siteconfig.models import ServiceIntegration
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class VerifyCaddyDomainTests(TestCase):
     """GET /api/caddy-check/?domain=... returns 200 for allowed domain, 404 otherwise."""
 
@@ -67,6 +68,24 @@ class VerifyCaddyDomainTests(TestCase):
         response = verify_caddy_domain(request)
         self.assertEqual(response.status_code, 404)
 
+    def test_inactive_school_verified_domain_returns_404(self):
+        inactive = School.objects.create(
+            name="Inactive School",
+            slug="inactive-school",
+            subdomain="inactive-school",
+            is_active=False,
+        )
+        SchoolDomain.objects.create(
+            school=inactive,
+            domain="inactive-school.yoursystem.com",
+            kind=SchoolDomain.Kind.SUBDOMAIN,
+            is_verified=True,
+        )
+        from apps.schools.section8_views import verify_caddy_domain
+        request = self.factory.get("/api/caddy-check/", {"domain": "inactive-school.yoursystem.com"})
+        response = verify_caddy_domain(request)
+        self.assertEqual(response.status_code, 404)
+
     def test_caddy_ip_allowlist_403_when_ip_not_allowed(self):
         import os
         from unittest.mock import patch
@@ -97,6 +116,7 @@ class VerifyCaddyDomainTests(TestCase):
         self.assertEqual(response.status_code, 429)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class GlobalLoginDiscoveryTests(TestCase):
     """GET/POST /discover/ — form, redirect to school subdomain or login, or error."""
 
@@ -165,6 +185,35 @@ class GlobalLoginDiscoveryTests(TestCase):
         self.assertIn(b"Too many attempts", response.content)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
+class SchoolFinderTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.school = School.objects.create(
+            name="St Marys Academy",
+            slug="st-marys-academy",
+            subdomain="st-marys-academy",
+            is_active=True,
+        )
+
+    def test_find_school_page_renders(self):
+        response = self.client.get(reverse("find_school"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Access Your Campus", response.content.decode())
+
+    def test_find_school_hx_returns_matching_result(self):
+        response = self.client.get(
+            reverse("find_school"),
+            {"q": "st marys"},
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode().lower()
+        self.assertIn("st marys academy", body)
+        self.assertIn("st-marys-academy", body)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
 class LtiLaunchRuntimeTests(TestCase):
     """LTI launch endpoints perform OIDC initiation and callback checks."""
 
@@ -278,6 +327,7 @@ class LtiLaunchRuntimeTests(TestCase):
         self.assertEqual(launch["Retry-After"], "60")
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class LtiServicesRuntimeTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -447,6 +497,7 @@ class LtiServicesRuntimeTests(TestCase):
                 self.assertEqual(response["Retry-After"], "90", msg=url)
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class FrozenAccountViewTests(TestCase):
     """GET /account-frozen/ renders template with frozen_reason."""
 
@@ -490,6 +541,7 @@ class FrozenAccountViewTests(TestCase):
         self.assertIn("billing", content.lower())
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class TenantFreezeMiddlewareTests(TestCase):
     """TenantFreezeMiddleware redirects to account_frozen when school.is_frozen, except exempt paths."""
 

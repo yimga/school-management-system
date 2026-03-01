@@ -50,6 +50,9 @@ if _multi_tenant_base:
     _origin = f"https://{_multi_tenant_base}"
     if _origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_origin]
+    _wildcard_origin = f"https://*.{_multi_tenant_base}"
+    if _wildcard_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_wildcard_origin]
 
 INSTALLED_APPS = [
     # Admin theme (must be first)
@@ -106,6 +109,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "apps.schools.middleware.UrlConfSwitcherMiddleware",  # Public vs tenant URLConf from host/path
     "apps.schools.middleware.TenantMiddleware",  # Multi-tenant: resolve request.school from subdomain/custom domain
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
@@ -139,6 +143,8 @@ MIDDLEWARE += [
 ]
 
 ROOT_URLCONF = "config.urls"
+PUBLIC_SCHEMA_URLCONF = "config.public_urls"
+TENANT_SCHEMA_URLCONF = "config.tenant_urls"
 
 TEMPLATES = [
     {
@@ -332,6 +338,16 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
+_session_cookie_domain_env = (os.getenv("SESSION_COOKIE_DOMAIN") or "").strip()
+if _session_cookie_domain_env:
+    SESSION_COOKIE_DOMAIN = _session_cookie_domain_env
+elif _multi_tenant_base and _multi_tenant_base not in {"localhost", "127.0.0.1"}:
+    SESSION_COOKIE_DOMAIN = f".{_multi_tenant_base}"
+_csrf_cookie_domain_env = (os.getenv("CSRF_COOKIE_DOMAIN") or "").strip()
+if _csrf_cookie_domain_env:
+    CSRF_COOKIE_DOMAIN = _csrf_cookie_domain_env
+elif _multi_tenant_base and _multi_tenant_base not in {"localhost", "127.0.0.1"}:
+    CSRF_COOKIE_DOMAIN = f".{_multi_tenant_base}"
 # Session expiry: use SESSION_INACTIVITY_TIMEOUT_MINUTES for shared computers (e.g. 15–30),
 # or SESSION_COOKIE_AGE (seconds) for max session length. With SESSION_SAVE_EVERY_REQUEST=True,
 # session expires after this many seconds of *inactivity* (no requests).
@@ -800,10 +816,12 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.payroll",
     ]
     INSTALLED_APPS = list(SHARED_APPS) + [a for a in TENANT_APPS if a not in SHARED_APPS]
-    # Middleware: TenantMainMiddleware first; bridge sets request.school from request.tenant.school
+    # Middleware: TenantMain first (strict tenant resolution), then URLConf switch, then school bridge.
     MIDDLEWARE = [
         "django_tenants.middleware.main.TenantMainMiddleware",
+        "apps.schools.middleware.UrlConfSwitcherMiddleware",
         "apps.schools.middleware.TenantSchemaSchoolBridgeMiddleware",
+        "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
         "django.middleware.security.SecurityMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
@@ -833,4 +851,3 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
     ]
     # TenantMiddleware is not used; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware provide request.school
-
