@@ -1,17 +1,30 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}RunMyCampus — Don't just record your school. Run your campus.{% endblock %}
+{% block title %}{{ pitch.seo_title|default:"RunMyCampus — Don't just record your school. Run your campus." }}{% endblock %}
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center text-center">
     <div class="col-lg-8">
-      <h1 class="display-5 mb-3">RunMyCampus</h1>
-      <p class="lead text-muted">Don't just record your school. Run your campus.</p>
+      <h1 class="display-5 mb-3">{{ pitch.headline }}</h1>
+      <p class="lead text-muted">{{ pitch.subheadline }}</p>
+      {% if pitch.features %}
+      <ul class="list-unstyled mb-4 text-start">
+        {% for item in pitch.features %}
+        <li class="mb-1">{% if item.title %}{{ item.title }}{% else %}{{ item }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
       <p class="mb-4">The only multi-tenant OS that speaks every education system on Earth.</p>
+      {% endif %}
       <div class="d-flex flex-wrap gap-3 justify-content-center">
-        <a href="{% url 'signup_school' %}" class="btn btn-primary btn-lg">Start free trial</a>
-        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary btn-lg">Find your school</a>
+        <a href="{% url 'signup_school' %}" class="btn btn-primary btn-lg">{% trans "Start free trial" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary btn-lg">{% trans "Find your school" %}</a>
       </div>
+    </div>
+  </div>
+  <div class="row justify-content-center mt-4">
+    <div class="col-lg-7">
+      {% include "schools/partials/school_finder_bento.html" with finder_id="landing-school-finder-results" input_id="landing-school-finder-input" %}
     </div>
   </div>
 </div>

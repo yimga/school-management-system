@@ -129,9 +129,11 @@ def _is_base_domain(host: str, base_domain: str) -> bool:
     if base_domain:
         if host == base_domain:
             return True
+        if host == f"www.{base_domain}":
+            return True
         if host == f"admin.{base_domain}":
             return True
-    return host in ("localhost", "127.0.0.1", "admin.localhost")
+    return host in ("localhost", "127.0.0.1", "admin.localhost", "testserver")
 
 
 def _tenant_cache_key(host_or_sub: str, kind: str = "host") -> str:
@@ -139,8 +141,30 @@ def _tenant_cache_key(host_or_sub: str, kind: str = "host") -> str:
     return f"tenant:{kind}:{host_or_sub}"
 
 
+class UrlConfSwitcherMiddleware(MiddlewareMixin):
+    """
+    Set request.urlconf to public_urls or tenant_urls so the root URL resolver
+    serves the correct tree (marketing vs school app). Runs early (after Session).
+    Base domain -> config.public_urls; tenant host or /t/<slug>/ -> config.tenant_urls.
+    """
+
+    def process_request(self, request):
+        path = (request.path or "").strip()
+        host = (request.get_host() or "").split(":")[0].lower()
+        base_domain = _get_base_domain()
+        # Path-based tenant: /t/<slug>/...
+        if _path_starts_with_tenant_prefix(path):
+            request.urlconf = "config.tenant_urls"
+            return None
+        if _is_base_domain(host, base_domain):
+            request.urlconf = "config.public_urls"
+        else:
+            request.urlconf = "config.tenant_urls"
+        return None
+
+
 def _resolve_school_from_request(request) -> "School | None":
-    from apps.schools.models import School
+    from apps.schools.models import School, SchoolDomain
     from django.conf import settings as django_settings
     cache_ttl = getattr(django_settings, "TENANT_CACHE_TTL", 300)
 
@@ -158,7 +182,21 @@ def _resolve_school_from_request(request) -> "School | None":
     except Exception:
         pass
 
-    # 1. Custom domain (Phase 4)
+    # 1. Canonical verified domain registry (SchoolDomain)
+    school_domain = (
+        SchoolDomain.objects.select_related("school")
+        .filter(domain__iexact=host, is_verified=True, school__is_active=True)
+        .first()
+    )
+    if school_domain and school_domain.school_id:
+        school = school_domain.school
+        try:
+            cache.set(_tenant_cache_key(host, "host"), str(school.id), cache_ttl)
+        except Exception:
+            pass
+        return school
+
+    # 2. Legacy custom_domain fallback
     school = School.objects.filter(
         custom_domain__iexact=host,
         custom_domain_verified=True,
@@ -171,7 +209,7 @@ def _resolve_school_from_request(request) -> "School | None":
             pass
         return school
 
-    # 2. Subdomain
+    # 3. Subdomain
     subdomain = _extract_subdomain(host, base_domain or None)
     if subdomain:
         cached_id = None
@@ -209,7 +247,7 @@ def _resolve_school_from_request(request) -> "School | None":
     if _is_base_domain(host, base_domain):
         return None
 
-    # 3. Single-tenant fallback when NOT on base domain
+    # 4. Single-tenant fallback when NOT on base domain
     if os.getenv("SINGLE_TENANT", "").lower() in ("1", "true", "yes"):
         return _get_single_tenant_school()
     single = _get_single_tenant_school()
@@ -234,6 +272,36 @@ class TenantSchemaSchoolBridgeMiddleware(MiddlewareMixin):
                 request.session["school_id"] = str(request.school.id)
         else:
             request.school = None
+
+
+class TenantSchoolNotFoundMiddleware(MiddlewareMixin):
+    """
+    When using django-tenants: if the host looks like a tenant host (not base domain)
+    but no tenant was resolved (request.school is None), return branded "School Not Found" 404.
+    Must run after TenantSchemaSchoolBridgeMiddleware. Skip public paths (static, health, discover, marketing, etc.).
+    """
+
+    def process_request(self, request):
+        path = (request.path or "").strip()
+        for prefix in SUPER_PREFIXES + STATIC_PREFIXES + HEALTH_PREFIXES + (
+            "/discover/",
+            "/marketing/",
+            "/signup/",
+            "/verify-signup/",
+            "/api/caddy-check/",
+            "/api/v1/auth/check-domain/",
+            "/api/trial/",
+        ):
+            if path.startswith(prefix) or path == prefix.rstrip("/"):
+                return None
+        if getattr(request, "school", None) is not None:
+            return None
+        host = (request.get_host() or "").split(":")[0].lower()
+        base_domain = _get_base_domain()
+        if _is_base_domain(host, base_domain):
+            return None
+        from apps.schools.error_views import school_not_found
+        return school_not_found(request)
 
 
 class TenantMiddleware(MiddlewareMixin):
@@ -263,6 +331,9 @@ class TenantMiddleware(MiddlewareMixin):
                 school = School.objects.filter(slug__iexact=slug, is_active=True).first()
                 if not school:
                     school = School.objects.filter(subdomain__iexact=slug, is_active=True).first()
+                if not school:
+                    from apps.schools.error_views import school_not_found
+                    return school_not_found(request)
                 if school:
                     request.school = school
                     request.tenant_path_prefix = f"/t/{slug}/"
@@ -305,6 +376,11 @@ class TenantMiddleware(MiddlewareMixin):
         except Exception as e:
             logger.warning("Tenant resolution failed: %s", e, exc_info=True)
             school = None
+
+        # Unknown tenant host (subdomain/custom host not in DB): branded 404
+        if school is None and not _is_base_domain(host, base_domain):
+            from apps.schools.error_views import school_not_found
+            return school_not_found(request)
 
         # Base domain, non-tenant paths: only /admin/ and /super/ get no tenant; do NOT assign single-tenant at root (Option A: tenant only under /t/<slug>/)
         request.school = school

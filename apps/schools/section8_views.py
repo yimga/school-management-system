@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFoun
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
@@ -58,18 +58,72 @@ def verify_caddy_domain(request):
     domain_lower = domain.lower()
     if domain_lower in ("localhost", "127.0.0.1", "::1"):
         return HttpResponseNotFound("Internal domains not allowed")
+
+    # Optional short-TTL cache for Caddy ask (reduce DB load)
+    cache_key = "caddy_ask:%s" % domain_lower
+    cache_ttl = 60
+    try:
+        from django.core.cache import cache
+        from django.conf import settings as django_settings
+        cache_ttl = getattr(django_settings, "CADDY_ASK_CACHE_TTL", 60) or 60
+        if cache_ttl > 0:
+            cached = cache.get(cache_key)
+            if cached is True:
+                return HttpResponse(status=200)
+            if cached is False:
+                return HttpResponseNotFound("Domain not recognized")
+    except Exception:
+        cache = None
+
+    # 1. Runtime domain table (django-tenants): authoritative routing map.
+    try:
+        from apps.customers.models import Domain
+        if Domain.objects.filter(domain=domain_lower, tenant__school__is_active=True).exists():
+            if cache:
+                try:
+                    cache.set(cache_key, True, timeout=cache_ttl)
+                except Exception:
+                    pass
+            return HttpResponse(status=200)
+    except Exception:
+        pass
+
+    # 2. SchoolDomain (shared schema): multiple domains per tenant, is_verified
+    try:
+        from .models import SchoolDomain
+        if SchoolDomain.objects.filter(domain=domain_lower, is_verified=True, school__is_active=True).exists():
+            if cache:
+                try:
+                    cache.set(cache_key, True, timeout=cache_ttl)
+                except Exception:
+                    pass
+            return HttpResponse(status=200)
+    except Exception:
+        pass
+
+    # 3. Legacy: School.subdomain and School.custom_domain
     from .models import School
-    # Subdomain: first label (e.g. greenwood from greenwood.yoursystem.com)
     subdomain = domain_lower.split(".")[0] if "." in domain_lower else domain_lower
-    # Subdomain: any matching school; custom_domain: only if verified (Section 8.5)
-    by_subdomain = School.objects.filter(subdomain=subdomain).exists()
-    if by_subdomain:
+    if School.objects.filter(subdomain=subdomain, is_active=True).exists():
+        if cache:
+            try:
+                cache.set(cache_key, True, timeout=cache_ttl)
+            except Exception:
+                pass
         return HttpResponse(status=200)
-    by_custom = School.objects.filter(
-        custom_domain=domain_lower, custom_domain_verified=True
-    ).exists()
-    if by_custom:
+    if School.objects.filter(custom_domain=domain_lower, custom_domain_verified=True, is_active=True).exists():
+        if cache:
+            try:
+                cache.set(cache_key, True, timeout=cache_ttl)
+            except Exception:
+                pass
         return HttpResponse(status=200)
+
+    if cache:
+        try:
+            cache.set(cache_key, False, timeout=cache_ttl)
+        except Exception:
+            pass
     return HttpResponseNotFound("Domain not recognized")
 
 
@@ -123,16 +177,13 @@ def global_login_discovery(request):
     Rate limited: max DISCOVERY_RATE_LIMIT_MAX POSTs per IP per 15 minutes to reduce email enumeration.
     """
     if request.method == "GET":
-        from django.shortcuts import render
         return render(request, "schools/global_login_discovery.html", {})
     if _discovery_rate_limit_exceeded(request):
-        from django.shortcuts import render
         return render(request, "schools/global_login_discovery.html", {
             "error": "Too many attempts. Please try again later.",
         }, status=429)
     email = (request.POST.get("email") or "").strip()
     if not email:
-        from django.shortcuts import render
         return render(request, "schools/global_login_discovery.html", {"error": "Please enter your email."})
     from django.conf import settings
     from .models import SchoolMembership
@@ -155,11 +206,69 @@ def global_login_discovery(request):
         except Exception:
             return redirect("accounts:login")
     _discovery_rate_limit_incr(request)
-    from django.shortcuts import render
     return render(request, "schools/global_login_discovery.html", {
         "error": "No school found for this email. Get started by creating a school.",
         "email": email,
     })
+
+
+def _build_school_portal_url(request, school) -> str:
+    """Canonical URL for school portal discovery links."""
+    from apps.schools.domain_sync import get_base_domain
+
+    custom_domain = (getattr(school, "custom_domain", "") or "").strip().lower()
+    if custom_domain and getattr(school, "custom_domain_verified", False):
+        return f"https://{custom_domain}"
+
+    base_domain = get_base_domain()
+    subdomain = (getattr(school, "subdomain", "") or getattr(school, "slug", "") or "").strip().lower()
+    if subdomain and base_domain:
+        return f"https://{subdomain}.{base_domain}"
+
+    slug = (getattr(school, "slug", "") or "").strip().lower()
+    if slug:
+        return request.build_absolute_uri(f"/t/{slug}/authentication/login/")
+    return request.build_absolute_uri(reverse("global_login_discovery"))
+
+
+@require_http_methods(["GET"])
+def find_school(request):
+    """
+    Public school finder.
+    - Standard GET: render finder page.
+    - HTMX GET (?q=...): return live search result fragment.
+    """
+    from apps.schools.models import School
+
+    query = (request.GET.get("q") or "").strip()
+    results = []
+    if len(query) >= 2:
+        schools = (
+            School.objects.filter(is_active=True)
+            .filter(Q(name__icontains=query) | Q(slug__icontains=query) | Q(subdomain__icontains=query))
+            .order_by("name")[:8]
+        )
+        for school in schools:
+            results.append(
+                {
+                    "name": school.name,
+                    "slug": school.slug,
+                    "portal_url": _build_school_portal_url(request, school),
+                }
+            )
+
+    if request.headers.get("HX-Request", "").lower() == "true":
+        return render(
+            request,
+            "schools/partials/school_finder_results.html",
+            {"query": query, "results": results},
+        )
+
+    return render(
+        request,
+        "schools/find_school.html",
+        {"query": query, "results": results},
+    )
 
 
 @require_GET

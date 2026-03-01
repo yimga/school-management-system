@@ -24,6 +24,7 @@ from apps.schools.signup_views import signup_school, verify_signup, api_trial_sc
 from apps.schools.section8_views import (
     verify_caddy_domain,
     global_login_discovery,
+    find_school,
     lti_launch,
     lti_launch_callback,
     lti_ags_lineitems,
@@ -38,15 +39,17 @@ from apps.schools.section8_views import (
 
 
 def home(request):
-    # Redirect based on role/authentication status
+    # Authenticated users go to their backend/dashboard
     if request.user.is_authenticated:
         return redirect("accounts:redirect")
-    # Option A: main URL = main admin only; send unauthenticated users to tenant login under /t/<slug>/
+    # Base domain (runyourcampus.com): public marketing landing, not login
     from apps.schools.tenant_url import is_base_domain, get_single_tenant_slug
     if is_base_domain(request):
-        slug = get_single_tenant_slug()
-        if slug:
-            return redirect(f"/t/{slug}/authentication/login/")
+        return redirect("marketing_landing")
+    # Single tenant on non-base host: send to tenant login
+    slug = get_single_tenant_slug()
+    if slug:
+        return redirect(f"/t/{slug}/authentication/login/")
     return redirect("accounts:login")
 
 
@@ -204,7 +207,9 @@ urlpatterns = [
     path('super/', include(('apps.schools.super_urls', 'super'), namespace='super')),
     # Section 8: Caddy on-demand TLS ask (no auth; restrict by IP in production)
     path('api/caddy-check/', verify_caddy_domain),
+    path('api/v1/auth/check-domain/', verify_caddy_domain),
     path('discover/', global_login_discovery, name='global_login_discovery'),
+    path('find/', find_school, name='find_school'),
     path('marketing/', marketing_landing, name='marketing_landing'),
     path('signup/', signup_school, name='signup_school'),
     path('verify-signup/', verify_signup, name='verify_signup'),

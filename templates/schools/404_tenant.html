@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Campus Not Found" %} | RunYourCampus{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-lg rounded-4 mb-4">
+        <div class="card-body p-4 p-lg-5 text-center">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-light mb-3" style="width: 4rem; height: 4rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+          </div>
+          <h1 class="h3 mb-2">{% trans "Campus Not Found" %}</h1>
+          <p class="text-muted mb-0">{% trans "It looks like this school hasn't joined RunYourCampus yet." %}</p>
+        </div>
+      </div>
+
+      {% include "schools/partials/school_finder_bento.html" with finder_id="campus-not-found-results" input_id="campus-not-found-input" query=query results=results %}
+
+      <div class="text-center mt-4">
+        <a href="{% url 'marketing_landing' %}" class="btn btn-outline-primary">{% trans "Back to home" %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
