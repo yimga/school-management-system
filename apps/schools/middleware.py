@@ -12,6 +12,7 @@ from django.utils.deprecation import MiddlewareMixin
 from apps.schools.host_routing import (
     get_canonical_base_domain,
     is_public_host,
+    is_local_dev_host,
     map_legacy_host_to_canonical,
     public_host_kind,
 )
@@ -227,6 +228,10 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
     def process_request(self, request):
         host = (request.get_host() or "").split(":")[0].lower()
         kind = public_host_kind(host)
+        # Local/test hosts keep full URL surface for developer workflows and legacy tests.
+        if kind == "local":
+            request.urlconf = "config.urls"
+            return None
         if kind == "manager":
             request.urlconf = "config.manager_urls"
             return None
@@ -429,6 +434,23 @@ def _resolve_school_from_request(request) -> "School | None":
     return None
 
 
+def _get_single_tenant_school():
+    """
+    Backward-compatible helper used by older single-tenant tests.
+    Returns the only active school when SINGLE_TENANT is enabled.
+    """
+    single_tenant_flag = str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower()
+    if single_tenant_flag not in {"1", "true", "yes"}:
+        return None
+
+    from apps.schools.models import School
+
+    schools = list(School.objects.filter(is_active=True).order_by("created_at", "id")[:2])
+    if len(schools) == 1:
+        return schools[0]
+    return None
+
+
 class TenantSchemaSchoolBridgeMiddleware(MiddlewareMixin):
     """
     When using django-tenants (schema-per-tenant), TenantMainMiddleware sets request.tenant (Client).
@@ -513,7 +535,9 @@ class TenantMiddleware(MiddlewareMixin):
         # Resolve school from host (subdomain/custom domain) or from session when not on base domain
         try:
             school = _resolve_school_from_request(request)
-            if school is None and not _is_base_domain(host, base_domain) and request.session.get("school_id"):
+            if school is None and request.session.get("school_id") and (
+                not _is_base_domain(host, base_domain) or is_local_dev_host(host)
+            ):
                 school = School.objects.filter(
                     id=request.session["school_id"],
                     is_active=True,
