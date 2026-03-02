@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n static %}
 {% with finder_dom_id=finder_id|default:"school-finder-results" input_dom_id=input_id|default:"school-finder-input" %}
 <div class="card border-0 shadow-sm rounded-4">
   <div class="card-body p-4">
@@ -38,7 +38,7 @@
   if (window.htmx) return;
   if (document.querySelector('script[data-school-finder-htmx="1"]')) return;
   var s = document.createElement('script');
-  s.src = 'https://unpkg.com/htmx.org@1.9.12';
+  s.src = '{% static "js/htmx.min.js" %}';
   s.defer = true;
   s.setAttribute('data-school-finder-htmx', '1');
   document.head.appendChild(s);

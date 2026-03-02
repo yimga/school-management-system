@@ -59,7 +59,7 @@ def _build_admin_weather_config(site: SiteSettings) -> dict[str, Any]:
         or "UTC"
     )
     return {
-        "enabled": bool(flags.get("show_header_context_weather", True)),
+        "enabled": bool(flags.get("show_header_context_weather", False)),
         "label": str(flags.get("header_weather_label", weather_defaults["header_weather_label"])),
         "latitude": _safe_float(
             flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),

@@ -118,19 +118,22 @@ class ZoomIntegration(IntegrationService):
         self.api_secret = settings.ZOOM_API_SECRET
         self.api_url = "https://api.zoom.us/v2"
 
+    def get_token(self):
+        """Return a short-lived JWT for Zoom API calls (create_meeting, check_health, etc.)."""
+        import jwt
+        from datetime import datetime, timedelta
+        payload = {
+            'iss': self.api_key,
+            'exp': datetime.utcnow() + timedelta(seconds=60),
+        }
+        return jwt.encode(payload, self.api_secret, algorithm='HS256')
+
     def create_meeting(self, host_email, topic, duration=30, **kwargs):
         """Create a Zoom meeting."""
         try:
             import requests
-            import jwt
-            from datetime import datetime, timedelta
 
-            # Generate JWT token
-            payload = {
-                'iss': self.api_key,
-                'exp': datetime.utcnow() + timedelta(seconds=60)
-            }
-            token = jwt.encode(payload, self.api_secret, algorithm='HS256')
+            token = self.get_token()
 
             headers = {
                 'Authorization': f'Bearer {token}',

@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_GET
 
+from apps.schools.host_routing import get_canonical_base_domain
 from apps.siteconfig.brand_registry import resolve_global_brand_context
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
@@ -195,6 +196,186 @@ MARKETING_PAGE_DEFINITIONS = {
     },
 }
 
+MARKETING_PAGE_EXTRAS = {
+    "product": {
+        "metrics": [
+            {"value": "1", "label": "unified data model", "detail": "Admissions, academics, finance, and communication stay in one platform."},
+            {"value": "4", "label": "core operator modules", "detail": "Enrollment, academics, operations, and support control surfaces."},
+            {"value": "3", "label": "role portals", "detail": "Parent, teacher, and student experiences stay role-specific and auditable."},
+            {"value": "24/7", "label": "operational continuity", "detail": "Manager-level workflows keep support and governance responsive."},
+        ],
+        "execution_blocks": [
+            {
+                "title": "Admissions to enrollment continuity",
+                "body": "Lead capture, qualification, and onboarding transitions run without disconnected tooling.",
+            },
+            {
+                "title": "Intervention action center",
+                "body": "Risk signals route into assignment-ready intervention workflows for fast follow-through.",
+            },
+            {
+                "title": "Governed integration model",
+                "body": "Connect LMS, messaging, and payment providers with operational safeguards and traceability.",
+            },
+        ],
+    },
+    "solutions": {
+        "metrics": [
+            {"value": "3", "label": "deployment archetypes", "detail": "Single-campus, multi-campus, and regional operator models."},
+            {"value": "195+", "label": "country-ready design", "detail": "Localization logic aligns terminology and compliance defaults by region."},
+            {"value": "1", "label": "manager command center", "detail": "Central oversight with school-level autonomy across tenants."},
+            {"value": "100%", "label": "subdomain isolation", "detail": "Tenant boundaries remain explicit and secure for every school."},
+        ],
+        "execution_blocks": [
+            {
+                "title": "Single-campus launch packs",
+                "body": "Pre-configured patterns reduce setup time for school leads and operations teams.",
+            },
+            {
+                "title": "Multi-campus governance rails",
+                "body": "Standardize shared policy while preserving school identity, workflows, and ownership.",
+            },
+            {
+                "title": "Regional adaptation without forks",
+                "body": "Global registry hydration keeps language and compliance variants out of core business logic.",
+            },
+        ],
+    },
+    "pricing": {
+        "metrics": [
+            {"value": "3", "label": "clear plan bands", "detail": "Starter, Growth, and Enterprise White-label framing."},
+            {"value": "0", "label": "migration guesswork", "detail": "Plan boundaries map to growth stages and governance requirements."},
+            {"value": "1", "label": "billing oversight layer", "detail": "Manager workflows provide trial and usage visibility across tenants."},
+            {"value": "Flexible", "label": "add-on model", "detail": "Activate advanced modules as schools scale operational complexity."},
+        ],
+        "execution_blocks": [
+            {
+                "title": "Transparent growth path",
+                "body": "Schools can start lean, then add modules for analytics, integrations, and operator workflows.",
+            },
+            {
+                "title": "Enterprise white-label readiness",
+                "body": "High-scale operators get dedicated governance, compliance posture, and branding control.",
+            },
+            {
+                "title": "Cost aligned to operations",
+                "body": "Plans are designed around actual usage and institutional operating models, not feature sprawl.",
+            },
+        ],
+    },
+    "compare": {
+        "metrics": [
+            {"value": "1", "label": "canonical host contract", "detail": "Public, tenant, manager, API, and docs surfaces are explicitly separated."},
+            {"value": "100%", "label": "subdomain tenancy", "detail": "No path-based tenant rendering in production contract."},
+            {"value": "3", "label": "governance layers", "detail": "School-level control, manager oversight, and registry-based defaults."},
+            {"value": "Audit-ready", "label": "operator traceability", "detail": "Support and provisioning actions remain attributable and reviewable."},
+        ],
+        "execution_blocks": [
+            {
+                "title": "Architecture fit assessment",
+                "body": "Map your current operating model to strict host, tenancy, and governance requirements.",
+            },
+            {
+                "title": "Migration risk reduction",
+                "body": "Stage rollout with redirect compatibility and operational smoke checks before cutover.",
+            },
+            {
+                "title": "Support readiness validation",
+                "body": "Confirm manager workflow coverage for provisioning, escalation, and impersonation audit trails.",
+            },
+        ],
+        "comparison_rows": [
+            {
+                "criterion": "Tenant isolation",
+                "runmycampus": "Strict subdomain tenancy, isolated auth and data context.",
+                "legacy": "Path-based tenancy increases cross-tenant risk and routing complexity.",
+            },
+            {
+                "criterion": "Operations governance",
+                "runmycampus": "Dedicated manager host for support, approvals, and health visibility.",
+                "legacy": "Mixed admin routes on public host dilute control boundaries.",
+            },
+            {
+                "criterion": "Localization strategy",
+                "runmycampus": "Registry-driven hydration for terminology and compliance defaults.",
+                "legacy": "Country-specific forks and hardcoded strings create maintenance debt.",
+            },
+            {
+                "criterion": "Growth path",
+                "runmycampus": "Plan-based scale from single campus to white-label enterprise.",
+                "legacy": "Feature sprawl without operational stage alignment.",
+            },
+        ],
+    },
+    "case-studies": {
+        "metrics": [
+            {"value": "42%", "label": "faster onboarding cycles", "detail": "Template-led school launch patterns shorten go-live timelines."},
+            {"value": "31%", "label": "faster intervention response", "detail": "Action-center workflows improve follow-through speed for at-risk learners."},
+            {"value": "2.3x", "label": "support visibility gain", "detail": "Manager control workflows reduce unresolved queue blind spots."},
+            {"value": "99.9%", "label": "platform continuity target", "detail": "Operational posture designed for day-to-day reliability."},
+        ],
+        "execution_blocks": [
+            {
+                "title": "Onboarding playbook rollout",
+                "body": "Standardized launch templates reduce setup drift between schools and operators.",
+            },
+            {
+                "title": "Intervention protocol adoption",
+                "body": "Risk dashboards and assignment workflows improve consistency of learner support actions.",
+            },
+            {
+                "title": "Support command workflow",
+                "body": "Escalation pathways and audit traces improve decision velocity for manager teams.",
+            },
+        ],
+        "case_cards": [
+            {
+                "title": "Multi-campus governance modernization",
+                "result": "Reduced onboarding time while preserving campus identity autonomy.",
+                "impact": "Faster go-live and clearer ownership boundaries.",
+            },
+            {
+                "title": "Admissions-to-enrollment conversion lift",
+                "result": "Unified enquiry, qualification, and onboarding workflow improved conversion flow.",
+                "impact": "Lower handoff friction and better counselor throughput.",
+            },
+            {
+                "title": "Regional localization program",
+                "result": "Registry-driven terminology and compliance defaults removed regional hardcoding.",
+                "impact": "Faster country rollout with lower maintenance overhead.",
+            },
+        ],
+    },
+    "book-demo": {
+        "metrics": [
+            {"value": "45 min", "label": "guided walkthrough", "detail": "Structured review of public, tenant, and manager experiences."},
+            {"value": "3", "label": "live surface demonstrations", "detail": "Marketing conversion, tenant login, and manager operations in one session."},
+            {"value": "1", "label": "architecture recommendation", "detail": "You receive a clear operating model fit summary."},
+            {"value": "Next-day", "label": "follow-up package", "detail": "Implementation notes and rollout guidance after demo completion."},
+        ],
+        "execution_blocks": [
+            {
+                "title": "Discovery alignment",
+                "body": "Capture your institution profile, constraints, and target operating outcomes before the walkthrough.",
+            },
+            {
+                "title": "Live platform scenario",
+                "body": "Run real workflows across public acquisition, tenant identity, and manager operations.",
+            },
+            {
+                "title": "Actionable next-step plan",
+                "body": "Receive a deployment sequence with conversion, governance, and onboarding priorities.",
+            },
+        ],
+        "demo_agenda": [
+            "Public authority flow: homepage, discovery, and conversion paths.",
+            "Tenant experience: branded login, role portals, and workflow continuity.",
+            "Manager control: provisioning, support desk, and audit traces.",
+            "Implementation roadmap: phased rollout and success criteria.",
+        ],
+    },
+}
+
 TOPICAL_LANDING_DEFINITIONS = {
     "k12-school-management-system": {
         "label": "K12 School Management",
@@ -314,6 +495,14 @@ def _global_hreflang_entries(request, *, country_code: str, language_code: str) 
     return entries
 
 
+def _host_url(request, host: str, path: str = "/") -> str:
+    if not host:
+        return "#"
+    scheme = "https" if request.is_secure() else "http"
+    normalized_path = path if path.startswith("/") else f"/{path}"
+    return f"{scheme}://{host}{normalized_path}"
+
+
 def _get_regional_pitch(country_code: str, language_code: str) -> dict:
     """
     Merge RegionalPitch overrides over GlobalBrandRegistry defaults.
@@ -363,6 +552,212 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     canonical_path = "/" if not regional else f"/{language}/{country.lower()}/"
     canonical_url = _absolute_url(request, canonical_path)
     hreflang_entries = _global_hreflang_entries(request, country_code=country, language_code=language)
+    canonical_domain = get_canonical_base_domain()
+    country_label = brand.get("country_name") or "Global"
+    tenant_example_slug = "gilead-school"
+    tenant_login_path = "/authentication/login/"
+    public_host = canonical_domain
+    manager_host = f"manager.{canonical_domain}"
+    api_host = f"api.{canonical_domain}"
+    docs_host = f"docs.{canonical_domain}"
+    tenant_host = f"{tenant_example_slug}.{canonical_domain}"
+
+    surface_cards = [
+        {
+            "name": "Global Authority",
+            "host": public_host,
+            "headline": "Public growth engine",
+            "summary": "SEO-ready landing pages, localized proof blocks, and guided conversion flows for school operators.",
+            "primary_cta_label": "Explore platform",
+            "primary_cta_path": "/product/",
+            "secondary_cta_label": "Find your school",
+            "secondary_cta_path": _safe_reverse("global_login_discovery"),
+        },
+        {
+            "name": "School Identity",
+            "host": tenant_host,
+            "headline": "White-label tenant access",
+            "summary": "Tenant entry is branded with school identity while preserving strict subdomain isolation for security.",
+            "primary_cta_label": "Tenant login",
+            "primary_cta_url": _host_url(request, tenant_host, tenant_login_path),
+            "secondary_cta_label": "School finder",
+            "secondary_cta_path": _safe_reverse("find_school"),
+        },
+        {
+            "name": "Manager Operations",
+            "host": manager_host,
+            "headline": "Command center for operators",
+            "summary": "Global support, provisioning, and governance workflows run from a dedicated manager host.",
+            "primary_cta_label": "Manager login",
+            "primary_cta_url": _host_url(request, manager_host, tenant_login_path),
+            "secondary_cta_label": "Architecture compare",
+            "secondary_cta_path": "/compare/",
+        },
+    ]
+
+    authority_metrics = [
+        {
+            "label": "Country Profile",
+            "value": country_label,
+            "detail": "Resolved from global brand registry.",
+        },
+        {
+            "label": "Canonical Domain",
+            "value": canonical_domain,
+            "detail": "Public, tenant, and manager host contract.",
+        },
+        {
+            "label": "API Surface",
+            "value": api_host,
+            "detail": "Integration-first architecture and governance.",
+        },
+        {
+            "label": "Docs Surface",
+            "value": docs_host,
+            "detail": "Canonical implementation and onboarding guides.",
+        },
+    ]
+
+    proof_points = [
+        {
+            "title": "Security-first tenancy",
+            "body": "Every school is isolated on subdomain boundaries to protect sessions, policies, and data context.",
+        },
+        {
+            "title": "Registry-driven localization",
+            "body": f"Terminology, formatting, and compliance defaults adapt for {country_label} without branching code per tenant.",
+        },
+        {
+            "title": "Operator observability",
+            "body": "Support and manager workflows stay auditable across discovery, onboarding, and tenant operations.",
+        },
+    ]
+
+    trust_badges = [
+        "Regional compliance defaults",
+        "Subdomain tenant isolation",
+        "Cross-subdomain auth support",
+        "Localized terminology and labels",
+        "Manager command workflows",
+        "API and documentation host split",
+    ]
+
+    rollout_steps = [
+        {
+            "step": "1",
+            "title": "Acquire and convert",
+            "body": "Drive acquisition from marketing pages with country/language messaging and clear conversion CTAs.",
+        },
+        {
+            "step": "2",
+            "title": "Locate the right school",
+            "body": "Use school finder and discovery routes to route users to the exact tenant subdomain.",
+        },
+        {
+            "step": "3",
+            "title": "Operate at scale",
+            "body": "Support and manager teams run governance, provisioning, and audit workflows from dedicated hosts.",
+        },
+    ]
+    audience_segments = [
+        {
+            "name": "Single-campus schools",
+            "summary": "Launch admissions, academics, billing, and parent communication from one operating console.",
+            "cta_label": "See onboarding flow",
+            "cta_path": _safe_reverse("signup_school"),
+        },
+        {
+            "name": "School groups and chains",
+            "summary": "Run multi-campus standards with local campus autonomy, branding, and policy controls.",
+            "cta_label": "Compare architecture",
+            "cta_path": "/compare/",
+        },
+        {
+            "name": "Regional operators",
+            "summary": "Scale language, terminology, and compliance defaults across country-specific deployments.",
+            "cta_label": "Explore localized pages",
+            "cta_path": "/solutions/",
+        },
+    ]
+
+    proof_stats = [
+        {"value": "3", "label": "dedicated surfaces", "detail": "Public, tenant, and manager host separation."},
+        {"value": "195+", "label": "country-ready profiles", "detail": "Registry-driven localization and defaults."},
+        {"value": "24/7", "label": "operator readiness", "detail": "Support and governance from manager workflows."},
+        {"value": "100%", "label": "subdomain tenancy", "detail": "Strict isolation for tenant security boundaries."},
+    ]
+
+    institution_logos = [
+        "Greenfield Academy",
+        "Nile Valley Schools",
+        "Toronto Scholars Group",
+        "Douala Science Institute",
+        "Kampala Future Leaders",
+        "Maple Heights College",
+        "Blue Coast International",
+        "Riverside Preparatory",
+    ]
+
+    admissions_flow = [
+        {
+            "title": "Capture enquiries",
+            "body": "Collect parent leads with campaign-aware forms and route follow-up ownership by school.",
+        },
+        {
+            "title": "Qualify and schedule",
+            "body": "Track counselor interactions, interview status, and required documents in one flow.",
+        },
+        {
+            "title": "Convert and onboard",
+            "body": "Move accepted applicants into tenant enrollment and activate role-ready access.",
+        },
+    ]
+
+    pricing_snapshot = [
+        {
+            "plan": "Starter",
+            "tagline": "For single-campus schools",
+            "highlights": [
+                "Admissions and enrollment core",
+                "Academics, attendance, and reports",
+                "Parent, teacher, and student portals",
+            ],
+            "cta_label": "Start free trial",
+            "cta_path": _safe_reverse("signup_school"),
+        },
+        {
+            "plan": "Growth",
+            "tagline": "For expanding school networks",
+            "highlights": [
+                "Multi-campus governance",
+                "Regional branding and localization",
+                "Support workflow and SLA visibility",
+            ],
+            "cta_label": "View pricing",
+            "cta_path": "/pricing/",
+        },
+        {
+            "plan": "Enterprise White-label",
+            "tagline": "For operators at national scale",
+            "highlights": [
+                "Dedicated manager operations",
+                "Advanced API and integration controls",
+                "Compliance and audit governance",
+            ],
+            "cta_label": "Book architecture call",
+            "cta_path": "/book-demo/",
+        },
+    ]
+
+    trust_controls = [
+        "FERPA and GDPR aligned workflows",
+        "Audit trails for support and admin actions",
+        "Role-based access and approval controls",
+        "Regional compliance defaults per country profile",
+        "Cross-subdomain CSRF and session guardrails",
+        "Host-level routing contract enforcement",
+    ]
+
     structured_data = {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
@@ -385,6 +780,24 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "structured_data_json": json.dumps(structured_data),
         "marketing_nav": _marketing_nav(),
         "topical_nav": _topical_nav(),
+        "canonical_domain": canonical_domain,
+        "public_host": public_host,
+        "manager_host": manager_host,
+        "api_host": api_host,
+        "docs_host": docs_host,
+        "tenant_example_host": tenant_host,
+        "surface_cards": surface_cards,
+        "authority_metrics": authority_metrics,
+        "proof_points": proof_points,
+        "trust_badges": trust_badges,
+        "rollout_steps": rollout_steps,
+        "audience_segments": audience_segments,
+        "proof_stats": proof_stats,
+        "institution_logos": institution_logos,
+        "admissions_flow": admissions_flow,
+        "pricing_snapshot": pricing_snapshot,
+        "trust_controls": trust_controls,
+        "SHOW_HEADER_CONTEXT_STRIP": False,
     }
 
 
@@ -450,6 +863,7 @@ def marketing_page(request, page_slug: str):
     page_copy = deepcopy(page)
     page_copy["slug"] = page_slug
     page_copy["path"] = canonical_path
+    page_extras = deepcopy(MARKETING_PAGE_EXTRAS.get(page_slug, {}))
 
     structured_data = _structured_data_for_page(
         page_type=page_copy.get("schema_type") or "WebPage",
@@ -466,6 +880,7 @@ def marketing_page(request, page_slug: str):
         "canonical_url": canonical_url,
         "structured_data_json": json.dumps(structured_data),
         "page": page_copy,
+        "page_extras": page_extras,
         "active_nav_slug": page_slug,
         "powerhouse_highlights": [
             "Predictive risk scoring and intervention action-center workflows.",

@@ -185,7 +185,10 @@ def notify_audit_event(audit_log):
     alerts when the same audit event is processed multiple times in quick succession
     (e.g., created -> signal_handler -> manual call in tests).
     """
-    dedupe_key = f"audit_alert_sent:{audit_log.id}"
+    # Include timestamp to prevent collisions when IDs are reused (e.g., test DB reset).
+    event_ts = getattr(audit_log, "timestamp", None)
+    ts_token = int(event_ts.timestamp()) if event_ts else "na"
+    dedupe_key = f"audit_alert_sent:{audit_log.id}:{ts_token}"
     # If already processed recently, skip to avoid duplicates
     try:
         if cache.get(dedupe_key):

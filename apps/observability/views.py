@@ -22,8 +22,9 @@ from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
-WEATHER_CACHE_TTL_SECONDS = 300
-WEATHER_STALE_CACHE_TTL_SECONDS = 1800
+# Reduced external API traffic: longer TTL; enable weather per-tenant where needed.
+WEATHER_CACHE_TTL_SECONDS = 900
+WEATHER_STALE_CACHE_TTL_SECONDS = 3600
 OPEN_METEO_BASE_URL = "https://api.open-meteo.com/v1/forecast"
 WEATHER_CODE_DESCRIPTIONS = {
     0: "Clear sky",
@@ -89,7 +90,7 @@ def _build_admin_weather_config() -> dict:
     )
 
     return {
-        "enabled": bool(flags.get("show_header_context_weather", True)),
+        "enabled": bool(flags.get("show_header_context_weather", False)),
         "label": str(flags.get("header_weather_label", weather_defaults["header_weather_label"])),
         "latitude": _safe_float(
             flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),

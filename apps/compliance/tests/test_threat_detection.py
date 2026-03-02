@@ -124,7 +124,8 @@ class ThreatDetectionTestCase(TestCase):
 
     def test_no_threats_detected(self):
         """Test when no threats are detected."""
-        now = timezone.now()
+        # Force daytime timestamps to avoid accidental after-hours findings due to timezone.
+        now = timezone.now().replace(hour=12, minute=0, second=0, microsecond=0)
         
         # Create normal access pattern (below thresholds)
         for i in range(3):

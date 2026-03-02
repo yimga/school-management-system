@@ -191,7 +191,7 @@ def build_dashboard_extras(request, base: Optional[Dict[str, Any]] = None) -> Di
     role_code = (getattr(user, "role", "") or "").upper()
 
     weather_cfg = {
-        "enabled": True,
+        "enabled": False,
         "label": "Weather",
         "lat": 0.0,
         "lon": 0.0,

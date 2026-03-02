@@ -57,7 +57,7 @@ class VirtualClassroom(models.Model):
     provider = models.CharField(
         max_length=20,
         choices=VideoConferenceProvider.choices,
-        default=VideoConferenceProvider.ZOOM
+        default=VideoConferenceProvider.JITSI
     )
     
     # Scheduling
@@ -247,7 +247,7 @@ class VideoConferenceService:
     EXTENDS: Adds Google Meet and Jitsi support
     """
     
-    def __init__(self, provider: VideoConferenceProvider = VideoConferenceProvider.ZOOM):
+    def __init__(self, provider: VideoConferenceProvider = VideoConferenceProvider.JITSI):
         self.provider = provider
     
     def create_meeting(self, host: User, title: str, start_time, duration_minutes: int, **kwargs) -> Dict:

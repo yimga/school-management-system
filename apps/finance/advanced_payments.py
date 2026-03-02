@@ -97,8 +97,8 @@ class RecurringPaymentSubscription(models.Model):
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
     
-    # Payment method
-    payment_processor = models.CharField(max_length=50, default='stripe')
+    # Payment method (default manual/mobile-money; set to 'stripe' when tenant opts in)
+    payment_processor = models.CharField(max_length=50, default='manual')
     customer_payment_method_id = models.CharField(max_length=255, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -115,13 +115,13 @@ class RecurringPaymentSubscription(models.Model):
         return f"{self.user.username} - {self.plan.name}"
     
     def process_payment(self):
-        """Process the next scheduled payment"""
+        """Process the next scheduled payment. Only runs Stripe when payment_processor is 'stripe'."""
         from apps.finance.models import Invoice, Payment
         from apps.finance.payment_processors import StripeProcessor
-        
+
         if self.status != 'ACTIVE':
             return False
-        
+
         # Create invoice
         invoice = Invoice.objects.create(
             student=self.user,
@@ -130,39 +130,39 @@ class RecurringPaymentSubscription(models.Model):
             description=f"{self.plan.name} - Payment {self.payments_made + 1}",
             status='PENDING'
         )
-        
+
+        processor_name = (self.payment_processor or '').strip().lower()
+        if processor_name != 'stripe':
+            # Manual, mobile-money, or other: invoice stays PENDING; no automatic charge
+            return False
+
         try:
-            # Process payment
             processor = StripeProcessor()
             result = processor.process_payment({
                 'amount': float(self.plan.amount),
                 'currency': 'USD',
                 'customer_id': self.customer_payment_method_id,
             })
-            
-            # Create payment record
+
             Payment.objects.create(
                 invoice=invoice,
                 amount=self.plan.amount,
                 status='COMPLETED',
                 transaction_id=result['transaction_id']
             )
-            
-            # Update subscription
+
             self.payments_made += 1
             self.total_paid += self.plan.amount
             self.last_payment_date = timezone.now().date()
             self.next_payment_date = self._calculate_next_payment_date()
-            
-            # Check if completed
+
             if self.plan.max_installments > 0 and self.payments_made >= self.plan.max_installments:
                 self.status = 'COMPLETED'
-            
+
             self.save()
             return True
-            
-        except Exception as e:
-            # Mark missed payment
+
+        except Exception:
             self.missed_payments += 1
             if self.missed_payments >= 3:
                 self.status = 'DEFAULTED'

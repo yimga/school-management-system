@@ -347,7 +347,7 @@ def site_settings(request):
         "SHOW_HEADER_THEME_TOGGLE": getattr(site, "show_header_theme_toggle", True),
         "SHOW_HEADER_CONTEXT_STRIP": bool(feature_flags.get("show_header_context_strip", True)),
         "SHOW_HEADER_CONTEXT_DATETIME": bool(feature_flags.get("show_header_context_datetime", True)),
-        "SHOW_HEADER_CONTEXT_WEATHER": bool(feature_flags.get("show_header_context_weather", True)),
+        "SHOW_HEADER_CONTEXT_WEATHER": bool(feature_flags.get("show_header_context_weather", False)),
         "SHOW_HEADER_CONTEXT_QUOTE": bool(feature_flags.get("show_header_context_quote", True)),
         "HEADER_WEATHER_LATITUDE": feature_flags.get("header_weather_latitude", weather_defaults["header_weather_latitude"]),
         "HEADER_WEATHER_LONGITUDE": feature_flags.get("header_weather_longitude", weather_defaults["header_weather_longitude"]),

@@ -2,7 +2,10 @@
 AI provider abstraction for sovereign/local-first execution.
 
 Priority order is configurable and defaults to:
-    ollama -> gemini -> rules
+    ollama -> rules (local-first). Gemini is opt-in per tenant via AI_PROVIDER_PREFERENCE.
+
+Set AI_PROVIDER_PREFERENCE to include "gemini" (e.g. "ollama,gemini,rules") only when
+a tenant has explicitly approved use of the paid API.
 
 `metadata` is intentionally not appended to model prompts so tenant identifiers
 or internal IDs are not sent to external providers.
@@ -20,7 +23,8 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_PROVIDER_ORDER = ["ollama", "gemini", "rules"]
+# Local-first default: ollama then rules. Add "gemini" only when tenant has approved.
+DEFAULT_PROVIDER_ORDER = ["ollama", "rules"]
 PROMPT_INJECTION_PATTERNS = (
     "ignore previous instructions",
     "ignore all previous instructions",

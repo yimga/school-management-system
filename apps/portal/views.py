@@ -16,6 +16,8 @@ from decimal import Decimal
 from django.db.models import Sum
 from urllib.parse import quote_plus
 import csv
+import base64
+from io import BytesIO
 
 from apps.accounts.decorators import (
     role_required,
@@ -112,6 +114,7 @@ from apps.communication.models import Message
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.http import require_GET
 
 # Portal feature metadata for the navigation and UI
 PORTAL_FEATURES_META = {
@@ -1232,6 +1235,20 @@ def unified_calendar(request: HttpRequest):
     })
 
 
+def _qr_png_data_uri(value: str) -> str:
+    """Generate an inline PNG data URI for QR rendering without external API calls."""
+    try:
+        import qrcode
+        import qrcode.image.pil
+    except ImportError:
+        return ""
+    image = qrcode.make(value, image_factory=qrcode.image.pil.PilImage)
+    stream = BytesIO()
+    image.save(stream, "PNG")
+    encoded = base64.b64encode(stream.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
 @teacher_portal_required
 @role_required(User.Role.TEACHER)
 @login_required
@@ -1247,7 +1264,7 @@ def my_digital_id(request: HttpRequest):
     photo = profile.profile_photo if profile and hasattr(profile, "profile_photo") and profile.profile_photo else None
     qr_token = get_signed_id_token("staff", request.user.pk)
     verify_url = request.build_absolute_uri(reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token))
-    qr_image_url = "https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=" + quote_plus(verify_url)
+    qr_image_url = _qr_png_data_uri(verify_url)
     return render(request, "portal/digital_id_staff.html", {
         "site_name": getattr(site, "site_name", None) or "School",
         "name": name,
@@ -1278,7 +1295,7 @@ def child_digital_id(request: HttpRequest, student_id: int):
     photo = getattr(student, "profile_photo", None) and student.profile_photo or None
     qr_token = get_signed_id_token("student", student.pk)
     verify_url = request.build_absolute_uri(reverse("portal:badge_verify") + "?token=" + quote_plus(qr_token))
-    qr_image_url = "https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=" + quote_plus(verify_url)
+    qr_image_url = _qr_png_data_uri(verify_url)
     return render(request, "portal/digital_id_student.html", {
         "site_name": getattr(site, "site_name", None) or "School",
         "student": student,
@@ -2378,4 +2395,3 @@ def link_child_wizard(request: HttpRequest):
             "whatsapp_invite_link": _whatsapp_invite_link(),
         },
     )
-

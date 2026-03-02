@@ -2,11 +2,16 @@
 API Center: catalog of tenant-configurable integration types.
 Each tenant can add credentials in API Center; runtime resolves via resolve_active_integration(school, service_key).
 Config schema hints drive admin/UI form and validation.
+
+Cost guardrails (optional per integration):
+- daily_cap: max API calls per tenant per day; exceed → use fallback_channel or block.
+- cooldown_seconds: min seconds between calls; throttle to avoid burst cost.
+- fallback_channel: service_key to use when over cap or throttled (e.g. "email" when "whatsapp" is capped).
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
 # Service key → config schema and provider/category for API Center
 INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
@@ -15,6 +20,9 @@ INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
         "provider": "whatsapp",
         "category": "MESSAGING",
         "service_type": "WHATSAPP",
+        "daily_cap": 1000,
+        "cooldown_seconds": 1,
+        "fallback_channel": "email",
         "config_schema": {
             "phone_number_id": {"type": "string", "label": "Phone Number ID", "required": True},
             "access_token": {"type": "password", "label": "Access Token", "required": True},
@@ -41,6 +49,9 @@ INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
         "provider": "stripe",
         "category": "PAYMENT",
         "service_type": "OAUTH",
+        "daily_cap": 5000,
+        "cooldown_seconds": 0,
+        "fallback_channel": None,
         "config_schema": {
             "publishable_key": {"type": "string", "label": "Publishable Key"},
             "secret_key": {"type": "password", "label": "Secret Key", "required": True},
@@ -104,6 +115,9 @@ INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
         "provider": "sms",
         "category": "MESSAGING",
         "service_type": "WEBHOOK",
+        "daily_cap": 500,
+        "cooldown_seconds": 2,
+        "fallback_channel": "email",
         "config_schema": {
             "provider": {"type": "string", "label": "Provider", "choices": ["twilio", "nexmo", "other"]},
             "account_sid": {"type": "string", "label": "Account SID (Twilio)"},
@@ -123,3 +137,59 @@ def get_catalog_entry(service_key: str) -> dict[str, Any] | None:
 def list_catalog_keys() -> list[str]:
     """All known service keys for API Center dropdowns."""
     return list(INTEGRATION_CATALOG.keys())
+
+
+def get_guardrail_config(service_key: str) -> dict[str, Any]:
+    """Return daily_cap, cooldown_seconds, fallback_channel for a service (defaults if missing)."""
+    entry = get_catalog_entry(service_key)
+    if not entry:
+        return {"daily_cap": None, "cooldown_seconds": 0, "fallback_channel": None}
+    return {
+        "daily_cap": entry.get("daily_cap"),
+        "cooldown_seconds": int(entry.get("cooldown_seconds") or 0),
+        "fallback_channel": entry.get("fallback_channel"),
+    }
+
+
+def check_integration_guardrail(
+    service_key: str,
+    school_id: int | None,
+    *,
+    usage_getter: Callable[[int | None, str], tuple[int, float]] | None = None,
+) -> dict[str, Any]:
+    """
+    Check if a call to this integration is within cost guardrails.
+    usage_getter(school_id, service_key) should return (today_count, last_call_ts) or (0, 0).
+    Returns dict: allowed (bool), fallback_channel (str|None), reason (str).
+    """
+    config = get_guardrail_config(service_key)
+    daily_cap = config.get("daily_cap")
+    cooldown = config.get("cooldown_seconds") or 0
+    fallback = config.get("fallback_channel")
+
+    if not school_id:
+        return {"allowed": True, "fallback_channel": None, "reason": "no_school"}
+
+    today_count, last_ts = (0, 0)
+    if usage_getter:
+        try:
+            today_count, last_ts = usage_getter(school_id, service_key)
+        except Exception:
+            pass
+
+    if daily_cap is not None and today_count >= daily_cap:
+        return {
+            "allowed": False,
+            "fallback_channel": fallback,
+            "reason": "daily_cap_exceeded",
+        }
+
+    import time
+    if cooldown and last_ts and (time.time() - last_ts) < cooldown:
+        return {
+            "allowed": False,
+            "fallback_channel": fallback,
+            "reason": "cooldown",
+        }
+
+    return {"allowed": True, "fallback_channel": None, "reason": "ok"}

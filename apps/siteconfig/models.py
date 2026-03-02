@@ -210,7 +210,7 @@ def default_backend_feature_flags():
         "show_offline_status_bar": True,
         "show_header_context_strip": True,
         "show_header_context_datetime": True,
-        "show_header_context_weather": True,
+        "show_header_context_weather": False,
         "show_header_context_quote": True,
         "header_weather_country_code": weather["header_weather_country_code"],
         "header_weather_location_id": weather["header_weather_location_id"],

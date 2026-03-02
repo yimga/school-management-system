@@ -1,0 +1,11 @@
+/**
+ * Self-hosted Inter (variable) – no external font CDN.
+ * font-display: swap to avoid invisible text.
+ */
+@font-face {
+  font-family: 'Inter';
+  src: url('../../fonts/inter/inter-latin-variable-wght-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
