@@ -3,6 +3,7 @@ Shared host-routing helpers for public vs tenant access points.
 """
 from __future__ import annotations
 
+import ipaddress
 import os
 
 
@@ -71,6 +72,13 @@ def is_public_host(host: str) -> bool:
     normalized = normalize_host(host)
     if not normalized:
         return True
+    if normalized.endswith(".onrender.com"):
+        return True
+    try:
+        ipaddress.ip_address(normalized)
+        return True
+    except ValueError:
+        pass
     return normalized in all_public_hosts()
 
 
@@ -78,6 +86,16 @@ def public_host_kind(host: str) -> str | None:
     normalized = normalize_host(host)
     if normalized in LOCAL_HOSTS:
         return "local"
+    if normalized.endswith(".onrender.com"):
+        return "base"
+    try:
+        ipaddress.ip_address(normalized)
+        return "local"
+    except ValueError:
+        pass
+    render_host = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip().lower()
+    if render_host and normalized == render_host:
+        return "base"
 
     for base in [get_canonical_base_domain(), *sorted(get_legacy_base_domains())]:
         if not base:

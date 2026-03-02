@@ -11,7 +11,9 @@ load_dotenv(BASE_DIR / ".env.local", override=False)
 from django.core.exceptions import ImproperlyConfigured
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = os.getenv("DEBUG", "1") == "1"
+_is_render = os.getenv("RENDER", "").lower() == "true"
+_debug_default = "0" if _is_render else "1"
+DEBUG = os.getenv("DEBUG", _debug_default) == "1"
 if not SECRET_KEY:
     if DEBUG:
         SECRET_KEY = "dev-only-change-in-production"
@@ -28,11 +30,11 @@ if os.getenv("RENDER") == "true":
 # Production default canonical domain is runyourcampus.com.
 _multi_tenant_base = os.getenv(
     "MULTI_TENANT_BASE_DOMAIN",
-    "runyourcampus.com" if not DEBUG else "",
+    "runyourcampus.com",
 ).strip().lower()
 _legacy_bases_raw = (
     os.getenv("MULTI_TENANT_LEGACY_BASE_DOMAINS")
-    or ("runmycampus.com" if not DEBUG else "")
+    or "runmycampus.com"
 ).strip().lower()
 _legacy_bases = [d.strip() for d in _legacy_bases_raw.split(",") if d.strip()]
 if _multi_tenant_base:
@@ -344,7 +346,6 @@ MAINTENANCE_MODE = False
 
 # Render terminates TLS at the edge. Internal platform probes may hit HTTP
 # without X-Forwarded-Proto and get redirected, which can break startup scans.
-_is_render = os.getenv("RENDER", "").lower() == "true"
 _secure_ssl_redirect_default = "0" if _is_render else "1"
 SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", _secure_ssl_redirect_default) == "1" and not DEBUG
 # Test runner uses plain HTTP requests; keep HTTPS redirect behavior for runtime envs.

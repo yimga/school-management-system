@@ -74,3 +74,8 @@ class PublicAccessPointsTests(TestCase):
         self.assertEqual(sitemap.status_code, 200)
         self.assertContains(robots, "Sitemap:")
         self.assertContains(sitemap, "<urlset")
+
+    def test_discover_route_is_public(self):
+        response = self.client.get("/discover/", HTTP_HOST="runyourcampus.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Find your school")

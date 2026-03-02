@@ -91,6 +91,21 @@ SUPPORT_HOST_ALLOWED_PREFIXES = (
 )
 
 
+def _request_host_raw(request) -> str:
+    """
+    Return normalized host from request metadata without triggering Django's
+    ALLOWED_HOSTS validation. This lets legacy-domain redirect logic run first.
+    """
+    forwarded = (request.META.get("HTTP_X_FORWARDED_HOST") or "").strip()
+    if forwarded:
+        candidate = forwarded.split(",")[0].strip()
+    else:
+        candidate = (request.META.get("HTTP_HOST") or request.META.get("SERVER_NAME") or "").strip()
+    if ":" in candidate:
+        candidate = candidate.split(":", 1)[0].strip()
+    return candidate.lower()
+
+
 def _path_starts_with_tenant_prefix(path: str) -> bool:
     """True if path is under /t/<slug>/ (path-based tenant URL)."""
     path = (path or "").strip()
@@ -226,7 +241,7 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
     """
 
     def process_request(self, request):
-        host = (request.get_host() or "").split(":")[0].lower()
+        host = _request_host_raw(request)
         kind = public_host_kind(host)
         # Local/test hosts keep full URL surface for developer workflows and legacy tests.
         if kind == "local":
@@ -256,7 +271,7 @@ class LegacyBaseDomainRedirectMiddleware(MiddlewareMixin):
     """
 
     def process_request(self, request):
-        host = (request.get_host() or "").split(":")[0].lower()
+        host = _request_host_raw(request)
         target_host = map_legacy_host_to_canonical(host)
         if not target_host:
             return None
@@ -270,7 +285,7 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
     """
 
     def process_request(self, request):
-        host = (request.get_host() or "").split(":")[0].lower()
+        host = _request_host_raw(request)
         path = (request.path or "").strip()
         kind = public_host_kind(host)
         request.public_host_kind = kind
@@ -331,7 +346,7 @@ class PublicPathRedirectMiddleware(MiddlewareMixin):
     """
 
     def process_request(self, request):
-        host = (request.get_host() or "").split(":")[0].lower()
+        host = _request_host_raw(request)
         if is_public_host(host):
             return None
         path = (request.path or "").strip()
@@ -349,7 +364,7 @@ def _resolve_school_from_request(request) -> "School | None":
     from django.conf import settings as django_settings
     cache_ttl = getattr(django_settings, "TENANT_CACHE_TTL", 300)
 
-    host = request.get_host().split(":")[0].lower()
+    host = _request_host_raw(request)
     base_domain = _get_base_domain()
 
     # Optional: Redis (or any cache backend) tenant lookup for <10ms resolution
@@ -490,7 +505,7 @@ class TenantSchoolNotFoundMiddleware(MiddlewareMixin):
                 return None
         if getattr(request, "school", None) is not None:
             return None
-        host = (request.get_host() or "").split(":")[0].lower()
+        host = _request_host_raw(request)
         base_domain = _get_base_domain()
         if _is_base_domain(host, base_domain):
             return None
@@ -514,7 +529,7 @@ class TenantMiddleware(MiddlewareMixin):
                 request.school = None
                 return None
 
-        host = (request.get_host() or "").split(":")[0].lower()
+        host = _request_host_raw(request)
         base_domain = _get_base_domain()
         from apps.schools.models import School
 
