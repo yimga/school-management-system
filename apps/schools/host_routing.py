@@ -30,9 +30,9 @@ def get_canonical_base_domain() -> str:
     base = (os.getenv("MULTI_TENANT_BASE_DOMAIN") or "").strip().lower()
     if base:
         return base
-    render_host = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip().lower()
-    if render_host:
-        return render_host
+    # Canonical production domain is fixed for this platform.
+    # Do not fall back to provider hostnames (e.g. *.onrender.com),
+    # otherwise public-host detection can misclassify the real apex domain.
     return "runmycampus.com"
 
 
