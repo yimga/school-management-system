@@ -79,3 +79,19 @@ class PublicAccessPointsTests(TestCase):
         response = self.client.get("/discover/", HTTP_HOST="runmycampus.com")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Find your school")
+
+    def test_render_probe_auth_login_on_base_host_returns_200(self):
+        response = self.client.get(
+            "/authentication/login/",
+            HTTP_HOST="school-management-system-2kzk.onrender.com",
+            HTTP_USER_AGENT="Render/1.0",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_health_endpoint_returns_200_on_render_host(self):
+        response = self.client.get(
+            "/health/",
+            HTTP_HOST="school-management-system-2kzk.onrender.com",
+            HTTP_USER_AGENT="Render/1.0",
+        )
+        self.assertEqual(response.status_code, 200)

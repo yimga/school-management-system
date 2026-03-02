@@ -188,3 +188,19 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
             response = self.reserved.process_request(request)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/verify/")
+
+    def test_base_authentication_path_redirects_to_manager_for_browser(self):
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/authentication/login/", "runmycampus.com")
+            request.META["HTTP_USER_AGENT"] = "Mozilla/5.0"
+            response = self.reserved.process_request(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "https://manager.runmycampus.com/authentication/login/")
+
+    def test_render_probe_to_auth_login_is_not_redirected(self):
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/authentication/login/", "school-management-system-2kzk.onrender.com")
+            request.META["HTTP_USER_AGENT"] = "Render/1.0"
+            response = self.reserved.process_request(request)
+        self.assertIsNotNone(response)
+        self.assertEqual(response.status_code, 200)

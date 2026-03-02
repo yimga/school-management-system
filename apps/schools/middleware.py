@@ -5,7 +5,7 @@ set request.school and session school_id, and set PostgreSQL app.current_school_
 import os
 import logging
 from django.conf import settings
-from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
@@ -175,6 +175,22 @@ def _is_manager_only_path(path: str) -> bool:
     return False
 
 
+def _is_render_probe_login_request(request, *, kind: str | None, path: str) -> bool:
+    """
+    Render health probes can be misconfigured to hit /authentication/login/.
+    Allow those probes to pass through with 200 instead of cross-host 302.
+    """
+    if kind != "base":
+        return False
+    if request.method not in ("GET", "HEAD"):
+        return False
+    normalized_path = (path or "").strip().lower()
+    if normalized_path not in {"/authentication/login", "/authentication/login/"}:
+        return False
+    user_agent = (request.META.get("HTTP_USER_AGENT") or "").strip().lower()
+    return user_agent.startswith("render/")
+
+
 def _redirect_to_manager_host(request, path: str | None = None):
     base_domain = _get_base_domain()
     if not base_domain:
@@ -321,6 +337,8 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
 
         # Root/base domain is marketing-first: move manager/auth/admin paths to manager host.
         if kind == "base" and _is_manager_only_path(path):
+            if _is_render_probe_login_request(request, kind=kind, path=path):
+                return JsonResponse({"status": "healthy"})
             forwarded = request.get_full_path()
             return _redirect_to_manager_host(request, path=forwarded)
 
