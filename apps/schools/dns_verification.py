@@ -1,6 +1,6 @@
 """
 DNS verification for custom domains: query TXT records for runyourcampus-verify=<dns_token>
-and mark SchoolDomain as verified. Used by the Custom Domain Wizard and tenant domain APIs.
+and mark SchoolDomain as verified. Legacy runmycampus token prefixes remain accepted.
 """
 import logging
 from django.utils import timezone
@@ -9,13 +9,13 @@ from apps.schools.domain_sync import sync_verified_schooldomain
 
 logger = logging.getLogger(__name__)
 
-TXT_PREFIX = "runyourcampus-verify="
+TXT_PREFIXES = ("runyourcampus-verify=", "runmycampus-verify=")
 
 
 def verify_domain_txt(domain: str, expected_token: str) -> bool:
     """
     Query TXT records for the given domain and return True if any TXT record
-    contains runyourcampus-verify=<expected_token> (case-insensitive match on value).
+    contains runyourcampus-verify=<expected_token> (legacy runmycampus prefix also accepted).
     """
     if not domain or not expected_token:
         return False
@@ -27,10 +27,12 @@ def verify_domain_txt(domain: str, expected_token: str) -> bool:
         for rdata in answers:
             for s in rdata.strings:
                 txt = s.decode("utf-8") if isinstance(s, bytes) else str(s)
-                if txt.lower().startswith(TXT_PREFIX.lower()):
-                    token_part = txt[len(TXT_PREFIX) :].strip()
-                    if token_part.lower() == expected:
-                        return True
+                lowered = txt.lower()
+                for prefix in TXT_PREFIXES:
+                    if lowered.startswith(prefix.lower()):
+                        token_part = txt[len(prefix) :].strip()
+                        if token_part.lower() == expected:
+                            return True
         return False
     except Exception as e:
         logger.warning("DNS TXT verification failed for %s: %s", domain, e)

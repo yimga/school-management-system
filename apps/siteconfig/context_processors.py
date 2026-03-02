@@ -423,12 +423,29 @@ def site_settings(request):
             ctx["TENANT_LOCALE"] = use_local_settings(request=request, school=school)
         except Exception:
             ctx["TENANT_LOCALE"] = {}
+        try:
+            from .brand_registry import resolve_global_brand_context
+
+            brand_ctx = resolve_global_brand_context(
+                school=school,
+                language_code=(ctx.get("TENANT_LOCALE") or {}).get("locale"),
+            )
+        except Exception:
+            brand_ctx = {}
+        ctx["TENANT_BRAND_CONTEXT"] = brand_ctx
+        ctx["TENANT_LABELS"] = (
+            (ctx.get("TENANT_LOCALE") or {}).get("labels_map")
+            or brand_ctx.get("labels_map")
+            or {}
+        )
     else:
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None
         ctx["TENANT_WALLPAPER_URL"] = ""
         ctx["LOGIN_EMAIL_PLACEHOLDER"] = _("School Email")
         ctx["TENANT_LOCALE"] = {}
+        ctx["TENANT_BRAND_CONTEXT"] = {}
+        ctx["TENANT_LABELS"] = {}
     # Offline: global Feature Control must be on; in multi-tenant, school must also have offline_mode module.
     ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and (
         not school or school.has_feature("offline_mode")
@@ -518,20 +535,48 @@ def region_settings(request):
     if default_language is None:
         default_language = getattr(region, "default_language", "en")
 
-    currency_symbol = get_currency_symbol(getattr(region, "default_currency", None) or "XAF")
+    tenant_locale = {}
+    if school:
+        try:
+            from .tenant_config import get_tenant_locale
+
+            tenant_locale = get_tenant_locale(school=school)
+        except Exception:
+            tenant_locale = {}
+
+    effective_currency = (
+        (tenant_locale or {}).get("currency")
+        or getattr(region, "default_currency", None)
+        or "XAF"
+    )
+    currency_symbol = get_currency_symbol(effective_currency)
+    effective_date_format = (
+        (tenant_locale or {}).get("date_format")
+        or getattr(region, "date_format", "YYYY-MM-DD")
+    )
+    effective_language = (
+        (tenant_locale or {}).get("locale")
+        or default_language
+    )
+    effective_grading_scale = (
+        (tenant_locale or {}).get("grading_scale")
+        or grading_scale
+    )
 
     is_rtl = getattr(region, "is_rtl", False)
     if school and (school.settings or {}).get("rtl") is True:
+        is_rtl = True
+    if (tenant_locale or {}).get("is_rtl") is True:
         is_rtl = True
     return {
         'region': region,
         'region_code': getattr(region, "code", "CMR"),
         'region_name': getattr(region, "name", "Default"),
         'currency_symbol': currency_symbol,
-        'date_format': getattr(region, "date_format", "YYYY-MM-DD"),
+        'date_format': effective_date_format,
         'timezone': getattr(region, "timezone", "UTC"),
-        'default_language': default_language,
-        'grading_scale': grading_scale,
+        'default_language': effective_language,
+        'grading_scale': effective_grading_scale,
         'decimal_separator': getattr(region, "decimal_separator", "."),
         'thousands_separator': getattr(region, "thousands_separator", ","),
         'enable_multi_region': getattr(settings, 'ENABLE_MULTI_REGION', False),

@@ -19,12 +19,16 @@ services:
       - key: PYTHON_VERSION
         value: "3.12.3"
       - key: ALLOWED_HOSTS
-        value: "runyourcampus.com,.runyourcampus.com,school-management-system-2kzk.onrender.com"
+        value: "runyourcampus.com,.runyourcampus.com,runmycampus.com,.runmycampus.com,school-management-system-2kzk.onrender.com"
       - key: MULTI_TENANT_BASE_DOMAIN
         value: "runyourcampus.com"
+      - key: MULTI_TENANT_LEGACY_BASE_DOMAINS
+        value: "runmycampus.com"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://runyourcampus.com,https://*.runyourcampus.com,https://school-management-system-2kzk.onrender.com"
+        value: "https://runyourcampus.com,https://*.runyourcampus.com,https://runmycampus.com,https://*.runmycampus.com,https://school-management-system-2kzk.onrender.com"
       - key: SESSION_COOKIE_DOMAIN
+        value: ".runyourcampus.com"
+      - key: CSRF_COOKIE_DOMAIN
         value: ".runyourcampus.com"
       - key: USE_DJANGO_TENANTS
         value: "1"
@@ -72,6 +76,10 @@ services:
         value: "3.12.3"
       - key: DJANGO_SETTINGS_MODULE
         value: "config.settings"
+      - key: MULTI_TENANT_BASE_DOMAIN
+        value: "runyourcampus.com"
+      - key: MULTI_TENANT_LEGACY_BASE_DOMAINS
+        value: "runmycampus.com"
       - key: SECRET_KEY
         sync: false
       - key: DATABASE_URL
@@ -101,6 +109,10 @@ services:
         value: "3.12.3"
       - key: DJANGO_SETTINGS_MODULE
         value: "config.settings"
+      - key: MULTI_TENANT_BASE_DOMAIN
+        value: "runyourcampus.com"
+      - key: MULTI_TENANT_LEGACY_BASE_DOMAINS
+        value: "runmycampus.com"
       - key: SECRET_KEY
         sync: false
       - key: DATABASE_URL

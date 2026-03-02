@@ -59,6 +59,7 @@ from .views_security import (
 )
 from .views_oidc import oidc_start, oidc_callback
 from .views_saml import saml_start, saml_acs, saml_metadata
+from .views_impersonation import impersonate_entry, end_impersonation
 
 try:
     from apps.people.views_backend import (
@@ -80,6 +81,8 @@ app_name = "accounts"
 urlpatterns = [
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
+    path("impersonate/", impersonate_entry, name="impersonate_entry"),
+    path("end-impersonation/", end_impersonation, name="end_impersonation"),
     path("school-picker/", school_picker, name="school_picker"),
     path("redirect/", redirect_view, name="redirect"),
     path("switch-portal-role/", switch_portal_role, name="switch_portal_role"),

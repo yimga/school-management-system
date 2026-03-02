@@ -15,6 +15,7 @@
         <a href="{% url 'super:pulse' %}" class="btn btn-outline-info">Pulse Map</a>
         <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-info">Tenant Health</a>
         <a href="{% url 'super:usage' %}" class="btn btn-outline-primary">Usage &amp; quotas</a>
+        <a href="{% url 'super:support_dashboard' %}" class="btn btn-outline-warning">Support</a>
         <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create School</a>
       </div>
     </div>
@@ -246,6 +247,11 @@
                   <td>{{ school.member_count|default:0 }}</td>
                   <td class="text-muted small">{{ school.updated_at|date:"Y-m-d H:i"|default:"—" }}</td>
                   <td>
+                    <form method="post" action="{% url 'super:switch_to_tenant' %}" class="d-inline me-1" title="View as tenant (impersonation)">
+                      {% csrf_token %}
+                      <input type="hidden" name="school_id" value="{{ school.id }}">
+                      <button type="submit" class="btn btn-sm btn-outline-primary">View as tenant</button>
+                    </form>
                     {% if school.timeline_url %}
                       <a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info me-1">Timeline</a>
                     {% endif %}

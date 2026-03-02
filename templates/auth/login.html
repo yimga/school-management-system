@@ -6,7 +6,7 @@
 {% block extrastyle %}
   <style>
     body {
-      background: #f5f7fb;
+      background: var(--portal-bg);
     }
 
     .auth-landing {
@@ -20,7 +20,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: linear-gradient(135deg, {{ SITE_PRIMARY_COLOR|default:SITE.primary_color|default:"#0d6efd" }}, {{ SITE_ACCENT_COLOR|default:SITE.accent_color|default:"#198754" }});
+      background: linear-gradient(135deg, var(--school-primary), var(--school-accent));
       color: white;
       margin-bottom: 0.5rem;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
@@ -96,30 +96,30 @@
       justify-content: center;
       border-radius: 12px;
       padding: 0.35rem 0.9rem;
-      border: 1px solid rgba(13, 110, 253, 0.4);
-      color: #0d6efd;
+      border: 1px solid color-mix(in srgb, var(--school-primary) 45%, transparent);
+      color: var(--school-primary);
       font-weight: 600;
       text-decoration: none;
-      background: rgba(13, 110, 253, 0.05);
+      background: color-mix(in srgb, var(--school-primary) 8%, transparent);
       transition: background 0.2s ease, color 0.2s ease;
     }
 
     .quick-link:hover {
-      background: #0d6efd;
+      background: var(--school-primary);
       color: var(--admin-content-accent-fg);
-      border-color: #0d6efd;
+      border-color: var(--school-primary);
     }
 
     .quick-link-muted {
       opacity: 0.6;
       border-color: rgba(108, 117, 125, 0.4);
-      color: #6c757d;
+      color: var(--portal-text-muted);
       background: rgba(108, 117, 125, 0.08);
     }
 
     .quick-link-muted:hover {
       opacity: 1;
-      color: #6c757d;
+      color: var(--portal-text-muted);
       border-color: rgba(108, 117, 125, 0.6);
     }
 
@@ -148,7 +148,7 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      background-color: #e9ecef;
+      background-color: color-mix(in srgb, var(--admin-content-border) 55%, var(--admin-content-bg));
     }
     .login-split__right {
       flex: 1;
@@ -156,7 +156,7 @@
       flex-direction: column;
       justify-content: center;
       padding: 2rem;
-      background: #f5f7fb;
+      background: var(--portal-bg);
     }
     .login-split .auth-hero {
       margin-bottom: 0;
@@ -257,9 +257,9 @@
                 <div class="mb-3">
                   <label class="form-label">{% trans "I am signing in as" %}</label>
                   <select class="form-select" name="role" id="login-role">
-                    <option value="staff">{% trans "Staff" %}</option>
-                    <option value="student">{% trans "Student" %}</option>
-                    <option value="parent">{% trans "Parent" %}</option>
+                    <option value="staff">{{ TENANT_LABELS.staff|default:"Staff" }}</option>
+                    <option value="student">{{ TENANT_LABELS.student|default:"Student" }}</option>
+                    <option value="parent">{{ TENANT_LABELS.parent|default:"Parent" }}</option>
                   </select>
                 </div>
                 {% if LOGIN_SSO_INTEGRATIONS %}
@@ -287,7 +287,7 @@
                 {% trans "New parents can claim an invite" %} <a href="{% url 'accounts:claim_invite' %}">{% trans "here" %}</a>.
               </p>
               <p class="small text-muted mt-3 mb-0 text-center">
-                <a href="https://runmycampus.com" target="_blank" rel="noopener noreferrer" class="text-muted">Powered by RunMyCampus</a>
+                <a href="https://runyourcampus.com" target="_blank" rel="noopener noreferrer" class="text-muted">Powered by RunYourCampus</a>
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 import logging
+import uuid
 
 from django.conf import settings
 from django.db import models, connection, OperationalError, DatabaseError
@@ -3749,6 +3750,231 @@ class FeatureUsageEvent(models.Model):
 
     def __str__(self):
         return f"{self.feature_code} @ {self.created_at}"
+
+
+# ============================================================================
+# Global Support Desk (RunYourCampus powerhouse): central ticketing in shared schema
+# ============================================================================
+
+
+class GlobalSupportTicket(models.Model):
+    """
+    Central support ticket from any tenant; stored in public/shared schema.
+    Super-admin command center can filter by tenant, priority, region (metadata.country_code).
+    Auto-prioritize by plan (e.g. Powerhouse).
+    """
+    class Priority(models.TextChoices):
+        LOW = "LOW", "Low"
+        NORMAL = "NORMAL", "Normal"
+        HIGH = "HIGH", "High"
+        URGENT = "URGENT", "Urgent"
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", "Open"
+        IN_PROGRESS = "IN_PROGRESS", "In Progress"
+        WAITING = "WAITING", "Waiting"
+        RESOLVED = "RESOLVED", "Resolved"
+        CLOSED = "CLOSED", "Closed"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="global_support_tickets",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="global_support_tickets_submitted",
+    )
+    subject = models.CharField(max_length=255)
+    body = models.TextField(blank=True)
+    priority = models.CharField(
+        max_length=20,
+        choices=Priority.choices,
+        default=Priority.NORMAL,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.OPEN,
+    )
+    tags = models.JSONField(default=list, blank=True)
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="country_code, plan_slug, etc. for regional routing and filters",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["priority"]),
+            models.Index(fields=["school"]),
+            models.Index(fields=["-created_at"]),
+        ]
+        verbose_name = "Global support ticket"
+        verbose_name_plural = "Global support tickets"
+
+    def __str__(self):
+        return f"{self.school.name}: {self.subject} ({self.status})"
+
+
+# ============================================================================
+# Regional marketing pitch (geo-personalized landing); shared schema
+# ============================================================================
+
+
+class RegionalPitch(models.Model):
+    """
+    Per-country (or region) marketing copy and SEO for the public landing.
+    Loaded by GeoIP or tenant region; morphs headline, features, and SEO metadata.
+    """
+    country_code = models.CharField(
+        max_length=2,
+        unique=True,
+        db_index=True,
+        help_text="ISO 3166-1 alpha-2 (e.g. CM, CA).",
+    )
+    headline = models.CharField(max_length=200)
+    subheadline = models.CharField(max_length=400, blank=True)
+    features = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of feature strings or {title, description} dicts.",
+    )
+    visual_variant = models.CharField(
+        max_length=40,
+        blank=True,
+        help_text="Optional: hero image or layout variant key.",
+    )
+    seo_title = models.CharField(max_length=120, blank=True)
+    seo_description = models.CharField(max_length=320, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["country_code"]
+        verbose_name = "Regional pitch"
+        verbose_name_plural = "Regional pitches"
+
+    def __str__(self):
+        return f"{self.country_code}: {self.headline}"
+
+
+# ============================================================================
+# Global Brand Registry (country-level source of truth for SEO/UI/labels)
+# ============================================================================
+
+
+class GlobalBrandRegistry(models.Model):
+    """
+    Canonical per-country brand and academic defaults used for:
+    - marketing SEO hydration
+    - tenant terminology/localization hydration
+    - compliance and UI behavior defaults
+    """
+
+    iso_code = models.CharField(
+        max_length=2,
+        primary_key=True,
+        help_text="ISO 3166-1 alpha-2 country code (e.g. CM, CA, BR).",
+    )
+    country_name = models.CharField(max_length=120)
+    primary_language = models.CharField(
+        max_length=16,
+        default="en",
+        help_text="Primary language code for this country profile (e.g. en, fr, ar).",
+    )
+    academic_config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="ISCED levels, term structure, grading defaults, and education nuances.",
+    )
+    labels_map = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Terminology map (student, teacher, principal, etc.) for UI hydration.",
+    )
+    compliance_config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Data residency and privacy-law defaults for this country.",
+    )
+    seo_config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Marketing SEO defaults (headlines, summaries, proof points, metadata).",
+    )
+    ui_config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="UI defaults such as date format, number separators, RTL, and locale hints.",
+    )
+    currency_code = models.CharField(max_length=3, default="USD")
+    is_active = models.BooleanField(default=True)
+    source_name = models.CharField(
+        max_length=64,
+        blank=True,
+        default="global_catalog",
+        help_text="Data source name (e.g. global_catalog, unesco_uis, manual).",
+    )
+    source_synced_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["iso_code"]
+        verbose_name = "Global brand registry"
+        verbose_name_plural = "Global brand registry"
+
+    def __str__(self):
+        return f"{self.iso_code} - {self.country_name}"
+
+
+# ============================================================================
+# Impersonation audit (super-admin "view as tenant"); stored in shared schema
+# ============================================================================
+
+
+class ImpersonationLog(models.Model):
+    """Audit log for super-admin tenant impersonation (switch-to-tenant / end)."""
+
+    class Action(models.TextChoices):
+        SWITCH = "SWITCH", "Switch to tenant"
+        END = "END", "End impersonation"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="impersonation_logs",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="impersonation_logs",
+    )
+    action = models.CharField(max_length=20, choices=Action.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["actor"]), models.Index(fields=["school"]), models.Index(fields=["-created_at"])]
+        verbose_name = "Impersonation log"
+        verbose_name_plural = "Impersonation logs"
+
+    def __str__(self):
+        return f"{self.actor_id} {self.action} {self.school_id} @ {self.created_at}"
 
 
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)

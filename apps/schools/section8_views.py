@@ -7,6 +7,7 @@ import base64
 import secrets
 from urllib.parse import urlencode
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
+from django.conf import settings
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -185,8 +186,8 @@ def global_login_discovery(request):
     email = (request.POST.get("email") or "").strip()
     if not email:
         return render(request, "schools/global_login_discovery.html", {"error": "Please enter your email."})
-    from django.conf import settings
     from .models import SchoolMembership
+    from apps.schools.host_routing import get_canonical_base_domain
     memberships = SchoolMembership.objects.filter(
         user__email__iexact=email,
         school__is_active=True,
@@ -195,7 +196,7 @@ def global_login_discovery(request):
     if membership:
         _discovery_rate_limit_incr(request)
         school = membership.school
-        base = getattr(settings, "MULTI_TENANT_BASE_DOMAIN", "") or request.get_host().split(":")[0]
+        base = get_canonical_base_domain() or request.get_host().split(":")[0]
         if school.subdomain:
             scheme = "https" if request.is_secure() else "http"
             school_url = f"{scheme}://{school.subdomain}.{base}"
@@ -216,18 +217,12 @@ def _build_school_portal_url(request, school) -> str:
     """Canonical URL for school portal discovery links."""
     from apps.schools.domain_sync import get_base_domain
 
-    custom_domain = (getattr(school, "custom_domain", "") or "").strip().lower()
-    if custom_domain and getattr(school, "custom_domain_verified", False):
-        return f"https://{custom_domain}"
-
     base_domain = get_base_domain()
     subdomain = (getattr(school, "subdomain", "") or getattr(school, "slug", "") or "").strip().lower()
     if subdomain and base_domain:
         return f"https://{subdomain}.{base_domain}"
 
-    slug = (getattr(school, "slug", "") or "").strip().lower()
-    if slug:
-        return request.build_absolute_uri(f"/t/{slug}/authentication/login/")
+    # If no canonical subdomain is available, send user back to global discovery.
     return request.build_absolute_uri(reverse("global_login_discovery"))
 
 
@@ -269,6 +264,22 @@ def find_school(request):
         "schools/find_school.html",
         {"query": query, "results": results},
     )
+
+
+@require_GET
+def public_verify_hub(request):
+    """
+    Public verify subdomain landing (no tenant context).
+    """
+    return render(request, "schools/public_verify_hub.html", {})
+
+
+@require_GET
+def public_support_hub(request):
+    """
+    Public support subdomain landing (shared/public schema).
+    """
+    return render(request, "schools/public_support_hub.html", {})
 
 
 @require_GET

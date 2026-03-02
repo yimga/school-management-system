@@ -21,5 +21,8 @@ urlpatterns = [
     path("pulse/", super_views.super_pulse, name="pulse"),
     path("tenant-health/", super_views.super_tenant_health, name="tenant_health"),
     path("billing/", super_views.billing_dashboard, name="billing_dashboard"),
+    path("support/", super_views.super_support_dashboard, name="support_dashboard"),
+    path("support/queue/", super_views.support_queue_fragment, name="support_queue_fragment"),
+    path("switch-to-tenant/", super_views.switch_to_tenant, name="switch_to_tenant"),
     path("sync-repair/<uuid:school_id>/", super_views.sync_repair, name="sync_repair"),
 ]

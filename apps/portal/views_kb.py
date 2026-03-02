@@ -16,6 +16,51 @@ from .models_kb import (
 )
 
 
+def _get_kb_region(request):
+    """
+    Return (country_code, plan_tier) for KB regional filtering.
+    From tenant: school.default_region.country_code or compliance_region; plan from school.plan.
+    From public: GeoIP country_code; plan_tier None.
+    """
+    country_code = ""
+    plan_tier = ""
+    school = getattr(request, "school", None)
+    if school:
+        try:
+            if getattr(school, "default_region", None) and hasattr(school.default_region, "country_code"):
+                country_code = (school.default_region.country_code or "")[:2].upper()
+            if not country_code and getattr(school, "compliance_region", None):
+                region = school.compliance_region
+                if hasattr(region, "country_code"):
+                    country_code = (region.country_code or "")[:2].upper()
+            if getattr(school, "plan", None) and hasattr(school.plan, "slug"):
+                plan_tier = (school.plan.slug or "").strip().lower()
+        except Exception:
+            pass
+    else:
+        try:
+            from apps.compliance.access_control import get_country_from_ip
+            ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR", "")
+            if ip:
+                country_code = (get_country_from_ip(ip) or "")[:2].upper()
+        except Exception:
+            pass
+    return (country_code or "", plan_tier or "")
+
+
+def _filter_kb_articles_by_region(queryset, country_code, plan_tier=""):
+    """
+    Filter KB article queryset to prefer region/plan; include global (blank) and matching region.
+    """
+    if not country_code and not plan_tier:
+        return queryset
+    # Global articles (no region) always shown; optionally boost region-matched
+    q_global = Q(country_code="") & Q(education_type="") & Q(plan_tier="")
+    q_country = Q(country_code=country_code) if country_code else Q(pk__in=[])
+    q_plan = Q(plan_tier=plan_tier) if plan_tier else Q(pk__in=[])
+    return queryset.filter(q_global | q_country | q_plan)
+
+
 def faq_list(request):
     """Display all FAQs organized by category"""
     category_slug = request.GET.get('category')
@@ -145,18 +190,17 @@ def faq_submit(request):
 
 def kb_home(request):
     """Knowledge Base home page"""
-    featured_articles = KBArticle.objects.filter(
-        status='PUBLISHED', is_featured=True
+    country_code, plan_tier = _get_kb_region(request)
+    base = KBArticle.objects.filter(status='PUBLISHED')
+    featured_articles = _filter_kb_articles_by_region(
+        base.filter(is_featured=True), country_code, plan_tier
     )[:6]
-    
-    recent_articles = KBArticle.objects.filter(
-        status='PUBLISHED'
-    ).order_by('-published_at')[:10]
-    
-    popular_articles = KBArticle.objects.filter(
-        status='PUBLISHED'
-    ).order_by('-view_count')[:10]
-    
+    recent_articles = _filter_kb_articles_by_region(
+        base.order_by('-published_at'), country_code, plan_tier
+    )[:10]
+    popular_articles = _filter_kb_articles_by_region(
+        base.order_by('-view_count'), country_code, plan_tier
+    )[:10]
     categories = KBCategory.objects.filter(is_active=True, parent=None)
     
     context = {
@@ -413,18 +457,19 @@ def kb_article_submit(request):
 def kb_search(request):
     """Search knowledge base"""
     query = request.GET.get('q', '')
-    
     if not query:
         return redirect('kb:kb_home')
-    
+    country_code, plan_tier = _get_kb_region(request)
     # Search articles
-    articles = KBArticle.objects.filter(
-        status='PUBLISHED'
-    ).filter(
-        Q(title__icontains=query) |
-        Q(summary__icontains=query) |
-        Q(content__icontains=query) |
-        Q(tags__icontains=query)
+    articles = _filter_kb_articles_by_region(
+        KBArticle.objects.filter(status='PUBLISHED').filter(
+            Q(title__icontains=query) |
+            Q(summary__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__icontains=query)
+        ),
+        country_code,
+        plan_tier,
     )
     
     # Search FAQs

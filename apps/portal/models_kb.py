@@ -193,7 +193,27 @@ class KBArticle(models.Model):
     # Display settings
     is_featured = models.BooleanField(_("Is Featured"), default=False)
     display_order = models.PositiveIntegerField(_("Display Order"), default=0)
-    
+
+    # Regional metadata: filter help content by tenant or GeoIP region (e.g. Cameroon vs Canada)
+    country_code = models.CharField(
+        _("Country code"),
+        max_length=2,
+        blank=True,
+        help_text="ISO 3166-1 alpha-2 (e.g. CM, CA). Blank = global.",
+    )
+    education_type = models.CharField(
+        _("Education type"),
+        max_length=80,
+        blank=True,
+        help_text="E.g. CAMEROON_K12, CANADA_K12 for region-aware filtering.",
+    )
+    plan_tier = models.CharField(
+        _("Plan tier"),
+        max_length=40,
+        blank=True,
+        help_text="Optional: restrict to plan slug (e.g. powerhouse).",
+    )
+
     # Timestamps
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
@@ -208,6 +228,7 @@ class KBArticle(models.Model):
             models.Index(fields=['status', 'category']),
             models.Index(fields=['is_featured', '-view_count']),
             models.Index(fields=['-published_at']),
+            models.Index(fields=['country_code']),
         ]
 
     def __str__(self):

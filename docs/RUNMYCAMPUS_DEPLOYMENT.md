@@ -32,9 +32,13 @@ Optional: add a comment at the top of `render.yaml` referencing the RunMyCampus 
 
 ## 2. Custom domains and wildcard SSL
 
-- Point your root domain (e.g. `runmycampus.io`) to Render via CNAME (or A/AAAA as per Render docs).
-- In the Render dashboard, add a **custom domain** for the web service and, if supported, a **wildcard** (e.g. `*.runmycampus.io`) so each school subdomain gets SSL automatically.
-- Render supports custom domains and wildcard SSL; follow the exact steps in the Render dashboard (Settings → Custom Domains). After DNS propagation, TLS is issued for the root and `*.runmycampus.io`.
+- Point your root domain (e.g. `runmycampus.com`) to Render via CNAME (or A/AAAA as per Render docs).
+- In the Render dashboard, add a **custom domain** for the web service and, if supported, a **wildcard** (e.g. `*.runmycampus.com`) so each school subdomain gets SSL automatically.
+- Render supports custom domains and wildcard SSL; follow the exact steps in the Render dashboard (Settings -> Custom Domains). After DNS propagation, TLS is issued for the root and `*.runmycampus.com`.
+- **Multi-tenant base domain:** Set `MULTI_TENANT_BASE_DOMAIN=runmycampus.com` so bare domain routes to the public marketing landing and subdomains to tenant backends.
+- **Temporary legacy compatibility:** Set `MULTI_TENANT_LEGACY_BASE_DOMAINS=runyourcampus.com` during cutover.
+- **Caddy on-demand TLS (optional):** If you use Caddy in front of Render, configure the “ask” endpoint so Caddy only issues certs for known tenants:
+  - `ask http://localhost:8000/api/v1/auth/check-domain/?domain={domain}` (or `/api/caddy-check/`). The app returns 200 only for verified subdomains or custom domains (see `SchoolDomain` and Caddy docs). Restrict this endpoint by IP via `CADDY_CHECK_ALLOWED_IPS` in production.
 
 ---
 
@@ -69,8 +73,10 @@ Optional: add a comment at the top of `render.yaml` referencing the RunMyCampus 
 - [ ] **RLS:** Enabled and verified on all tenant-scoped tables (`verify_tenant_rls` run after migrations).
 - [ ] **Redis:** Used for sessions and (optionally) tenant cache; `REDIS_URL` and `CELERY_BROKER_URL` set.
 - [ ] **School assets:** Logos and wallpapers served via CDN (and optionally from S3/Cloudinary); document `DEFAULT_FILE_STORAGE` and media bucket if used.
-- [ ] **Custom domain and wildcard SSL:** Root and `*.runmycampus.io` (or your domain) configured and TLS active.
+- [ ] **Custom domain and wildcard SSL:** Root and `*.runmycampus.com` configured and TLS active.
 - [ ] **CDN:** Cloudflare (or similar) in front of Render; static/media caching as needed.
+- [ ] **Multi-tenant routing:** `MULTI_TENANT_BASE_DOMAIN` set; public URLConf for base domain (marketing, signup, discover); tenant URLConf for subdomains and path-based `/t/<slug>/`.
+- [ ] **Caddy ask (if used):** `/api/v1/auth/check-domain/` or `/api/caddy-check/` reachable from Caddy; `CADDY_CHECK_ALLOWED_IPS` set in production.
 - [ ] **Auto-scaling:** Document Render’s scaling options for the web service (e.g. scale to N instances under load); no code change required.
 
 ---

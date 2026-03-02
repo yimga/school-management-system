@@ -170,11 +170,32 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
         "grading_scale": "0-100",
         "default_language": "en",
         "default_timezone": "UTC",
+        "labels_map": {},
+        "is_rtl": False,
     }
     if school is None and request is not None:
         school = getattr(request, "school", None)
     if school is None:
         return out
+
+    # Country-level brand defaults (GlobalBrandRegistry) before system/profile overlays.
+    try:
+        from apps.siteconfig.brand_registry import resolve_global_brand_context
+
+        brand_context = resolve_global_brand_context(school=school)
+        out["locale"] = brand_context.get("primary_language") or out["locale"]
+        out["default_language"] = brand_context.get("primary_language") or out["default_language"]
+        out["currency"] = brand_context.get("currency_code") or out["currency"]
+        out["labels_map"] = brand_context.get("labels_map") or {}
+        ui_cfg = brand_context.get("ui_config") or {}
+        if isinstance(ui_cfg, dict):
+            out["date_format"] = ui_cfg.get("date_format") or out["date_format"]
+            out["is_rtl"] = bool(ui_cfg.get("is_rtl", False))
+            if ui_cfg.get("timezone"):
+                out["timezone"] = ui_cfg["timezone"]
+                out["default_timezone"] = ui_cfg["timezone"]
+    except Exception:
+        pass
 
     try:
         from apps.siteconfig.models import TenantSystem, EducationSystemProfile
@@ -223,9 +244,15 @@ def get_tenant_locale(request=None, school=None) -> dict[str, Any]:
             out["date_format"] = settings["date_format"]
         if settings.get("grading_scale"):
             out["grading_scale"] = settings["grading_scale"]
+        if isinstance(settings.get("labels_map"), dict):
+            out["labels_map"] = {**(out.get("labels_map") or {}), **settings["labels_map"]}
         edu = settings.get("education_profile") or {}
         if isinstance(edu, dict) and edu.get("default_timezone"):
             out["timezone"] = edu["default_timezone"]
+        if isinstance(edu, dict) and isinstance(edu.get("labels_map"), dict):
+            out["labels_map"] = {**(out.get("labels_map") or {}), **edu["labels_map"]}
+        if settings.get("rtl") is True:
+            out["is_rtl"] = True
 
     # School model fields override
     if getattr(school, "timezone", None):

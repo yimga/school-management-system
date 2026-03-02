@@ -61,6 +61,7 @@
       {% endblock %}
     </title>
     <link rel="icon" href="{{ SITE_FAVICON_URL|default:'/static/favicon.ico' }}" type="image/x-icon">
+    {% block extrahead %}{% endblock %}
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -81,22 +82,22 @@
     <style>
                               {% if SITE %}
                               :root {
-                                --school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color|default:"#0d6efd" }};
-                                --school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color|default:"#198754" }};
-                                --school-success: {{ SITE.success_color|default:"#22c55e" }};
-                                --school-warning: {{ SITE.warning_color|default:"#f59e0b" }};
-                                --school-danger: {{ SITE.danger_color|default:"#ef4444" }};
+                                {% if SITE_PRIMARY_COLOR or SITE.primary_color %}--school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color }};{% endif %}
+                                {% if SITE_ACCENT_COLOR or SITE.accent_color %}--school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color }};{% endif %}
+                                {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
+                                {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
+                                {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
                               }
                               {% endif %}
                               {% if HIGH_CONTRAST_MODE %}
                               html, body, .app-container {
-                                background: #000 !important;
-                                color: #fff !important;
+                                background: black !important;
+                                color: white !important;
                               }
                               .card, .navbar, .alert, .btn, .form-control {
-                                background: #111 !important;
-                                color: #fff !important;
-                                border-color: #fff !important;
+                                background: color-mix(in srgb, black 92%, var(--admin-content-bg)) !important;
+                                color: white !important;
+                                border-color: white !important;
                               }
                               .app-container::before {
                                 filter: grayscale(1) contrast(2);
@@ -177,11 +178,11 @@
       }
       {% with theme=SITE_THEME %}
       :root {
-        --school-primary: {{ theme.primary_color|default:SITE.primary_color|default:"#0d6efd" }};
-        --school-accent: {{ theme.accent_color|default:SITE.accent_color|default:"#198754" }};
-        --school-success: {{ SITE.success_color|default:"#22c55e" }};
-        --school-warning: {{ SITE.warning_color|default:"#f59e0b" }};
-        --school-danger: {{ SITE.danger_color|default:"#ef4444" }};
+        {% if theme.primary_color or SITE.primary_color %}--school-primary: {{ theme.primary_color|default:SITE.primary_color }};{% endif %}
+        {% if theme.accent_color or SITE.accent_color %}--school-accent: {{ theme.accent_color|default:SITE.accent_color }};{% endif %}
+        {% if SITE.success_color %}--school-success: {{ SITE.success_color }};{% endif %}
+        {% if SITE.warning_color %}--school-warning: {{ SITE.warning_color }};{% endif %}
+        {% if SITE.danger_color %}--school-danger: {{ SITE.danger_color }};{% endif %}
         --school-bg: {{ theme.background_color|default:"transparent" }};
         --school-font: {{ theme.font_family|default:SITE.brand_font|default:"Inter, system-ui, sans-serif" }};
         {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
@@ -195,7 +196,13 @@
         font-family: var(--school-font), system-ui, sans-serif;
         {% if SITE_BASE_FONT_SIZE %}font-size: var(--base-font-size);{% endif %}
         background: linear-gradient(135deg, rgba(13,110,253,.08), rgba(25,135,84,.05));
-        color: {% if SITE and SITE.use_dark_mode %}#f5f5f5{% else %}#111{% endif %};
+        color: var(--admin-content-text);
+      }
+      body.host-kind-manager {
+        background: radial-gradient(circle at 15% 20%, rgba(52, 211, 153, 0.16), transparent 35%),
+                    radial-gradient(circle at 85% 0%, rgba(14, 165, 233, 0.14), transparent 30%),
+                    rgb(15 23 42);
+        color: rgb(226 232 240);
       }
 
       .navbar {
@@ -248,8 +255,8 @@
         left: -999px;
         top: 0;
         padding: 0.5rem 0.75rem;
-        background: #0f172a;
-        color: #f9fafb;
+        background: rgb(15 23 42);
+        color: rgb(249 250 251);
         z-index: 2000;
       }
       .skip-link:focus {
@@ -273,7 +280,7 @@
       /* Make alerts readable in dark mode */
       {% if SITE and SITE.use_dark_mode %}
       .alert {
-        color: #111;
+        color: var(--admin-content-text);
       }
       {% endif %}
     </style>
@@ -286,7 +293,7 @@
     {% block extrastyle %}{% endblock %}
   </head>
 
-  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }}">
+  <body class="layout-{{ LAYOUT_STYLE|default:'fluid' }} host-kind-{{ request.public_host_kind|default:'tenant'|lower }}">
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
     <!--
       .app-container wraps all content for background logo/video/svg effect.

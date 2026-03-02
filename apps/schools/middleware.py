@@ -5,9 +5,16 @@ set request.school and session school_id, and set PostgreSQL app.current_school_
 import os
 import logging
 from django.conf import settings
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
+
+from apps.schools.host_routing import (
+    get_canonical_base_domain,
+    is_public_host,
+    map_legacy_host_to_canonical,
+    public_host_kind,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -17,26 +24,69 @@ SUPER_PREFIXES = ("/super/",)
 STATIC_PREFIXES = ("/static/", "/media/", "/favicon.ico", "/api/schema", "/offline/")
 HEALTH_PREFIXES = ("/health", "/ready", "/api/health")
 
-# Option A path-based tenancy: tenant pages live under /t/<school_slug>/ so main URL serves only main admin.
+# Legacy path-based tenancy marker kept for compatibility redirects only.
 TENANT_PATH_PREFIX = "/t/"
-# Root-level path prefixes that are tenant-only; on base domain we redirect these to /t/<slug><path>
-ROOT_TENANT_PATH_PREFIXES = (
+MANAGER_ONLY_PREFIXES = (
     "/authentication/",
-    "/portal/",
-    "/evals/",
-    "/academics/",
-    "/reports/",
-    "/analytics/",
-    "/finance/",
-    "/payroll/",
-    "/compliance/",
-    "/communication/",
-    "/requests/",
-    "/kb/",
+    "/super/",
+    "/admin/",
     "/siteconfig/",
-    "/api-center/",
-    "/api/",
-    "/emis/",
+    "/backend/",
+)
+MANAGER_HOST_ALLOWED_PREFIXES = (
+    "/authentication/",
+    "/super/",
+    "/admin/",
+    "/siteconfig/",
+    "/health",
+    "/healthz/",
+    "/ready/",
+    "/status/",
+    "/api/health/",
+    "/static/",
+    "/media/",
+    "/favicon.ico",
+    "/offline/",
+)
+
+PUBLIC_ONLY_PREFIXES = (
+    "/marketing/",
+    "/signup/",
+    "/verify-signup/",
+    "/api/trial/",
+    "/onboard/",
+    "/discover/",
+    "/find/",
+    "/verify/",
+    "/support/",
+    "/cm",
+    "/ca",
+)
+VERIFY_HOST_ALLOWED_PREFIXES = (
+    "/verify/",
+    "/health",
+    "/healthz/",
+    "/ready/",
+    "/status/",
+    "/api/health/",
+    "/static/",
+    "/media/",
+    "/favicon.ico",
+    "/offline/",
+)
+SUPPORT_HOST_ALLOWED_PREFIXES = (
+    "/support/",
+    "/discover/",
+    "/find/",
+    "/health",
+    "/healthz/",
+    "/ready/",
+    "/status/",
+    "/api/health/",
+    "/static/",
+    "/media/",
+    "/favicon.ico",
+    "/offline/",
 )
 
 
@@ -73,19 +123,54 @@ def _strip_tenant_path_prefix(path: str, slug: str) -> str:
     return path
 
 
-def _is_root_tenant_path(path: str) -> bool:
-    """True if path is a tenant-scoped path at root (so we redirect to /t/<slug><path> on base domain)."""
+def _is_public_only_path(path: str) -> bool:
     path = (path or "").strip()
-    for prefix in ROOT_TENANT_PATH_PREFIXES:
+    if path in ("/cm", "/ca", "/onboard", "/discover", "/find", "/marketing", "/signup", "/support", "/verify"):
+        return True
+    for prefix in PUBLIC_ONLY_PREFIXES:
         if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path.startswith(prefix):
             return True
     return False
 
 
-def _get_single_tenant_school():
-    """Return the single School when SINGLE_TENANT mode is on (one school in DB)."""
-    from apps.schools.models import School
-    return School.objects.filter(is_active=True).first()
+def _path_allowed_for_reserved_host(path: str, *, allowed_prefixes: tuple[str, ...]) -> bool:
+    path = (path or "").strip()
+    if path in ("", "/"):
+        return True
+    for prefix in allowed_prefixes:
+        if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path.startswith(prefix):
+            return True
+    return False
+
+
+def _is_manager_only_path(path: str) -> bool:
+    path = (path or "").strip()
+    for prefix in MANAGER_ONLY_PREFIXES:
+        if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path.startswith(prefix):
+            return True
+    return False
+
+
+def _redirect_to_manager_host(request, path: str | None = None):
+    base_domain = _get_base_domain()
+    if not base_domain:
+        return None
+    scheme = "https" if request.is_secure() or not settings.DEBUG else "http"
+    target_path = path if path is not None else request.get_full_path()
+    if not str(target_path).startswith("/"):
+        target_path = f"/{target_path}"
+    return HttpResponseRedirect(f"{scheme}://manager.{base_domain}{target_path}")
+
+
+def _redirect_unknown_school_slug(request, slug: str | None = None):
+    base_domain = _get_base_domain()
+    if not base_domain:
+        from apps.schools.error_views import school_not_found
+        return school_not_found(request)
+    safe_slug = (slug or "").strip().lower()
+    query = f"?slug={safe_slug}" if safe_slug else ""
+    scheme = "https" if request.is_secure() or not settings.DEBUG else "http"
+    return HttpResponseRedirect(f"{scheme}://{base_domain}/school-not-found/{query}")
 
 
 def _extract_subdomain(host: str, base_domain: str | None) -> str | None:
@@ -110,30 +195,17 @@ def _get_base_domain() -> str:
     Canonical base domain for "no tenant" (main admin). Prefer MULTI_TENANT_BASE_DOMAIN;
     on Render when unset, use RENDER_EXTERNAL_HOSTNAME so the primary URL is always base domain.
     """
-    base = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip().lower()
-    if base:
-        return base
-    # Render sets this to the service hostname (e.g. school-management-system-2kzk.onrender.com)
-    render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip().lower()
-    if render_host:
-        return render_host
-    return ""
+    return get_canonical_base_domain()
 
 
 def _is_base_domain(host: str, base_domain: str) -> bool:
     """
     True if this host is the primary/base domain (no tenant subdomain).
     On base domain we never assign a tenant: Main (Public) Admin only; tenants use subdomain/custom domain.
-    Also treat admin.<base_domain> as base so admin.runmycampus.com serves only super-admin.
+    Also treat reserved public hosts as base/non-tenant hosts.
     """
-    if base_domain:
-        if host == base_domain:
-            return True
-        if host == f"www.{base_domain}":
-            return True
-        if host == f"admin.{base_domain}":
-            return True
-    return host in ("localhost", "127.0.0.1", "admin.localhost", "testserver")
+    del base_domain  # compatibility with existing callers
+    return is_public_host(host)
 
 
 def _tenant_cache_key(host_or_sub: str, kind: str = "host") -> str:
@@ -144,23 +216,127 @@ def _tenant_cache_key(host_or_sub: str, kind: str = "host") -> str:
 class UrlConfSwitcherMiddleware(MiddlewareMixin):
     """
     Set request.urlconf to public_urls or tenant_urls so the root URL resolver
-    serves the correct tree (marketing vs school app). Runs early (after Session).
-    Base domain -> config.public_urls; tenant host or /t/<slug>/ -> config.tenant_urls.
+    serves the correct tree by host. Runs early (after Session).
+    - base/verify/support -> config.public_urls
+    - manager -> config.manager_urls
+    - api -> config.api_urls
+    - docs -> config.docs_urls
+    - tenant subdomain/custom domain -> config.tenant_urls
     """
 
     def process_request(self, request):
-        path = (request.path or "").strip()
         host = (request.get_host() or "").split(":")[0].lower()
-        base_domain = _get_base_domain()
-        # Path-based tenant: /t/<slug>/...
-        if _path_starts_with_tenant_prefix(path):
-            request.urlconf = "config.tenant_urls"
+        kind = public_host_kind(host)
+        if kind == "manager":
+            request.urlconf = "config.manager_urls"
             return None
+        if kind == "api":
+            request.urlconf = "config.api_urls"
+            return None
+        if kind == "docs":
+            request.urlconf = "config.docs_urls"
+            return None
+        base_domain = _get_base_domain()
         if _is_base_domain(host, base_domain):
             request.urlconf = "config.public_urls"
         else:
             request.urlconf = "config.tenant_urls"
         return None
+
+
+class LegacyBaseDomainRedirectMiddleware(MiddlewareMixin):
+    """
+    Temporary backward-compat redirect: old base domains -> canonical base domain.
+    Keeps deep links working during domain cutover.
+    """
+
+    def process_request(self, request):
+        host = (request.get_host() or "").split(":")[0].lower()
+        target_host = map_legacy_host_to_canonical(host)
+        if not target_host:
+            return None
+        scheme = "https" if request.is_secure() or not settings.DEBUG else "http"
+        return HttpResponsePermanentRedirect(f"{scheme}://{target_host}{request.get_full_path()}")
+
+
+class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
+    """
+    Restrict verify/support reserved hosts to public-safe endpoints.
+    """
+
+    def process_request(self, request):
+        host = (request.get_host() or "").split(":")[0].lower()
+        path = (request.path or "").strip()
+        kind = public_host_kind(host)
+        request.public_host_kind = kind
+
+        # Super-admin command center is canonical on manager.<base>.
+        if kind is None and path.startswith("/super/"):
+            forwarded = request.get_full_path()
+            return _redirect_to_manager_host(request, path=forwarded)
+
+        # Compatibility window: old /t/<slug>/ links permanently redirect to canonical subdomain URLs.
+        if _path_starts_with_tenant_prefix(path):
+            from apps.schools.models import School
+            from apps.schools.tenant_url import build_tenant_backend_url
+
+            slug = _extract_slug_from_tenant_path(path)
+            school = None
+            if slug:
+                school = School.objects.filter(slug__iexact=slug, is_active=True).first()
+                if not school:
+                    school = School.objects.filter(subdomain__iexact=slug, is_active=True).first()
+            if not school:
+                return _redirect_unknown_school_slug(request, slug)
+            inner = _strip_tenant_path_prefix(path, slug or "")
+            return HttpResponsePermanentRedirect(build_tenant_backend_url(request, school, path=inner))
+
+        # Root/base domain is marketing-first: move manager/auth/admin paths to manager host.
+        if kind == "base" and _is_manager_only_path(path):
+            forwarded = request.get_full_path()
+            return _redirect_to_manager_host(request, path=forwarded)
+
+        if kind == "verify":
+            if path in ("", "/"):
+                return redirect("public_verify_hub")
+            if not _path_allowed_for_reserved_host(path, allowed_prefixes=VERIFY_HOST_ALLOWED_PREFIXES):
+                return redirect("public_verify_hub")
+            return None
+
+        if kind == "support":
+            if path in ("", "/"):
+                return redirect("public_support_hub")
+            if not _path_allowed_for_reserved_host(path, allowed_prefixes=SUPPORT_HOST_ALLOWED_PREFIXES):
+                return redirect("public_support_hub")
+            return None
+
+        if kind == "manager":
+            if path in ("", "/"):
+                return None
+            if not _path_allowed_for_reserved_host(path, allowed_prefixes=MANAGER_HOST_ALLOWED_PREFIXES):
+                return redirect("manager_home")
+            return None
+
+        return None
+
+
+class PublicPathRedirectMiddleware(MiddlewareMixin):
+    """
+    When a tenant host receives public-only paths, redirect to canonical public base host.
+    """
+
+    def process_request(self, request):
+        host = (request.get_host() or "").split(":")[0].lower()
+        if is_public_host(host):
+            return None
+        path = (request.path or "").strip()
+        if not _is_public_only_path(path):
+            return None
+        base_domain = _get_base_domain()
+        if not base_domain:
+            return None
+        scheme = "https" if request.is_secure() or not settings.DEBUG else "http"
+        return HttpResponseRedirect(f"{scheme}://{base_domain}{request.get_full_path()}")
 
 
 def _resolve_school_from_request(request) -> "School | None":
@@ -183,11 +359,14 @@ def _resolve_school_from_request(request) -> "School | None":
         pass
 
     # 1. Canonical verified domain registry (SchoolDomain)
-    school_domain = (
-        SchoolDomain.objects.select_related("school")
-        .filter(domain__iexact=host, is_verified=True, school__is_active=True)
-        .first()
-    )
+    try:
+        school_domain = (
+            SchoolDomain.objects.select_related("school")
+            .filter(domain__iexact=host, is_verified=True, school__is_active=True)
+            .first()
+        )
+    except Exception:
+        school_domain = None
     if school_domain and school_domain.school_id:
         school = school_domain.school
         try:
@@ -243,16 +422,9 @@ def _resolve_school_from_request(request) -> "School | None":
                 pass
             return school
 
-    # Base domain: no tenant from host (Main Admin at /admin/, /super/). Single-tenant is applied in process_request for non-admin paths so the main URL can serve Backend when only one hostname exists (e.g. Render).
+    # Base/public hosts never resolve to tenant context.
     if _is_base_domain(host, base_domain):
         return None
-
-    # 4. Single-tenant fallback when NOT on base domain
-    if os.getenv("SINGLE_TENANT", "").lower() in ("1", "true", "yes"):
-        return _get_single_tenant_school()
-    single = _get_single_tenant_school()
-    if single and School.objects.filter(is_active=True).count() == 1:
-        return single
 
     return None
 
@@ -300,8 +472,8 @@ class TenantSchoolNotFoundMiddleware(MiddlewareMixin):
         base_domain = _get_base_domain()
         if _is_base_domain(host, base_domain):
             return None
-        from apps.schools.error_views import school_not_found
-        return school_not_found(request)
+        subdomain = _extract_subdomain(host, base_domain or None)
+        return _redirect_unknown_school_slug(request, subdomain)
 
 
 class TenantMiddleware(MiddlewareMixin):
@@ -324,46 +496,19 @@ class TenantMiddleware(MiddlewareMixin):
         base_domain = _get_base_domain()
         from apps.schools.models import School
 
-        # Option A path-based tenancy: /t/<slug>/... → resolve school from slug, rewrite path, set tenant_path_prefix
+        # Compatibility window: old /t/<slug>/ links permanently redirect to canonical tenant subdomain URLs.
         if _path_starts_with_tenant_prefix(path):
             slug = _extract_slug_from_tenant_path(path)
+            school = None
             if slug:
                 school = School.objects.filter(slug__iexact=slug, is_active=True).first()
                 if not school:
                     school = School.objects.filter(subdomain__iexact=slug, is_active=True).first()
-                if not school:
-                    from apps.schools.error_views import school_not_found
-                    return school_not_found(request)
-                if school:
-                    request.school = school
-                    request.tenant_path_prefix = f"/t/{slug}/"
-                    inner = _strip_tenant_path_prefix(path, slug)
-                    request.path = inner
-                    request.path_info = inner
-                    request.META["PATH_INFO"] = inner
-                    request.session["school_id"] = str(school.id)
-                    try:
-                        from django.utils import timezone as tz
-                        from apps.siteconfig.tenant_config import get_tenant_locale
-                        locale = get_tenant_locale(school=school)
-                        tz.activate(locale.get("timezone") or locale.get("default_timezone") or "UTC")
-                    except Exception as e:
-                        logger.debug("Could not activate school timezone: %s", e)
-                    try:
-                        from django.db import connection
-                        if connection.vendor == "postgresql":
-                            with connection.cursor() as cursor:
-                                cursor.execute("SET LOCAL app.current_school_id = %s", [str(school.id)])
-                    except Exception as e:
-                        logger.debug("Could not set app.current_school_id: %s", e)
-                    return None
-
-        # On base domain: do not serve tenant content at root — redirect tenant paths to /t/<slug><path>
-        if _is_base_domain(host, base_domain) and _is_root_tenant_path(path):
-            single = _get_single_tenant_school()
-            if single and School.objects.filter(is_active=True).count() == 1:
-                new_path = f"/t/{single.slug}{path}" if path.startswith("/") else f"/t/{single.slug}/{path}"
-                return HttpResponseRedirect(new_path)
+            if not school:
+                return _redirect_unknown_school_slug(request, slug)
+            from apps.schools.tenant_url import build_tenant_backend_url
+            inner_path = _strip_tenant_path_prefix(path, slug or "")
+            return HttpResponsePermanentRedirect(build_tenant_backend_url(request, school, path=inner_path))
 
         # Resolve school from host (subdomain/custom domain) or from session when not on base domain
         try:
@@ -377,14 +522,13 @@ class TenantMiddleware(MiddlewareMixin):
             logger.warning("Tenant resolution failed: %s", e, exc_info=True)
             school = None
 
-        # Unknown tenant host (subdomain/custom host not in DB): branded 404
+        # Unknown tenant host (subdomain/custom host not in DB): redirect to branded public 404 page.
         if school is None and not _is_base_domain(host, base_domain):
-            from apps.schools.error_views import school_not_found
-            return school_not_found(request)
+            subdomain = _extract_subdomain(host, base_domain or None)
+            return _redirect_unknown_school_slug(request, subdomain)
 
-        # Base domain, non-tenant paths: only /admin/ and /super/ get no tenant; do NOT assign single-tenant at root (Option A: tenant only under /t/<slug>/)
         request.school = school
-        # Tenant backend admin dashboard: on tenant subdomain /admin/ → redirect to tenant Backend URL
+        # Tenant backend admin dashboard: on tenant subdomain /admin/ -> redirect to tenant Backend URL
         if school and path.startswith("/admin/"):
             try:
                 from apps.schools.tenant_url import build_tenant_backend_url
@@ -392,9 +536,7 @@ class TenantMiddleware(MiddlewareMixin):
             except Exception:
                 pass
         if school:
-            request.tenant_path_prefix = getattr(request, "tenant_path_prefix", "")  # keep empty when tenant from host
             request.session["school_id"] = str(school.id)
-            # Phase A: RLS/timezone — use merged tenant locale (useLocalSettings)
             try:
                 from django.utils import timezone as tz
                 from apps.siteconfig.tenant_config import get_tenant_locale
@@ -402,7 +544,6 @@ class TenantMiddleware(MiddlewareMixin):
                 tz.activate(locale.get("timezone") or locale.get("default_timezone") or "UTC")
             except Exception as e:
                 logger.debug("Could not activate school timezone: %s", e)
-            # Set PostgreSQL session variable for RLS (no-op on SQLite/MySQL)
             try:
                 from django.db import connection
                 if connection.vendor == "postgresql":
@@ -417,7 +558,6 @@ class TenantMiddleware(MiddlewareMixin):
             request.session.pop("school_id", None)
 
         return None
-
 
 # Section 8.6: Paths that are always allowed when school is frozen (Caddy, discovery, LTI, health, logout, frozen page)
 FROZEN_EXEMPT_PREFIXES = (

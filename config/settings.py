@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import sys
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,14 +24,29 @@ ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_RAW.split(",") if host.s
 if os.getenv("RENDER") == "true":
     if ".onrender.com" not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(".onrender.com")
-# Multi-tenant: allow main host and subdomains when MULTI_TENANT_BASE_DOMAIN is set (see RENDER_URL_MAPPING_PLAN.md)
-_multi_tenant_base = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip().lower()
+# Multi-tenant: allow main host and subdomains.
+# Production default canonical domain is runyourcampus.com.
+_multi_tenant_base = os.getenv(
+    "MULTI_TENANT_BASE_DOMAIN",
+    "runyourcampus.com" if not DEBUG else "",
+).strip().lower()
+_legacy_bases_raw = (
+    os.getenv("MULTI_TENANT_LEGACY_BASE_DOMAINS")
+    or ("runmycampus.com" if not DEBUG else "")
+).strip().lower()
+_legacy_bases = [d.strip() for d in _legacy_bases_raw.split(",") if d.strip()]
 if _multi_tenant_base:
     if _multi_tenant_base not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_multi_tenant_base)
     _dotted_base = f".{_multi_tenant_base}"
     if _dotted_base not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_dotted_base)
+for _legacy_base in _legacy_bases:
+    if _legacy_base not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_legacy_base)
+    _dotted_legacy = f".{_legacy_base}"
+    if _dotted_legacy not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_dotted_legacy)
 if not DEBUG and not ALLOWED_HOSTS:
     raise ImproperlyConfigured("ALLOWED_HOSTS must be configured for production.")
 
@@ -53,6 +69,13 @@ if _multi_tenant_base:
     _wildcard_origin = f"https://*.{_multi_tenant_base}"
     if _wildcard_origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_wildcard_origin]
+for _legacy_base in _legacy_bases:
+    _legacy_origin = f"https://{_legacy_base}"
+    if _legacy_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_legacy_origin]
+    _legacy_wildcard = f"https://*.{_legacy_base}"
+    if _legacy_wildcard not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_legacy_wildcard]
 
 INSTALLED_APPS = [
     # Admin theme (must be first)
@@ -82,6 +105,7 @@ INSTALLED_APPS = [
 
     # Project apps
     "apps.accounts.apps.AccountsConfig",
+    "apps.customers",
     "apps.evals",
     "apps.portal",
     "apps.academics",
@@ -109,7 +133,10 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",  # Temporary cutover: runmycampus.com -> runyourcampus.com
     "apps.schools.middleware.UrlConfSwitcherMiddleware",  # Public vs tenant URLConf from host/path
+    "apps.schools.middleware.ReservedPublicHostAccessMiddleware",  # verify./support. host isolation
+    "apps.schools.middleware.PublicPathRedirectMiddleware",  # public paths hit on tenant host -> base host
     "apps.schools.middleware.TenantMiddleware",  # Multi-tenant: resolve request.school from subdomain/custom domain
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
@@ -145,6 +172,10 @@ MIDDLEWARE += [
 ROOT_URLCONF = "config.urls"
 PUBLIC_SCHEMA_URLCONF = "config.public_urls"
 TENANT_SCHEMA_URLCONF = "config.tenant_urls"
+# Keep tenant model identifiers available even in non-tenant mode; some background
+# integrations import django-tenants helpers unconditionally.
+TENANT_MODEL = "customers.Client"
+TENANT_DOMAIN_MODEL = "customers.Domain"
 
 TEMPLATES = [
     {
@@ -316,6 +347,9 @@ MAINTENANCE_MODE = False
 _is_render = os.getenv("RENDER", "").lower() == "true"
 _secure_ssl_redirect_default = "0" if _is_render else "1"
 SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", _secure_ssl_redirect_default) == "1" and not DEBUG
+# Test runner uses plain HTTP requests; keep HTTPS redirect behavior for runtime envs.
+if "test" in sys.argv:
+    SECURE_SSL_REDIRECT = False
 # Health/readiness probes can come over plain HTTP from platform internals.
 # Exempt these endpoints to avoid redirect loops and failed boot probes.
 SECURE_REDIRECT_EXEMPT = [
@@ -776,6 +810,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
     # Tenant and domain models (apps.customers)
     TENANT_MODEL = "customers.Client"
     TENANT_DOMAIN_MODEL = "customers.Domain"
+    SHOW_PUBLIC_IF_NO_TENANT_FOUND = True
     SHARED_APPS = [
         "django_tenants",
         "django.contrib.contenttypes",
@@ -819,7 +854,10 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
     # Middleware: TenantMain first (strict tenant resolution), then URLConf switch, then school bridge.
     MIDDLEWARE = [
         "django_tenants.middleware.main.TenantMainMiddleware",
+        "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",
         "apps.schools.middleware.UrlConfSwitcherMiddleware",
+        "apps.schools.middleware.ReservedPublicHostAccessMiddleware",
+        "apps.schools.middleware.PublicPathRedirectMiddleware",
         "apps.schools.middleware.TenantSchemaSchoolBridgeMiddleware",
         "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
         "django.middleware.security.SecurityMiddleware",

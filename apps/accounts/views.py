@@ -706,6 +706,16 @@ def redirect_view(request):
     if not user.is_authenticated:
         return redirect(reverse("accounts:login"))
 
+    # Manager host is dedicated to super-admin operations.
+    try:
+        from apps.schools.host_routing import public_host_kind
+
+        host = (request.get_host() or "").split(":")[0].lower()
+        if public_host_kind(host) == "manager":
+            return redirect("super:dashboard")
+    except Exception:
+        pass
+
     from apps.schools.tenant_url import get_tenant_prefix
 
     def _redirect_with_params(name_or_url, *args, **kwargs):
@@ -3062,4 +3072,3 @@ def request_waiver(request):
             ],
         },
     )
-

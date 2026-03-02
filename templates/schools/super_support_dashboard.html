@@ -1,0 +1,58 @@
+{% extends "backend_base.html" %}
+{% load static i18n %}
+{% block title %}Support — Super Admin{% endblock %}
+{% block backend_title %}Support — Super Admin{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <h1 class="h4 mb-0">{% trans "Support mission control" %}</h1>
+    <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">{% trans "Back to dashboard" %}</a>
+  </div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">{% trans "Open" %}</div>
+          <div class="h4 text-warning mb-0">{{ open_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">{% trans "In progress" %}</div>
+          <div class="h4 text-info mb-0">{{ in_progress_count }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card border-0 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span>{% trans "Ticket queue" %}</span>
+      <form method="get" class="d-flex gap-2 flex-wrap">
+        <select name="status" class="form-select form-select-sm" style="width:auto;">
+          <option value="">{% trans "All statuses" %}</option>
+          <option value="OPEN" {% if status_filter == "OPEN" %}selected{% endif %}>{% trans "Open" %}</option>
+          <option value="IN_PROGRESS" {% if status_filter == "IN_PROGRESS" %}selected{% endif %}>{% trans "In progress" %}</option>
+          <option value="RESOLVED" {% if status_filter == "RESOLVED" %}selected{% endif %}>{% trans "Resolved" %}</option>
+          <option value="CLOSED" {% if status_filter == "CLOSED" %}selected{% endif %}>{% trans "Closed" %}</option>
+        </select>
+        <select name="priority" class="form-select form-select-sm" style="width:auto;">
+          <option value="">{% trans "All priorities" %}</option>
+          <option value="URGENT" {% if priority_filter == "URGENT" %}selected{% endif %}>{% trans "Urgent" %}</option>
+          <option value="HIGH" {% if priority_filter == "HIGH" %}selected{% endif %}>{% trans "High" %}</option>
+          <option value="NORMAL" {% if priority_filter == "NORMAL" %}selected{% endif %}>{% trans "Normal" %}</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">{% trans "Filter" %}</button>
+      </form>
+    </div>
+    <div id="support-queue" class="card-body p-0"
+         hx-get="{% url 'super:support_queue_fragment' %}?status={{ status_filter }}"
+         hx-trigger="every 60s, load"
+         hx-swap="innerHTML">
+      {% include "schools/super_support_queue_fragment.html" with tickets=tickets %}
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+{% endblock %}

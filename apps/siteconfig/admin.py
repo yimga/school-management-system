@@ -43,6 +43,7 @@ from .models import (
     WaiverRequest,
     DesignTemplate,
     BrandSettings,
+    GlobalBrandRegistry,
     CustomFeatureTicket,
     FeatureFragment,
     CustomNuance,
@@ -2168,6 +2169,25 @@ class BrandSettingsAdmin(ModelAdmin):
 
 
 admin_site.register(BrandSettings, BrandSettingsAdmin)
+
+
+class GlobalBrandRegistryAdmin(ModelAdmin):
+    list_display = (
+        "iso_code",
+        "country_name",
+        "primary_language",
+        "currency_code",
+        "is_active",
+        "source_name",
+        "source_synced_at",
+        "updated_at",
+    )
+    list_filter = ("is_active", "primary_language", "currency_code", "source_name")
+    search_fields = ("iso_code", "country_name")
+    readonly_fields = ("created_at", "updated_at")
+
+
+admin_site.register(GlobalBrandRegistry, GlobalBrandRegistryAdmin)
 
 
 # Register dashboard preference and widget models for admin configurability

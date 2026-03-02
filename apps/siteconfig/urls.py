@@ -39,6 +39,7 @@ from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import sync_center, sync_center_resolve
 from .views_school_theme import school_theme_settings
 from .views_tag_manager import tag_manager, tag_manager_edit
+from apps.schools.views_domains import custom_domain_wizard
 
 app_name = "siteconfig"
 
@@ -77,5 +78,6 @@ urlpatterns = [
     path("school-theme/", school_theme_settings, name="school_theme_settings"),
     path("tag-manager/", tag_manager, name="tag_manager"),
     path("tag-manager/<int:tag_id>/", tag_manager_edit, name="tag_manager_edit"),
+    path("domains/", custom_domain_wizard, name="custom_domain_wizard"),
     path("api/branding/", branding_api, name="branding_api"),
 ]

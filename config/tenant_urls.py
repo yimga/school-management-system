@@ -23,8 +23,7 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from config.admin import admin_site
-from apps.schools.marketing_views import marketing_landing
-from apps.schools.section8_views import frozen_account, global_login_discovery, find_school
+from apps.schools.section8_views import frozen_account
 from apps.schools.views_domains import api_domains_list_or_create, api_domains_verify
 
 
@@ -143,9 +142,6 @@ urlpatterns = [
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
     path("api/tenant/domains/", api_domains_list_or_create, name="api_domains_list_or_create"),
     path("api/tenant/domains/<uuid:school_domain_id>/verify/", api_domains_verify, name="api_domains_verify"),
-    path("discover/", global_login_discovery, name="global_login_discovery"),
-    path("find/", find_school, name="find_school"),
-    path("marketing/", marketing_landing, name="marketing_landing"),
     path("account-frozen/", frozen_account, name="account_frozen"),
 ]
 

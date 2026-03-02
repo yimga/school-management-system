@@ -47,30 +47,51 @@ def support_request(request):
 
     form = SupportRequestForm(request.POST or None, initial=initial)
     if request.method == "POST" and form.is_valid():
+        school = getattr(request, "school", None)
+        subject_prefix = "[Support]" if form.cleaned_data["category"] == "SUPPORT" else "[Feedback]"
+        subject = f"{subject_prefix} {form.cleaned_data['subject']}"
+        body = (
+            f"From: {request.user.get_full_name()} ({request.user.username})\n"
+            f"Role: {request.user.role}\n"
+            f"Email: {request.user.email or 'N/A'}\n"
+            f"Path: {request.path}\n"
+            f"Next: {next_url or 'N/A'}\n\n"
+            f"{form.cleaned_data['message']}"
+        )
+        # Global support ticket (command center)
+        if school:
+            try:
+                from apps.siteconfig.models import GlobalSupportTicket
+                priority = GlobalSupportTicket.Priority.NORMAL
+                plan_slug = (getattr(school.plan, "slug", None) or "").strip().lower() if getattr(school, "plan", None) else ""
+                if plan_slug in ("powerhouse", "enterprise", "pro"):
+                    priority = GlobalSupportTicket.Priority.HIGH
+                country_code = ""
+                if getattr(school, "default_region", None) and hasattr(school.default_region, "country_code"):
+                    country_code = (school.default_region.country_code or "")[:2]
+                GlobalSupportTicket.objects.create(
+                    school=school,
+                    user=request.user,
+                    subject=subject,
+                    body=body,
+                    priority=priority,
+                    status=GlobalSupportTicket.Status.OPEN,
+                    metadata={"country_code": country_code, "plan_slug": plan_slug, "category": form.cleaned_data["category"]},
+                )
+            except Exception:
+                pass
         recipient = _pick_support_owner()
-        if not recipient:
-            messages.error(request, "No support team is configured yet. Please contact an administrator.")
-        else:
-            subject_prefix = "[Support]" if form.cleaned_data["category"] == "SUPPORT" else "[Feedback]"
-            subject = f"{subject_prefix} {form.cleaned_data['subject']}"
-            body = (
-                f"From: {request.user.get_full_name()} ({request.user.username})\n"
-                f"Role: {request.user.role}\n"
-                f"Email: {request.user.email or 'N/A'}\n"
-                f"Path: {request.path}\n"
-                f"Next: {next_url or 'N/A'}\n\n"
-                f"{form.cleaned_data['message']}"
-            )
+        if recipient:
             Message.objects.create(
                 sender=request.user,
                 recipient=recipient,
                 subject=subject,
                 body=body,
             )
-            messages.success(request, "Thanks! Your message has been sent to the support team.")
-            if next_url:
-                return redirect(next_url)
-            return redirect("portal:portal_home")
+        messages.success(request, "Thanks! Your message has been sent to the support team.")
+        if next_url:
+            return redirect(next_url)
+        return redirect("portal:portal_home")
 
     return render(
         request,

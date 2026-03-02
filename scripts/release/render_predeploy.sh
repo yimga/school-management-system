@@ -32,6 +32,14 @@ PY
   fi
 fi
 
+if [[ "${RUN_BACKFILL_SCHOOLDOMAIN:-1}" == "1" ]]; then
+  run "${PYTHON_BIN}" manage.py backfill_schooldomain
+fi
+
+if [[ "${RUN_STARTUP_SCHEMA_CHECK:-1}" == "1" ]]; then
+  run "${PYTHON_BIN}" manage.py check_tenant_runtime
+fi
+
 run "${PYTHON_BIN}" manage.py seed_admin_dashboard_palettes
 
 if [[ "${APPLY_UI_FIXTURE_ON_DEPLOY:-1}" == "1" && -f "fixtures/ui_config.json" ]]; then

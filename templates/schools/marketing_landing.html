@@ -1,31 +1,118 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{{ pitch.seo_title|default:"RunMyCampus — Don't just record your school. Run your campus." }}{% endblock %}
+{% block title %}{{ seo_title|default:"RunYourCampus - Global School Operations" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'Global school management platform for academics, finance, and operations.' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  {% for alt in hreflang_entries %}
+    <link rel="alternate" hreflang="{{ alt.hreflang }}" href="{{ alt.href }}">
+  {% endfor %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+{% endblock %}
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .marketing-shell {
+      min-height: calc(100vh - 140px);
+      display: grid;
+      align-items: center;
+    }
+    .marketing-hero {
+      border-radius: 2rem;
+      padding: clamp(1.5rem, 3vw, 2.4rem);
+      background: linear-gradient(
+          140deg,
+          rgba(15, 23, 42, 0.92),
+          rgba(30, 41, 59, 0.9)
+        ),
+        radial-gradient(circle at 80% 0%, rgba(56, 189, 248, 0.35), transparent 40%);
+      color: var(--overlay-text);
+      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25);
+      overflow: hidden;
+      position: relative;
+    }
+    .marketing-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.2rem;
+    }
+    .marketing-card {
+      grid-column: span 12;
+      border-radius: 1.25rem;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 1rem 1.1rem;
+      background: rgba(248, 250, 252, 0.08);
+      backdrop-filter: blur(10px);
+    }
+    .marketing-card h3 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.8;
+      margin-bottom: 0.55rem;
+    }
+    .marketing-cta {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.2rem;
+    }
+    @media (min-width: 992px) {
+      .marketing-card--wide {
+        grid-column: span 8;
+      }
+      .marketing-card--tall {
+        grid-column: span 4;
+      }
+    }
+  </style>
+{% endblock %}
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center text-center">
-    <div class="col-lg-8">
-      <h1 class="display-5 mb-3">{{ pitch.headline }}</h1>
-      <p class="lead text-muted">{{ pitch.subheadline }}</p>
-      {% if pitch.features %}
-      <ul class="list-unstyled mb-4 text-start">
-        {% for item in pitch.features %}
-        <li class="mb-1">{% if item.title %}{{ item.title }}{% else %}{{ item }}{% endif %}</li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p class="mb-4">The only multi-tenant OS that speaks every education system on Earth.</p>
-      {% endif %}
-      <div class="d-flex flex-wrap gap-3 justify-content-center">
-        <a href="{% url 'signup_school' %}" class="btn btn-primary btn-lg">{% trans "Start free trial" %}</a>
-        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary btn-lg">{% trans "Find your school" %}</a>
+<section class="marketing-shell py-4 py-lg-5">
+  <div class="container">
+    <div class="marketing-hero">
+      <p class="text-uppercase small fw-semibold opacity-75 mb-2">runyourcampus.com</p>
+      <h1 class="display-6 fw-bold mb-3">{{ pitch.headline }}</h1>
+      <p class="lead mb-0">{{ pitch.subheadline }}</p>
+      <div class="marketing-cta">
+        <a href="{% url 'signup_school' %}" class="btn btn-light btn-lg">{% trans "Start free trial" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light btn-lg">{% trans "Find your school" %}</a>
+      </div>
+
+      <div class="marketing-grid">
+        <article class="marketing-card marketing-card--wide">
+          <h3>{% trans "Regional Authority" %}</h3>
+          <p class="mb-0">
+            {% blocktrans with country=brand.country_name|default:"Global" %}
+              Optimized for {{ country }} with localized terminology, compliance defaults, and tenant branding.
+            {% endblocktrans %}
+          </p>
+        </article>
+        <article class="marketing-card marketing-card--tall">
+          <h3>{% trans "Canonical Access" %}</h3>
+          <p class="mb-0">https://{{ country_code|default:'school'|lower }}.runyourcampus.com</p>
+        </article>
+        <article class="marketing-card">
+          <h3>{% trans "Power Features" %}</h3>
+          {% if pitch.features %}
+            <ul class="mb-0 ps-3">
+              {% for item in pitch.features %}
+                <li>{% if item.title %}{{ item.title }}{% else %}{{ item }}{% endif %}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="mb-0">{% trans "Security-first tenancy, manager command center, and white-label school identity." %}</p>
+          {% endif %}
+        </article>
+      </div>
+    </div>
+
+    <div class="row justify-content-center mt-4">
+      <div class="col-lg-8">
+        {% include "schools/partials/school_finder_bento.html" with finder_id="landing-school-finder-results" input_id="landing-school-finder-input" %}
       </div>
     </div>
   </div>
-  <div class="row justify-content-center mt-4">
-    <div class="col-lg-7">
-      {% include "schools/partials/school_finder_bento.html" with finder_id="landing-school-finder-results" input_id="landing-school-finder-input" %}
-    </div>
-  </div>
-</div>
+</section>
 {% endblock %}

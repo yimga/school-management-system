@@ -19,12 +19,14 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from config.admin import admin_site
-from apps.schools.marketing_views import marketing_landing
-from apps.schools.signup_views import signup_school, verify_signup, api_trial_school
+from apps.schools.marketing_views import marketing_landing, regional_marketing_landing
+from apps.schools.signup_views import signup_school, verify_signup, api_trial_school, onboarding_wizard
 from apps.schools.section8_views import (
     verify_caddy_domain,
     global_login_discovery,
     find_school,
+    public_verify_hub,
+    public_support_hub,
     lti_launch,
     lti_launch_callback,
     lti_ags_lineitems,
@@ -42,7 +44,7 @@ def home(request):
     # Authenticated users go to their backend/dashboard
     if request.user.is_authenticated:
         return redirect("accounts:redirect")
-    # Base domain (runyourcampus.com): public marketing landing, not login
+    # Base/public host (runmycampus.com): public marketing landing, not login
     from apps.schools.tenant_url import is_base_domain, get_single_tenant_slug
     if is_base_domain(request):
         return redirect("marketing_landing")
@@ -210,7 +212,12 @@ urlpatterns = [
     path('api/v1/auth/check-domain/', verify_caddy_domain),
     path('discover/', global_login_discovery, name='global_login_discovery'),
     path('find/', find_school, name='find_school'),
+    path('verify/', public_verify_hub, name='public_verify_hub'),
+    path('support/', public_support_hub, name='public_support_hub'),
     path('marketing/', marketing_landing, name='marketing_landing'),
+    path('cm/', regional_marketing_landing, {"country_code": "CM"}, name='marketing_cm'),
+    path('ca/', regional_marketing_landing, {"country_code": "CA"}, name='marketing_ca'),
+    path('onboard/', onboarding_wizard, name='onboard_wizard'),
     path('signup/', signup_school, name='signup_school'),
     path('verify-signup/', verify_signup, name='verify_signup'),
     path('api/trial/', api_trial_school, name='api_trial_school'),

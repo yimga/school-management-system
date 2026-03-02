@@ -1,7 +1,7 @@
 """
-Phase Global: Seed global registry from open data (regions, country profiles).
-Orchestrates seed_global_regions and seed_country_profiles so one command hydrates
-the global catalog. Run after deploy or when adding new countries.
+Phase Global: Seed global registry from open data (regions, country profiles, brand registry).
+Orchestrates seed_global_regions, seed_country_profiles, and seed_global_brand_registry
+so one command hydrates the global catalog.
 """
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
@@ -26,6 +26,16 @@ class Command(BaseCommand):
             action="store_true",
             help="Only seed regions; do not run seed_country_profiles.",
         )
+        parser.add_argument(
+            "--skip-brand-registry",
+            action="store_true",
+            help="Do not run seed_global_brand_registry.",
+        )
+        parser.add_argument(
+            "--skip-unesco",
+            action="store_true",
+            help="Pass through to seed_global_brand_registry to skip UNESCO calls.",
+        )
 
     def handle(self, *args, **options):
         with_profiles = options.get("with_profiles", True) and not options.get("skip_profiles")
@@ -41,5 +51,12 @@ class Command(BaseCommand):
         if not options.get("skip_profiles"):
             self.stdout.write("Seeding country education profiles...")
             call_command("seed_country_profiles")
+
+        if not options.get("skip_brand_registry"):
+            self.stdout.write("Seeding global brand registry...")
+            call_command(
+                "seed_global_brand_registry",
+                skip_unesco=options.get("skip_unesco", False),
+            )
 
         self.stdout.write(self.style.SUCCESS("seed_global_data complete."))

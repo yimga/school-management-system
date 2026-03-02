@@ -848,3 +848,111 @@ def sync_repair(request, school_id):
         "schools/super_sync_repair.html",
         {"school": school, "conflicts": conflicts, "dashboard_url": reverse("super:dashboard")},
     )
+
+
+def super_support_dashboard(request):
+    """Global support ticket command center: list tickets with filters; HTMX refreshes queue."""
+    from apps.siteconfig.models import GlobalSupportTicket
+
+    status_filter = request.GET.get("status", "").strip()
+    priority_filter = request.GET.get("priority", "").strip()
+    qs = GlobalSupportTicket.objects.select_related("school", "user").order_by("-created_at")[:100]
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    if priority_filter:
+        qs = qs.filter(priority=priority_filter)
+    tickets = list(qs)
+    open_count = GlobalSupportTicket.objects.filter(status=GlobalSupportTicket.Status.OPEN).count()
+    in_progress_count = GlobalSupportTicket.objects.filter(status=GlobalSupportTicket.Status.IN_PROGRESS).count()
+    return render(
+        request,
+        "schools/super_support_dashboard.html",
+        {
+            "tickets": tickets,
+            "open_count": open_count,
+            "in_progress_count": in_progress_count,
+            "status_filter": status_filter,
+            "priority_filter": priority_filter,
+        },
+    )
+
+
+def support_queue_fragment(request):
+    """HTMX fragment: ticket queue table (refresh every 60s)."""
+    from apps.siteconfig.models import GlobalSupportTicket
+
+    status_filter = request.GET.get("status", "").strip()
+    qs = GlobalSupportTicket.objects.select_related("school", "user").order_by("-created_at")[:50]
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    tickets = list(qs)
+    return render(
+        request,
+        "schools/super_support_queue_fragment.html",
+        {"tickets": tickets},
+    )
+
+
+# -----------------------------------------------------------------------------
+# Secure impersonation (view as tenant)
+# -----------------------------------------------------------------------------
+
+def _can_impersonate(request):
+    """True if request.user is allowed to impersonate (SUPERADMIN or is_superuser)."""
+    if not getattr(request.user, "is_authenticated", False):
+        return False
+    if getattr(request.user, "is_superuser", False):
+        return True
+    role = (getattr(request.user, "role", "") or "").upper()
+    return role == "SUPERADMIN"
+
+
+@require_POST
+def switch_to_tenant(request):
+    """
+    Super-admin only. Accepts school_id (POST), creates a short-lived signed token,
+    logs ImpersonationLog.SWITCH, redirects to the tenant's impersonation entry URL.
+    """
+    if not _can_impersonate(request):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Super Admin access required.")
+    from django.core.signing import TimestampSigner
+    from django.conf import settings
+    from apps.siteconfig.models import ImpersonationLog
+    from .tenant_url import build_tenant_backend_url
+    import json
+    import base64
+
+    school_id = request.POST.get("school_id", "").strip()
+    if not school_id:
+        from django.http import HttpResponseBadRequest
+        return HttpResponseBadRequest("school_id required.")
+    school = get_object_or_404(School, id=school_id, is_active=True)
+    payload = {
+        "school_id": str(school.id),
+        "user_id": request.user.id,
+    }
+    payload_b64 = base64.b64encode(json.dumps(payload).encode()).decode()
+    signer = TimestampSigner(key=getattr(settings, "SECRET_KEY", "fallback"))
+    token = signer.sign(payload_b64)
+    # Audit
+    ImpersonationLog.objects.create(
+        actor=request.user,
+        school=school,
+        action=ImpersonationLog.Action.SWITCH,
+        ip_address=_get_client_ip(request),
+        user_agent=(request.META.get("HTTP_USER_AGENT") or "")[:500],
+    )
+    entry_path = "/authentication/impersonate/"
+    next_url = request.POST.get("next", "/").strip() or "/"
+    url = build_tenant_backend_url(request, school, path=entry_path)
+    sep = "&" if "?" in url else "?"
+    redirect_to = f"{url}{sep}impersonate={token}&next={next_url}"
+    return redirect(redirect_to)
+
+
+def _get_client_ip(request):
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")

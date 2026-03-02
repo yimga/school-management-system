@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "RunYourCampus Support" %} | RunYourCampus{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <h1 class="h3 mb-2">{% trans "Global Support Hub" %}</h1>
+          <p class="text-muted mb-4">
+            {% trans "Get help, find your campus, or continue to login. This page is shared/public and does not require tenant context." %}
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'find_school' %}" class="btn btn-primary">{% trans "Find My School" %}</a>
+            <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary">{% trans "Email Discovery" %}</a>
+            <a href="{% url 'marketing_landing' %}" class="btn btn-outline-secondary">{% trans "Back to Homepage" %}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -99,7 +99,7 @@ def signup_school(request: HttpRequest):
     subject = f"Verify your school: {name}"
     body = (
         f"Hello,\n\n"
-        f"You requested to create a school on RunMyCampus: {name}.\n\n"
+        f"You requested to create a school on RunYourCampus: {name}.\n\n"
         f"Click the link below to verify your email and activate your school (link valid for 2 days):\n\n"
         f"{verify_url}\n\n"
         f"If you did not request this, you can ignore this email.\n"
@@ -108,7 +108,7 @@ def signup_school(request: HttpRequest):
         send_mail(
             subject=subject,
             message=body,
-            from_email=settings.DEFAULT_FROM_EMAIL or "noreply@runmycampus.com",
+            from_email=settings.DEFAULT_FROM_EMAIL or "noreply@runyourcampus.com",
             recipient_list=[email],
             fail_silently=True,
         )
@@ -123,6 +123,22 @@ def signup_school(request: HttpRequest):
         }, status=201)
     messages.success(request, "Check your email to verify and activate your school.")
     return render(request, "schools/signup_school_done.html", {"email": email})
+
+
+@require_GET
+def onboarding_wizard(request: HttpRequest):
+    """
+    Public onboarding shell at /onboard/.
+    Keeps provisioning entry-point stable while trial API and signup flow evolve.
+    """
+    return render(
+        request,
+        "schools/onboard_wizard.html",
+        {
+            "trial_endpoint": reverse("api_trial_school"),
+            "signup_url": reverse("signup_school"),
+        },
+    )
 
 
 @require_GET

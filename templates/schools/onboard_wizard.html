@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Onboard Your Campus" %} | RunYourCampus{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-xl-9">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
+          <h1 class="h3 mb-2">{% trans "Onboard Your Campus" %}</h1>
+          <p class="text-muted mb-4">
+            {% trans "Choose your region, school flavor, and provisioning path. This shell keeps onboarding URL-stable while provisioning services evolve." %}
+          </p>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="country_code" class="form-label fw-semibold">{% trans "Country" %}</label>
+              <select id="country_code" class="form-select">
+                <option value="CM">Cameroon</option>
+                <option value="CA">Canada</option>
+                <option value="US">United States</option>
+                <option value="NG">Nigeria</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="school_flavor" class="form-label fw-semibold">{% trans "School Flavor" %}</label>
+              <select id="school_flavor" class="form-select">
+                <option value="general">{% trans "General Academic" %}</option>
+                <option value="technical">{% trans "Technical / Vocational" %}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{{ signup_url }}" class="btn btn-primary">{% trans "Continue to Signup Form" %}</a>
+            <a href="{{ trial_endpoint }}" class="btn btn-outline-primary">{% trans "Trial API Endpoint" %}</a>
+            <a href="{% url 'marketing_landing' %}" class="btn btn-outline-secondary">{% trans "Back to Marketing" %}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

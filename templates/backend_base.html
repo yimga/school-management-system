@@ -3,6 +3,16 @@
 
 {% block title %}{% block backend_title %}Backend{% endblock %}{% endblock %}
 
+{% block content %}
+  {% if request.session.impersonation %}
+  <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0 rounded-0 border-0 border-bottom" role="alert">
+    <span><strong>{% trans "Viewing as tenant" %}</strong> — {% trans "You are impersonating this school. Actions are audited." %}</span>
+    <a href="{% url 'accounts:end_impersonation' %}" class="btn btn-sm btn-outline-dark">{% trans "Exit impersonation" %}</a>
+  </div>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}
+
 {% block breadcrumb_actions %}
 {% if request.user.is_superuser %}
 <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" title="{% trans 'Configuration Engine – system and data' %}">
@@ -17,8 +27,8 @@
 {% block theme_root_variables %}
 {% with theme=SITE_ADMIN_THEME|default:SITE_THEME %}
 :root {
-  --school-primary: {{ theme.primary_color|default:"#0d6efd" }};
-  --school-accent: {{ theme.accent_color|default:"#198754" }};
+  {% if theme.primary_color %}--school-primary: {{ theme.primary_color }};{% endif %}
+  {% if theme.accent_color %}--school-accent: {{ theme.accent_color }};{% endif %}
   --portal-bg: {{ theme.background_color|default:"rgba(247,251,255,1)" }};
   --portal-font: {{ theme.font_family|default:"Inter, system-ui, sans-serif" }};
   {% if SITE and SITE.header_bg_color %}--header-brand-bg: {{ SITE.header_bg_color }};{% endif %}
