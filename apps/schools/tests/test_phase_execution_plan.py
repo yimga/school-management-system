@@ -1,0 +1,133 @@
+import os
+from datetime import timedelta
+from unittest.mock import patch
+
+from django.test import Client, TestCase, override_settings
+from django.utils import timezone
+
+from apps.accounts.models import User
+from apps.schools.models import School, SchoolProvisioningEvent
+from apps.siteconfig.models import GlobalSupportTicket
+
+
+@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+class PublicExecutionPlanPagesTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self.env.start()
+
+    def tearDown(self):
+        self.env.stop()
+
+    def test_phase1_public_pages_render(self):
+        pages = [
+            "/product/",
+            "/solutions/",
+            "/pricing/",
+            "/compare/",
+            "/case-studies/",
+            "/security-compliance/",
+            "/integrations/",
+            "/book-demo/",
+            "/solutions/k12-school-management-system/",
+            "/solutions/multi-campus-school-software/",
+            "/solutions/student-passport-transcript-portability/",
+        ]
+        for path in pages:
+            with self.subTest(path=path):
+                response = self.client.get(path, HTTP_HOST="runmycampus.com")
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "RunMyCampus")
+
+    def test_discovery_and_find_show_role_based_quick_start(self):
+        discover = self.client.get("/discover/", HTTP_HOST="runmycampus.com")
+        finder = self.client.get("/find/", HTTP_HOST="runmycampus.com")
+        self.assertEqual(discover.status_code, 200)
+        self.assertEqual(finder.status_code, 200)
+        self.assertContains(discover, "Role-based quick start")
+        self.assertContains(finder, "Role-based quick start")
+
+    def test_sitemap_contains_new_marketing_routes(self):
+        response = self.client.get("/sitemap.xml", HTTP_HOST="runmycampus.com")
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn("/product/", body)
+        self.assertIn("/book-demo/", body)
+        self.assertIn("/solutions/k12-school-management-system/", body)
+
+
+@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+class SuperCommandCenterTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self.env.start()
+        self.superuser = User.objects.create_superuser(
+            username="root-admin",
+            email="root-admin@example.com",
+            password="pass1234",
+        )
+        self.client.force_login(self.superuser)
+
+        school = School.objects.create(
+            name="Mission Control School",
+            slug="mission-control-school",
+            subdomain="mission-control-school",
+            is_active=True,
+        )
+
+        SchoolProvisioningEvent.objects.create(
+            school=school,
+            event_type=SchoolProvisioningEvent.EventType.REQUEST_RECEIVED,
+            status=SchoolProvisioningEvent.Status.INFO,
+        )
+        completed = SchoolProvisioningEvent.objects.create(
+            school=school,
+            event_type=SchoolProvisioningEvent.EventType.COMPLETED,
+            status=SchoolProvisioningEvent.Status.SUCCESS,
+        )
+        SchoolProvisioningEvent.objects.filter(id=completed.id).update(
+            created_at=timezone.now() + timedelta(hours=2)
+        )
+
+        stale = GlobalSupportTicket.objects.create(
+            school=school,
+            user=self.superuser,
+            subject="Critical tenant issue",
+            body="Need urgent help",
+            priority=GlobalSupportTicket.Priority.URGENT,
+            status=GlobalSupportTicket.Status.OPEN,
+        )
+        GlobalSupportTicket.objects.filter(id=stale.id).update(
+            created_at=timezone.now() - timedelta(hours=72)
+        )
+
+    def tearDown(self):
+        self.env.stop()
+
+    def test_super_dashboard_contains_operational_command_center(self):
+        response = self.client.get("/super/", HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Operational command center")
+        self.assertContains(response, "Support backlog aging")
+
+    def test_super_command_center_route_renders(self):
+        response = self.client.get("/super/command-center/", HTTP_HOST="manager.runmycampus.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mission control")
+        self.assertContains(response, "Provisioning SLA")

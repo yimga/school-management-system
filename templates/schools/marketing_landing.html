@@ -71,6 +71,11 @@
 {% block content %}
 <section class="marketing-shell py-4 py-lg-5">
   <div class="container">
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      {% for item in marketing_nav %}
+        <a href="{{ item.path }}" class="btn btn-sm btn-outline-secondary">{{ item.label }}</a>
+      {% endfor %}
+    </div>
     <div class="marketing-hero">
       <p class="text-uppercase small fw-semibold opacity-75 mb-2">runmycampus.com</p>
       <h1 class="display-6 fw-bold mb-3">{{ pitch.headline }}</h1>
@@ -113,6 +118,47 @@
       <div class="col-lg-8">
         {% include "schools/partials/school_finder_bento.html" with finder_id="landing-school-finder-results" input_id="landing-school-finder-input" %}
       </div>
+    </div>
+    <div class="row g-3 mt-1">
+      <div class="col-lg-4">
+        <article class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h5 mb-2">Predictive Intervention Engine</h2>
+            <p class="text-muted mb-3">Identify at-risk students earlier and route recovery actions through a guided intervention workflow.</p>
+            <a href="{% url 'marketing_product' %}" class="btn btn-outline-primary btn-sm">Explore product</a>
+          </div>
+        </article>
+      </div>
+      <div class="col-lg-4">
+        <article class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h5 mb-2">Student Passport Portability</h2>
+            <p class="text-muted mb-3">Preserve transcript continuity and transfer context when students move between schools.</p>
+            <a href="/solutions/student-passport-transcript-portability/" class="btn btn-outline-primary btn-sm">See portability flow</a>
+          </div>
+        </article>
+      </div>
+      <div class="col-lg-4">
+        <article class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h5 mb-2">Super-Admin Command Center</h2>
+            <p class="text-muted mb-3">Operate provisioning, support, and billing governance from one mission-control surface.</p>
+            <a href="{% url 'marketing_compare' %}" class="btn btn-outline-primary btn-sm">Compare architecture</a>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="row g-3 mt-1">
+      {% for topic in topical_nav %}
+      <div class="col-md-4">
+        <a href="{{ topic.path }}" class="card border-0 shadow-sm h-100 text-decoration-none">
+          <div class="card-body">
+            <h3 class="h6 text-uppercase text-muted mb-2">Topical landing</h3>
+            <p class="mb-0 fw-semibold text-body">{{ topic.label }}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </section>

@@ -4,14 +4,258 @@ RunMyCampus marketing and SEO endpoints.
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from datetime import datetime, timezone
 
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_GET
 
 from apps.siteconfig.brand_registry import resolve_global_brand_context
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+
+MARKETING_PAGE_DEFINITIONS = {
+    "product": {
+        "label": "Product",
+        "seo_title": "RunMyCampus Product - Unified school operations platform",
+        "seo_description": "One platform for admissions, academics, finance, communication, and compliance across every campus.",
+        "headline": "One operating system for every school workflow.",
+        "subheadline": "Run admissions, academics, billing, communication, and compliance from a single tenant-first platform.",
+        "schema_type": "SoftwareApplication",
+        "segments": [
+            {
+                "title": "Unified data model",
+                "body": "Students, staff, payments, reports, and interventions share one source of truth.",
+            },
+            {
+                "title": "Role-ready portals",
+                "body": "School admins, teachers, parents, and students get purpose-built workflows.",
+            },
+            {
+                "title": "Global tenancy",
+                "body": "Operate one campus or many with domain, policy, and branding isolation.",
+            },
+        ],
+    },
+    "solutions": {
+        "label": "Solutions",
+        "seo_title": "RunMyCampus Solutions - K12, multi-campus, and private schools",
+        "seo_description": "Purpose-built deployment patterns for private schools, district networks, and multi-campus operators.",
+        "headline": "Solutions aligned to your school model.",
+        "subheadline": "Deploy fast with templates for private schools, district groups, and multi-entity education organizations.",
+        "schema_type": "CollectionPage",
+        "segments": [
+            {
+                "title": "Single-campus schools",
+                "body": "Launch quickly with ready workflows for onboarding, grading, fee management, and reporting.",
+            },
+            {
+                "title": "Multi-campus networks",
+                "body": "Standardize operations while preserving campus-level autonomy and identity.",
+            },
+            {
+                "title": "Regional operators",
+                "body": "Use localization controls for language, compliance profiles, terms, and grading systems.",
+            },
+        ],
+    },
+    "pricing": {
+        "label": "Pricing",
+        "seo_title": "RunMyCampus Pricing - Transparent plans for growing schools",
+        "seo_description": "Transparent school management pricing with plan tiers, add-ons, and enterprise deployment options.",
+        "headline": "Pricing that scales with your campus.",
+        "subheadline": "Choose a plan by operating model, unlock add-ons, and keep billing visibility across every tenant.",
+        "schema_type": "OfferCatalog",
+        "segments": [
+            {
+                "title": "Plan clarity",
+                "body": "Map plans to usage, student volume, and feature needs without hidden complexity.",
+            },
+            {
+                "title": "Add-on flexibility",
+                "body": "Enable advanced modules as your school grows, from integrations to analytics.",
+            },
+            {
+                "title": "Super-admin oversight",
+                "body": "Track trial status, usage, and billing posture in one command center.",
+            },
+        ],
+    },
+    "compare": {
+        "label": "Compare",
+        "seo_title": "RunMyCampus Compare - Evaluate school management alternatives",
+        "seo_description": "Compare tenant architecture, admin controls, and parent/teacher experience before choosing your platform.",
+        "headline": "Compare on architecture, not just feature count.",
+        "subheadline": "Use objective criteria to evaluate tenancy, security, workflow depth, and long-term operational fit.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "Tenant isolation",
+                "body": "Each school can run on dedicated domain, controls, and policy boundaries.",
+            },
+            {
+                "title": "Operational depth",
+                "body": "Finance, academics, support, and compliance are first-class modules, not bolt-ons.",
+            },
+            {
+                "title": "Command center visibility",
+                "body": "Super-admin workflows centralize approvals, support queues, and health indicators.",
+            },
+        ],
+    },
+    "case-studies": {
+        "label": "Case Studies",
+        "seo_title": "RunMyCampus Case Studies - Real school implementation outcomes",
+        "seo_description": "See how schools improve onboarding speed, intervention outcomes, and operational control with RunMyCampus.",
+        "headline": "Results from real school operations.",
+        "subheadline": "Case patterns show how teams reduce onboarding friction, improve intervention response, and scale governance.",
+        "schema_type": "CollectionPage",
+        "segments": [
+            {
+                "title": "Faster onboarding",
+                "body": "New campuses provision with clearer timelines and less manual setup overhead.",
+            },
+            {
+                "title": "Better intervention response",
+                "body": "Risk monitoring and action-center workflows improve follow-through for at-risk learners.",
+            },
+            {
+                "title": "Higher support visibility",
+                "body": "Global queues and SLA tracking reduce blind spots across growing tenant portfolios.",
+            },
+        ],
+    },
+    "security-compliance": {
+        "label": "Security & Compliance",
+        "seo_title": "RunMyCampus Security & Compliance - FERPA/GDPR-ready controls",
+        "seo_description": "Security-first tenancy with audit trails, access controls, compliance regions, and operational monitoring.",
+        "headline": "Security and compliance built into daily operations.",
+        "subheadline": "Protect tenant data with auditability, policy controls, and region-aware compliance defaults.",
+        "schema_type": "WebPage",
+        "segments": [
+            {
+                "title": "Tenant-scoped controls",
+                "body": "Data access, policy settings, and activity traces stay scoped to each school.",
+            },
+            {
+                "title": "Audit readiness",
+                "body": "Operational events, support actions, and administrative changes remain reviewable.",
+            },
+            {
+                "title": "Regional compliance posture",
+                "body": "Map schools to compliance regions and align workflows to local obligations.",
+            },
+        ],
+    },
+    "integrations": {
+        "label": "Integrations",
+        "seo_title": "RunMyCampus Integrations - SIS, LMS, payments, and messaging",
+        "seo_description": "Integrate LMS, payment gateways, messaging providers, and external services with governance controls.",
+        "headline": "Integrations with governance, not chaos.",
+        "subheadline": "Connect external systems while controlling activation, audit context, and operational blast radius.",
+        "schema_type": "ItemList",
+        "segments": [
+            {
+                "title": "Integration registry",
+                "body": "Manage service entries and switch states in one governed control surface.",
+            },
+            {
+                "title": "Interoperability APIs",
+                "body": "Expose standards-aware endpoints for identity, academic workflows, and data exchange.",
+            },
+            {
+                "title": "Operational safeguards",
+                "body": "Track reasons, activity, and changes for every integration toggle.",
+            },
+        ],
+    },
+    "book-demo": {
+        "label": "Book Demo",
+        "seo_title": "Book a RunMyCampus Demo - See tenant operations live",
+        "seo_description": "Schedule a platform demo focused on public experience, tenant access, and super-admin command workflows.",
+        "headline": "Book a focused platform walkthrough.",
+        "subheadline": "See public discovery, tenant login flow, and super-admin command center in one guided demo.",
+        "schema_type": "Service",
+        "segments": [
+            {
+                "title": "Public growth flow",
+                "body": "Review SEO pages, discovery UX, and conversion paths from first visit to trial.",
+            },
+            {
+                "title": "Tenant experience",
+                "body": "Validate portal access journeys for school admins, teachers, and parents.",
+            },
+            {
+                "title": "Super-admin control",
+                "body": "Inspect mission-control workflows for approvals, billing visibility, and support governance.",
+            },
+        ],
+    },
+}
+
+TOPICAL_LANDING_DEFINITIONS = {
+    "k12-school-management-system": {
+        "label": "K12 School Management",
+        "seo_title": "K12 School Management System | RunMyCampus",
+        "seo_description": "K12-ready workflows for enrollment, attendance, grades, communication, and parent engagement.",
+        "headline": "K12 operations in one platform.",
+        "subheadline": "Coordinate academics, attendance, communication, and family engagement without tool sprawl.",
+        "focus_points": [
+            "Term and grading workflows aligned to school calendars.",
+            "Parent and teacher portals with role-specific access.",
+            "At-risk student insights for earlier intervention.",
+        ],
+    },
+    "multi-campus-school-software": {
+        "label": "Multi-Campus Operations",
+        "seo_title": "Multi-Campus School Software | RunMyCampus",
+        "seo_description": "Run multiple schools with centralized oversight and campus-level autonomy from a single platform.",
+        "headline": "Multi-campus control without bottlenecks.",
+        "subheadline": "Standardize governance while preserving each campus identity, workflows, and accountability.",
+        "focus_points": [
+            "Global super-admin command center for all tenants.",
+            "Per-campus domain, branding, and policy isolation.",
+            "Shared reporting for approvals, billing, and support.",
+        ],
+    },
+    "student-passport-transcript-portability": {
+        "label": "Student Passport Portability",
+        "seo_title": "Student Passport & Transcript Portability | RunMyCampus",
+        "seo_description": "Portable student passport and transcript workflows for smooth transitions across schools.",
+        "headline": "Portable student records across school transitions.",
+        "subheadline": "Enable secure transcript and passport continuity when learners move between institutions.",
+        "focus_points": [
+            "Global student passport identifiers for continuity.",
+            "Transfer invite workflow between source and destination schools.",
+            "Document-ready evidence trail for transcript portability.",
+        ],
+    },
+}
+
+
+def _safe_reverse(name: str, *, kwargs: dict | None = None) -> str:
+    try:
+        return reverse(name, kwargs=kwargs)
+    except NoReverseMatch:
+        return "#"
+    except Exception:
+        return "#"
+
+
+def _marketing_nav() -> list[dict]:
+    return [
+        {"slug": slug, "label": page["label"], "path": f"/{slug}/"}
+        for slug, page in MARKETING_PAGE_DEFINITIONS.items()
+    ]
+
+
+def _topical_nav() -> list[dict]:
+    return [
+        {"slug": slug, "label": topic["label"], "path": f"/solutions/{slug}/"}
+        for slug, topic in TOPICAL_LANDING_DEFINITIONS.items()
+    ]
 
 
 def _get_country_from_request(request) -> str:
@@ -139,7 +383,46 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "canonical_url": canonical_url,
         "hreflang_entries": hreflang_entries,
         "structured_data_json": json.dumps(structured_data),
+        "marketing_nav": _marketing_nav(),
+        "topical_nav": _topical_nav(),
     }
+
+
+def _structured_data_for_page(*, page_type: str, canonical_url: str, name: str, description: str, path: str) -> dict:
+    payload: dict = {
+        "@context": "https://schema.org",
+        "@type": page_type,
+        "name": name,
+        "url": canonical_url,
+        "description": description,
+        "isPartOf": {"@type": "WebSite", "name": "RunMyCampus", "url": canonical_url.rsplit(path, 1)[0] + "/"},
+    }
+    if page_type == "OfferCatalog":
+        payload["itemListElement"] = [
+            {"@type": "Offer", "name": "Starter"},
+            {"@type": "Offer", "name": "Growth"},
+            {"@type": "Offer", "name": "Enterprise"},
+        ]
+    if page_type == "ItemList":
+        payload["itemListElement"] = [
+            {"@type": "ListItem", "position": 1, "name": "LTI interoperability"},
+            {"@type": "ListItem", "position": 2, "name": "Payment gateways"},
+            {"@type": "ListItem", "position": 3, "name": "Messaging providers"},
+        ]
+    if page_type == "Service":
+        payload["provider"] = {"@type": "Organization", "name": "RunMyCampus"}
+        payload["serviceType"] = "School management platform demonstration"
+    return payload
+
+
+def _marketing_base_context(request) -> dict:
+    geo_country = _get_country_from_request(request)
+    return _marketing_context(
+        request,
+        country_code=geo_country,
+        language_code=(getattr(request, "LANGUAGE_CODE", "") or "en"),
+        regional=False,
+    )
 
 
 @require_GET
@@ -153,6 +436,77 @@ def marketing_landing(request):
         regional=False,
     )
     return render(request, "schools/marketing_landing.html", ctx)
+
+
+@require_GET
+def marketing_page(request, page_slug: str):
+    page = MARKETING_PAGE_DEFINITIONS.get((page_slug or "").strip().lower())
+    if not page:
+        raise Http404("Page not found")
+
+    base_ctx = _marketing_base_context(request)
+    canonical_path = f"/{page_slug}/"
+    canonical_url = _absolute_url(request, canonical_path)
+    page_copy = deepcopy(page)
+    page_copy["slug"] = page_slug
+    page_copy["path"] = canonical_path
+
+    structured_data = _structured_data_for_page(
+        page_type=page_copy.get("schema_type") or "WebPage",
+        canonical_url=canonical_url,
+        name=page_copy.get("label") or "RunMyCampus",
+        description=page_copy.get("seo_description") or "",
+        path=canonical_path,
+    )
+
+    ctx = {
+        **base_ctx,
+        "seo_title": page_copy.get("seo_title"),
+        "seo_description": page_copy.get("seo_description"),
+        "canonical_url": canonical_url,
+        "structured_data_json": json.dumps(structured_data),
+        "page": page_copy,
+        "active_nav_slug": page_slug,
+        "powerhouse_highlights": [
+            "Predictive risk scoring and intervention action-center workflows.",
+            "Student passport and transcript portability across schools.",
+            "Super-admin mission control for approvals, billing, and support.",
+        ],
+    }
+    return render(request, "schools/marketing_page.html", ctx)
+
+
+@require_GET
+def topical_marketing_landing(request, topic_slug: str):
+    topic = TOPICAL_LANDING_DEFINITIONS.get((topic_slug or "").strip().lower())
+    if not topic:
+        raise Http404("Topic not found")
+
+    base_ctx = _marketing_base_context(request)
+    canonical_path = f"/solutions/{topic_slug}/"
+    canonical_url = _absolute_url(request, canonical_path)
+    topic_copy = deepcopy(topic)
+    topic_copy["slug"] = topic_slug
+    topic_copy["path"] = canonical_path
+
+    structured_data = _structured_data_for_page(
+        page_type="CollectionPage",
+        canonical_url=canonical_url,
+        name=topic_copy.get("label") or "RunMyCampus",
+        description=topic_copy.get("seo_description") or "",
+        path=canonical_path,
+    )
+
+    ctx = {
+        **base_ctx,
+        "seo_title": topic_copy.get("seo_title"),
+        "seo_description": topic_copy.get("seo_description"),
+        "canonical_url": canonical_url,
+        "structured_data_json": json.dumps(structured_data),
+        "topic": topic_copy,
+        "active_nav_slug": "solutions",
+    }
+    return render(request, "schools/marketing_topic_page.html", ctx)
 
 
 @require_GET
@@ -192,6 +546,17 @@ def marketing_sitemap_xml(request):
     """
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     urls = [_absolute_url(request, "/")]
+    urls.extend([_absolute_url(request, item["path"]) for item in _marketing_nav()])
+    urls.extend([_absolute_url(request, item["path"]) for item in _topical_nav()])
+    urls.extend(
+        [
+            _absolute_url(request, "/discover/"),
+            _absolute_url(request, "/find/"),
+            _absolute_url(request, "/signup/"),
+            _absolute_url(request, "/book-demo/"),
+        ]
+    )
+    urls = list(dict.fromkeys(urls))
     try:
         from apps.siteconfig.models import GlobalBrandRegistry
 

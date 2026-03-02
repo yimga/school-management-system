@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import redirect, render
 from django.db.models import Q
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from apps.api.rate_limit import throttle_ip_request
@@ -135,6 +135,95 @@ LTI_RATE_LIMIT_WINDOW = 60 * 15
 LTI_RATE_LIMIT_MAX = 240
 
 
+def _safe_reverse(name: str) -> str:
+    try:
+        return reverse(name)
+    except NoReverseMatch:
+        return "#"
+    except Exception:
+        return "#"
+
+
+def _role_onboarding_checklists() -> list[dict]:
+    """
+    Phase 2: Role-aware first-run checklists shown on public discovery pages.
+    """
+    return [
+        {
+            "role": "School admin",
+            "summary": "Launch your school tenant and configure core operations.",
+            "steps": [
+                {
+                    "title": "Create or claim your school",
+                    "detail": "Start with school identity, domain, and onboarding wizard.",
+                    "href": _safe_reverse("signup_school"),
+                    "cta": "Start school setup",
+                },
+                {
+                    "title": "Verify access and permissions",
+                    "detail": "Confirm admin login and role access for your team.",
+                    "href": _safe_reverse("accounts:login"),
+                    "cta": "Open admin login",
+                },
+                {
+                    "title": "Activate finance and support controls",
+                    "detail": "Review billing, support, and governance workflows.",
+                    "href": "/super/command-center/",
+                    "cta": "View command center",
+                },
+            ],
+        },
+        {
+            "role": "Teacher",
+            "summary": "Get classroom workflows live from day one.",
+            "steps": [
+                {
+                    "title": "Complete teacher onboarding",
+                    "detail": "Create your teacher profile and role preferences.",
+                    "href": "/portal/teacher/onboarding/",
+                    "cta": "Teacher onboarding",
+                },
+                {
+                    "title": "Verify class access",
+                    "detail": "Confirm class roster, attendance, and grading permissions.",
+                    "href": "/portal/teacher/workflow/",
+                    "cta": "Open teacher workflow",
+                },
+                {
+                    "title": "Start intervention workflow",
+                    "detail": "Review at-risk students and follow action-center prompts.",
+                    "href": "/api/v1/intervention/action-center",
+                    "cta": "Intervention action center",
+                },
+            ],
+        },
+        {
+            "role": "Parent",
+            "summary": "Connect to your learner and stay aligned with school updates.",
+            "steps": [
+                {
+                    "title": "Find your school portal",
+                    "detail": "Use school lookup or email discovery to reach your tenant.",
+                    "href": _safe_reverse("find_school"),
+                    "cta": "Search schools",
+                },
+                {
+                    "title": "Claim invite and link child",
+                    "detail": "Use guardian invitation flow to connect student records.",
+                    "href": "/portal/parent/claim-invite/",
+                    "cta": "Claim parent invite",
+                },
+                {
+                    "title": "Track fees and performance",
+                    "detail": "Open finance and progress dashboards after linking.",
+                    "href": "/portal/parent/",
+                    "cta": "Open parent portal",
+                },
+            ],
+        },
+    ]
+
+
 def _discovery_rate_limit_exceeded(request) -> bool:
     """True if this IP has exceeded POST rate limit for /discover/."""
     from django.core.cache import cache
@@ -177,15 +266,35 @@ def global_login_discovery(request):
     GET: show form (email). POST: lookup user/school, redirect to school URL or show "Get Started".
     Rate limited: max DISCOVERY_RATE_LIMIT_MAX POSTs per IP per 15 minutes to reduce email enumeration.
     """
+    checklist_cards = _role_onboarding_checklists()
     if request.method == "GET":
-        return render(request, "schools/global_login_discovery.html", {})
+        return render(
+            request,
+            "schools/global_login_discovery.html",
+            {
+                "role_checklists": checklist_cards,
+            },
+        )
     if _discovery_rate_limit_exceeded(request):
-        return render(request, "schools/global_login_discovery.html", {
-            "error": "Too many attempts. Please try again later.",
-        }, status=429)
+        return render(
+            request,
+            "schools/global_login_discovery.html",
+            {
+                "error": "Too many attempts. Please try again later.",
+                "role_checklists": checklist_cards,
+            },
+            status=429,
+        )
     email = (request.POST.get("email") or "").strip()
     if not email:
-        return render(request, "schools/global_login_discovery.html", {"error": "Please enter your email."})
+        return render(
+            request,
+            "schools/global_login_discovery.html",
+            {
+                "error": "Please enter your email.",
+                "role_checklists": checklist_cards,
+            },
+        )
     from .models import SchoolMembership
     from apps.schools.host_routing import get_canonical_base_domain
     memberships = SchoolMembership.objects.filter(
@@ -207,10 +316,15 @@ def global_login_discovery(request):
         except Exception:
             return redirect("accounts:login")
     _discovery_rate_limit_incr(request)
-    return render(request, "schools/global_login_discovery.html", {
-        "error": "No school found for this email. Get started by creating a school.",
-        "email": email,
-    })
+    return render(
+        request,
+        "schools/global_login_discovery.html",
+        {
+            "error": "No school found for this email. Get started by creating a school.",
+            "email": email,
+            "role_checklists": checklist_cards,
+        },
+    )
 
 
 def _build_school_portal_url(request, school) -> str:
@@ -262,7 +376,11 @@ def find_school(request):
     return render(
         request,
         "schools/find_school.html",
-        {"query": query, "results": results},
+        {
+            "query": query,
+            "results": results,
+            "role_checklists": _role_onboarding_checklists(),
+        },
     )
 
 

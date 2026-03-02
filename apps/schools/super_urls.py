@@ -6,6 +6,7 @@ app_name = "super"
 
 urlpatterns = [
     path("", super_views.super_dashboard, name="dashboard"),
+    path("command-center/", super_views.super_command_center, name="command_center"),
     path("create/", super_views.create_school_wizard, name="create_school_wizard"),
     path("api/create-school/", super_views.api_create_school, name="api_create_school"),
     path("api/schools/<uuid:school_id>/timeline/", super_views.api_school_timeline, name="api_school_timeline"),

@@ -19,7 +19,7 @@ from apps.portal.views_ai_copilot import (
     ai_copilot_audit_feed,
 )
 from config.admin import admin_site
-from apps.schools.marketing_views import marketing_landing, regional_marketing_landing
+from apps.schools.marketing_views import marketing_landing, regional_marketing_landing, marketing_page, topical_marketing_landing
 from apps.schools.signup_views import signup_school, verify_signup, api_trial_school, onboarding_wizard
 from apps.schools.section8_views import (
     verify_caddy_domain,
@@ -215,6 +215,15 @@ urlpatterns = [
     path('verify/', public_verify_hub, name='public_verify_hub'),
     path('support/', public_support_hub, name='public_support_hub'),
     path('marketing/', marketing_landing, name='marketing_landing'),
+    path("product/", marketing_page, {"page_slug": "product"}, name="marketing_product"),
+    path("solutions/", marketing_page, {"page_slug": "solutions"}, name="marketing_solutions"),
+    path("pricing/", marketing_page, {"page_slug": "pricing"}, name="marketing_pricing"),
+    path("compare/", marketing_page, {"page_slug": "compare"}, name="marketing_compare"),
+    path("case-studies/", marketing_page, {"page_slug": "case-studies"}, name="marketing_case_studies"),
+    path("security-compliance/", marketing_page, {"page_slug": "security-compliance"}, name="marketing_security_compliance"),
+    path("integrations/", marketing_page, {"page_slug": "integrations"}, name="marketing_integrations"),
+    path("book-demo/", marketing_page, {"page_slug": "book-demo"}, name="marketing_book_demo"),
+    path("solutions/<str:topic_slug>/", topical_marketing_landing, name="marketing_topic"),
     path('cm/', regional_marketing_landing, {"country_code": "CM"}, name='marketing_cm'),
     path('ca/', regional_marketing_landing, {"country_code": "CA"}, name='marketing_ca'),
     path('onboard/', onboarding_wizard, name='onboard_wizard'),

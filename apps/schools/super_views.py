@@ -2,12 +2,15 @@
 Super Admin views: dashboard (list schools) and Create School wizard.
 Access restricted to SUPERADMIN or is_superuser via TenantSuperAdminRequiredMiddleware.
 """
+from datetime import timedelta
+
 from django.db.models import Count
 from django.db.models import OuterRef, Subquery
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods, require_POST
 from django.http import JsonResponse
+from django.utils import timezone
 
 from apps.siteconfig.education_profile_engine import (
     ensure_region_for_country as ensure_region_for_country_record,
@@ -57,10 +60,199 @@ def _safe_registry_url():
         return ""
 
 
+def _selected_system_names(school) -> list[str]:
+    """
+    Return selected education-system names for a school.
+    Handles RelatedManager or list-like prefetched collections.
+    """
+    tenant_systems = getattr(school, "tenant_systems", None)
+    if hasattr(tenant_systems, "all"):
+        tenant_systems = tenant_systems.all()
+    if not tenant_systems:
+        return []
+    return [ts.system.name for ts in tenant_systems if getattr(ts, "system", None)]
+
+
+def _safe_command_center_url() -> str:
+    try:
+        return reverse("super:command_center")
+    except NoReverseMatch:
+        return ""
+
+
+def _build_command_center_data() -> dict:
+    """
+    Phase 3 mission-control metrics:
+    - Provisioning SLA (request -> completed)
+    - Churn risk indicators
+    - Support backlog aging
+    - Phase 4 differentiators (recovery rate, passport portability)
+    """
+    now = timezone.now()
+    today = now.date()
+    data = {
+        "provisioning_sla_avg_hours": 0.0,
+        "provisioning_sla_target_hours": 24,
+        "provisioning_sla_breaches": 0,
+        "provisioning_sla_samples": 0,
+        "provisioning_breach_rows": [],
+        "support_open_count": 0,
+        "support_backlog_48h_count": 0,
+        "support_backlog_7d_count": 0,
+        "support_oldest_open_hours": 0.0,
+        "support_stale_rows": [],
+        "tenant_churn_risk_count": 0,
+        "tenant_churn_risk_rows": [],
+        "tenant_inactive_30d_count": 0,
+        "trial_ending_soon_count": 0,
+        "recovery_rate_pct": 0.0,
+        "resolved_interventions": 0,
+        "total_interventions": 0,
+        "student_passport_count": 0,
+        "student_passport_invite_count": 0,
+    }
+
+    open_ticket_statuses = {"OPEN", "IN_PROGRESS", "WAITING"}
+
+    # Provisioning SLA
+    try:
+        from django.db.models import Min
+
+        request_rows = (
+            SchoolProvisioningEvent.objects.filter(
+                event_type=SchoolProvisioningEvent.EventType.REQUEST_RECEIVED,
+                created_at__gte=now - timedelta(days=60),
+            )
+            .values("school_id")
+            .annotate(requested_at=Min("created_at"))
+        )
+        complete_rows = (
+            SchoolProvisioningEvent.objects.filter(
+                event_type=SchoolProvisioningEvent.EventType.COMPLETED,
+                created_at__gte=now - timedelta(days=60),
+            )
+            .values("school_id")
+            .annotate(completed_at=Min("created_at"))
+        )
+        request_map = {row["school_id"]: row["requested_at"] for row in request_rows}
+        complete_map = {row["school_id"]: row["completed_at"] for row in complete_rows}
+        durations = []
+        breach_rows = []
+        for school_id, requested_at in request_map.items():
+            completed_at = complete_map.get(school_id)
+            if not completed_at or completed_at < requested_at:
+                continue
+            hours = (completed_at - requested_at).total_seconds() / 3600.0
+            durations.append(hours)
+            if hours > data["provisioning_sla_target_hours"]:
+                breach_rows.append({"school_id": school_id, "hours": round(hours, 1)})
+        data["provisioning_sla_samples"] = len(durations)
+        data["provisioning_sla_avg_hours"] = round(sum(durations) / len(durations), 1) if durations else 0.0
+        data["provisioning_sla_breaches"] = len(breach_rows)
+        data["provisioning_breach_rows"] = breach_rows[:20]
+    except Exception:
+        pass
+
+    # Support backlog aging
+    stale_urgent_school_ids: set = set()
+    try:
+        from apps.siteconfig.models import GlobalSupportTicket
+
+        qs = GlobalSupportTicket.objects.filter(status__in=open_ticket_statuses).select_related("school").order_by("created_at")
+        tickets = list(qs[:300])
+        stale_rows = []
+        oldest_open_hours = 0.0
+        for ticket in tickets:
+            age_hours = max(0.0, (now - ticket.created_at).total_seconds() / 3600.0)
+            if age_hours > oldest_open_hours:
+                oldest_open_hours = age_hours
+            if age_hours >= 48:
+                stale_rows.append(
+                    {
+                        "ticket": ticket,
+                        "age_hours": round(age_hours, 1),
+                    }
+                )
+            if ticket.priority == "URGENT" and age_hours >= 48:
+                stale_urgent_school_ids.add(ticket.school_id)
+        data["support_open_count"] = qs.count()
+        data["support_backlog_48h_count"] = sum(1 for row in stale_rows if row["age_hours"] >= 48)
+        data["support_backlog_7d_count"] = sum(1 for row in stale_rows if row["age_hours"] >= (24 * 7))
+        data["support_oldest_open_hours"] = round(oldest_open_hours, 1)
+        data["support_stale_rows"] = stale_rows[:25]
+    except Exception:
+        pass
+
+    # Tenant churn risk heuristic
+    try:
+        schools = list(
+            School.objects.filter(is_active=True).only(
+                "id",
+                "name",
+                "slug",
+                "last_activity",
+                "billing_type",
+                "trial_end_date",
+            )
+        )
+        risk_rows = []
+        inactive_count = 0
+        trial_soon_count = 0
+        for school in schools:
+            reasons = []
+            last_activity = getattr(school, "last_activity", None)
+            if not last_activity or (now - last_activity) > timedelta(days=30):
+                reasons.append("No activity in 30+ days")
+                inactive_count += 1
+            if getattr(school, "billing_type", "") == School.BillingType.FREE_TRIAL:
+                trial_end = getattr(school, "trial_end_date", None)
+                if trial_end and trial_end <= (today + timedelta(days=7)):
+                    reasons.append("Free trial ending in <= 7 days")
+                    trial_soon_count += 1
+            if school.id in stale_urgent_school_ids:
+                reasons.append("Urgent support ticket stale 48h+")
+            if reasons:
+                risk_rows.append(
+                    {
+                        "school": school,
+                        "reasons": reasons,
+                        "risk_score": len(reasons),
+                    }
+                )
+        risk_rows.sort(key=lambda row: (-row["risk_score"], row["school"].name))
+        data["tenant_churn_risk_count"] = len(risk_rows)
+        data["tenant_churn_risk_rows"] = risk_rows[:25]
+        data["tenant_inactive_30d_count"] = inactive_count
+        data["trial_ending_soon_count"] = trial_soon_count
+    except Exception:
+        pass
+
+    # Phase 4 differentiator metrics
+    try:
+        from apps.analytics.models import InterventionLog
+
+        total_interventions = InterventionLog.objects.count()
+        resolved = InterventionLog.objects.filter(status=InterventionLog.Status.RESOLVED).count()
+        data["total_interventions"] = total_interventions
+        data["resolved_interventions"] = resolved
+        data["recovery_rate_pct"] = round((resolved / total_interventions) * 100, 1) if total_interventions else 0.0
+    except Exception:
+        pass
+
+    try:
+        from apps.people.models import StudentPassport, PassportSchoolInvite
+
+        data["student_passport_count"] = StudentPassport.objects.count()
+        data["student_passport_invite_count"] = PassportSchoolInvite.objects.count()
+    except Exception:
+        pass
+
+    return data
+
+
 def super_dashboard(request):
     """List all schools with basic stats. Phase E: Financial Bento. Phase H: Registry link, selected education systems."""
     from django.db.models import Sum
-    from django.utils import timezone
     from apps.siteconfig.models import RevenueSnapshot
 
     latest_event_query = SchoolProvisioningEvent.objects.filter(school_id=OuterRef("pk")).order_by("-created_at", "-id")
@@ -79,7 +271,7 @@ def super_dashboard(request):
         school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.timeline_url = _safe_school_timeline_url(school.pk)
         school.sync_repair_url = reverse("super:sync_repair", args=[school.pk])
-        school.selected_systems = [ts.system.name for ts in getattr(school, "tenant_systems", []) if getattr(ts, "system", None)]
+        school.selected_systems = _selected_system_names(school)
 
     # Phase E: Financial Mission Control / Bento (latest month); resilient if RevenueSnapshot not migrated
     total_mrr = total_waived = waiver_percentage = 0
@@ -117,7 +309,7 @@ def super_dashboard(request):
     for school in pending_schools:
         school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.timeline_url = _safe_school_timeline_url(school.pk)
-        school.selected_systems = [ts.system.name for ts in getattr(school, "tenant_systems", []) if getattr(ts, "system", None)]
+        school.selected_systems = _selected_system_names(school)
     pending_approval_count = len(pending_schools)
 
     # Section 8.7–8.8: Health / resource hogs (PostgreSQL table sizes)
@@ -129,6 +321,8 @@ def super_dashboard(request):
         health_schema_stats = get_global_health_stats()
     except Exception:
         pass
+
+    command_center = _build_command_center_data()
 
     return render(
         request,
@@ -144,8 +338,10 @@ def super_dashboard(request):
             "billing_model_breakdown": billing_model_breakdown,
             "revenue_snapshot_month": first_of_month,
             "registry_url": _safe_registry_url(),
+            "command_center_url": _safe_command_center_url(),
             "health_top_tables": health_top_tables,
             "health_schema_stats": health_schema_stats,
+            "command_center": command_center,
         },
     )
 
@@ -232,6 +428,50 @@ def super_tenant_health(request):
         request,
         "schools/super_tenant_health.html",
         {"tenants": schools},
+    )
+
+
+def super_command_center(request):
+    """
+    Phase 3 mission-control surface combining approvals, billing, support, and risk posture.
+    """
+    from apps.siteconfig.models import GlobalSupportTicket
+
+    command_center = _build_command_center_data()
+    pending_schools = list(
+        School.objects.filter(is_approved=False)
+        .order_by("-created_at")
+        .annotate(student_count=Count("student_profiles", distinct=True))[:30]
+    )
+    trial_schools = list(
+        School.objects.filter(is_active=True, billing_type=School.BillingType.FREE_TRIAL)
+        .order_by("trial_end_date", "name")[:30]
+    )
+    stale_support = command_center.get("support_stale_rows", [])[:20]
+    provisioning_breach_rows = command_center.get("provisioning_breach_rows", [])[:20]
+
+    school_map = {
+        school.id: school
+        for school in School.objects.filter(id__in=[row["school_id"] for row in provisioning_breach_rows]).only("id", "name", "slug")
+    }
+    for row in provisioning_breach_rows:
+        row["school"] = school_map.get(row["school_id"])
+
+    return render(
+        request,
+        "schools/super_command_center.html",
+        {
+            "command_center": command_center,
+            "pending_schools": pending_schools,
+            "trial_schools": trial_schools,
+            "stale_support": stale_support,
+            "provisioning_breach_rows": provisioning_breach_rows,
+            "support_dashboard_url": reverse("super:support_dashboard"),
+            "billing_dashboard_url": reverse("super:billing_dashboard"),
+            "usage_url": reverse("super:usage"),
+            "dashboard_url": reverse("super:dashboard"),
+            "open_ticket_statuses": list(GlobalSupportTicket.Status.values),
+        },
     )
 
 
@@ -864,6 +1104,19 @@ def super_support_dashboard(request):
     tickets = list(qs)
     open_count = GlobalSupportTicket.objects.filter(status=GlobalSupportTicket.Status.OPEN).count()
     in_progress_count = GlobalSupportTicket.objects.filter(status=GlobalSupportTicket.Status.IN_PROGRESS).count()
+    now = timezone.now()
+    backlog_48h = 0
+    backlog_7d = 0
+    oldest_hours = 0.0
+    for ticket in tickets:
+        age_hours = max(0.0, (now - ticket.created_at).total_seconds() / 3600.0)
+        ticket.age_hours = round(age_hours, 1)
+        if age_hours >= 48:
+            backlog_48h += 1
+        if age_hours >= (24 * 7):
+            backlog_7d += 1
+        if age_hours > oldest_hours:
+            oldest_hours = age_hours
     return render(
         request,
         "schools/super_support_dashboard.html",
@@ -871,6 +1124,9 @@ def super_support_dashboard(request):
             "tickets": tickets,
             "open_count": open_count,
             "in_progress_count": in_progress_count,
+            "backlog_48h": backlog_48h,
+            "backlog_7d": backlog_7d,
+            "oldest_hours": round(oldest_hours, 1),
             "status_filter": status_filter,
             "priority_filter": priority_filter,
         },
@@ -886,6 +1142,9 @@ def support_queue_fragment(request):
     if status_filter:
         qs = qs.filter(status=status_filter)
     tickets = list(qs)
+    now = timezone.now()
+    for ticket in tickets:
+        ticket.age_hours = round(max(0.0, (now - ticket.created_at).total_seconds() / 3600.0), 1)
     return render(
         request,
         "schools/super_support_queue_fragment.html",

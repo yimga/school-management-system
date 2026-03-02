@@ -3,10 +3,29 @@
 {% block title %}{% trans "Find your school" %}{% endblock %}
 {% block content %}
 <div class="container py-5">
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+          <div>
+            <h1 class="h4 mb-1">{% trans "School and tenant finder" %}</h1>
+            <p class="text-muted mb-0">{% trans "Search by school name or slug, then open the correct tenant portal." %}</p>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-primary btn-sm">{% trans "Find by email" %}</a>
+            <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-sm">{% trans "Direct login" %}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="row justify-content-center">
     <div class="col-lg-7">
       {% include "schools/partials/school_finder_bento.html" with finder_id="find-school-results" input_id="find-school-input" query=query results=results %}
     </div>
   </div>
+  {% if role_checklists %}
+    {% include "schools/partials/role_onboarding_checklists.html" with role_checklists=role_checklists %}
+  {% endif %}
 </div>
 {% endblock %}

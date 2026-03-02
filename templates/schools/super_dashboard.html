@@ -12,6 +12,9 @@
         {% if registry_url %}
         <a href="{{ registry_url }}" class="btn btn-outline-secondary">Global registry (Education systems)</a>
         {% endif %}
+        {% if command_center_url %}
+        <a href="{{ command_center_url }}" class="btn btn-warning">Command center</a>
+        {% endif %}
         <a href="{% url 'super:pulse' %}" class="btn btn-outline-info">Pulse Map</a>
         <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-info">Tenant Health</a>
         <a href="{% url 'super:usage' %}" class="btn btn-outline-primary">Usage &amp; quotas</a>
@@ -89,6 +92,54 @@
       {% endif %}
     </div>
     {% endif %}
+
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <h2 class="h6 text-muted mb-2">Operational command center</h2>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="text-muted small">Provisioning SLA (avg)</div>
+            <div class="h4 mb-0">{{ command_center.provisioning_sla_avg_hours }}h</div>
+            <div class="small text-muted">{{ command_center.provisioning_sla_samples }} sample(s)</div>
+            <div class="small {% if command_center.provisioning_sla_breaches %}text-danger{% else %}text-success{% endif %}">
+              {{ command_center.provisioning_sla_breaches }} breach(es) above {{ command_center.provisioning_sla_target_hours }}h
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="text-muted small">Tenant churn risk</div>
+            <div class="h4 mb-0">{{ command_center.tenant_churn_risk_count }}</div>
+            <div class="small text-muted">{{ command_center.tenant_inactive_30d_count }} inactive 30d+</div>
+            <div class="small text-muted">{{ command_center.trial_ending_soon_count }} trial(s) ending soon</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="text-muted small">Support backlog aging</div>
+            <div class="h4 mb-0">{{ command_center.support_backlog_48h_count }}</div>
+            <div class="small text-muted">{{ command_center.support_backlog_7d_count }} over 7 days</div>
+            <div class="small text-muted">Oldest open: {{ command_center.support_oldest_open_hours }}h</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="text-muted small">Phase 4 differentiators</div>
+            <div class="small">Recovery rate: <strong>{{ command_center.recovery_rate_pct }}%</strong></div>
+            <div class="small">Passports: <strong>{{ command_center.student_passport_count }}</strong></div>
+            <div class="small">Transfer invites: <strong>{{ command_center.student_passport_invite_count }}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     {% if health_top_tables or health_schema_stats %}
     <div class="row g-3 mb-4">

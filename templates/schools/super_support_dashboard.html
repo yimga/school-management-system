@@ -6,7 +6,10 @@
 <div class="container-fluid py-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
     <h1 class="h4 mb-0">{% trans "Support mission control" %}</h1>
-    <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">{% trans "Back to dashboard" %}</a>
+    <div class="d-flex gap-2">
+      <a href="{% url 'super:command_center' %}" class="btn btn-outline-warning">{% trans "Open command center" %}</a>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary">{% trans "Back to dashboard" %}</a>
+    </div>
   </div>
   <div class="row g-3 mb-4">
     <div class="col-md-4">
@@ -22,6 +25,15 @@
         <div class="card-body">
           <div class="text-muted small">{% trans "In progress" %}</div>
           <div class="h4 text-info mb-0">{{ in_progress_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="text-muted small">{% trans "Backlog aging" %}</div>
+          <div class="h5 mb-1">{{ backlog_48h }} {% trans "over 48h" %}</div>
+          <div class="small text-muted">{{ backlog_7d }} {% trans "over 7 days" %} | {% trans "Oldest" %}: {{ oldest_hours }}h</div>
         </div>
       </div>
     </div>
@@ -47,7 +59,7 @@
       </form>
     </div>
     <div id="support-queue" class="card-body p-0"
-         hx-get="{% url 'super:support_queue_fragment' %}?status={{ status_filter }}"
+         hx-get="{% url 'super:support_queue_fragment' %}?status={{ status_filter }}&priority={{ priority_filter }}"
          hx-trigger="every 60s, load"
          hx-swap="innerHTML">
       {% include "schools/super_support_queue_fragment.html" with tickets=tickets %}

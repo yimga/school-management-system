@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:'RunMyCampus school management platform.' }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+{% endblock %}
+{% block content %}
+<section class="container py-4 py-lg-5">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <p class="text-uppercase small text-muted mb-2">RunMyCampus</p>
+      <h1 class="display-6 fw-bold mb-3">{{ page.headline }}</h1>
+      <p class="lead text-muted mb-4">{{ page.subheadline }}</p>
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{% url 'marketing_book_demo' %}" class="btn btn-primary">{% trans "Book demo" %}</a>
+        <a href="{% url 'signup_school' %}" class="btn btn-outline-primary">{% trans "Start free trial" %}</a>
+        <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-secondary">{% trans "Find your school" %}</a>
+      </div>
+      <div class="row g-3">
+        {% for segment in page.segments %}
+        <div class="col-md-6">
+          <article class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h2 class="h6 text-uppercase text-muted">{{ segment.title }}</h2>
+              <p class="mb-0">{{ segment.body }}</p>
+            </div>
+          </article>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+          <h2 class="h5 mb-3">{% trans "Powerhouse differentiators" %}</h2>
+          <ul class="mb-0">
+            {% for point in powerhouse_highlights %}
+            <li>{{ point }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <aside class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Explore pages" %}</h2>
+          <ul class="list-unstyled mb-0">
+            {% for item in marketing_nav %}
+            <li class="mb-2">
+              <a class="{% if item.slug == active_nav_slug %}fw-semibold{% endif %}" href="{{ item.path }}">{{ item.label }}</a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </aside>
+      <aside class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 text-uppercase text-muted mb-3">{% trans "Topical landings" %}</h2>
+          <ul class="list-unstyled mb-0">
+            {% for topic in topical_nav %}
+            <li class="mb-2"><a href="{{ topic.path }}">{{ topic.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

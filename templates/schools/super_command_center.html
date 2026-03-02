@@ -1,0 +1,145 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}Mission Control - Super Admin{% endblock %}
+{% block backend_title %}Mission Control{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <h1 class="h4 mb-0">{% trans "Mission control" %}</h1>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ dashboard_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Back to schools" %}</a>
+      <a href="{{ support_dashboard_url }}" class="btn btn-outline-warning btn-sm">{% trans "Support queue" %}</a>
+      <a href="{{ billing_dashboard_url }}" class="btn btn-outline-primary btn-sm">{% trans "Billing" %}</a>
+      <a href="{{ usage_url }}" class="btn btn-outline-info btn-sm">{% trans "Usage" %}</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Provisioning SLA</div>
+          <div class="h4 mb-0">{{ command_center.provisioning_sla_avg_hours }}h</div>
+          <div class="small text-muted">Breaches: {{ command_center.provisioning_sla_breaches }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Churn risk schools</div>
+          <div class="h4 mb-0">{{ command_center.tenant_churn_risk_count }}</div>
+          <div class="small text-muted">Inactive 30d+: {{ command_center.tenant_inactive_30d_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Support backlog (48h+)</div>
+          <div class="h4 mb-0">{{ command_center.support_backlog_48h_count }}</div>
+          <div class="small text-muted">7d+: {{ command_center.support_backlog_7d_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Recovery + passport</div>
+          <div class="small">Recovery rate: <strong>{{ command_center.recovery_rate_pct }}%</strong></div>
+          <div class="small">Passports: <strong>{{ command_center.student_passport_count }}</strong></div>
+          <div class="small">Transfer invites: <strong>{{ command_center.student_passport_invite_count }}</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-light"><strong>Pending approvals</strong></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>School</th><th>Created</th><th>Students</th></tr></thead>
+            <tbody>
+              {% for school in pending_schools %}
+              <tr>
+                <td>{{ school.name }}</td>
+                <td>{{ school.created_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ school.student_count|default:0 }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-muted">No schools pending approval.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-light"><strong>Trials ending soon</strong></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>School</th><th>Trial end</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for school in trial_schools %}
+              <tr>
+                <td>{{ school.name }}</td>
+                <td>{{ school.trial_end_date|date:"Y-m-d"|default:"-" }}</td>
+                <td>
+                  <span class="badge bg-warning text-dark">Free trial</span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-muted">No active trial schools.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-light"><strong>Provisioning SLA breaches</strong></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>School</th><th>Duration (hours)</th></tr></thead>
+            <tbody>
+              {% for row in provisioning_breach_rows %}
+              <tr>
+                <td>{{ row.school.name|default:"Unknown school" }}</td>
+                <td>{{ row.hours }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="2" class="text-muted">No provisioning breaches in the sampled period.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-light"><strong>Stale support backlog</strong></div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>School</th><th>Subject</th><th>Age (hours)</th></tr></thead>
+            <tbody>
+              {% for row in stale_support %}
+              <tr>
+                <td>{{ row.ticket.school.name }}</td>
+                <td>{{ row.ticket.subject|truncatewords:7 }}</td>
+                <td>{{ row.age_hours }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-muted">No stale support tickets right now.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

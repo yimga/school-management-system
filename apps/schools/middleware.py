@@ -52,6 +52,14 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
 
 PUBLIC_ONLY_PREFIXES = (
     "/marketing/",
+    "/product/",
+    "/solutions/",
+    "/pricing/",
+    "/compare/",
+    "/case-studies/",
+    "/security-compliance/",
+    "/integrations/",
+    "/book-demo/",
     "/signup/",
     "/verify-signup/",
     "/api/trial/",
