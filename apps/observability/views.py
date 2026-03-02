@@ -426,9 +426,25 @@ def api_admin_weather(request):
 
 @require_GET
 def api_weather_context(request):
-    """Public-safe weather snapshot for shared header/backend widgets."""
-    payload = _resolve_weather_payload(_build_admin_weather_config(), scope="context")
-    return JsonResponse(payload)
+    """Public-safe weather snapshot for shared header/backend widgets. Never raises; returns disabled payload on error."""
+    try:
+        config = _build_admin_weather_config()
+        payload = _resolve_weather_payload(config, scope="context")
+        return JsonResponse(payload)
+    except Exception as exc:
+        logger.warning("api_weather_context failed: %s", exc, exc_info=False)
+        return JsonResponse({
+            "status": "disabled",
+            "enabled": False,
+            "label": "Weather",
+            "latitude": 0.0,
+            "longitude": 0.0,
+            "temperature_unit": "celsius",
+            "timezone": "UTC",
+            "cached": False,
+            "stale": False,
+            "weather": None,
+        }, status=200)
 
 
 @require_POST

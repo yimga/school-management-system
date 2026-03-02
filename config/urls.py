@@ -127,8 +127,9 @@ def page_not_found(request, exception):
 
 
 def server_error(request):
-    """Custom 500 page."""
-    return render(request, 'errors/500.html', status=500)
+    """Custom 500 page. Pass user so base template and includes render when context processors failed."""
+    context = {"user": getattr(request, "user", None)}
+    return render(request, "errors/500.html", context, status=500)
 
 
 handler403 = permission_denied
