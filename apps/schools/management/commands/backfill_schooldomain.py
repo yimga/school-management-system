@@ -11,13 +11,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true", help="Only print what would be created.")
-        parser.add_argument("--base-domain", type=str, default=None, help="Override base domain (default: MULTI_TENANT_BASE_DOMAIN or runyourcampus.com).")
+        parser.add_argument("--base-domain", type=str, default=None, help="Override base domain (default: MULTI_TENANT_BASE_DOMAIN or runmycampus.com).")
 
     def handle(self, *args, **options):
         from apps.schools.models import School, SchoolDomain
         from apps.schools.domain_sync import sync_school_domains_to_runtime
 
-        base_domain = (options.get("base_domain") or os.getenv("MULTI_TENANT_BASE_DOMAIN") or "runyourcampus.com").strip().lower()
+        base_domain = (options.get("base_domain") or os.getenv("MULTI_TENANT_BASE_DOMAIN") or "runmycampus.com").strip().lower()
         dry_run = options.get("dry_run", False)
         created = 0
         for school in School.objects.filter(is_active=True):

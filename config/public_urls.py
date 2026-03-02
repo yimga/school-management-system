@@ -1,5 +1,5 @@
 """
-Public (marketing + discovery) URL configuration for runyourcampus.com.
+Public (marketing + discovery) URL configuration for runmycampus.com.
 Used when request.urlconf is set to this module by UrlConfSwitcherMiddleware.
 """
 from django.conf import settings

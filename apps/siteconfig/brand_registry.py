@@ -62,20 +62,20 @@ def _default_marketing_seo(country_name: str, language_code: str) -> dict[str, A
         return {
             "headline": f"La plateforme scolaire mondiale pour {country_name}",
             "subheadline": "Gestion complete des ecoles, finances et communications.",
-            "seo_title": f"RunYourCampus - Logiciel scolaire pour {country_name}",
+            "seo_title": f"RunMyCampus - Logiciel scolaire pour {country_name}",
             "seo_description": "Plateforme multi-tenant pour la gestion scolaire, les notes et la finance.",
         }
     if language == "pt":
         return {
             "headline": f"Plataforma escolar global para {country_name}",
             "subheadline": "Gestao completa para escolas, financas e comunicacao.",
-            "seo_title": f"RunYourCampus - Sistema escolar para {country_name}",
+            "seo_title": f"RunMyCampus - Sistema escolar para {country_name}",
             "seo_description": "Plataforma multi-tenant para notas, administracao e financas escolares.",
         }
     return {
         "headline": f"Global School Operations for {country_name}",
         "subheadline": "Secure, multi-tenant school management for academics, finance, and operations.",
-        "seo_title": f"RunYourCampus - School Management Platform for {country_name}",
+        "seo_title": f"RunMyCampus - School Management Platform for {country_name}",
         "seo_description": "Global school management platform with tenant branding, analytics, and compliance controls.",
     }
 

@@ -16,9 +16,9 @@ class Migration(migrations.Migration):
             name='SchoolDomain',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('domain', models.CharField(db_index=True, help_text='Hostname e.g. school.runyourcampus.com or portal.school.edu', max_length=255)),
+                ('domain', models.CharField(db_index=True, help_text='Hostname e.g. school.runmycampus.com or portal.school.edu', max_length=255)),
                 ('is_verified', models.BooleanField(default=False, help_text='True after TXT verification (custom) or when created from School.subdomain (subdomain).')),
-                ('dns_token', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, help_text='TXT record runyourcampus-verify=<token> for custom domain verification.', unique=True)),
+                ('dns_token', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, help_text='TXT record runmycampus-verify=<token> for custom domain verification.', unique=True)),
                 ('kind', models.CharField(choices=[('SUBDOMAIN', 'Subdomain'), ('CUSTOM', 'Custom domain')], default='CUSTOM', max_length=20)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('verified_at', models.DateTimeField(blank=True, null=True)),

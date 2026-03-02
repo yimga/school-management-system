@@ -1,5 +1,5 @@
 """
-Manager host URL configuration (manager.runyourcampus.com).
+Manager host URL configuration (manager.runmycampus.com).
 Dedicated for super-admin and operations access.
 """
 from django.conf import settings

@@ -1,5 +1,5 @@
 """
-RunYourCampus marketing and SEO endpoints.
+RunMyCampus marketing and SEO endpoints.
 """
 from __future__ import annotations
 
@@ -77,11 +77,11 @@ def _get_regional_pitch(country_code: str, language_code: str) -> dict:
     brand = resolve_global_brand_context(country_code=country_code, language_code=language_code)
     seo = brand.get("seo_config") or {}
     default = {
-        "headline": seo.get("headline") or "RunYourCampus",
+        "headline": seo.get("headline") or "RunMyCampus",
         "subheadline": seo.get("subheadline") or "Global school operations, localized for every campus.",
         "features": seo.get("features") or [],
         "visual_variant": seo.get("visual_variant") or "",
-        "seo_title": seo.get("seo_title") or "RunYourCampus - Global School Operations",
+        "seo_title": seo.get("seo_title") or "RunMyCampus - Global School Operations",
         "seo_description": seo.get("seo_description") or "Tenant-first school platform for academics, finance, and operations.",
     }
 
@@ -122,7 +122,7 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     structured_data = {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        "name": "RunYourCampus",
+        "name": "RunMyCampus",
         "applicationCategory": "EducationalApplication",
         "operatingSystem": "Web",
         "url": canonical_url,

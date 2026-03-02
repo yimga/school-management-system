@@ -449,11 +449,11 @@ def site_settings(request):
     public_host_kind = getattr(request, "public_host_kind", None)
     public_brand_mode = (public_host_kind in {"base", "verify", "support"}) and not school
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode
-    ctx["PUBLIC_BRAND_NAME"] = "RunYourCampus"
-    ctx["PUBLIC_BRAND_DOMAIN"] = "runyourcampus.com"
+    ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
+    ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
     if public_brand_mode:
         ctx["SITE_LOGO_URL"] = ""
-        ctx["SITE_BRANDED_DOMAIN"] = "runyourcampus.com"
+        ctx["SITE_BRANDED_DOMAIN"] = "runmycampus.com"
         ctx["TENANT_WALLPAPER_URL"] = ""
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None

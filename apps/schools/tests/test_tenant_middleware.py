@@ -75,19 +75,19 @@ class TenantMiddlewareTests(TestCase):
 
     @override_settings(DEBUG=False)
     def test_unknown_tenant_host_redirects_to_root_school_not_found(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/portal/", "unknown.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/portal/", "unknown.runmycampus.com")
             response = self.middleware.process_request(request)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "https://runyourcampus.com/school-not-found/?slug=unknown")
+        self.assertEqual(response["Location"], "https://runmycampus.com/school-not-found/?slug=unknown")
 
     @override_settings(DEBUG=False)
     def test_tenant_path_fallback_redirects_to_subdomain_in_production(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/t/tenant-alpha/authentication/login/", "runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/t/tenant-alpha/authentication/login/", "runmycampus.com")
             response = self.middleware.process_request(request)
         self.assertEqual(response.status_code, 301)
-        self.assertEqual(response["Location"], "https://tenant-alpha.runyourcampus.com/authentication/login/")
+        self.assertEqual(response["Location"], "https://tenant-alpha.runmycampus.com/authentication/login/")
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -102,56 +102,56 @@ class UrlConfSwitcherMiddlewareTests(TestCase):
         return request
 
     def test_base_domain_uses_public_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.public_urls")
 
     def test_www_base_domain_uses_public_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "www.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "www.runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.public_urls")
 
     def test_subdomain_uses_tenant_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "lycee-douala.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "lycee-douala.runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.tenant_urls")
 
     def test_tenant_path_prefix_on_base_domain_uses_public_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/t/lycee-douala/authentication/login/", "runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/t/lycee-douala/authentication/login/", "runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.public_urls")
 
     def test_reserved_verify_host_uses_public_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "verify.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "verify.runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.public_urls")
 
     def test_reserved_support_host_uses_public_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "support.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "support.runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.public_urls")
 
     def test_manager_host_uses_manager_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "manager.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "manager.runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.manager_urls")
 
     def test_api_host_uses_api_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "api.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "api.runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.api_urls")
 
     def test_docs_host_uses_docs_urlconf(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "docs.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "docs.runmycampus.com")
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.docs_urls")
 
@@ -172,19 +172,19 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
         with patch.dict(
             os.environ,
             {
-                "MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com",
-                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "runmycampus.com",
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "oldcampus.com",
             },
             clear=False,
         ):
-            request = self._request("/find/?q=gilead", "runmycampus.com")
+            request = self._request("/find/?q=gilead", "oldcampus.com")
             response = self.legacy.process_request(request)
         self.assertEqual(response.status_code, 301)
-        self.assertEqual(response["Location"], "https://runyourcampus.com/find/?q=gilead")
+        self.assertEqual(response["Location"], "https://runmycampus.com/find/?q=gilead")
 
     def test_verify_host_redirects_root_to_verify_hub(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
-            request = self._request("/", "verify.runyourcampus.com")
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/", "verify.runmycampus.com")
             response = self.reserved.process_request(request)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/verify/")

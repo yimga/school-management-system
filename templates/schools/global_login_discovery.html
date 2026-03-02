@@ -15,6 +15,7 @@
           <input type="email" name="email" id="email" class="form-control" value="{{ email|default:'' }}" required placeholder="you@school.edu">
         </div>
         <button type="submit" class="btn btn-primary">{% trans "Continue" %}</button>
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary ms-2">{% trans "School login" %}</a>
       </form>
       <p class="mt-4 small text-muted">
         <a href="{% url 'signup_school' %}">Get started</a> - Create a new school.

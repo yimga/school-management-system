@@ -412,7 +412,7 @@ class SchoolDomain(models.Model):
     """
     Multiple domains per tenant (shared schema). Used for subdomain and custom domains;
     Caddy ask endpoint and middleware resolve tenant from domain. DNS verification
-    uses dns_token (TXT runyourcampus-verify=<token>).
+    uses dns_token (TXT runmycampus-verify=<token>).
     """
 
     class Kind(models.TextChoices):
@@ -428,7 +428,7 @@ class SchoolDomain(models.Model):
     domain = models.CharField(
         max_length=255,
         db_index=True,
-        help_text="Hostname e.g. school.runyourcampus.com or portal.school.edu",
+        help_text="Hostname e.g. school.runmycampus.com or portal.school.edu",
     )
     is_verified = models.BooleanField(
         default=False,
@@ -439,7 +439,7 @@ class SchoolDomain(models.Model):
         editable=False,
         unique=True,
         db_index=True,
-        help_text="TXT record runyourcampus-verify=<token> for custom domain verification.",
+        help_text="TXT record runmycampus-verify=<token> for custom domain verification.",
     )
     kind = models.CharField(
         max_length=20,

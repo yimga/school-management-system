@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{{ seo_title|default:"RunYourCampus - Global School Operations" }}{% endblock %}
+{% block title %}{{ seo_title|default:"RunMyCampus - Global School Operations" }}{% endblock %}
 {% block extrahead %}
   <meta name="description" content="{{ seo_description|default:'Global school management platform for academics, finance, and operations.' }}">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
@@ -72,12 +72,13 @@
 <section class="marketing-shell py-4 py-lg-5">
   <div class="container">
     <div class="marketing-hero">
-      <p class="text-uppercase small fw-semibold opacity-75 mb-2">runyourcampus.com</p>
+      <p class="text-uppercase small fw-semibold opacity-75 mb-2">runmycampus.com</p>
       <h1 class="display-6 fw-bold mb-3">{{ pitch.headline }}</h1>
       <p class="lead mb-0">{{ pitch.subheadline }}</p>
       <div class="marketing-cta">
         <a href="{% url 'signup_school' %}" class="btn btn-light btn-lg">{% trans "Start free trial" %}</a>
         <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light btn-lg">{% trans "Find your school" %}</a>
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg">{% trans "School login" %}</a>
       </div>
 
       <div class="marketing-grid">
@@ -91,7 +92,7 @@
         </article>
         <article class="marketing-card marketing-card--tall">
           <h3>{% trans "Canonical Access" %}</h3>
-          <p class="mb-0">https://{{ country_code|default:'school'|lower }}.runyourcampus.com</p>
+          <p class="mb-0">https://{{ country_code|default:'school'|lower }}.runmycampus.com</p>
         </article>
         <article class="marketing-card">
           <h3>{% trans "Power Features" %}</h3>

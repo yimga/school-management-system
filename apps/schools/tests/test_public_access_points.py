@@ -11,8 +11,8 @@ class PublicAccessPointsTests(TestCase):
         self.env = patch.dict(
             os.environ,
             {
-                "MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com",
-                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "runmycampus.com",
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
             },
             clear=False,
         )
@@ -22,60 +22,60 @@ class PublicAccessPointsTests(TestCase):
         self.env.stop()
 
     def test_onboard_route_is_public(self):
-        response = self.client.get("/onboard/", HTTP_HOST="runyourcampus.com")
+        response = self.client.get("/onboard/", HTTP_HOST="runmycampus.com")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Onboard Your Campus")
 
     def test_regional_routes_exist(self):
-        cm = self.client.get("/cm/", HTTP_HOST="runyourcampus.com")
-        ca = self.client.get("/ca/", HTTP_HOST="runyourcampus.com")
-        fr_cm = self.client.get("/fr/cm/", HTTP_HOST="runyourcampus.com")
+        cm = self.client.get("/cm/", HTTP_HOST="runmycampus.com")
+        ca = self.client.get("/ca/", HTTP_HOST="runmycampus.com")
+        fr_cm = self.client.get("/fr/cm/", HTTP_HOST="runmycampus.com")
         self.assertEqual(cm.status_code, 200)
         self.assertEqual(ca.status_code, 200)
         self.assertEqual(fr_cm.status_code, 200)
 
     def test_verify_subdomain_isolated(self):
-        root = self.client.get("/", HTTP_HOST="verify.runyourcampus.com")
+        root = self.client.get("/", HTTP_HOST="verify.runmycampus.com")
         self.assertEqual(root.status_code, 302)
         self.assertEqual(root["Location"], "/verify/")
 
-        verify = self.client.get("/verify/", HTTP_HOST="verify.runyourcampus.com")
+        verify = self.client.get("/verify/", HTTP_HOST="verify.runmycampus.com")
         self.assertEqual(verify.status_code, 200)
         self.assertContains(verify, "Digital ID Verification")
 
     def test_support_subdomain_isolated(self):
-        root = self.client.get("/", HTTP_HOST="support.runyourcampus.com")
+        root = self.client.get("/", HTTP_HOST="support.runmycampus.com")
         self.assertEqual(root.status_code, 302)
         self.assertEqual(root["Location"], "/support/")
 
-        support = self.client.get("/support/", HTTP_HOST="support.runyourcampus.com")
+        support = self.client.get("/support/", HTTP_HOST="support.runmycampus.com")
         self.assertEqual(support.status_code, 200)
         self.assertContains(support, "Global Support Hub")
 
     def test_public_paths_on_tenant_host_redirect_to_base(self):
-        response = self.client.get("/find/?q=gilead", HTTP_HOST="tenant-a.runyourcampus.com")
+        response = self.client.get("/find/?q=gilead", HTTP_HOST="tenant-a.runmycampus.com")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "https://runyourcampus.com/find/?q=gilead")
+        self.assertEqual(response["Location"], "https://runmycampus.com/find/?q=gilead")
 
     def test_unknown_tenant_redirects_to_branded_root_404(self):
-        response = self.client.get("/", HTTP_HOST="missing.runyourcampus.com")
+        response = self.client.get("/", HTTP_HOST="missing.runmycampus.com")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], "https://runyourcampus.com/school-not-found/?slug=missing")
+        self.assertEqual(response["Location"], "https://runmycampus.com/school-not-found/?slug=missing")
 
     def test_manager_host_routes_to_dedicated_login_surface(self):
-        response = self.client.get("/", HTTP_HOST="manager.runyourcampus.com")
+        response = self.client.get("/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/authentication/login/")
 
     def test_marketing_robots_and_sitemap_exist(self):
-        robots = self.client.get("/robots.txt", HTTP_HOST="runyourcampus.com")
-        sitemap = self.client.get("/sitemap.xml", HTTP_HOST="runyourcampus.com")
+        robots = self.client.get("/robots.txt", HTTP_HOST="runmycampus.com")
+        sitemap = self.client.get("/sitemap.xml", HTTP_HOST="runmycampus.com")
         self.assertEqual(robots.status_code, 200)
         self.assertEqual(sitemap.status_code, 200)
         self.assertContains(robots, "Sitemap:")
         self.assertContains(sitemap, "<urlset")
 
     def test_discover_route_is_public(self):
-        response = self.client.get("/discover/", HTTP_HOST="runyourcampus.com")
+        response = self.client.get("/discover/", HTTP_HOST="runmycampus.com")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Find your school")

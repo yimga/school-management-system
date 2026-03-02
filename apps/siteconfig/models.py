@@ -3753,7 +3753,7 @@ class FeatureUsageEvent(models.Model):
 
 
 # ============================================================================
-# Global Support Desk (RunYourCampus powerhouse): central ticketing in shared schema
+# Global Support Desk (RunMyCampus powerhouse): central ticketing in shared schema
 # ============================================================================
 
 

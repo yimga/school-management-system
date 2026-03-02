@@ -1,5 +1,5 @@
 """
-Docs host URL configuration (docs.runyourcampus.com).
+Docs host URL configuration (docs.runmycampus.com).
 """
 from django.shortcuts import redirect, render
 from django.urls import include, path

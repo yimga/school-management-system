@@ -93,7 +93,7 @@ def _fetch_unesco_isced(country_alpha2: str) -> dict | None:
     ]
     for url in candidates:
         try:
-            req = request.Request(url, headers={"Accept": "application/json", "User-Agent": "runyourcampus-seeder/1.0"})
+            req = request.Request(url, headers={"Accept": "application/json", "User-Agent": "runmycampus-seeder/1.0"})
             with request.urlopen(req, timeout=UNESCO_TIMEOUT_SECONDS) as resp:
                 body = resp.read().decode("utf-8", errors="ignore")
             payload = json.loads(body)

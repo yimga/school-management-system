@@ -1,5 +1,5 @@
 """
-API host URL configuration (api.runyourcampus.com).
+API host URL configuration (api.runmycampus.com).
 """
 from django.http import JsonResponse
 from django.urls import include, path
@@ -10,7 +10,7 @@ from apps.observability import views as obs_views
 def api_home(_request):
     return JsonResponse(
         {
-            "service": "runyourcampus-api",
+            "service": "runmycampus-api",
             "status": "ok",
         }
     )

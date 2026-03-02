@@ -27,14 +27,14 @@ if os.getenv("RENDER") == "true":
     if ".onrender.com" not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(".onrender.com")
 # Multi-tenant: allow main host and subdomains.
-# Production default canonical domain is runyourcampus.com.
+# Production default canonical domain is runmycampus.com.
 _multi_tenant_base = os.getenv(
     "MULTI_TENANT_BASE_DOMAIN",
-    "runyourcampus.com",
+    "runmycampus.com",
 ).strip().lower()
 _legacy_bases_raw = (
     os.getenv("MULTI_TENANT_LEGACY_BASE_DOMAINS")
-    or "runmycampus.com"
+    or ""
 ).strip().lower()
 _legacy_bases = [d.strip() for d in _legacy_bases_raw.split(",") if d.strip()]
 if _multi_tenant_base:
@@ -135,7 +135,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",  # Temporary cutover: runmycampus.com -> runyourcampus.com
+    "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",  # Optional legacy-domain redirect middleware
     "apps.schools.middleware.UrlConfSwitcherMiddleware",  # Public vs tenant URLConf from host/path
     "apps.schools.middleware.ReservedPublicHostAccessMiddleware",  # verify./support. host isolation
     "apps.schools.middleware.PublicPathRedirectMiddleware",  # public paths hit on tenant host -> base host

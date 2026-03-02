@@ -1,6 +1,6 @@
 """
-DNS verification for custom domains: query TXT records for runyourcampus-verify=<dns_token>
-and mark SchoolDomain as verified. Legacy runmycampus token prefixes remain accepted.
+DNS verification for custom domains: query TXT records for runmycampus-verify=<dns_token>
+and mark SchoolDomain as verified.
 """
 import logging
 from django.utils import timezone
@@ -9,13 +9,13 @@ from apps.schools.domain_sync import sync_verified_schooldomain
 
 logger = logging.getLogger(__name__)
 
-TXT_PREFIXES = ("runyourcampus-verify=", "runmycampus-verify=")
+TXT_PREFIXES = ("runmycampus-verify=",)
 
 
 def verify_domain_txt(domain: str, expected_token: str) -> bool:
     """
     Query TXT records for the given domain and return True if any TXT record
-    contains runyourcampus-verify=<expected_token> (legacy runmycampus prefix also accepted).
+    contains runmycampus-verify=<expected_token>.
     """
     if not domain or not expected_token:
         return False
@@ -41,7 +41,7 @@ def verify_domain_txt(domain: str, expected_token: str) -> bool:
 
 def verify_and_activate_schooldomain(school_domain) -> bool:
     """
-    Check TXT for the given SchoolDomain instance; if runyourcampus-verify=<dns_token>
+    Check TXT for the given SchoolDomain instance; if runmycampus-verify=<dns_token>
     is present, set is_verified=True, set verified_at, and log SchoolProvisioningEvent.
     Returns True if verification succeeded.
     """

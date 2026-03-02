@@ -23,17 +23,17 @@ class DomainSyncTests(TestCase):
         )
 
     def test_school_subdomain_fqdn_uses_base_domain(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
             self.assertEqual(
                 school_subdomain_fqdn(self.school),
-                "domain-sync-school.runyourcampus.com",
+                "domain-sync-school.runmycampus.com",
             )
 
     def test_ensure_schooldomain_records_creates_verified_subdomain_row(self):
-        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runyourcampus.com"}, clear=False):
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
             ensure_schooldomain_records_for_school(self.school)
         row = SchoolDomain.objects.get(school=self.school, kind=SchoolDomain.Kind.SUBDOMAIN)
-        self.assertEqual(row.domain, "domain-sync-school.runyourcampus.com")
+        self.assertEqual(row.domain, "domain-sync-school.runmycampus.com")
         self.assertTrue(row.is_verified)
 
     def test_sync_verified_custom_domain_updates_legacy_school_fields(self):

@@ -33,7 +33,7 @@ def get_canonical_base_domain() -> str:
     render_host = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip().lower()
     if render_host:
         return render_host
-    return "runyourcampus.com"
+    return "runmycampus.com"
 
 
 def get_legacy_base_domains() -> set[str]:
@@ -41,7 +41,7 @@ def get_legacy_base_domains() -> set[str]:
     Comma-separated legacy domains kept alive during cutover.
     Default keeps the previous production domain.
     """
-    raw = (os.getenv("MULTI_TENANT_LEGACY_BASE_DOMAINS") or "runmycampus.com").strip().lower()
+    raw = (os.getenv("MULTI_TENANT_LEGACY_BASE_DOMAINS") or "").strip().lower()
     values = {item.strip() for item in raw.split(",") if item.strip()}
     canonical = get_canonical_base_domain()
     if canonical in values:
