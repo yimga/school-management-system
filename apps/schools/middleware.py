@@ -203,14 +203,6 @@ def _redirect_to_manager_host(request, path: str | None = None):
 
 
 def _redirect_unknown_school_slug(request, slug: str | None = None):
-    # #region agent log
-    try:
-        import json
-        with open("debug-7e8615.log", "a") as _f:
-            _f.write(json.dumps({"sessionId": "7e8615", "hypothesisId": "B", "message": "redirect to school-not-found", "data": {"host": _request_host_raw(request), "path": (getattr(request, "path", "") or "")[:80], "slug": (slug or "")[:40]}, "timestamp": __import__("time").time() * 1000}) + "\n")
-    except Exception:
-        pass
-    # #endregion
     base_domain = _get_base_domain()
     if not base_domain:
         from apps.schools.error_views import school_not_found
@@ -293,14 +285,6 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
             request.urlconf = "config.public_urls"
         else:
             request.urlconf = "config.tenant_urls"
-            # #region agent log
-            try:
-                import json
-                with open("debug-7e8615.log", "a") as _f:
-                    _f.write(json.dumps({"sessionId": "7e8615", "hypothesisId": "D", "message": "urlconf=tenant_urls", "data": {"host": host, "kind": str(kind)}, "timestamp": __import__("time").time() * 1000}) + "\n")
-            except Exception:
-                pass
-            # #endregion
         return None
 
 

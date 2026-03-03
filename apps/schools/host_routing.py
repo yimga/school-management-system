@@ -27,12 +27,14 @@ def normalize_host(host: str) -> str:
 
 
 def get_canonical_base_domain() -> str:
+    """
+    Single source of truth for the platform base domain (e.g. runmycampus.com).
+    Use this everywhere instead of reading MULTI_TENANT_BASE_DOMAIN directly.
+    """
     base = (os.getenv("MULTI_TENANT_BASE_DOMAIN") or "").strip().lower()
     if base:
         return base
-    # Canonical production domain is fixed for this platform.
-    # Do not fall back to provider hostnames (e.g. *.onrender.com),
-    # otherwise public-host detection can misclassify the real apex domain.
+    # Do not fall back to provider hostnames (e.g. *.onrender.com).
     return "runmycampus.com"
 
 

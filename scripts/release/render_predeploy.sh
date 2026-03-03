@@ -27,6 +27,8 @@ PY
   if [[ "${TENANT_MODE}" == "1" ]]; then
     run "${PYTHON_BIN}" manage.py migrate_schemas --shared --noinput
     run "${PYTHON_BIN}" manage.py migrate_schemas --tenant --noinput
+    # Ensure every active school has Client + Domain (canonical base domain); idempotent.
+    run "${PYTHON_BIN}" manage.py migrate_schools_to_tenants
   else
     run "${PYTHON_BIN}" manage.py migrate --noinput
   fi

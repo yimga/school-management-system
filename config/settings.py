@@ -52,8 +52,9 @@ for _legacy_base in _legacy_bases:
 if not DEBUG and not ALLOWED_HOSTS:
     raise ImproperlyConfigured("ALLOWED_HOSTS must be configured for production.")
 
-# Behind HTTPS proxy (e.g. Render, Heroku): trust X-Forwarded-Proto so request.is_secure() and CSRF work
+# Behind HTTPS proxy (e.g. Render, Heroku): trust X-Forwarded-Proto and X-Forwarded-Host
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 # CSRF: allow HTTPS origins (Django 4.0+). On Render, set CSRF_TRUSTED_ORIGINS or RENDER_EXTERNAL_HOSTNAME is used.
 _csrf_origins = os.getenv("CSRF_TRUSTED_ORIGINS", "").strip()
 _render_host = (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip()
@@ -140,7 +141,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.UrlConfSwitcherMiddleware",  # Public vs tenant URLConf from host/path
     "apps.schools.middleware.ReservedPublicHostAccessMiddleware",  # verify./support. host isolation
     "apps.schools.middleware.PublicPathRedirectMiddleware",  # public paths hit on tenant host -> base host
-    "apps.schools.middleware.TenantMiddleware",  # Multi-tenant: resolve request.school from subdomain/custom domain
+    "apps.schools.middleware.TenantMiddleware",  # When USE_DJANGO_TENANTS=0: resolve request.school from host
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
     "apps.schools.middleware.TenantLastActivityMiddleware",  # Phase H: optional last_activity per tenant
@@ -792,8 +793,12 @@ ENABLE_MULTI_REGION = os.getenv('ENABLE_MULTI_REGION', 'False').lower() == 'true
 APP_VERSION = '3.2.1'  # System version for dashboard footer
 
 # --- Phase I: Schema-per-tenant (django-tenants) — DEFAULT for PostgreSQL ---
-# Default: schema-per-tenant when using PostgreSQL (RunMyCampus Gold Standard). Set USE_DJANGO_TENANTS=0 to use shared table + RLS.
-# See docs/PHASE_I_SCALE_GAP_ANALYSIS.md.
+# Two modes (mutually exclusive):
+#   - USE_DJANGO_TENANTS=1 (PostgreSQL): TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware
+#     resolve request.tenant/request.school from customers.Domain; tenant tables live in per-tenant schemas.
+#   - USE_DJANGO_TENANTS=0 or non-PostgreSQL: TenantMiddleware resolves request.school from
+#     School/SchoolDomain/subdomain; single schema with RLS.
+# Set USE_DJANGO_TENANTS=0 to use shared table + RLS. See docs/PHASE_I_SCALE_GAP_ANALYSIS.md.
 _db_engine = DATABASES.get("default", {}).get("ENGINE", "")
 _use_tenants_env = os.getenv("USE_DJANGO_TENANTS", "").strip().lower()
 if _use_tenants_env in ("0", "false", "no"):

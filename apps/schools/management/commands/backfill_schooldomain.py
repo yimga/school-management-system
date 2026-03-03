@@ -2,7 +2,6 @@
 Backfill SchoolDomain from School.subdomain and School.custom_domain.
 Run after 0021_add_schooldomain is applied. Safe to run multiple times (idempotent).
 """
-import os
 from django.core.management.base import BaseCommand
 
 
@@ -11,13 +10,14 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true", help="Only print what would be created.")
-        parser.add_argument("--base-domain", type=str, default=None, help="Override base domain (default: MULTI_TENANT_BASE_DOMAIN or runmycampus.com).")
+        parser.add_argument("--base-domain", type=str, default=None, help="Override base domain (default: from host_routing.get_canonical_base_domain).")
 
     def handle(self, *args, **options):
         from apps.schools.models import School, SchoolDomain
         from apps.schools.domain_sync import sync_school_domains_to_runtime
+        from apps.schools.host_routing import get_canonical_base_domain
 
-        base_domain = (options.get("base_domain") or os.getenv("MULTI_TENANT_BASE_DOMAIN") or "runmycampus.com").strip().lower()
+        base_domain = (options.get("base_domain") or get_canonical_base_domain()).strip().lower()
         dry_run = options.get("dry_run", False)
         created = 0
         for school in School.objects.filter(is_active=True):

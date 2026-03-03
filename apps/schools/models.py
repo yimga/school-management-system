@@ -258,9 +258,8 @@ class School(models.Model):
 
     def get_cname_target(self) -> str:
         """Return the hostname schools should CNAME their custom_domain to (whitelabel Phase 4)."""
-        import os
-        base = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip()
-        return base or "your-platform.com"
+        from apps.schools.host_routing import get_canonical_base_domain
+        return get_canonical_base_domain() or "runmycampus.com"
 
     def get_ancestor_chain(self) -> list:
         """

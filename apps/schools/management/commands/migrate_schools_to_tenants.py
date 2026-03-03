@@ -38,12 +38,13 @@ class Command(BaseCommand):
             return
         try:
             from apps.schools.models import School
+            from apps.schools.host_routing import get_canonical_base_domain
             from apps.customers.models import Client, Domain
         except ImportError as e:
             self.stdout.write(self.style.ERROR("Import failed (enable USE_DJANGO_TENANTS and customers app): %s" % e))
             return
         dry_run = options.get("dry_run", False)
-        base_domain = os.getenv("MULTI_TENANT_BASE_DOMAIN", "").strip() or "localhost"
+        base_domain = get_canonical_base_domain()
         created = 0
         for school in School.objects.filter(is_active=True).order_by("name"):
             schema_name = _normalize_schema_name(school.slug)
