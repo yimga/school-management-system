@@ -10,6 +10,17 @@ from django.urls import include, path
 from apps.observability import views as obs_views
 from config.admin import admin_site
 
+# Reuse main urlconf error handlers so 500/404/403 pages get user in context (avoids VariableDoesNotExist on manager host).
+from config.urls import (
+    permission_denied as handler403_view,
+    page_not_found as handler404_view,
+    server_error as handler500_view,
+)
+
+handler403 = handler403_view
+handler404 = handler404_view
+handler500 = handler500_view
+
 
 def manager_home(request):
     if request.user.is_authenticated:

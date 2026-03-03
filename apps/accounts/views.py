@@ -2967,7 +2967,10 @@ def login_view(request):
             return redirect(reverse("accounts:redirect"))
 
         messages.error(request, "Invalid username or password.")
-    context = {"LOGIN_SSO_INTEGRATIONS": _get_login_sso_integrations(request)}
+    context = {
+        "LOGIN_SSO_INTEGRATIONS": _get_login_sso_integrations(request),
+        "is_manager_host": getattr(request, "public_host_kind", None) == "manager",
+    }
     return render(request, "auth/login.html", context)
 
 def logout_view(request):
