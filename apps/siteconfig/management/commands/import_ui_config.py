@@ -5,7 +5,7 @@ from pathlib import Path
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
-from django.db import OperationalError
+from django.db import OperationalError, ProgrammingError
 
 
 class Command(BaseCommand):
@@ -84,3 +84,11 @@ class Command(BaseCommand):
         except (OperationalError, ImportError):
             # If finance table/model is unavailable, loaddata will raise a clear error next.
             return
+        except ProgrammingError as e:
+            # e.g. "column finance_complianceprofile.vat_rate does not exist" when tenant
+            # schema is behind (migrate_schemas --tenant not run or failed).
+            raise CommandError(
+                "Database schema is out of date (tenant migrations missing). "
+                "Error: %s. Run: python manage.py migrate_schemas --tenant --noinput"
+                % (e,)
+            ) from e

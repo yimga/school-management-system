@@ -16,8 +16,8 @@ run() {
   "$@"
 }
 
-if [[ "${SKIP_DB_MIGRATIONS:-0}" != "1" ]]; then
-  TENANT_MODE="$("${PYTHON_BIN}" - <<'PY'
+# Detect tenant mode once (used for migrate block and for re-migrate before import_ui_config).
+TENANT_MODE="$("${PYTHON_BIN}" - <<'PY'
 import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 import django
@@ -26,6 +26,7 @@ from django.conf import settings
 print("1" if getattr(settings, "USE_DJANGO_TENANTS", False) else "0")
 PY
 )"
+if [[ "${SKIP_DB_MIGRATIONS:-0}" != "1" ]]; then
   if [[ "${TENANT_MODE}" == "1" ]]; then
     run "${PYTHON_BIN}" manage.py migrate_schemas --shared --noinput
     # Create any missing tenant schemas (Clients created in migrations may not have schema yet)
@@ -38,6 +39,8 @@ PY
   fi
 fi
 
+# (TENANT_MODE remains set for use below when re-running tenant migrations before import_ui_config)
+
 if [[ "${RUN_BACKFILL_SCHOOLDOMAIN:-1}" == "1" ]]; then
   run "${PYTHON_BIN}" manage.py backfill_schooldomain
 fi
@@ -49,6 +52,11 @@ fi
 run "${PYTHON_BIN}" manage.py seed_admin_dashboard_palettes
 
 if [[ "${APPLY_UI_FIXTURE_ON_DEPLOY:-1}" == "1" && -f "fixtures/ui_config.json" ]]; then
+  # Ensure all tenant schemas have latest migrations (e.g. finance.ComplianceProfile.vat_rate)
+  # before import_ui_config touches tenant models.
+  if [[ "${TENANT_MODE}" == "1" ]]; then
+    run "${PYTHON_BIN}" manage.py migrate_schemas --tenant --noinput
+  fi
   run "${PYTHON_BIN}" manage.py import_ui_config fixtures/ui_config.json
 fi
 
