@@ -1,5 +1,7 @@
 # Ensure default Gilead school has Client and Domain so gilead-school.runmycampus.com
 # resolves when USE_DJANGO_TENANTS=1. Run with migrate_schemas --shared.
+# We explicitly CREATE SCHEMA so migrate_schemas --tenant can run (Client.save() in
+# migrations may not trigger django-tenants' schema creation).
 
 import os
 from django.db import migrations
@@ -37,7 +39,7 @@ def ensure_gilead_tenant_domain(apps, schema_editor):
     base_domain = _get_base_domain()
     domain_fqdn = f"{subdomain}.{base_domain}".lower()
 
-    client, _ = Client.objects.get_or_create(
+    client, created = Client.objects.get_or_create(
         schema_name=schema_name,
         defaults={
             "name": getattr(school, "name", "Gilead School System Management System"),
@@ -47,6 +49,12 @@ def ensure_gilead_tenant_domain(apps, schema_editor):
     if not client.school_id:
         client.school_id = school.pk
         client.save(update_fields=["school_id"])
+
+    # Ensure tenant schema exists so migrate_schemas --tenant can run (Client created
+    # via apps.get_model in migration may not trigger django-tenants' auto_create_schema).
+    with connection.cursor() as cursor:
+        quoted = connection.ops.quote_name(schema_name)
+        cursor.execute("CREATE SCHEMA IF NOT EXISTS %s" % quoted)
 
     Domain.objects.get_or_create(
         domain=domain_fqdn,
