@@ -1,5 +1,8 @@
 # Render Blueprint: Web Service + PostgreSQL + Redis + Celery Worker + Beat
 # Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Dashboard for real SMTP (delegate/summary emails).
+#
+# Pre-Deploy: With USE_DJANGO_TENANTS=1 the service MUST use preDeployCommand below
+# (migrate_schemas --shared then --tenant). Do not override with "migrate" or deploy will fail.
 services:
   - type: web
     name: school-management-system

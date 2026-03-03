@@ -2,7 +2,9 @@
 set -euo pipefail
 
 # Render pre-deploy orchestration.
-# Keeps production boot deterministic and fail-fast on integration blockers.
+# IMPORTANT: With USE_DJANGO_TENANTS=1 you must use THIS script for pre-deploy,
+# not "python manage.py migrate". Plain migrate breaks tenant schemas (no schema selected).
+# In Render Dashboard: Pre-Deploy Command = ./scripts/release/render_predeploy.sh
 
 PYTHON_BIN="${VENV_PYTHON:-.venv/bin/python}"
 if [[ ! -x "${PYTHON_BIN}" ]]; then
@@ -60,6 +62,9 @@ if [[ -n "${ADMIN_PASSWORD:-}" ]]; then
 else
   echo "[predeploy] ADMIN_PASSWORD not set; skipping seed_render_users."
 fi
+
+# Collect static files (required for WhiteNoise/serving)
+run "${PYTHON_BIN}" manage.py collectstatic --noinput --clear
 
 # Phase I: DB health check before traffic (so orchestrator only routes when DB is ready)
 if [[ -f "scripts/release/run_health_check.sh" ]]; then

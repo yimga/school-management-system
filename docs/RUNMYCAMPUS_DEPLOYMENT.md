@@ -20,6 +20,12 @@ This document aligns the **RunMyCampus Deployment Blueprint** with the existing 
 
 Key env vars (web): DATABASE_URL, SECRET_KEY, REDIS_URL, CELERY_BROKER_URL, RUN_INTEGRATION_PREFLIGHT=1, APPLY_UI_FIXTURE_ON_DEPLOY=1, EMAIL_* for SMTP. Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in Dashboard for real email.
 
+**Pre-Deploy Command (required when USE_DJANGO_TENANTS=1):** In the Render Dashboard, set the web service **Pre-Deploy Command** to exactly:
+```text
+./scripts/release/render_predeploy.sh
+```
+Do **not** use `python manage.py migrate --noinput` (or similar). With schema-per-tenant, migrations must run as `migrate_schemas --shared` then `migrate_schemas --tenant`; the script does that and also runs collectstatic. If you use plain `migrate`, deploys will fail with "no schema has been selected to create in".
+
 - **Web:** Python/Django (Gunicorn via `scripts/release/render_start_web.sh`).
 - **Database:** Managed PostgreSQL (`school-management-db`). For production, consider moving the DB plan from `free` to `starter` or higher (High Availability, point-in-time recovery).
 - **Caching:** Redis (`school-management-redis`) for sessions and Celery broker.
