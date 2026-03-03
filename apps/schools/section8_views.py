@@ -328,15 +328,11 @@ def global_login_discovery(request):
 
 
 def _build_school_portal_url(request, school) -> str:
-    """Canonical URL for school portal discovery links. Uses path-based /t/<slug>/ when USE_PATH_BASED_TENANT_URLS=1."""
-    import os
+    """Canonical URL for school portal discovery links. Always subdomain (or verified custom domain); no path-based."""
     from apps.schools.domain_sync import get_base_domain
 
     base_domain = get_base_domain()
     slug = (getattr(school, "subdomain", "") or getattr(school, "slug", "") or "").strip().lower()
-    use_path_based = os.environ.get("USE_PATH_BASED_TENANT_URLS", "").strip().lower() in ("1", "true", "yes")
-    if use_path_based and base_domain and slug:
-        return f"https://{base_domain}/t/{slug}/"
     if slug and base_domain:
         return f"https://{slug}.{base_domain}"
     return request.build_absolute_uri(reverse("global_login_discovery"))

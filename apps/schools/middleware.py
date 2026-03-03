@@ -203,6 +203,14 @@ def _redirect_to_manager_host(request, path: str | None = None):
 
 
 def _redirect_unknown_school_slug(request, slug: str | None = None):
+    # #region agent log
+    try:
+        import json
+        with open("debug-7e8615.log", "a") as _f:
+            _f.write(json.dumps({"sessionId": "7e8615", "hypothesisId": "B", "message": "redirect to school-not-found", "data": {"host": _request_host_raw(request), "path": (getattr(request, "path", "") or "")[:80], "slug": (slug or "")[:40]}, "timestamp": __import__("time").time() * 1000}) + "\n")
+    except Exception:
+        pass
+    # #endregion
     base_domain = _get_base_domain()
     if not base_domain:
         from apps.schools.error_views import school_not_found
@@ -285,6 +293,14 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
             request.urlconf = "config.public_urls"
         else:
             request.urlconf = "config.tenant_urls"
+            # #region agent log
+            try:
+                import json
+                with open("debug-7e8615.log", "a") as _f:
+                    _f.write(json.dumps({"sessionId": "7e8615", "hypothesisId": "D", "message": "urlconf=tenant_urls", "data": {"host": host, "kind": str(kind)}, "timestamp": __import__("time").time() * 1000}) + "\n")
+            except Exception:
+                pass
+            # #endregion
         return None
 
 
@@ -319,37 +335,7 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
             forwarded = request.get_full_path()
             return _redirect_to_manager_host(request, path=forwarded)
 
-        # Path-based tenant on base domain: serve /t/<slug>/ without redirect (e.g. when subdomain DNS not available).
-        if _path_starts_with_tenant_prefix(path) and kind == "base":
-            _path_based = os.environ.get("USE_PATH_BASED_TENANT_URLS", "").strip().lower() in ("1", "true", "yes")
-            if _path_based:
-                slug = _extract_slug_from_tenant_path(path)
-                school = None
-                if slug:
-                    from apps.schools.models import School
-                    school = School.objects.filter(slug__iexact=slug, is_active=True).first()
-                    if not school:
-                        school = School.objects.filter(subdomain__iexact=slug, is_active=True).first()
-                if school and getattr(school, "tenant_client", None):
-                    try:
-                        from django.db import connection
-                        client = school.tenant_client
-                        request.tenant = client
-                        if hasattr(connection, "set_tenant"):
-                            connection.set_tenant(client)
-                        inner = _strip_tenant_path_prefix(path, slug or "")
-                        request.path = inner if inner.startswith("/") else "/" + inner
-                        request.path_info = request.path
-                        request.environ["PATH_INFO"] = request.path
-                        request.urlconf = "config.tenant_urls"
-                        request.tenant_path_prefix = f"/t/{slug}"
-                        return None
-                    except Exception as e:
-                        logger.warning("Path-based tenant failed for slug=%s: %s", slug, e)
-                elif not school:
-                    return _redirect_unknown_school_slug(request, slug)
-
-        # Compatibility: /t/<slug>/ on base redirects to canonical subdomain when path-based is disabled.
+        # /t/<slug>/ on base domain: always redirect to canonical subdomain (no path-based serving).
         if _path_starts_with_tenant_prefix(path):
             from apps.schools.models import School
             from apps.schools.tenant_url import build_tenant_backend_url

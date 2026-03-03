@@ -228,11 +228,12 @@ class MeSwitchSchoolView(View):
         if hasattr(request, "session"):
             request.session["school_id"] = str(school.id)
             request.session.save()
-        base = (request.build_absolute_uri("/") or "").rstrip("/")
+        from apps.schools.tenant_url import build_tenant_backend_url
+        redirect_url = build_tenant_backend_url(request, school, path="/") if (getattr(school, "slug", None) or getattr(school, "subdomain", None)) else (request.build_absolute_uri("/") or "").rstrip("/")
         return JsonResponse({
             "ok": True,
             "school_id": str(school.id),
-            "redirect_url": f"{base}/t/{school.slug}/" if getattr(school, "slug", None) else base,
+            "redirect_url": redirect_url,
         })
 
 

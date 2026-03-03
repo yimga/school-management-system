@@ -10,12 +10,13 @@ def add_compliance_profile_if_tenant(apps, schema_editor):
     if getattr(connection, "schema_name", None) == "public":
         return
     SiteSettings = apps.get_model("siteconfig", "SiteSettings")
+    ComplianceProfile = apps.get_model("finance", "ComplianceProfile")
     field = models.ForeignKey(
+        ComplianceProfile,
         blank=True,
         null=True,
         on_delete=django.db.models.deletion.SET_NULL,
         related_name="site_settings",
-        to="finance.complianceprofile",
     )
     field.set_attributes_from_name("compliance_profile")
     schema_editor.add_field(SiteSettings, field)

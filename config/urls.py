@@ -48,10 +48,14 @@ def home(request):
     from apps.schools.tenant_url import is_base_domain, get_single_tenant_slug
     if is_base_domain(request):
         return redirect("marketing_landing")
-    # Single tenant on non-base host: send to tenant login
+    # Single tenant on non-base host: send to tenant login (subdomain only)
     slug = get_single_tenant_slug()
     if slug:
-        return redirect(f"/t/{slug}/authentication/login/")
+        from apps.schools.models import School
+        from apps.schools.tenant_url import build_tenant_backend_url
+        school = School.objects.filter(slug=slug, is_active=True).first() or School.objects.filter(subdomain__iexact=slug, is_active=True).first()
+        if school:
+            return redirect(build_tenant_backend_url(request, school, path="/authentication/login/"))
     return redirect("accounts:login")
 
 

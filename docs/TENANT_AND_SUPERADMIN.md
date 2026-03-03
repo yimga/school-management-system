@@ -1,27 +1,20 @@
 # Reaching your tenant (Gilead) and Super-admin
 
+## Tenant URL configuration (subdomain only)
+
+**All tenants use subdomain (and verified custom domain) only.** There is no path-based tenant mode.
+
+- **Canonical tenant URL:** `https://<subdomain>.<base_domain>` (e.g. `https://gilead-school.runmycampus.com`).
+- **Custom domain:** If a school has a verified custom domain, that host is used instead of the subdomain.
+- **Requests to `/t/<slug>/` on the base domain** are permanently redirected to the tenant subdomain (or custom domain). The app never serves tenant content on the base domain path.
+
+Do **not** set `USE_PATH_BASED_TENANT_URLS`; it is no longer used. Portal links (Discover, Find school, school-not-found) always point to the subdomain URL.
+
 ## Why you see "School not found" for Gilead
 
 When you use **runmycampus.com** (or the main domain), the app treats that as the **public** site. Links from Discover/Find send you to **gilead-school.runmycampus.com**. If that subdomain is not set up (no wildcard DNS or no Domain row in the DB), the app cannot resolve the tenant and redirects to **/school-not-found/?slug=gilead-school**.
 
-## Fix: use path-based tenant URLs
-
-You can reach the **same tenant on the main domain** using a path instead of a subdomain.
-
-1. **Set this env var** on Render (or in `.env`):
-   ```bash
-   USE_PATH_BASED_TENANT_URLS=1
-   ```
-
-2. **Use this URL** for Gilead:
-   - **Tenant (login/dashboard):**  
-     `https://runmycampus.com/t/gilead-school/`  
-     Login:  
-     `https://runmycampus.com/t/gilead-school/authentication/login/`
-
-3. After redeploy, **Discover** and **Find school** will also link to `https://runmycampus.com/t/gilead-school/` instead of the subdomain.
-
-No changes are made to existing tenant data or credentials; only routing and link generation change when this env is set.
+**Fix:** Ensure the tenant subdomain is reachable: wildcard DNS for `*.runmycampus.com` (or your base domain) and a `Domain` (or `SchoolDomain`) row for the school’s subdomain so the app can resolve the tenant by host.
 
 ---
 
@@ -66,6 +59,6 @@ python manage.py changepassword admin
 
 | Goal | What to do |
 |------|------------|
-| Reach Gilead tenant | Set `USE_PATH_BASED_TENANT_URLS=1`, then use `https://runmycampus.com/t/gilead-school/` (and `/t/gilead-school/authentication/login/` to log in). |
+| Reach Gilead tenant | Use subdomain: `https://gilead-school.runmycampus.com` (and `/authentication/login/` there). Ensure wildcard DNS and Domain/SchoolDomain for the subdomain. |
 | Create Super-admin user (no overwrite) | Run `python manage.py ensure_superadmin` once. Log in with `admin` / `admin`, then change password. |
 | Existing tenants/users | No code or DB changes are made to existing tenant data or credentials. |

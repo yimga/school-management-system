@@ -10,10 +10,10 @@ This app is multi-tenant. **Where you go depends on the host (domain) and path.*
   Public URL config → marketing, discover, signup, support, verify. No school context.
 
 - **Tenant host** (e.g. `gilead-school.runmycampus.com` or a verified custom domain):  
-  Tenant URL config → full school backend (dashboard, academics, finance, portal, etc.).
+  Tenant URL config → full school backend (dashboard, academics, finance, portal, etc.). **All tenants use subdomain (or verified custom domain) only.**
 
-- **Path-based tenant** (any host):  
-  Paths like `/t/<school-slug>/...` can be used to reach a tenant’s backend (e.g. `/t/gilead-school/authentication/login/`).
+- **Legacy `/t/<slug>/` on base domain:**  
+  Requests to `/t/<school-slug>/...` on the base domain are **permanently redirected** to the tenant subdomain (or custom domain). Tenant content is never served on the base domain path.
 
 - **Single-tenant / legacy**:  
   If there is only one tenant or no base domain, the **default** URL config (`config.urls`) is used and many public + tenant paths live under one host.
@@ -46,20 +46,24 @@ On **public host**, `/` typically redirects: logged-in → dashboard redirect; n
 
 ## 3. Tenant access (school backend)
 
-Use the **tenant host** (subdomain or custom domain) or the **path-based** prefix.
+Use the **tenant host** (subdomain or verified custom domain) only.
 
 ### By subdomain
 
 - **URL:** `https://<subdomain>.<base-domain>`  
   Example: `https://gilead-school.runmycampus.com`  
-  Or on Render: often the same host with tenant resolved by middleware (if configured).
+  Or on Render: same host with tenant resolved by middleware when wildcard DNS is configured.
 
-### By path prefix (if enabled)
+### By custom domain
 
-- **URL:** `https://<any-host>/t/<school-slug>/`  
-  Example: `https://school-management-system-2kzk.onrender.com/t/gilead-school/`
+- **URL:** `https://<verified-custom-domain>` (e.g. `https://portal.yourschool.edu`) when the school has a verified custom domain.
 
-### Tenant paths (under tenant host or `/t/<slug>/`)
+### Legacy path prefix (redirect only)
+
+- **URL:** `https://<base-domain>/t/<school-slug>/`  
+  These requests are **permanently redirected** to the tenant subdomain (or custom domain). Use subdomain URLs for direct access.
+
+### Tenant paths (under tenant host)
 
 | What | Path | How to get there |
 |------|------|-------------------|
@@ -125,6 +129,6 @@ Used by LMS (e.g. Moodle) to launch and talk to the app; tenant is identified by
 
 - **Base domain:** Set `MULTI_TENANT_BASE_DOMAIN` (e.g. `runmycampus.com`) so public vs tenant hosts are detected.  
 - **Single tenant:** If only one school, going to `/` may redirect to that tenant’s login.  
-- **Render / no custom domain:** With one host (e.g. `*.onrender.com`), the app may treat it as public; use **path-based** tenant URLs like `/t/gilead-school/` to reach a school backend.
+- **Render / no custom domain:** With one host (e.g. `*.onrender.com`), ensure wildcard DNS and tenant resolution by subdomain; tenant access is **subdomain only** (requests to `/t/<slug>/` redirect to subdomain).
 
 See **RUNMYCAMPUS_DEPLOYMENT.md** for deployment and multi-tenant routing details.
