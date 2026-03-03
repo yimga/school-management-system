@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import OperationalError, ProgrammingError
@@ -48,11 +49,33 @@ class Command(BaseCommand):
                 f"Fixture missing required model entries: {', '.join(sorted(missing))}"
             )
 
-        self._ensure_dependencies(data)
-        call_command("loaddata", str(input_path))
-        if not options["skip_normalize"]:
-            call_command("normalize_ui_config")
+        if getattr(settings, "USE_DJANGO_TENANTS", False):
+            self._import_per_tenant(data, input_path, options)
+        else:
+            self._ensure_dependencies(data)
+            call_command("loaddata", str(input_path))
+            if not options["skip_normalize"]:
+                call_command("normalize_ui_config")
         self.stdout.write(self.style.SUCCESS(f"Imported UI config from {input_path}"))
+
+    def _import_per_tenant(self, data: list, input_path: Path, options: dict) -> None:
+        """Run ensure_dependencies + loaddata + normalize in each tenant schema (avoids public schema)."""
+        from django_tenants.utils import tenant_context
+
+        from apps.customers.models import Client
+
+        clients = list(Client.objects.all().order_by("id"))
+        if not clients:
+            self.stdout.write(self.style.WARNING("No tenants (Clients) found; skipping import."))
+            return
+        for client in clients:
+            schema = getattr(client, "schema_name", None) or ""
+            self.stdout.write(f"Importing into tenant: {schema!r} ({client.name})")
+            with tenant_context(client):
+                self._ensure_dependencies(data)
+                call_command("loaddata", str(input_path))
+                if not options.get("skip_normalize"):
+                    call_command("normalize_ui_config")
 
     def _ensure_dependencies(self, data: list[dict]) -> None:
         """Create required FK rows that may be missing in fresh/local databases."""
