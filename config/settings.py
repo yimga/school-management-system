@@ -648,7 +648,7 @@ LOGGING = {
         },
         "django.db": {
             "handlers": ["console"],
-            "level": "DEBUG" if DEBUG else "WARNING",
+            "level": "WARNING" if "test" in sys.argv else ("DEBUG" if DEBUG else "WARNING"),
             "propagate": False,
         },
     },

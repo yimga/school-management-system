@@ -25,4 +25,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Pre-deploy gate (check, migrations, smoke, theme matrix, phase checks)
+        env:
+          # Quiet test DB logging so CI output stays small and gate finishes reliably
+          LOG_LEVEL: WARNING
         run: bash scripts/pre_deploy_gate.sh
