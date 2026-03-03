@@ -1456,21 +1456,40 @@ class SiteSettings(models.Model):
                     pass
 
     @classmethod
+    def _run_in_public_schema_if_tenant(cls, fn):
+        """Run fn() in public schema when current connection is a tenant schema (siteconfig is shared-app only)."""
+        schema_name = getattr(connection, "schema_name", None)
+        if schema_name and schema_name != "public":
+            try:
+                from django_tenants.utils import schema_context
+                with schema_context("public"):
+                    return fn()
+            except ImportError:
+                pass
+        return fn()
+
+    @classmethod
     def get_solo(cls) -> "SiteSettings":
         global _SITE_SETTINGS_CACHE
-        cls._ensure_preview_columns()
-        if _SITE_SETTINGS_CACHE is None:
-            obj, _ = cls.objects.get_or_create(pk=1)
-            _SITE_SETTINGS_CACHE = obj
-        else:
+
+        def _get_solo_impl():
+            cls._ensure_preview_columns()
+            if _SITE_SETTINGS_CACHE is None:
+                obj, _ = cls.objects.get_or_create(pk=1)
+                obj._sanitize_foreign_keys(persist=True)
+                return obj
             try:
                 _SITE_SETTINGS_CACHE.refresh_from_db()
+                _SITE_SETTINGS_CACHE._sanitize_foreign_keys(persist=True)
+                return _SITE_SETTINGS_CACHE
             except cls.DoesNotExist:
                 obj, _ = cls.objects.get_or_create(pk=1)
-                _SITE_SETTINGS_CACHE = obj
+                obj._sanitize_foreign_keys(persist=True)
+                return obj
             except DatabaseError:
                 return _SITE_SETTINGS_CACHE
-        _SITE_SETTINGS_CACHE._sanitize_foreign_keys(persist=True)
+
+        _SITE_SETTINGS_CACHE = cls._run_in_public_schema_if_tenant(_get_solo_impl)
         return _SITE_SETTINGS_CACHE
 
     def _sanitize_foreign_keys(self, *, persist: bool = False) -> list[str]:

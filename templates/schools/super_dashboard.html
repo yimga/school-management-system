@@ -40,6 +40,7 @@
         </form>
         <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">Export schools (CSV)</a>
         <a href="{% url 'super:export_revenue_csv' %}?month={{ current_request_month|default:'' }}" class="btn btn-outline-secondary btn-sm">Export revenue (CSV)</a>
+        {% endif %}
         {% if registry_url %}
         <a href="{{ registry_url }}" class="btn btn-outline-secondary">Global registry (Education systems)</a>
         {% endif %}
