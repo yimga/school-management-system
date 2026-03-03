@@ -107,21 +107,28 @@ class Command(BaseCommand):
         except ImportError as exc:
             raise CommandError(f"django-tenants is not installed correctly: {exc}") from exc
 
-        key_tables = {
+        # Shared tables live in the public schema even when you're in tenant_context.
+        shared_tables = {
+            ("public", "schools_school"): "School (shared)",
+            ("public", "siteconfig_sitesettings"): "SiteSettings (shared)",
+        }
+
+        # Tenant tables live in the tenant schema.
+        tenant_tables = {
             # Core academic lifecycle
-            "schools_school": "Schools (shared app, but visible in tenant context)",
-            "academics_academicyear": "AcademicYear",
-            "academics_term": "Term",
-            "academics_classroom": "Classroom",
+            ("academics", "academicyear"): "AcademicYear",
+            ("academics", "term"): "Term",
+            ("academics", "classroom"): "Classroom",
             # People
-            "people_studentprofile": "StudentProfile",
-            "people_staffprofile": "StaffProfile",
+            ("people", "studentprofile"): "StudentProfile",
+            ("people", "teacherprofile"): "TeacherProfile",
+            ("people", "employerprofile"): "EmployerProfile",
             # Finance
-            "finance_complianceprofile": "Finance ComplianceProfile",
-            "finance_invoice": "Invoice",
-            "finance_payment": "Payment",
+            ("finance", "complianceprofile"): "Finance ComplianceProfile",
+            ("finance", "invoice"): "Invoice",
+            ("finance", "payment"): "Payment",
             # Reports
-            "reports_reportcard": "ReportCard",
+            ("reports", "reportcard"): "ReportCard",
         }
 
         self.stdout.write("")
@@ -130,22 +137,43 @@ class Command(BaseCommand):
             current_schema = getattr(connection, "schema_name", None)
             self.stdout.write(f"  Current connection.schema_name: {current_schema!r}")
 
-            existing_tables = set(connection.introspection.table_names())
-
             with connection.cursor() as cursor:
-                for table_name, label in key_tables.items():
-                    if table_name not in existing_tables:
-                        self.stdout.write(self.style.WARNING(f"  [MISSING] {table_name} ({label})"))
+                # Shared schema checks (explicitly public)
+                for schema, table in shared_tables:
+                    full = f"{schema}.{table}"
+                    exists = self._to_regclass(cursor, full)
+                    if not exists:
+                        self.stdout.write(self.style.WARNING(f"  [MISSING] {full} ({shared_tables[(schema, table)]})"))
                         continue
-                    count = self._safe_count_rows(cursor, table_name)
-                    self.stdout.write(self.style.SUCCESS(f"  [OK] {table_name:<32} ({label})  rows={count}"))
+                    count = self._safe_count_rows(cursor, schema, table)
+                    self.stdout.write(self.style.SUCCESS(f"  [OK] {full:<36} ({shared_tables[(schema, table)]})  rows={count}"))
+
+                # Tenant schema checks (explicitly the tenant schema)
+                tenant_schema = client.schema_name
+                for app_label, model_table in tenant_tables:
+                    table = f"{app_label}_{model_table}"
+                    full = f"{tenant_schema}.{table}"
+                    exists = self._to_regclass(cursor, full)
+                    if not exists:
+                        self.stdout.write(self.style.WARNING(f"  [MISSING] {full} ({tenant_tables[(app_label, model_table)]})"))
+                        continue
+                    count = self._safe_count_rows(cursor, tenant_schema, table)
+                    self.stdout.write(self.style.SUCCESS(f"  [OK] {full:<36} ({tenant_tables[(app_label, model_table)]})  rows={count}"))
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("Done. No data was modified."))
 
-    def _safe_count_rows(self, cursor, table_name: str) -> int:
+    def _to_regclass(self, cursor, qualified_table: str) -> bool:
         try:
-            cursor.execute(f'SELECT COUNT(*) FROM "{table_name}"')
+            cursor.execute("SELECT to_regclass(%s)", [qualified_table])
+            row = cursor.fetchone()
+            return bool(row and row[0])
+        except Exception:
+            return False
+
+    def _safe_count_rows(self, cursor, schema: str, table: str) -> int:
+        try:
+            cursor.execute(f'SELECT COUNT(*) FROM "{schema}"."{table}"')
             row = cursor.fetchone()
             return int(row[0]) if row and row[0] is not None else 0
         except Exception:
