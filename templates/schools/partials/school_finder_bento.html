@@ -13,19 +13,31 @@
     </div>
     <p class="text-muted mb-3">{% trans "Type your school name or slug to go straight to your private portal." %}</p>
 
-    <label class="form-label fw-semibold" for="{{ input_dom_id }}">{% trans "School search" %}</label>
-    <input
-      id="{{ input_dom_id }}"
-      name="q"
-      type="search"
-      value="{{ query|default:'' }}"
-      class="form-control form-control-lg rounded-3 mb-3"
-      placeholder="{% trans 'e.g. St Marys or st-marys' %}"
-      autocomplete="off"
+    <form
+      method="get"
+      action="{% url 'find_school' %}"
+      class="mb-3"
       hx-get="{% url 'find_school' %}"
       hx-target="#{{ finder_dom_id }}"
-      hx-trigger="keyup changed delay:250ms, search"
+      hx-trigger="submit"
     >
+      <label class="form-label fw-semibold" for="{{ input_dom_id }}">{% trans "School search" %}</label>
+      <div class="input-group input-group-lg">
+        <input
+          id="{{ input_dom_id }}"
+          name="q"
+          type="search"
+          value="{{ query|default:'' }}"
+          class="form-control rounded-3"
+          placeholder="{% trans 'e.g. St Marys or st-marys' %}"
+          autocomplete="off"
+          hx-get="{% url 'find_school' %}"
+          hx-target="#{{ finder_dom_id }}"
+          hx-trigger="keyup changed delay:250ms, search"
+        >
+        <button class="btn btn-primary rounded-3" type="submit">{% trans "Search" %}</button>
+      </div>
+    </form>
 
     <div id="{{ finder_dom_id }}">
       {% include "schools/partials/school_finder_results.html" with query=query results=results %}
@@ -33,15 +45,5 @@
   </div>
 </div>
 
-<script>
-(function () {
-  if (window.htmx) return;
-  if (document.querySelector('script[data-school-finder-htmx="1"]')) return;
-  var s = document.createElement('script');
-  s.src = '{% static "js/htmx.min.js" %}';
-  s.defer = true;
-  s.setAttribute('data-school-finder-htmx', '1');
-  document.head.appendChild(s);
-})();
-</script>
+{# htmx is loaded globally via base.html; keep this component JS-free. #}
 {% endwith %}

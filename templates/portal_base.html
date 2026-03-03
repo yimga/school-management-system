@@ -50,7 +50,7 @@
       })();
     </script>
     <title>{% block title %}Portal{% endblock %}</title>
-    <link rel="icon" href="{{ SITE_FAVICON_URL|default:'/static/favicon.ico' }}" type="image/x-icon">
+    <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     <!-- Self-hosted fonts and vendor CSS (no CDN dependency) -->
     <link rel="stylesheet" href="{% static 'css/vendor/inter.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">

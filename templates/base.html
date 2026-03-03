@@ -69,7 +69,7 @@
         {% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif SITE %}{{ SITE.site_name }}{% else %}School System{% endif %}
       {% endblock %}
     </title>
-    <link rel="icon" href="{% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{{ SITE_FAVICON_URL|default:'/static/favicon.ico' }}{% endif %}" type="image/x-icon">
+    <link rel="icon" href="{% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% elif SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {% block extrahead %}{% endblock %}
 
     <!-- Bootstrap (self-hosted) -->
@@ -87,6 +87,7 @@
     <link rel="stylesheet" href="{% static 'css/dashboard-text-visibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-everywhere-dark.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
 
     <style>
                               {% if SITE %}
