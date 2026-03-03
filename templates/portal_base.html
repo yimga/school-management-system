@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script>
-      (function(){var s=localStorage.getItem("gilead-theme-preference")||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
+      (function(){var k="runmycampus-theme-preference";var s=localStorage.getItem(k);if(!s&&localStorage.getItem("gilead-theme-preference")){s=localStorage.getItem("gilead-theme-preference");localStorage.setItem(k,s);localStorage.removeItem("gilead-theme-preference");}s=s||"light";var r=(s==="system")?(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):(s==="dark"?"dark":"light");document.documentElement.setAttribute("data-theme",r);document.documentElement.setAttribute("data-bs-theme",r);})();
     </script>
     <script>
       (function () {
@@ -1241,19 +1241,26 @@
           }
         }
         function cycleTheme() {
-          var stored = localStorage.getItem('gilead-theme-preference') || 'light';
+          var key = 'runmycampus-theme-preference';
+          var stored = localStorage.getItem(key) || 'light';
           var next = stored === 'light' ? 'dark' : (stored === 'dark' ? 'system' : 'light');
-          localStorage.setItem('gilead-theme-preference', next);
+          localStorage.setItem(key, next);
           applyTheme(next);
         }
         
-        var stored = localStorage.getItem('gilead-theme-preference') || 'light';
-        applyTheme(stored);
+        var key = 'runmycampus-theme-preference';
+        var stored = localStorage.getItem(key);
+        if (!stored && localStorage.getItem('gilead-theme-preference')) {
+          stored = localStorage.getItem('gilead-theme-preference');
+          localStorage.setItem(key, stored);
+          localStorage.removeItem('gilead-theme-preference');
+        }
+        applyTheme(stored || 'light');
         if (themeToggle) themeToggle.addEventListener('click', cycleTheme);
         
         if (window.matchMedia) {
           window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
-            if ((localStorage.getItem('gilead-theme-preference') || 'light') === 'system') applyTheme('system');
+            if ((localStorage.getItem('runmycampus-theme-preference') || 'light') === 'system') applyTheme('system');
           });
         }
       });

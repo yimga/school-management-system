@@ -10,7 +10,7 @@ This document summarizes **best practices** for theme management on the platform
 
 | Practice | Recommendation |
 |---------|----------------|
-| **User preference** | Portal and Admin share `localStorage.gilead-theme-preference` (light/dark/system). Keep this so one choice follows the user. |
+| **User preference** | Portal and Admin share `localStorage.runmycampus-theme-preference` (light/dark/system). Keep this so one choice follows the user. |
 | **Backend** | Keep Backend server-driven (`SITE.backend_console_theme`) so the org can set one theme for the staff console. |
 | **Sync attributes** | When changing theme in JS, set both `data-theme` and `data-bs-theme` on `<html>` so Bootstrap and custom CSS stay in sync. |
 

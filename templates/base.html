@@ -11,9 +11,18 @@
     <script>
       // Apply server-stored theme preference early (before CSS paints).
       (function () {
-        const key = 'gilead-theme-preference';
+        const key = 'runmycampus-theme-preference';
         const html = document.documentElement;
-        const pref = (html.getAttribute('data-theme') || 'system').toLowerCase();
+        let pref = (html.getAttribute('data-theme') || 'system').toLowerCase();
+        try {
+          var stored = localStorage.getItem(key);
+          if (!stored && localStorage.getItem('gilead-theme-preference')) {
+            stored = localStorage.getItem('gilead-theme-preference');
+            localStorage.setItem(key, stored);
+            localStorage.removeItem('gilead-theme-preference');
+          }
+          if (stored) pref = stored.toLowerCase();
+        } catch (e) {}
         if (pref === 'system' || pref === 'auto') {
           html.removeAttribute('data-theme');
           html.removeAttribute('data-bs-theme');

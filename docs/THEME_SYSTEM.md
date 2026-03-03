@@ -6,11 +6,11 @@ This document describes how light/dark theme is applied across the three surface
 
 | Surface | Base template | Theme source | Where theme is applied |
 |--------|----------------|--------------|-------------------------|
-| **Admin** (`/admin/`) | Unfold → `templates/admin/base_site.html` → `templates/admin/admin_dashboard.html` | `SITE.admin_sidebar_*` in `:root`; dashboard toggle uses **`localStorage.gilead-theme-preference`** and sets `data-theme` + `data-bs-theme` on `<html>` | Sidebar: `static/css/admin_sidebar_enhanced.css` (`:root`, `:root[data-theme="light"]`, `:root[data-theme="dark"]`, `html[data-bs-theme="light"]`, `html[data-bs-theme="dark"]`). Dashboard has inline `:root` / `:root[data-theme="dark"]` and a theme button. |
+| **Admin** (`/admin/`) | Unfold → `templates/admin/base_site.html` → `templates/admin/admin_dashboard.html` | `SITE.admin_sidebar_*` in `:root`; dashboard toggle uses **`localStorage.runmycampus-theme-preference`** and sets `data-theme` + `data-bs-theme` on `<html>` | Sidebar: `static/css/admin_sidebar_enhanced.css` (`:root`, `:root[data-theme="light"]`, `:root[data-theme="dark"]`, `html[data-bs-theme="light"]`, `html[data-bs-theme="dark"]`). Dashboard has inline `:root` / `:root[data-theme="dark"]` and a theme button. |
 | **Backend** (`/authentication/backend/`) | `templates/portal_base.html` → `templates/backend_base.html` → backend dashboard | `SITE.backend_console_theme` (default `'dark'`) | Inline script on DOMContentLoaded sets `data-theme` and `data-bs-theme` on `<html>`, adds `portal-backend-dark` or `portal-backend-light` to `<body>`. `static/css/backend-dark-theme.css` and `static/css/backend-light-theme.css` target `body.portal-backend-*`. |
-| **Portal** (parent/teacher dashboards) | `templates/portal_base.html` | **`localStorage.gilead-theme-preference`** (default `"light"`) | Inline script in head and DOMContentLoaded/cycleTheme in portal_base; `static/js/phase7-theme.js` uses same key. Both set `data-theme` and `data-bs-theme` on `<html>`. `static/css/portal-theme-modes.css` uses `html[data-bs-theme="dark"]`. |
+| **Portal** (parent/teacher dashboards) | `templates/portal_base.html` | **`localStorage.runmycampus-theme-preference`** (default `"light"`) | Inline script in head and DOMContentLoaded/cycleTheme in portal_base; `static/js/phase7-theme.js` uses same key. Both set `data-theme` and `data-bs-theme` on `<html>`. `static/css/portal-theme-modes.css` uses `html[data-bs-theme="dark"]`. |
 
-Admin and Portal share the same localStorage key (`gilead-theme-preference`) so the user’s theme choice follows them between portal and admin. Backend is server-driven and overrides portal when on backend routes.
+Admin and Portal share the same localStorage key (`runmycampus-theme-preference`) so the user’s theme choice follows them between portal and admin. Backend is server-driven and overrides portal when on backend routes.
 
 ## 2. Shared CSS stack (load order)
 
@@ -31,7 +31,7 @@ Admin does **not** load `bootstrap-theme-bridge.css` or `phase7-theme.js`; it us
 
 ## 3. Best practices
 
-- **One key per surface (or one key site-wide):** Portal and Admin both use `gilead-theme-preference` so theme preference is consistent. Backend is driven by server setting.
+- **One key per surface (or one key site-wide):** Portal and Admin both use `runmycampus-theme-preference` so theme preference is consistent. Backend is driven by server setting.
 - **Set both attributes:** When changing theme in JavaScript, set both `data-theme` and `data-bs-theme` on `document.documentElement` so Unfold/Bootstrap and our CSS (e.g. admin_sidebar_enhanced, admin-dark-readability) stay in sync.
 - **Semantic CSS variables:** Define colors in `:root` and theme blocks; use variables in components. Override accent/status in dark mode with desaturated values for readability.
 - **No pure black/white in UI:** Use near-black (e.g. `#0f172a`) and off-white (e.g. `#f1f5f9`) for backgrounds and text.

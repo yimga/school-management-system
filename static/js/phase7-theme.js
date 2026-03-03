@@ -5,7 +5,7 @@
 
 class ThemeManager {
     constructor() {
-        this.STORAGE_KEY = 'gilead-theme-preference';
+        this.STORAGE_KEY = 'runmycampus-theme-preference';
         this.THEME_ATTRIBUTE = 'data-theme';
         this.init();
     }
