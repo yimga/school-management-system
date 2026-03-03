@@ -413,13 +413,13 @@ from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
 UNFOLD = {
-    "SITE_TITLE": "Gilead School Admin",
-    "SITE_HEADER": "Gilead School Management",
-    "SITE_SUBHEADER": "Gilead Tech High School",
+    "SITE_TITLE": "RunMyCampus Admin",
+    "SITE_HEADER": "RunMyCampus",
+    "SITE_SUBHEADER": "THE POWERHOUSE OF SCHOOL MANAGEMENT",
     "SITE_URL": "/",
 
-    # Icon/branding (32px height works best)
-    "SITE_ICON": lambda request: static("images/logo.png"),
+    # Icon/branding (32px height works best); platform uses RunMyCampus icon
+    "SITE_ICON": lambda request: static("images/runmycampus-icon.png"),
 
     # Small UX improvements
     "SHOW_HISTORY": True,

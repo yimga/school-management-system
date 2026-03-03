@@ -49,7 +49,7 @@ def get_all_model_counts(context):
         return {}
 
     user = request.user
-    # Use admin site from context if available (e.g. custom GileadAdminSite), else default
+    # Use admin site from context if available (e.g. custom RunMyCampusAdminSite), else default
     admin_site_obj = context.get('site', default_admin_site)
     registry = getattr(admin_site_obj, '_registry', default_admin_site._registry)
 

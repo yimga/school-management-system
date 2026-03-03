@@ -91,7 +91,7 @@ def api_schema_ui(request):
 
 
 _schema_view_raw = cache_page(60)(get_schema_view(
-    title="Gilead SMS API",
+    title="RunMyCampus API",
     description="Entity/analytics/session claims schema for frontend orchestration",
     version="1.0.0",
 ))

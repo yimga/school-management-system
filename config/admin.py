@@ -12,7 +12,7 @@ from django.utils.safestring import mark_safe
 from unfold.sites import UnfoldAdminSite
 
 
-class GileadAdminSite(UnfoldAdminSite):
+class RunMyCampusAdminSite(UnfoldAdminSite):
     """
     Configuration engine: full model CRUD, raw settings, system config.
     Access: superuser only.
@@ -20,8 +20,8 @@ class GileadAdminSite(UnfoldAdminSite):
     """
 
     enable_nav_sidebar = True
-    site_header = "Gilead Tech High - Configuration"
-    site_title = "Gilead Configuration"
+    site_header = "RunMyCampus - Configuration"
+    site_title = "Platform Admin"
 
     index_title = "Administration Dashboard"
 
@@ -177,4 +177,4 @@ class GileadAdminSite(UnfoldAdminSite):
 
 
 # Create custom admin site instance
-admin_site = GileadAdminSite(name='admin')
+admin_site = RunMyCampusAdminSite(name='admin')

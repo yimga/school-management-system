@@ -13,7 +13,7 @@
           {% endif %}
         </div>
         <div class="brand-body">
-          <div class="brand-title">{{ SITE.company_name|default:"Gilead Tech High School" }}</div>
+          <div class="brand-title">{{ SITE.company_name|default:SITE.site_name|default:"School" }}</div>
           <div class="brand-pill">{{ SITE.footer_accreditation_text|default:"Ministry of Education - Cameroon | UNESCO Standards 2026 Compliant" }}</div>
           <p class="brand-micro">{{ SITE.footer_accreditation_subtext|default:"Certified for educational institutions worldwide | ISO 9001:2015 Quality Management" }}</p>
         </div>
@@ -116,7 +116,7 @@
     </div>
 
     <div class="footer-meta small" id="preview-footer-meta" data-preview-label="Copyright &amp; company name">
-      <span>&copy; {% now "Y" %} {{ SITE.company_name|default:"Gilead Tech High School" }}. All rights reserved.</span>
+      <span>&copy; {% now "Y" %} {{ SITE.company_name|default:SITE.site_name|default:"School" }}. All rights reserved.</span>
       <span class="meta-powered">Powered by <strong>School Management System</strong></span>
     </div>
   </div>

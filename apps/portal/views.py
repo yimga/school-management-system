@@ -2150,7 +2150,7 @@ def _whatsapp_invite_link() -> str | None:
     digits = "".join(ch for ch in number if ch.isdigit())
     if not digits:
         return None
-    site_name = SiteSettings.get_solo().site_name or "Gilead School System"
+    site_name = SiteSettings.get_solo().site_name or "School System"
     message = quote_plus(f"Hi, I'd like to claim a portal invite for {site_name}.")
     return f"https://wa.me/{digits}?text={message}"
 

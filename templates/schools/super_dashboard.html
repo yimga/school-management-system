@@ -5,10 +5,41 @@
 {% block backend_title %}Super Admin - Schools{% endblock %}
 
 {% block content %}
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4 super-dashboard" data-public-brand-mode="{% if PUBLIC_BRAND_MODE %}true{% else %}false{% endif %}">
+    {% if PUBLIC_BRAND_MODE %}
+    <div class="super-dashboard-hero rounded-3 mb-4 py-4 px-4" style="background: linear-gradient(135deg, var(--platform-navy, #0d173b) 0%, var(--platform-navy-dark, #0a1129) 100%); color: var(--platform-gold-fg, #f1f5f9);">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          {% if PUBLIC_BRAND_LOGO_URL %}
+          <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="{{ PUBLIC_BRAND_NAME }}" class="super-hero-logo" style="height: 40px; width: auto;">
+          {% endif %}
+          <div>
+            <h1 class="h3 mb-1 fw-bold" style="color: var(--platform-gold-fg, #f1f5f9);">{{ PUBLIC_BRAND_NAME }}</h1>
+            <p class="mb-0 small opacity-90">{% if PUBLIC_BRAND_TAGLINE %}{{ PUBLIC_BRAND_TAGLINE }}{% else %}The Powerhouse of School Management{% endif %}</p>
+          </div>
+        </div>
+        <div class="super-hero-north-star text-end">
+          <div class="small text-uppercase opacity-75">{{ north_star_label|default:"Schools" }}</div>
+          <div class="h2 mb-0 fw-bold" style="color: var(--platform-gold, #d4af37);">{{ north_star_formatted|default:school_count|default:"0" }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
       <h1 class="h4 mb-0">Schools</h1>
-      <div class="d-flex gap-2 flex-wrap">
+      <div class="d-flex gap-2 flex-wrap align-items-center">
+        {% if month_options %}
+        <form method="get" class="d-inline-flex align-items-center gap-2" id="super-month-form">
+          <label for="super-month-select" class="small text-muted mb-0">Month</label>
+          <select name="month" id="super-month-select" class="form-select form-select-sm" style="width: auto;">
+            {% for value, label in month_options %}
+            <option value="{{ value }}" {% if value == current_request_month %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+        <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">Export schools (CSV)</a>
+        <a href="{% url 'super:export_revenue_csv' %}?month={{ current_request_month|default:'' }}" class="btn btn-outline-secondary btn-sm">Export revenue (CSV)</a>
         {% if registry_url %}
         <a href="{{ registry_url }}" class="btn btn-outline-secondary">Global registry (Education systems)</a>
         {% endif %}
@@ -20,10 +51,32 @@
         <a href="{% url 'super:usage' %}" class="btn btn-outline-primary">Usage &amp; quotas</a>
         <a href="{% url 'super:support_dashboard' %}" class="btn btn-outline-warning">Support</a>
         <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create School</a>
+        <div class="dropdown d-inline-block">
+          <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" id="super-customize-sections" data-bs-toggle="dropdown" title="Show or hide sections">Customize</button>
+          <div class="dropdown-menu dropdown-menu-end p-3" id="super-customize-menu">
+            <div class="small fw-semibold mb-2">Show sections</div>
+            <div class="form-check"><input type="checkbox" class="form-check-input super-section-toggle" data-section-id="financial" id="cust-financial"><label class="form-check-label" for="cust-financial">Financial Mission Control</label></div>
+            <div class="form-check"><input type="checkbox" class="form-check-input super-section-toggle" data-section-id="operational" id="cust-operational"><label class="form-check-label" for="cust-operational">Operational command center</label></div>
+            <div class="form-check"><input type="checkbox" class="form-check-input super-section-toggle" data-section-id="health" id="cust-health"><label class="form-check-label" for="cust-health">Health</label></div>
+            <div class="form-check"><input type="checkbox" class="form-check-input super-section-toggle" data-section-id="pending" id="cust-pending"><label class="form-check-label" for="cust-pending">Pending approval</label></div>
+            <div class="form-check"><input type="checkbox" class="form-check-input super-section-toggle" data-section-id="schools" id="cust-schools"><label class="form-check-label" for="cust-schools">All schools</label></div>
+          </div>
+        </div>
       </div>
     </div>
 
+    {% if next_best_actions %}
+    <div class="super-next-actions mb-4">
+      <div class="d-flex flex-wrap gap-2">
+        {% for action in next_best_actions %}
+        <a href="{{ action.url }}" class="btn btn-sm btn-outline-warning">{{ action.label }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     {% if total_mrr is not None or total_waived is not None %}
+    <div class="super-dashboard-section" data-section-id="financial">
     <div class="row g-3 mb-4">
       <div class="col-12">
         <h2 class="h6 text-muted mb-2">Financial Mission Control ({{ revenue_snapshot_month|date:"F Y" }})</h2>
@@ -91,8 +144,10 @@
       </div>
       {% endif %}
     </div>
+    </div>
     {% endif %}
 
+    <div class="super-dashboard-section" data-section-id="operational">
     <div class="row g-3 mb-4">
       <div class="col-12">
         <h2 class="h6 text-muted mb-2">Operational command center</h2>
@@ -140,8 +195,10 @@
         </div>
       </div>
     </div>
+    </div>
 
     {% if health_top_tables or health_schema_stats %}
+    <div class="super-dashboard-section" data-section-id="health">
     <div class="row g-3 mb-4">
       <div class="col-12">
         <h2 class="h6 text-muted mb-2">Health (Section 8.8 — resource hogs)</h2>
@@ -189,9 +246,11 @@
       </div>
       {% endif %}
     </div>
+    </div>
     {% endif %}
 
     {% if pending_approval_count and pending_schools %}
+    <div class="super-dashboard-section" data-section-id="pending" id="pending-approval">
     <div class="card shadow-sm border-warning mb-4">
       <div class="card-header bg-warning bg-opacity-10">
         <strong>Pending approval ({{ pending_approval_count }})</strong>
@@ -216,8 +275,10 @@
         </table>
       </div>
     </div>
+    </div>
     {% endif %}
 
+    <div class="super-dashboard-section" data-section-id="schools">
     <div class="card shadow-sm">
       <div class="card-header">
         <span>All schools</span>
@@ -318,7 +379,11 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="12" class="text-muted text-center py-4">No schools yet. Create one to get started.</td>
+                  <td colspan="12" class="text-center py-5">
+                    <p class="text-muted mb-2">No schools yet.</p>
+                    <p class="small text-muted mb-3">Create your first school to start managing tenants.</p>
+                    <a href="{% url 'super:create_school_wizard' %}" class="btn btn-primary">Create School</a>
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -326,8 +391,62 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
   <script>
+    (function() {
+      var STORAGE_KEY = 'runmycampus_super_dashboard_sections';
+      var SECTION_IDS = ['financial', 'operational', 'health', 'pending', 'schools'];
+
+      function loadSectionPrefs() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) { return {}; }
+      }
+      function saveSectionPrefs(prefs) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch (e) {}
+      }
+      function applySectionVisibility(prefs) {
+        SECTION_IDS.forEach(function(id) {
+          var el = document.querySelector('.super-dashboard-section[data-section-id="' + id + '"]');
+          if (!el) return;
+          var visible = prefs[id] !== false;
+          el.style.display = visible ? '' : 'none';
+        });
+      }
+
+      function syncCheckboxesFromPrefs(prefs) {
+        SECTION_IDS.forEach(function(id) {
+          var cb = document.querySelector('.super-section-toggle[data-section-id="' + id + '"]');
+          if (cb) cb.checked = prefs[id] !== false;
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var prefs = loadSectionPrefs();
+        syncCheckboxesFromPrefs(prefs);
+        applySectionVisibility(prefs);
+      });
+
+      var monthSelect = document.getElementById('super-month-select');
+      if (monthSelect) {
+        monthSelect.addEventListener('change', function() {
+          var form = document.getElementById('super-month-form');
+          if (form) form.submit();
+        });
+      }
+
+      document.querySelectorAll('.super-section-toggle').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+          var prefs = loadSectionPrefs();
+          prefs[this.getAttribute('data-section-id')] = this.checked;
+          saveSectionPrefs(prefs);
+          applySectionVisibility(prefs);
+        });
+      });
+    })();
+
     document.querySelectorAll('.approve-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         if (!confirm('Approve this school?')) return;

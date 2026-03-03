@@ -21,7 +21,7 @@
   {% with style=report_style|default_if_none:None %}
   {% with watermark_mode=style.watermark_mode|default:"TEXT" %}
   {% if watermark_mode == "TEXT" %}
-  {% with watermark_text=style.watermark_text|default:SITE.school_code|default:SITE.site_name|default:"Gilead" %}
+  {% with watermark_text=style.watermark_text|default:SITE.school_code|default:SITE.site_name|default:"School" %}
   body::after {
     content: "{{ watermark_text }}";
     position: fixed;

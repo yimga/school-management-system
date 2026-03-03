@@ -436,7 +436,7 @@ class SiteSettings(models.Model):
         help_text="Optional: SVG file for animated or vector background."
     )
     # Branding
-    site_name = models.CharField(max_length=120, default="Gilead School System")
+    site_name = models.CharField(max_length=120, default="School System")
     tagline = models.CharField(max_length=200, blank=True, default="Knowledge ƒ?› Technology ƒ?› Excellence")
     logo = models.ImageField(upload_to="branding/", blank=True, null=True)
     logo_opacity = models.FloatField(
@@ -874,7 +874,7 @@ class SiteSettings(models.Model):
     report_preview_footer_note = models.CharField(
         max_length=160,
         blank=True,
-        default="Powered by Gilead Technical High School.",
+        default="Powered by RunMyCampus.",
         help_text="Footer note text shown on report previews.",
     )
     default_report_preview_type = models.CharField(

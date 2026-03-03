@@ -69,10 +69,14 @@
     <div class="admin-dash__header">
       <div class="admin-dash__header-row">
         <div class="admin-dash__brand">
-          <img src="{% static 'images/gilead_logo_transparent.png' %}" alt="{% trans 'Gilead Logo' %}" width="60" height="60" loading="lazy" decoding="async" class="admin-logo-img" />
+          {% if PUBLIC_BRAND_LOGO_URL %}
+            <img src="{{ PUBLIC_BRAND_LOGO_URL }}" alt="" width="60" height="60" loading="lazy" decoding="async" class="admin-logo-img" />
+          {% else %}
+            <img src="{% static 'images/runmycampus-logo.png' %}" alt="RunMyCampus" width="60" height="60" loading="lazy" decoding="async" class="admin-logo-img" />
+          {% endif %}
           <div>
             <h1 class="admin-dash__title">{% trans "Administration Dashboard" %}</h1>
-            <p class="admin-dash__subtitle">{% trans "Gilead School System Management" %}</p>
+            <p class="admin-dash__subtitle">{% trans "RunMyCampus — Platform administration" %}</p>
           </div>
         </div>
         <div class="admin-dash__header-actions">

@@ -17,6 +17,19 @@ def school_not_found(request):
     )
 
 
+def _school_display_name_for_public(school) -> str:
+    """
+    Display name for a school on platform surfaces (e.g. school-not-found).
+    Avoids tenant-specific legacy names (e.g. Gilead) so platform stays RunMyCampus-only.
+    """
+    name = (school.name or "").strip()
+    if not name:
+        return school.slug or "School"
+    if "gilead" in name.lower():
+        return school.slug or "School"
+    return name
+
+
 def school_not_found_public(request):
     """
     Branded root-domain 404 page for unknown tenant subdomains.
@@ -35,7 +48,7 @@ def school_not_found_public(request):
         for school in schools:
             results.append(
                 {
-                    "name": school.name,
+                    "name": _school_display_name_for_public(school),
                     "slug": school.slug,
                     "portal_url": _build_school_portal_url(request, school),
                 }

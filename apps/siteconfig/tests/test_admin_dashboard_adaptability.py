@@ -353,7 +353,7 @@ class AdminDashboardAccessibilityContractTests(TestCase):
 
         self.assertIn('aria-label="Previous month"', html)
         self.assertIn('aria-label="Next month"', html)
-        self.assertIn('alt="Gilead Logo"', html)
+        self.assertIn('admin-logo-img', html)
         self.assertIn('admin-kpi-card__icon" aria-hidden="true"', html)
         self.assertIn('weather-widget__icon" id="weatherIcon" aria-hidden="true"', html)
 

@@ -7,18 +7,20 @@ Logo: SITE_ADMIN_LOGO_URL (ThemePack) or SITE_LOGO_URL (SiteSettings) or static 
     <div class="flex-shrink-0 border-b border-base-200 dark:border-base-800 px-3 py-3">
         <a href="{% url 'admin:index' %}" class="admin-sidebar-brand-link-header admin-unfold-sidebar-brand flex items-center gap-3 min-w-0 text-decoration-none">
             <div class="admin-sidebar-logo-wrap admin-unfold-sidebar-logo-wrap admin-unfold-sidebar-logo-wrap--large flex items-center justify-center shrink-0 rounded-xl overflow-hidden">
-                {% if SITE_ADMIN_LOGO_URL %}
+                {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
+                    <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="{% trans 'Home' %}" class="h-7 w-7 object-contain admin-unfold-sidebar-logo-img" width="28" height="28">
+                {% elif SITE_ADMIN_LOGO_URL %}
                     <img src="{{ SITE_ADMIN_LOGO_URL }}" alt="{% trans 'Home' %}" class="h-7 w-7 object-contain admin-unfold-sidebar-logo-img" width="28" height="28">
                 {% elif SITE_LOGO_URL %}
                     <img src="{{ SITE_LOGO_URL }}" alt="{% trans 'Home' %}" class="h-7 w-7 object-contain admin-unfold-sidebar-logo-img" width="28" height="28">
                 {% else %}
-                    <img src="{% static 'images/logo.png' %}" alt="{% trans 'Home' %}" class="h-7 w-7 object-contain" width="28" height="28" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                    <img src="{% static 'images/runmycampus-icon.png' %}" alt="{% trans 'Home' %}" class="h-7 w-7 object-contain" width="28" height="28" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
                     <span class="material-symbols-outlined admin-unfold-sidebar-fallback-icon admin-unfold-hidden inline-flex items-center justify-center" aria-hidden="true">school</span>
                 {% endif %}
             </div>
             <div class="flex flex-col gap-0.5 min-w-0">
-                <span class="font-semibold truncate text-sm leading-tight admin-unfold-sidebar-title">{{ site_header|default:_('Gilead School Management') }}</span>
-                <span class="text-xs truncate leading-tight admin-unfold-sidebar-subtitle">{{ site_title|default:_('Gilead School Admin') }}</span>
+                <span class="font-semibold truncate text-sm leading-tight admin-unfold-sidebar-title">{{ site_header|default:_('RunMyCampus') }}</span>
+                <span class="text-xs truncate leading-tight admin-unfold-sidebar-subtitle">{{ site_title|default:_('Platform Admin') }}</span>
             </div>
         </a>
     </div>

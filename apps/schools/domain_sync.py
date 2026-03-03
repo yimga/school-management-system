@@ -21,11 +21,14 @@ def use_django_tenants() -> bool:
 
 
 def get_base_domain() -> str:
-    """Canonical base domain used for subdomain hostnames."""
-    base = (os.getenv("MULTI_TENANT_BASE_DOMAIN") or "").strip().lower()
-    if base:
-        return base
-    return (os.getenv("RENDER_EXTERNAL_HOSTNAME") or "").strip().lower()
+    """
+    Canonical base domain used for subdomain hostnames (e.g. portal links).
+    Aligns with host_routing so we never build tenant URLs on *.onrender.com,
+    which would cause ERR_SSL_VERSION_OR_CIPHER_MISMATCH (Render does not
+    provide wildcard SSL for service subdomains).
+    """
+    from apps.schools.host_routing import get_canonical_base_domain
+    return get_canonical_base_domain()
 
 
 def normalize_domain(hostname: str) -> str:

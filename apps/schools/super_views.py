@@ -2,14 +2,16 @@
 Super Admin views: dashboard (list schools) and Create School wizard.
 Access restricted to SUPERADMIN or is_superuser via TenantSuperAdminRequiredMiddleware.
 """
+import csv
 from datetime import timedelta
+from io import StringIO
 
 from django.db.models import Count
 from django.db.models import OuterRef, Subquery
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods, require_POST
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 
 from apps.siteconfig.education_profile_engine import (
@@ -250,10 +252,45 @@ def _build_command_center_data() -> dict:
     return data
 
 
+def _parse_month_param(request) -> "date":
+    """Parse ?month=YYYY-MM; return first day of that month or current month."""
+    from datetime import date
+    month_str = request.GET.get("month")
+    if not month_str:
+        return timezone.now().date().replace(day=1)
+    try:
+        year, month = int(month_str[:4]), int(month_str[5:7])
+        if 1 <= month <= 12 and year >= 2020 and year <= 2100:
+            return date(year, month, 1)
+    except (ValueError, TypeError, IndexError):
+        pass
+    return timezone.now().date().replace(day=1)
+
+
+def _month_options(last_n=12):
+    """Return list of (value 'YYYY-MM', label 'Month YYYY') for last N months (current first)."""
+    from datetime import date
+    now = timezone.now().date()
+    first = now.replace(day=1)
+    options = []
+    for _ in range(last_n):
+        options.append((first.strftime("%Y-%m"), first.strftime("%B %Y")))
+        if first.month == 1:
+            first = first.replace(year=first.year - 1, month=12, day=1)
+        else:
+            first = first.replace(month=first.month - 1, day=1)
+    return options
+
+
 def super_dashboard(request):
     """List all schools with basic stats. Phase E: Financial Bento. Phase H: Registry link, selected education systems."""
     from django.db.models import Sum
     from apps.siteconfig.models import RevenueSnapshot
+
+    # Global date filter: ?month=YYYY-MM for Financial Mission Control
+    first_of_month = _parse_month_param(request)
+    month_options = _month_options(12)
+    current_request_month = first_of_month.strftime("%Y-%m")
 
     latest_event_query = SchoolProvisioningEvent.objects.filter(school_id=OuterRef("pk")).order_by("-created_at", "-id")
     schools = list(
@@ -273,11 +310,10 @@ def super_dashboard(request):
         school.sync_repair_url = reverse("super:sync_repair", args=[school.pk])
         school.selected_systems = _selected_system_names(school)
 
-    # Phase E: Financial Mission Control / Bento (latest month); resilient if RevenueSnapshot not migrated
+    # Phase E: Financial Mission Control / Bento (selected month); resilient if RevenueSnapshot not migrated
     total_mrr = total_waived = waiver_percentage = 0
     revenue_by_country = []
     billing_model_breakdown = []
-    first_of_month = timezone.now().date().replace(day=1)
     try:
         snapshots = RevenueSnapshot.objects.filter(snapshot_date=first_of_month)
         agg = snapshots.aggregate(total_actual=Sum("actual_revenue"), total_waived=Sum("waived_amount"))
@@ -324,6 +360,42 @@ def super_dashboard(request):
 
     command_center = _build_command_center_data()
 
+    # North Star: prefer Total MRR when present, else school count
+    school_count = len(schools)
+    if total_mrr is not None and total_mrr > 0:
+        north_star_value = total_mrr
+        north_star_label = "Total MRR"
+        north_star_formatted = f"${total_mrr:,.2f}"
+    else:
+        north_star_value = school_count
+        north_star_label = "Schools"
+        north_star_formatted = str(school_count)
+
+    # Next-best-action strip (pending approvals, trials ending soon)
+    next_best_actions = []
+    if pending_approval_count:
+        next_best_actions.append({
+            "label": f"{pending_approval_count} pending approval" + ("s" if pending_approval_count != 1 else ""),
+            "url": request.path + "#pending-approval",
+            "count": pending_approval_count,
+        })
+    if command_center.get("trial_ending_soon_count", 0):
+        cc_url = _safe_command_center_url()
+        if cc_url:
+            next_best_actions.append({
+                "label": f"{command_center['trial_ending_soon_count']} trial(s) ending soon",
+                "url": cc_url,
+                "count": command_center["trial_ending_soon_count"],
+            })
+    if command_center.get("provisioning_sla_breaches", 0):
+        cc_url = _safe_command_center_url()
+        if cc_url:
+            next_best_actions.append({
+                "label": f"{command_center['provisioning_sla_breaches']} provisioning breach(es)",
+                "url": cc_url,
+                "count": command_center["provisioning_sla_breaches"],
+            })
+
     return render(
         request,
         "schools/super_dashboard.html",
@@ -337,6 +409,13 @@ def super_dashboard(request):
             "revenue_by_country": revenue_by_country,
             "billing_model_breakdown": billing_model_breakdown,
             "revenue_snapshot_month": first_of_month,
+            "current_request_month": current_request_month,
+            "month_options": month_options,
+            "school_count": school_count,
+            "north_star_value": north_star_value,
+            "north_star_label": north_star_label,
+            "north_star_formatted": north_star_formatted,
+            "next_best_actions": next_best_actions,
             "registry_url": _safe_registry_url(),
             "command_center_url": _safe_command_center_url(),
             "health_top_tables": health_top_tables,
@@ -344,6 +423,85 @@ def super_dashboard(request):
             "command_center": command_center,
         },
     )
+
+
+def export_schools_csv(request):
+    """Export schools list as CSV (powerhouse upgrade: export)."""
+    latest_event_query = SchoolProvisioningEvent.objects.filter(school_id=OuterRef("pk")).order_by("-created_at", "-id")
+    schools = list(
+        School.objects.all()
+        .prefetch_related("tenant_systems__system")
+        .order_by("name")
+        .annotate(member_count=Count("memberships"))
+        .annotate(student_count=Count("student_profiles", distinct=True))
+        .annotate(teacher_count=Count("teacher_profiles", distinct=True))
+        .annotate(latest_event_type=Subquery(latest_event_query.values("event_type")[:1]))
+        .annotate(latest_event_created_at=Subquery(latest_event_query.values("created_at")[:1]))
+    )
+    for school in schools:
+        school.selected_systems = _selected_system_names(school)
+
+    buf = StringIO()
+    w = csv.writer(buf)
+    w.writerow([
+        "Name", "Slug", "Subdomain", "Template/Systems", "Domain", "Domain Verified",
+        "Status", "Provisioning", "Students", "Teachers", "Members", "Last activity",
+    ])
+    for school in schools:
+        systems_str = ", ".join(school.selected_systems) if school.selected_systems else ""
+        domain_verified = "Yes" if getattr(school, "custom_domain_verified", False) else "No"
+        status = "Active" if school.is_active else "Inactive"
+        provisioning = (school.latest_event_type or "") if school.latest_event_type else ""
+        last_activity = school.updated_at.strftime("%Y-%m-%d %H:%M") if school.updated_at else ""
+        w.writerow([
+            school.name or "",
+            school.slug or "",
+            school.subdomain or "",
+            systems_str,
+            getattr(school, "custom_domain", "") or "",
+            domain_verified,
+            status,
+            provisioning,
+            school.student_count or 0,
+            school.teacher_count or 0,
+            school.member_count or 0,
+            last_activity,
+        ])
+    resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
+    resp["Content-Disposition"] = 'attachment; filename="schools.csv"'
+    return resp
+
+
+def export_revenue_csv(request):
+    """Export revenue by country for selected month as CSV (powerhouse upgrade: export)."""
+    from django.db.models import Sum
+    from apps.siteconfig.models import RevenueSnapshot
+
+    first_of_month = _parse_month_param(request)
+    try:
+        snapshots = RevenueSnapshot.objects.filter(snapshot_date=first_of_month)
+        revenue_by_country = list(
+            snapshots.values("country_code")
+            .annotate(actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
+            .order_by("-actual", "-waived")
+        )
+    except Exception:
+        revenue_by_country = []
+
+    buf = StringIO()
+    w = csv.writer(buf)
+    w.writerow(["Country", "Actual", "Waived", "Month"])
+    month_str = first_of_month.strftime("%Y-%m")
+    for row in revenue_by_country:
+        w.writerow([
+            row.get("country_code") or "",
+            row.get("actual") or 0,
+            row.get("waived") or 0,
+            month_str,
+        ])
+    resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
+    resp["Content-Disposition"] = f'attachment; filename="revenue-by-country-{month_str}.csv"'
+    return resp
 
 
 def super_usage(request):

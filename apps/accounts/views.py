@@ -1267,7 +1267,7 @@ def backend_dashboard(request):
 
     hero = {
         "tagline": "Admin hub",
-        "title": "Gilead School System Management",
+        "title": "RunMyCampus",
         "subtitle": "Configure school apps, monitor health, and keep reports, finance, and portals aligned from one warm, modern dashboard.",
         "icon": "bi bi-pie-chart",
         "stats": hero_stats,

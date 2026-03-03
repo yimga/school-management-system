@@ -97,7 +97,7 @@ def page_metadata_context(request):
     # Page metadata by path
     metadata = {
         '/': {
-            'title': 'Gilead School Management System',
+            'title': 'RunMyCampus',
             'description': 'Comprehensive school management solution',
         },
         '/student-portal/': {
@@ -127,7 +127,7 @@ def page_metadata_context(request):
     
     if not page_meta:
         page_meta = {
-            'title': 'Gilead School Management',
+            'title': 'RunMyCampus',
             'description': 'School management system',
         }
     

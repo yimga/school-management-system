@@ -447,16 +447,25 @@ def site_settings(request):
         ctx["TENANT_BRAND_CONTEXT"] = {}
         ctx["TENANT_LABELS"] = {}
     public_host_kind = getattr(request, "public_host_kind", None)
-    public_brand_mode = (public_host_kind in {"base", "verify", "support"}) and not school
+    public_brand_mode = (public_host_kind in {"base", "verify", "support", "manager"}) and not school
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode
     ctx["PUBLIC_BRAND_NAME"] = "RunMyCampus"
     ctx["PUBLIC_BRAND_DOMAIN"] = "runmycampus.com"
+    ctx["PUBLIC_BRAND_TAGLINE"] = "THE POWERHOUSE OF SCHOOL MANAGEMENT"
     if public_brand_mode:
         ctx["SITE_LOGO_URL"] = ""
         ctx["SITE_BRANDED_DOMAIN"] = "runmycampus.com"
         ctx["TENANT_WALLPAPER_URL"] = ""
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None
+        ctx["PUBLIC_BRAND_LOGO_URL"] = static("images/runmycampus-logo.png")
+        ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = static("images/runmycampus-logo-dark.png")
+        ctx["PUBLIC_BRAND_FAVICON_URL"] = static("images/runmycampus-icon.png")
+        ctx["SITE_FAVICON_URL"] = static("images/runmycampus-icon.png")
+    else:
+        ctx["PUBLIC_BRAND_LOGO_URL"] = ""
+        ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = ""
+        ctx["PUBLIC_BRAND_FAVICON_URL"] = ""
     # Offline: global Feature Control must be on; in multi-tenant, school must also have offline_mode module.
     ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and (
         not school or school.has_feature("offline_mode")

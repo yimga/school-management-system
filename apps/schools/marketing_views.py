@@ -541,6 +541,27 @@ def _get_regional_pitch(country_code: str, language_code: str) -> dict:
     }
 
 
+def _tenant_example_slug_for_marketing() -> str | None:
+    """
+    Return a tenant slug suitable for marketing (e.g. regional landing).
+    Prefer a non-legacy slug so links do not send users to school-not-found.
+    """
+    from django.conf import settings
+    from apps.schools.models import School
+
+    slug = getattr(settings, "TENANT_EXAMPLE_SLUG", None) or None
+    if slug:
+        return str(slug).strip().lower() or None
+    school = (
+        School.objects.filter(is_active=True)
+        .exclude(slug__iexact="gilead-school")
+        .exclude(subdomain__iexact="gilead-school")
+        .order_by("created_at")
+        .values_list("slug", flat=True)
+        .first()
+    )
+    return school
+
 def _marketing_context(request, *, country_code: str, language_code: str, regional: bool) -> dict:
     country = _normalize_country_code(country_code)
     brand = resolve_global_brand_context(country_code=country, language_code=language_code)
@@ -554,13 +575,21 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
     hreflang_entries = _global_hreflang_entries(request, country_code=country, language_code=language)
     canonical_domain = get_canonical_base_domain()
     country_label = brand.get("country_name") or "Global"
-    tenant_example_slug = "gilead-school"
+    tenant_example_slug = _tenant_example_slug_for_marketing()
     tenant_login_path = "/authentication/login/"
     public_host = canonical_domain
     manager_host = f"manager.{canonical_domain}"
     api_host = f"api.{canonical_domain}"
     docs_host = f"docs.{canonical_domain}"
-    tenant_host = f"{tenant_example_slug}.{canonical_domain}"
+    tenant_host = f"{tenant_example_slug}.{canonical_domain}" if tenant_example_slug else f"your-school.{canonical_domain}"
+
+    # School Identity card: link to tenant login only if we have a real example; else link to find school
+    school_identity_primary_url = (
+        _host_url(request, tenant_host, tenant_login_path)
+        if tenant_example_slug
+        else request.build_absolute_uri(_safe_reverse("find_school"))
+    )
+    school_identity_primary_label = "Tenant login" if tenant_example_slug else "Find your school"
 
     surface_cards = [
         {
@@ -578,8 +607,8 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
             "host": tenant_host,
             "headline": "White-label tenant access",
             "summary": "Tenant entry is branded with school identity while preserving strict subdomain isolation for security.",
-            "primary_cta_label": "Tenant login",
-            "primary_cta_url": _host_url(request, tenant_host, tenant_login_path),
+            "primary_cta_label": school_identity_primary_label,
+            "primary_cta_url": school_identity_primary_url,
             "secondary_cta_label": "School finder",
             "secondary_cta_path": _safe_reverse("find_school"),
         },
