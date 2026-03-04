@@ -550,6 +550,27 @@ class SiteSettings(models.Model):
             "or the legacy dashed format."
         ),
     )
+    class AdmissionNumberStrategy(models.TextChoices):
+        FULL = "FULL", "Full (YY+School+Seq+Spec+Class)"
+        YEAR_SEQ = "YEAR_SEQ", "Year + sequence only"
+        SEQ_ONLY = "SEQ_ONLY", "Sequence only"
+
+    admission_number_strategy = models.CharField(
+        max_length=20,
+        choices=AdmissionNumberStrategy.choices,
+        default=AdmissionNumberStrategy.FULL,
+        blank=True,
+        help_text="Built-in generation strategy when no template is set.",
+    )
+    admission_number_template = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=(
+            "Optional template with placeholders: {year_2digit}, {school_code}, "
+            "{seq_4digit}, {spec_code}, {class_segment}. Overrides strategy when set."
+        ),
+    )
     company_name = models.CharField(max_length=160, blank=True, default="")
     company_address = models.TextField(blank=True, default="")
     company_phone = models.CharField(max_length=50, blank=True, default="")
@@ -3829,6 +3850,40 @@ def _refresh_site_settings_cache(sender, instance: SiteSettings, **kwargs) -> No
     _SITE_SETTINGS_CACHE = instance
 
 
+def _emit_global_change_alert(sender, instance: SiteSettings, **kwargs) -> None:
+    """
+    Optional (plan 4.6): Notify security/ops when SiteSettings changes.
+    Set GLOBAL_CHANGE_ALERT_WEBHOOK_URL to a URL (e.g. Slack incoming webhook);
+    this handler POSTs a JSON summary (no secrets) in a background thread.
+    """
+    import os
+    import threading
+    url = os.environ.get("GLOBAL_CHANGE_ALERT_WEBHOOK_URL", "").strip()
+    if not url:
+        return
+    payload = {
+        "event": "site_settings_changed",
+        "id": instance.pk,
+        "changed_at": instance.updated_at.isoformat() if getattr(instance, "updated_at", None) else None,
+    }
+    def _post():
+        try:
+            import urllib.request
+            import json
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=5)
+        except Exception:
+            logger = logging.getLogger(__name__)
+            logger.warning("Global change alert webhook failed", exc_info=True)
+    t = threading.Thread(target=_post, daemon=True)
+    t.start()
+
+
 def _clear_site_settings_cache(sender, **kwargs) -> None:
     global _SITE_SETTINGS_CACHE
     _SITE_SETTINGS_CACHE = None
@@ -4234,5 +4289,90 @@ class BroadcastCampaign(models.Model):
         return f"{self.subject} ({self.status})"
 
 
+class ProductFeedback(models.Model):
+    """
+    Part 4.4: Public-schema feedback/feature requests for roadmap visibility.
+    Tag by region and module; status (Planned / In Development / Released); optional upvotes.
+    Link from roadmap or feedback form; simple admin for super-admin.
+    """
+    class Status(models.TextChoices):
+        SUBMITTED = "SUBMITTED", "Submitted"
+        PLANNED = "PLANNED", "Planned"
+        IN_DEVELOPMENT = "IN_DEVELOPMENT", "In Development"
+        RELEASED = "RELEASED", "Released"
+        WONT_DO = "WONT_DO", "Won't Do"
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    region = models.CharField(max_length=32, blank=True, db_index=True, help_text="e.g. country code or regional cluster.")
+    module = models.CharField(max_length=64, blank=True, db_index=True, help_text="e.g. admissions, finance, portal.")
+    status = models.CharField(max_length=24, choices=Status.choices, default=Status.SUBMITTED, db_index=True)
+    upvotes = models.PositiveIntegerField(default=0)
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "siteconfig_productfeedback"
+        ordering = ["-upvotes", "-created_at"]
+        verbose_name = "Product feedback"
+        verbose_name_plural = "Product feedback"
+
+    def __str__(self):
+        return f"{self.title} ({self.get_status_display()})"
+
+
+class MarketingContent(models.Model):
+    """
+    Plan 4.11: DB-driven content for marketing (CMS-lite). Key-based blobs editable in admin
+    without deploy. Use for hero copy, footer, or any marketing snippet; locale optional.
+    """
+    key = models.CharField(max_length=120, db_index=True, help_text="e.g. hero_subheadline, blog_intro")
+    content_html = models.TextField(blank=True)
+    locale = models.CharField(max_length=10, blank=True, default="", db_index=True)
+    content_type = models.CharField(max_length=32, blank=True, default="html")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "siteconfig_marketingcontent"
+        unique_together = [["key", "locale"]]
+        ordering = ["key", "locale"]
+        verbose_name = "Marketing content"
+        verbose_name_plural = "Marketing content"
+
+    def __str__(self):
+        return f"{self.key} ({self.locale or 'default'})"
+
+
+class BlogPost(models.Model):
+    """
+    Plan 4.11: Blog / News for marketing site. CMS-backed; list on /blog/, detail at /blog/<slug>/.
+    """
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
+    excerpt = models.TextField(blank=True)
+    body_html = models.TextField(blank=True)
+    published_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    is_published = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "siteconfig_blogpost"
+        ordering = ["-published_at", "-created_at"]
+        verbose_name = "Blog post"
+        verbose_name_plural = "Blog posts"
+
+    def __str__(self):
+        return self.title
+
+
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)
+post_save.connect(_emit_global_change_alert, sender=SiteSettings)
 post_delete.connect(_clear_site_settings_cache, sender=SiteSettings)

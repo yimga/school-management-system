@@ -1,0 +1,63 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Dashboard Configuration Hub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 professional-page">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-light border-bottom py-3 px-4">
+      <h1 class="h5 mb-1 fw-semibold">Dashboard Configuration Hub</h1>
+      <p class="text-muted small mb-0">Assign a dashboard template per role for <strong>{{ school.name }}</strong>. Runtime resolves layout and theme from the assigned template.</p>
+    </div>
+    <div class="card-body p-4">
+      {% if not templates %}
+        <p class="text-muted">No dashboard templates defined yet. Create templates in <a href="{% url 'admin:siteconfig_dashboardtemplate_changelist' %}">Admin → Dashboard Templates</a>.</p>
+      {% else %}
+        <form method="post" action="{% url 'siteconfig:dashboard_configuration_hub' %}">
+          {% csrf_token %}
+          <div class="row mb-3">
+            <label class="form-label col-md-2">Assign template by role</label>
+            <div class="col-md-4">
+              <select name="role" class="form-select form-select-sm" required>
+                <option value="">— Select role —</option>
+                {% for value, label in role_choices %}
+                  <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <select name="template_id" class="form-select form-select-sm" required>
+                <option value="">— Select template —</option>
+                {% for t in templates %}
+                  <option value="{{ t.pk }}">{{ t.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+            </div>
+          </div>
+        </form>
+        <table class="table table-sm table-bordered">
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Assigned template</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for role_val, role_label, assignment in assignment_rows %}
+              <tr>
+                <td>{{ role_label }}</td>
+                <td>{% if assignment %}{{ assignment.template.name }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="text-muted small mb-0">DashboardLayout and DashboardUserPreference still apply for per-user overrides; the template defines the default layout and theme per role.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

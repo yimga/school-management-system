@@ -4,9 +4,11 @@ RunMyCampus marketing and SEO endpoints.
 from __future__ import annotations
 
 import json
+import random
 from copy import deepcopy
 from datetime import datetime, timezone
 
+from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
@@ -192,6 +194,97 @@ MARKETING_PAGE_DEFINITIONS = {
                 "title": "Super-admin control",
                 "body": "Inspect mission-control workflows for approvals, billing visibility, and support governance.",
             },
+        ],
+    },
+    "about": {
+        "label": "About",
+        "seo_title": "About RunMyCampus - Global school operations platform",
+        "seo_description": "Learn about RunMyCampus mission, team, and commitment to schools worldwide.",
+        "headline": "About RunMyCampus.",
+        "subheadline": "One platform for global school operations, built for 195 countries.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Mission", "body": "Empower every school with unified operations, compliance, and growth tools."},
+            {"title": "Global reach", "body": "Multi-language, multi-currency, and data residency options for every region."},
+            {"title": "Security first", "body": "Schema-per-tenant isolation and audit-ready controls for trust and compliance."},
+        ],
+    },
+    "features": {
+        "label": "Features",
+        "seo_title": "RunMyCampus Features - Admissions, academics, finance, and more",
+        "seo_description": "Explore features for admissions, academics, finance, communication, and compliance.",
+        "headline": "Features that scale with your campus.",
+        "subheadline": "From admissions to finance, one platform for every school workflow.",
+        "schema_type": "CollectionPage",
+        "segments": [
+            {"title": "Admissions & enrollment", "body": "Online applications, applicant tracking, and enrollment management."},
+            {"title": "Academics & grading", "body": "Curriculum, gradebooks, report cards, and metadata-driven rubrics."},
+            {"title": "Finance & billing", "body": "Fee management, invoicing, multi-currency, and audit trail."},
+        ],
+    },
+    "blog": {
+        "label": "Blog",
+        "seo_title": "RunMyCampus Blog - Topics for leading faculties",
+        "seo_description": "Insights, product updates, and best practices for school operators.",
+        "headline": "Topics of leading faculties.",
+        "subheadline": "Product updates, best practices, and stories from schools worldwide.",
+        "schema_type": "Blog",
+        "segments": [
+            {"title": "Product updates", "body": "New features and improvements to the RunMyCampus platform."},
+            {"title": "Best practices", "body": "How schools use RunMyCampus for admissions, compliance, and operations."},
+            {"title": "Global education", "body": "Trends and insights for K-12 and international school operations."},
+        ],
+    },
+    "contact": {
+        "label": "Contact Us",
+        "seo_title": "Contact RunMyCampus - Get in touch",
+        "seo_description": "Contact RunMyCampus for sales, support, or partnership inquiries.",
+        "headline": "Contact us.",
+        "subheadline": "Sales, support, and partnership inquiries. We respond within 24 hours.",
+        "schema_type": "ContactPage",
+        "segments": [
+            {"title": "Sales", "body": "Request a demo or discuss plans for your school or network."},
+            {"title": "Support", "body": "Existing customers can reach 24/7 support via the tenant portal or support hub."},
+            {"title": "Partnerships", "body": "Integrations, resellers, and technology partners."},
+        ],
+    },
+    "privacy": {
+        "label": "Privacy Policy",
+        "seo_title": "RunMyCampus Privacy Policy",
+        "seo_description": "How RunMyCampus collects, uses, and protects your data.",
+        "headline": "Privacy Policy",
+        "subheadline": "How we collect, use, and protect your data. FERPA and GDPR aligned.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Data we collect", "body": "Account, usage, and school data necessary to operate the platform."},
+            {"title": "How we use it", "body": "To provide and improve the service, support, and compliance."},
+            {"title": "Your rights", "body": "Access, correction, deletion, and portability where applicable by law."},
+        ],
+    },
+    "terms": {
+        "label": "Terms of Service",
+        "seo_title": "RunMyCampus Terms of Service",
+        "seo_description": "Terms of service for the RunMyCampus platform.",
+        "headline": "Terms of Service",
+        "subheadline": "Terms governing use of the RunMyCampus platform and services.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "Acceptance", "body": "By using the platform you agree to these terms."},
+            {"title": "Use of service", "body": "Permitted use, account responsibility, and acceptable use."},
+            {"title": "Limitation of liability", "body": "Standard limitations as permitted by applicable law."},
+        ],
+    },
+    "developers": {
+        "label": "Developers",
+        "seo_title": "RunMyCampus Developer Portal - API & Integrations",
+        "seo_description": "API documentation, authentication, rate limits, and integration guides for RunMyCampus.",
+        "headline": "Developer Portal & API.",
+        "subheadline": "Build integrations with versioned APIs, webhooks, and LTI. Auth, rate limiting, and OpenAPI documented.",
+        "schema_type": "WebPage",
+        "segments": [
+            {"title": "API access", "body": "Authenticate with API keys or OAuth; versioned endpoints under /api/."},
+            {"title": "Rate limiting", "body": "Per-tenant and per-IP limits; 429 with Retry-After for fair use."},
+            {"title": "Integrations", "body": "LTI 1.3, OneRoster, webhooks, and custom integrations. See docs for details."},
         ],
     },
 }
@@ -787,6 +880,36 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "Host-level routing contract enforcement",
     ]
 
+    # Plan 4.11: Post-enrollment revenue section (Events, Online Courses, Alumni)
+    post_enrollment_revenue = [
+        {
+            "title": "School Events",
+            "body": "Event ticketing, venue management, and sponsor engagement for school fundraisers and activities.",
+        },
+        {
+            "title": "Online Courses",
+            "body": "Course creation, student tracking, and certification for revenue and extended learning.",
+        },
+        {
+            "title": "Alumni Network",
+            "body": "Mentorship programs, fundraising campaigns, and career services for alumni relations.",
+        },
+    ]
+
+    # Plan 4.11: explicit "Global features" list for hero (full list from plan)
+    global_features = [
+        "Multi-Language",
+        "Multi-Currency",
+        "Timezone-aware",
+        "Country-Specific Grading",
+        "Localized Holiday Calendars",
+        "Data Residency",
+        "AI-Powered Insights",
+        "Customizable Workflows",
+        "Scalable Architecture",
+        "24/7 Global Support",
+    ]
+
     structured_data = {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
@@ -797,6 +920,16 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "description": pitch.get("seo_description"),
         "areaServed": brand.get("country_name") or "Global",
     }
+
+    # A/B testing: persist variant in session for hero/CTA (Plan 4.11)
+    hero_variant = request.session.get("marketing_ab_variant")
+    if not hero_variant:
+        hero_variant = random.choice(["A", "B"])
+        request.session["marketing_ab_variant"] = hero_variant
+
+    demo_tenant_url = getattr(settings, "MARKETING_DEMO_TENANT_URL", "") or ""
+    marketing_analytics_script_url = getattr(settings, "MARKETING_ANALYTICS_SCRIPT_URL", "") or ""
+
     return {
         "pitch": pitch,
         "brand": brand,
@@ -826,6 +959,11 @@ def _marketing_context(request, *, country_code: str, language_code: str, region
         "admissions_flow": admissions_flow,
         "pricing_snapshot": pricing_snapshot,
         "trust_controls": trust_controls,
+        "post_enrollment_revenue": post_enrollment_revenue,
+        "global_features": global_features,
+        "hero_variant": hero_variant,
+        "demo_tenant_url": demo_tenant_url,
+        "marketing_analytics_script_url": marketing_analytics_script_url,
         "SHOW_HEADER_CONTEXT_STRIP": False,
     }
 
@@ -880,6 +1018,45 @@ def marketing_landing(request):
     return render(request, "schools/marketing_landing.html", ctx)
 
 
+def _get_blog_posts(limit: int = 20):
+    """Return published blog posts for marketing blog page; empty list if model unavailable."""
+    try:
+        from apps.siteconfig.models import BlogPost
+
+        return list(
+            BlogPost.objects.filter(is_published=True)
+            .order_by("-published_at", "-created_at")[:limit]
+        )
+    except Exception:
+        return []
+
+
+@require_GET
+def blog_post_detail(request, slug: str):
+    """Single blog post at /blog/<slug>/."""
+    try:
+        from apps.siteconfig.models import BlogPost
+
+        post = BlogPost.objects.filter(slug=slug, is_published=True).first()
+    except Exception:
+        post = None
+    if not post:
+        raise Http404("Blog post not found")
+
+    base_ctx = _marketing_base_context(request)
+    canonical_path = f"/blog/{post.slug}/"
+    canonical_url = _absolute_url(request, canonical_path)
+    ctx = {
+        **base_ctx,
+        "seo_title": post.title,
+        "seo_description": (post.excerpt or post.title)[:160],
+        "canonical_url": canonical_url,
+        "post": post,
+        "active_nav_slug": "blog",
+    }
+    return render(request, "schools/marketing_blog_detail.html", ctx)
+
+
 @require_GET
 def marketing_page(request, page_slug: str):
     page = MARKETING_PAGE_DEFINITIONS.get((page_slug or "").strip().lower())
@@ -902,6 +1079,8 @@ def marketing_page(request, page_slug: str):
         path=canonical_path,
     )
 
+    blog_posts = _get_blog_posts() if page_slug == "blog" else []
+
     ctx = {
         **base_ctx,
         "seo_title": page_copy.get("seo_title"),
@@ -911,6 +1090,7 @@ def marketing_page(request, page_slug: str):
         "page": page_copy,
         "page_extras": page_extras,
         "active_nav_slug": page_slug,
+        "blog_posts": blog_posts,
         "powerhouse_highlights": [
             "Predictive risk scoring and intervention action-center workflows.",
             "Student passport and transcript portability across schools.",

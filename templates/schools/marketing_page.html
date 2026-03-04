@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% block title %}{{ seo_title|default:"RunMyCampus" }}{% endblock %}
 {% block extrahead %}
@@ -301,6 +301,22 @@
         <span class="trust-pill">{{ item }}</span>
       {% endfor %}
     </div>
+
+    {% if active_nav_slug == 'blog' and blog_posts %}
+      <section class="section-shell">
+        <h2 class="section-heading">{% trans "Latest posts" %}</h2>
+        <p class="section-lead">{% trans "Product updates, best practices, and stories from schools worldwide." %}</p>
+        <div class="segment-grid">
+          {% for post in blog_posts %}
+            <article class="segment-card">
+              <h3><a href="{% url 'marketing_blog_detail' slug=post.slug %}">{{ post.title }}</a></h3>
+              <p class="mb-0 text-muted">{{ post.excerpt|default:post.title|truncatewords:20 }}</p>
+              {% if post.published_at %}<small class="text-muted">{{ post.published_at|date:"M j, Y" }}</small>{% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
 
     {% if page_extras.metrics %}
       <section class="section-shell">

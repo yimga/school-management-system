@@ -1,0 +1,33 @@
+{% extends "portal_base.html" %}
+{% load static %}
+
+{% block title %}Workflow Flow Gallery{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 professional-page">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-light border-bottom py-3 px-4">
+      <h1 class="h5 mb-1 fw-semibold">Workflow Flow Gallery</h1>
+      <p class="text-muted small mb-0">Pre-built workflows and assignments for <strong>{{ school.name }}</strong>. Manage in <a href="{% url 'admin:siteconfig_workflowtemplate_changelist' %}">Admin → Workflow Templates</a> and <a href="{% url 'admin:siteconfig_tenantworkflow_changelist' %}">Tenant Workflows</a>.</p>
+    </div>
+    <div class="card-body p-4">
+      <h2 class="h6">Available templates</h2>
+      <ul class="list-unstyled">
+        {% for t in templates %}
+          <li><strong>{{ t.code }}</strong> — {{ t.name }}{% if t.description %}: {{ t.description|truncatewords:15 }}{% endif %}</li>
+        {% empty %}
+          <li class="text-muted">No workflow templates defined.</li>
+        {% endfor %}
+      </ul>
+      <h2 class="h6 mt-3">Active for this school</h2>
+      <ul class="list-unstyled">
+        {% for a in assignments %}
+          <li>{{ a.template.name }} ({{ a.template.code }})</li>
+        {% empty %}
+          <li class="text-muted">No workflows assigned.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

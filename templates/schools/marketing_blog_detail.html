@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block extrahead %}
+  <meta name="description" content="{{ seo_description|default:post.title }}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+{% endblock %}
+{% block content %}
+<section class="py-2 py-lg-3">
+  <div class="page-stack">
+    <div class="page-nav-scroll">
+      {% for item in marketing_nav %}
+        <a href="{{ item.path }}" class="btn btn-sm {% if item.slug == active_nav_slug %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ item.label }}</a>
+      {% endfor %}
+    </div>
+    <article class="section-shell">
+      <h1 class="section-heading">{{ post.title }}</h1>
+      {% if post.published_at %}<p class="text-muted small">{{ post.published_at|date:"F j, Y" }}</p>{% endif %}
+      {% if post.excerpt %}<p class="section-lead">{{ post.excerpt }}</p>{% endif %}
+      <div class="marketing-blog-body">
+        {{ post.body_html|safe }}
+      </div>
+      <p class="mt-3"><a href="{% url 'marketing_blog' %}" class="btn btn-outline-primary btn-sm">{% trans "Back to Blog" %}</a></p>
+    </article>
+  </div>
+</section>
+{% endblock %}

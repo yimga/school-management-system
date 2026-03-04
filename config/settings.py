@@ -392,6 +392,10 @@ else:
 SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv("SESSION_EXPIRE_AT_BROWSER_CLOSE", "1") == "1"
 SESSION_SAVE_EVERY_REQUEST = os.getenv("SESSION_SAVE_EVERY_REQUEST", "1") == "1"
 
+# Marketing (Plan 4.11): demo tenant URL for "Try demo" CTA; optional analytics script URL for marketing pages
+MARKETING_DEMO_TENANT_URL = (os.getenv("MARKETING_DEMO_TENANT_URL") or "").strip() or ""
+MARKETING_ANALYTICS_SCRIPT_URL = (os.getenv("MARKETING_ANALYTICS_SCRIPT_URL") or "").strip() or ""
+
 # Role-based session overrides (seconds)
 ROLE_SESSION_TIMEOUTS = {
     "SUPERADMIN": int(os.getenv("SESSION_TIMEOUT_SUPERADMIN", "1800")),  # 30 min

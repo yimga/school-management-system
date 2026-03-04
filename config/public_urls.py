@@ -10,6 +10,7 @@ from django.urls import include, path
 from apps.observability import views as obs_views
 from apps.schools.error_views import school_not_found_public
 from apps.schools.marketing_views import (
+    blog_post_detail,
     marketing_landing,
     regional_marketing_landing,
     marketing_page,
@@ -75,6 +76,14 @@ urlpatterns = [
     path("security-compliance/", marketing_page, {"page_slug": "security-compliance"}, name="marketing_security_compliance"),
     path("integrations/", marketing_page, {"page_slug": "integrations"}, name="marketing_integrations"),
     path("book-demo/", marketing_page, {"page_slug": "book-demo"}, name="marketing_book_demo"),
+    path("about/", marketing_page, {"page_slug": "about"}, name="marketing_about"),
+    path("features/", marketing_page, {"page_slug": "features"}, name="marketing_features"),
+    path("blog/", marketing_page, {"page_slug": "blog"}, name="marketing_blog"),
+    path("blog/<slug:slug>/", blog_post_detail, name="marketing_blog_detail"),
+    path("developers/", marketing_page, {"page_slug": "developers"}, name="marketing_developers"),
+    path("contact/", marketing_page, {"page_slug": "contact"}, name="marketing_contact"),
+    path("privacy/", marketing_page, {"page_slug": "privacy"}, name="marketing_privacy"),
+    path("terms/", marketing_page, {"page_slug": "terms"}, name="marketing_terms"),
     path("solutions/<str:topic_slug>/", topical_marketing_landing, name="marketing_topic"),
     path("cm/", regional_marketing_landing, {"country_code": "CM", "language_code": "fr"}, name="marketing_cm"),
     path("ca/", regional_marketing_landing, {"country_code": "CA", "language_code": "en"}, name="marketing_ca"),

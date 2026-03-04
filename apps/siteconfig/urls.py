@@ -32,6 +32,7 @@ from .views_feature_control import (
     feature_control_api,
     feature_control_weather_cities,
 )
+from .views_dashboard_config import dashboard_configuration_hub, workflow_flow_gallery
 from .dashboard_views import (
     update_theme,
 )
@@ -73,6 +74,8 @@ urlpatterns = [
     path("feature-control/audit/", feature_control_audit_log, name="feature_control_audit"),
     path("feature-control/api/", feature_control_api, name="feature_control_api"),
     path("feature-control/weather-cities/", feature_control_weather_cities, name="feature_control_weather_cities"),
+    path("dashboard-configuration/", dashboard_configuration_hub, name="dashboard_configuration_hub"),
+    path("workflow-gallery/", workflow_flow_gallery, name="workflow_flow_gallery"),
     path("request-waiver/", request_waiver, name="request_waiver"),
     path("request-custom-requirement/", request_custom_requirement, name="request_custom_requirement"),
     path("sync-center/", sync_center, name="sync_center"),

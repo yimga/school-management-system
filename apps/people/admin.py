@@ -21,6 +21,7 @@ from .models import (
     Badge,
     BadgeScanEvent,
     EmployerProfile,
+    TenantAuditLog,
 )
 
 
@@ -621,4 +622,27 @@ class EmployerProfileAdmin(ModelAdmin):
 
 
 admin_site.register(EmployerProfile, EmployerProfileAdmin)
+
+
+class TenantAuditLogAdmin(ModelAdmin):
+    list_display = ("table_name", "record_id", "action", "changed_by", "changed_at")
+    list_filter = ("action", "table_name")
+    search_fields = ("table_name", "record_id", "correlation_id")
+    readonly_fields = (
+        "table_name", "record_id", "action", "old_values", "new_values",
+        "changed_by", "changed_at", "correlation_id", "request_meta",
+    )
+    ordering = ["-changed_at"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+admin_site.register(TenantAuditLog, TenantAuditLogAdmin)
 

@@ -392,3 +392,78 @@ class FeatureControlAudit(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username if self.user else 'system'} {self.action} @ {self.created_at}"
+
+
+# --- Part 2b: Dashboard catalog (public/control schema) ---
+
+
+class DashboardTemplate(models.Model):
+    """
+    Master dashboard template (public/control schema).
+    Schools assign a template per role via TenantLayoutAssignment.
+    """
+
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    thumbnail = models.URLField(max_length=512, blank=True, help_text="Preview image URL")
+    config_schema = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="JSON schema for layout/widgets/theme that admins can customize (e.g. widgets, positions, theme keys).",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Dashboard Template"
+        verbose_name_plural = "Dashboard Templates"
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class TenantLayoutAssignment(models.Model):
+    """
+    Per-school, per-role assignment of a DashboardTemplate (public schema; scoped by school).
+    Runtime: resolve TenantLayoutAssignment(school, role) → template → layout + theme.
+    """
+
+    ROLE_CHOICES = [
+        ("STUDENT", "Student"),
+        ("TEACHER", "Teacher"),
+        ("PARENT", "Parent"),
+        ("ADMIN", "Administrator"),
+        ("LEADERSHIP", "Leadership"),
+        ("IT_ADMIN", "IT Admin"),
+    ]
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="dashboard_layout_assignments",
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    template = models.ForeignKey(
+        DashboardTemplate,
+        on_delete=models.PROTECT,
+        related_name="tenant_assignments",
+    )
+    styling_overrides = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional theme/layout overrides (e.g. primaryColor, compactMode) for this school/role.",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Tenant Layout Assignment"
+        verbose_name_plural = "Tenant Layout Assignments"
+        unique_together = [["school", "role"]]
+        ordering = ["school", "role"]
+
+    def __str__(self) -> str:
+        return f"{self.school.name} / {self.role} → {self.template.name}"

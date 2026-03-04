@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% block title %}{{ seo_title|default:"RunMyCampus - Global School Operations" }}{% endblock %}
 {% block extrahead %}
@@ -8,6 +8,7 @@
     <link rel="alternate" hreflang="{{ alt.hreflang }}" href="{{ alt.href }}">
   {% endfor %}
   <script type="application/ld+json">{{ structured_data_json|safe }}</script>
+  {% if marketing_analytics_script_url %}<script src="{{ marketing_analytics_script_url }}" async></script>{% endif %}
 {% endblock %}
 {% block extrastyle %}
   {{ block.super }}
@@ -410,11 +411,26 @@
           </div>
           <h1 class="authority-headline">{{ pitch.headline }}</h1>
           <p class="authority-subheadline">{{ pitch.subheadline }}</p>
+          {% if global_features %}
+          <ul class="host-pill-row mb-2 list-unstyled d-flex flex-wrap gap-1">
+            {% for feature in global_features %}
+              <li><span class="host-pill">{{ feature }}</span></li>
+            {% endfor %}
+          </ul>
+          {% endif %}
           <div class="hero-cta">
+            {% if hero_variant == 'B' %}
+            <a href="{% url 'global_login_discovery' %}" class="btn btn-light btn-lg">{% trans "Find your school" %}</a>
+            <a href="{% url 'signup_school' %}" class="btn btn-light btn-lg">{% trans "Start free trial" %}</a>
+            {% else %}
             <a href="{% url 'signup_school' %}" class="btn btn-light btn-lg">{% trans "Start free trial" %}</a>
             <a href="{% url 'global_login_discovery' %}" class="btn btn-light btn-lg">{% trans "Self-guided tour" %}</a>
             <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light btn-lg">{% trans "Find your school" %}</a>
+            {% endif %}
             <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg">{% trans "Login" %}</a>
+            {% if demo_tenant_url %}
+            <a href="{{ demo_tenant_url }}" class="btn btn-outline-light btn-lg" target="_blank" rel="noopener">{% trans "Try demo" %}</a>
+            {% endif %}
           </div>
           <div class="host-pill-row">
             <span class="host-pill">Public: {{ public_host }}</span>
@@ -527,6 +543,19 @@
     </section>
 
     <section class="section-shell">
+      <h2 class="section-heading">{% trans "Post-enrollment revenue" %}</h2>
+      <p class="section-lead">{% trans "School Events, Online Courses, and Alumni modules for extended revenue and engagement." %}</p>
+      <div class="admissions-grid">
+        {% for item in post_enrollment_revenue %}
+          <article class="admissions-card">
+            <h3>{{ item.title }}</h3>
+            <p class="mb-0 text-muted">{{ item.body }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section-shell">
       <h2 class="section-heading">{% trans "Why teams pick RunMyCampus" %}</h2>
       <p class="section-lead">{% trans "Operational proof from tenancy, localization, and support governance." %}</p>
       <div class="proof-grid">
@@ -609,6 +638,15 @@
         <a href="{% url 'signup_school' %}" class="btn btn-outline-secondary">{% trans "Start onboarding" %}</a>
       </div>
     </section>
+
+    <footer class="mt-4 pt-4 border-top border-secondary text-center text-muted small">
+      <p class="mb-1">
+        <a href="{% url 'marketing_privacy' %}">{% trans "Privacy Policy" %}</a>
+        <span class="mx-2">|</span>
+        <a href="{% url 'marketing_terms' %}">{% trans "Terms of Service" %}</a>
+      </p>
+      <p class="mb-0">{% trans "Made with ❤️ by RunMyCampus" %} · © {% now "Y" %} RunMyCampus</p>
+    </footer>
   </div>
 </section>
 {% endblock %}

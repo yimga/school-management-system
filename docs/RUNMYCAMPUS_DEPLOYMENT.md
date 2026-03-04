@@ -55,14 +55,15 @@ Optional: add a comment at the top of `render.yaml` referencing the RunMyCampus 
 
 ---
 
-## 4. Security and isolation (RLS)
+## 4. Data isolation: schema-per-tenant (primary)
 
-- **Row-Level Security (RLS)** is used for tenant isolation. Ensure RLS is enabled on all tenant-scoped tables.
-- After running migrations, run the verification command:
+- **RunMyCampus uses schema-per-tenant (django-tenants) on PostgreSQL.** Each school (tenant) has its own PostgreSQL schema. The application sets the connection `search_path` to that schema per request. **Do not set `USE_DJANGO_TENANTS=0` for production** unless explicitly required.
+- **Primary isolation is by schema:** Every tenant-scoped query runs in the correct schema; do not rely on `tenant_id` or RLS for isolation. RLS is optional (defense-in-depth only) and not required for correctness.
+- After running migrations, you can run the verification command for optional RLS:
   ```bash
   python manage.py verify_tenant_rls
   ```
-- Document in your runbooks that RLS must remain enabled and that this check should be run after schema changes.
+- Document in runbooks: schema-per-tenant is the standard; migrations must run as `migrate_schemas --shared` then `migrate_schemas --tenant` (see Pre-Deploy Command above).
 
 ---
 
@@ -87,6 +88,13 @@ Optional: add a comment at the top of `render.yaml` referencing the RunMyCampus 
 
 ---
 
-## 7. Storage (optional)
+## 7. Region coverage (pycountry)
+
+- **Dependency:** Region seeding and verification use **pycountry** (ISO 3166-1 country list). Install with `pip install pycountry`. Optional: `geonamescache` for extended city/timezone data. See [apps/siteconfig/global_catalog.py](../apps/siteconfig/global_catalog.py).
+- **At deploy:** Run `python manage.py seed_global_regions` (and optionally `seed_global_data`) so every country has a RegionConfig. Then run `python manage.py verify_region_coverage`; use `--strict` in CI to fail if any country is missing. Province seeding is optional and documented per deployment.
+
+---
+
+## 8. Storage (optional)
 
 The blueprint mentions S3/Cloudinary for assets. If not already configured, document how to set `DEFAULT_FILE_STORAGE` and the media bucket for logos and wallpapers. No change to `render.yaml` is required for storage (external service).

@@ -1,4 +1,4 @@
-﻿# Public Marketing Surface Backlog (RunMyCampus)
+# Public Marketing Surface Backlog (RunMyCampus)
 
 ## Goal
 Build a clean, conversion-first, enterprise-grade public surface for `runmycampus.com` with strict host clarity and measurable pipeline outcomes.
@@ -38,11 +38,12 @@ Build a clean, conversion-first, enterprise-grade public surface for `runmycampu
 3. `next` Add integration trust block with major categories (SIS, LMS, payments, messaging, identity).
 4. `next` Add public SLA and uptime trust references from observability stack.
 
-## Wave 4 (Optimization and Experimentation) - Later
-1. `later` Add A/B testing framework for hero copy and CTA ordering.
-2. `later` Add conversion event funnel dashboards (visit -> discovery -> signup -> activation).
-3. `later` Add evidence-driven copy variations by geo cluster and acquisition channel.
-4. `later` Introduce media optimization and lazy strategy for lighthouse budgets.
+## Wave 4 (Optimization and Experimentation)
+1. `done` A/B testing: hero/CTA variant in session (marketing_ab_variant); template shows variant B CTA order.
+2. `done` Marketing analytics: optional script via MARKETING_ANALYTICS_SCRIPT_URL (injected on landing extrahead).
+3. `later` Add conversion event funnel dashboards (visit -> discovery -> signup -> activation).
+4. `later` Add evidence-driven copy variations by geo cluster and acquisition channel.
+5. `later` Introduce media optimization and lazy strategy for lighthouse budgets.
 
 ## Acceptance Checklist
 1. Public routes remain marketing-only on apex host.

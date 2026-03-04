@@ -47,9 +47,13 @@ class SchoolAdmin(admin.ModelAdmin):
     raw_id_fields = (("plan",) if hasattr(School, "plan") else ()) + ("default_region", "parent_school")
 
     def _school_fieldsets():
+        # School location: canonical source is default_region (RegionConfig); timezone can follow region.
+        location_fields = ("default_region", "compliance_region", "timezone")
+        location_desc = "Country/region for currency, grading, and timezone. Pick from RegionConfig; Province (if needed) is optional per deployment."
         if _school_has_billing():
             return (
-                (None, {"fields": ("name", "slug", "subdomain", "sub_system", "is_active", "default_region", "compliance_region", "timezone")}),
+                (None, {"fields": ("name", "slug", "subdomain", "sub_system", "is_active")}),
+                ("School location", {"fields": location_fields, "description": location_desc}),
                 ("Plan & billing", {"fields": ("plan", "addons", "billing_type", "trial_end_date", "waiver_note")}),
                 ("Theme & branding", {"fields": _theme_branding_fields()}),
                 ("Settings (JSON)", {
@@ -60,7 +64,8 @@ class SchoolAdmin(admin.ModelAdmin):
                 ("Metadata", {"fields": ("id", "created_at", "updated_at")}),
             )
         return (
-            (None, {"fields": ("name", "slug", "subdomain", "sub_system", "is_active", "default_region", "compliance_region", "timezone")}),
+            (None, {"fields": ("name", "slug", "subdomain", "sub_system", "is_active")}),
+            ("School location", {"fields": location_fields, "description": location_desc}),
             ("Theme & branding", {"fields": _theme_branding_fields()}),
             ("Settings (JSON)", {"fields": ("settings", "features")}),
             ("Parent school", {"fields": ("parent_school", "hierarchy_path")}),

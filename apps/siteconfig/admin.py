@@ -54,8 +54,19 @@ from .models import (
     LearningPassport,
     BreakGlassOverride,
     BroadcastCampaign,
+    ProductFeedback,
+    MarketingContent,
+    BlogPost,
 )
-from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout, FeatureControlAudit
+from .models_dashboard import (
+    DashboardUserPreference,
+    DashboardWidget,
+    DashboardLayout,
+    DashboardTemplate,
+    TenantLayoutAssignment,
+    FeatureControlAudit,
+)
+from .models_workflow import WorkflowTemplate, TenantWorkflow
 from .context_processors import SESSION_KEY
 from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from apps.academics.models import AcademicYear
@@ -424,6 +435,8 @@ class SiteSettingsAdmin(ModelAdmin):
             "classes": ("tab",),
             "fields": (
                 "admission_number_mode",
+                "admission_number_strategy",
+                "admission_number_template",
                 "admission_number_pattern",
             )
         }),
@@ -1089,6 +1102,21 @@ class GradingScaleConfigInline(admin.TabularInline):
     grade_preview.short_description = "Grade Breakpoints"
 
 
+class EducationSystemProfileInline(admin.TabularInline):
+    """
+    Inline: Education systems for this region (Part 1 / Part 4 item 6).
+    Exposes EducationSystemProfile per RegionConfig in region UI.
+    """
+    model = EducationSystemProfile
+    extra = 0
+    fields = ("code", "name", "sub_system", "approval_status", "is_default", "is_active", "term_count_per_year", "grading_scale")
+    readonly_fields = ()
+    ordering = ("code",)
+    fk_name = "region"
+    verbose_name = "Education system (this region)"
+    verbose_name_plural = "Education systems for this region"
+
+
 class HolidayCalendarInline(admin.TabularInline):
     """
     Inline admin for holiday calendars within a region.
@@ -1175,7 +1203,7 @@ class RegionConfigAdmin(ModelAdmin):
         }),
     )
     
-    inlines = [GradingScaleConfigInline, HolidayCalendarInline]
+    inlines = [EducationSystemProfileInline, GradingScaleConfigInline, HolidayCalendarInline]
 
     actions = ['clone_region', 'validate_configuration', 'export_config']
 
@@ -2218,6 +2246,10 @@ admin_site.register(GlobalBrandRegistry, GlobalBrandRegistryAdmin)
 admin_site.register(DashboardUserPreference, DashboardUserPreferenceAdmin)
 admin_site.register(DashboardWidget, DashboardWidgetAdmin)
 admin_site.register(DashboardLayout, DashboardLayoutAdmin)
+admin_site.register(DashboardTemplate)
+admin_site.register(TenantLayoutAssignment)
+admin_site.register(WorkflowTemplate)
+admin_site.register(TenantWorkflow)
 
 
 class FeatureControlAuditAdmin(ModelAdmin):
@@ -2292,6 +2324,39 @@ admin_site.register(GlobalSyllabus, GlobalSyllabusAdmin)
 admin_site.register(LearningPassport, LearningPassportAdmin)
 admin_site.register(BreakGlassOverride, BreakGlassOverrideAdmin)
 admin_site.register(BroadcastCampaign, BroadcastCampaignAdmin)
+
+
+class ProductFeedbackAdmin(ModelAdmin):
+    list_display = ("title", "region", "module", "status", "upvotes", "created_at")
+    list_filter = ("status", "region", "module")
+    search_fields = ("title", "description")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ["-upvotes", "-created_at"]
+
+
+admin_site.register(ProductFeedback, ProductFeedbackAdmin)
+
+
+class MarketingContentAdmin(ModelAdmin):
+    list_display = ("key", "locale", "content_type", "updated_at")
+    list_filter = ("locale", "content_type")
+    search_fields = ("key", "content_html")
+    readonly_fields = ("updated_at",)
+
+
+admin_site.register(MarketingContent, MarketingContentAdmin)
+
+
+class BlogPostAdmin(ModelAdmin):
+    list_display = ("title", "slug", "is_published", "published_at", "created_at")
+    list_filter = ("is_published",)
+    search_fields = ("title", "excerpt", "body_html")
+    prepopulated_fields = {"slug": ("title",)}
+    readonly_fields = ("created_at", "updated_at")
+    date_hierarchy = "published_at"
+
+
+admin_site.register(BlogPost, BlogPostAdmin)
 
 
 # ============================================================================

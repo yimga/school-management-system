@@ -147,6 +147,8 @@ SITESETTINGS_FIELD_ORDER = [
     "report_preview_footer_note",
     "default_report_preview_type",
     "admission_number_mode",
+    "admission_number_strategy",
+    "admission_number_template",
     "admission_number_pattern",
     "default_grading_scale",
     # Theme
@@ -334,6 +336,8 @@ class SiteSettingsForm(forms.ModelForm):
         "custom_css": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
         "theme_pack": forms.Select(attrs={"class": "form-select"}),
         "admission_number_mode": forms.Select(attrs={"class": "form-select"}),
+        "admission_number_strategy": forms.Select(attrs={"class": "form-select"}),
+        "admission_number_template": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. {year_2digit}{school_code}{seq_4digit}{spec_code}{class_segment}"}),
         "admission_number_pattern": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g. {year}-{seq}"}),
         "default_grading_scale": forms.Select(attrs={"class": "form-select"}),
         "report_preview_contact_email": forms.EmailInput(attrs={"class": "form-control"}),

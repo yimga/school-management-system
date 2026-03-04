@@ -460,12 +460,9 @@ class StudentProfile(models.Model):
         classroom: Classroom,
     ) -> str:
         """
-        Build YY + SCHOOLCODE + #### + SPEC + CLASS (no dashes, no trailing F).
-        - YY: start year suffix from AcademicYear.name (first four digits -> last two)
-        - SCHOOLCODE: from SiteSettings.school_code (default GIL)
-        - ####: zero-padded sequence per academic year
-        - SPEC: Specialty.code
-        - CLASS: classroom segment (numeric tail or first two chars), digits only when available
+        Configurable generation (Part 1 / Part 4 item 8): use admission_number_template
+        if set (placeholders: year_2digit, school_code, seq_4digit, spec_code, class_segment),
+        else use admission_number_strategy (FULL, YEAR_SEQ, SEQ_ONLY). Keep pattern for validation.
         """
         SiteSettings = django_apps.get_model("siteconfig", "SiteSettings")
         settings = SiteSettings.get_solo()
@@ -479,10 +476,24 @@ class StudentProfile(models.Model):
 
         spec_segment = (specialty.code or "XX").upper()[:6] if specialty else "XX"
         class_segment = cls._class_segment(classroom)
-
-        # Remove non-alphanumerics to keep the ID compact and numeric-friendly at the tail.
         spec_segment = re.sub(r"[^A-Z0-9]", "", spec_segment)
         class_segment = re.sub(r"[^A-Z0-9]", "", class_segment)
+
+        template = (getattr(settings, "admission_number_template", None) or "").strip()
+        if template:
+            return template.format(
+                year_2digit=yy,
+                school_code=school_code,
+                seq_4digit=seq_str,
+                spec_code=spec_segment,
+                class_segment=class_segment,
+            )
+
+        strategy = getattr(settings, "admission_number_strategy", None) or "FULL"
+        if strategy == "YEAR_SEQ":
+            return f"{yy}{school_code}{seq_str}"
+        if strategy == "SEQ_ONLY":
+            return seq_str
 
         return f"{yy}{school_code}{seq_str}{spec_segment}{class_segment}"
 
@@ -1126,3 +1137,37 @@ class VocationalCertification(models.Model):
 
     def __str__(self):
         return f"{self.student} — {self.name} (expires {self.expiry_date})"
+
+
+# -----------------------------------------------------------------------------
+# Tenant audit log (Part 4.6) — INSERT-only; trigger or app-level writes
+# -----------------------------------------------------------------------------
+
+
+class TenantAuditLog(models.Model):
+    """
+    Per-tenant audit trail (one table per tenant schema). INSERT-only; use DB
+    permissions to revoke UPDATE/DELETE. Who/What/Where/When/Why + correlation_id.
+    Populated by app-level logging or PostgreSQL triggers (see docs/AUDIT_TRAIL_TRIGGER_BASED.md).
+    """
+    table_name = models.CharField(max_length=128)
+    record_id = models.CharField(max_length=255, blank=True)
+    action = models.CharField(max_length=16, choices=[("INSERT", "INSERT"), ("UPDATE", "UPDATE"), ("DELETE", "DELETE")])
+    old_values = models.JSONField(default=dict, blank=True)  # PII masking applied before write
+    new_values = models.JSONField(default=dict, blank=True)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    changed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    correlation_id = models.CharField(max_length=64, blank=True, db_index=True)
+    request_meta = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        db_table = "audit_log"
+        ordering = ["-changed_at"]
+        verbose_name = _("Audit log entry")
+        verbose_name_plural = _("Audit log")
