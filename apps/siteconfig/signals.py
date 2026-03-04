@@ -17,8 +17,15 @@ def get_changed_fields(instance):
     changes = {}
     for field in instance._meta.fields:
         fname = field.name
-        old_val = getattr(old, fname, None)
-        new_val = getattr(instance, fname, None)
+        # Use attname (DB column) so we never load related objects; avoids queries that
+        # select from related tables (e.g. finance_complianceprofile in tenant schemas
+        # where that table may lack columns from newer migrations).
+        attr = field.attname
+        try:
+            old_val = getattr(old, attr, None)
+            new_val = getattr(instance, attr, None)
+        except Exception:
+            continue
         if old_val != new_val:
             changes[fname] = (old_val, new_val)
     return changes
