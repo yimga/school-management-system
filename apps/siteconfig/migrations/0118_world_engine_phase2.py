@@ -13,26 +13,47 @@ def _col_exists_pg(cursor, table, column):
     return cursor.fetchone() is not None
 
 
+def _col_exists_sqlite(cursor, table, column):
+    cursor.execute("PRAGMA table_info(%s)" % table)
+    return any(row[1] == column for row in cursor.fetchall())
+
+
 def add_phase2_columns_if_missing(apps, schema_editor):
     conn = schema_editor.connection
-    if conn.vendor != "postgresql":
-        return
     with conn.cursor() as cursor:
-        if not _col_exists_pg(cursor, "siteconfig_countrymultiplier", "zone"):
+        if conn.vendor == "postgresql":
+            if not _col_exists_pg(cursor, "siteconfig_countrymultiplier", "zone"):
+                cursor.execute(
+                    "ALTER TABLE siteconfig_countrymultiplier ADD COLUMN zone varchar(1) NOT NULL DEFAULT ''"
+                )
+            if not _col_exists_pg(cursor, "siteconfig_customfeatureticket", "is_vip"):
+                cursor.execute(
+                    "ALTER TABLE siteconfig_customfeatureticket ADD COLUMN is_vip boolean NOT NULL DEFAULT false"
+                )
+            if not _col_exists_pg(cursor, "siteconfig_customfeatureticket", "upvote_count"):
+                cursor.execute(
+                    "ALTER TABLE siteconfig_customfeatureticket ADD COLUMN upvote_count integer NOT NULL DEFAULT 0"
+                )
             cursor.execute(
-                "ALTER TABLE siteconfig_countrymultiplier ADD COLUMN zone varchar(1) NOT NULL DEFAULT ''"
+                "CREATE INDEX IF NOT EXISTS siteconfig__is_vip_ae86c4_idx ON siteconfig_customfeatureticket (is_vip, upvote_count DESC)"
             )
-        if not _col_exists_pg(cursor, "siteconfig_customfeatureticket", "is_vip"):
+        else:
+            # SQLite (local/CI tests)
+            if not _col_exists_sqlite(cursor, "siteconfig_countrymultiplier", "zone"):
+                cursor.execute(
+                    "ALTER TABLE siteconfig_countrymultiplier ADD COLUMN zone varchar(1) NOT NULL DEFAULT ''"
+                )
+            if not _col_exists_sqlite(cursor, "siteconfig_customfeatureticket", "is_vip"):
+                cursor.execute(
+                    "ALTER TABLE siteconfig_customfeatureticket ADD COLUMN is_vip integer NOT NULL DEFAULT 0"
+                )
+            if not _col_exists_sqlite(cursor, "siteconfig_customfeatureticket", "upvote_count"):
+                cursor.execute(
+                    "ALTER TABLE siteconfig_customfeatureticket ADD COLUMN upvote_count integer NOT NULL DEFAULT 0"
+                )
             cursor.execute(
-                "ALTER TABLE siteconfig_customfeatureticket ADD COLUMN is_vip boolean NOT NULL DEFAULT false"
+                "CREATE INDEX IF NOT EXISTS siteconfig__is_vip_ae86c4_idx ON siteconfig_customfeatureticket (is_vip, upvote_count DESC)"
             )
-        if not _col_exists_pg(cursor, "siteconfig_customfeatureticket", "upvote_count"):
-            cursor.execute(
-                "ALTER TABLE siteconfig_customfeatureticket ADD COLUMN upvote_count integer NOT NULL DEFAULT 0"
-            )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS siteconfig__is_vip_ae86c4_idx ON siteconfig_customfeatureticket (is_vip, upvote_count DESC)"
-        )
 
 
 def noop(apps, schema_editor):
