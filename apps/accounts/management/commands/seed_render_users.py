@@ -1,8 +1,12 @@
 """
-Create or update admin, teacher1, and Parent1 with the same password.
+Ensure platform super-admin (admin/admin) and optionally seed tenant demo users.
 Use as Release Command on Render so login works after every deploy.
 
-Requires ADMIN_PASSWORD in environment. Example Release Command:
+- Super-admin: always created/updated with username=admin, password=admin (platform only).
+- Tenant demo users (teacher1, Parent1, principal1): created only when ADMIN_PASSWORD is set;
+  that password is used for tenant users only (not for admin). Platform and tenants do not share credentials.
+
+Example Release Command:
   python manage.py migrate --noinput && python manage.py seed_render_users
 """
 import os
@@ -11,30 +15,46 @@ from django.core.management import BaseCommand, call_command
 
 class Command(BaseCommand):
     help = (
-        "Create/update admin, teacher1, and Parent1 using ADMIN_PASSWORD. "
-        "Use after migrate in Render Release Command."
+        "Ensure super-admin admin/admin (platform). If ADMIN_PASSWORD is set, also create/update "
+        "tenant demo users (teacher1, Parent1, principal1) with that password. Use after migrate in Render."
     )
 
     def handle(self, *args, **options):
-        password = (os.environ.get("ADMIN_PASSWORD") or "").strip()
-        if not password:
-            self.stderr.write(
-                self.style.ERROR(
-                    "ADMIN_PASSWORD is not set. Set it in Render Environment and redeploy."
-                )
-            )
-            return
-        call_command("ensure_superuser", "--no-input", "--password", password, verbosity=1)
+        # 1. Always ensure platform super-admin: username=admin, password=admin (no env override)
         call_command(
-            "create_teacher_parent_accounts",
-            "--teacher-username", "teacher1",
-            "--parent-username", "Parent1",
-            "--principal-username", "principal1",
-            "--password", password,
-            verbosity=1,
+            "ensure_superuser",
+            "--username", "admin",
+            "--password", "admin",
+            "--email", "admin@example.com",
+            "--no-input",
+            verbosity=options.get("verbosity", 1),
         )
         self.stdout.write(
             self.style.SUCCESS(
-                "Seed users ready. Log in with admin, teacher1, Parent1, or principal1 / your ADMIN_PASSWORD."
+                "Super-admin ready: log in with admin / admin at /authentication/login/ or /super/."
             )
         )
+
+        # 2. Tenant demo users: only when ADMIN_PASSWORD is set (separate credential)
+        tenant_password = (os.environ.get("ADMIN_PASSWORD") or "").strip()
+        if tenant_password:
+            call_command(
+                "create_teacher_parent_accounts",
+                "--teacher-username", "teacher1",
+                "--parent-username", "Parent1",
+                "--principal-username", "principal1",
+                "--password", tenant_password,
+                verbosity=options.get("verbosity", 1),
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Tenant demo users (teacher1, Parent1, principal1) ready; password from ADMIN_PASSWORD."
+                )
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(
+                    "ADMIN_PASSWORD not set; tenant demo users (teacher1, Parent1, principal1) not created. "
+                    "Set ADMIN_PASSWORD in Render Environment to seed them."
+                )
+            )

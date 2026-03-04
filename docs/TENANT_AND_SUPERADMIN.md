@@ -22,9 +22,11 @@ When you use **runmycampus.com** (or the main domain), the app treats that as th
 
 Super-admin is the dashboard at **/super/** (tenant list, provisioning, health). It is intended to be used on the **manager** host, e.g. **manager.runmycampus.com/super/**.
 
-### Create admin user (only if it does not exist)
+### Create or ensure admin user
 
-To get a superuser that can access Super-admin **without changing any existing user or tenant**:
+On Render, **seed_render_users** (run on every predeploy) ensures the platform super-admin **admin** / **admin**. It does not use `ADMIN_PASSWORD` for the admin account; that env var is used only for tenant demo users (teacher1, Parent1, principal1).
+
+To create the super-admin **only if** no user with username **admin** exists (no overwrite):
 
 ```bash
 python manage.py ensure_superadmin

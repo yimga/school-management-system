@@ -48,14 +48,13 @@ python manage.py ensure_superuser --no-input
 
 **Option C — Render / deploy (seed admin + demo users):**
 ```bash
-# Requires ADMIN_PASSWORD in environment
 python manage.py migrate --noinput && python manage.py seed_render_users
 ```
-This creates/updates: superuser `admin`, plus `teacher1`, `Parent1`, `principal1` all with the same password (`ADMIN_PASSWORD`). Log in with any of those usernames.
+This always ensures platform super-admin **admin** / **admin**. If `ADMIN_PASSWORD` is set in environment, it also creates/updates **teacher1**, **Parent1**, **principal1** with that password (tenant demo users only). Platform and tenants do not share credentials: admin is always admin/admin; tenant users use ADMIN_PASSWORD.
 
 ### Defaults (DEBUG only)
 
-If you run `ensure_superuser` with **no** password and `DEBUG=True`, the command uses a fallback password **`Sch00l_1234`** and warns you to change it. In production, always set `ADMIN_PASSWORD` or use `createsuperuser`.
+If you run `ensure_superuser` with **no** password and `DEBUG=True`, the command uses a fallback password **`Sch00l_1234`** and warns you to change it. In production, use `--password admin` for platform admin or set `ADMIN_PASSWORD` only for tenant seed (see seed_render_users).
 
 ### Where to log in
 

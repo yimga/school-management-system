@@ -67,11 +67,8 @@ if [[ "${RUN_INTEGRATION_PREFLIGHT:-1}" == "1" ]]; then
   run "${PYTHON_BIN}" manage.py integration_preflight
 fi
 
-if [[ -n "${ADMIN_PASSWORD:-}" ]]; then
-  run "${PYTHON_BIN}" manage.py seed_render_users
-else
-  echo "[predeploy] ADMIN_PASSWORD not set; skipping seed_render_users."
-fi
+# Always run seed_render_users: ensures super-admin admin/admin. Tenant demo users (teacher1, Parent1, principal1) are created only when ADMIN_PASSWORD is set.
+run "${PYTHON_BIN}" manage.py seed_render_users
 
 # Collect static files (required for WhiteNoise/serving)
 run "${PYTHON_BIN}" manage.py collectstatic --noinput --clear

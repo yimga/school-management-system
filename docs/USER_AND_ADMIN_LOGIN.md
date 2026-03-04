@@ -22,11 +22,12 @@ python manage.py ensure_superuser
 ```
 
 - With no options, in DEBUG it creates user `admin` with password `Sch00l_1234`.
-- To set your own password:  
-  `python manage.py ensure_superuser --username admin --password YourSecurePassword`
-- Or use env: `ADMIN_PASSWORD=YourSecurePassword python manage.py ensure_superuser --no-input`
+- For platform super-admin (admin/admin):  
+  `python manage.py ensure_superuser --username admin --password admin --no-input`
+- To set a different password:  
+  `python manage.py ensure_superuser --username admin --password YourSecurePassword --no-input`
 
-Then log in at `/authentication/login/` or `/admin/login/` with that username and password.
+Then log in at `/authentication/login/` or `/admin/login/` with that username and password. On Render, `seed_render_users` ensures admin/admin; `ADMIN_PASSWORD` is used only for tenant demo users (teacher1, Parent1, principal1), not for admin.
 
 ### 2. Users exist but no superuser / admin access
 

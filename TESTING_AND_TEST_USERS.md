@@ -35,10 +35,20 @@ Use this for quick local testing with three accounts.
 # 1. Migrate (if not already done)
 python manage.py migrate --noinput
 
-# 2. Create superuser (admin)
-python manage.py ensure_superuser --no-input --password Sch00l_1234
+# 2. Ensure platform admin (admin/admin) and optionally tenant demo users
+python manage.py seed_render_users
+```
 
-# 3. Create teacher, parent, and principal (same password as you like)
+If you want tenant demo users with a specific password, set it when running the command:
+
+```bash
+ADMIN_PASSWORD=Sch00l_1234 python manage.py seed_render_users
+```
+
+Or run the commands separately (platform admin vs tenant users use different passwords):
+
+```bash
+python manage.py ensure_superuser --no-input --username admin --password admin
 python manage.py create_teacher_parent_accounts --teacher-username teacher1 --parent-username Parent1 --principal-username principal1 --password Sch00l_1234
 ```
 
@@ -46,20 +56,14 @@ python manage.py create_teacher_parent_accounts --teacher-username teacher1 --pa
 
 | Username | Password | Role |
 |----------|----------|------|
-| **admin** | Sch00l_1234 | Superuser |
-| **teacher1** | Sch00l_1234 | Teacher |
-| **Parent1** | Sch00l_1234 | Parent |
-| **principal1** | Sch00l_1234 | Principal |
+| **admin** | admin (platform super-admin) | Superuser |
+| **teacher1** | From ADMIN_PASSWORD or --password above | Teacher |
+| **Parent1** | From ADMIN_PASSWORD or --password above | Parent |
+| **principal1** | From ADMIN_PASSWORD or --password above | Principal |
 
 - Log in at **/authentication/login/** or **/admin/**.
 - Exact usernames: `admin`, `teacher1`, `Parent1`, `principal1` (case-sensitive).
-
-To use a different password (e.g. from env):
-
-```bash
-ADMIN_PASSWORD=YourSecret python manage.py ensure_superuser --no-input
-python manage.py create_teacher_parent_accounts --teacher-username teacher1 --parent-username Parent1 --password YourSecret
-```
+- Platform admin is always **admin** / **admin**; tenant users have a separate password (ADMIN_PASSWORD or the one you pass to create_teacher_parent_accounts).
 
 ---
 
@@ -67,18 +71,13 @@ python manage.py create_teacher_parent_accounts --teacher-username teacher1 --pa
 
 On Render, test users are created by the **preDeployCommand** (or Release Command), not by you manually.
 
-1. In **Render Dashboard** → your service → **Environment**, set **ADMIN_PASSWORD** (e.g. a strong secret). This is required for seed.
-2. Set **Release Command** (or preDeployCommand in Blueprint) to:
-   ```bash
-   python manage.py migrate --noinput && python manage.py seed_render_users
-   ```
-3. Deploy. After each deploy, **seed_render_users** runs and creates or updates:
-   - **admin** (superuser) – password = `ADMIN_PASSWORD`
-   - **teacher1** (teacher) – password = `ADMIN_PASSWORD`
-   - **Parent1** (parent) – password = `ADMIN_PASSWORD`
-   - **principal1** (principal) – password = `ADMIN_PASSWORD`
+1. **Release Command** (or preDeployCommand in Blueprint) should run `seed_render_users` (e.g. via `./scripts/release/render_predeploy.sh`).
+2. Deploy. After each deploy, **seed_render_users** runs and:
+   - Always ensures **admin** (superuser) with password **admin** (platform super-admin). No env var required for platform login.
+   - If **ADMIN_PASSWORD** is set in Render Dashboard → Environment, also creates/updates **teacher1**, **Parent1**, **principal1** with that password (tenant demo users only).
+3. Log in at `/authentication/login/` or `/super/` with **admin** / **admin**. For tenant demo users, use teacher1, Parent1, or principal1 with the value of `ADMIN_PASSWORD`.
 
-If credentials disappear (e.g. ephemeral DB or new DB), set `ADMIN_PASSWORD` and redeploy so `seed_render_users` runs again. See **docs/CREDENTIALS_AND_RESTORE.md** and **docs/CONFIG_AND_USERNAMES_REFERENCE.md**.
+If credentials disappear (e.g. ephemeral DB or new DB), redeploy; `seed_render_users` will ensure admin/admin again. Set `ADMIN_PASSWORD` only if you want tenant demo users. See **docs/CREDENTIALS_AND_RESTORE.md** and **docs/CONFIG_AND_USERNAMES_REFERENCE.md**.
 
 ---
 
@@ -123,7 +122,7 @@ For **real-world testing** of the dual-curriculum (General + Technical), report 
 |------|--------|
 | Superuser (admin) | `apps/accounts/management/commands/ensure_superuser.py` |
 | Teacher + parent + principal (teacher1, Parent1, principal1) | `apps/accounts/management/commands/create_teacher_parent_accounts.py` |
-| Render seed (admin + teacher1 + Parent1) | `apps/accounts/management/commands/seed_render_users.py` (calls ensure_superuser + create_teacher_parent_accounts) |
+| Render seed (admin/admin + optional tenant users) | `apps/accounts/management/commands/seed_render_users.py` (ensures admin/admin; creates teacher1, Parent1, principal1 when ADMIN_PASSWORD set) |
 | Full Buea synthetic data | `apps/academics/management/commands/seed_buea_synthetic.py` |
 
 ---

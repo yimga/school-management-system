@@ -27,6 +27,10 @@ class Command(BaseCommand):
             email="admin@example.com",
             password="admin",
         )
+        admin_user = User.objects.get(username="admin")
+        if getattr(User, "Role", None) is not None and hasattr(User.Role, "SUPERADMIN"):
+            admin_user.role = User.Role.SUPERADMIN
+            admin_user.save(update_fields=["role"])
         self.stdout.write(
             self.style.SUCCESS(
                 "Superuser 'admin' created (password: admin). "
