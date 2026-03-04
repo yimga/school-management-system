@@ -8,6 +8,8 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import OperationalError, ProgrammingError
 
+from apps.siteconfig.models import ThemePack
+
 
 class Command(BaseCommand):
     help = "Import a UI parity fixture (ThemePack + SiteSettings) and normalize defaults."
@@ -53,6 +55,7 @@ class Command(BaseCommand):
             self._import_per_tenant(data, input_path, options)
         else:
             self._ensure_dependencies(data)
+            self._clear_themepack_default_before_load()
             call_command("loaddata", str(input_path))
             if not options["skip_normalize"]:
                 call_command("normalize_ui_config")
@@ -73,9 +76,16 @@ class Command(BaseCommand):
             self.stdout.write(f"Importing into tenant: {schema!r} ({client.name})")
             with tenant_context(client):
                 self._ensure_dependencies(data)
+                self._clear_themepack_default_before_load()
                 call_command("loaddata", str(input_path))
                 if not options.get("skip_normalize"):
                     call_command("normalize_ui_config")
+
+    def _clear_themepack_default_before_load(self) -> None:
+        """Clear is_default on all ThemePacks so loaddata can set the fixture's default without violating the single-default constraint."""
+        updated = ThemePack.objects.filter(is_default=True).update(is_default=False)
+        if updated:
+            self.stdout.write(f"Cleared is_default on {updated} ThemePack(s) before load.")
 
     def _ensure_dependencies(self, data: list[dict]) -> None:
         """Create required FK rows that may be missing in fresh/local databases."""

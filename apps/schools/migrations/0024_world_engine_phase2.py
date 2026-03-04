@@ -20,6 +20,9 @@ def _column_exists_sqlite(cursor, table, column):
 
 
 def add_jit_fields_if_missing(apps, schema_editor):
+    # Use AUTH_USER_MODEL table name (e.g. accounts_user), not auth_user
+    User = apps.get_model(*settings.AUTH_USER_MODEL.split("."))
+    user_table = User._meta.db_table
     conn = schema_editor.connection
     table = "schools_school"
     with conn.cursor() as cursor:
@@ -37,7 +40,9 @@ def add_jit_fields_if_missing(apps, schema_editor):
                     DO $$ BEGIN
                       IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'schools_school_impersonation_consent_granted_by_id_fkey') THEN
                         ALTER TABLE schools_school ADD CONSTRAINT schools_school_impersonation_consent_granted_by_id_fkey
-                        FOREIGN KEY (impersonation_consent_granted_by_id) REFERENCES auth_user(id) ON DELETE SET NULL;
+                        FOREIGN KEY (impersonation_consent_granted_by_id) REFERENCES """
+                    + user_table
+                    + """(id) ON DELETE SET NULL;
                       END IF;
                     END $$
                     """
@@ -49,7 +54,8 @@ def add_jit_fields_if_missing(apps, schema_editor):
                 )
             if not _column_exists_sqlite(cursor, table, "impersonation_consent_granted_by_id"):
                 cursor.execute(
-                    "ALTER TABLE schools_school ADD COLUMN impersonation_consent_granted_by_id integer NULL REFERENCES auth_user(id) ON DELETE SET NULL"
+                    "ALTER TABLE schools_school ADD COLUMN impersonation_consent_granted_by_id integer NULL REFERENCES %s(id) ON DELETE SET NULL"
+                    % user_table
                 )
 
 
