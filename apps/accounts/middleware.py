@@ -294,3 +294,29 @@ class RequireMFAMiddleware:
         # Expired or invalid
         request.session.pop("mfa_verified_until", None)
         return False
+
+
+class ImpossibleTravelMiddleware:
+    """
+    World Engine: single trigger point for impossible-travel check after login.
+    Login view sets request._post_login_user = user; this middleware runs in
+    process_response and calls check_impossible_travel(request, user).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        user = getattr(request, "_post_login_user", None)
+        if user is not None:
+            try:
+                del request._post_login_user
+            except AttributeError:
+                pass
+            try:
+                from apps.accounts.security_audit import check_impossible_travel
+                check_impossible_travel(request, user)
+            except Exception:
+                logger.exception("ImpossibleTravelMiddleware: check_impossible_travel failed")
+        return response

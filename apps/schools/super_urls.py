@@ -28,4 +28,7 @@ urlpatterns = [
     path("support/queue/", super_views.support_queue_fragment, name="support_queue_fragment"),
     path("switch-to-tenant/", super_views.switch_to_tenant, name="switch_to_tenant"),
     path("sync-repair/<uuid:school_id>/", super_views.sync_repair, name="sync_repair"),
+    path("ai-model-hub/", super_views.ai_model_hub, name="ai_model_hub"),
+    path("global-ai-version/", super_views.global_ai_version, name="global_ai_version"),
+    path("global-ai-version/progress/<str:run_id>/", super_views.global_ai_version_progress, name="global_ai_version_progress"),
 ]

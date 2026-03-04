@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 
 from .views import (
     branding_api,
+    workflow_clues_api,
     maintenance_view,
     customizer,
     grading_settings,
@@ -39,6 +40,7 @@ from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import sync_center, sync_center_resolve
 from .views_school_theme import school_theme_settings
 from .views_tag_manager import tag_manager, tag_manager_edit
+from .views_impersonation_consent import grant_impersonation_consent, revoke_impersonation_consent
 from apps.schools.views_domains import custom_domain_wizard
 
 app_name = "siteconfig"
@@ -80,4 +82,7 @@ urlpatterns = [
     path("tag-manager/<int:tag_id>/", tag_manager_edit, name="tag_manager_edit"),
     path("domains/", custom_domain_wizard, name="custom_domain_wizard"),
     path("api/branding/", branding_api, name="branding_api"),
+    path("api/workflow-clues/", workflow_clues_api, name="workflow_clues_api"),
+    path("impersonation-consent/grant/", grant_impersonation_consent, name="grant_impersonation_consent"),
+    path("impersonation-consent/revoke/", revoke_impersonation_consent, name="revoke_impersonation_consent"),
 ]

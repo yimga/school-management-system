@@ -20,21 +20,30 @@ logger = logging.getLogger(__name__)
 def get_tenant_modules(school) -> list[str]:
     """
     Return deduplicated list of feature/module codes enabled for the tenant.
+    Single source: (1) manifest required_apps for school.school_type (merged with inherits),
+    (2) union with TenantSystem + SystemFeature + config.enabled_features.
 
-    (1) Load all system_ids for the school from TenantSystem.
-    (2) Load all feature_keys from SystemFeature for those systems.
-    (3) Also include enabled_features from each system's config JSON.
-    (4) Return sorted unique list.
-
-    Schools with no TenantSystem rows (legacy) are handled by callers that fall back
-    to EducationSystemProfile.for_school() and optional backfill.
+    Schools with no TenantSystem rows (legacy) still get manifest required_apps when school_type is set.
     """
     if school is None:
         return []
+    keys = set()
+
+    # (1) Module manifest: required_apps for school_type (World Engine E.2)
+    try:
+        from apps.siteconfig.module_manifest import get_school_type_config
+        school_type = getattr(school, "school_type", None) or "BASE_SCHOOL"
+        cfg = get_school_type_config(school_type)
+        for app in (cfg.get("required_apps") or []):
+            if app and isinstance(app, str):
+                keys.add(app.strip().lower())
+    except Exception:
+        pass
+
     try:
         from apps.siteconfig.models import TenantSystem, SystemFeature, EducationSystemProfile
     except ImportError:
-        return []
+        return sorted(keys)
 
     system_ids = list(
         TenantSystem.objects.filter(school=school)
@@ -42,7 +51,7 @@ def get_tenant_modules(school) -> list[str]:
         .distinct()
     )
     if not system_ids:
-        return []
+        return sorted(keys)
 
     # From SystemFeature table
     keys_from_table = set(
@@ -50,8 +59,7 @@ def get_tenant_modules(school) -> list[str]:
         .values_list("feature_key", flat=True)
         .distinct()
     )
-    # Normalize to lowercase for consistency
-    keys_from_table = {str(k).strip().lower() for k in keys_from_table if k}
+    keys |= {str(k).strip().lower() for k in keys_from_table if k}
 
     # From config.enabled_features on each profile
     profiles = EducationSystemProfile.objects.filter(id__in=system_ids).only("config")
@@ -62,11 +70,11 @@ def get_tenant_modules(school) -> list[str]:
             if isinstance(enabled, list):
                 for item in enabled:
                     if isinstance(item, str) and item.strip():
-                        keys_from_table.add(item.strip().lower())
+                        keys.add(item.strip().lower())
                     elif isinstance(item, dict) and item.get("code"):
-                        keys_from_table.add(str(item["code"]).strip().lower())
+                        keys.add(str(item["code"]).strip().lower())
 
-    return sorted(keys_from_table)
+    return sorted(keys)
 
 
 def get_compliance_region(school) -> str | None:

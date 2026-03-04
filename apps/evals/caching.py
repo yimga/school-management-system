@@ -10,11 +10,13 @@ from decimal import Decimal
 from apps.academics.models import AcademicYear, Term
 from apps.evals.models import Evaluation
 from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
 
 def get_cache_key(subject_id=None, classroom_id=None, year_id=None, term_id=None):
-    """Generate cache key for rankings."""
-    return f"rankings_{subject_id}_{classroom_id}_{year_id}_{term_id}"
+    """Generate cache key for rankings (tenant-scoped to avoid cross-tenant leakage)."""
+    prefix = get_tenant_cache_prefix(None)
+    return f"{prefix}:rankings_{subject_id}_{classroom_id}_{year_id}_{term_id}"
 
 
 def get_cached_rankings(year_id=None, term_id=None, subject_id=None, classroom_id=None, force_refresh=False):
@@ -95,7 +97,8 @@ def invalidate_rankings_cache(year_id=None, term_id=None, subject_id=None, class
     """Invalidate cache for specific rankings."""
     if not year_id and not term_id:
         # Invalidate all rankings caches
-        cache.delete_pattern('rankings_*')
+        prefix = get_tenant_cache_prefix(None)
+        cache.delete_pattern(f"{prefix}:rankings_*")
     else:
         cache_key = get_cache_key(subject_id, classroom_id, year_id, term_id)
         cache.delete(cache_key)

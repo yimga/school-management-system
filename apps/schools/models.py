@@ -7,6 +7,9 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+# Avoid shadowing by School.settings JSONField when referencing AUTH_USER_MODEL in FKs.
+_AUTH_USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "accounts.User")
+
 
 def is_feature_enabled(school, code: str) -> bool:
     """
@@ -168,6 +171,13 @@ class School(models.Model):
         blank=True,
         help_text="Additional feature codes beyond plan (e.g. ['design_studio', 'inventory'])",
     )
+    school_type = models.CharField(
+        max_length=32,
+        default="BASE_SCHOOL",
+        blank=True,
+        db_index=True,
+        help_text="School type from module manifest (BASE_SCHOOL, TECHNICAL_COLLEGE, STEM_ACADEMY). Determines required_apps and UI skin.",
+    )
     class BillingType(models.TextChoices):
         REGULAR = "REGULAR", "Regular (paying)"
         FREE_TRIAL = "FREE_TRIAL", "Free trial"
@@ -229,6 +239,37 @@ class School(models.Model):
         default=ComplianceRegion.NONE,
         blank=True,
         help_text="Compliance region for data privacy: EU (GDPR), US (FERPA), Nigeria (NDPR). Affects masking, retention, consent.",
+    )
+    # World Engine: optional JSON branding (primary, accent, font) → CSS vars --primary, --accent for tenant surfaces.
+    branding_metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optional: {\"primary\": \"#hex\", \"accent\": \"#hex\", \"font\": \"Family, sans-serif\"}. Maps to --primary, --accent in tenant CSS.",
+    )
+    # World Engine: data sovereignty / scaling — region cluster and optional dedicated DB.
+    regional_cluster = models.CharField(
+        max_length=63,
+        blank=True,
+        help_text="Optional: region cluster for DB routing (e.g. eu, apac). Used with multi-DB router.",
+    )
+    dedicated_db_alias = models.CharField(
+        max_length=63,
+        blank=True,
+        help_text="Optional: dedicated DB alias for mega-schools (10k+ students). Super Admin can set.",
+    )
+    # JIT (Just-In-Time): principal/school admin consent required before super-admin can impersonate (195-country governance).
+    impersonation_consent_granted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When set, principal/school admin has consented to RunMyCampus support impersonation (JIT).",
+    )
+    impersonation_consent_granted_by = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        help_text="User (e.g. principal) who granted impersonation consent.",
     )
 
     class Meta:

@@ -28,6 +28,12 @@ class Client(TenantMixin):
         help_text="Existing School record in public schema",
     )
     created_on = models.DateField(auto_now_add=True)
+    # World Engine: optional DB alias for regional/dedicated instance (router selects DB by this).
+    db_alias = models.CharField(
+        max_length=63,
+        blank=True,
+        help_text="Optional: database alias for this tenant (e.g. region_eu, dedicated_xyz). Leave blank for default.",
+    )
     auto_create_schema = True
     auto_drop_schema = False
 

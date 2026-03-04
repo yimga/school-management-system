@@ -14,6 +14,7 @@ from django.db.models import Q, Count, F, Max, Case, When, Value, CharField, Flo
 from django.db.models import Prefetch
 
 from apps.academics.models import Term, Classroom, AcademicYear
+from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 from apps.people.models import StudentProfile
 
 from .models import Evaluation, MockExamSetting
@@ -41,11 +42,12 @@ class RankingCache:
 
     @staticmethod
     def get_cache_key(term: Term, classroom: Optional[Classroom] = None, use_mock_blending: bool = False) -> str:
-        """Generate cache key for rankings."""
+        """Generate cache key for rankings (tenant-scoped to avoid cross-tenant leakage)."""
+        prefix = get_tenant_cache_prefix(None)
         mock_suffix = ":mock" if use_mock_blending else ""
         if classroom:
-            return f"ranking:term:{term.id}:class:{classroom.id}{mock_suffix}"
-        return f"ranking:term:{term.id}:school{mock_suffix}"
+            return f"{prefix}:ranking:term:{term.id}:class:{classroom.id}{mock_suffix}"
+        return f"{prefix}:ranking:term:{term.id}:school{mock_suffix}"
 
     @staticmethod
     def get_rankings(

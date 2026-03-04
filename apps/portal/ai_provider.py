@@ -9,6 +9,10 @@ a tenant has explicitly approved use of the paid API.
 
 `metadata` is intentionally not appended to model prompts so tenant identifiers
 or internal IDs are not sent to external providers.
+
+Sync vs async: Use generate_ai_response (sync) for single-turn copilot only. For bulk
+or long-running (syllabus sync, bulk support suggestion, report-card remarks), use
+apps.portal.tasks.generate_ai_response_async and poll cache key ai:async_result:{task_id}.
 """
 from __future__ import annotations
 
@@ -87,32 +91,22 @@ def _gemini_model() -> str:
     ).strip()
 
 
-def _call_ollama(prompt: str) -> str | None:
-    endpoint, model = _ollama_config()
-    if not endpoint or not model:
-        return None
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "stream": False,
-    }
-    request = urllib.request.Request(
-        endpoint,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=_request_timeout_seconds()) as response:
-            body = json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError:
-        return None
-    except Exception:
-        logger.exception("Ollama call failed")
-        return None
+def _call_ollama(prompt: str, metadata: dict[str, Any] | None = None) -> str | None:
+    """
+    Single Ollama entry point: delegates to OllamaInferenceService (region, dossier, cache, fallback).
+    Resolves school/tenant/country from metadata; no direct HTTP here (F.1).
+    """
+    from services.inference import OllamaInferenceService
 
-    text = str(body.get("response") or "").strip()
-    return text or None
+    md = metadata or {}
+    text, _meta = OllamaInferenceService.infer(
+        system_prompt="",
+        user_prompt=prompt,
+        request=md.get("request"),
+        school=md.get("school"),
+        country_code=md.get("country_code"),
+    )
+    return text
 
 
 def _call_gemini(prompt: str) -> str | None:
@@ -224,7 +218,7 @@ def generate_ai_response(
     errors: dict[str, str] = {}
     for provider in _provider_preference():
         if provider == "ollama":
-            text = _call_ollama(prompt)
+            text = _call_ollama(prompt, metadata=_)
             if text:
                 return text, {"provider": "ollama", "errors": errors}
             errors["ollama"] = "unavailable"
@@ -254,3 +248,51 @@ def generate_ai_response(
             "fallback": False,
         },
     )
+
+
+def get_workflow_clues(workflow_key: str, country_code: str) -> tuple[str | None, dict[str, Any]]:
+    """
+    World Engine: workflow setup suggestions by country. Delegates to OllamaInferenceService with country_code.
+    Returns (suggestions_text, metadata). Use for onboarding/setup wizards.
+    """
+    prompt = (
+        f"Brief setup suggestions for the school workflow '{workflow_key}' in country code '{country_code}'. "
+        "List 3–5 short, actionable tips (local regulations, common practices, or checklist items). "
+        "Keep the response under 400 words."
+    )
+    text = _call_ollama(prompt, metadata={"country_code": country_code})
+    if text:
+        return text.strip(), {"provider": "ollama"}
+    return None, {"provider": "ollama", "error": "unavailable"}
+
+
+def suggest_support_ticket_response(
+    subject: str,
+    body: str,
+    *,
+    country_code: str | None = None,
+    school: Any = None,
+) -> tuple[dict | None, dict]:
+    """
+    World Engine: FAISS/Llama support-ticket agent — suggest category/priority/response from ticket text.
+    Delegates to OllamaInferenceService. Pass country_code/school for regional dossier.
+    Returns (suggestions_dict, meta). suggestions_dict can include category, priority, suggested_reply.
+    """
+    prompt = (
+        f"Support ticket — Subject: {subject[:200]}. Body: {body[:800]}.\n"
+        "Respond with a short JSON only: {\"category\": \"...\", \"priority\": \"LOW|NORMAL|HIGH|URGENT\", \"suggested_reply\": \"...\"}. "
+        "Keep suggested_reply under 200 words."
+    )
+    text = _call_ollama(prompt, metadata={"country_code": country_code, "school": school})
+    if not text:
+        return None, {"provider": "ollama", "error": "unavailable"}
+    import json
+    try:
+        # Extract JSON from response (in case Ollama adds prose)
+        start = text.find("{")
+        end = text.rfind("}") + 1
+        if start >= 0 and end > start:
+            return json.loads(text[start:end]), {"provider": "ollama"}
+    except Exception:
+        pass
+    return {"suggested_reply": text.strip()[:500]}, {"provider": "ollama"}

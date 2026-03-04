@@ -1,6 +1,7 @@
 """
 Phase 8 Task 3: Performance Optimization
-Database optimization, caching strategies, and query optimization
+Database optimization, caching strategies, and query optimization.
+World Engine F.2: All cache keys are tenant-prefixed via get_tenant_cache_prefix().
 """
 
 from django.db import models, connection
@@ -12,45 +13,58 @@ import hashlib
 import json
 
 
+def _tenant_prefix():
+    """Tenant-scoped cache key prefix (F.2)."""
+    try:
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+        return get_tenant_cache_prefix()
+    except Exception:
+        return "public"
+
+
 class CacheManager:
-    """Centralized cache management"""
-    
-    # Cache keys
-    STUDENT_GRADES_KEY = 'student_grades_{student_id}'
-    CLASS_STATS_KEY = 'class_stats_{class_id}'
-    TEACHER_WORKLOAD_KEY = 'teacher_workload_{teacher_id}'
-    EVALUATION_RESULTS_KEY = 'eval_results_{eval_id}'
-    
+    """Centralized cache management. Keys are tenant-prefixed for multi-tenant safety (F.2)."""
+
+    # Base key patterns (tenant prefix prepended at runtime)
+    STUDENT_GRADES_KEY = "student_grades_{student_id}"
+    CLASS_STATS_KEY = "class_stats_{class_id}"
+    TEACHER_WORKLOAD_KEY = "teacher_workload_{teacher_id}"
+    EVALUATION_RESULTS_KEY = "eval_results_{eval_id}"
+
     CACHE_TIMEOUT = 3600  # 1 hour default
-    
+
+    @classmethod
+    def _key(cls, pattern, **kwargs):
+        return f"{_tenant_prefix()}:{pattern.format(**kwargs)}"
+
     @classmethod
     def get_student_grades(cls, student_id):
         """Get cached student grades"""
-        key = cls.STUDENT_GRADES_KEY.format(student_id=student_id)
+        key = cls._key(cls.STUDENT_GRADES_KEY, student_id=student_id)
         return cache.get(key)
-    
+
     @classmethod
     def set_student_grades(cls, student_id, grades, timeout=None):
         """Cache student grades"""
-        key = cls.STUDENT_GRADES_KEY.format(student_id=student_id)
+        key = cls._key(cls.STUDENT_GRADES_KEY, student_id=student_id)
         cache.set(key, grades, timeout or cls.CACHE_TIMEOUT)
-    
+
     @classmethod
     def invalidate_student_cache(cls, student_id):
         """Invalidate student cache"""
-        key = cls.STUDENT_GRADES_KEY.format(student_id=student_id)
+        key = cls._key(cls.STUDENT_GRADES_KEY, student_id=student_id)
         cache.delete(key)
-    
+
     @classmethod
     def get_class_statistics(cls, class_id):
         """Get cached class statistics"""
-        key = cls.CLASS_STATS_KEY.format(class_id=class_id)
+        key = cls._key(cls.CLASS_STATS_KEY, class_id=class_id)
         return cache.get(key)
-    
+
     @classmethod
     def set_class_statistics(cls, class_id, stats, timeout=None):
         """Cache class statistics"""
-        key = cls.CLASS_STATS_KEY.format(class_id=class_id)
+        key = cls._key(cls.CLASS_STATS_KEY, class_id=class_id)
         cache.set(key, stats, timeout or cls.CACHE_TIMEOUT)
 
 
@@ -206,17 +220,17 @@ class ConnectionPooling:
 
 
 class QueryCaching:
-    """Query-level caching for expensive operations"""
-    
+    """Query-level caching for expensive operations. Keys are tenant-prefixed (F.2)."""
+
     @staticmethod
     def cache_query_result(query_hash, result, timeout=3600):
         """Cache expensive query results"""
-        cache.set(f'query_result_{query_hash}', result, timeout)
-    
+        cache.set(f"{_tenant_prefix()}:query_result_{query_hash}", result, timeout)
+
     @staticmethod
     def get_cached_result(query_hash):
         """Retrieve cached query result"""
-        return cache.get(f'query_result_{query_hash}')
+        return cache.get(f"{_tenant_prefix()}:query_result_{query_hash}")
     
     @staticmethod
     def generate_query_hash(query_dict):

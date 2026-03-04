@@ -1311,6 +1311,88 @@ def support_queue_fragment(request):
 
 
 # -----------------------------------------------------------------------------
+# Sovereign AI: Model Hub and Global Upgrade (Super Admin)
+# -----------------------------------------------------------------------------
+
+def ai_model_hub(request):
+    """
+    Super Admin: list regions with default_model, fallback_model, last_health_check_at, status.
+    Single source: RegionalAIConfig + health from cache (ai:health:{cluster}).
+    """
+    from django.core.cache import cache
+    from apps.siteconfig.models import RegionalAIConfig
+    from apps.siteconfig.tasks import AI_HEALTH_CACHE_PREFIX, AI_HEALTH_CACHE_TTL
+
+    configs = list(RegionalAIConfig.objects.filter(is_active=True).order_by("regional_cluster"))
+    for c in configs:
+        health = cache.get(f"{AI_HEALTH_CACHE_PREFIX}{c.regional_cluster}") or {}
+        c.health_status = health.get("status", "unknown")
+        c.last_health_check_at = health.get("last_check_at", "")
+
+    return render(
+        request,
+        "schools/super_ai_model_hub.html",
+        {
+            "configs": configs,
+            "dashboard_url": reverse("super:dashboard"),
+            "global_ai_version_url": reverse("super:global_ai_version"),
+        },
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def global_ai_version(request):
+    """
+    Super Admin: form with target model_id and "Upgrade all regions" button.
+    POST enqueues global_ai_upgrade_run and redirects to progress (run_id in session); poll for regions_done/regions_total.
+    """
+    from django.core.cache import cache
+    from apps.siteconfig.models import RegionalAIConfig
+    from apps.siteconfig.tasks import global_ai_upgrade_run, AI_UPGRADE_PROGRESS_PREFIX
+    import uuid
+
+    if request.method == "POST":
+        model_id = (request.POST.get("model_id") or "").strip()
+        if not model_id:
+            from django.contrib import messages
+            messages.warning(request, "Model ID is required.")
+            return redirect("super:global_ai_version")
+        run_id = str(uuid.uuid4())
+        global_ai_upgrade_run.delay(run_id, model_id)
+        request.session["ai_upgrade_run_id"] = run_id
+        return redirect("super:global_ai_version_progress", run_id=run_id)
+
+    clusters = list(
+        RegionalAIConfig.objects.filter(is_active=True).values_list("regional_cluster", flat=True).distinct()
+    )
+    return render(
+        request,
+        "schools/super_global_ai_version.html",
+        {
+            "clusters": clusters,
+            "dashboard_url": reverse("super:dashboard"),
+            "ai_model_hub_url": reverse("super:ai_model_hub"),
+        },
+    )
+
+
+def global_ai_version_progress(request, run_id):
+    """Poll endpoint or page showing regions_done/regions_total for the run."""
+    from django.core.cache import cache
+    from django.http import JsonResponse
+    from apps.siteconfig.tasks import AI_UPGRADE_PROGRESS_PREFIX
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.GET.get("json"):
+        data = cache.get(f"{AI_UPGRADE_PROGRESS_PREFIX}{run_id}") or {}
+        return JsonResponse(data)
+    return render(
+        request,
+        "schools/super_global_ai_version_progress.html",
+        {"run_id": run_id, "dashboard_url": reverse("super:dashboard")},
+    )
+
+
+# -----------------------------------------------------------------------------
 # Secure impersonation (view as tenant)
 # -----------------------------------------------------------------------------
 
@@ -1345,6 +1427,24 @@ def switch_to_tenant(request):
         from django.http import HttpResponseBadRequest
         return HttpResponseBadRequest("school_id required.")
     school = get_object_or_404(School, id=school_id, is_active=True)
+    # JIT: principal consent required before impersonation (195-country governance; configurable).
+    if getattr(settings, "JIT_IMPERSONATION_REQUIRE_CONSENT", True):
+        from django.utils import timezone
+        from datetime import timedelta
+        consent_at = getattr(school, "impersonation_consent_granted_at", None)
+        if not consent_at:
+            from django.contrib import messages
+            messages.error(
+                request,
+                "Impersonation requires principal consent for this school. Ask the school admin to grant consent in their Backend settings.",
+            )
+            return redirect("super:dashboard")
+        # Optional: consent expires after N days (e.g. 30)
+        consent_days = getattr(settings, "JIT_IMPERSONATION_CONSENT_DAYS", 30)
+        if consent_days and timezone.now() - consent_at > timedelta(days=consent_days):
+            from django.contrib import messages
+            messages.warning(request, "Impersonation consent for this school has expired. Principal must re-grant.")
+            return redirect("super:dashboard")
     payload = {
         "school_id": str(school.id),
         "user_id": request.user.id,

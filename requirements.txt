@@ -64,6 +64,10 @@ django-celery-results>=2.5.0
 django-celery-beat>=2.5.0
 django-redis>=5.4.0
 
+# Django Channels (AI chat WebSocket; run ASGI for ws/ai/chat/)
+channels>=4.0.0
+channels-redis>=4.2.0
+
 # Multi-tenant schema-per-tenant (Phase I / optional: set USE_DJANGO_TENANTS=1)
 django-tenants>=1.6.0
 

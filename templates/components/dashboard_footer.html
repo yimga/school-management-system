@@ -1,6 +1,14 @@
 {% load static %}
 {% load accounts_extras %}
 <footer class="dashboard-footer" id="dashboardFooter">
+  {% if PUBLIC_BRAND_MODE %}
+  <div class="footer-shell footer-platform-only">
+    <div class="footer-meta small">
+      <span>&copy; {% now "Y" %} {{ PUBLIC_BRAND_NAME }}. All rights reserved.</span>
+      <span class="meta-powered">Powered by <strong>{{ PUBLIC_BRAND_NAME }}</strong></span>
+    </div>
+  </div>
+  {% else %}
   {% with can_portal=request.user|has_feature_permission:"portal.manage" can_reports=request.user|has_feature_permission:"reports.manage" can_attendance=request.user|has_feature_permission:"attendance.manage" can_finance_view=request.user|has_feature_permission:"finance.view" can_finance_manage=request.user|has_feature_permission:"finance.manage" can_data_access=request.user|has_feature_permission:"data.access" can_settings=request.user|has_feature_permission:"settings.manage" can_comms=request.user|has_feature_permission:"communication.manage" %}
   <div class="footer-shell" id="preview-footer-bg" data-preview-label="Footer background &amp; colors">
     <div class="footer-top">
@@ -117,10 +125,11 @@
 
     <div class="footer-meta small" id="preview-footer-meta" data-preview-label="Copyright &amp; company name">
       <span>&copy; {% now "Y" %} {{ SITE.company_name|default:SITE.site_name|default:"School" }}. All rights reserved.</span>
-      <span class="meta-powered">Powered by <strong>School Management System</strong></span>
+      <span class="meta-powered">Powered by <strong>RunMyCampus</strong></span>
     </div>
   </div>
   {% endwith %}
+  {% endif %}
 </footer>
 
 <style>

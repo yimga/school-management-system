@@ -598,11 +598,15 @@ def _default_widget_payload() -> dict[str, Any]:
 def _widget_cache_key(
     spec: AdminDashboardWidgetSpec, query_context: dict[str, Any]
 ) -> str:
+    from apps.siteconfig.cache_utils import get_tenant_cache_prefix
     user = query_context["user"]
     site_pk = query_context.get("site_pk") or "global"
     role_code = (getattr(user, "role", "") or "unknown").upper()
+    request = query_context.get("request")
+    prefix = get_tenant_cache_prefix(request)
 
     key_parts = [
+        prefix,
         "dashboard",
         "admin",
         "widget",

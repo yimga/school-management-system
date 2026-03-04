@@ -3,6 +3,13 @@ import os
 import sys
 from dotenv import load_dotenv
 
+# Optional: Django Channels for WebSocket AI chat (ws/ai/chat/). If installed, enabled below.
+try:
+    import channels  # noqa: F401
+    _channels_installed = True
+except ImportError:
+    _channels_installed = False
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 # .env.local: do not override vars already set (e.g. DATABASE_URL on Render), so local file only fills in unset keys.
@@ -92,11 +99,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    # Django Channels (for WebSocket support) - Optional
-    # Uncomment and install: pip install channels channels-redis
-    # "channels",
-    # "channels_redis",
-
     # Django OTP (MFA)
     "django_otp",
     "django_otp.plugins.otp_totp",
@@ -131,6 +133,8 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
 ]
+if _channels_installed:
+    INSTALLED_APPS += ["channels", "channels_redis"]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -145,12 +149,14 @@ MIDDLEWARE = [
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
     "apps.schools.middleware.TenantLastActivityMiddleware",  # Phase H: optional last_activity per tenant
+    "apps.schools.middleware.ModuleActivationMiddleware",  # World Engine E.2: set request.active_modules from get_tenant_modules
     "apps.schools.middleware.TenantApiQuotaMiddleware",  # Plan I: per-tenant API rate limit
     "apps.schools.middleware.DynamicThemeMiddleware",  # Phase B: admin theme per school (Unfold/Jazzmin/Sneat)
     "django.middleware.locale.LocaleMiddleware",  # Add for i18n
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.accounts.middleware.ImpossibleTravelMiddleware",  # World Engine: single trigger for check_impossible_travel after login
     "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
@@ -208,27 +214,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# ASGI Application (WebSocket support) - Optional, requires channels
-# Uncomment after installing: pip install channels channels-redis
-# ASGI_APPLICATION = "config.asgi.application"
-
-# Channels configuration (WebSocket support) - Optional
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")],
-#         },
-#     },
-# }
-# 
-# # Fallback to in-memory channel layer if Redis is not available
-# if not os.getenv("REDIS_URL"):
-#     CHANNEL_LAYERS = {
-#         "default": {
-#             "BACKEND": "channels.layers.InMemoryChannelLayer"
-#         }
-#     }
+# ASGI Application (WebSocket / AI chat at ws/ai/chat/). Only set when channels is installed. Run with: daphne config.asgi:application or uvicorn config.asgi:application
+if _channels_installed:
+    ASGI_APPLICATION = "config.asgi.application"
+    _redis_url = (os.getenv("REDIS_URL") or "").strip()
+    if _redis_url:
+        CHANNEL_LAYERS = {"default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [_redis_url]}}}
+    else:
+        CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # --- Database ---
 
@@ -300,7 +293,10 @@ else:
 for db_config in DATABASES.values():
     db_config["CONN_MAX_AGE"] = 600
 
-DATABASE_ROUTERS = ["apps.siteconfig.db_router.PreviewDatabaseRouter"]
+DATABASE_ROUTERS = [
+    "apps.siteconfig.db_router.TenantDatabaseRouter",
+    "apps.siteconfig.db_router.PreviewDatabaseRouter",
+]
 
 MARKSHEET_OCR_COMMAND = os.getenv("MARKSHEET_OCR_COMMAND", "")
 
@@ -812,8 +808,11 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
     _db = DATABASES["default"].copy()
     _db["ENGINE"] = "django_tenants.postgresql_backend"
     DATABASES["default"] = _db
-    # Router: route shared vs tenant apps
-    DATABASE_ROUTERS = ["django_tenants.routers.TenantSyncRouter"]
+    # Router: tenant DB alias (World Engine) then shared vs tenant apps
+    DATABASE_ROUTERS = [
+        "apps.siteconfig.db_router.TenantDatabaseRouter",
+        "django_tenants.routers.TenantSyncRouter",
+    ]
     # Tenant and domain models (apps.customers)
     TENANT_MODEL = "customers.Client"
     TENANT_DOMAIN_MODEL = "customers.Domain"
@@ -875,6 +874,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.common.CommonMiddleware",
         "django.middleware.csrf.CsrfViewMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "apps.accounts.middleware.ImpossibleTravelMiddleware",
         "apps.accounts.middleware.RoleBasedSessionTimeoutMiddleware",
         "apps.accounts.middleware.ModuleAccessMiddleware",
         "apps.accounts.middleware.RequireMFAMiddleware",

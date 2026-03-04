@@ -2787,10 +2787,21 @@ class PlanAddon(models.Model):
 
 class CountryMultiplier(models.Model):
     """
-    Regional PPP (purchasing power parity) multiplier for Plan Configurator.
-    Final price = base * country_multiplier (e.g. 0.6 for some markets).
+    Regional PPP (purchasing power parity) multiplier for Plan Configurator (195-country).
+    Final price = base * country_multiplier. Zone A/B/C for display (e.g. Zone A = premium, C = discounted).
     """
+    class Zone(models.TextChoices):
+        A = "A", "Zone A (premium)"
+        B = "B", "Zone B (standard)"
+        C = "C", "Zone C (discounted)"
+
     country_code = models.CharField(max_length=3, unique=True, help_text="ISO 3166-1 alpha-2/3")
+    zone = models.CharField(
+        max_length=1,
+        choices=Zone.choices,
+        blank=True,
+        help_text="PPP zone for display (A/B/C).",
+    )
     multiplier = models.DecimalField(
         max_digits=6,
         decimal_places=4,
@@ -2809,6 +2820,106 @@ class CountryMultiplier(models.Model):
 
     def __str__(self):
         return f"{self.country_code}: {self.multiplier}"
+
+
+class RegionalAIConfig(models.Model):
+    """
+    World Engine / Sovereign AI: per-region Ollama endpoint and model (public schema).
+    Single source of truth for regional AI; fallback to OLLAMA_ENDPOINT/OLLAMA_MODEL in settings when no row exists.
+    """
+    regional_cluster = models.CharField(
+        max_length=32,
+        unique=True,
+        db_index=True,
+        help_text="Region identifier (e.g. country code CM, KE, or cluster name cm-west).",
+    )
+    ollama_base_url = models.URLField(
+        max_length=512,
+        help_text="Base URL for Ollama API (e.g. http://ollama-region:11434).",
+    )
+    default_model = models.CharField(
+        max_length=128,
+        default="llama3",
+        help_text="Default model tag (e.g. llama3.1:8b-q4).",
+    )
+    preferred_model_id = models.CharField(
+        max_length=128,
+        blank=True,
+        help_text="Optional override: when set, used instead of registry/default (Super Admin can flip without touching LB).",
+    )
+    fallback_model = models.CharField(
+        max_length=128,
+        blank=True,
+        help_text="Fallback model on timeout/5xx (e.g. smaller quantized model).",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "siteconfig_regionalaiconfig"
+        ordering = ["regional_cluster"]
+        verbose_name = "Regional AI config"
+        verbose_name_plural = "Regional AI configs"
+
+    def __str__(self):
+        return f"{self.regional_cluster}: {self.default_model}"
+
+
+class AIModelRegistry(models.Model):
+    """
+    World Engine: which model version runs per region/hardware (public schema).
+    Single source of truth for model versions; used by OllamaInferenceService and sync_regional_models.
+    """
+    regional_cluster = models.CharField(max_length=32, db_index=True)
+    hardware_tier = models.CharField(
+        max_length=32,
+        default="default",
+        help_text="e.g. 8GB_RAM, GPU, default",
+    )
+    model_id = models.CharField(
+        max_length=128,
+        help_text="Ollama model tag (e.g. llama3.1:8b-q4).",
+    )
+    is_active = models.BooleanField(default=True)
+    priority = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Fallback order (higher = preferred).",
+    )
+    lora_adapter_path = models.CharField(max_length=512, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "siteconfig_aimodelregistry"
+        ordering = ["regional_cluster", "-priority", "hardware_tier"]
+        unique_together = [["regional_cluster", "hardware_tier"]]
+        verbose_name = "AI model registry"
+        verbose_name_plural = "AI model registries"
+
+    def __str__(self):
+        return f"{self.regional_cluster}/{self.hardware_tier}: {self.model_id}"
+
+
+class AIEmbeddingStore(models.Model):
+    """
+    World Engine D.2: Long-term AI memory (support agent, chat context, RAG).
+    Stores embeddings for similarity search. Use PGVector in production (vector column);
+    embedding as JSONField (list of floats) works without pgvector extension.
+    """
+    school_id = models.UUIDField(db_index=True, null=True, blank=True)
+    conversation_id = models.CharField(max_length=64, blank=True, db_index=True)
+    scope = models.CharField(max_length=32, default="chat", db_index=True)
+    text_hash = models.CharField(max_length=64, db_index=True)
+    embedding = models.JSONField(default=list, help_text="List of floats from Ollama embeddings API")
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "siteconfig_aiembeddingstore"
+        ordering = ["-created_at"]
+        verbose_name = "AI embedding store"
+        verbose_name_plural = "AI embedding stores"
 
 
 class RevenueSnapshot(models.Model):
@@ -3195,10 +3306,13 @@ class CustomFeatureTicket(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Vision Board: upvotes (195-country / multi-tenant); VIP = high-priority for roadmap.
+    upvote_count = models.PositiveIntegerField(default=0, help_text="Upvotes from school admins (Vision Board).")
+    is_vip = models.BooleanField(default=False, help_text="VIP / high-priority feature request for roadmap.")
 
     class Meta:
-        ordering = ["-created_at"]
-        indexes = [models.Index(fields=["school", "status"])]
+        ordering = ["-is_vip", "-upvote_count", "-created_at"]
+        indexes = [models.Index(fields=["school", "status"]), models.Index(fields=["is_vip", "-upvote_count"])]
 
     def __str__(self):
         return f"{self.school.name}: {self.title} ({self.status})"
@@ -3994,6 +4108,130 @@ class ImpersonationLog(models.Model):
 
     def __str__(self):
         return f"{self.actor_id} {self.action} {self.school_id} @ {self.created_at}"
+
+
+class GlobalSyllabus(models.Model):
+    """
+    World Engine: global syllabus/standards nodes for semantic mapping (scanned syllabi → suggest/map to nodes).
+    Used with Ollama/embeddings for syllabus tagging and national syllabus sync.
+    """
+    code = models.CharField(max_length=120, unique=True, help_text="Unique code (e.g. subject-grade-topic).")
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+    )
+    country_code = models.CharField(max_length=10, blank=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["country_code", "sort_order", "code"]
+        verbose_name = "Global syllabus node"
+        verbose_name_plural = "Global syllabus nodes"
+
+    def __str__(self):
+        return f"{self.code}: {self.name}"
+
+
+class LearningPassport(models.Model):
+    """
+    World Engine: learner credential / record (195-country; UNICEF-style).
+    Links learner (user/school) to achievements and optionally to GlobalSyllabus nodes.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="learning_passports",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="learning_passports",
+    )
+    external_id = models.CharField(max_length=255, blank=True, db_index=True)
+    credentials = models.JSONField(default=dict, blank=True, help_text="Achievements, badges, mapped syllabus nodes.")
+    country_code = models.CharField(max_length=10, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        unique_together = [("user", "school")]
+        verbose_name = "Learning passport"
+        verbose_name_plural = "Learning passports"
+
+    def __str__(self):
+        return f"Passport {self.user_id} ({self.school_id or 'global'})"
+
+
+class BreakGlassOverride(models.Model):
+    """
+    World Engine: break-glass protocol — emergency override (e.g. unlock, bypass) with audit.
+    Scope = e.g. 'lockdown_unlock', 'impersonation_bypass'; actor = who invoked; reason required.
+    """
+    scope = models.CharField(max_length=80, db_index=True)
+    target_id = models.CharField(max_length=255, blank=True, help_text="e.g. user_id, school_id.")
+    reason = models.TextField()
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["scope", "target_id"])]
+
+    def __str__(self):
+        return f"{self.scope} by {self.actor_id} @ {self.created_at}"
+
+
+class BroadcastCampaign(models.Model):
+    """
+    World Engine: Emergency Broadcast — message to 5k+ devices; WebSocket/Redis Pub/Sub; optional Slide to Confirm.
+    Celery task fans out in chunks; delivery tracked per recipient.
+    """
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        QUEUED = "QUEUED", "Queued"
+        SENDING = "SENDING", "Sending"
+        COMPLETED = "COMPLETED", "Completed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="broadcast_campaigns",
+    )
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    slide_confirm_required = models.BooleanField(default=True, help_text="Recipient must slide-to-confirm.")
+    target_count = models.PositiveIntegerField(default=0)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.subject} ({self.status})"
 
 
 post_save.connect(_refresh_site_settings_cache, sender=SiteSettings)

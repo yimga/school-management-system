@@ -438,6 +438,21 @@ def site_settings(request):
             or brand_ctx.get("labels_map")
             or {}
         )
+        # World Engine: tenant branding_metadata → --primary, --accent (and optional --school-font) for <head> injection.
+        branding = getattr(school, "branding_metadata", None) or {}
+        if isinstance(branding, dict) and branding:
+            parts = []
+            if branding.get("primary"):
+                parts.append("--primary: {};".format(branding["primary"].strip()))
+            if branding.get("accent"):
+                parts.append("--accent: {};".format(branding["accent"].strip()))
+            if branding.get("font"):
+                parts.append("--school-font: {};".format(branding["font"].strip()))
+            ctx["TENANT_BRANDING_CSS_VARS"] = " ".join(parts) if parts else ""
+        else:
+            primary = getattr(school, "primary_color", None) or "#0d6efd"
+            accent = getattr(school, "accent_color", None) or "#198754"
+            ctx["TENANT_BRANDING_CSS_VARS"] = "--primary: {}; --accent: {};".format(primary, accent)
     else:
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None
@@ -446,6 +461,9 @@ def site_settings(request):
         ctx["TENANT_LOCALE"] = {}
         ctx["TENANT_BRAND_CONTEXT"] = {}
         ctx["TENANT_LABELS"] = {}
+        ctx["TENANT_BRANDING_CSS_VARS"] = ""
+    # Plan §7: Tenant portal = Light Mode by default (195-country; enforce light, no tenant dark by default).
+    ctx["TENANT_FORCE_LIGHT_THEME"] = bool(school)
     public_host_kind = getattr(request, "public_host_kind", None)
     public_brand_mode = (public_host_kind in {"base", "verify", "support", "manager"}) and not school
     ctx["PUBLIC_BRAND_MODE"] = public_brand_mode

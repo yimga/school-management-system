@@ -6,6 +6,7 @@ from .models import (
     AcademicYear, Term, Department, Specialty, Classroom, ClassroomPromotionMapping, Subject, SubjectAssignment,
     CourseSyllabus, ClassBooklist, Incident,
     CurriculumStandard, CurriculumNode,
+    WorkflowConfig,
     CertificationExamSession, CertificationCandidate, CertificationAuditLog,
     CertificationExamPreset,
     CertificationFeeTemplate,
@@ -324,3 +325,16 @@ admin_site.register(Schedule, ScheduleAdmin)
 admin_site.register(ScheduleEntry, ScheduleEntryAdmin)
 admin_site.register(TeacherAvailability, TeacherAvailabilityAdmin)
 admin_site.register(SchedulingConstraint, SchedulingConstraintAdmin)
+
+
+class WorkflowConfigAdmin(ModelAdmin):
+    list_display = ("workflow_key", "is_active", "step_count_display", "updated_at")
+    list_filter = ("is_active",)
+    search_fields = ("workflow_key",)
+
+    def step_count_display(self, obj):
+        return len(obj.steps) if obj.steps else 0
+    step_count_display.short_description = "Steps"
+
+
+admin_site.register(WorkflowConfig, WorkflowConfigAdmin)

@@ -1234,3 +1234,31 @@ class GraduateMilestone(models.Model):
     def __str__(self):
         return f"{self.student} — {self.get_type_display()} ({self.status})"
 
+
+class WorkflowConfig(models.Model):
+    """
+    World Engine: JSON-driven workflow (tenant schema). workflow_key + steps (JSON);
+    generic wizard view loads config and renders steps dynamically. Tenant can reorder steps in admin.
+    One row per workflow per tenant (schema = tenant).
+    """
+    workflow_key = models.CharField(
+        max_length=120,
+        unique=True,
+        help_text="Identifier for this workflow (e.g. student_onboarding, teacher_setup).",
+    )
+    steps = models.JSONField(
+        default=list,
+        help_text="Ordered list of steps: [{\"id\": \"step1\", \"title\": \"...\", \"template\": \"...\", \"form\": \"...\"}].",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["workflow_key"]
+        verbose_name = "Workflow configuration"
+        verbose_name_plural = "Workflow configurations"
+
+    def __str__(self):
+        return self.workflow_key
+

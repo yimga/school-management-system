@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"{% if is_rtl %} dir="rtl"{% endif %}
-      data-theme="{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}"
-      data-admin-theme="{{ SITE.theme_brightness|default:'system'|lower }}"
+      data-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ USER_THEME_PREFERENCE|default:SITE.theme_brightness|default:'system'|lower }}{% endif %}"
+      data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif PUBLIC_BRAND_MODE %}system{% else %}{{ SITE.theme_brightness|default:'system'|lower }}{% endif %}"
       data-simple-mode="{% if simple_mode %}true{% else %}false{% endif %}">
   <head>
     <meta charset="utf-8">
@@ -90,7 +90,14 @@
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
 
     <style>
-                              {% if SITE %}
+                              {% if PUBLIC_BRAND_MODE %}
+                              :root {
+                                --school-primary: #0B0E14;
+                                --school-accent: #d4af37;
+                                --platform-navy: #0B0E14;
+                                --platform-gold: #d4af37;
+                              }
+                              {% elif SITE %}
                               :root {
                                 {% if SITE_PRIMARY_COLOR or SITE.primary_color %}--school-primary: {{ SITE_PRIMARY_COLOR|default:SITE.primary_color }};{% endif %}
                                 {% if SITE_ACCENT_COLOR or SITE.accent_color %}--school-accent: {{ SITE_ACCENT_COLOR|default:SITE.accent_color }};{% endif %}
@@ -186,6 +193,7 @@
         overflow-wrap: anywhere;
         word-break: break-word;
       }
+      {% if not PUBLIC_BRAND_MODE %}
       {% with theme=SITE_THEME %}
       :root {
         {% if theme.primary_color or SITE.primary_color %}--school-primary: {{ theme.primary_color|default:SITE.primary_color }};{% endif %}
@@ -198,6 +206,10 @@
         {% if SITE_BASE_FONT_SIZE %}--base-font-size: {{ SITE_BASE_FONT_SIZE }}px;{% endif %}
       }
       {% endwith %}
+      {% endif %}
+      {% if TENANT_BRANDING_CSS_VARS %}
+      :root { {{ TENANT_BRANDING_CSS_VARS|safe }} }
+      {% endif %}
       {% if SITE_USE_SECONDARY_FONT_HEADINGS and SITE_SECONDARY_FONT %}
       h1, h2, h3, h4, h5, h6 { font-family: {{ SITE_SECONDARY_FONT }}, var(--school-font), system-ui, sans-serif; }
       {% endif %}

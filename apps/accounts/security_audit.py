@@ -40,11 +40,19 @@ def _get_location_data(ip):
         if os.path.isfile(path):
             with geoip2.database.Reader(path) as reader:
                 rec = reader.city(ip)
-                return {
+                out = {
                     "city": getattr(rec, "city", None) and rec.city.name or "",
                     "country": getattr(rec, "country", None) and rec.country.name or "",
                     "country_code": getattr(rec, "country", None) and rec.country.iso_code or "",
                 }
+                loc = getattr(rec, "location", None)
+                if loc is not None:
+                    lat = getattr(loc, "latitude", None)
+                    lon = getattr(loc, "longitude", None)
+                    if lat is not None and lon is not None:
+                        out["latitude"] = float(lat)
+                        out["longitude"] = float(lon)
+                return out
     except Exception:
         pass
     return {}
@@ -174,6 +182,79 @@ def lockdown_user_account(user, request=None, initiator: str = "self", school=No
         logger.exception("Lockdown admin notify failed: %s", e)
 
     return True
+
+
+# World Engine: impossible travel threshold (km/h). Above this → lockdown.
+IMPOSSIBLE_TRAVEL_SPEED_KMH = 1000
+
+
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Approximate distance in km between two (lat, lon) points."""
+    import math
+    R = 6371  # Earth radius km
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlam = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+def check_impossible_travel(request, user):
+    """
+    World Engine: after login, if previous login location implies speed > IMPOSSIBLE_TRAVEL_SPEED_KMH,
+    trigger account lockdown and log IMPOSSIBLE_TRAVEL. Call from login view after log_security_event(LOGIN).
+    """
+    from apps.accounts.models import SecurityAuditLog
+
+    if not request or not user:
+        return
+    ip = _get_client_ip(request)
+    location_data = _get_location_data(ip) if ip else {}
+    lat = location_data.get("latitude")
+    lon = location_data.get("longitude")
+    if lat is None or lon is None:
+        return
+    now = timezone.now()
+    # Previous LOGIN (the one before the one we just created)
+    prev = (
+        SecurityAuditLog.objects.filter(
+            user=user,
+            event_type=SecurityAuditLog.EventType.LOGIN,
+        )
+        .order_by("-created_at")[1:2]
+        .first()
+    )
+    if not prev:
+        return
+    prev_ts = prev.created_at
+    prev_loc = getattr(prev, "location_data", None) or {}
+    prev_lat = prev_loc.get("latitude")
+    prev_lon = prev_loc.get("longitude")
+    if prev_lat is None or prev_lon is None:
+        return
+    try:
+        distance_km = _haversine_km(prev_lat, prev_lon, lat, lon)
+        delta = (now - prev_ts).total_seconds() / 3600.0  # hours
+        if delta <= 0:
+            return
+        speed_kmh = distance_km / delta
+        if speed_kmh >= IMPOSSIBLE_TRAVEL_SPEED_KMH:
+            logger.warning(
+                "Impossible travel: user_id=%s distance_km=%.0f time_h=%.2f speed_kmh=%.0f",
+                user.pk, distance_km, delta, speed_kmh,
+            )
+            log_security_event(
+                user,
+                SecurityAuditLog.EventType.IMPOSSIBLE_TRAVEL,
+                request=request,
+                school=getattr(request, "school", None),
+                is_suspicious=True,
+                initiator="self",
+            )
+            lockdown_user_account(user, request=request, initiator="self", school=getattr(request, "school", None))
+    except Exception as e:
+        logger.exception("check_impossible_travel: %s", e)
 
 
 def _notify_admin_lockdown(user, school, initiator):

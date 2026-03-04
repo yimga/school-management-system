@@ -1442,3 +1442,28 @@ def branding_api(request):
         },
         safe=False,
     )
+
+
+def workflow_clues_api(request):
+    """
+    World Engine: workflow setup suggestions by country (Ollama). GET params: workflow_key, country_code.
+    """
+    workflow_key = (request.GET.get("workflow_key") or "").strip()
+    country_code = (request.GET.get("country_code") or "").strip()[:10]
+    if not workflow_key or not country_code:
+        return JsonResponse(
+            {"error": "workflow_key and country_code are required"},
+            status=400,
+        )
+    try:
+        from apps.portal.ai_provider import get_workflow_clues
+        text, meta = get_workflow_clues(workflow_key, country_code)
+        return JsonResponse(
+            {"suggestions": text, "meta": meta},
+            safe=False,
+        )
+    except Exception as e:
+        return JsonResponse(
+            {"error": str(e), "suggestions": None},
+            status=500,
+        )

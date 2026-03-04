@@ -36,8 +36,10 @@ class ComplianceDashboardView(View):
     """
 
     def get(self, request):
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
         cache_ttl = getattr(settings, "COMPLIANCE_DASHBOARD_CACHE_SECONDS", 60)
-        cache_key = "compliance:dashboard:v1"
+        prefix = get_tenant_cache_prefix(request)
+        cache_key = f"{prefix}:compliance:dashboard:v1"
         context = cache.get(cache_key)
 
         if not context:

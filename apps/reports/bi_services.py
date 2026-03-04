@@ -22,6 +22,7 @@ from typing import Dict, List, Any, Optional
 # Import existing services to extend them
 from apps.analytics.services import AdvancedAnalyticsService
 from apps.siteconfig.admin_dashboard import AdminDashboardService
+from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
 
 class ExecutiveReportingService:
@@ -41,7 +42,8 @@ class ExecutiveReportingService:
         """
         from apps.finance.models import Invoice, Payment
         
-        cache_key = f'exec_finance_{start_date.date()}_{end_date.date()}'
+        prefix = get_tenant_cache_prefix(None)
+        cache_key = f'{prefix}:exec_finance_{start_date.date()}_{end_date.date()}'
         cached = cache.get(cache_key)
         if cached:
             return cached
@@ -82,7 +84,8 @@ class ExecutiveReportingService:
         from apps.people.models import Student
         from apps.academics.models import Classroom
         
-        cache_key = f'exec_academic_{academic_year_id}_{term_id}'
+        prefix = get_tenant_cache_prefix(None)
+        cache_key = f'{prefix}:exec_academic_{academic_year_id}_{term_id}'
         cached = cache.get(cache_key)
         if cached:
             return cached
@@ -123,7 +126,8 @@ class ExecutiveReportingService:
         """Enrollment trends over time"""
         from apps.people.models import Student
         
-        cache_key = f'enrollment_trends_{months}'
+        prefix = get_tenant_cache_prefix(None)
+        cache_key = f'{prefix}:enrollment_trends_{months}'
         cached = cache.get(cache_key)
         if cached:
             return cached
@@ -236,9 +240,10 @@ class ReportCacheManager:
     
     @staticmethod
     def _build_cache_key(report_type: str, parameters: Dict) -> str:
-        """Build unique cache key"""
+        """Build unique cache key (tenant-scoped)."""
+        prefix = get_tenant_cache_prefix(None)
         params_str = json.dumps(parameters, sort_keys=True)
-        return f'report:{report_type}:{hash(params_str)}'
+        return f'{prefix}:report:{report_type}:{hash(params_str)}'
     
     @staticmethod
     def _store_materialized(cache_key: str, report_type: str, data: Any, 

@@ -756,9 +756,9 @@ def carry_forward_arrears(source_year, target_year) -> int:
 
 
 def _get_region_for_refund(invoice: Invoice):
-    """Get RegionConfig for refund/overpayment (use first active region)."""
+    """Get RegionConfig for refund/overpayment (use first region)."""
     from apps.siteconfig.models import RegionConfig
-    return RegionConfig.objects.filter(is_active=True).first()
+    return RegionConfig.objects.first()
 
 
 @transaction.atomic

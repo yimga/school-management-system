@@ -478,7 +478,9 @@ class RankingWithMockBlendingTests(TestCase):
         )
 
     def test_ranking_cache_key_includes_mock_suffix(self):
-        """Test that cache keys include :mock suffix for mock-blended rankings."""
+        """Test that cache keys include :mock suffix for mock-blended rankings (and tenant prefix)."""
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+        prefix = get_tenant_cache_prefix(None)
         cache_key_standard = RankingCache.get_cache_key(
             self.term, self.classroom, use_mock_blending=False
         )
@@ -488,11 +490,11 @@ class RankingWithMockBlendingTests(TestCase):
 
         self.assertEqual(
             cache_key_standard,
-            f"ranking:term:{self.term.id}:class:{self.classroom.id}",
+            f"{prefix}:ranking:term:{self.term.id}:class:{self.classroom.id}",
         )
         self.assertEqual(
             cache_key_mock,
-            f"ranking:term:{self.term.id}:class:{self.classroom.id}:mock",
+            f"{prefix}:ranking:term:{self.term.id}:class:{self.classroom.id}:mock",
         )
         self.assertNotEqual(cache_key_standard, cache_key_mock)
 

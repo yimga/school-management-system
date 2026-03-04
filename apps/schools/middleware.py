@@ -664,6 +664,24 @@ class TenantFreezeMiddleware(MiddlewareMixin):
         return redirect("account_frozen")
 
 
+class ModuleActivationMiddleware(MiddlewareMixin):
+    """
+    World Engine E.2: Set request.active_modules from get_tenant_modules(school).
+    Single source for active modules; sidebar and feature gates use this or is_feature_enabled.
+    """
+    def process_request(self, request):
+        school = getattr(request, "school", None)
+        if school is None:
+            request.active_modules = []
+            return None
+        try:
+            from apps.siteconfig.tenant_config import get_tenant_modules
+            request.active_modules = get_tenant_modules(school)
+        except Exception:
+            request.active_modules = []
+        return None
+
+
 class TenantApiQuotaMiddleware(MiddlewareMixin):
     """
     Plan I: Per-tenant API rate limit. Runs after TenantMiddleware.

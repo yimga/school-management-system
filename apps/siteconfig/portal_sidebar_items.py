@@ -145,14 +145,20 @@ def _sidebar_badge_counts(user, role, staff_like):
     return workflow_pending, finance_pending, signatures_pending
 
 
-def _cached_sidebar_badge_counts(user, role, staff_like):
+def _cached_sidebar_badge_counts(user, role, staff_like, request=None):
     """
     Cache badge counts briefly to avoid repeated expensive sidebar queries per request.
+    World Engine F.2: cache key includes tenant/school so same user in multiple schools has separate counts.
     """
     user_id = getattr(user, "pk", None)
     if not user_id:
         return _sidebar_badge_counts(user, role, staff_like)
-    cache_key = f"portal_sidebar_badges:{user_id}:{role}:{1 if staff_like else 0}"
+    try:
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+        prefix = get_tenant_cache_prefix(request)
+    except Exception:
+        prefix = "public"
+    cache_key = f"{prefix}:portal_sidebar_badges:{user_id}:{role}:{1 if staff_like else 0}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -183,7 +189,7 @@ def build_portal_sidebar_items(request, site):
         "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "BURSAR", "ACCOUNTANT", "PROPRIETOR", "DISCIPLINE_MASTER", "SECRETARY",
     )
     workflow_badge, finance_badge, signatures_badge = _cached_sidebar_badge_counts(
-        user, role, staff_like
+        user, role, staff_like, request=request
     )
 
     items = []

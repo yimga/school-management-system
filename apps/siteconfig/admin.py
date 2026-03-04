@@ -38,6 +38,8 @@ from .models import (
     Plan,
     PlanAddon,
     CountryMultiplier,
+    RegionalAIConfig,
+    AIModelRegistry,
     RevenueSnapshot,
     BillingWaiverAuditLog,
     WaiverRequest,
@@ -48,6 +50,10 @@ from .models import (
     FeatureFragment,
     CustomNuance,
     PendingNuance,
+    GlobalSyllabus,
+    LearningPassport,
+    BreakGlassOverride,
+    BroadcastCampaign,
 )
 from .models_dashboard import DashboardUserPreference, DashboardWidget, DashboardLayout, FeatureControlAudit
 from .context_processors import SESSION_KEY
@@ -1931,12 +1937,30 @@ admin_site.register(PlanAddon, PlanAddonAdmin)
 
 
 class CountryMultiplierAdmin(ModelAdmin):
-    list_display = ("country_code", "name", "multiplier", "is_active", "created_at")
-    list_filter = ("is_active",)
+    list_display = ("country_code", "name", "zone", "multiplier", "is_active", "created_at")
+    list_filter = ("is_active", "zone")
     search_fields = ("country_code", "name")
 
 
 admin_site.register(CountryMultiplier, CountryMultiplierAdmin)
+
+
+class RegionalAIConfigAdmin(ModelAdmin):
+    list_display = ("regional_cluster", "ollama_base_url", "default_model", "preferred_model_id", "fallback_model", "is_active", "updated_at")
+    list_filter = ("is_active",)
+    search_fields = ("regional_cluster", "default_model", "preferred_model_id")
+
+
+admin_site.register(RegionalAIConfig, RegionalAIConfigAdmin)
+
+
+class AIModelRegistryAdmin(ModelAdmin):
+    list_display = ("regional_cluster", "hardware_tier", "model_id", "is_active", "priority", "lora_adapter_path", "updated_at")
+    list_filter = ("is_active", "regional_cluster")
+    search_fields = ("regional_cluster", "model_id", "hardware_tier")
+
+
+admin_site.register(AIModelRegistry, AIModelRegistryAdmin)
 
 
 class RevenueSnapshotAdmin(ModelAdmin):
@@ -2128,8 +2152,8 @@ admin_site.register(PendingNuance, PendingNuanceAdmin)
 
 
 class CustomFeatureTicketAdmin(ModelAdmin):
-    list_display = ("school", "title", "status", "created_at")
-    list_filter = ("status",)
+    list_display = ("school", "title", "status", "upvote_count", "is_vip", "created_at")
+    list_filter = ("status", "is_vip")
     search_fields = ("title", "description")
     raw_id_fields = ("school", "created_by")
 
@@ -2232,6 +2256,42 @@ class WebhookSubscriptionAdmin(ModelAdmin):
 
 admin_site.register(ServiceIntegration, ServiceIntegrationAdmin)
 admin_site.register(WebhookSubscription, WebhookSubscriptionAdmin)
+
+
+# World Engine: GlobalSyllabus, LearningPassport, BreakGlassOverride, BroadcastCampaign
+class GlobalSyllabusAdmin(ModelAdmin):
+    list_display = ("code", "name", "country_code", "sort_order", "created_at")
+    list_filter = ("country_code",)
+    search_fields = ("code", "name", "description", "country_code")
+
+
+class LearningPassportAdmin(ModelAdmin):
+    list_display = ("user", "school", "country_code", "external_id", "updated_at")
+    list_filter = ("country_code",)
+    search_fields = ("user__email", "external_id", "country_code")
+    raw_id_fields = ("user", "school")
+
+
+class BreakGlassOverrideAdmin(ModelAdmin):
+    list_display = ("scope", "target_id", "actor", "reason", "created_at")
+    list_filter = ("scope",)
+    search_fields = ("reason", "target_id")
+    raw_id_fields = ("actor",)
+    readonly_fields = ("created_at",)
+
+
+class BroadcastCampaignAdmin(ModelAdmin):
+    list_display = ("subject", "school", "status", "slide_confirm_required", "target_count", "created_at")
+    list_filter = ("status", "slide_confirm_required")
+    search_fields = ("subject", "body")
+    raw_id_fields = ("school", "created_by")
+    readonly_fields = ("created_at",)
+
+
+admin_site.register(GlobalSyllabus, GlobalSyllabusAdmin)
+admin_site.register(LearningPassport, LearningPassportAdmin)
+admin_site.register(BreakGlassOverride, BreakGlassOverrideAdmin)
+admin_site.register(BroadcastCampaign, BroadcastCampaignAdmin)
 
 
 # ============================================================================

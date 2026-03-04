@@ -28,6 +28,7 @@ from apps.payroll.models import LeaveRequest, Payslip, PayrollEmployee
 from apps.reports.services import term_report_context
 from apps.apicenter.gating import is_integration_allowed
 from apps.siteconfig.models import Integration, SiteSettings
+from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 from apps.communication.models import ClassAnnouncement, MessageThread, ThreadReadState
 
 
@@ -219,9 +220,10 @@ def parent_dashboard_widget_data(
     if not students:
         return _empty_widget_data()
     
-    # Create cache key from sorted student IDs
+    # Create cache key from sorted student IDs (tenant-scoped)
+    prefix = get_tenant_cache_prefix(None)
     student_ids = sorted(s.id for s in students)
-    cache_key = f"parent_dashboard_widgets:{':'.join(str(id) for id in student_ids)}"
+    cache_key = f"{prefix}:parent_dashboard_widgets:{':'.join(str(id) for id in student_ids)}"
     
     # Check cache first (5 minute TTL)
     cached_data = cache.get(cache_key)
@@ -606,9 +608,10 @@ def _performance_overview(students, year, term):
     if not students or not year or not term:
         return _empty_performance_data()
     
-    # Create cache key for this student cohort and term
+    # Create cache key for this student cohort and term (tenant-scoped)
+    prefix = get_tenant_cache_prefix(None)
     student_ids = sorted(s.id for s in students)
-    cache_key = f"performance_overview:{':'.join(str(id) for id in student_ids)}:{year.id}:{term.id}"
+    cache_key = f"{prefix}:performance_overview:{':'.join(str(id) for id in student_ids)}:{year.id}:{term.id}"
     
     cached_result = cache.get(cache_key)
     if cached_result is not None:
@@ -1029,7 +1032,8 @@ def _analytics_insights(students, year, term):
             "label": "Analytics populate as teachers publish evaluations.",
         }
 
-    cache_key = f"analytics_insights:{':'.join(str(s.id) for s in sorted(students, key=lambda s: s.id))}:{year.id}:{term.id}"
+    prefix = get_tenant_cache_prefix(None)
+    cache_key = f"{prefix}:analytics_insights:{':'.join(str(s.id) for s in sorted(students, key=lambda s: s.id))}:{year.id}:{term.id}"
     cached = cache.get(cache_key)
     if cached:
         return cached

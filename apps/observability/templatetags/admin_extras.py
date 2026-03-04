@@ -3,6 +3,7 @@ Admin Extras Template Tags
 Provides template tags for admin interface enhancements like item counts.
 RBAC: get_all_model_counts is request-aware and only returns counts for models
 the user has view permission for.
+World Engine: cache keys are tenant-scoped to avoid cross-tenant leakage.
 """
 from django import template
 from django.apps import apps
@@ -12,15 +13,22 @@ from django.contrib.admin.sites import site as default_admin_site
 register = template.Library()
 
 
-@register.simple_tag
-def get_model_count(app_label, model_name):
+def _admin_cache_prefix(context=None):
+    from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+    request = context.get("request") if context else None
+    return get_tenant_cache_prefix(request)
+
+
+@register.simple_tag(takes_context=True)
+def get_model_count(context, app_label, model_name):
     """
     Get the count of objects for a specific model.
-    Results are cached for 5 minutes to improve performance.
+    Results are cached for 5 minutes to improve performance (tenant-scoped).
     
     Usage: {% get_model_count 'accounts' 'User' %}
     """
-    cache_key = f"admin_count_{app_label}_{model_name}"
+    prefix = _admin_cache_prefix(context)
+    cache_key = f"{prefix}:admin_count_{app_label}_{model_name}"
     count = cache.get(cache_key)
     
     if count is None:
@@ -53,7 +61,8 @@ def get_all_model_counts(context):
     admin_site_obj = context.get('site', default_admin_site)
     registry = getattr(admin_site_obj, '_registry', default_admin_site._registry)
 
-    cache_key = f"admin_all_model_counts_{getattr(user, 'pk', id(user))}"
+    prefix = _admin_cache_prefix(context)
+    cache_key = f"{prefix}:admin_all_model_counts_{getattr(user, 'pk', id(user))}"
     counts = cache.get(cache_key)
 
     if counts is None:
@@ -94,14 +103,14 @@ def format_count(count):
         return str(count)
 
 
-@register.inclusion_tag('admin/includes/model_count_badge.html')
-def model_count_badge(app_label, model_name):
+@register.inclusion_tag('admin/includes/model_count_badge.html', takes_context=True)
+def model_count_badge(context, app_label, model_name):
     """
-    Render a count badge for a model.
+    Render a count badge for a model (tenant-scoped cache).
     
     Usage: {% model_count_badge 'accounts' 'User' %}
     """
-    count = get_model_count(app_label, model_name)
+    count = get_model_count(context, app_label, model_name)
     return {
         'count': count,
         'formatted_count': format_count(count),

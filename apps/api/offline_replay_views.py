@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.siteconfig.models import SiteSettings
+from apps.siteconfig.cache_utils import tenant_cache_key
 
 QUEUE_METRICS_CACHE_KEY = "sms_offline_queue_metrics"
 QUEUE_METRICS_CACHE_TIMEOUT = 86400
@@ -168,7 +169,8 @@ class QueueMetricsAPI(APIView):
         site = SiteSettings.get_solo()
         if not getattr(site, "enable_offline_mode", False):
             return Response({"total": 0, "by_type": {}})
-        data = cache.get(QUEUE_METRICS_CACHE_KEY)
+        key = tenant_cache_key(QUEUE_METRICS_CACHE_KEY, request)
+        data = cache.get(key)
         if not data or not isinstance(data, dict):
             return Response({"total": 0, "by_type": {}})
         return Response(data)
@@ -187,5 +189,6 @@ class QueueMetricsAPI(APIView):
             "total": int(total) if total is not None else 0,
             "by_type": {k: int(v) for k, v in (by_type or {}).items() if isinstance(v, (int, float))},
         }
-        cache.set(QUEUE_METRICS_CACHE_KEY, payload, QUEUE_METRICS_CACHE_TIMEOUT)
+        key = tenant_cache_key(QUEUE_METRICS_CACHE_KEY, request)
+        cache.set(key, payload, QUEUE_METRICS_CACHE_TIMEOUT)
         return Response({"ok": True})

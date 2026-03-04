@@ -316,8 +316,10 @@ def notify_parent_report_blocked_by_debt(student: StudentProfile, academic_year,
     """
     from django.core.cache import cache
     from apps.people.models import StudentGuardian
+    from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
-    cache_key = f"report_block_sms:{student.id}:{getattr(academic_year, 'id', academic_year)}"
+    prefix = get_tenant_cache_prefix(None)
+    cache_key = f"{prefix}:report_block_sms:{student.id}:{getattr(academic_year, 'id', academic_year)}"
     if cache.get(cache_key):
         return False
     guardians = StudentGuardian.objects.filter(student=student).select_related("guardian_user")

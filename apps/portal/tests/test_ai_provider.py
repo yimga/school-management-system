@@ -13,7 +13,7 @@ class AiProviderTests(SimpleTestCase):
         text, meta = generate_ai_response("prompt", user_query="How many students?")
         self.assertEqual(text, "ollama-answer")
         self.assertEqual(meta.get("provider"), "ollama")
-        _mock_ollama.assert_called_once_with("prompt")
+        _mock_ollama.assert_called_once_with("prompt", metadata={})
 
     @override_settings(AI_PROVIDER_PREFERENCE="ollama,gemini,rules")
     @patch("apps.portal.ai_provider._call_gemini", return_value="gemini-answer")
@@ -65,4 +65,4 @@ class AiProviderTests(SimpleTestCase):
         )
         self.assertEqual(text, "ok")
         self.assertEqual(meta.get("provider"), "ollama")
-        mock_ollama.assert_called_once_with("clean prompt")
+        mock_ollama.assert_called_once_with("clean prompt", metadata={"tenant_id": "school-a", "school_id": 99})

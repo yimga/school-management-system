@@ -1,9 +1,10 @@
 from django.urls import path
-from . import views_syllabus
+from . import views_syllabus, views_workflow
 
 app_name = "academics"
 
 urlpatterns = [
+    path("workflow/<str:workflow_key>/", views_workflow.WorkflowWizardView.as_view(), name="workflow_wizard"),
     path("teacher/syllabi/", views_syllabus.teacher_syllabus_hub, name="teacher_syllabus_hub"),
     path("teacher/syllabi/<int:subject_assignment_id>/builder/", views_syllabus.syllabus_builder, name="syllabus_builder"),
     path("teacher/syllabi/<int:subject_assignment_id>/upload/", views_syllabus.syllabus_upload, name="syllabus_upload"),

@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}AI Model Hub{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h1>AI Model Hub</h1>
+  <p class="text-muted">Per-region Ollama config and health. Single source: RegionalAIConfig + cache health.</p>
+  <p><a href="{{ dashboard_url }}">Super dashboard</a> | <a href="{{ global_ai_version_url }}">Global AI version upgrade</a></p>
+  <div class="card shadow-sm">
+    <div class="card-header">Regions</div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th>Region</th>
+            <th>Ollama URL</th>
+            <th>Default model</th>
+            <th>Fallback model</th>
+            <th>Health</th>
+            <th>Last check</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in configs %}
+          <tr>
+            <td>{{ c.regional_cluster }}</td>
+            <td><code>{{ c.ollama_base_url }}</code></td>
+            <td>{{ c.default_model }}</td>
+            <td>{{ c.fallback_model|default:"—" }}</td>
+            <td>{% if c.health_status == "ok" %}<span class="text-success">ok</span>{% else %}<span class="text-danger">{{ c.health_status }}</span>{% endif %}</td>
+            <td>{{ c.last_health_check_at|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6">No regional configs. Add in Django admin (RegionalAIConfig).</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

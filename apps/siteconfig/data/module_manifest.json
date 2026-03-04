@@ -1,0 +1,22 @@
+{
+  "BASE_SCHOOL": {
+    "required_apps": ["academics", "people", "evals", "reports", "finance", "communication"],
+    "ui_skin": "default",
+    "workflow_template": null,
+    "ai_clues": []
+  },
+  "TECHNICAL_COLLEGE": {
+    "inherits": ["BASE_SCHOOL"],
+    "required_apps": ["workshop_tracker", "apprenticeship_mgmt"],
+    "ui_skin": "industrial_dark",
+    "workflow_template": "cameroon_tech_v1",
+    "ai_clues": ["safety_protocols"]
+  },
+  "STEM_ACADEMY": {
+    "inherits": ["BASE_SCHOOL"],
+    "required_apps": ["robotics_lab", "project_based_lms"],
+    "ui_skin": "modern_high_tech",
+    "workflow_template": "global_stem_v2",
+    "ai_clues": ["peer_review"]
+  }
+}

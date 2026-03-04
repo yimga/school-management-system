@@ -1785,8 +1785,10 @@ def backend_dashboard_status_fragment(request):
     from django.http import HttpResponse
     from django.template import loader
     from django.core.cache import cache
+    from apps.siteconfig.cache_utils import tenant_cache_key
 
-    html = cache.get(BACKEND_STATUS_FRAGMENT_CACHE_KEY)
+    cache_key = tenant_cache_key(BACKEND_STATUS_FRAGMENT_CACHE_KEY, request)
+    html = cache.get(cache_key)
     if html is not None:
         return HttpResponse(html)
 
@@ -1804,7 +1806,8 @@ def backend_dashboard_status_fragment(request):
         site = SiteSettings.get_solo()
         enable_offline_mode = getattr(site, "enable_offline_mode", False)
         if enable_offline_mode:
-            offline_queue_metrics = cache.get("sms_offline_queue_metrics")
+            from apps.siteconfig.cache_utils import tenant_cache_key
+            offline_queue_metrics = cache.get(tenant_cache_key("sms_offline_queue_metrics", request))
     except Exception:
         pass
 
@@ -1815,7 +1818,7 @@ def backend_dashboard_status_fragment(request):
         "enable_offline_mode": enable_offline_mode,
         "offline_queue_metrics": offline_queue_metrics,
     })
-    cache.set(BACKEND_STATUS_FRAGMENT_CACHE_KEY, html, BACKEND_STATUS_FRAGMENT_CACHE_TTL)
+    cache.set(cache_key, html, BACKEND_STATUS_FRAGMENT_CACHE_TTL)
     return HttpResponse(html)
 
 
@@ -2873,6 +2876,8 @@ def login_view(request):
                     request=request,
                     school=getattr(request, "school", None),
                 )
+                # Impossible-travel check: deferred to ImpossibleTravelMiddleware (single trigger).
+                request._post_login_user = user
             except Exception:
                 pass
 

@@ -1,0 +1,34 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}Upgrade progress{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h1>Global AI upgrade progress</h1>
+  <p><a href="{{ dashboard_url }}">Super dashboard</a></p>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <p id="progress-text">Loading…</p>
+      <p class="small text-muted">Run ID: {{ run_id }}</p>
+    </div>
+  </div>
+  <script>
+  (function() {
+    var runId = "{{ run_id|escapejs }}";
+    var progressUrl = "?json=1";
+    function poll() {
+      fetch(window.location.pathname + progressUrl)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var total = data.regions_total || 0;
+          var done = data.regions_done !== undefined ? data.regions_done : 0;
+          var status = data.status || "unknown";
+          document.getElementById("progress-text").textContent = status + " — " + done + " / " + total + " regions.";
+          if (status !== "done" && status !== "error") setTimeout(poll, 2000);
+        })
+        .catch(function() { document.getElementById("progress-text").textContent = "Error loading progress."; });
+    }
+    poll();
+  })();
+  </script>
+</div>
+{% endblock %}
