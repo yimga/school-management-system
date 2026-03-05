@@ -19,7 +19,7 @@
 | Phase / RBAC | `python manage.py test apps.siteconfig.tests.test_admin_ui_smoke apps.api.tests.test_dashboard_api_rbac` | Targeted tests pass |
 | Multi-tenant / provisioning | `python manage.py test apps.schools.tests.test_tenant_isolation_and_provisioning` | Isolation and provisioning tests pass |
 
-**CI:** `.github/workflows/smoke.yml` runs `scripts/pre_deploy_gate.sh` on push/PR to main.
+**CI:** `.github/workflows/smoke.yml` runs `scripts/pre_deploy_gate.sh` on push/PR to main. Optional: add a docs lint step (e.g. markdownlint for `docs/`) to the workflow if desired.
 
 ## Wave deliverables (reference)
 

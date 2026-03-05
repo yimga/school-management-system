@@ -586,12 +586,17 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         school = getattr(request, "school", None)
-        if school and not school.has_feature("offline_mode"):
-            return Response(
+        if school:
+            from apps.policies.resolver import get_effective_policy
+            try:
+                offline_ok = get_effective_policy(school, user=getattr(request, "user", None), capability="offline_mode").get("enabled", False)
+            except Exception:
+                offline_ok = False
+            if not offline_ok:
+                return Response(
                 {'error': 'Offline sync is not enabled for this school. Enable the Offline Mode module in Module Market.'},
                 status=status.HTTP_403_FORBIDDEN
-            )
-
+                )
         changes = request.data.get('changes', [])
         device_id = request.data.get('device_id')
         

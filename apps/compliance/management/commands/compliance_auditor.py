@@ -21,6 +21,8 @@ from dataclasses import dataclass
 from django.core.management.base import BaseCommand, CommandError
 from django.db import models
 
+from apps.policies.resolver import get_effective_policy
+
 
 @dataclass(frozen=True)
 class SchoolComplianceResult:
@@ -89,7 +91,8 @@ class Command(BaseCommand):
         core_features: list[str],
         rule_lookup: dict[str, dict[str, str]],
     ) -> SchoolComplianceResult:
-        settings = dict(getattr(school, "settings", None) or {})
+        policy = get_effective_policy(school)
+        settings = {**policy, **dict(getattr(school, "settings", None) or {})}
         region_code = str(getattr(school, "default_region_id", "") or "")
         region_rules = rule_lookup.get(region_code, {})
 

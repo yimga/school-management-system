@@ -62,13 +62,13 @@ def support_request(request):
         if school:
             try:
                 from apps.siteconfig.models import GlobalSupportTicket
+                from apps.policies.resolver import get_effective_policy
+                policy = get_effective_policy(school)
+                plan_slug = (policy.get("plan_slug") or "").strip().lower()
+                country_code = (policy.get("country_code") or "")[:2]
                 priority = GlobalSupportTicket.Priority.NORMAL
-                plan_slug = (getattr(school.plan, "slug", None) or "").strip().lower() if getattr(school, "plan", None) else ""
                 if plan_slug in ("powerhouse", "enterprise", "pro"):
                     priority = GlobalSupportTicket.Priority.HIGH
-                country_code = ""
-                if getattr(school, "default_region", None) and hasattr(school.default_region, "country_code"):
-                    country_code = (school.default_region.country_code or "")[:2]
                 GlobalSupportTicket.objects.create(
                     school=school,
                     user=request.user,

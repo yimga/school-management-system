@@ -17,6 +17,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 from apps.compliance.models import AuditLog
 from django.core.cache import cache
 from apps.portal.ai_provider import generate_ai_response, get_ai_provider_status
+from apps.siteconfig.cache_utils import tenant_cache_key
 
 logger = logging.getLogger(__name__)
 AI_COPILOT_ENABLED = getattr(settings, "AI_COPILOT_ENABLED", True)
@@ -47,9 +48,10 @@ def _log_ai_audit(request, action, reason="", details=None, sensitivity=None):
         logger.exception("AI Copilot audit logging failed")
 
 
-def _check_rate_limit(user):
-    """Simple per-user sliding window rate limiter using Django cache."""
-    key = f"ai_rl:{getattr(user, 'id', 'anon')}"
+def _check_rate_limit(user, request=None):
+    """Simple per-user sliding window rate limiter using Django cache (tenant-scoped)."""
+    base = f"ai_rl:{getattr(user, 'id', 'anon')}"
+    key = tenant_cache_key(base, request)
     now = time.time()
     try:
         events = cache.get(key, [])
@@ -78,36 +80,38 @@ def _check_rate_limit(user):
     return True, 0
 
 
-def _increment_usage_metrics(user, allowed: bool):
-    """Increment simple counters in cache for lightweight telemetry."""
+def _increment_usage_metrics(user, allowed: bool, request=None):
+    """Increment simple counters in cache for lightweight telemetry (tenant-scoped keys)."""
+    def _k(b):
+        return tenant_cache_key(b, request)
+
     try:
-        cache.incr('ai_copilot_usage_total')
-    except ValueError:
+        cache.incr(_k('ai_copilot_usage_total'))
+    except (ValueError, TypeError):
         try:
-            cache.set('ai_copilot_usage_total', 1, None)
+            cache.set(_k('ai_copilot_usage_total'), 1, None)
         except Exception:
             pass
     except Exception:
         pass
 
     role = (getattr(user, 'role', 'USER') or '').upper()
-    # Track seen roles for metrics endpoint
     try:
-        roles = cache.get('ai_copilot_usage_roles') or []
+        roles = cache.get(_k('ai_copilot_usage_roles')) or []
         if role not in roles:
             roles.append(role)
             try:
-                cache.set('ai_copilot_usage_roles', roles, None)
+                cache.set(_k('ai_copilot_usage_roles'), roles, None)
             except Exception:
                 pass
     except Exception:
         pass
 
     try:
-        cache.incr(f'ai_copilot_usage_role:{role}')
-    except ValueError:
+        cache.incr(_k(f'ai_copilot_usage_role:{role}'))
+    except (ValueError, TypeError):
         try:
-            cache.set(f'ai_copilot_usage_role:{role}', 1, None)
+            cache.set(_k(f'ai_copilot_usage_role:{role}'), 1, None)
         except Exception:
             pass
     except Exception:
@@ -115,10 +119,10 @@ def _increment_usage_metrics(user, allowed: bool):
 
     if not allowed:
         try:
-            cache.incr('ai_copilot_usage_denied_total')
-        except ValueError:
+            cache.incr(_k('ai_copilot_usage_denied_total'))
+        except (ValueError, TypeError):
             try:
-                cache.set('ai_copilot_usage_denied_total', 1, None)
+                cache.set(_k('ai_copilot_usage_denied_total'), 1, None)
             except Exception:
                 pass
         except Exception:
@@ -238,7 +242,7 @@ def ai_copilot_query(request):
         user_query = data.get('query', '').strip()
 
         # Rate limit per user before processing
-        allowed_rl, retry_after = _check_rate_limit(request.user)
+        allowed_rl, retry_after = _check_rate_limit(request.user, request)
         if not allowed_rl:
             _log_ai_audit(
                 request,
@@ -252,7 +256,7 @@ def ai_copilot_query(request):
                 },
                 sensitivity=AuditLog.Sensitivity.MEDIUM,
             )
-            _increment_usage_metrics(request.user, allowed=False)
+            _increment_usage_metrics(request.user, allowed=False, request=request)
             return JsonResponse({
                 'success': False,
                 'error': 'Rate limit exceeded. Please wait a moment and try again.',
@@ -282,7 +286,7 @@ def ai_copilot_query(request):
                 sensitivity=AuditLog.Sensitivity.MEDIUM,
             )
             
-            _increment_usage_metrics(request.user, allowed=False)
+            _increment_usage_metrics(request.user, allowed=False, request=request)
             return JsonResponse({
                 'success': False,
                 'error': denial_reason
@@ -315,9 +319,9 @@ def ai_copilot_query(request):
             },
         )
 
-        _increment_usage_metrics(request.user, allowed=True)
+        _increment_usage_metrics(request.user, allowed=True, request=request)
         try:
-            cache.set('ai_copilot_last_success_ts', time.time(), None)
+            cache.set(tenant_cache_key('ai_copilot_last_success_ts', request), time.time(), None)
         except Exception:
             pass
         return JsonResponse({
@@ -337,16 +341,16 @@ def ai_copilot_query(request):
     except Exception as e:
         logger.error(f'AI Copilot error: {str(e)}', exc_info=True)
         try:
-            cache.incr('ai_copilot_usage_errors_total')
-        except ValueError:
+            cache.incr(tenant_cache_key('ai_copilot_usage_errors_total', request))
+        except (ValueError, TypeError):
             try:
-                cache.set('ai_copilot_usage_errors_total', 1, None)
+                cache.set(tenant_cache_key('ai_copilot_usage_errors_total', request), 1, None)
             except Exception:
                 pass
         except Exception:
             pass
         try:
-            cache.set('ai_copilot_last_error_ts', time.time(), None)
+            cache.set(tenant_cache_key('ai_copilot_last_error_ts', request), time.time(), None)
         except Exception:
             pass
         return JsonResponse({
@@ -384,8 +388,8 @@ def ai_permissions(request):
 @require_GET
 @login_required
 def ai_copilot_limits(request):
-    """Return current rate limit status for the logged-in user."""
-    key = f"ai_rl:{getattr(request.user, 'id', 'anon')}"
+    """Return current rate limit status for the logged-in user (tenant-scoped)."""
+    key = tenant_cache_key(f"ai_rl:{getattr(request.user, 'id', 'anon')}", request)
     now = time.time()
     try:
         events = cache.get(key, [])

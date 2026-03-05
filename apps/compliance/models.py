@@ -365,6 +365,104 @@ class RegionFeatureCompliance(models.Model):
 
 
 # ============================================
+# Data governance: retention, export, erasure (RunMyCampus blueprint D)
+# ============================================
+
+
+class RetentionRule(models.Model):
+    """
+    Retention rule per data class / entity type (e.g. keep invoices 7 years).
+    """
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="retention_rules",
+        null=True,
+        blank=True,
+    )
+    data_class = models.CharField(max_length=80, help_text="e.g. invoice, consent_record, audit_log")
+    retention_days = models.PositiveIntegerField(help_text="Keep records this many days; then eligible for purge.")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["data_class"]
+        verbose_name = "Retention Rule"
+        verbose_name_plural = "Retention Rules"
+
+    def __str__(self):
+        return f"{self.data_class}: {self.retention_days} days"
+
+
+class ExportJob(models.Model):
+    """Data export request (e.g. GDPR right to portability)."""
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        RUNNING = "running", "Running"
+        COMPLETED = "completed", "Completed"
+        FAILED = "failed", "Failed"
+
+    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="export_jobs")
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    scope = models.CharField(max_length=80, default="user", help_text="e.g. user, school")
+    scope_id = models.CharField(max_length=64, blank=True, help_text="e.g. user id for scope=user")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    file_path = models.CharField(max_length=512, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Export Job"
+        verbose_name_plural = "Export Jobs"
+
+    def __str__(self):
+        return f"Export {self.id} ({self.status})"
+
+
+class EraseRequest(models.Model):
+    """Erasure request (e.g. GDPR right to be forgotten)."""
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        COMPLETED = "completed", "Completed"
+        REJECTED = "rejected", "Rejected"
+
+    school = models.ForeignKey("schools.School", on_delete=models.CASCADE, related_name="erase_requests")
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    subject_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="erase_requests_as_subject",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    reason = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Erase Request"
+        verbose_name_plural = "Erase Requests"
+
+    def __str__(self):
+        return f"Erase {self.subject_user_id} ({self.status})"
+
+
+# ============================================
 # Phase 4: Audit & Monitoring Models
 # ============================================
 # Import audit models from models_audit.py for organization

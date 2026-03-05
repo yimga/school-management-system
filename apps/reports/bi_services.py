@@ -266,18 +266,17 @@ class ReportCacheManager:
     
     @staticmethod
     def invalidate_report_cache(report_type: str):
-        """Invalidate all caches for a report type"""
+        """Invalidate all caches for a report type (tenant-scoped keys)."""
         from apps.reports.bi_models import MaterializedReportCache
-        
+
         MaterializedReportCache.objects.filter(report_type=report_type).delete()
-        # Clear memory cache (pattern-based) - LocMemCache does not support delete_pattern
-        # Instead, manually delete matching keys if using LocMemCache
+        prefix = get_tenant_cache_prefix(None)
+        pattern = f'{prefix}:report:{report_type}:*'
         if hasattr(cache, 'delete_pattern'):
-            cache.delete_pattern(f'report:{report_type}:*')
+            cache.delete_pattern(pattern)
         else:
-            # Fallback for LocMemCache: brute-force delete
             for key in list(cache._cache.keys()):
-                if key.startswith(f'report:{report_type}:'):
+                if key.startswith(f'{prefix}:report:{report_type}:'):
                     cache.delete(key)
 
 

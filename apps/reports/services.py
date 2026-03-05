@@ -5,6 +5,7 @@ from typing import Iterable, Optional
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.urls import reverse
+from apps.policies.resolver import get_effective_policy
 from apps.siteconfig.models import SiteSettings, RegionConfig, EducationSystemProfile
 
 from apps.academics.models import Term
@@ -404,8 +405,8 @@ GLOBAL_REPORT_LABELS = {
 def _profile_report_labels_for_school(school) -> dict:
     if not school:
         return {}
-    school_settings = dict(getattr(school, "settings", None) or {})
-    profile_code = str(school_settings.get("education_profile_code") or "").strip()
+    policy = get_effective_policy(school)
+    profile_code = str(policy.get("education_profile_code") or "").strip()
     profile = None
     if profile_code:
         profile = (
@@ -440,8 +441,8 @@ def resolve_report_labels(student: Optional[StudentProfile] = None, school=None)
 
     labels.update(_profile_report_labels_for_school(school))
 
-    school_settings = dict(getattr(school, "settings", None) or {})
-    custom_labels = school_settings.get("report_labels")
+    policy = get_effective_policy(school) if school else {}
+    custom_labels = policy.get("report_labels")
     if isinstance(custom_labels, dict):
         labels.update({str(key): str(value) for key, value in custom_labels.items() if value is not None})
 

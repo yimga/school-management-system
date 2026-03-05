@@ -26,6 +26,8 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
+from apps.policies.resolver import get_effective_policy
+
 
 def _write_json(path: Path, payload: Any) -> None:
     path.write_text(
@@ -202,7 +204,7 @@ class Command(BaseCommand):
 
         policy_locks: list[dict[str, Any]] = []
         for school in schools:
-            school_settings = dict(getattr(school, "settings", None) or {})
+            school_settings = {**get_effective_policy(school), **dict(getattr(school, "settings", None) or {})}
             metadata = school_settings.get("tenant_config_metadata") or {}
             if not isinstance(metadata, dict):
                 metadata = {}

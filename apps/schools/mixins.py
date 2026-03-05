@@ -39,13 +39,14 @@ def require_school(view_func):
 
 
 def require_feature(feature_code: str):
-    """Decorator factory: require request.school and school.has_feature(feature_code)."""
+    """Decorator factory: require request.school and feature enabled via Policy Registry (is_feature_enabled)."""
     def decorator(view_func):
         def wrapped(request, *args, **kwargs):
             school = getattr(request, "school", None)
             if school is None:
                 return HttpResponseForbidden("School context required.")
-            if not school.has_feature(feature_code):
+            from apps.schools.models import is_feature_enabled
+            if not is_feature_enabled(school, feature_code):
                 return HttpResponseForbidden("This module is not enabled for your school.")
             return view_func(request, *args, **kwargs)
         return wrapped

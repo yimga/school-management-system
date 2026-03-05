@@ -189,11 +189,17 @@ def _build_weather_degraded_response(config: dict) -> dict:
     }
 
 
-def _resolve_weather_payload(config: dict, *, scope: str) -> dict:
+def _resolve_weather_payload(config: dict, *, scope: str, request=None) -> dict:
     if not config["enabled"]:
         return _build_weather_disabled_response(config)
 
-    cache_key = _weather_cache_key(config, scope=scope)
+    try:
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+        prefix = get_tenant_cache_prefix(request)
+    except Exception:
+        prefix = "public"
+    base_key = _weather_cache_key(config, scope=scope)
+    cache_key = f"{prefix}:{base_key}"
     stale_cache_key = f"{cache_key}:stale"
 
     cached_payload = cache.get(cache_key)
@@ -295,15 +301,18 @@ def metrics(request):
     """Prometheus metrics endpoint."""
     base_output = generate_latest()
 
-    # Append AI Copilot lightweight counters from cache in Prometheus text format
+    # Append AI Copilot lightweight counters from cache (tenant-scoped when request has tenant)
     lines = []
     try:
-        total = cache.get('ai_copilot_usage_total') or 0
-        denied = cache.get('ai_copilot_usage_denied_total') or 0
-        errors = cache.get('ai_copilot_usage_errors_total') or 0
-        last_success_ts = cache.get('ai_copilot_last_success_ts') or 0
-        last_error_ts = cache.get('ai_copilot_last_error_ts') or 0
-        roles = cache.get('ai_copilot_usage_roles') or []
+        from apps.siteconfig.cache_utils import tenant_cache_key
+        def _ck(b):
+            return tenant_cache_key(b, request)
+        total = cache.get(_ck('ai_copilot_usage_total')) or 0
+        denied = cache.get(_ck('ai_copilot_usage_denied_total')) or 0
+        errors = cache.get(_ck('ai_copilot_usage_errors_total')) or 0
+        last_success_ts = cache.get(_ck('ai_copilot_last_success_ts')) or 0
+        last_error_ts = cache.get(_ck('ai_copilot_last_error_ts')) or 0
+        roles = cache.get(_ck('ai_copilot_usage_roles')) or []
 
         lines.append('# HELP ai_copilot_usage_total Total AI Copilot queries processed')
         lines.append('# TYPE ai_copilot_usage_total counter')
@@ -328,7 +337,7 @@ def metrics(request):
         lines.append('# HELP ai_copilot_usage_role AI Copilot queries by role')
         lines.append('# TYPE ai_copilot_usage_role counter')
         for role in roles:
-            val = cache.get(f'ai_copilot_usage_role:{role}') or 0
+            val = cache.get(_ck(f'ai_copilot_usage_role:{role}')) or 0
             # Sanitize role label value
             role_label = str(role).replace('"', '')
             lines.append(f'ai_copilot_usage_role{{role="{role_label}"}} {int(val)}')
@@ -348,16 +357,19 @@ def copilot_metrics_json(request):
     Returns: { total: int, denied: int, roles: [{role: str, count: int}] }
     """
     try:
-        total = cache.get('ai_copilot_usage_total') or 0
-        denied = cache.get('ai_copilot_usage_denied_total') or 0
-        errors = cache.get('ai_copilot_usage_errors_total') or 0
-        last_success_ts = cache.get('ai_copilot_last_success_ts') or 0
-        last_error_ts = cache.get('ai_copilot_last_error_ts') or 0
-        roles = cache.get('ai_copilot_usage_roles') or []
+        from apps.siteconfig.cache_utils import tenant_cache_key
+        def _ck(b):
+            return tenant_cache_key(b, request)
+        total = cache.get(_ck('ai_copilot_usage_total')) or 0
+        denied = cache.get(_ck('ai_copilot_usage_denied_total')) or 0
+        errors = cache.get(_ck('ai_copilot_usage_errors_total')) or 0
+        last_success_ts = cache.get(_ck('ai_copilot_last_success_ts')) or 0
+        last_error_ts = cache.get(_ck('ai_copilot_last_error_ts')) or 0
+        roles = cache.get(_ck('ai_copilot_usage_roles')) or []
 
         role_counts = []
         for role in roles:
-            val = cache.get(f'ai_copilot_usage_role:{role}') or 0
+            val = cache.get(_ck(f'ai_copilot_usage_role:{role}')) or 0
             role_counts.append({
                 'role': str(role),
                 'count': int(val),
@@ -419,8 +431,8 @@ def api_health(request):
 @require_GET
 @observability_auth_required
 def api_admin_weather(request):
-    """Server-side weather snapshot for admin dashboard widgets."""
-    payload = _resolve_weather_payload(_build_admin_weather_config(), scope="admin")
+    """Server-side weather snapshot for admin dashboard widgets (tenant-scoped cache)."""
+    payload = _resolve_weather_payload(_build_admin_weather_config(), scope="admin", request=request)
     return JsonResponse(payload)
 
 
@@ -429,7 +441,7 @@ def api_weather_context(request):
     """Public-safe weather snapshot for shared header/backend widgets. Never raises; returns disabled payload on error."""
     try:
         config = _build_admin_weather_config()
-        payload = _resolve_weather_payload(config, scope="context")
+        payload = _resolve_weather_payload(config, scope="context", request=request)
         return JsonResponse(payload)
     except Exception as exc:
         logger.warning("api_weather_context failed: %s", exc, exc_info=False)

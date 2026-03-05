@@ -2761,12 +2761,14 @@ def _get_login_page_language(request):
             lang = (locale.get("default_language") or locale.get("locale") or "").strip() or None
         except Exception:
             lang = None
-        if not lang and getattr(school, "default_region_id", None):
+        if not lang and school:
             try:
-                region = school.default_region
-                lang = getattr(region, "default_language", None) or ""
-                settings = getattr(school, "settings", None) or {}
-                lang = (settings.get("default_language") or lang or "").strip() or None
+                from apps.policies.resolver import get_effective_policy
+                policy = get_effective_policy(school)
+                lang = (policy.get("default_language") or "").strip() or None
+                if not lang and getattr(school, "default_region_id", None):
+                    region = school.default_region
+                    lang = (getattr(region, "default_language", None) or "").strip() or None
             except Exception:
                 pass
     else:

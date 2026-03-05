@@ -658,7 +658,8 @@ def feature_control_panel(request):
         _log_audit(request, "import" if import_data else "save", changes_dict)
         logger.info("Feature control saved by %s: changed %s", request.user.username, list(changes_dict.keys()))
         now = timezone.now()
-        cache.set(FEATURE_CONTROL_LAST_SAVED_KEY, {
+        from apps.siteconfig.cache_utils import tenant_cache_key
+        cache.set(tenant_cache_key(FEATURE_CONTROL_LAST_SAVED_KEY, request), {
             "by": request.user.get_full_name() or request.user.username,
             "at": now.strftime("%Y-%m-%d %H:%M"),
         }, timeout=60 * 60 * 24 * 7)
@@ -702,7 +703,8 @@ def feature_control_panel(request):
 
     total = sum(len(c["items"]) for c in categories)
     can_revert = REVERT_SESSION_KEY in request.session
-    last_saved = cache.get(FEATURE_CONTROL_LAST_SAVED_KEY)
+    from apps.siteconfig.cache_utils import tenant_cache_key
+    last_saved = cache.get(tenant_cache_key(FEATURE_CONTROL_LAST_SAVED_KEY, request))
     weather_state = _get_weather_selector_state(site)
     defaults = default_backend_feature_flags()
     backend_flags = site.backend_feature_flags or defaults

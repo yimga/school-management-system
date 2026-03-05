@@ -31,8 +31,8 @@ This document maps every implementation item from the blueprint to the codebase 
 | Effective policy | effective_policy = tenant_overrides ⊕ country_defaults ⊕ platform_defaults | `resolver.get_effective_policy`: platform defaults, region from school.default_region, tenant from school.settings/features | **Done** |
 | No direct School.settings/features in business logic | Modules use Policy Registry only | Feature gate uses get_effective_policy; context processor injects global_env; pattern doc enforces rule | **Done** |
 | Context processor | Inject tenant_ctx + global_env into templates | `apps/policies/context_processors.tenant_policy_context` in TEMPLATES options | **Done** |
-| TenantBlueprint model | Blueprint suggests TenantBlueprint (FK to tenant) + CountryProfile + PolicyBundle | Behavior implemented via School + Plan + settings/features in resolver; no separate TenantBlueprint table | **Partial** (behavior done; explicit model optional for v2) |
-| Caching | Per-tenant cache with invalidation (Redis recommended) | Not implemented; resolver is stateless per request | **Gap** (optional for scale) |
+| TenantBlueprint model | Blueprint suggests TenantBlueprint (FK to tenant) + CountryProfile + PolicyBundle | `apps/policies/models.py`: TenantBlueprint, CountryProfile, PolicyBundle; resolver uses when POLICY_USE_BUNDLES=True | **Done** |
+| Caching | Per-tenant cache with invalidation (Redis recommended) | POLICY_CACHE_TTL in settings; invalidate_policy_cache(school) after settings/features change | **Done** (optional) |
 
 ---
 
@@ -40,9 +40,9 @@ This document maps every implementation item from the blueprint to the codebase 
 
 | Item | Blueprint requirement | Implementation | Status |
 |------|------------------------|----------------|--------|
-| One module uses only tenant_ctx + Policy Registry | Admissions or Gradebook: labels, rules, steps from blueprint; no hardcoded region/settings reads | FeatureGatekeeperMiddleware refactored to use get_effective_policy(school, user, capability=code); pattern doc added | **Partial** |
+| One module uses only tenant_ctx + Policy Registry | Admissions or Gradebook: labels, rules, steps from blueprint; no hardcoded region/settings reads | FeatureGatekeeperMiddleware + **Portal** refactored: portal views use get_effective_policy for RTL and cahier_de_texte; no direct school.settings/school.has_feature in portal | **Done** |
 | Repeatable pattern doc | Template for refactoring other modules | `docs/patterns/module_refactor_template.md` | **Done** |
-| Full module refactor | Every view/form in one module uses only tenant_ctx + registry | No full Admissions or Gradebook module refactor yet; feature gate is the first consumer | **Gap** (follow pattern doc for next steps) |
+| Full module refactor | Every view/form in one module uses only tenant_ctx + registry | **Portal** refactored: RTL, cahier, KB region, support ticket metadata from get_effective_policy; no direct school.settings/features | **Done** |
 
 ---
 
@@ -70,7 +70,7 @@ This document maps every implementation item from the blueprint to the codebase 
 | Widget registry | Dashboard/portal widget injection | get_installed_widgets(school) returns list of widget configs from active installations | **Done** |
 | AppBillingLedger / billing proration | Billing adjustment on install (Section 3) | `apps.marketplace.models.AppBillingLedger` (school, app, installation, kind, amount, currency, period_start/end) | **Done** |
 | ScopeGrant (tenant-approved scopes) | Tenant admin approves scopes per app | `apps.marketplace.models.ScopeGrant` (installation, scope, granted_by); `grant_scopes(installation, scope_codes_or_scope_objects, granted_by)` in services | **Done** |
-| Schema patches on install | Apply migrations on install | install_app does not run migrations; can be added as separate step | **Partial** |
+| Schema patches on install | Apply migrations on install | install_app(..., run_schema_patches=True); run_schema_patches_for_installation runs migrate in tenant schema_context when USE_DJANGO_TENANTS | **Done** |
 
 ---
 
@@ -96,14 +96,14 @@ This document maps every implementation item from the blueprint to the codebase 
 ## Summary
 
 - **Fully implemented:** Tenancy guardrails (TENANCY_MODE, apps/tenancy), Policy Registry (resolver + registry, feature gate, context processor), Event Outbox (DomainEvent, emit, consumer, command, Celery task), Marketplace MVP (models, install/uninstall, widget registry, audit), module refactor pattern doc.
-- **Partial:** TenantBlueprint as explicit DB model (behavior in resolver); full refactor of one whole module (only feature gate refactored); schema patches on app install (pipeline exists, migrations not run).
-- **Gaps (acceptable for MVP / v2):** None for blueprint event/marketplace items; per-tenant policy caching remains optional for scale.
+- **Partial:** None (all items above completed).
+- **Gaps (acceptable for MVP / v2):** None for blueprint event/marketplace items.
 
 ---
 
 ## Recommended Next Steps
 
-1. Refactor one full module (e.g. Admissions or Gradebook) using `docs/patterns/module_refactor_template.md`: all views/forms use only request.tenant_ctx and get_effective_policy/get_tenant_blueprint.
-2. Optionally add per-tenant policy caching (e.g. Redis) in the resolver for high scale.
+1. ~~Optionally refactor remaining modules~~ **Done:** schools/tasks uses get_effective_policy for education_profile_code and provisioning; portal KB and support use policy for country_code/plan_slug; reports and finance do not read school.settings/features. See `docs/patterns/module_refactor_template.md` for further modules.
+2. ~~Optionally add per-tenant policy caching~~ **Done:** Resolver checks POLICY_CACHE_TTL and returns cached policy when set; invalidate_policy_cache(school) after settings/features change.
 
 See **docs/WHY_WE_DEFERRED_AND_WHAT_WE_BUILT.md** for why items were initially deferred and what was implemented afterward.

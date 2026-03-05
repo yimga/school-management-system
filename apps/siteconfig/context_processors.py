@@ -12,6 +12,7 @@ from apps.accounts.models import User
 from apps.finance.models import Notification
 from .preview_state import PREVIEW_MODE_SESSION_KEY, ACT_AS_ROLE_SESSION_KEY
 from .portal_sidebar_items import build_portal_sidebar_items
+from apps.policies.resolver import get_effective_policy
 
 
 def _get_portal_sidebar_items(request, site):
@@ -484,10 +485,15 @@ def site_settings(request):
         ctx["PUBLIC_BRAND_LOGO_URL"] = ""
         ctx["PUBLIC_BRAND_LOGO_DARK_URL"] = ""
         ctx["PUBLIC_BRAND_FAVICON_URL"] = ""
-    # Offline: global Feature Control must be on; in multi-tenant, school must also have offline_mode module.
-    ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and (
-        not school or school.has_feature("offline_mode")
-    )
+    # Offline: global Feature Control must be on; in multi-tenant, school must have offline_mode via Policy Registry.
+    if school:
+        try:
+            offline_enabled = get_effective_policy(school, user=getattr(request, "user", None), capability="offline_mode").get("enabled", False)
+        except Exception:
+            offline_enabled = False
+    else:
+        offline_enabled = True
+    ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] = bool(site.enable_offline_mode) and offline_enabled
     flags_ctx = getattr(site, "backend_feature_flags", None) or {}
     # Whether to show the connection status bar (offline pill) in the header.
     ctx["SHOW_OFFLINE_STATUS_BAR"] = ctx["OFFLINE_ENABLED_FOR_CURRENT_SCHOOL"] and bool(
@@ -516,14 +522,13 @@ def region_settings(request):
     school = _request_school(request)
     grading_scale = None
     default_language = None
+    policy = get_effective_policy(school) if school else {}
     try:
-        # Multi-tenant: prefer school's region when request.school is set
+        # Multi-tenant: prefer school's region when request.school is set; grading/language from Policy Registry
         if school and school.default_region_id:
             region = school.default_region
-            # School.settings overrides for grading/language
-            settings_overrides = getattr(school, "settings", None) or {}
-            grading_scale = settings_overrides.get("grading_scale") or region.grading_scale
-            default_language = settings_overrides.get("default_language") or getattr(region, "default_language", "en")
+            grading_scale = (policy.get("grading") or {}).get("grading_scale") or getattr(region, "grading_scale", "default")
+            default_language = policy.get("default_language") or getattr(region, "default_language", "en")
         else:
             _session = getattr(request, "session", None)
             region_code = _session.get('region_code', settings.REGION_CODE) if _session else settings.REGION_CODE
@@ -565,9 +570,8 @@ def region_settings(request):
             grading_scale = "default"
             default_language = "en"
     if school and not (school.default_region_id):
-        settings_overrides = getattr(school, "settings", None) or {}
-        grading_scale = settings_overrides.get("grading_scale") or grading_scale
-        default_language = settings_overrides.get("default_language") or default_language
+        grading_scale = (policy.get("grading") or {}).get("grading_scale") or grading_scale
+        default_language = policy.get("default_language") or default_language
     if grading_scale is None:
         grading_scale = getattr(region, "grading_scale", "default")
     if default_language is None:
@@ -601,9 +605,7 @@ def region_settings(request):
         or grading_scale
     )
 
-    is_rtl = getattr(region, "is_rtl", False)
-    if school and (school.settings or {}).get("rtl") is True:
-        is_rtl = True
+    is_rtl = bool(policy.get("rtl", False)) if school else getattr(region, "is_rtl", False)
     if (tenant_locale or {}).get("is_rtl") is True:
         is_rtl = True
     return {
@@ -654,11 +656,11 @@ def language_context(request):
             except Exception:
                 pass
         if current_language == translation.get_language():
-            # Multi-tenant: prefer school default language when request.school is set
+            # Multi-tenant: prefer school default language from Policy Registry when request.school is set
             school = _request_school(request)
             if school:
-                settings_overrides = getattr(school, "settings", None) or {}
-                lang_override = settings_overrides.get("default_language")
+                policy = get_effective_policy(school)
+                lang_override = policy.get("default_language")
                 if lang_override and lang_override in SUPPORTED_LANGUAGES:
                     current_language = lang_override
                 elif school.default_region_id:

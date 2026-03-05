@@ -169,7 +169,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     # W1-9: When no education_profile_code is set, resolve_profile_for_school uses school.default_region_id
     # (from country_code at create) and returns one approved profile per country via for_school() + ensure_country_profile().
     region = school.default_region
-    requested_profile_code = str((school.settings or {}).get("education_profile_code") or "").strip()
+    from apps.policies.resolver import get_effective_policy
+    _policy = get_effective_policy(school)
+    requested_profile_code = str(_policy.get("education_profile_code") or "").strip()
     profile = resolve_profile_for_school(
         school,
         requested_profile_code=requested_profile_code,
@@ -195,6 +197,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         }
         if isinstance(getattr(profile, "config", None), dict) and profile.config.get("report_template_family"):
             profile_config["report_template_family"] = profile.config.get("report_template_family")
+        # Read current settings for merge; profile defaults from policy/resolver flow
         merged_settings = dict(school.settings or {})
         # Respect explicit tenant-entered values while applying profile defaults.
         for key, value in profile_config.items():
@@ -253,7 +256,8 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     # Tenant-scoped creation: run inside tenant_context when using schema-per-tenant
     with _optional_tenant_context(tenant_client):
         # Phase B: Tenant Provisioning Engine — create TenantSystem rows from wizard selection (multi-system)
-        provisioning = (school.settings or {}).get("provisioning") or {}
+        # Use policy for provisioning config (no direct school.settings read per blueprint)
+        provisioning = _policy.get("provisioning") or {}
         education_system_ids = provisioning.get("education_system_ids") or []
         if not isinstance(education_system_ids, list):
             education_system_ids = []

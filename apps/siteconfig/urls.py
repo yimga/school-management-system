@@ -33,6 +33,12 @@ from .views_feature_control import (
     feature_control_weather_cities,
 )
 from .views_dashboard_config import dashboard_configuration_hub, workflow_flow_gallery
+from .views_workflow_api import (
+    workflow_catalog_api,
+    workflow_list_api,
+    workflow_run_api,
+    dashboard_registry_api,
+)
 from .dashboard_views import (
     update_theme,
 )
@@ -86,6 +92,10 @@ urlpatterns = [
     path("domains/", custom_domain_wizard, name="custom_domain_wizard"),
     path("api/branding/", branding_api, name="branding_api"),
     path("api/workflow-clues/", workflow_clues_api, name="workflow_clues_api"),
+    path("api/workflow/catalog/", workflow_catalog_api, name="workflow_catalog_api"),
+    path("api/workflow/list/", workflow_list_api, name="workflow_list_api"),
+    path("api/workflow/run/", workflow_run_api, name="workflow_run_api"),
+    path("api/dashboard-registry/", dashboard_registry_api, name="dashboard_registry_api"),
     path("impersonation-consent/grant/", grant_impersonation_consent, name="grant_impersonation_consent"),
     path("impersonation-consent/revoke/", revoke_impersonation_consent, name="revoke_impersonation_consent"),
 ]

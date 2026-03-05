@@ -22,9 +22,9 @@ Status for each item from the World Engine execution directive (§11 and §9). U
 
 ## Cache key audit (tenant-scoped vs global)
 
-- **Tenant-scoped:** Use `get_tenant_cache_prefix(request)` or `tenant_cache_key(base_key, request)`. Applied in: evals (caching, ranking), dashboard (admin_context), portal (services), reports (services, bi_services), compliance (views_dashboard), observability (admin_extras), accounts (BACKEND_STATUS_FRAGMENT).
-- **Global:** ai_copilot_usage_* (metrics), access_rules_version, rate limits, maintenance_mode — no tenant prefix.
-- **Fixed in plan:** evals/performance_optimization CacheManager, portal_sidebar_items badge cache, offline queue metrics (if per-tenant).
+- **Tenant-scoped:** Use `get_tenant_cache_prefix(request)` or `tenant_cache_key(base_key, request)`. Applied in: evals (caching, ranking), dashboard (admin_context), portal (services, views_ai_copilot, views badge_verify), reports (services, bi_services), compliance (views_dashboard, access_control, alerts, signals), observability (views weather + AI copilot metrics, admin_extras), accounts (BACKEND_STATUS_FRAGMENT, security_health), siteconfig (feature_control), finance (offline idempotency). AI copilot usage metrics and access_rules_version are now tenant-scoped.
+- **Global (intentional):** score_convert (evals/grading), site_settings_v1 (maintenance_mode), geoip/region_config, observability health test key, IP-based rate limits that do not store tenant data.
+- **Ref:** `docs/architecture/cache_keys.md` for full table.
 
 ## i18n (locale and messages)
 

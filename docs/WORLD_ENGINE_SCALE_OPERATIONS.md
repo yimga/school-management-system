@@ -58,3 +58,31 @@ Notes for KEDA, CDN, WebSocket, JIT consent, and read replicas as per the master
 - **Single source of config:** Per-region Ollama endpoint and model are stored in **RegionalAIConfig** (public schema). Do not maintain a separate `REGIONAL_AI_CONFIG` dict in settings; the table is the only source. Settings `OLLAMA_ENDPOINT` and `OLLAMA_MODEL` are used only when no row exists for the region.
 - **Entry point:** All Ollama-backed inference goes through **services.inference.OllamaInferenceService.infer()** (region from request/school/country_code, country dossier, Redis cache, fallback model, PII stripping).
 - **Deployment:** Run one or more Ollama instances per region (e.g. Docker or Kubernetes). Use a load balancer (e.g. NGINX) in front of Ollama so the app talks to `http://ollama-region:11434` (or the LB URL). Configure GPU passthrough when available (e.g. `nvidia-container-toolkit` for Docker, or node selector for GPU nodes in K8s). Set **RegionalAIConfig.ollama_base_url** to the LB or instance URL for that region. Hot-swap: run two instances (A = current, B = new); point the LB to B when B is healthy; decommission A. See [docs/AI_MODEL_LIFECYCLE.md](AI_MODEL_LIFECYCLE.md) for model sync and offline procedures.
+
+---
+
+## Operational checklist (KEDA / CDN / WebSocket)
+
+Use this when enabling scale or real-time features in production.
+
+### KEDA (worker autoscaling)
+
+- [ ] Redis broker is used for Celery (`CELERY_BROKER_URL` / `REDIS_URL`).
+- [ ] Create a KEDA ScaledObject that watches the Celery queue (e.g. Redis list length for the queue key). See [KEDA Redis scaler](https://keda.sh/docs/2.12/scalers/redis/).
+- [ ] Set min/max replicas (e.g. min 1, max 50) and target queue depth (e.g. scale when queue > 500).
+- [ ] Worker Deployment uses the same image and env as the app; `celery -A config worker` with appropriate concurrency.
+
+### CDN (static/media at edge)
+
+- [ ] Choose provider (Cloudflare, CloudFront, or Render CDN). Configure origin to the app URL.
+- [ ] Set `STATIC_URL` and optionally `MEDIA_URL` to CDN URLs (e.g. `https://cdn.example.com/static/`).
+- [ ] Ensure cache-control headers: long `max-age` for hashed static files; short or no-store for tenant-specific media.
+- [ ] Run `collectstatic` and optionally sync to CDN origin (or let the app serve static and put CDN in front).
+
+### WebSocket (Channels + Redis)
+
+- [ ] Install: `pip install channels channels-redis`.
+- [ ] In settings, Channels and CHANNEL_LAYERS are auto-configured when packages are present (see `config/settings.py`).
+- [ ] Run app with ASGI: `daphne config.asgi:application` or `uvicorn config.asgi:application` (and bind to `0.0.0.0:$PORT`).
+- [ ] Set `REDIS_URL` so CHANNEL_LAYERS uses Redis; all ASGI workers share the same pub/sub.
+- [ ] For production, run multiple Daphne/Uvicorn workers behind a process manager; Redis ensures cross-node delivery.

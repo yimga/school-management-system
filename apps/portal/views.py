@@ -65,6 +65,7 @@ from apps.siteconfig.models import (
 )
 from apps.siteconfig.models_dashboard import get_dashboard_widget_metadata
 from apps.siteconfig.dashboard_views import load_dashboard_layout_settings
+from apps.policies.resolver import get_effective_policy
 from apps.siteconfig.dashboard_views import _can_customize
 from apps.analytics.services import (
     student_improvements,
@@ -559,8 +560,9 @@ def parent_dashboard(request: HttpRequest):
         set_active_child(request, guardian_students_for_switcher[0]["id"])
         active_child_id = guardian_students_for_switcher[0]["id"]
     school = getattr(request, "school", None)
-    region = getattr(school, "default_region", None) if school else None
-    is_rtl = bool(getattr(region, "is_rtl", False) or (school and (school.settings or {}).get("rtl")))
+    # RTL from Policy Registry (region + tenant overrides); no direct school.settings read
+    policy = get_effective_policy(school) if school else {}
+    is_rtl = bool(policy.get("rtl", False))
 
     return render(request, "parent/dashboard.html", {
         "links": links,
@@ -1107,10 +1109,11 @@ def badge_verify(request: HttpRequest):
     message = "Invalid or missing token."
 
     if token:
-        # Rate limit: 30 requests per IP per minute
+        # Rate limit: 30 requests per IP per minute (tenant-scoped key)
+        from apps.siteconfig.cache_utils import tenant_cache_key
         ip = request.META.get("REMOTE_ADDR", "")[:64]
         minute = timezone.now().strftime("%Y%m%d%H%M")
-        cache_key = f"badge_verify:{ip}:{minute}"
+        cache_key = tenant_cache_key(f"badge_verify:{ip}:{minute}", request)
         try:
             count = cache.get(cache_key, 0)
             if count >= 30:
@@ -1756,8 +1759,11 @@ def _cahier_enabled(request=None):
     flags = getattr(SiteSettings.get_solo(), "backend_feature_flags", None) or {}
     if not flags.get("enable_cahier_de_texte"):
         return False
-    if request and getattr(request, "school", None) and not request.school.has_feature("cahier_de_texte"):
-        return False
+    # Feature gate via Policy Registry (no direct school.has_feature in module)
+    if request and getattr(request, "school", None):
+        result = get_effective_policy(request.school, user=getattr(request, "user", None), capability="cahier_de_texte")
+        if not result.get("enabled", False):
+            return False
     return True
 
 

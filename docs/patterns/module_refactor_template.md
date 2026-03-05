@@ -2,6 +2,15 @@
 
 Use this pattern when refactoring any module to depend **only** on `request.tenant_ctx` and the Policy Registry.
 
+**Refactored modules:**  
+- **Portal** (`apps/portal/views.py`): RTL and cahier_de_texte via `get_effective_policy`.  
+- **Siteconfig** (`context_processors.py`): offline_mode, region_settings (grading_scale, default_language, is_rtl), language_context via `get_effective_policy`.  
+- **Portal sidebar** (`portal_sidebar_items.py`): feature filter via `is_feature_enabled`.  
+- **Schools** (`mixins.py`, `api_views.py`): `require_feature` and config API use `get_effective_policy` / `is_feature_enabled`.  
+- **API** (`mobile_api.py`): offline_mode gate via `get_effective_policy`.  
+- **Feature control** (`templatetags/feature_control.py`): `feature_enabled` tag uses `is_feature_enabled`.  
+- **Education DNA** (`education_dna.py`): preset from `get_effective_policy(school).get("education_dna_preset")`.
+
 ## Rule
 
 - **Tenant identity:** Use `request.tenant_ctx` (or `request.school` where already set by middleware). Do not resolve tenant from host/session inside the module.

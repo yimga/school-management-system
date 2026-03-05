@@ -1,7 +1,7 @@
 """
 Phase D: Template tags to hide or show UI based on school feature (plan/addon) flags.
 Use when a block should only render when the school has the feature enabled.
-Sidebar already filters by school.has_feature(); use these tags for in-page sections or links.
+Uses Policy Registry (is_feature_enabled) — no direct school.has_feature in templates.
 """
 from django import template
 
@@ -19,7 +19,8 @@ def feature_enabled(context, feature_code: str) -> bool:
     if not school:
         return False
     try:
-        return bool(school.has_feature(feature_code))
+        from apps.schools.models import is_feature_enabled
+        return bool(is_feature_enabled(school, feature_code))
     except Exception:
         return False
 

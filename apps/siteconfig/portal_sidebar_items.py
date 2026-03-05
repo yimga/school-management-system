@@ -377,12 +377,13 @@ def build_portal_sidebar_items(request, site):
         deduped.append(item)
     items = deduped
 
-    # Multi-tenant: hide items for modules the school has not enabled (Phase 3 feature registry).
+    # Multi-tenant: hide items for modules the school has not enabled (Policy Registry / is_feature_enabled).
     school = getattr(request, "school", None)
     if school:
+        from apps.schools.models import is_feature_enabled
         items = [
             it for it in items
-            if it.get("feature") is None or school.has_feature(it.get("feature") or "")
+            if it.get("feature") is None or is_feature_enabled(school, it.get("feature") or "")
         ]
 
     # Group by section so each section title appears only once ({% ifchanged item.section %}).

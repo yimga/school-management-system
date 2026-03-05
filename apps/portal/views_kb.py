@@ -19,7 +19,7 @@ from .models_kb import (
 def _get_kb_region(request):
     """
     Return (country_code, plan_tier) for KB regional filtering.
-    From tenant: school.default_region.country_code or compliance_region; plan from school.plan.
+    From tenant: Policy Registry only (get_effective_policy) for country_code and plan_slug.
     From public: GeoIP country_code; plan_tier None.
     """
     country_code = ""
@@ -27,14 +27,14 @@ def _get_kb_region(request):
     school = getattr(request, "school", None)
     if school:
         try:
-            if getattr(school, "default_region", None) and hasattr(school.default_region, "country_code"):
-                country_code = (school.default_region.country_code or "")[:2].upper()
+            from apps.policies.resolver import get_effective_policy
+            policy = get_effective_policy(school)
+            country_code = (policy.get("country_code") or "")[:2].upper()
             if not country_code and getattr(school, "compliance_region", None):
                 region = school.compliance_region
                 if hasattr(region, "country_code"):
                     country_code = (region.country_code or "")[:2].upper()
-            if getattr(school, "plan", None) and hasattr(school.plan, "slug"):
-                plan_tier = (school.plan.slug or "").strip().lower()
+            plan_tier = (policy.get("plan_slug") or "").strip().lower()
         except Exception:
             pass
     else:

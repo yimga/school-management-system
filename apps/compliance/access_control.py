@@ -1,6 +1,7 @@
 """
 Access control utilities for IP and country-based restrictions.
 Checks incoming requests against allow/deny lists.
+World Engine §8: cache keys are tenant-scoped (prefix from get_tenant_cache_prefix).
 """
 
 from typing import Tuple
@@ -8,6 +9,15 @@ from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
 from apps.compliance.models_audit import IPAccessRule, CountryAccessRule
+
+
+def _access_control_prefix():
+    """Tenant-scoped prefix for access rule cache keys."""
+    try:
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+        return get_tenant_cache_prefix(None)
+    except Exception:
+        return "public"
 
 
 def check_ip_access(ip_address: str) -> Tuple[bool, str]:
@@ -31,15 +41,18 @@ def check_ip_access(ip_address: str) -> Tuple[bool, str]:
         # Table doesn't exist - allow access (fail open)
         return True, "Access control table not initialized - allowing access"
 
-    # Cache key includes a version so rule updates invalidate cached entries
+    # Cache key includes tenant prefix and version so rule updates invalidate cached entries
     def _rules_version():
-        ver = cache.get('access_rules_version')
+        prefix = _access_control_prefix()
+        key = f"{prefix}:access_rules_version"
+        ver = cache.get(key)
         if ver is None:
             ver = 1
-            cache.set('access_rules_version', ver, None)
+            cache.set(key, ver, None)
         return ver
 
-    cache_key = f"ip_access:{ip_address}:v{_rules_version()}"
+    prefix = _access_control_prefix()
+    cache_key = f"{prefix}:ip_access:{ip_address}:v{_rules_version()}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -99,15 +112,18 @@ def check_country_access(country_code: str) -> Tuple[bool, str]:
     # Normalize to uppercase
     country_code = country_code.upper()
 
-    # Cache key includes a version so rule updates invalidate cached entries
+    # Cache key includes tenant prefix and version
     def _rules_version():
-        ver = cache.get('access_rules_version')
+        prefix = _access_control_prefix()
+        key = f"{prefix}:access_rules_version"
+        ver = cache.get(key)
         if ver is None:
             ver = 1
-            cache.set('access_rules_version', ver, None)
+            cache.set(key, ver, None)
         return ver
 
-    cache_key = f"country_access:{country_code}:v{_rules_version()}"
+    prefix = _access_control_prefix()
+    cache_key = f"{prefix}:country_access:{country_code}:v{_rules_version()}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached

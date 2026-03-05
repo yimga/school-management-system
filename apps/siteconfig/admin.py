@@ -66,7 +66,7 @@ from .models_dashboard import (
     TenantLayoutAssignment,
     FeatureControlAudit,
 )
-from .models_workflow import WorkflowTemplate, TenantWorkflow
+from .models_workflow import WorkflowTemplate, TenantWorkflow, WorkflowRunLog
 from .context_processors import SESSION_KEY
 from .theme_palette_groups import THEME_PALETTE_GROUPS, build_theme_pack_groups
 from apps.academics.models import AcademicYear
@@ -2250,6 +2250,7 @@ admin_site.register(DashboardTemplate)
 admin_site.register(TenantLayoutAssignment)
 admin_site.register(WorkflowTemplate)
 admin_site.register(TenantWorkflow)
+admin_site.register(WorkflowRunLog)
 
 
 class FeatureControlAuditAdmin(ModelAdmin):

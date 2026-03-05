@@ -37,6 +37,14 @@ def evaluate_conditions(conditions: list, context: dict) -> bool:
             return False
         if op == "in" and actual not in (want if isinstance(want, (list, tuple)) else []):
             return False
+        if op == "contains":
+            if want is None:
+                continue
+            if isinstance(actual, (list, tuple)) and want in actual:
+                continue
+            if isinstance(actual, str) and isinstance(want, str) and want in actual:
+                continue
+            return False
     return True
 
 
@@ -76,14 +84,37 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
     actions = overrides.get("actions", template.actions) if isinstance(overrides.get("actions"), list) else (template.actions or [])
 
     conditions_passed = evaluate_conditions(conditions, context)
+    context_keys = list(context.keys()) if isinstance(context, dict) else []
     if not conditions_passed:
-        return {"ok": True, "conditions_passed": False, "actions_run": [], "audit_ref": ""}
+        audit_ref = ""
+        try:
+            from .models_workflow import WorkflowRunLog
+            log = WorkflowRunLog.objects.create(
+                tenant_workflow=tenant_workflow,
+                conditions_passed=False,
+                actions_run=[],
+                context_keys=context_keys,
+            )
+            audit_ref = str(log.id)
+        except Exception as e:
+            logger.warning("WorkflowRunLog create failed: %s", e)
+        return {"ok": True, "conditions_passed": False, "actions_run": [], "audit_ref": audit_ref}
 
     school = getattr(tenant_workflow, "school", None)
     actions_run = run_actions(actions, context, school=school)
 
-    # Audit: log to compliance/SchoolProvisioningEvent or a dedicated WorkflowRunLog if added
     audit_ref = ""
+    try:
+        from .models_workflow import WorkflowRunLog
+        log = WorkflowRunLog.objects.create(
+            tenant_workflow=tenant_workflow,
+            conditions_passed=True,
+            actions_run=actions_run,
+            context_keys=context_keys,
+        )
+        audit_ref = str(log.id)
+    except Exception as e:
+        logger.warning("WorkflowRunLog create failed: %s", e)
     try:
         from apps.schools.models import SchoolProvisioningEvent
         if school:
@@ -92,9 +123,8 @@ def run_workflow(tenant_workflow, context: dict) -> dict:
                 event_type="WORKFLOW_RUN",
                 status="INFO",
                 message=f"Workflow {template.code} ran; {len(actions_run)} action(s).",
-                payload={"template": template.code, "actions_run": actions_run, "context_keys": list(context.keys())},
+                payload={"template": template.code, "actions_run": actions_run, "context_keys": context_keys},
             )
-            audit_ref = "SchoolProvisioningEvent"
     except Exception as e:
         logger.warning("Workflow audit log failed: %s", e)
 

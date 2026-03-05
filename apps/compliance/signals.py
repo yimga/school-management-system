@@ -150,12 +150,19 @@ from django.db.models.signals import post_save, post_delete
 
 
 def _bump_rules_version():
-    """Increment a cached version key used by access control cache keys."""
+    """Increment a cached version key used by access control cache keys (tenant-scoped)."""
     try:
-        cache.incr('access_rules_version')
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+        prefix = get_tenant_cache_prefix(None)
+        key = f"{prefix}:access_rules_version"
+        cache.incr(key)
     except Exception:
-        # If key missing or backend doesn't support incr, set initial value
-        cache.set('access_rules_version', 1, None)
+        try:
+            from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+            prefix = get_tenant_cache_prefix(None)
+            cache.set(f"{prefix}:access_rules_version", 1, None)
+        except Exception:
+            pass
 
 
 @receiver(post_save, sender=None)

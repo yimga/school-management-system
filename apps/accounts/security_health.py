@@ -128,11 +128,11 @@ class SecurityTaskRegistry:
         if school is None:
             return DEFAULT_WEIGHTS
         try:
-            settings = getattr(school, "settings", None) or {}
-            if isinstance(settings, dict):
-                w = settings.get("security_weights") or settings.get("security_weights_override")
-                if isinstance(w, dict):
-                    return {**DEFAULT_WEIGHTS, **w}
+            from apps.policies.resolver import get_effective_policy
+            policy = get_effective_policy(school)
+            w = policy.get("security_weights") or policy.get("security_weights_override")
+            if isinstance(w, dict):
+                return {**DEFAULT_WEIGHTS, **w}
             from apps.siteconfig.tenant_config import get_tenant_locale
             config = get_tenant_locale(school=school) or {}
             w = config.get("security_weights") or config.get("security_weights_override")
@@ -146,11 +146,18 @@ class SecurityTaskRegistry:
 def calculate_profile_strength(user, school=None, use_cache=True) -> float:
     """
     Return security health score 0–100.
-    Optional cache (TTL 5 min) keyed by user.pk and last_updated; optional last_calculated_at on user profile.
+    Optional cache (TTL 5 min) keyed by tenant + user.pk (World Engine §8).
     """
     if not user or not user.is_authenticated:
         return 0.0
-    cache_key = f"security_strength:{user.pk}"
+    try:
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+        prefix = get_tenant_cache_prefix(None)
+        if school is not None:
+            prefix = f"school:{getattr(school, 'id', '')}"
+    except Exception:
+        prefix = "public"
+    cache_key = f"{prefix}:security_strength:{user.pk}"
     if use_cache:
         cached = cache.get(cache_key)
         if cached is not None:
@@ -183,15 +190,14 @@ def get_missing_tasks(user, school=None) -> list[dict]:
 def get_security_grace_period_days(school=None) -> int:
     """Days before new users are subject to wizard redirect (e.g. 7)."""
     try:
+        if school:
+            from apps.policies.resolver import get_effective_policy
+            policy = get_effective_policy(school)
+            if "security_grace_period_days" in policy:
+                return int(policy["security_grace_period_days"])
         from apps.siteconfig.tenant_config import get_tenant_locale
         config = get_tenant_locale(school=school) or {}
         return int(config.get("security_grace_period_days", 7))
-    except Exception:
-        pass
-    try:
-        settings = getattr(school, "settings", None) if school else {}
-        if isinstance(settings, dict) and "security_grace_period_days" in settings:
-            return int(settings["security_grace_period_days"])
     except Exception:
         pass
     return 7

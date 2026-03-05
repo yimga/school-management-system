@@ -5,11 +5,18 @@ from rest_framework.permissions import AllowAny
 
 
 def _offline_enabled_for_request(request):
-    """True if offline is enabled: global switch on and (no school or school has offline_mode module)."""
+    """True if offline is enabled: global switch on and (no school or school has offline_mode via Policy Registry)."""
     from apps.siteconfig.models import SiteSettings
+    from apps.policies.resolver import get_effective_policy
     site = SiteSettings.get_solo()
     school = getattr(request, "school", None)
-    return bool(site.enable_offline_mode) and (not school or school.has_feature("offline_mode"))
+    if not school:
+        return bool(site.enable_offline_mode)
+    try:
+        enabled = get_effective_policy(school, user=getattr(request, "user", None), capability="offline_mode").get("enabled", False)
+    except Exception:
+        enabled = False
+    return bool(site.enable_offline_mode) and enabled
 
 
 class SchoolConfigAPI(APIView):
@@ -32,7 +39,9 @@ class SchoolConfigAPI(APIView):
                 "features": {},
                 "offlineEnabled": bool(site.enable_offline_mode),
             })
-        features = getattr(school, "features", None) or {}
+        from apps.policies.resolver import get_effective_policy
+        policy = get_effective_policy(school, user=getattr(request, "user", None))
+        features = policy.get("features") or {}
         return Response({
             "schoolName": school.name,
             "logoUrl": getattr(school, "logo_url", None) or "",

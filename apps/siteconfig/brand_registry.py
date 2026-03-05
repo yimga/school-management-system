@@ -91,13 +91,12 @@ def _deep_merge_dict(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str,
 
 
 def _school_label_overrides(school) -> dict[str, Any]:
-    settings = getattr(school, "settings", None) or {}
-    if not isinstance(settings, dict):
-        return {}
-    labels = settings.get("labels_map")
+    from apps.policies.resolver import get_effective_policy
+    policy = get_effective_policy(school) if school else {}
+    labels = policy.get("labels_map")
     if isinstance(labels, dict):
         return labels
-    education = settings.get("education_profile") or {}
+    education = policy.get("education_profile") or {}
     if isinstance(education, dict) and isinstance(education.get("labels_map"), dict):
         return education.get("labels_map") or {}
     return {}

@@ -29,3 +29,11 @@ jobs:
           # Quiet test DB logging so CI output stays small and gate finishes reliably
           LOG_LEVEL: WARNING
         run: bash scripts/pre_deploy_gate.sh
+
+      - name: i18n (makemessages + compilemessages)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq gettext > /dev/null 2>&1 || true
+          if command -v xgettext > /dev/null 2>&1; then
+            python manage.py makemessages -l en -a --no-obsolete --no-wrap 2>/dev/null || true
+            python manage.py compilemessages 2>/dev/null || true
+          fi

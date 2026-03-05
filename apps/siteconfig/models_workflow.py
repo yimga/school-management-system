@@ -82,3 +82,28 @@ class TenantWorkflow(models.Model):
 
     def __str__(self):
         return f"{self.school.name} — {self.template.name}"
+
+
+class WorkflowRunLog(models.Model):
+    """
+    Audit log for each workflow run (first-class workflow engine).
+    One row per run; stores conditions_passed, actions_run summary, context keys (no PII).
+    """
+
+    tenant_workflow = models.ForeignKey(
+        TenantWorkflow,
+        on_delete=models.CASCADE,
+        related_name="run_logs",
+    )
+    conditions_passed = models.BooleanField(default=False)
+    actions_run = models.JSONField(default=list, help_text="List of {type, params, run_at} per action.")
+    context_keys = models.JSONField(default=list, help_text="Keys present in context (no values for privacy).")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Workflow Run Log"
+        verbose_name_plural = "Workflow Run Logs"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Run {self.id} — {self.tenant_workflow} @ {self.created_at}"

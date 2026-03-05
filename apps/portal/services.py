@@ -618,7 +618,7 @@ def _performance_overview(students, year, term):
         return cached_result
     
     pass_mark = cache.get_or_set(
-        f"site_settings:pass_mark",
+        f"{prefix}:site_settings:pass_mark",
         SiteSettings.get_solo().pass_mark,
         3600  # Cache site settings for 1 hour
     )
@@ -683,8 +683,9 @@ def _performance_overview(students, year, term):
 
 def _empty_performance_data() -> dict:
     """Return empty performance data."""
+    prefix = get_tenant_cache_prefix(None)
     pass_mark = cache.get_or_set(
-        f"site_settings:pass_mark",
+        f"{prefix}:site_settings:pass_mark",
         SiteSettings.get_solo().pass_mark,
         3600
     )

@@ -64,12 +64,20 @@ grant_scopes(installation, ["read:students", "write:attendance"], granted_by=req
 widgets = get_installed_widgets(school)
 ```
 
+### Schema patches on install
+
+When installing an app, the pipeline can run migrations for a Django app if the manifest declares it:
+
+- In **MarketplaceApp.manifest**, set `migrations_app` or `schema_patch_app` to a Django app label (e.g. `"my_addon_app"`).
+- `install_app(school, app, run_schema_patches=True)` (default) will call `migrate <app_label>` in the **current connection context** after creating the installation. In schema-per-tenant mode, ensure the tenant schema is active (e.g. call from a request in tenant context or from a task that sets the connection schema). In RLS mode, migrations run in the single schema. Failures are logged; they do not block the install. To skip schema patches, call `install_app(..., run_schema_patches=False)`.
+
 ### App manifest
 
 On **MarketplaceApp**, `manifest` can include:
 
 - `scopes`: list of scope codes
 - `widgets`: dict or list of widget definitions (id, config)
+- `migrations_app` / `schema_patch_app`: optional Django app label to run migrations on install (see above)
 - `events_consumed` / `events_emitted`: for future event-driven integrations
 
 ---

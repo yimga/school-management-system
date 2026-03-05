@@ -347,7 +347,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
             )
         idem_key = (request.headers.get("X-Idempotency-Key") or request.META.get("HTTP_X_IDEMPOTENCY_KEY") or "").strip()[:64]
         if idem_key:
-            cache_key = f"offline_payment_idempotency:{request.user.pk}:{idem_key}"
+            from apps.siteconfig.cache_utils import tenant_cache_key
+            cache_key = tenant_cache_key(f"offline_payment_idempotency:{request.user.pk}:{idem_key}", request)
             cached = cache.get(cache_key)
             if cached is not None:
                 return Response(cached.get("data"), status=cached.get("status", status.HTTP_200_OK))
@@ -400,7 +401,8 @@ class PaymentViewSet(viewsets.ModelViewSet):
         )
 
         if idem_key:
-            cache_key = f"offline_payment_idempotency:{request.user.pk}:{idem_key}"
+            from apps.siteconfig.cache_utils import tenant_cache_key
+            cache_key = tenant_cache_key(f"offline_payment_idempotency:{request.user.pk}:{idem_key}", request)
             cache.set(cache_key, {"data": serializer.data, "status": status.HTTP_201_CREATED}, timeout=86400)
 
         headers = self.get_success_headers(serializer.data)

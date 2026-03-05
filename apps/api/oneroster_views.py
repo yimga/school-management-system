@@ -11,6 +11,13 @@ from django.views.decorators.http import require_GET
 
 from apps.academics.models import Classroom
 from apps.api.rate_limit import throttle_ip_request
+from apps.interop.oneroster.adapter import (
+    build_manifest_resources,
+    classroom_to_oneroster,
+    enrollment_to_oneroster,
+    student_to_oneroster,
+    teacher_to_oneroster,
+)
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School
 from apps.siteconfig.integration_registry import resolve_service_integration
@@ -141,15 +148,7 @@ def classes(request):
     offset, limit = _pagination(request)
     rows = []
     for classroom in Classroom.objects.filter(school=school).order_by("pk")[offset:(offset + limit)]:
-        rows.append(
-            {
-                "sourcedId": str(classroom.pk),
-                "title": classroom.name,
-                "classCode": classroom.code,
-                "schoolSourcedId": str(school.pk),
-                "status": "active",
-            }
-        )
+        rows.append(classroom_to_oneroster(classroom, school))
     return _oneroster_response(key="classes", rows=rows, offset=offset, limit=limit)
 
 
@@ -166,16 +165,7 @@ def students(request):
     rows = []
     qs = StudentProfile.objects.filter(school=school).select_related("classroom").order_by("pk")[offset:(offset + limit)]
     for student in qs:
-        rows.append(
-            {
-                "sourcedId": str(student.pk),
-                "username": student.student_code or f"student-{student.pk}",
-                "givenName": student.first_name,
-                "familyName": student.last_name,
-                "status": "active" if student.is_active else "inactive",
-                "classSourcedId": str(student.classroom_id) if student.classroom_id else None,
-            }
-        )
+        rows.append(student_to_oneroster(student, school))
     return _oneroster_response(key="users", rows=rows, offset=offset, limit=limit)
 
 
@@ -199,15 +189,7 @@ def teachers(request):
             username = teacher.user.username
             given = teacher.user.first_name
             family = teacher.user.last_name
-        rows.append(
-            {
-                "sourcedId": str(teacher.pk),
-                "username": username or f"teacher-{teacher.pk}",
-                "givenName": given,
-                "familyName": family,
-                "status": "active" if teacher.is_active else "inactive",
-            }
-        )
+        rows.append(teacher_to_oneroster(teacher, school))
     return _oneroster_response(key="users", rows=rows, offset=offset, limit=limit)
 
 
@@ -224,14 +206,5 @@ def enrollments(request):
     rows = []
     qs = StudentProfile.objects.filter(school=school, classroom_id__isnull=False).order_by("pk")[offset:(offset + limit)]
     for student in qs:
-        rows.append(
-            {
-                "sourcedId": f"{student.pk}:{student.classroom_id}",
-                "classSourcedId": str(student.classroom_id),
-                "schoolSourcedId": str(school.pk),
-                "userSourcedId": str(student.pk),
-                "role": "student",
-                "status": "active" if student.is_active else "inactive",
-            }
-        )
+        rows.append(enrollment_to_oneroster(student, school))
     return _oneroster_response(key="enrollments", rows=rows, offset=offset, limit=limit)
