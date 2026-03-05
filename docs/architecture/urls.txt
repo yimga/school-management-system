@@ -1,0 +1,46 @@
+# URL map (root patterns). Full tree: use django-extensions show_urls or inspect config/urls.py, config/tenant_urls.py, config/public_urls.py
+
+# --- ROOT_URLCONF (single-tenant / RLS mode: config.urls) ---
+# Base: config/urls.py
+# "" -> home (redirect to marketing or login)
+# offline/
+# admin/
+# api/schema/, api/schema/ui/
+# backend/ -> accounts:backend_dashboard
+# healthz/, health/, ready/, status/, metrics/
+# api/observability/*, api/health/, api/admin/weather/, api/weather/context/
+# api/notifications/, api/notifications/mark-all-read/, api/activities/, api/dashboard/charts/
+# api/ai-copilot/validate|permissions|limits|config|audit
+# admin/siteconfig/customizer/
+# verify/<token>/
+# api/ -> apps.api.urls (api)
+# api/v1/ -> apps.api.urls_v1 (api_v1)
+# siteconfig/ -> apps.siteconfig.urls (siteconfig)
+# api-center/ -> apps.apicenter.urls (apicenter)
+# authentication/ -> apps.accounts.urls (accounts)
+# evals/ -> apps.evals.urls (evals)
+# academics/ -> apps.academics.urls (academics)
+# portal/, portal -> apps.portal (portal)
+# kb/ -> apps.portal.urls_kb (kb)
+# reports/ -> apps.reports.urls (reports)
+# analytics/ -> apps.analytics.urls (analytics)
+# finance/ -> apps.finance.urls (finance)
+# payroll/ -> apps.payroll.urls (payroll)
+# compliance/ -> apps.compliance.urls (compliance)
+# communication/ -> apps.communication.urls (communication)
+# emis/ -> emis.urls (emis)
+# requests/ -> apps.requests.urls (requests)
+# super/ -> apps.schools.super_urls (super)
+# Public/signup: api/caddy-check/, discover/, find/, verify/, support/, marketing/, product/, solutions/, pricing/, compare/, case-studies/, security-compliance/, integrations/, book-demo/, about/, features/, blog/, contact/, privacy/, terms/, solutions/<topic_slug>/, cm/, ca/, onboard/, signup/, verify-signup/, api/trial/
+# LTI: lti/launch/<tool_id>/, lti/launch/<tool_id>/callback/, lti/service/<tool_id>/lineitems|scores|results|memberships|deep-linking, lti/jwks.json
+# account-frozen/
+
+# --- TENANT_SCHEMA_URLCONF (config.tenant_urls) ---
+# Used when request.urlconf is set to tenant_urls (subdomain or /t/<slug>/).
+# Same app includes as above minus public marketing/signup/LTI (tenant-specific subset).
+# Plus: api/tenant/domains/, account-frozen/
+
+# --- PUBLIC_SCHEMA_URLCONF (config.public_urls) ---
+# Public-only routes when using django-tenants (e.g. signup, marketing on base domain).
+
+# Generate full list: pip install django-extensions && python manage.py show_urls

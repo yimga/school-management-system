@@ -115,6 +115,8 @@ INSTALLED_APPS = [
     "apps.policies.apps.PoliciesConfig",
     "apps.events.apps.EventsConfig",
     "apps.marketplace.apps.MarketplaceConfig",
+    "apps.billing",  # Entitlements: can(), limits(), usage() (blueprint A1)
+    "apps.student360",  # Student 360: timeline feed, export pack (blueprint B1)
     "apps.evals",
     "apps.portal",
     "apps.academics",
@@ -132,6 +134,7 @@ INSTALLED_APPS = [
     "apps.api",
     "apps.apicenter",
     "apps.automation",  # Automation and background tasks
+    "apps.metadata.apps.MetadataConfig",  # Custom fields without DDL (metadata engine)
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",
@@ -180,7 +183,8 @@ MIDDLEWARE += [
     "apps.compliance.middleware.IPCountryAccessMiddleware",  # IP/Country access control (first!)
     "apps.compliance.middleware.AuditLoggingMiddleware",  # Log all HTTP requests
     "apps.compliance.middleware.AccessControlMiddleware",  # Enforce access control
-    # Phase 5: Observability middleware
+    # Phase 5: Observability middleware (A4: request_id, tenant_id on logs)
+    "apps.observability.middleware.RequestIdLoggingMiddleware",
     "apps.observability.middleware.ObservabilityMiddleware",  # Prometheus request metrics
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -606,12 +610,13 @@ if USE_FILE_LOGGING:
         # If we can't create the directory, disable file logging
         USE_FILE_LOGGING = False
 
-# Build handlers list
+# Build handlers list (request_context filter adds request_id, tenant_id, user_id to each log record — A4)
 LOGGING_HANDLERS = {
     "console": {
         "class": "logging.StreamHandler",
-        "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
+        "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose_request",
         "level": LOG_LEVEL,
+        "filters": ["request_context"],
     },
 }
 
@@ -622,8 +627,9 @@ if USE_FILE_LOGGING:
         "filename": LOG_DIR / "django.log",
         "maxBytes": 1024 * 1024 * 10,  # 10MB
         "backupCount": 10,
-        "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose",
+        "formatter": "json" if os.getenv("LOG_JSON", "0") == "1" else "verbose_request",
         "level": LOG_LEVEL,
+        "filters": ["request_context"],
     }
 
 # Determine which handlers to use
@@ -632,10 +638,18 @@ ACTIVE_HANDLERS = ["console", "file"] if USE_FILE_LOGGING else ["console"]
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "request_context": {
+            "()": "apps.observability.logging_context.RequestContextFilter",
+        },
+    },
     "formatters": {
         "verbose": {
             "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
             "style": "{",
+        },
+        "verbose_request": {
+            "format": "%(levelname)s %(asctime)s request_id=%(request_id)s tenant_id=%(tenant_id)s user_id=%(user_id)s %(message)s",
         },
         "json": {
             "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
@@ -917,6 +931,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.compliance.middleware.IPCountryAccessMiddleware",
         "apps.compliance.middleware.AuditLoggingMiddleware",
         "apps.compliance.middleware.AccessControlMiddleware",
+        "apps.observability.middleware.RequestIdLoggingMiddleware",
         "apps.observability.middleware.ObservabilityMiddleware",
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
     ]

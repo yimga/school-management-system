@@ -2,13 +2,75 @@
 Install/uninstall pipeline and widget registry (RunMyCampus blueprint).
 On install: record install, apply schema patches if any, register widgets, audit log.
 """
+import logging
 from django.utils import timezone
+from django.core.management import call_command
+
+logger = logging.getLogger(__name__)
 
 
-def install_app(school, app, *, installed_by=None, config=None):
+def run_schema_patches_for_installation(installation):
     """
-    Install an app for a school. Creates AppInstallation, logs audit, returns installation.
-    Does not run migrations (schema patches) — that can be added as a separate step or background task.
+    Run schema patches (migrations) for an app installation when the app manifest
+    declares a Django app to migrate (e.g. "migrations_app": "my_app").
+    P3: In schema-per-tenant mode, ensures tenant schema is active before running migrate
+    (so patches run in the correct tenant schema whether install is from view or task).
+    In RLS mode, runs in the single schema. Optional; failures are logged, not raised.
+    """
+    from apps.marketplace.models import AppInstallation, AppAuditLog
+
+    if not isinstance(installation, AppInstallation):
+        return
+    app = getattr(installation, "app", None)
+    if not app:
+        return
+    manifest = getattr(app, "manifest", None) or {}
+    app_label = manifest.get("migrations_app") or manifest.get("schema_patch_app")
+    if not app_label or not isinstance(app_label, str):
+        return
+    app_label = app_label.strip()
+    if not app_label:
+        return
+
+    def _run_migrate():
+        call_command("migrate", app_label, verbosity=1, run_syncdb=False)
+
+    try:
+        school = getattr(installation, "school", None)
+        if school:
+            from apps.schools.domain_sync import use_django_tenants, ensure_tenant_client_for_school
+            if use_django_tenants():
+                client = ensure_tenant_client_for_school(school)
+                if client and getattr(client, "schema_name", None):
+                    from django_tenants.utils import schema_context
+                    with schema_context(client.schema_name):
+                        _run_migrate()
+                else:
+                    _run_migrate()
+            else:
+                _run_migrate()
+        else:
+            _run_migrate()
+        logger.info("Schema patches applied for installation %s (app=%s)", installation.id, app_label)
+        AppAuditLog.objects.create(
+            installation=installation,
+            school=installation.school,
+            app=app,
+            action="schema_patch",
+            payload={"app_label": app_label},
+            actor=None,
+        )
+    except Exception as e:
+        logger.warning("Schema patch failed for installation %s (app=%s): %s", installation.id, app_label, e)
+
+
+def install_app(school, app, *, installed_by=None, config=None, run_schema_patches=True):
+    """
+    Install an app for a school. Creates AppInstallation, optionally runs schema patches,
+    logs audit, returns installation.
+    If the app manifest has "migrations_app" or "schema_patch_app" (Django app label),
+    and run_schema_patches is True, migrations for that app are run in the current
+    connection context (tenant schema in schema-per-tenant mode; single schema in RLS).
     """
     from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
 
@@ -29,6 +91,8 @@ def install_app(school, app, *, installed_by=None, config=None):
         installation.config = config or installation.config
         installation.widget_config = app.manifest.get("widgets", {})
         installation.save(update_fields=["status", "config", "widget_config"])
+    if run_schema_patches:
+        run_schema_patches_for_installation(installation)
     AppAuditLog.objects.create(
         installation=installation,
         school=school,
@@ -56,6 +120,49 @@ def uninstall_app(school, app, *, uninstalled_by=None):
         action="uninstall",
         payload={},
         actor=uninstalled_by,
+    )
+    return installation
+
+
+def suspend_app(school, app, *, suspended_by=None, reason: str = ""):
+    """
+    Kill switch (A2): suspend an app for a school. Widgets and capabilities are no longer served.
+    get_installed_widgets already filters status=ACTIVE, so suspended apps are excluded.
+    """
+    from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
+
+    if not isinstance(app, MarketplaceApp):
+        app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+    installation = AppInstallation.objects.get(school=school, app=app)
+    installation.status = AppInstallation.Status.SUSPENDED
+    installation.save(update_fields=["status"])
+    AppAuditLog.objects.create(
+        installation=installation,
+        school=school,
+        app=app,
+        action="suspend",
+        payload={"reason": reason or ""},
+        actor=suspended_by,
+    )
+    return installation
+
+
+def unsuspend_app(school, app, *, unsuspended_by=None):
+    """Re-enable a suspended app for the school."""
+    from apps.marketplace.models import AppInstallation, AppAuditLog, MarketplaceApp
+
+    if not isinstance(app, MarketplaceApp):
+        app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+    installation = AppInstallation.objects.get(school=school, app=app)
+    installation.status = AppInstallation.Status.ACTIVE
+    installation.save(update_fields=["status"])
+    AppAuditLog.objects.create(
+        installation=installation,
+        school=school,
+        app=app,
+        action="unsuspend",
+        payload={},
+        actor=unsuspended_by,
     )
     return installation
 
