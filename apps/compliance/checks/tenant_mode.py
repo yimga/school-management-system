@@ -13,7 +13,12 @@ def check_tenant_mode_consistency(app_configs, **kwargs):
     default_engine = (settings.DATABASES.get("default") or {}).get("ENGINE", "")
 
     if use_tenants:
-        if not default_engine.endswith("postgresql"):
+        # django_tenants uses ENGINE "django_tenants.postgresql_backend" (does not end with "postgresql")
+        is_postgres = (
+            default_engine.endswith("postgresql")
+            or "django_tenants.postgresql_backend" in default_engine
+        )
+        if not is_postgres:
             errors.append(
                 Error(
                     "USE_DJANGO_TENANTS is True but default database engine is not PostgreSQL.",
