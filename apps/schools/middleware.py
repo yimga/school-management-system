@@ -876,8 +876,18 @@ class FeatureGatekeeperMiddleware(MiddlewareMixin):
             if not code:
                 continue
             if path == prefix or path.startswith(prefix.rstrip("/") + "/") or path == prefix.rstrip("/"):
-                from apps.schools.models import is_feature_enabled
-                if not is_feature_enabled(school, code):
+                try:
+                    from apps.policies.resolver import get_effective_policy
+                    policy_result = get_effective_policy(
+                        school,
+                        user=getattr(request, "user", None),
+                        capability=code,
+                    )
+                    enabled = policy_result.get("enabled", False) if isinstance(policy_result, dict) else False
+                except Exception:
+                    from apps.schools.models import is_feature_enabled
+                    enabled = is_feature_enabled(school, code)
+                if not enabled:
                     return _feature_gate_403(request, code)
                 break
         return None

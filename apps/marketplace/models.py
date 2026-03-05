@@ -1,0 +1,255 @@
+"""
+Marketplace MVP: installable apps, scopes, widget registry, audit (RunMyCampus blueprint).
+Control-plane models (shared schema); install pipeline records install + registers widgets/scopes.
+"""
+from django.conf import settings
+from django.db import models
+
+# School is the tenant in both RLS and schema-per-tenant (via bridge).
+# Use string ref to avoid circular import; schools.School.id is UUID.
+AUTH_USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "accounts.User")
+
+
+class MarketplaceApp(models.Model):
+    """
+    Catalog entry for an installable app (first-party or later third-party).
+    Manifest: scopes, UI widgets, migrations_ref, events consumed/emitted.
+    """
+
+    class AppKind(models.TextChoices):
+        FIRST_PARTY = "first_party", "First-party"
+        THIRD_PARTY = "third_party", "Third-party"
+
+    slug = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    kind = models.CharField(max_length=20, choices=AppKind.choices, default=AppKind.FIRST_PARTY)
+    version = models.CharField(max_length=32)
+    # Manifest: required scopes, widget definitions, optional migration_ref / webhook subscriptions
+    manifest = models.JSONField(
+        default=dict,
+        help_text="scopes, widgets, events_consumed, events_emitted, migration_ref",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Marketplace App"
+        verbose_name_plural = "Marketplace Apps"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.slug})"
+
+
+class AppScope(models.Model):
+    """Permission scope declared by an app (OAuth-style least privilege)."""
+
+    app = models.ForeignKey(MarketplaceApp, on_delete=models.CASCADE, related_name="scopes")
+    scope_code = models.CharField(max_length=80)
+    description = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        app_label = "marketplace"
+        unique_together = [["app", "scope_code"]]
+        verbose_name = "App Scope"
+        verbose_name_plural = "App Scopes"
+        ordering = ["app", "scope_code"]
+
+    def __str__(self):
+        return f"{self.app.slug}:{self.scope_code}"
+
+
+class AppInstallation(models.Model):
+    """Tenant (school) has installed an app; tracks config and status."""
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        SUSPENDED = "suspended", "Suspended"
+        UNINSTALLED = "uninstalled", "Uninstalled"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="app_installations",
+    )
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.PROTECT,
+        related_name="installations",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+        db_index=True,
+    )
+    installed_at = models.DateTimeField(auto_now_add=True)
+    installed_by = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    config = models.JSONField(default=dict, help_text="Tenant-specific app config")
+    # Resolved widget list for this tenant (from app.manifest + overrides)
+    widget_config = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        app_label = "marketplace"
+        unique_together = [["school", "app"]]
+        verbose_name = "App Installation"
+        verbose_name_plural = "App Installations"
+        ordering = ["-installed_at"]
+        indexes = [
+            models.Index(fields=["school", "status"], name="mkt_inst_school_status"),
+        ]
+
+    def __str__(self):
+        return f"{self.app.slug} @ {self.school.slug}"
+
+
+class ScopeGrant(models.Model):
+    """
+    Tenant-approved scope for an installation: which permissions this app has at this school.
+    Tenant admin must approve; least-privilege (RunMyCampus blueprint).
+    """
+
+    installation = models.ForeignKey(
+        AppInstallation,
+        on_delete=models.CASCADE,
+        related_name="scope_grants",
+    )
+    scope = models.ForeignKey(
+        AppScope,
+        on_delete=models.CASCADE,
+        related_name="grants",
+    )
+    granted_at = models.DateTimeField(auto_now_add=True)
+    granted_by = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
+    class Meta:
+        app_label = "marketplace"
+        unique_together = [["installation", "scope"]]
+        verbose_name = "Scope Grant"
+        verbose_name_plural = "Scope Grants"
+        ordering = ["installation", "scope"]
+
+    def __str__(self):
+        return f"{self.installation} ← {self.scope}"
+
+
+class AppBillingLedger(models.Model):
+    """
+    Billing line items for marketplace apps: install fee, subscription, proration (RunMyCampus blueprint).
+    """
+
+    class Kind(models.TextChoices):
+        INSTALL_FEE = "install_fee", "Install fee"
+        SUBSCRIPTION = "subscription", "Subscription"
+        PRORATION_CREDIT = "proration_credit", "Proration credit"
+        PRORATION_DEBIT = "proration_debit", "Proration debit"
+        USAGE = "usage", "Usage"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="app_billing_ledger",
+    )
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.PROTECT,
+        related_name="billing_ledger",
+    )
+    installation = models.ForeignKey(
+        AppInstallation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="billing_ledger",
+    )
+    kind = models.CharField(max_length=32, choices=Kind.choices, db_index=True)
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    currency = models.CharField(max_length=3, default="USD")
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "App Billing Ledger"
+        verbose_name_plural = "App Billing Ledger"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.app.slug} {self.kind} {self.amount} {self.currency}"
+
+
+class AppAuditLog(models.Model):
+    """Audit trail for install/uninstall and scope grants."""
+
+    installation = models.ForeignKey(
+        AppInstallation,
+        on_delete=models.CASCADE,
+        related_name="audit_logs",
+        null=True,
+        blank=True,
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="marketplace_audit_logs",
+    )
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="audit_logs",
+    )
+    action = models.CharField(max_length=64, db_index=True)
+    payload = models.JSONField(default=dict)
+    actor = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "App Audit Log"
+        verbose_name_plural = "App Audit Logs"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.action} @ {self.created_at}"
+
+
+class AppVersionCompat(models.Model):
+    """Version compatibility matrix (platform min version, app min/max)."""
+
+    app = models.ForeignKey(
+        MarketplaceApp,
+        on_delete=models.CASCADE,
+        related_name="version_compat",
+    )
+    platform_min_version = models.CharField(max_length=32, blank=True)
+    app_version_min = models.CharField(max_length=32, blank=True)
+    app_version_max = models.CharField(max_length=32, blank=True)
+    notes = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "App Version Compatibility"
+        verbose_name_plural = "App Version Compatibility"

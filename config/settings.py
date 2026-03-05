@@ -111,6 +111,10 @@ INSTALLED_APPS = [
     # Project apps
     "apps.accounts.apps.AccountsConfig",
     "apps.customers",
+    "apps.tenancy.apps.TenancyConfig",
+    "apps.policies.apps.PoliciesConfig",
+    "apps.events.apps.EventsConfig",
+    "apps.marketplace.apps.MarketplaceConfig",
     "apps.evals",
     "apps.portal",
     "apps.academics",
@@ -147,6 +151,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.PublicPathRedirectMiddleware",  # public paths hit on tenant host -> base host
     "apps.schools.middleware.TenantMiddleware",  # When USE_DJANGO_TENANTS=0: resolve request.school from host
     "apps.schools.middleware.RlsResetOnExceptionMiddleware",  # RESET app.current_school_id on response or exception
+    "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
     "apps.schools.middleware.TenantLastActivityMiddleware",  # Phase H: optional last_activity per tenant
@@ -208,6 +213,7 @@ TEMPLATES = [
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
+                "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
             ]
         },
     }
@@ -808,6 +814,14 @@ elif _use_tenants_env in ("1", "true", "yes"):
     USE_DJANGO_TENANTS = _db_engine.endswith("postgresql")
 else:
     USE_DJANGO_TENANTS = _db_engine.endswith("postgresql")  # Default: schema-per-tenant for PostgreSQL
+# TENANCY_MODE: explicit SCHEMA | RLS (optional env override). Default derived from USE_DJANGO_TENANTS.
+_tm_env = os.getenv("TENANCY_MODE", "").strip().upper()
+if _tm_env in ("SCHEMA", "RLS"):
+    TENANCY_MODE = _tm_env
+    USE_DJANGO_TENANTS = (TENANCY_MODE == "SCHEMA")
+else:
+    TENANCY_MODE = "SCHEMA" if USE_DJANGO_TENANTS else "RLS"
+
 if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
     # Swap to django-tenants PostgreSQL backend
     _db = DATABASES["default"].copy()
@@ -850,6 +864,10 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django_celery_results",
         "django_celery_beat",
         "apps.customers",
+        "apps.tenancy",
+        "apps.policies",
+        "apps.events",
+        "apps.marketplace",
     ]
     TENANT_APPS = [
         "apps.academics",
@@ -871,6 +889,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.schools.middleware.PublicPathRedirectMiddleware",
         "apps.schools.middleware.TenantSchemaSchoolBridgeMiddleware",
         "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
+        "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
         "django.middleware.security.SecurityMiddleware",
         "config.middleware.BlockScannerPathsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
