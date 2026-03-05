@@ -146,6 +146,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.ReservedPublicHostAccessMiddleware",  # verify./support. host isolation
     "apps.schools.middleware.PublicPathRedirectMiddleware",  # public paths hit on tenant host -> base host
     "apps.schools.middleware.TenantMiddleware",  # When USE_DJANGO_TENANTS=0: resolve request.school from host
+    "apps.schools.middleware.RlsResetOnExceptionMiddleware",  # RESET app.current_school_id on response or exception
     "apps.schools.middleware.TenantFreezeMiddleware",  # Section 8.6: redirect frozen schools to /account-frozen/
     "apps.schools.middleware.SentryTenantTagMiddleware",  # Phase H: tag Sentry with school_id
     "apps.schools.middleware.TenantLastActivityMiddleware",  # Phase H: optional last_activity per tenant

@@ -8,3 +8,4 @@ class ComplianceConfig(AppConfig):
 
     def ready(self):
         import apps.compliance.signals  # noqa
+        import apps.compliance.checks.tenant_mode  # noqa: register tenancy mode checks

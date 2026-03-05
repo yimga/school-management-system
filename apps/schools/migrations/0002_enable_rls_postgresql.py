@@ -1,10 +1,12 @@
-# RLS (Row-Level Security) for PostgreSQL. No-op for SQLite/MySQL.
+# RLS (Row-Level Security) for PostgreSQL. No-op for SQLite/MySQL or schema-per-tenant.
 
 from django.db import migrations, connection
 
+from apps.schools.rls import should_apply_rls
+
 
 def enable_rls_schoolmembership(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         cursor.execute("ALTER TABLE schools_schoolmembership ENABLE ROW LEVEL SECURITY;")
@@ -25,7 +27,7 @@ def enable_rls_schoolmembership(apps, schema_editor):
 
 
 def disable_rls_schoolmembership(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         cursor.execute("DROP POLICY IF EXISTS schools_schoolmembership_tenant_isolation ON schools_schoolmembership;")

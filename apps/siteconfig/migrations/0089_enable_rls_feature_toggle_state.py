@@ -1,13 +1,15 @@
-# RLS for tenant-scoped FeatureToggleState rows. PostgreSQL only; no-op for SQLite/MySQL.
+# RLS for tenant-scoped FeatureToggleState rows. PostgreSQL only; no-op for SQLite/MySQL or schema-per-tenant.
 
 from django.db import connection, migrations
+
+from apps.schools.rls import should_apply_rls
 
 
 POLICY_NAME = "siteconfig_featuretogglestate_tenant_isolation"
 
 
 def enable_rls(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         cursor.execute("ALTER TABLE siteconfig_featuretogglestate ENABLE ROW LEVEL SECURITY;")
@@ -31,7 +33,7 @@ def enable_rls(apps, schema_editor):
 
 
 def disable_rls(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         cursor.execute(f"DROP POLICY IF EXISTS {POLICY_NAME} ON siteconfig_featuretogglestate;")

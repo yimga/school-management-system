@@ -1,10 +1,12 @@
-# RLS (Row-Level Security) for tenant-scoped OfficialReportTemplate. PostgreSQL only; no-op for SQLite/MySQL.
+# RLS (Row-Level Security) for tenant-scoped OfficialReportTemplate. PostgreSQL only; no-op for SQLite/MySQL or schema-per-tenant.
 
 from django.db import migrations, connection
 
+from apps.schools.rls import should_apply_rls
+
 
 def enable_rls(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         cursor.execute("ALTER TABLE siteconfig_officialreporttemplate ENABLE ROW LEVEL SECURITY;")
@@ -23,7 +25,7 @@ def enable_rls(apps, schema_editor):
 
 
 def disable_rls(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         cursor.execute(

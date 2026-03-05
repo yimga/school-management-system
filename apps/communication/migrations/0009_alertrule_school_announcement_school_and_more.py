@@ -2,6 +2,8 @@ import django.db.models.deletion
 from django.db import connection
 from django.db import migrations, models
 
+from apps.schools.rls import should_apply_rls
+
 
 COMMUNICATION_TABLES = [
     "communication_alertrule",
@@ -302,7 +304,7 @@ def backfill_communication_school(apps, schema_editor):
 
 
 def enable_communication_rls(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         for table in COMMUNICATION_TABLES:
@@ -326,7 +328,7 @@ def enable_communication_rls(apps, schema_editor):
 
 
 def disable_communication_rls(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         for table in COMMUNICATION_TABLES:

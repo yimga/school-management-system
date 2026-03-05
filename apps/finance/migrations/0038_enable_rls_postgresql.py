@@ -1,13 +1,15 @@
-# RLS (Row-Level Security) for tenant-scoped tables. PostgreSQL only; no-op for SQLite/MySQL.
+# RLS (Row-Level Security) for tenant-scoped tables. PostgreSQL only; no-op for SQLite/MySQL or schema-per-tenant.
 
 from django.db import migrations, connection
+
+from apps.schools.rls import should_apply_rls
 
 FINANCE_TABLES = ["finance_feeplan", "finance_invoice", "finance_payment"]
 POLICY_PREFIX = "finance_tenant"
 
 
 def enable_rls(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         for table in FINANCE_TABLES:
@@ -28,7 +30,7 @@ def enable_rls(apps, schema_editor):
 
 
 def disable_rls(apps, schema_editor):
-    if connection.vendor != "postgresql":
+    if not should_apply_rls(connection):
         return
     with connection.cursor() as cursor:
         for table in FINANCE_TABLES:

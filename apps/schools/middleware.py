@@ -611,18 +611,60 @@ class TenantMiddleware(MiddlewareMixin):
                 logger.debug("Could not activate school timezone: %s", e)
             try:
                 from django.db import connection
-                if connection.vendor == "postgresql":
+                if connection.vendor == "postgresql" and not getattr(settings, "USE_DJANGO_TENANTS", False):
                     with connection.cursor() as cursor:
                         cursor.execute(
-                            "SET LOCAL app.current_school_id = %s",
+                            "SET app.current_school_id = %s",
                             [str(school.id)],
                         )
+                    request._rls_school_id_set = True
             except Exception as e:
                 logger.debug("Could not set app.current_school_id: %s", e)
         else:
             request.session.pop("school_id", None)
 
         return None
+
+    def process_response(self, request, response):
+        """Reset RLS GUC so the session does not leak to other requests (e.g. connection pool)."""
+        if getattr(request, "_rls_school_id_set", False):
+            try:
+                from django.db import connection
+                if connection.vendor == "postgresql":
+                    with connection.cursor() as cursor:
+                        cursor.execute("RESET app.current_school_id")
+            except Exception as e:
+                logger.debug("Could not reset app.current_school_id: %s", e)
+            request._rls_school_id_set = False
+        return response
+
+
+def _reset_rls_school_id_if_set(request):
+    """Reset app.current_school_id when this request had set it. Used on exception path."""
+    if not getattr(request, "_rls_school_id_set", False):
+        return
+    try:
+        from django.db import connection
+        if connection.vendor == "postgresql":
+            with connection.cursor() as cursor:
+                cursor.execute("RESET app.current_school_id")
+    except Exception as e:
+        logger.debug("Could not reset app.current_school_id (finally): %s", e)
+    request._rls_school_id_set = False
+
+
+class RlsResetOnExceptionMiddleware(MiddlewareMixin):
+    """
+    Ensures app.current_school_id is RESET even when a view or inner middleware raises.
+    Must be placed immediately after TenantMiddleware. No-op when USE_DJANGO_TENANTS=1.
+    """
+
+    def __call__(self, request):
+        try:
+            return self.get_response(request)
+        finally:
+            _reset_rls_school_id_if_set(request)
+
 
 # Section 8.6: Paths that are always allowed when school is frozen (Caddy, discovery, LTI, health, logout, frozen page)
 FROZEN_EXEMPT_PREFIXES = (
