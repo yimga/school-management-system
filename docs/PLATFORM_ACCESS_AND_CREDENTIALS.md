@@ -1,17 +1,32 @@
 # Platform Access and Credentials
 
-## Default admin user (created by migration)
+## Quick reference
 
-After you run **`python manage.py migrate`**, a main platform admin user is created automatically:
+| Login context | Username | Password |
+|---------------|----------|----------|
+| **Superadmin (manager host)** | admin | admin |
+| **Gilead tenant** | gilead_admin | Sch00l_1234 |
+| **Gilead tenant (same account as super)** | admin | Sch00l_1234 *(run `ensure_gilead_admin --use-admin-user` once)* |
 
-| Username | Password | Use |
-|----------|----------|-----|
-| **admin** | **admin** | Log in to Django Admin, Super Admin, and Portal/Backend |
+---
+
+## Default logins (ensured by migration and seed)
+
+After you run **`python manage.py migrate`** and (on Render or for full setup) **`python manage.py seed_render_users`**:
+
+| Where | Username | Password | Use |
+|-------|----------|----------|-----|
+| **Manager / Super** (manager.runmycampus.com or main host) | **admin** | **admin** | Django Admin, Super Admin (/super/), control plane |
+| **Gilead tenant** (tenant subdomain or /t/gilead-school/...) | **gilead_admin** | **Sch00l_1234** | Backend/portal for the Gilead school only |
+
+To use **username "admin"** on the Gilead tenant with password **Sch00l_1234**, run:
+`python manage.py ensure_gilead_admin --use-admin-user`
+(Then the same "admin" account uses that password on both manager and tenant; run `ensure_superadmin` to reset manager to admin/admin.)
 
 **Where to log in:**
-- **Django Admin (manage all schools):** `http://localhost:8000/admin/`
-- **Super Admin (school list, create school, billing):** `http://localhost:8000/super/`
-- **Portal / Backend:** `http://localhost:8000/authentication/login/` or `http://gilead-school.localhost:8000/authentication/login/` (with `MULTI_TENANT_BASE_DOMAIN=localhost` for subdomain)
+- **Manager (Django Admin, Super Admin):** manager host → `/admin/`, `/super/`, `/authentication/login/` → **admin** / **admin**
+- **Gilead tenant (single-school Backend):** Gilead tenant URL → `/authentication/login/` → **gilead_admin** / **Sch00l_1234**
+- **Local:** `http://localhost:8000/admin/`, `http://localhost:8000/super/`, or `http://gilead-school.localhost:8000/authentication/login/` (with `MULTI_TENANT_BASE_DOMAIN=localhost` for subdomain)
 
 **Security:** In production, change the password immediately:
 ```bash
@@ -46,11 +61,14 @@ python manage.py ensure_superuser --no-input --password YOUR_SECURE_PASSWORD
 python manage.py ensure_superuser --no-input
 ```
 
-**Option C — Render / deploy (seed admin + demo users):**
+**Option C — Render / deploy (seed admin + Gilead tenant admin + demo users):**
 ```bash
 python manage.py migrate --noinput && python manage.py seed_render_users
 ```
-This always ensures platform super-admin **admin** / **admin**. If `ADMIN_PASSWORD` is set in environment, it also creates/updates **teacher1**, **Parent1**, **principal1** with that password (tenant demo users only). Platform and tenants do not share credentials: admin is always admin/admin; tenant users use ADMIN_PASSWORD.
+This always ensures:
+- Platform super-admin **admin** / **admin** (manager/super only).
+- Gilead tenant admin **gilead_admin** / **Sch00l_1234** (linked to school gilead-school).
+If `ADMIN_PASSWORD` is set in environment, it also creates/updates **teacher1**, **Parent1**, **principal1** with that password (tenant demo users only). Manager uses admin/admin; Gilead tenant uses gilead_admin/Sch00l_1234.
 
 ### Defaults (DEBUG only)
 

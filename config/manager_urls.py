@@ -62,9 +62,15 @@ def manager_legacy_surface_redirect(request, surface: str, remaining: str = ""):
     return redirect(destination)
 
 
+def _portal_link_child_redirect(request):
+    """Manager has no portal link-child flow; send to claim-invite so login page URL resolves."""
+    return redirect("accounts:claim_invite")
+
+
 portal_compat_patterns = [
     path("", manager_legacy_surface_redirect, {"surface": "portal"}, name="home"),
     path("parent/", manager_legacy_surface_redirect, {"surface": "portal"}, name="parent_dashboard"),
+    path("parent/link-child/", _portal_link_child_redirect, name="link_child"),
     path("teacher/", manager_legacy_surface_redirect, {"surface": "portal"}, name="teacher_dashboard_alias"),
     path("support/request/", manager_legacy_surface_redirect, {"surface": "portal"}, name="support_request"),
 ]

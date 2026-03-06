@@ -35,6 +35,7 @@ nul
 
 # Local release artifacts
 .tmp/
+.tmp_test_artifacts/
 tmp/
 backups/
 
