@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     "apps.policies.apps.PoliciesConfig",
     "apps.events.apps.EventsConfig",
     "apps.marketplace.apps.MarketplaceConfig",
+    "apps.registries.apps.RegistriesConfig",
     "apps.billing",  # Entitlements: can(), limits(), usage() (blueprint A1)
     "apps.student360",  # Student 360: timeline feed, export pack (blueprint B1)
     "apps.evals",
@@ -147,6 +148,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "config.middleware.BlockScannerPathsMiddleware",  # 404 for .git, terraform, wp-config, etc.
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "apps.accounts.middleware.ManagerCookieIsolationMiddleware",  # Manager host gets separate session/csrf cookie names
     "django.contrib.sessions.middleware.SessionMiddleware",
     "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",  # Optional legacy-domain redirect middleware
     "apps.schools.middleware.UrlConfSwitcherMiddleware",  # Public vs tenant URLConf from host/path
@@ -382,16 +384,20 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
 CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
+MANAGER_SESSION_COOKIE_NAME = (os.getenv("MANAGER_SESSION_COOKIE_NAME") or "rmc_manager_sessionid").strip()
+MANAGER_CSRF_COOKIE_NAME = (os.getenv("MANAGER_CSRF_COOKIE_NAME") or "rmc_manager_csrftoken").strip()
 _session_cookie_domain_env = (os.getenv("SESSION_COOKIE_DOMAIN") or "").strip()
 if _session_cookie_domain_env:
     SESSION_COOKIE_DOMAIN = _session_cookie_domain_env
-elif _multi_tenant_base and _multi_tenant_base not in {"localhost", "127.0.0.1"}:
-    SESSION_COOKIE_DOMAIN = f".{_multi_tenant_base}"
 _csrf_cookie_domain_env = (os.getenv("CSRF_COOKIE_DOMAIN") or "").strip()
 if _csrf_cookie_domain_env:
     CSRF_COOKIE_DOMAIN = _csrf_cookie_domain_env
-elif _multi_tenant_base and _multi_tenant_base not in {"localhost", "127.0.0.1"}:
-    CSRF_COOKIE_DOMAIN = f".{_multi_tenant_base}"
+_manager_session_cookie_domain_env = (os.getenv("MANAGER_SESSION_COOKIE_DOMAIN") or "").strip()
+MANAGER_SESSION_COOKIE_DOMAIN = _manager_session_cookie_domain_env or None
+_manager_csrf_cookie_domain_env = (os.getenv("MANAGER_CSRF_COOKIE_DOMAIN") or "").strip()
+MANAGER_CSRF_COOKIE_DOMAIN = _manager_csrf_cookie_domain_env or None
+# Manager and tenant planes should use host-only cookies by default.
+# Set SESSION_COOKIE_DOMAIN / CSRF_COOKIE_DOMAIN explicitly only when you accept shared auth scope.
 # Session expiry: use SESSION_INACTIVITY_TIMEOUT_MINUTES for shared computers (e.g. 15–30),
 # or SESSION_COOKIE_AGE (seconds) for max session length. With SESSION_SAVE_EVERY_REQUEST=True,
 # session expires after this many seconds of *inactivity* (no requests).
@@ -867,6 +873,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.accounts",
         "apps.schools",
         "apps.siteconfig",
+        "apps.registries",
         "apps.compliance",
         "apps.observability",
         "apps.api",
@@ -874,6 +881,9 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.portal",
         "apps.automation",
         "apps.requests",
+        "apps.billing",
+        "apps.student360",
+        "apps.metadata.apps.MetadataConfig",
         "emis",
         "django_celery_results",
         "django_celery_beat",
@@ -907,6 +917,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.security.SecurityMiddleware",
         "config.middleware.BlockScannerPathsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
+        "apps.accounts.middleware.ManagerCookieIsolationMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",
         "django.middleware.common.CommonMiddleware",

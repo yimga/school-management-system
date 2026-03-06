@@ -1,11 +1,12 @@
 from io import StringIO
 from pathlib import Path
 import shutil
-import tempfile
+import uuid
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.management import CommandError, call_command
+from django.conf import settings
 from django.test import TestCase, override_settings
 
 from apps.portal.models_kb import KBArticle, KBCategory
@@ -16,7 +17,13 @@ User = get_user_model()
 
 class VerifyKbExportsCommandTests(TestCase):
     def setUp(self):
-        self.tmp_media = tempfile.mkdtemp(prefix="kb_verify_media_")
+        self.tmp_media = (
+            Path(settings.BASE_DIR)
+            / ".tmp_test_artifacts"
+            / "kb_verify_media"
+            / uuid.uuid4().hex
+        )
+        self.tmp_media.mkdir(parents=True, exist_ok=True)
         self.category = KBCategory.objects.create(name="KB Ops", slug="kb-ops")
         self.author = User.objects.create_user(username="kb_verify", password="pass123")
         self.article = KBArticle.objects.create(
@@ -34,9 +41,9 @@ class VerifyKbExportsCommandTests(TestCase):
 
     @override_settings(MEDIA_ROOT="")
     def test_verify_passes_when_odt_and_docx_exist(self):
-        with override_settings(MEDIA_ROOT=self.tmp_media):
+        with override_settings(MEDIA_ROOT=str(self.tmp_media)):
             self.article.odt_file.save("operations-manual.odt", ContentFile(b"odt-bytes"), save=True)
-            export_dir = Path(self.tmp_media) / "kb" / "generated"
+            export_dir = self.tmp_media / "kb" / "generated"
             export_dir.mkdir(parents=True, exist_ok=True)
             (export_dir / "operations-manual.docx").write_bytes(b"docx-bytes")
 
@@ -46,7 +53,7 @@ class VerifyKbExportsCommandTests(TestCase):
 
     @override_settings(MEDIA_ROOT="")
     def test_verify_strict_fails_when_docx_missing(self):
-        with override_settings(MEDIA_ROOT=self.tmp_media):
+        with override_settings(MEDIA_ROOT=str(self.tmp_media)):
             self.article.odt_file.save("operations-manual.odt", ContentFile(b"odt-bytes"), save=True)
 
             with self.assertRaises(CommandError):

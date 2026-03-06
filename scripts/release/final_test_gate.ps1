@@ -18,6 +18,9 @@ Invoke-StrictCommand -CommandParts @("python", "manage.py", "check")
 Write-Host "[Phase 15] Verifying migrations are in sync..."
 Invoke-StrictCommand -CommandParts @("python", "manage.py", "makemigrations", "--check", "--dry-run")
 
+Write-Host "[Phase 15] Importing committed UI parity fixture..."
+Invoke-StrictCommand -CommandParts @("python", "manage.py", "import_ui_config", "fixtures/ui_config.json")
+
 Write-Host "[Phase 15] Verifying UI parity fixture matches DB..."
 Invoke-StrictCommand -CommandParts @("python", "manage.py", "check_ui_parity", "--input-file", "fixtures/ui_config.json", "--strict")
 

@@ -6,6 +6,7 @@ from django.test import Client, TestCase, override_settings
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.observability.models import PlatformIncident
 from apps.schools.models import School, SchoolProvisioningEvent
 from apps.siteconfig.models import GlobalSupportTicket
 
@@ -117,17 +118,30 @@ class SuperCommandCenterTests(TestCase):
             created_at=timezone.now() - timedelta(hours=72)
         )
 
+        PlatformIncident.objects.create(
+            title="Queue test incident",
+            incident_type=PlatformIncident.IncidentType.AVAILABILITY,
+            severity=PlatformIncident.Severity.HIGH,
+            status=PlatformIncident.Status.OPEN,
+            summary="Manager console should surface unresolved incidents.",
+            affected_school=school,
+            created_by=self.superuser,
+        )
+
     def tearDown(self):
         self.env.stop()
 
-    def test_super_dashboard_contains_operational_command_center(self):
+    def test_super_dashboard_contains_control_plane_surface(self):
         response = self.client.get("/super/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Operational command center")
-        self.assertContains(response, "Support backlog aging")
+        self.assertContains(response, "Tenant Mission Control")
+        self.assertContains(response, "Operator queues")
+        self.assertContains(response, "Tenant registry")
+        self.assertContains(response, "Control modules")
 
     def test_super_command_center_route_renders(self):
         response = self.client.get("/super/command-center/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Mission control")
-        self.assertContains(response, "Provisioning SLA")
+        self.assertContains(response, "Operational queues")
+        self.assertContains(response, "Platform incidents")
+        self.assertContains(response, "Schools needing intervention")

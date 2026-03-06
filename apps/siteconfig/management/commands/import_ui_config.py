@@ -51,35 +51,23 @@ class Command(BaseCommand):
                 f"Fixture missing required model entries: {', '.join(sorted(missing))}"
             )
 
-        if getattr(settings, "USE_DJANGO_TENANTS", False):
-            self._import_per_tenant(data, input_path, options)
-        else:
-            self._ensure_dependencies(data)
-            self._clear_themepack_default_before_load()
-            call_command("loaddata", str(input_path))
-            if not options["skip_normalize"]:
-                call_command("normalize_ui_config")
+        self._import_into_current_schema(data, input_path, options)
         self.stdout.write(self.style.SUCCESS(f"Imported UI config from {input_path}"))
 
-    def _import_per_tenant(self, data: list, input_path: Path, options: dict) -> None:
-        """Run ensure_dependencies + loaddata + normalize in each tenant schema (avoids public schema)."""
-        from django_tenants.utils import tenant_context
+    def _import_into_current_schema(self, data: list, input_path: Path, options: dict) -> None:
+        """
+        Import UI config into the active schema.
 
-        from apps.customers.models import Client
-
-        clients = list(Client.objects.all().order_by("id"))
-        if not clients:
-            self.stdout.write(self.style.WARNING("No tenants (Clients) found; skipping import."))
-            return
-        for client in clients:
-            schema = getattr(client, "schema_name", None) or ""
-            self.stdout.write(f"Importing into tenant: {schema!r} ({client.name})")
-            with tenant_context(client):
-                self._ensure_dependencies(data)
-                self._clear_themepack_default_before_load()
-                call_command("loaddata", str(input_path))
-                if not options.get("skip_normalize"):
-                    call_command("normalize_ui_config")
+        ThemePack and SiteSettings live in the shared/public schema when
+        USE_DJANGO_TENANTS=1, so importing per tenant leaves the control-plane UI
+        config stale and breaks parity checks. Keep the import scoped to the
+        current schema and let deploy/runtime choose the correct connection.
+        """
+        self._ensure_dependencies(data)
+        self._clear_themepack_default_before_load()
+        call_command("loaddata", str(input_path))
+        if not options["skip_normalize"]:
+            call_command("normalize_ui_config")
 
     def _clear_themepack_default_before_load(self) -> None:
         """Clear is_default on all ThemePacks so loaddata can set the fixture's default without violating the single-default constraint."""

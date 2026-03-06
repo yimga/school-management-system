@@ -18,6 +18,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.schools.models import School, SignupVerification
+from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 
 def _slug_from_name(name: str) -> str:
@@ -83,6 +84,7 @@ def signup_school(request: HttpRequest):
         subdomain=subdomain,
         is_active=False,
         is_approved=True,
+        country_code=country_code,
         timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "Africa/Douala"),
     )
     from datetime import timedelta
@@ -204,6 +206,7 @@ def api_trial_school(request: HttpRequest):
     name = (data.get("name") or "").strip()
     contact_email = (data.get("contact_email") or "").strip()
     country_code = (data.get("country_code") or "").strip()[:2].upper()
+    region_code = GlobalGeoCatalog.normalize_country_code(country_code)
 
     errors = []
     if not name:
@@ -229,9 +232,9 @@ def api_trial_school(request: HttpRequest):
     if country_code:
         from apps.siteconfig.education_profile_engine import ensure_region_for_country
         from apps.siteconfig.models import RegionConfig
-        default_region = RegionConfig.objects.filter(code=country_code).first()
+        default_region = RegionConfig.objects.filter(code=region_code).first()
         if not default_region:
-            default_region = ensure_region_for_country(country_code, timezone_hint="UTC")
+            default_region = ensure_region_for_country(region_code or country_code, timezone_hint="UTC")
 
     trial_end = (timezone.now() + timedelta(days=14)).date()
     school = School.objects.create(
@@ -243,6 +246,7 @@ def api_trial_school(request: HttpRequest):
         billing_type=School.BillingType.FREE_TRIAL,
         trial_end_date=trial_end,
         default_region=default_region,
+        country_code=country_code,
         timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", "Africa/Douala"),
     )
     if default_region:

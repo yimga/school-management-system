@@ -2,6 +2,7 @@
 Observability endpoints: /healthz and /metrics.
 """
 
+import json
 import logging
 import math
 from datetime import timedelta
@@ -13,7 +14,7 @@ from django.conf import settings
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from django.db import connection
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 from django.db.models import Count, Q, Sum, Avg
@@ -681,12 +682,231 @@ def api_dashboard_charts(request):
         }, status=500)
 
 
+def _region_for_school(school) -> tuple[str, str]:
+    region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
+    region_name = (
+        str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
+        if region_code == "UNASSIGNED"
+        else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
+    )
+    return region_code, region_name
+
+
+def _get_region_bucket(region_metrics: dict[str, dict], region_code: str, region_name: str) -> dict:
+    bucket = region_metrics.get(region_code)
+    if bucket is None:
+        bucket = {
+            "region_code": region_code,
+            "region_name": region_name,
+            "active_schools": 0,
+            "webhook_total": 0,
+            "webhook_delivered": 0,
+            "webhook_dead_letter": 0,
+            "webhook_inflight": 0,
+            "delivery_latencies_ms": [],
+            "delivery_latency_breaches": 0,
+            "sync_conflicts_total_window": 0,
+            "sync_conflicts_resolved_window": 0,
+            "sync_conflicts_pending": 0,
+        }
+        region_metrics[region_code] = bucket
+    return bucket
+
+
+def _record_webhook_delivery(
+    bucket: dict,
+    *,
+    status: str,
+    start_at,
+    end_at,
+    webhook_latency_target_ms: float,
+    delivered_states: set[str],
+    dead_states: set[str],
+    inflight_states: set[str],
+):
+    normalized_status = str(status or "")
+    bucket["webhook_total"] += 1
+
+    if normalized_status in delivered_states:
+        bucket["webhook_delivered"] += 1
+    elif normalized_status in dead_states:
+        bucket["webhook_dead_letter"] += 1
+    elif normalized_status in inflight_states:
+        bucket["webhook_inflight"] += 1
+
+    if normalized_status in delivered_states and start_at and end_at and end_at >= start_at:
+        latency_ms = (end_at - start_at).total_seconds() * 1000.0
+        bucket["delivery_latencies_ms"].append(latency_ms)
+        if latency_ms > webhook_latency_target_ms:
+            bucket["delivery_latency_breaches"] += 1
+
+
+def _webhook_stack_summary() -> dict:
+    from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
+
+    return legacy_webhook_sync_snapshot()
+
+
+def _platform_incident_payload(incident) -> dict:
+    return {
+        "id": str(incident.id),
+        "title": incident.title,
+        "incident_type": incident.incident_type,
+        "severity": incident.severity,
+        "status": incident.status,
+        "summary": incident.summary,
+        "source_system": incident.source_system,
+        "affected_school": getattr(getattr(incident, "affected_school", None), "name", None),
+        "affected_schema_name": incident.affected_schema_name,
+        "detected_at": incident.detected_at.isoformat() if incident.detected_at else None,
+        "acknowledged_at": incident.acknowledged_at.isoformat() if incident.acknowledged_at else None,
+        "resolved_at": incident.resolved_at.isoformat() if incident.resolved_at else None,
+        "created_by": getattr(getattr(incident, "created_by", None), "username", None),
+        "acknowledged_by": getattr(getattr(incident, "acknowledged_by", None), "username", None),
+        "resolved_by": getattr(getattr(incident, "resolved_by", None), "username", None),
+        "details": incident.details or {},
+    }
+
+
+@require_GET
+@observability_auth_required
+def platform_incidents_console(request):
+    from apps.observability.models import PlatformIncident
+
+    incidents = list(
+        PlatformIncident.objects.select_related(
+            "affected_school",
+            "created_by",
+            "acknowledged_by",
+            "resolved_by",
+        )[:50]
+    )
+    incident_counts = {
+        row["status"]: row["total"]
+        for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
+    }
+    context = {
+        "incidents": incidents,
+        "incident_counts": incident_counts,
+        "webhook_stack": _webhook_stack_summary(),
+    }
+    return render(request, "observability/platform_incidents.html", context)
+
+
+@require_GET
+@observability_auth_required
+def api_platform_incidents(request):
+    from apps.observability.models import PlatformIncident
+
+    status_filter = str(request.GET.get("status") or "").strip().lower()
+    severity_filter = str(request.GET.get("severity") or "").strip().lower()
+    try:
+        limit = max(1, min(int(request.GET.get("limit", 50)), 200))
+    except (TypeError, ValueError):
+        limit = 50
+
+    incidents = PlatformIncident.objects.select_related(
+        "affected_school",
+        "created_by",
+        "acknowledged_by",
+        "resolved_by",
+    )
+    if status_filter:
+        incidents = incidents.filter(status=status_filter)
+    if severity_filter:
+        incidents = incidents.filter(severity=severity_filter)
+
+    counts = {
+        row["status"]: row["total"]
+        for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
+    }
+
+    return JsonResponse(
+        {
+            "status": "success",
+            "counts": counts,
+            "incidents": [_platform_incident_payload(incident) for incident in incidents[:limit]],
+            "webhook_stack": _webhook_stack_summary(),
+        }
+    )
+
+
+@require_POST
+@observability_auth_required
+def api_platform_incident_status(request, incident_id):
+    from apps.observability.models import PlatformIncident
+
+    try:
+        incident = PlatformIncident.objects.select_related(
+            "affected_school",
+            "created_by",
+            "acknowledged_by",
+            "resolved_by",
+        ).get(pk=incident_id)
+    except PlatformIncident.DoesNotExist:
+        return JsonResponse({"status": "error", "error": "Incident not found."}, status=404)
+
+    payload = {}
+    if request.body:
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            payload = {}
+
+    action = str(payload.get("action") or request.POST.get("action") or "").strip().lower()
+    now = timezone.now()
+    user = request.user if getattr(request.user, "is_authenticated", False) else None
+    update_fields: list[str] = []
+
+    if action == "acknowledge":
+        if incident.status == PlatformIncident.Status.OPEN:
+            incident.status = PlatformIncident.Status.ACKNOWLEDGED
+            update_fields.append("status")
+        if incident.acknowledged_at is None:
+            incident.acknowledged_at = now
+            update_fields.append("acknowledged_at")
+        if user is not None and incident.acknowledged_by_id is None:
+            incident.acknowledged_by = user
+            update_fields.append("acknowledged_by")
+    elif action == "mitigate":
+        if incident.status != PlatformIncident.Status.MITIGATED:
+            incident.status = PlatformIncident.Status.MITIGATED
+            update_fields.append("status")
+        if incident.acknowledged_at is None:
+            incident.acknowledged_at = now
+            update_fields.append("acknowledged_at")
+        if user is not None and incident.acknowledged_by_id is None:
+            incident.acknowledged_by = user
+            update_fields.append("acknowledged_by")
+    elif action == "resolve":
+        if incident.status != PlatformIncident.Status.RESOLVED:
+            incident.status = PlatformIncident.Status.RESOLVED
+            update_fields.append("status")
+        if incident.acknowledged_at is None:
+            incident.acknowledged_at = now
+            update_fields.append("acknowledged_at")
+        if user is not None and incident.acknowledged_by_id is None:
+            incident.acknowledged_by = user
+            update_fields.append("acknowledged_by")
+        incident.resolved_at = now
+        incident.resolved_by = user
+        update_fields.extend(["resolved_at", "resolved_by"])
+    else:
+        return JsonResponse({"status": "error", "error": "Unsupported incident action."}, status=400)
+
+    if update_fields:
+        incident.save(update_fields=list(dict.fromkeys(update_fields + ["updated_at"])))
+
+    return JsonResponse({"status": "success", "incident": _platform_incident_payload(incident)})
+
+
 @require_GET
 @observability_auth_required
 def api_operational_slo_dashboard(request):
     """Regional go-live SLO dashboard (SEC-608)."""
+    from apps.events.models import WebhookDelivery as CanonicalWebhookDelivery
     from apps.schools.models import School
-    from apps.siteconfig.models import SyncConflict, WebhookDelivery
+    from apps.siteconfig.models import SyncConflict, WebhookDelivery as LegacyWebhookDelivery
 
     try:
         raw_hours = int(request.GET.get("hours", 24))
@@ -701,43 +921,19 @@ def api_operational_slo_dashboard(request):
     pending_conflict_target = int(getattr(settings, "SYNC_CONFLICT_PENDING_SLO_MAX", 10))
 
     region_metrics: dict[str, dict] = {}
-
-    def get_region_bucket(region_code: str, region_name: str) -> dict:
-        bucket = region_metrics.get(region_code)
-        if bucket is None:
-            bucket = {
-                "region_code": region_code,
-                "region_name": region_name,
-                "active_schools": 0,
-                "webhook_total": 0,
-                "webhook_delivered": 0,
-                "webhook_dead_letter": 0,
-                "webhook_inflight": 0,
-                "delivery_latencies_ms": [],
-                "delivery_latency_breaches": 0,
-                "sync_conflicts_total_window": 0,
-                "sync_conflicts_resolved_window": 0,
-                "sync_conflicts_pending": 0,
-            }
-            region_metrics[region_code] = bucket
-        return bucket
-
     schools = list(
         School.objects.filter(is_active=True)
         .select_related("default_region")
         .only("id", "default_region_id", "default_region__name")
     )
+    school_region_lookup: dict[str, tuple[str, str]] = {}
     for school in schools:
-        region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
-        region_name = (
-            str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
-            if region_code == "UNASSIGNED"
-            else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
-        )
-        get_region_bucket(region_code, region_name)["active_schools"] += 1
+        region_code, region_name = _region_for_school(school)
+        school_region_lookup[str(school.id)] = (region_code, region_name)
+        _get_region_bucket(region_metrics, region_code, region_name)["active_schools"] += 1
 
-    deliveries = (
-        WebhookDelivery.objects.filter(created_at__gte=window_start)
+    legacy_deliveries = (
+        LegacyWebhookDelivery.objects.filter(created_at__gte=window_start)
         .select_related("subscription__school__default_region")
         .only(
             "status",
@@ -748,33 +944,49 @@ def api_operational_slo_dashboard(request):
             "subscription__school__default_region__name",
         )
     )
-    for delivery in deliveries:
+    for delivery in legacy_deliveries:
         school = getattr(getattr(delivery, "subscription", None), "school", None)
-        region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
-        region_name = (
-            str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
-            if region_code == "UNASSIGNED"
-            else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
+        region_code, region_name = _region_for_school(school)
+        bucket = _get_region_bucket(region_metrics, region_code, region_name)
+        _record_webhook_delivery(
+            bucket,
+            status=getattr(delivery, "status", ""),
+            start_at=getattr(delivery, "created_at", None),
+            end_at=getattr(delivery, "delivered_at", None) or getattr(delivery, "last_attempt_at", None),
+            webhook_latency_target_ms=webhook_latency_target_ms,
+            delivered_states={"DELIVERED"},
+            dead_states={"DEAD_LETTER"},
+            inflight_states={"PENDING", "RETRYING"},
         )
-        bucket = get_region_bucket(region_code, region_name)
-        bucket["webhook_total"] += 1
 
-        status = str(getattr(delivery, "status", "") or "")
-        if status == "DELIVERED":
-            bucket["webhook_delivered"] += 1
-        elif status == "DEAD_LETTER":
-            bucket["webhook_dead_letter"] += 1
-        elif status in {"PENDING", "RETRYING"}:
-            bucket["webhook_inflight"] += 1
-
-        if status == "DELIVERED":
-            end_at = getattr(delivery, "delivered_at", None) or getattr(delivery, "last_attempt_at", None)
-            start_at = getattr(delivery, "created_at", None)
-            if start_at and end_at and end_at >= start_at:
-                latency_ms = (end_at - start_at).total_seconds() * 1000.0
-                bucket["delivery_latencies_ms"].append(latency_ms)
-                if latency_ms > webhook_latency_target_ms:
-                    bucket["delivery_latency_breaches"] += 1
+    canonical_deliveries = (
+        CanonicalWebhookDelivery.objects.filter(created_at__gte=window_start)
+        .select_related("subscription", "domain_event")
+        .only(
+            "status",
+            "created_at",
+            "delivered_at",
+            "attempted_at",
+            "subscription__school_id",
+            "domain_event__school_id",
+        )
+    )
+    for delivery in canonical_deliveries:
+        subscription = getattr(delivery, "subscription", None)
+        domain_event = getattr(delivery, "domain_event", None)
+        school_id = getattr(subscription, "school_id", None) or getattr(domain_event, "school_id", None)
+        region_code, region_name = school_region_lookup.get(str(school_id), ("UNASSIGNED", "Unassigned"))
+        bucket = _get_region_bucket(region_metrics, region_code, region_name)
+        _record_webhook_delivery(
+            bucket,
+            status=getattr(delivery, "status", ""),
+            start_at=getattr(delivery, "created_at", None),
+            end_at=getattr(delivery, "delivered_at", None) or getattr(delivery, "attempted_at", None),
+            webhook_latency_target_ms=webhook_latency_target_ms,
+            delivered_states={CanonicalWebhookDelivery.Status.DELIVERED},
+            dead_states={CanonicalWebhookDelivery.Status.FAILED},
+            inflight_states={CanonicalWebhookDelivery.Status.PENDING, CanonicalWebhookDelivery.Status.SENT},
+        )
 
     conflict_window = (
         SyncConflict.objects.filter(created_at__gte=window_start)
@@ -783,13 +995,8 @@ def api_operational_slo_dashboard(request):
     )
     for conflict in conflict_window:
         school = getattr(conflict, "school", None)
-        region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
-        region_name = (
-            str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
-            if region_code == "UNASSIGNED"
-            else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
-        )
-        bucket = get_region_bucket(region_code, region_name)
+        region_code, region_name = _region_for_school(school)
+        bucket = _get_region_bucket(region_metrics, region_code, region_name)
         bucket["sync_conflicts_total_window"] += 1
         if str(getattr(conflict, "status", "")) != "PENDING":
             bucket["sync_conflicts_resolved_window"] += 1
@@ -801,13 +1008,8 @@ def api_operational_slo_dashboard(request):
     )
     for conflict in pending_conflicts:
         school = getattr(conflict, "school", None)
-        region_code = str(getattr(school, "default_region_id", "") or "UNASSIGNED")
-        region_name = (
-            str(getattr(getattr(school, "default_region", None), "name", "") or "Unassigned")
-            if region_code == "UNASSIGNED"
-            else str(getattr(getattr(school, "default_region", None), "name", "") or region_code)
-        )
-        bucket = get_region_bucket(region_code, region_name)
+        region_code, region_name = _region_for_school(school)
+        bucket = _get_region_bucket(region_metrics, region_code, region_name)
         bucket["sync_conflicts_pending"] += 1
 
     region_rows: list[dict] = []
@@ -829,7 +1031,7 @@ def api_operational_slo_dashboard(request):
         error_budget_remaining = round(max(0.0, allowed_error_rate - webhook_error_rate), 2)
         error_budget_burn = round(max(0.0, webhook_error_rate - allowed_error_rate), 2)
 
-        latencies = [float(v) for v in bucket["delivery_latencies_ms"]]
+        latencies = [float(value) for value in bucket["delivery_latencies_ms"]]
         p95_latency_ms = _p95(latencies)
         latency_breach_rate = _percent(
             int(bucket["delivery_latency_breaches"]),
@@ -909,6 +1111,7 @@ def api_operational_slo_dashboard(request):
             },
             "summary": summary,
             "regions": region_rows,
+            "webhook_stack": _webhook_stack_summary(),
         }
     )
 

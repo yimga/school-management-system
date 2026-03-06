@@ -1,30 +1,171 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
-{% block title %}{% trans "Billing dashboard" %}{% endblock %}
+{% block title %}{% trans "Platform billing" %}{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h1>{% trans "Billing dashboard" %}</h1>
-  <p class="text-muted">{% trans "Trial schools and usage. Configure Stripe webhooks and subscription mapping in settings (see docs/BILLING_STRIPE.md)." %}</p>
-  <p><a href="{% url 'super:usage' %}">{% trans "View full usage" %}</a> | <a href="{% url 'super:dashboard' %}">{% trans "Super dashboard" %}</a></p>
-  <div class="card shadow-sm">
-    <div class="card-header">{% trans "Free trial schools" %}</div>
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="mb-1">{% trans "Platform billing" %}</h1>
+      <p class="text-muted mb-0">{% trans "Platform-side accounts, subscriptions, usage, and ledger activity across tenants." %}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ usage_url }}" class="btn btn-outline-primary btn-sm">{% trans "Usage API" %}</a>
+      <a href="{% url 'super:dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Super dashboard" %}</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Posted charges" %}</div>
+          <div class="display-6">${{ total_posted_charges|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Posted credits" %}</div>
+          <div class="display-6">${{ total_posted_credits|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Billing accounts" %}</div>
+          <div class="display-6">{{ billing_account_count }}</div>
+          <div class="small text-muted">
+            {% for row in account_summary %}
+              {{ row.status }}: {{ row.total }}{% if not forloop.last %} | {% endif %}
+            {% empty %}
+              {% trans "No accounts yet." %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Subscriptions" %}</div>
+          <div class="display-6">{{ subscription_count }}</div>
+          <div class="small text-muted">
+            {% for row in subscription_summary %}
+              {{ row.status }}: {{ row.total }}{% if not forloop.last %} | {% endif %}
+            {% empty %}
+              {% trans "No subscriptions yet." %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Active subscriptions" %}</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>{% trans "School" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th>{% trans "Plan" %}</th>
+                  <th>{% trans "Amount" %}</th>
+                  <th>{% trans "Cycle" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for subscription in active_subscriptions %}
+                <tr>
+                  <td>{{ subscription.school.name }}</td>
+                  <td><span class="badge text-bg-light">{{ subscription.status }}</span></td>
+                  <td>{{ subscription.plan.name|default:"-" }}</td>
+                  <td>{{ subscription.billing_account.currency_code }} {{ subscription.billed_amount|default:subscription.base_amount }}</td>
+                  <td>{{ subscription.get_billing_cycle_display }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-muted">{% trans "No subscriptions yet." %}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Free trial watchlist" %}</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>{% trans "School" %}</th>
+                  <th>{% trans "Trial end" %}</th>
+                  <th>{% trans "Students" %}</th>
+                  <th>{% trans "API requests" %}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in trial_schools %}
+                <tr class="{% if s.trial_expired %}table-warning{% endif %}">
+                  <td>{{ s.name }}</td>
+                  <td>{{ s.trial_end_date|date:"Y-m-d"|default:"-" }}</td>
+                  <td>{{ s.student_count }}</td>
+                  <td>{{ s.api_requests }}</td>
+                  <td><a href="{{ s.admin_edit_url }}">{% trans "Edit" %}</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-muted">{% trans "No trial schools." %}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mt-4">
+    <div class="card-header">{% trans "Recent platform ledger" %}</div>
     <div class="card-body p-0">
-      <table class="table table-sm mb-0">
-        <thead><tr><th>{% trans "School" %}</th><th>{% trans "Trial end" %}</th><th>{% trans "Students" %}</th><th>{% trans "API requests" %}</th><th></th></tr></thead>
-        <tbody>
-          {% for s in trial_schools %}
-          <tr class="{% if s.trial_expired %}table-warning{% endif %}">
-            <td>{{ s.name }}</td>
-            <td>{{ s.trial_end_date|date:"Y-m-d"|default:"—" }}</td>
-            <td>{{ s.student_count }}</td>
-            <td>{{ s.api_requests }}</td>
-            <td><a href="{{ s.admin_edit_url }}">{% trans "Edit" %}</a></td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="5">{% trans "No trial schools." %}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{% trans "When" %}</th>
+              <th>{% trans "School" %}</th>
+              <th>{% trans "Type" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Amount" %}</th>
+              <th>{% trans "Reference" %}</th>
+              <th>{% trans "Description" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in recent_ledger %}
+            <tr>
+              <td>{{ entry.happened_at|date:"Y-m-d H:i" }}</td>
+              <td>{{ entry.school.name }}</td>
+              <td>{{ entry.entry_type }}</td>
+              <td>{{ entry.status }}</td>
+              <td>{{ entry.currency_code }} {{ entry.amount }}</td>
+              <td>{{ entry.reference|default:"-" }}</td>
+              <td>{{ entry.description|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-muted">{% trans "No platform ledger entries yet." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

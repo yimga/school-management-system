@@ -5,3 +5,6 @@ class EventsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.events"
     verbose_name = "Event Outbox (Domain Events)"
+
+    def ready(self):
+        from . import checks  # noqa: F401

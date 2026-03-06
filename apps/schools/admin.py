@@ -44,12 +44,23 @@ class SchoolAdmin(admin.ModelAdmin):
     search_fields = ("name", "slug", "subdomain")
     readonly_fields = ("id", "created_at", "updated_at", "last_activity", "hierarchy_path")
     prepopulated_fields = {"subdomain": ["slug"]}
-    raw_id_fields = (("plan",) if hasattr(School, "plan") else ()) + ("default_region", "parent_school")
+    raw_id_fields = (("plan",) if hasattr(School, "plan") else ()) + ("default_region", "subdivision", "parent_school")
+    filter_horizontal = ("education_levels", "education_system_types")
 
     def _school_fieldsets():
-        # School location: canonical source is default_region (RegionConfig); timezone can follow region.
-        location_fields = ("default_region", "compliance_region", "timezone")
-        location_desc = "Country/region for currency, grading, and timezone. Pick from RegionConfig; Province (if needed) is optional per deployment."
+        location_fields = (
+            "country_code",
+            "default_region",
+            "subdivision",
+            "compliance_region",
+            "timezone",
+            "education_levels",
+            "education_system_types",
+        )
+        location_desc = (
+            "Canonical school identity: ISO country code, optional subdivision, and registry-backed "
+            "education taxonomy. RegionConfig remains the localization/defaults layer."
+        )
         if _school_has_billing():
             return (
                 (None, {"fields": ("name", "slug", "subdomain", "sub_system", "is_active")}),

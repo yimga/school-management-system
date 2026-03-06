@@ -1,4 +1,5 @@
 import logging
+from http.cookies import SimpleCookie
 
 from django.conf import settings
 from django.http import HttpResponseForbidden, JsonResponse
@@ -7,10 +8,117 @@ from django.urls import resolve, reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 
+from apps.schools.host_routing import public_host_kind
+
 from .permissions import can_access_module
 from .utils import get_user_role
 
 logger = logging.getLogger(__name__)
+
+
+class ManagerCookieIsolationMiddleware:
+    """
+    Keep manager-host auth isolated from tenant/base auth by aliasing manager-specific
+    cookie names to Django's default names on request and rewriting them on response.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.session_cookie_name = settings.SESSION_COOKIE_NAME
+        self.csrf_cookie_name = settings.CSRF_COOKIE_NAME
+        self.manager_session_cookie_name = getattr(settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid")
+        self.manager_csrf_cookie_name = getattr(settings, "MANAGER_CSRF_COOKIE_NAME", "rmc_manager_csrftoken")
+        self.manager_session_cookie_domain = getattr(settings, "MANAGER_SESSION_COOKIE_DOMAIN", None)
+        self.manager_csrf_cookie_domain = getattr(settings, "MANAGER_CSRF_COOKIE_DOMAIN", None)
+
+    def __call__(self, request):
+        self._alias_request_cookies(request)
+        response = self.get_response(request)
+        return self._rewrite_response_cookies(request, response)
+
+    def _is_manager_request(self, request) -> bool:
+        host = (request.META.get("HTTP_HOST") or request.META.get("SERVER_NAME") or "").strip().lower()
+        return public_host_kind(host) == "manager"
+
+    def _alias_request_cookies(self, request):
+        if not self._is_manager_request(request):
+            return
+        raw_cookie = request.META.get("HTTP_COOKIE", "")
+        if not raw_cookie:
+            return
+        cookie = SimpleCookie()
+        cookie.load(raw_cookie)
+        changed = False
+        for manager_name, default_name in (
+            (self.manager_session_cookie_name, self.session_cookie_name),
+            (self.manager_csrf_cookie_name, self.csrf_cookie_name),
+        ):
+            default_morsel = cookie.get(default_name)
+            default_blank = default_morsel is None or str(default_morsel.value or "").strip() == ""
+            if manager_name in cookie and default_blank:
+                cookie[default_name] = cookie[manager_name].value
+                changed = True
+        if not changed:
+            return
+        request.META["HTTP_COOKIE"] = "; ".join(f"{key}={morsel.value}" for key, morsel in cookie.items())
+        request.COOKIES = {key: morsel.value for key, morsel in cookie.items()}
+
+    def _rewrite_response_cookies(self, request, response):
+        if not self._is_manager_request(request):
+            return response
+        self._mirror_cookie(
+            response,
+            source_name=self.session_cookie_name,
+            target_name=self.manager_session_cookie_name,
+            target_domain=self.manager_session_cookie_domain,
+            source_domain=getattr(settings, "SESSION_COOKIE_DOMAIN", None),
+        )
+        self._mirror_cookie(
+            response,
+            source_name=self.csrf_cookie_name,
+            target_name=self.manager_csrf_cookie_name,
+            target_domain=self.manager_csrf_cookie_domain,
+            source_domain=getattr(settings, "CSRF_COOKIE_DOMAIN", None),
+        )
+        return response
+
+    def _mirror_cookie(self, response, *, source_name: str, target_name: str, target_domain, source_domain):
+        morsel = response.cookies.get(source_name)
+        if morsel is None:
+            return
+        path = morsel["path"] or "/"
+        samesite = morsel["samesite"] or None
+        secure = bool(morsel["secure"])
+        httponly = bool(morsel["httponly"])
+        delete_cookie = self._morsel_is_delete(morsel)
+        if delete_cookie:
+            response.delete_cookie(target_name, path=path, domain=target_domain, samesite=samesite)
+        else:
+            response.set_cookie(
+                target_name,
+                morsel.value,
+                max_age=self._parse_int(morsel["max-age"]),
+                expires=morsel["expires"] or None,
+                path=path,
+                domain=target_domain,
+                secure=secure,
+                httponly=httponly,
+                samesite=samesite,
+            )
+        response.delete_cookie(source_name, path=path, domain=source_domain, samesite=samesite)
+
+    @staticmethod
+    def _parse_int(value):
+        try:
+            return int(str(value).strip())
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _morsel_is_delete(morsel) -> bool:
+        max_age = str(morsel["max-age"] or "").strip()
+        expires = str(morsel["expires"] or "").lower()
+        return morsel.value == "" and (max_age == "0" or "1970" in expires)
 
 
 class RoleBasedSessionTimeoutMiddleware:
@@ -185,9 +293,15 @@ class ModuleAccessMiddleware:
         if match:
             request.resolver_match = match
             if match.namespace:
-                return match.namespace.lower()
+                namespace = match.namespace.lower()
+                if namespace in {"api_v1", "api-v1"}:
+                    return "api"
+                return namespace
             if match.app_name:
-                return match.app_name.lower()
+                app_name = match.app_name.lower()
+                if app_name in {"api_v1", "api-v1"}:
+                    return "api"
+                return app_name
 
         if path.startswith("/admin/"):
             return "admin"

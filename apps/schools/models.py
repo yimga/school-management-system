@@ -95,6 +95,20 @@ class School(models.Model):
         related_name="schools",
         help_text="Region for currency, grading, timezone",
     )
+    country_code = models.CharField(
+        max_length=2,
+        blank=True,
+        db_index=True,
+        help_text="Canonical ISO 3166-1 alpha-2 country code for onboarding and analytics.",
+    )
+    subdivision = models.ForeignKey(
+        "registries.SubdivisionRegistry",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="schools",
+        help_text="Canonical subdivision selection for this school.",
+    )
     timezone = models.CharField(max_length=50, default="Africa/Douala")
     settings = models.JSONField(
         default=dict,
@@ -246,6 +260,18 @@ class School(models.Model):
         blank=True,
         help_text="Optional: {\"primary\": \"#hex\", \"accent\": \"#hex\", \"font\": \"Family, sans-serif\"}. Maps to --primary, --accent in tenant CSS.",
     )
+    education_levels = models.ManyToManyField(
+        "registries.EducationLevelRegistry",
+        blank=True,
+        related_name="schools",
+        help_text="Canonical education levels served by this school.",
+    )
+    education_system_types = models.ManyToManyField(
+        "registries.EducationSystemTypeRegistry",
+        blank=True,
+        related_name="schools",
+        help_text="Canonical education system types served by this school.",
+    )
     # World Engine: data sovereignty / scaling — region cluster and optional dedicated DB.
     regional_cluster = models.CharField(
         max_length=63,
@@ -279,6 +305,26 @@ class School(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def canonical_country_code(self) -> str:
+        if self.country_code:
+            return str(self.country_code).upper()
+        try:
+            from apps.siteconfig.global_catalog import GlobalGeoCatalog
+            return GlobalGeoCatalog.alpha2_for_country(getattr(self, "default_region_id", "") or "")
+        except Exception:
+            return ""
+
+    @property
+    def resolved_country_alpha3(self) -> str:
+        try:
+            from apps.siteconfig.global_catalog import GlobalGeoCatalog
+            return GlobalGeoCatalog.normalize_country_code(
+                self.country_code or getattr(self, "default_region_id", "") or ""
+            )
+        except Exception:
+            return ""
 
     def save(self, *args, **kwargs):
         # Keep materialized path in sync for multi-level hierarchy

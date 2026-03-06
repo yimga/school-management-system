@@ -5,6 +5,7 @@ Emit from service layer only; consumer processes outbox for webhooks, notificati
 import uuid
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class DomainEvent(models.Model):
@@ -107,9 +108,16 @@ class WebhookDelivery(models.Model):
         db_index=True,
     )
     http_status = models.PositiveIntegerField(null=True, blank=True)
+    scheduled_for = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Next time this delivery is eligible for processing.",
+    )
     attempted_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
     retry_count = models.PositiveIntegerField(default=0)
+    max_attempts = models.PositiveSmallIntegerField(default=4)
     error_message = models.TextField(blank=True)
     idempotency_key = models.CharField(max_length=255, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -121,6 +129,7 @@ class WebhookDelivery(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["status", "created_at"], name="events_wh_status_created"),
+            models.Index(fields=["status", "scheduled_for"], name="events_wh_status_sched"),
         ]
 
     def __str__(self):

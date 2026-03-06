@@ -1056,6 +1056,7 @@ def portal_feature_page(request: HttpRequest, feature: str):
                 title="Portal feature access request",
                 summary=f"Requested access to {entry['label']}.",
                 details={"feature": entry["key"], "label": entry["label"]},
+                school=getattr(request, "school", None),
             )
             messages.success(request, "Access request submitted to the admin team.")
             return redirect("portal:parent_dashboard")
@@ -1738,6 +1739,9 @@ def record_teacher_attendance(request: HttpRequest):
 @login_required
 def seating_chart_view(request: HttpRequest):
     """W4-2: Seating chart placeholder — view or link for class layout. Optional ?classroom=id."""
+    flags = {**default_backend_feature_flags(), **(SiteSettings.get_solo().backend_feature_flags or {})}
+    if not flags.get("enable_seating_chart_beta"):
+        raise Http404("Seating chart is not enabled.")
     if not getattr(request.user, "has_feature_permission", lambda _: False)("attendance.manage"):
         return HttpResponseForbidden("You do not have permission to view seating chart.")
     year, _term = get_active_year_and_term()

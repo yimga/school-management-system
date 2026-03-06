@@ -197,7 +197,7 @@ def execute_disbursement(
             payment=created_payment,
         )
         try:
-            from apps.siteconfig.webhook_delivery import enqueue_webhook_event
+            from apps.events.webhooks import enqueue_webhook_event
 
             enqueue_webhook_event(
                 school=app.student.school,

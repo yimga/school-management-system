@@ -26,6 +26,9 @@ run_cmd "${PYTHON_BIN}" manage.py check
 echo "[Phase 15] Verifying migrations are in sync..."
 run_cmd "${PYTHON_BIN}" manage.py makemigrations --check --dry-run
 
+echo "[Phase 15] Importing committed UI parity fixture..."
+run_cmd "${PYTHON_BIN}" manage.py import_ui_config fixtures/ui_config.json
+
 echo "[Phase 15] Verifying UI parity fixture matches DB..."
 run_cmd "${PYTHON_BIN}" manage.py check_ui_parity --input-file fixtures/ui_config.json --strict
 

@@ -12,6 +12,19 @@ from apps.finance.models import Notification
 from .models import AccessRequest, RequestDecision
 
 
+def _resolve_scope(*, school=None, target=None):
+    resolved_school = school or getattr(target, "school", None)
+    schema_name = ""
+    if resolved_school is not None:
+        schema_name = (
+            getattr(resolved_school, "schema_name", "")
+            or getattr(resolved_school, "subdomain", "")
+            or getattr(resolved_school, "slug", "")
+            or ""
+        )
+    return resolved_school, schema_name
+
+
 def _safe_actor_display(user) -> str:
     if not user:
         return "System"
@@ -27,6 +40,7 @@ def create_access_request(
     details: dict | None = None,
     target=None,
     status: str | None = None,
+    school=None,
 ):
     details = details or {}
     content_type = None
@@ -34,6 +48,7 @@ def create_access_request(
     if target is not None:
         content_type = ContentType.objects.get_for_model(target)
         object_id = str(target.pk)
+    resolved_school, schema_name = _resolve_scope(school=school, target=target)
 
     req = AccessRequest.objects.create(
         request_type=request_type,
@@ -41,6 +56,8 @@ def create_access_request(
         title=title or "",
         summary=summary or "",
         details=details,
+        school=resolved_school,
+        schema_name=schema_name,
         target_content_type=content_type,
         target_object_id=object_id,
         status=status or AccessRequest.Status.PENDING,
@@ -58,10 +75,12 @@ def sync_request_for_target(
     summary: str = "",
     details: dict | None = None,
     status: str | None = None,
+    school=None,
 ):
     details = details or {}
     content_type = ContentType.objects.get_for_model(target)
     object_id = str(target.pk)
+    resolved_school, schema_name = _resolve_scope(school=school, target=target)
 
     req, created = AccessRequest.objects.get_or_create(
         request_type=request_type,
@@ -72,6 +91,8 @@ def sync_request_for_target(
             "title": title,
             "summary": summary,
             "details": details,
+            "school": resolved_school,
+            "schema_name": schema_name,
             "status": status or AccessRequest.Status.PENDING,
         },
     )
@@ -85,6 +106,9 @@ def sync_request_for_target(
             updates["summary"] = summary
         if details and req.details != details:
             updates["details"] = details
+        if resolved_school and req.school_id != getattr(resolved_school, "pk", None):
+            updates["school"] = resolved_school
+            updates["schema_name"] = schema_name
         if status and req.status != status:
             updates["status"] = status
         if updates:

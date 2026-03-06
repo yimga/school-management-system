@@ -12,10 +12,19 @@ class WebhookSubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(WebhookDelivery)
 class WebhookDeliveryAdmin(admin.ModelAdmin):
-    list_display = ("subscription", "domain_event", "status", "http_status", "retry_count", "created_at")
+    list_display = (
+        "subscription",
+        "domain_event",
+        "status",
+        "http_status",
+        "retry_count",
+        "max_attempts",
+        "scheduled_for",
+        "created_at",
+    )
     list_filter = ("status",)
     raw_id_fields = ("subscription", "domain_event")
-    readonly_fields = ("created_at",)
+    readonly_fields = ("created_at", "attempted_at", "delivered_at")
 
 
 @admin.register(DomainEvent)

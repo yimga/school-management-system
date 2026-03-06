@@ -1409,36 +1409,25 @@ def region_grading_scales_view(request):
 @login_required
 def branding_api(request):
     """
-    Phase F: Return tenant branding (logo, primary_color, accent_color) for frontend injection.
-    When BrandSettings exists for the school, use it; else use School fields.
+    Return resolved tenant branding from the canonical BrandProfile resolver.
     """
     school = getattr(request, "school", None)
-    if not school:
-        return JsonResponse(
-            {"logo_url": "", "primary_color": "#0d6efd", "accent_color": "#198754", "custom_css": ""},
-            safe=False,
-        )
-    try:
-        from .models import BrandSettings
-        brand = BrandSettings.objects.filter(school=school).first()
-    except Exception:
-        brand = None
-    if brand:
-        return JsonResponse(
-            {
-                "logo_url": brand.logo_url or "",
-                "primary_color": brand.primary_color or "#0d6efd",
-                "accent_color": brand.accent_color or "#198754",
-                "custom_css": brand.custom_css or "",
-            },
-            safe=False,
-        )
+    from .branding import resolve_brand_profile
+
+    brand = resolve_brand_profile(school=school, site=SiteSettings.get_solo())
     return JsonResponse(
         {
-            "logo_url": getattr(school, "logo_url", "") or "",
-            "primary_color": getattr(school, "primary_color", None) or "#0d6efd",
-            "accent_color": getattr(school, "accent_color", None) or "#198754",
-            "custom_css": "",
+            "logo_url": brand.get("logo_url") or "",
+            "logo_dark_url": brand.get("logo_dark_url") or "",
+            "favicon_url": brand.get("favicon_url") or "",
+            "primary_color": brand.get("primary_color") or "#0d6efd",
+            "secondary_color": brand.get("secondary_color") or "",
+            "accent_color": brand.get("accent_color") or "#198754",
+            "font_family": brand.get("font_family") or "",
+            "login_background_url": brand.get("login_background_url") or "",
+            "custom_css": brand.get("custom_css") or "",
+            "tokens": brand.get("tokens") or {},
+            "source": brand.get("source") or "",
         },
         safe=False,
     )

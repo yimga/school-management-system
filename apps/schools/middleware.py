@@ -30,13 +30,26 @@ TENANT_PATH_PREFIX = "/t/"
 MANAGER_ONLY_PREFIXES = (
     "/authentication/",
     "/super/",
+    "/ops/",
     "/admin/",
     "/siteconfig/",
     "/backend/",
 )
+MANAGER_AUTH_ALLOWED_PREFIXES = (
+    "/authentication/login/",
+    "/authentication/logout/",
+    "/authentication/redirect/",
+    "/authentication/profile/",
+    "/authentication/mfa/",
+    "/authentication/impersonate/",
+    "/authentication/end-impersonation/",
+    "/authentication/oidc/",
+    "/authentication/saml/",
+)
 MANAGER_HOST_ALLOWED_PREFIXES = (
-    "/authentication/",
+    *MANAGER_AUTH_ALLOWED_PREFIXES,
     "/super/",
+    "/ops/",
     "/admin/",
     "/siteconfig/",
     "/health",
@@ -44,6 +57,7 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/ready/",
     "/status/",
     "/api/health/",
+    "/api/observability/incidents/",
     "/static/",
     "/media/",
     "/favicon.ico",
@@ -360,7 +374,7 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
             if path in ("", "/"):
                 return None
             if not _path_allowed_for_reserved_host(path, allowed_prefixes=MANAGER_HOST_ALLOWED_PREFIXES):
-                return redirect("manager_home")
+                return HttpResponseRedirect("/")
             return None
 
         return None

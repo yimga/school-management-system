@@ -21,9 +21,10 @@ Or from Git Bash:
 ## What It Enforces
 1. `python manage.py check`
 2. `python manage.py makemigrations --check --dry-run`
-3. `python manage.py check_ui_parity --input-file fixtures/ui_config.json --strict`
-4. `python manage.py verify_kb_exports --formats odt,docx --strict`
-5. Targeted regression suite:
+3. `python manage.py import_ui_config fixtures/ui_config.json`
+4. `python manage.py check_ui_parity --input-file fixtures/ui_config.json --strict`
+5. `python manage.py verify_kb_exports --formats odt,docx --strict`
+6. Targeted regression suite:
    - `apps.portal.tests.test_verify_kb_exports_command`
    - `apps.portal.tests.test_generate_kb_odt_command`
    - `apps.siteconfig.tests.test_theme_studio`
@@ -38,6 +39,7 @@ Or from Git Bash:
 ## Pass Criteria
 - All commands exit with code `0`.
 - No migration drift.
+- The committed UI fixture can be imported into the active schema and matches the runtime DB.
 - No regressions in the listed modules.
 
 ## Merge Rule

@@ -691,7 +691,8 @@ def publish_term_results(request: HttpRequest):
                     for student in StudentProfile.objects.filter(
                         classroom=classroom,
                         academic_year=year_obj,
-                        withdrawn_at__isnull=True,
+                        is_active=True,
+                        deleted_at__isnull=True,
                     ):
                         try:
                             ctx = term_report_context(student, year_obj, term_obj)

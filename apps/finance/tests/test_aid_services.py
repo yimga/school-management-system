@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.test import TestCase
 
+from apps.events.models import WebhookDelivery, WebhookSubscription
 from apps.finance.aid_services import execute_disbursement, get_endowment_health_report
 from apps.finance.models import (
     AidAuditLog,
@@ -17,7 +18,7 @@ from apps.finance.models import (
 from apps.finance.services import recalculate_invoice
 from apps.people.models import StudentProfile
 from apps.schools.models import School
-from apps.siteconfig.models import SiteSettings, WebhookDelivery, WebhookSubscription
+from apps.siteconfig.models import SiteSettings
 
 
 class AidDisbursementLedgerTests(TestCase):
@@ -66,9 +67,9 @@ class AidDisbursementLedgerTests(TestCase):
             is_active=True,
         )
         self.webhook = WebhookSubscription.objects.create(
-            school=self.school,
-            event_type="finance.aid_disbursed",
-            target_url="https://example.org/finance-webhook",
+            school_id=self.school.id,
+            url="https://example.org/finance-webhook",
+            event_types=["finance.aid_disbursed"],
             secret="aid-test-secret",
             is_active=True,
         )
@@ -121,8 +122,9 @@ class AidDisbursementLedgerTests(TestCase):
         account_codes = {line.account.code for line in entry.lines.all()}
         self.assertIn("658", account_codes)
         self.assertIn("411", account_codes)
-        delivery = WebhookDelivery.objects.get(subscription=self.webhook, event_id=f"aid-disbursed-{app.pk}")
-        self.assertEqual(delivery.event_type, "finance.aid_disbursed")
+        delivery = WebhookDelivery.objects.get(subscription=self.webhook)
+        self.assertEqual(delivery.domain_event.idempotency_key, f"aid-disbursed-{app.pk}")
+        self.assertEqual(delivery.domain_event.event_type, "finance.aid_disbursed")
         self.assertEqual(delivery.status, WebhookDelivery.Status.PENDING)
 
     def test_disbursement_without_invoice_creates_payment_and_ledger(self):
@@ -144,8 +146,9 @@ class AidDisbursementLedgerTests(TestCase):
 
         self.source.refresh_from_db()
         self.assertEqual(self.source.remaining_funds, Decimal("4975.00"))
-        delivery = WebhookDelivery.objects.get(subscription=self.webhook, event_id=f"aid-disbursed-{app.pk}")
-        self.assertEqual(delivery.event_type, "finance.aid_disbursed")
+        delivery = WebhookDelivery.objects.get(subscription=self.webhook)
+        self.assertEqual(delivery.domain_event.idempotency_key, f"aid-disbursed-{app.pk}")
+        self.assertEqual(delivery.domain_event.event_type, "finance.aid_disbursed")
 
     def test_endowment_report_includes_multi_year_projections(self):
         app = self._application(self.student_without_invoice, "25.00")

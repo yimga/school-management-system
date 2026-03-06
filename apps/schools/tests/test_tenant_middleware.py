@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase, override_settings
+from django.urls import Resolver404, resolve
 
 from apps.schools.middleware import (
     LegacyBaseDomainRedirectMiddleware,
@@ -155,6 +156,10 @@ class UrlConfSwitcherMiddlewareTests(TestCase):
             self.middleware.process_request(request)
         self.assertEqual(request.urlconf, "config.docs_urls")
 
+    def test_tenant_urlconf_does_not_mount_superadmin_routes(self):
+        with self.assertRaises(Resolver404):
+            resolve("/super/", urlconf="config.tenant_urls")
+
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False)
 class LegacyAndReservedHostMiddlewareTests(TestCase):
@@ -204,3 +209,10 @@ class LegacyAndReservedHostMiddlewareTests(TestCase):
             response = self.reserved.process_request(request)
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 200)
+
+    def test_manager_host_blocks_backend_dashboard_path(self):
+        with patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False):
+            request = self._request("/authentication/backend/", "manager.runmycampus.com")
+            response = self.reserved.process_request(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/")

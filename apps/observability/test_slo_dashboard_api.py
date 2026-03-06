@@ -4,12 +4,17 @@ from django.test import TestCase
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.events.models import (
+    DomainEvent,
+    WebhookDelivery as CanonicalWebhookDelivery,
+    WebhookSubscription as CanonicalWebhookSubscription,
+)
 from apps.schools.models import School
 from apps.siteconfig.models import (
     RegionConfig,
     SyncConflict,
-    WebhookDelivery,
-    WebhookSubscription,
+    WebhookDelivery as LegacyWebhookDelivery,
+    WebhookSubscription as LegacyWebhookSubscription,
 )
 
 
@@ -62,14 +67,14 @@ class OperationalSLODashboardAPITests(TestCase):
 
     def _create_delivery(self, *, subscription, event_id: str, status: str, created_delta_seconds: int, completed_delta_seconds: int | None):
         now = timezone.now()
-        delivery = WebhookDelivery.objects.create(
+        delivery = LegacyWebhookDelivery.objects.create(
             subscription=subscription,
             event_id=event_id,
             event_type=subscription.event_type,
             status=status,
             attempts=1,
             max_attempts=4,
-            delivered_at=now if status == WebhookDelivery.Status.DELIVERED else None,
+            delivered_at=now if status == LegacyWebhookDelivery.Status.DELIVERED else None,
             last_attempt_at=now if completed_delta_seconds is not None else None,
         )
         created_at = now - timedelta(seconds=created_delta_seconds)
@@ -78,20 +83,20 @@ class OperationalSLODashboardAPITests(TestCase):
             if completed_delta_seconds is not None
             else None
         )
-        WebhookDelivery.objects.filter(pk=delivery.pk).update(
+        LegacyWebhookDelivery.objects.filter(pk=delivery.pk).update(
             created_at=created_at,
-            delivered_at=delivered_at if status == WebhookDelivery.Status.DELIVERED else None,
+            delivered_at=delivered_at if status == LegacyWebhookDelivery.Status.DELIVERED else None,
             last_attempt_at=delivered_at,
         )
         return delivery
 
     def test_endpoint_returns_region_level_slo_metrics(self):
-        subscription_us = WebhookSubscription.objects.create(
+        subscription_us = LegacyWebhookSubscription.objects.create(
             school=self.school_us,
             event_type="grade.published",
             target_url="https://example.org/us-hook",
         )
-        subscription_cmr = WebhookSubscription.objects.create(
+        subscription_cmr = LegacyWebhookSubscription.objects.create(
             school=self.school_cmr,
             event_type="grade.published",
             target_url="https://example.org/cmr-hook",
@@ -100,28 +105,28 @@ class OperationalSLODashboardAPITests(TestCase):
         self._create_delivery(
             subscription=subscription_us,
             event_id="us-1",
-            status=WebhookDelivery.Status.DELIVERED,
+            status=LegacyWebhookDelivery.Status.DELIVERED,
             created_delta_seconds=3,
             completed_delta_seconds=1,
         )
         self._create_delivery(
             subscription=subscription_us,
             event_id="us-2",
-            status=WebhookDelivery.Status.DELIVERED,
+            status=LegacyWebhookDelivery.Status.DELIVERED,
             created_delta_seconds=4,
             completed_delta_seconds=1,
         )
         self._create_delivery(
             subscription=subscription_cmr,
             event_id="cmr-1",
-            status=WebhookDelivery.Status.DELIVERED,
+            status=LegacyWebhookDelivery.Status.DELIVERED,
             created_delta_seconds=50,
             completed_delta_seconds=1,
         )
         self._create_delivery(
             subscription=subscription_cmr,
             event_id="cmr-2",
-            status=WebhookDelivery.Status.DEAD_LETTER,
+            status=LegacyWebhookDelivery.Status.DEAD_LETTER,
             created_delta_seconds=60,
             completed_delta_seconds=1,
         )
@@ -173,6 +178,43 @@ class OperationalSLODashboardAPITests(TestCase):
             payload["slo_targets"]["pending_sync_conflicts_max"],
         )
         self.assertIn(cmr["status"], {"warning", "critical"})
+
+    def test_endpoint_aggregates_canonical_event_webhook_deliveries(self):
+        event = DomainEvent.objects.create(
+            event_type="billing.subscription_updated",
+            payload={"plan": "platform-growth"},
+            school_id=self.school_us.id,
+        )
+        canonical_subscription = CanonicalWebhookSubscription.objects.create(
+            school_id=self.school_us.id,
+            url="https://example.org/platform-hook",
+            event_types=["billing.subscription_updated"],
+            is_active=True,
+        )
+        now = timezone.now()
+        delivery = CanonicalWebhookDelivery.objects.create(
+            subscription=canonical_subscription,
+            domain_event=event,
+            status=CanonicalWebhookDelivery.Status.DELIVERED,
+            attempted_at=now - timedelta(seconds=5),
+            delivered_at=now - timedelta(seconds=1),
+        )
+        CanonicalWebhookDelivery.objects.filter(pk=delivery.pk).update(
+            created_at=now - timedelta(seconds=10),
+            attempted_at=now - timedelta(seconds=2),
+            delivered_at=now - timedelta(seconds=1),
+        )
+
+        self.client.force_login(self.admin_user)
+        response = self.client.get("/api/observability/slo-dashboard/?hours=24")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+
+        by_code = {row["region_code"]: row for row in payload["regions"]}
+        us = by_code["USA"]
+        self.assertEqual(us["webhook"]["total"], 1)
+        self.assertEqual(us["webhook"]["delivered"], 1)
+        self.assertEqual(payload["webhook_stack"]["legacy_groups"], 0)
 
     def test_endpoint_requires_observability_auth(self):
         response = self.client.get("/api/observability/slo-dashboard/")

@@ -43,8 +43,15 @@ def render_welcome_email_html(
     Build HTML body with tenant branding (primary_color, logo_url) and optional dynamic block.
     Trade vs General: pass dynamic_block from profile (e.g. "Workshop Setup Guide" vs "Gradebook Configuration").
     """
-    primary = getattr(school, "primary_color", None) or "#0d6efd"
-    logo_url = getattr(school, "logo_url", None) or ""
+    try:
+        from apps.siteconfig.branding import resolve_brand_profile
+        from apps.siteconfig.models import SiteSettings
+
+        brand = resolve_brand_profile(school=school, site=SiteSettings.get_solo())
+    except Exception:
+        brand = {}
+    primary = brand.get("primary_color") or getattr(school, "primary_color", None) or "#0d6efd"
+    logo_url = brand.get("logo_url") or getattr(school, "logo_url", None) or ""
     name = getattr(school, "name", None) or "Your School"
     login = login_url or _login_url(school)
     block = (dynamic_block or "").strip()

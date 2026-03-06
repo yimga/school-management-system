@@ -66,16 +66,16 @@
                     <label class="form-label" for="country_code">Country</label>
                     <select class="form-select" id="country_code" name="country_code">
                       {% for country in countries %}
-                        <option value="{{ country.code }}" {% if country.code == default_country_code %}selected{% endif %}>{{ country.name }}</option>
+                        <option value="{{ country.code }}" data-alpha3="{{ country.code_alpha3|default:country.code }}" {% if country.code == default_country_code %}selected{% endif %}>{{ country.name }}</option>
                       {% endfor %}
                     </select>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label" for="province_id">Province / State (optional)</label>
-                    <select class="form-select" id="province_id" name="province_id">
+                    <label class="form-label" for="subdivision_id">Province / State / Region (optional)</label>
+                    <select class="form-select" id="subdivision_id" name="subdivision_id">
                       <option value="">— None —</option>
                     </select>
-                    <div class="form-text">Filter education systems by region when available.</div>
+                    <div class="form-text">Registry-backed subdivisions are optional and country-specific.</div>
                   </div>
                   <div class="mb-3">
                     <label class="form-label" for="city_id">City</label>
@@ -88,7 +88,7 @@
                     >
                     <select class="form-select" id="city_id" name="city_id">
                       {% for city in cities %}
-                        <option value="{{ city.id }}" data-country="{{ city.country_code }}" data-timezone="{{ city.timezone }}">
+                        <option value="{{ city.id }}" data-country="{{ city.country_code }}" data-country-alpha3="{{ city.country_code_alpha3|default:city.country_code }}" data-timezone="{{ city.timezone }}">
                           {{ city.city }}
                         </option>
                       {% endfor %}
@@ -110,6 +110,24 @@
                       <option value="FR" {% if default_sub_system == "FR" %}selected{% endif %}>Francophone</option>
                       <option value="INT" {% if default_sub_system == "INT" %}selected{% endif %}>International</option>
                     </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="education_level_codes">Education levels</label>
+                    <select class="form-select" id="education_level_codes" name="education_level_codes" multiple size="3">
+                      {% for level in education_levels %}
+                        <option value="{{ level.code }}">{{ level.global_name }}</option>
+                      {% endfor %}
+                    </select>
+                    <div class="form-text">Select all levels the school serves.</div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="education_system_type_codes">Education system types</label>
+                    <select class="form-select" id="education_system_type_codes" name="education_system_type_codes" multiple size="6">
+                      {% for system_type in education_system_types %}
+                        <option value="{{ system_type.code }}">{{ system_type.name }}</option>
+                      {% endfor %}
+                    </select>
+                    <div class="form-text">Choose the canonical system types for onboarding and analytics.</div>
                   </div>
                   <div class="mb-3">
                     <label class="form-label" for="education_profile_code">Education template (primary)</label>
@@ -254,18 +272,32 @@
         var city_id = document.getElementById('city_id').value.trim();
         var region_code = document.getElementById('region_code').value.trim();
         var sub_system = document.getElementById('sub_system').value;
+        var subdivision_id = (document.getElementById('subdivision_id') && document.getElementById('subdivision_id').value) ? document.getElementById('subdivision_id').value.trim() : '';
         var education_profile_code = document.getElementById('education_profile_code').value.trim();
         var primary_color = document.getElementById('primary_color').value;
         var accent_color = document.getElementById('accent_color').value;
         var theme_choice = (document.getElementById('theme_choice') && document.getElementById('theme_choice').value) ? document.getElementById('theme_choice').value : 'UNFOLD';
         var custom_domain = (document.getElementById('custom_domain') && document.getElementById('custom_domain').value) ? document.getElementById('custom_domain').value.trim() : '';
         var plan_id = (document.getElementById('plan_id') && document.getElementById('plan_id').value) ? document.getElementById('plan_id').value.trim() : '';
-        var province_id = (document.getElementById('province_id') && document.getElementById('province_id').value) ? document.getElementById('province_id').value.trim() : '';
         var education_system_ids = [];
+        var education_level_codes = [];
+        var education_system_type_codes = [];
         var multiSel = document.getElementById('education_system_ids');
+        var levelSel = document.getElementById('education_level_codes');
+        var systemTypeSel = document.getElementById('education_system_type_codes');
         if (multiSel) {
           for (var i = 0; i < multiSel.options.length; i++) {
             if (multiSel.options[i].selected) education_system_ids.push(multiSel.options[i].value);
+          }
+        }
+        if (levelSel) {
+          for (var j = 0; j < levelSel.options.length; j++) {
+            if (levelSel.options[j].selected) education_level_codes.push(levelSel.options[j].value);
+          }
+        }
+        if (systemTypeSel) {
+          for (var k = 0; k < systemTypeSel.options.length; k++) {
+            if (systemTypeSel.options[k].selected) education_system_type_codes.push(systemTypeSel.options[k].value);
           }
         }
         if (education_profile_code && education_system_ids.indexOf(education_profile_code) === -1) {
@@ -283,6 +315,9 @@
           city_id: city_id,
           region_code: region_code,
           sub_system: sub_system,
+          subdivision_id: subdivision_id,
+          education_level_codes: education_level_codes,
+          education_system_type_codes: education_system_type_codes,
           education_profile_code: education_profile_code,
           education_system_ids: education_system_ids,
           primary_color: primary_color,
@@ -290,7 +325,6 @@
           custom_domain: custom_domain
         };
         if (plan_id) payload.plan_id = plan_id;
-        if (province_id) payload.province_id = province_id;
         if (addons.length) payload.addons = addons;
         var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
         fetch('{% url "super:api_create_school" %}', {
@@ -374,7 +408,8 @@
         cities.forEach(function (city) {
           var opt = document.createElement('option');
           opt.value = String(city.id || '');
-          opt.setAttribute('data-country', city.country_code || '');
+          opt.setAttribute('data-country', city.country_code_alpha2 || city.country_code || '');
+          opt.setAttribute('data-country-alpha3', city.country_code || city.country_code_alpha3 || '');
           opt.setAttribute('data-timezone', city.timezone || '');
           opt.textContent = city.city || city.label || '';
           citySelect.appendChild(opt);
@@ -404,7 +439,7 @@
           syncStaticCities();
           return;
         }
-        var selectedCountry = (countrySelect.value || '').toUpperCase();
+        var selectedCountry = (regionCodeInput && regionCodeInput.value ? regionCodeInput.value : countrySelect.value || '').toUpperCase();
         var q = (query || '').trim();
         var token = ++cityFetchToken;
         var url = citySearchUrl + '?country_code=' + encodeURIComponent(selectedCountry) + '&q=' + encodeURIComponent(q) + '&limit=160';
@@ -420,7 +455,7 @@
       }
 
       function fetchProvinces(countryCode) {
-        var provinceSelect = document.getElementById('province_id');
+        var provinceSelect = document.getElementById('subdivision_id');
         if (!provinceSelect || !provincesUrl) return;
         provinceSelect.innerHTML = '<option value="">— None —</option>';
         if (!countryCode) return;
@@ -439,11 +474,12 @@
       function syncCities() {
         if (!countrySelect) return;
         var selectedCountry = countrySelect.value || '';
-        if (regionCodeInput) regionCodeInput.value = selectedCountry;
+        var selectedOption = countrySelect.options[countrySelect.selectedIndex] || null;
+        if (regionCodeInput) regionCodeInput.value = selectedOption ? (selectedOption.getAttribute('data-alpha3') || selectedCountry) : selectedCountry;
         fetchCities(citySearch ? citySearch.value : '');
         fetchProvinces(selectedCountry);
         fetchEducationProfiles();
-        fetchPlansConfigurator(selectedCountry);
+        fetchPlansConfigurator(regionCodeInput ? regionCodeInput.value : selectedCountry);
       }
 
       var plansConfig = null;
@@ -561,11 +597,11 @@
         var subSystemInput = document.getElementById('sub_system');
         var subSystem = subSystemInput ? (subSystemInput.value || 'EN') : 'EN';
         var selectedCountry = (countrySelect.value || '').toUpperCase();
-        var provinceInput = document.getElementById('province_id');
+        var provinceInput = document.getElementById('subdivision_id');
         var provinceId = provinceInput ? (provinceInput.value || '') : '';
         var token = ++profileFetchToken;
         var url = profileSearchUrl + '?country_code=' + encodeURIComponent(selectedCountry) + '&sub_system=' + encodeURIComponent(subSystem);
-        if (provinceId) url += '&province_id=' + encodeURIComponent(provinceId);
+        if (provinceId) url += '&subdivision_id=' + encodeURIComponent(provinceId);
         fetch(url, { credentials: 'same-origin' })
           .then(function(resp) { return resp.ok ? resp.json() : null; })
           .then(function(data) {
@@ -579,7 +615,7 @@
 
       if (countrySelect) countrySelect.addEventListener('change', syncCities);
       if (citySelect) citySelect.addEventListener('change', syncTimezonePreview);
-      var provinceSelect = document.getElementById('province_id');
+      var provinceSelect = document.getElementById('subdivision_id');
       if (provinceSelect) provinceSelect.addEventListener('change', fetchEducationProfiles);
       var profileSelect = document.getElementById('education_profile_code');
       if (profileSelect) {

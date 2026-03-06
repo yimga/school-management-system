@@ -5,6 +5,7 @@ from django.conf import settings
 from django.urls import reverse
 from apps.schools.host_routing import (
     get_canonical_base_domain,
+    is_local_dev_host,
     public_host_kind,
 )
 
@@ -70,6 +71,21 @@ def build_tenant_backend_url(request, school, path: str = "/authentication/backe
         tenant_host = f"{tenant_host}:{port}"
     path = path if path.startswith("/") else f"/{path}"
     return f"{scheme}://{tenant_host}{path}"
+
+
+def build_manager_absolute_url(request, path: str = "/super/") -> str:
+    scheme = "https" if getattr(request, "is_secure", lambda: False)() or not getattr(settings, "DEBUG", False) else "http"
+    host = (request.get_host() or "").strip()
+    host_no_port = host.split(":")[0].lower()
+    port = host.split(":")[-1] if ":" in host else None
+    if is_local_dev_host(host_no_port) or public_host_kind(host_no_port) == "local":
+        manager_host = "manager.localhost"
+    else:
+        manager_host = f"manager.{get_base_domain()}"
+    if port and port not in ("80", "443"):
+        manager_host = f"{manager_host}:{port}"
+    path = path if path.startswith("/") else f"/{path}"
+    return f"{scheme}://{manager_host}{path}"
 
 
 def tenant_absolute_url(request, viewname, *args, school=None, path=None, **kwargs):

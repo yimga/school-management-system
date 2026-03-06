@@ -9,6 +9,18 @@ from django.core.management.base import BaseCommand, CommandError
 from apps.siteconfig.models import SiteSettings, ThemePack
 
 
+def _canonicalize_optional_blank_fields(records: list[dict]) -> list[dict]:
+    for row in records:
+        if not isinstance(row, dict):
+            continue
+        if row.get("model") != "siteconfig.themepack":
+            continue
+        fields = row.get("fields") or {}
+        if fields.get("backend_console_theme", None) == "":
+            fields.pop("backend_console_theme", None)
+    return records
+
+
 class Command(BaseCommand):
     help = "Export ThemePack + SiteSettings as a JSON fixture for dev/live UI parity."
 
@@ -33,6 +45,8 @@ class Command(BaseCommand):
         decoded = json.loads(payload)
         if not isinstance(decoded, list) or not decoded:
             raise CommandError("Serialization produced an empty payload.")
+        decoded = _canonicalize_optional_blank_fields(decoded)
+        payload = json.dumps(decoded, indent=2, ensure_ascii=False)
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(payload + "\n", encoding="utf-8")

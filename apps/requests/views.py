@@ -42,6 +42,10 @@ def _safe_next_url(request: HttpRequest, candidate: str | None, fallback: str) -
     return fallback
 
 
+def _request_school(request: HttpRequest):
+    return (getattr(request, "__dict__", {}) or {}).get("school")
+
+
 def _can_manage_requests(user) -> bool:
     if not user or not user.is_authenticated:
         return False
@@ -66,7 +70,12 @@ def _can_manage_requests(user) -> bool:
 @login_required
 @user_passes_test(_can_manage_requests)
 def requests_dashboard(request: HttpRequest):
+    school = _request_school(request)
     qs = AccessRequest.objects.select_related("requester").order_by("-requested_at")
+    scoped_base = AccessRequest.objects.all()
+    if school is not None:
+        qs = qs.filter(school=school)
+        scoped_base = scoped_base.filter(school=school)
     request_type = request.GET.get("type", "all")
     status = request.GET.get("status", "all")
     search = (request.GET.get("q") or "").strip()
@@ -79,12 +88,12 @@ def requests_dashboard(request: HttpRequest):
         qs = qs.filter(reference__icontains=search)
 
     type_counts = (
-        AccessRequest.objects.values("request_type")
+        scoped_base.values("request_type")
         .order_by("request_type")
         .annotate(count=Count("id"))
     )
     status_counts = (
-        AccessRequest.objects.values("status")
+        scoped_base.values("status")
         .order_by("status")
         .annotate(count=Count("id"))
     )
@@ -144,10 +153,13 @@ def requests_dashboard(request: HttpRequest):
 @login_required
 @user_passes_test(_can_manage_requests)
 def request_detail(request: HttpRequest, request_id):
+    school = _request_school(request)
     access_request = get_object_or_404(
         AccessRequest.objects.select_related("requester"),
         id=request_id,
     )
+    if school is not None and access_request.school_id != school.id:
+        return HttpResponseForbidden("This request does not belong to the active school.")
     if request.method == "POST":
         action = request.POST.get("action", "").upper()
         reason = (request.POST.get("reason") or "").strip()
@@ -196,6 +208,7 @@ def request_module_access(request: HttpRequest):
         title=title,
         summary=summary,
         details=details,
+        school=_request_school(request),
     )
 
     messages.success(request, "Access request submitted. You will be notified when it is reviewed.")

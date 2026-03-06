@@ -139,7 +139,6 @@ urlpatterns = [
     path("communication/", include(("apps.communication.urls", "communication"), namespace="communication")),
     path("emis/", include(("emis.urls", "emis"), namespace="emis")),
     path("requests/", include(("apps.requests.urls", "requests"), namespace="requests")),
-    path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
     path("api/tenant/domains/", api_domains_list_or_create, name="api_domains_list_or_create"),
     path("api/tenant/domains/<uuid:school_domain_id>/verify/", api_domains_verify, name="api_domains_verify"),
     path("account-frozen/", frozen_account, name="account_frozen"),

@@ -3,6 +3,8 @@ Phase 8 Task 11: Monitoring & Observability
 System health checks, performance monitoring, health endpoints
 """
 
+import uuid
+from django.conf import settings
 from django.db import models, connection
 from django.core.cache import cache
 from django.utils import timezone
@@ -210,6 +212,101 @@ class AnomalyDetection(models.Model):
     
     def __str__(self):
         return f"{self.metric_type}: {self.anomaly_type} ({self.confidence*100:.0f}% confidence)"
+
+
+class PlatformIncident(models.Model):
+    """Shared-schema incident record for platform-level operations."""
+
+    class IncidentType(models.TextChoices):
+        AVAILABILITY = "availability", "Availability"
+        PERFORMANCE = "performance", "Performance"
+        SECURITY = "security", "Security"
+        DATA = "data", "Data integrity"
+        INTEGRATION = "integration", "Integration"
+        BILLING = "billing", "Billing"
+        DEPLOYMENT = "deployment", "Deployment"
+        SUPPORT = "support", "Support escalation"
+        OTHER = "other", "Other"
+
+    class Severity(models.TextChoices):
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
+        CRITICAL = "critical", "Critical"
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        ACKNOWLEDGED = "acknowledged", "Acknowledged"
+        MITIGATED = "mitigated", "Mitigated"
+        RESOLVED = "resolved", "Resolved"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    incident_type = models.CharField(
+        max_length=32,
+        choices=IncidentType.choices,
+        default=IncidentType.OTHER,
+        db_index=True,
+    )
+    severity = models.CharField(
+        max_length=16,
+        choices=Severity.choices,
+        default=Severity.MEDIUM,
+        db_index=True,
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
+    )
+    summary = models.TextField()
+    details = models.JSONField(default=dict, blank=True)
+    source_system = models.CharField(max_length=128, blank=True)
+    affected_school = models.ForeignKey(
+        "schools.School",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="platform_incidents",
+    )
+    affected_schema_name = models.CharField(max_length=63, blank=True, db_index=True)
+    detected_at = models.DateTimeField(default=timezone.now, db_index=True)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="platform_incidents_created",
+    )
+    acknowledged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="platform_incidents_acknowledged",
+    )
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="platform_incidents_resolved",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-detected_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["status", "severity", "detected_at"]),
+            models.Index(fields=["incident_type", "detected_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.severity.upper()} {self.title}"
 
 
 class SystemHealthMonitor:

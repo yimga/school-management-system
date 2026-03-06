@@ -37,6 +37,14 @@ class AccessRequest(models.Model):
     title = models.CharField(max_length=200, blank=True)
     summary = models.TextField(blank=True)
     details = models.JSONField(default=dict, blank=True)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="access_requests",
+    )
+    schema_name = models.CharField(max_length=63, blank=True, db_index=True)
 
     requester = models.ForeignKey(
         settings.AUTH_USER_MODEL,

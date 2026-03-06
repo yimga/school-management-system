@@ -12,12 +12,16 @@ from apps.accounts.models import User
 from apps.analytics.models import RiskThresholds, InterventionLog, RiskFactor
 from apps.people.models import StudentProfile
 from apps.schools.models import School, SchoolMembership
+from apps.siteconfig.models import SiteSettings
 
 
 def _tenant_v1_url(school_slug: str, name: str, **kwargs) -> str:
-    """Build /t/<slug>/api/v1/... so TenantMiddleware sets request.school."""
-    path = reverse(f"api_v1:{name}", **kwargs)
-    return f"/t/{school_slug}{path}"
+    del school_slug
+    return reverse(f"api_v1:{name}", **kwargs)
+
+
+def _tenant_host(school_slug: str) -> dict[str, str]:
+    return {"HTTP_HOST": f"{school_slug}.runmycampus.com"}
 
 
 class ComplianceExportSchoolViewTests(TestCase):
@@ -43,13 +47,13 @@ class ComplianceExportSchoolViewTests(TestCase):
 
     def test_export_school_requires_auth(self):
         url = _tenant_v1_url(self.school.slug, "compliance-export-school")
-        response = self.client.post(url, content_type="application/json")
+        response = self.client.post(url, content_type="application/json", **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 401)
 
     def test_export_school_returns_summary(self):
         self.client.force_login(self.user)
         url = _tenant_v1_url(self.school.slug, "compliance-export-school")
-        response = self.client.post(url, content_type="application/json")
+        response = self.client.post(url, content_type="application/json", **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data.get("ok"))
@@ -80,15 +84,29 @@ class EnrollmentForecastViewTests(TestCase):
             is_primary=True,
         )
 
-    def test_forecast_requires_auth(self):
+    def _enable_forecast(self):
+        site = SiteSettings.get_solo()
+        flags = dict(site.backend_feature_flags or {})
+        flags["enable_enrollment_forecast_api"] = True
+        site.backend_feature_flags = flags
+        site.save(update_fields=["backend_feature_flags", "updated_at"])
+
+    def test_forecast_disabled_returns_404(self):
         url = _tenant_v1_url(self.school.slug, "enrollment-forecast")
-        response = self.client.get(url)
+        response = self.client.get(url, **_tenant_host(self.school.slug))
+        self.assertEqual(response.status_code, 404)
+
+    def test_forecast_requires_auth_when_enabled(self):
+        self._enable_forecast()
+        url = _tenant_v1_url(self.school.slug, "enrollment-forecast")
+        response = self.client.get(url, **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 401)
 
     def test_forecast_returns_current_enrollment(self):
+        self._enable_forecast()
         self.client.force_login(self.user)
         url = _tenant_v1_url(self.school.slug, "enrollment-forecast")
-        response = self.client.get(url)
+        response = self.client.get(url, **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("current_enrollment", data)
@@ -118,13 +136,13 @@ class RiskThresholdsConfigViewTests(TestCase):
 
     def test_get_requires_auth(self):
         url = _tenant_v1_url(self.school.slug, "config-risk-thresholds")
-        response = self.client.get(url)
+        response = self.client.get(url, **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 401)
 
     def test_get_returns_defaults_when_no_thresholds(self):
         self.client.force_login(self.user)
         url = _tenant_v1_url(self.school.slug, "config-risk-thresholds")
-        response = self.client.get(url)
+        response = self.client.get(url, **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["amber_min"], 50.0)
@@ -138,7 +156,7 @@ class RiskThresholdsConfigViewTests(TestCase):
         )
         self.client.force_login(self.user)
         url = _tenant_v1_url(self.school.slug, "config-risk-thresholds")
-        response = self.client.get(url)
+        response = self.client.get(url, **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["amber_min"], 40.0)
@@ -151,6 +169,7 @@ class RiskThresholdsConfigViewTests(TestCase):
             url,
             data=json.dumps({"amber_min": 45, "red_min": 75}),
             content_type="application/json",
+            **_tenant_host(self.school.slug),
         )
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -206,7 +225,7 @@ class InterventionActionCenterRiskBandTests(TestCase):
     def test_action_center_includes_risk_band(self):
         self.client.force_login(self.user)
         url = _tenant_v1_url(self.school.slug, "intervention-action-center")
-        response = self.client.get(url)
+        response = self.client.get(url, **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("interventions", data)
@@ -224,7 +243,7 @@ class InterventionActionCenterRiskBandTests(TestCase):
         )
         self.client.force_login(self.user)
         url = _tenant_v1_url(self.school.slug, "intervention-action-center")
-        response = self.client.get(url)
+        response = self.client.get(url, **_tenant_host(self.school.slug))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertGreaterEqual(len(data["interventions"]), 1)

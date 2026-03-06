@@ -3,8 +3,9 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 
+from apps.events.models import DomainEvent, WebhookDelivery, WebhookSubscription
+from apps.events.webhooks import build_webhook_body
 from apps.schools.models import School
-from apps.siteconfig.models import RegionConfig, WebhookDelivery, WebhookSubscription
 from apps.siteconfig.webhook_delivery import (
     dispatch_due_webhooks,
     enqueue_webhook_event,
@@ -15,18 +16,16 @@ from apps.siteconfig.webhook_delivery import (
 
 class WebhookDeliveryServiceTests(TestCase):
     def setUp(self):
-        self.region = RegionConfig.objects.create(code="WDS", name="Webhook Delivery Region")
         self.school = School.objects.create(
             name="Webhook Delivery School",
             slug="webhook-delivery-school",
             subdomain="webhook-delivery-school",
-            default_region=self.region,
             is_active=True,
         )
         self.sub = WebhookSubscription.objects.create(
-            school=self.school,
-            event_type="finance.aid_disbursed",
-            target_url="https://example.org/webhook",
+            school_id=self.school.id,
+            url="https://example.org/webhook",
+            event_types=["finance.aid_disbursed"],
             secret="super-secret",
             is_active=True,
         )
@@ -48,11 +47,11 @@ class WebhookDeliveryServiceTests(TestCase):
         self.assertEqual(len(first), 1)
         self.assertEqual(len(second), 1)
         self.assertEqual(WebhookDelivery.objects.count(), 1)
+        self.assertEqual(DomainEvent.objects.count(), 1)
         delivery = WebhookDelivery.objects.get()
         self.assertEqual(delivery.status, WebhookDelivery.Status.PENDING)
-        self.assertEqual(delivery.event_id, "evt-123")
-        self.assertEqual(delivery.payload["event_type"], "finance.aid_disbursed")
-        self.assertTrue(delivery.signature.startswith("sha256="))
+        self.assertEqual(delivery.domain_event.event_type, "finance.aid_disbursed")
+        self.assertEqual(delivery.domain_event.payload["amount"], "50.00")
 
     def test_deliver_success_marks_delivered(self):
         delivery = enqueue_webhook_event(
@@ -62,11 +61,13 @@ class WebhookDeliveryServiceTests(TestCase):
             data={"aid_id": 7},
         )[0]
 
-        def _ok(url, body, headers):
-            self.assertEqual(url, self.sub.target_url)
-            self.assertEqual(headers["X-Webhook-Event-Id"], "evt-success")
+        def _ok(url, body, headers, timeout):
+            self.assertEqual(timeout, 30)
+            self.assertEqual(url, self.sub.url)
+            self.assertEqual(headers["X-Webhook-Event-Id"], str(delivery.domain_event.id))
             expected_sig = sign_payload(self.sub.secret, body)
             self.assertEqual(headers["X-Webhook-Signature"], expected_sig)
+            self.assertEqual(body, build_webhook_body(delivery.domain_event))
             return 200, "ok"
 
         results = dispatch_due_webhooks(http_post=_ok, now=timezone.now())
@@ -74,11 +75,11 @@ class WebhookDeliveryServiceTests(TestCase):
 
         delivery.refresh_from_db()
         self.assertEqual(delivery.status, WebhookDelivery.Status.DELIVERED)
-        self.assertEqual(delivery.attempts, 1)
+        self.assertEqual(delivery.retry_count, 0)
         self.assertIsNotNone(delivery.delivered_at)
-        self.assertIsNone(delivery.next_attempt_at)
+        self.assertIsNone(delivery.scheduled_for)
 
-    def test_retry_then_dead_letter_after_max_attempts(self):
+    def test_retry_then_failed_after_max_attempts(self):
         delivery = enqueue_webhook_event(
             school=self.school,
             event_type="finance.aid_disbursed",
@@ -88,22 +89,23 @@ class WebhookDeliveryServiceTests(TestCase):
         delivery.max_attempts = 2
         delivery.save(update_fields=["max_attempts"])
 
-        def _fail(url, body, headers):
+        def _fail(url, body, headers, timeout):
+            del url, body, headers, timeout
             return 503, "provider unavailable"
 
         now = timezone.now()
         dispatch_due_webhooks(http_post=_fail, now=now)
         delivery.refresh_from_db()
-        self.assertEqual(delivery.status, WebhookDelivery.Status.RETRYING)
-        self.assertEqual(delivery.attempts, 1)
-        self.assertIsNotNone(delivery.next_attempt_at)
+        self.assertEqual(delivery.status, WebhookDelivery.Status.PENDING)
+        self.assertEqual(delivery.retry_count, 1)
+        self.assertIsNotNone(delivery.scheduled_for)
 
-        dispatch_due_webhooks(http_post=_fail, now=delivery.next_attempt_at + timedelta(seconds=1))
+        dispatch_due_webhooks(http_post=_fail, now=delivery.scheduled_for + timedelta(seconds=1))
         delivery.refresh_from_db()
-        self.assertEqual(delivery.status, WebhookDelivery.Status.DEAD_LETTER)
-        self.assertEqual(delivery.attempts, 2)
-        self.assertIsNone(delivery.next_attempt_at)
-        self.assertIn("unavailable", delivery.last_error)
+        self.assertEqual(delivery.status, WebhookDelivery.Status.FAILED)
+        self.assertEqual(delivery.retry_count, 2)
+        self.assertIsNone(delivery.scheduled_for)
+        self.assertIn("503", delivery.error_message)
 
     def test_dispatch_only_processes_due_deliveries(self):
         due = enqueue_webhook_event(
@@ -118,12 +120,13 @@ class WebhookDeliveryServiceTests(TestCase):
             event_id="evt-later",
             data={"aid_id": 10},
         )[0]
-        later.next_attempt_at = timezone.now() + timedelta(hours=2)
-        later.save(update_fields=["next_attempt_at"])
+        later.scheduled_for = timezone.now() + timedelta(hours=2)
+        later.save(update_fields=["scheduled_for"])
 
         called = {"count": 0}
 
-        def _ok(url, body, headers):
+        def _ok(url, body, headers, timeout):
+            del url, body, headers, timeout
             called["count"] += 1
             return 204, ""
 
@@ -132,7 +135,7 @@ class WebhookDeliveryServiceTests(TestCase):
         later.refresh_from_db()
         self.assertEqual(called["count"], 1)
         self.assertEqual(due.status, WebhookDelivery.Status.DELIVERED)
-        self.assertIn(later.status, {WebhookDelivery.Status.PENDING, WebhookDelivery.Status.RETRYING})
+        self.assertEqual(later.status, WebhookDelivery.Status.PENDING)
 
     def test_replay_creates_new_pending_delivery(self):
         original = enqueue_webhook_event(
@@ -141,12 +144,11 @@ class WebhookDeliveryServiceTests(TestCase):
             event_id="evt-replay",
             data={"aid_id": 11},
         )[0]
-        original.status = WebhookDelivery.Status.DEAD_LETTER
-        original.attempts = 4
-        original.save(update_fields=["status", "attempts"])
+        original.status = WebhookDelivery.Status.FAILED
+        original.retry_count = 4
+        original.save(update_fields=["status", "retry_count"])
 
         replay = replay_webhook_delivery(original)
-        self.assertNotEqual(replay.event_id, original.event_id)
+        self.assertNotEqual(replay.domain_event_id, original.domain_event_id)
         self.assertEqual(replay.status, WebhookDelivery.Status.PENDING)
-        self.assertEqual(replay.attempts, 0)
-
+        self.assertEqual(replay.retry_count, 0)

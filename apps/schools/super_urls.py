@@ -5,10 +5,10 @@ from .parent_tenant_views import parent_tenant_dashboard
 app_name = "super"
 
 urlpatterns = [
-    path("", super_views.super_dashboard, name="dashboard"),
+    path("", super_views.super_dashboard_v2, name="dashboard"),
     path("export/schools.csv", super_views.export_schools_csv, name="export_schools_csv"),
     path("export/revenue.csv", super_views.export_revenue_csv, name="export_revenue_csv"),
-    path("command-center/", super_views.super_command_center, name="command_center"),
+    path("command-center/", super_views.super_command_center_v2, name="command_center"),
     path("create/", super_views.create_school_wizard, name="create_school_wizard"),
     path("api/create-school/", super_views.api_create_school, name="api_create_school"),
     path("api/schools/<uuid:school_id>/timeline/", super_views.api_school_timeline, name="api_school_timeline"),

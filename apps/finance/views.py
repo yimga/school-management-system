@@ -1384,6 +1384,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
                 "granted_links": updated,
             },
             status="APPROVED",
+            school=getattr(request, "school", None),
         )
         access_request.add_audit(
             "auto_grant",
@@ -1506,6 +1507,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             "invoice_ref": invoice_ref,
             "require_opt_in": bool(flags.get("require_guardian_finance_opt_in")),
         },
+        school=getattr(request, "school", None),
     )
     access_request.add_audit(
         "notify_admins",

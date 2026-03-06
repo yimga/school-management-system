@@ -411,11 +411,19 @@ def site_settings(request):
     # Multi-tenant: when request.school is set, use school branding for logo and colors (Phase 2).
     school = _request_school(request)
     if school:
-        if getattr(school, "logo_url", None):
-            ctx["SITE_LOGO_URL"] = school.logo_url
-        ctx["SITE_PRIMARY_COLOR"] = getattr(school, "primary_color", None) or "#0d6efd"
-        ctx["SITE_ACCENT_COLOR"] = getattr(school, "accent_color", None) or "#198754"
-        ctx["TENANT_WALLPAPER_URL"] = getattr(school, "wallpaper_url", None) or ""
+        try:
+            from .branding import brand_css_vars, resolve_brand_profile
+
+            tenant_brand = resolve_brand_profile(school=school, site=site)
+        except Exception:
+            tenant_brand = {}
+        if tenant_brand.get("logo_url"):
+            ctx["SITE_LOGO_URL"] = tenant_brand.get("logo_url")
+        if tenant_brand.get("favicon_url"):
+            ctx["SITE_FAVICON_URL"] = tenant_brand.get("favicon_url")
+        ctx["SITE_PRIMARY_COLOR"] = tenant_brand.get("primary_color") or "#0d6efd"
+        ctx["SITE_ACCENT_COLOR"] = tenant_brand.get("accent_color") or "#198754"
+        ctx["TENANT_WALLPAPER_URL"] = tenant_brand.get("login_background_url") or getattr(school, "wallpaper_url", None) or ""
         # Tenant-specific login placeholder e.g. "Riverfront Arts College" or "School Email"
         ctx["LOGIN_EMAIL_PLACEHOLDER"] = (getattr(school, "name", None) or "").strip() or _("School Email")
         # Phase A: useLocalSettings — merged timezone, locale, currency, date_format, grading_scale for templates
@@ -440,20 +448,8 @@ def site_settings(request):
             or {}
         )
         # World Engine: tenant branding_metadata → --primary, --accent (and optional --school-font) for <head> injection.
-        branding = getattr(school, "branding_metadata", None) or {}
-        if isinstance(branding, dict) and branding:
-            parts = []
-            if branding.get("primary"):
-                parts.append("--primary: {};".format(branding["primary"].strip()))
-            if branding.get("accent"):
-                parts.append("--accent: {};".format(branding["accent"].strip()))
-            if branding.get("font"):
-                parts.append("--school-font: {};".format(branding["font"].strip()))
-            ctx["TENANT_BRANDING_CSS_VARS"] = " ".join(parts) if parts else ""
-        else:
-            primary = getattr(school, "primary_color", None) or "#0d6efd"
-            accent = getattr(school, "accent_color", None) or "#198754"
-            ctx["TENANT_BRANDING_CSS_VARS"] = "--primary: {}; --accent: {};".format(primary, accent)
+        ctx["TENANT_BRAND_PROFILE"] = tenant_brand
+        ctx["TENANT_BRANDING_CSS_VARS"] = brand_css_vars(tenant_brand) if tenant_brand else ""
     else:
         ctx["SITE_PRIMARY_COLOR"] = None
         ctx["SITE_ACCENT_COLOR"] = None
@@ -462,6 +458,7 @@ def site_settings(request):
         ctx["TENANT_LOCALE"] = {}
         ctx["TENANT_BRAND_CONTEXT"] = {}
         ctx["TENANT_LABELS"] = {}
+        ctx["TENANT_BRAND_PROFILE"] = {}
         ctx["TENANT_BRANDING_CSS_VARS"] = ""
     # Plan §7: Tenant portal = Light Mode by default (195-country; enforce light, no tenant dark by default).
     ctx["TENANT_FORCE_LIGHT_THEME"] = bool(school)

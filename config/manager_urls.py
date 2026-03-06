@@ -49,11 +49,19 @@ urlpatterns = [
     path("communication/", include(("apps.communication.urls", "communication"), namespace="communication")),
     path("api-center/", include(("apps.apicenter.urls", "apicenter"), namespace="apicenter")),
     path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
+    path("ops/incidents/", obs_views.platform_incidents_console, name="platform_incidents_console"),
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_health, name="status"),
     path("api/health/", obs_views.api_health, name="api_health"),
+    path("api/observability/incidents/", obs_views.api_platform_incidents, name="api_platform_incidents"),
+    path(
+        "api/observability/incidents/<uuid:incident_id>/status/",
+        obs_views.api_platform_incident_status,
+        name="api_platform_incident_status",
+    ),
+    path("api/observability/slo-dashboard/", obs_views.api_operational_slo_dashboard, name="api_operational_slo_dashboard"),
     path("api/weather/context/", obs_views.api_weather_context, name="api_weather_context"),
 ]
 

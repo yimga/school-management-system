@@ -47,8 +47,16 @@ SITE_FOREIGN_KEY_FIELDS = frozenset(
     }
 )
 
+BLANK_EQUALS_NULL_FIELDS = frozenset(
+    {
+        "backend_console_theme",
+    }
+)
 
-def _normalize(value: Any) -> Any:
+
+def _normalize(value: Any, field_name: str | None = None) -> Any:
+    if field_name in BLANK_EQUALS_NULL_FIELDS and value in ("", None):
+        return None
     if isinstance(value, dict):
         return json.dumps(value, sort_keys=True)
     if isinstance(value, list):
@@ -98,8 +106,8 @@ class Command(BaseCommand):
             if not theme:
                 continue
             for field_name in THEME_COMPARE_FIELDS:
-                expected = _normalize(fixture_fields.get(field_name))
-                actual = _normalize(getattr(theme, field_name, None))
+                expected = _normalize(fixture_fields.get(field_name), field_name)
+                actual = _normalize(getattr(theme, field_name, None), field_name)
                 if expected != actual:
                     mismatches.append(
                         f"ThemePack[{theme_id}].{field_name}: fixture={expected!r}, db={actual!r}"
@@ -116,8 +124,8 @@ class Command(BaseCommand):
             else:
                 actual_value = getattr(site, field_name, None)
 
-            expected = _normalize(fixture_value)
-            actual = _normalize(actual_value)
+            expected = _normalize(fixture_value, field_name)
+            actual = _normalize(actual_value, field_name)
             if expected != actual:
                 mismatches.append(
                     f"SiteSettings.{field_name}: fixture={expected!r}, db={actual!r}"

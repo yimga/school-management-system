@@ -242,6 +242,9 @@ def default_backend_feature_flags():
         "enable_cahier_de_texte": False,
         "cahier_syllabus_integration": "none",
         "enable_ocr_scan_teller": False,
+        "enable_intervention_llm_roadmap": False,
+        "enable_enrollment_forecast_api": False,
+        "enable_seating_chart_beta": False,
         "enable_ministry_api_cartescolaire": False,
         "enable_ministry_api_dgi": False,
         "enable_ministry_live_sync": False,
@@ -3453,6 +3456,55 @@ class DesignTemplate(models.Model):
 
     def __str__(self):
         return f"{self.school.name}: {self.get_document_type_display()} — {self.name}"
+
+class BrandProfile(models.Model):
+    """
+    Canonical tenant brand hub. All runtime tenant branding should resolve through this model.
+    Legacy BrandSettings and School branding fields remain migration inputs and compatibility fallbacks.
+    """
+    school = models.OneToOneField(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="brand_profile",
+    )
+    logo_url = models.URLField(blank=True, help_text="Primary tenant logo URL.")
+    logo_dark_url = models.URLField(blank=True, help_text="Optional dark-surface logo URL.")
+    favicon_url = models.URLField(blank=True, help_text="Optional tenant favicon URL.")
+    tagline = models.CharField(max_length=255, blank=True)
+    primary_color = models.CharField(max_length=20, default="#0d6efd")
+    secondary_color = models.CharField(max_length=20, blank=True, default="")
+    accent_color = models.CharField(max_length=20, default="#198754")
+    font_family = models.CharField(max_length=160, blank=True)
+    login_background_url = models.URLField(blank=True)
+    portal_visual = models.CharField(max_length=120, blank=True)
+    email_template = models.CharField(max_length=120, blank=True)
+    pdf_template = models.CharField(max_length=120, blank=True)
+    certificate_template = models.CharField(max_length=120, blank=True)
+    tokens = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Theme tokens used across login, portal, reports, and emails.",
+    )
+    templates = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Template and layout bindings for branded surfaces.",
+    )
+    assets = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Versioned asset references and brand media metadata.",
+    )
+    custom_css = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Brand profile"
+        verbose_name_plural = "Brand profiles"
+
+    def __str__(self):
+        return f"Brand profile: {self.school.name}"
 
 
 class BrandSettings(models.Model):

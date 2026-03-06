@@ -10,6 +10,12 @@ from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.registries.models import (
+    CountryRegistry,
+    EducationLevelRegistry,
+    EducationSystemTypeRegistry,
+    SubdivisionRegistry,
+)
 from apps.schools.models import School, SchoolMembership, SchoolProvisioningEvent
 from apps.schools.tasks import provision_school_sync
 from apps.people.models import StudentProfile
@@ -446,6 +452,62 @@ class SuperProvisioningWizardTests(TestCase):
             ((school.settings or {}).get("provisioning") or {}).get("education_profile_mode"),
             "explicit",
         )
+
+    def test_api_create_school_persists_canonical_registry_identity(self):
+        self.client.force_login(self.superuser)
+        country = CountryRegistry.objects.create(
+            code="US",
+            alpha3_code="USA",
+            name="United States",
+            default_language="en",
+            default_currency="USD",
+            default_timezone="America/New_York",
+        )
+        subdivision = SubdivisionRegistry.objects.create(
+            country=country,
+            code="US-VA",
+            name="Virginia",
+            subdivision_type="state",
+        )
+        EducationLevelRegistry.objects.create(code="PRIMARY", global_name="Primary", sort_order=10)
+        EducationLevelRegistry.objects.create(code="SECONDARY", global_name="Secondary", sort_order=20)
+        EducationSystemTypeRegistry.objects.create(code="GENERAL", name="General", sort_order=10)
+        EducationSystemTypeRegistry.objects.create(code="STEM", name="STEM", sort_order=20)
+
+        cities = GlobalGeoCatalog.search_cities(country_code="USA", query="New York", limit=10)
+        self.assertTrue(cities, "Global city catalog should include New York")
+        city = cities[0]
+        payload = {
+            "name": "Canonical Registry School",
+            "slug": "canonical-registry-school",
+            "subdomain": "canonical-registry-school",
+            "contact_email": "registry-admin@test.com",
+            "country_code": "US",
+            "city_id": str(city["id"]),
+            "region_code": city["country_code"],
+            "sub_system": "INT",
+            "subdivision_id": subdivision.id,
+            "education_level_codes": ["PRIMARY", "SECONDARY"],
+            "education_system_type_codes": ["GENERAL", "STEM"],
+        }
+        response = self.client.post(
+            reverse("super:api_create_school"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 202, response.content)
+        school = School.objects.get(slug="canonical-registry-school")
+        self.assertEqual(school.country_code, "US")
+        self.assertEqual(school.subdivision_id, subdivision.id)
+        self.assertEqual(
+            list(school.education_levels.order_by("code").values_list("code", flat=True)),
+            ["PRIMARY", "SECONDARY"],
+        )
+        self.assertEqual(
+            list(school.education_system_types.order_by("code").values_list("code", flat=True)),
+            ["GENERAL", "STEM"],
+        )
+        self.assertEqual(((school.settings or {}).get("location") or {}).get("country_code_alpha2"), "US")
 
     def test_api_create_school_rejects_non_approved_explicit_profile(self):
         self.client.force_login(self.superuser)

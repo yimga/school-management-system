@@ -24,9 +24,11 @@ def _require_super_or_school(request, school_id=None):
         return False, JsonResponse({"error": "Authentication required"}, status=401)
     if request.user.is_superuser:
         return True, None
-    if school_id and hasattr(request, "school") and request.school and str(request.school.id) == str(school_id):
-        role = (getattr(request.user, "role", "") or "").upper()
-        if role in ("ADMIN", "IT_ADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL"):
+    request_school = getattr(request, "school", None)
+    role = (getattr(request.user, "role", "") or "").upper()
+    allowed_roles = {"ADMIN", "IT_ADMIN", "LEADERSHIP", "PROPRIETOR", "PRINCIPAL"}
+    if request_school and role in allowed_roles:
+        if school_id is None or str(request_school.id) == str(school_id):
             return True, None
     return False, JsonResponse({"error": "Forbidden"}, status=403)
 
@@ -34,6 +36,19 @@ def _require_super_or_school(request, school_id=None):
 def _get_school_from_request(request):
     """Return request.school (set by tenant middleware) or None."""
     return getattr(request, "school", None)
+
+
+def _backend_flag_enabled(flag_name: str, *, default: bool = False) -> bool:
+    try:
+        from apps.siteconfig.models import SiteSettings, default_backend_feature_flags
+
+        flags = {
+            **default_backend_feature_flags(),
+            **(SiteSettings.get_solo().backend_feature_flags or {}),
+        }
+        return bool(flags.get(flag_name, default))
+    except Exception:
+        return default
 
 
 # ---------------------------------------------------------------------------
@@ -519,6 +534,8 @@ class InterventionGenerateRoadmapView(View):
     """POST /api/v1/intervention/generate-roadmap - Generate recovery roadmap for student (LLM)."""
 
     def post(self, request):
+        if not _backend_flag_enabled("enable_intervention_llm_roadmap"):
+            return JsonResponse({"error": "Intervention roadmap is not enabled."}, status=404)
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)
@@ -1124,6 +1141,8 @@ class EnrollmentForecastView(View):
     """GET /api/v1/enrollment/forecast - Projected enrollment by term/class (stub)."""
 
     def get(self, request):
+        if not _backend_flag_enabled("enable_enrollment_forecast_api"):
+            return JsonResponse({"error": "Enrollment forecast is not enabled."}, status=404)
         school = _get_school_from_request(request)
         if not school:
             return JsonResponse({"error": "Tenant context required"}, status=400)

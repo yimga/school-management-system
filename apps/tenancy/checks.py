@@ -3,7 +3,15 @@ Django system checks: enforce TENANCY_MODE / USE_DJANGO_TENANTS vs middleware an
 Never run both schema and RLS tenant resolution in the same request path.
 """
 from django.conf import settings
-from django.core.checks import Error, register
+from django.core.checks import Error, Warning, register
+
+
+SCHEMA_REQUIRED_APPS = {
+    "apps.registries",
+    "apps.billing",
+    "apps.student360",
+    "apps.metadata.apps.MetadataConfig",
+}
 
 
 @register()
@@ -30,6 +38,16 @@ def tenancy_strategy_checks(app_configs, **kwargs):
                     id="tenancy.E002",
                 )
             )
+        installed_apps = set(getattr(settings, "INSTALLED_APPS", []) or [])
+        missing_apps = sorted(app for app in SCHEMA_REQUIRED_APPS if app not in installed_apps)
+        if missing_apps:
+            errors.append(
+                Error(
+                    "Schema mode is missing required shared apps.",
+                    hint="Add the missing platform apps to SHARED_APPS/INSTALLED_APPS: %s" % ", ".join(missing_apps),
+                    id="tenancy.E004",
+                )
+            )
     else:
         # RLS mode: TenantMainMiddleware must not be present (single schema)
         if any("TenantMainMiddleware" in m for m in mw):
@@ -42,3 +60,22 @@ def tenancy_strategy_checks(app_configs, **kwargs):
             )
 
     return errors
+
+
+@register()
+def control_plane_cookie_scope_checks(app_configs, **kwargs):
+    warnings = []
+    session_domain = str(getattr(settings, "SESSION_COOKIE_DOMAIN", "") or "").strip()
+    csrf_domain = str(getattr(settings, "CSRF_COOKIE_DOMAIN", "") or "").strip()
+    if session_domain.startswith(".") or csrf_domain.startswith("."):
+        warnings.append(
+            Warning(
+                "Cross-subdomain auth cookies are enabled.",
+                hint=(
+                    "Manager and tenant hosts should use host-only cookies by default. "
+                    "Unset SESSION_COOKIE_DOMAIN / CSRF_COOKIE_DOMAIN unless shared auth scope is intentional."
+                ),
+                id="tenancy.W001",
+            )
+        )
+    return warnings

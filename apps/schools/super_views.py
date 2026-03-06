@@ -6,14 +6,24 @@ import csv
 from datetime import timedelta
 from io import StringIO
 
-from django.db.models import Count
-from django.db.models import OuterRef, Subquery
+from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods, require_POST
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 
+from apps.registries.models import (
+    CountryRegistry,
+    EducationLevelRegistry,
+    EducationSystemTypeRegistry,
+    SubdivisionRegistry,
+)
+from apps.registries.services import (
+    ensure_registry_baseline,
+    list_country_choices,
+    list_subdivision_choices,
+)
 from apps.siteconfig.education_profile_engine import (
     ensure_region_for_country as ensure_region_for_country_record,
     list_profile_options,
@@ -54,6 +64,63 @@ def _ensure_region_for_country(country_code: str, timezone_hint: str = "UTC"):
     return ensure_region_for_country_record(country_code, timezone_hint=timezone_hint)
 
 
+def _canonical_country_alpha2(raw_country_code: str | None) -> str:
+    normalized = GlobalGeoCatalog.normalize_country_code(raw_country_code)
+    alpha2 = GlobalGeoCatalog.alpha2_for_country(normalized or raw_country_code)
+    if alpha2:
+        return alpha2.upper()
+    raw = (raw_country_code or "").strip().upper()
+    return raw if len(raw) == 2 else ""
+
+
+def _resolve_subdivision(country_code: str | None, *, subdivision_id=None, province_id=None):
+    alpha2 = _canonical_country_alpha2(country_code)
+    if subdivision_id not in (None, ""):
+        try:
+            return SubdivisionRegistry.objects.filter(pk=int(subdivision_id), country_id=alpha2).first()
+        except (TypeError, ValueError):
+            return None
+    if province_id in (None, ""):
+        return None
+    try:
+        province_id = int(province_id)
+    except (TypeError, ValueError):
+        return None
+    from apps.siteconfig.models import Province
+
+    province = Province.objects.select_related("region").filter(pk=province_id).first()
+    if not province:
+        return None
+    alpha2 = _canonical_country_alpha2(province.region_id)
+    if not alpha2:
+        return None
+    country = CountryRegistry.objects.filter(code=alpha2).first()
+    if not country:
+        return None
+    subdivision, _created = SubdivisionRegistry.objects.get_or_create(
+        country=country,
+        code=str(province.code or province.name).upper()[:32],
+        defaults={
+            "name": province.name,
+            "subdivision_type": "province",
+            "metadata": {
+                "legacy_province_id": province.pk,
+                "legacy_region_code": province.region_id,
+            },
+        },
+    )
+    return subdivision
+
+
+def _resolve_registry_codes(model, raw_codes: list[str]) -> list:
+    codes = [str(code or "").strip().upper() for code in raw_codes if str(code or "").strip()]
+    if not codes:
+        return []
+    rows = list(model.objects.filter(code__in=codes, is_active=True))
+    rows_by_code = {str(row.code).upper(): row for row in rows}
+    return [rows_by_code[code] for code in codes if code in rows_by_code]
+
+
 def _safe_registry_url():
     """URL to Global Registry (EducationSystemProfile CRUD in admin). Phase H."""
     try:
@@ -80,6 +147,47 @@ def _safe_command_center_url() -> str:
         return reverse("super:command_center")
     except NoReverseMatch:
         return ""
+
+
+def _safe_platform_incidents_url() -> str:
+    try:
+        return reverse("platform_incidents_console")
+    except NoReverseMatch:
+        return ""
+
+
+def _brand_profile_for_school(school):
+    try:
+        return school.brand_profile
+    except Exception:
+        return None
+
+
+def _education_level_label(level, country_code: str) -> str:
+    labels = getattr(level, "country_labels", {}) or {}
+    return str(labels.get(country_code) or getattr(level, "global_name", "") or getattr(level, "code", ""))
+
+
+def _education_system_type_label(system_type, country_code: str) -> str:
+    labels = getattr(system_type, "country_labels", {}) or {}
+    return str(labels.get(country_code) or getattr(system_type, "name", "") or getattr(system_type, "code", ""))
+
+
+def _status_tone(status: str) -> str:
+    normalized = str(status or "").strip().lower()
+    if normalized in {"critical", "past_due", "past due", "suspended", "error", "open"}:
+        return "danger"
+    if normalized in {"warning", "acknowledged", "mitigated", "trialing", "pending"}:
+        return "warning"
+    if normalized in {"healthy", "active", "resolved", "success", "verified"}:
+        return "success"
+    return "neutral"
+
+
+def _safe_percentage(numerator: int, denominator: int) -> float:
+    if denominator <= 0:
+        return 0.0
+    return round((float(numerator) / float(denominator)) * 100.0, 1)
 
 
 def _build_command_center_data() -> dict:
@@ -472,6 +580,477 @@ def export_schools_csv(request):
     return resp
 
 
+def super_dashboard_v2(request):
+    """Mission-control control plane for the manager host."""
+    from apps.billing.models import BillingAccount, TenantSubscription
+    from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
+    from apps.observability.models import PlatformIncident
+    from apps.observability.monitoring import SystemHealthMonitor
+    from apps.siteconfig.models import BrandProfile, RevenueSnapshot
+
+    first_of_month = _parse_month_param(request)
+    month_options = _month_options(12)
+    current_request_month = first_of_month.strftime("%Y-%m")
+
+    latest_event_query = SchoolProvisioningEvent.objects.filter(school_id=OuterRef("pk")).order_by("-created_at", "-id")
+    latest_subscription_query = TenantSubscription.objects.filter(school_id=OuterRef("pk")).order_by("-updated_at", "-created_at")
+    country_names = {
+        code: name
+        for code, name in CountryRegistry.objects.filter(is_active=True).values_list("code", "name")
+    }
+    schools = list(
+        School.objects.all()
+        .select_related("subdivision", "default_region")
+        .prefetch_related("tenant_systems__system", "education_levels", "education_system_types")
+        .order_by("-is_active", "name")
+        .annotate(member_count=Count("memberships"))
+        .annotate(student_count=Count("student_profiles", distinct=True))
+        .annotate(teacher_count=Count("teacher_profiles", distinct=True))
+        .annotate(latest_event_type=Subquery(latest_event_query.values("event_type")[:1]))
+        .annotate(latest_event_status=Subquery(latest_event_query.values("status")[:1]))
+        .annotate(latest_event_created_at=Subquery(latest_event_query.values("created_at")[:1]))
+        .annotate(latest_subscription_status=Subquery(latest_subscription_query.values("status")[:1]))
+        .annotate(latest_subscription_amount=Subquery(latest_subscription_query.values("billed_amount")[:1]))
+        .annotate(latest_subscription_period_end=Subquery(latest_subscription_query.values("current_period_end")[:1]))
+    )
+
+    total_mrr = total_waived = waiver_percentage = 0
+    revenue_by_country = []
+    billing_model_breakdown = []
+    try:
+        snapshots = RevenueSnapshot.objects.filter(snapshot_date=first_of_month)
+        agg = snapshots.aggregate(total_actual=Sum("actual_revenue"), total_waived=Sum("waived_amount"))
+        total_mrr = (agg["total_actual"] or 0)
+        total_waived = (agg["total_waived"] or 0)
+        total_all = total_mrr + total_waived
+        waiver_percentage = (float(total_waived) / float(total_all) * 100) if total_all else 0
+        revenue_by_country = list(
+            snapshots.values("country_code")
+            .annotate(actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
+            .order_by("-actual", "-waived")[:20]
+        )
+        billing_model_breakdown = list(
+            snapshots.values("billing_model")
+            .annotate(count=Count("id"), actual=Sum("actual_revenue"), waived=Sum("waived_amount"))
+            .order_by("-actual", "-waived")
+        )
+    except Exception:
+        pass
+
+    pending_schools = list(
+        School.objects.filter(is_approved=False)
+        .prefetch_related("tenant_systems__system")
+        .order_by("-created_at")
+        .annotate(member_count=Count("memberships"))
+        .annotate(student_count=Count("student_profiles", distinct=True))
+    )
+    for school in pending_schools:
+        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
+        school.timeline_url = _safe_school_timeline_url(school.pk)
+        school.selected_systems = _selected_system_names(school)
+        school.country_display = country_names.get(school.canonical_country_code, school.canonical_country_code or "Unassigned")
+    pending_approval_count = len(pending_schools)
+
+    health_top_tables = []
+    health_schema_stats = []
+    try:
+        from .health_utils import get_top_tables_by_size, get_global_health_stats
+
+        health_top_tables = get_top_tables_by_size(limit=10)
+        health_schema_stats = get_global_health_stats()
+    except Exception:
+        pass
+
+    command_center = _build_command_center_data()
+    platform_incidents = list(
+        PlatformIncident.objects.select_related("affected_school")
+        .filter(
+            status__in=[
+                PlatformIncident.Status.OPEN,
+                PlatformIncident.Status.ACKNOWLEDGED,
+                PlatformIncident.Status.MITIGATED,
+            ]
+        )
+        .order_by("-detected_at", "-created_at")[:12]
+    )
+    incident_counts = {
+        row["status"]: row["total"]
+        for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
+    }
+    critical_incident_count = PlatformIncident.objects.filter(
+        status__in=[
+            PlatformIncident.Status.OPEN,
+            PlatformIncident.Status.ACKNOWLEDGED,
+            PlatformIncident.Status.MITIGATED,
+        ],
+        severity__in=[PlatformIncident.Severity.CRITICAL, PlatformIncident.Severity.HIGH],
+    ).count()
+    billing_watchlist = list(
+        TenantSubscription.objects.select_related("school", "billing_account", "plan")
+        .filter(status__in=[TenantSubscription.Status.PAST_DUE, TenantSubscription.Status.SUSPENDED])
+        .order_by("-updated_at", "school__name")[:12]
+    )
+    active_subscription_count = TenantSubscription.objects.filter(
+        status__in=[TenantSubscription.Status.ACTIVE, TenantSubscription.Status.TRIALING]
+    ).count()
+    billing_account_count = BillingAccount.objects.count()
+    webhook_stack = legacy_webhook_sync_snapshot()
+    try:
+        platform_health = SystemHealthMonitor.get_comprehensive_health()
+    except Exception:
+        platform_health = {
+            "overall_status": "warning",
+            "cpu": {"usage_percent": 0.0, "threshold": 80.0, "status": "warning"},
+            "memory": {"usage_percent": 0.0, "used_mb": 0.0, "threshold": 85.0, "status": "warning"},
+            "disk": {"usage_percent": 0.0, "free_gb": 0.0, "threshold": 90.0, "status": "warning"},
+            "database": {"status": "unhealthy", "response_time_ms": 0.0},
+            "cache": {"status": "unhealthy", "type": "unknown"},
+        }
+
+    registry_counts = {
+        "countries": CountryRegistry.objects.filter(is_active=True).count(),
+        "subdivisions": SubdivisionRegistry.objects.filter(is_active=True).count(),
+        "education_levels": EducationLevelRegistry.objects.filter(is_active=True).count(),
+        "education_system_types": EducationSystemTypeRegistry.objects.filter(is_active=True).count(),
+    }
+    brand_profile_ids = set(BrandProfile.objects.values_list("school_id", flat=True))
+    churn_risk_lookup = {
+        str(row["school"].id): row
+        for row in command_center.get("tenant_churn_risk_rows", [])
+        if row.get("school") is not None
+    }
+    incident_school_ids = {
+        incident.affected_school_id
+        for incident in platform_incidents
+        if getattr(incident, "affected_school_id", None)
+    }
+    countries_live_codes = {school.canonical_country_code for school in schools if school.canonical_country_code}
+    countries_live_count = len(countries_live_codes)
+    identity_complete_count = 0
+    brand_profile_count = 0
+    verified_domain_count = 0
+    custom_domain_count = 0
+    impersonation_ready_count = 0
+    attention_school_count = 0
+    recent_schools = sorted(schools, key=lambda school: (school.created_at, school.name), reverse=True)[:8]
+
+    for school in schools:
+        school.admin_edit_url = _safe_school_admin_change_url(school.pk)
+        school.timeline_url = _safe_school_timeline_url(school.pk)
+        school.sync_repair_url = reverse("super:sync_repair", args=[school.pk])
+        school.selected_systems = _selected_system_names(school)
+        school.country_display = country_names.get(school.canonical_country_code, school.canonical_country_code or "Unassigned")
+        school.subdivision_display = school.subdivision.name if school.subdivision_id else "-"
+        school.education_level_labels = [
+            _education_level_label(level, school.canonical_country_code)
+            for level in school.education_levels.all()
+        ]
+        school.education_system_type_labels = [
+            _education_system_type_label(system_type, school.canonical_country_code)
+            for system_type in school.education_system_types.all()
+        ]
+        school.has_brand_profile = school.id in brand_profile_ids or _brand_profile_for_school(school) is not None
+        school.brand_status = "BrandProfile" if school.has_brand_profile else "Legacy fallback"
+        school.subscription_status = (school.latest_subscription_status or "UNSEEDED").upper()
+        school.subscription_tone = _status_tone(school.subscription_status)
+        school.identity_status = "missing"
+        if school.canonical_country_code or school.education_level_labels or school.education_system_type_labels:
+            school.identity_status = "partial"
+        if school.canonical_country_code and school.education_level_labels and school.education_system_type_labels:
+            school.identity_status = "complete"
+        school.identity_tone = _status_tone("success" if school.identity_status == "complete" else "warning")
+        school.attention_reasons = []
+        if not school.is_approved:
+            school.attention_reasons.append("Pending approval")
+        if getattr(school, "latest_event_status", "") == SchoolProvisioningEvent.Status.ERROR:
+            school.attention_reasons.append("Provisioning error")
+        if school.subscription_status in {TenantSubscription.Status.PAST_DUE, TenantSubscription.Status.SUSPENDED}:
+            school.attention_reasons.append(f"Billing {school.subscription_status.lower().replace('_', ' ')}")
+        risk_row = churn_risk_lookup.get(str(school.pk))
+        if risk_row and risk_row.get("reasons"):
+            school.attention_reasons.append(risk_row["reasons"][0])
+        if school.pk in incident_school_ids:
+            school.attention_reasons.append("Open platform incident")
+        if school.identity_status != "complete":
+            school.attention_reasons.append("Canonical identity incomplete")
+        school.attention_reasons = school.attention_reasons[:4]
+        if school.attention_reasons:
+            attention_school_count += 1
+        school.roster_state = "healthy"
+        if not school.is_active:
+            school.roster_state = "inactive"
+        elif not school.is_approved:
+            school.roster_state = "pending"
+        elif school.attention_reasons:
+            school.roster_state = "attention"
+        school.roster_search = " ".join(
+            filter(
+                None,
+                [
+                    school.name,
+                    school.slug,
+                    school.subdomain,
+                    school.country_display,
+                    school.subdivision_display,
+                    " ".join(school.education_level_labels),
+                    " ".join(school.education_system_type_labels),
+                    " ".join(school.selected_systems),
+                    " ".join(school.attention_reasons),
+                    school.subscription_status,
+                ],
+            )
+        ).lower()
+        if school.identity_status == "complete":
+            identity_complete_count += 1
+        if school.has_brand_profile:
+            brand_profile_count += 1
+        if school.custom_domain:
+            custom_domain_count += 1
+        if school.custom_domain_verified:
+            verified_domain_count += 1
+        if school.impersonation_consent_granted_at:
+            impersonation_ready_count += 1
+
+    schools.sort(key=lambda school: (-len(school.attention_reasons), school.name.lower()))
+
+    country_rollup = list(
+        School.objects.exclude(country_code="")
+        .values("country_code")
+        .annotate(school_count=Count("id"), student_count=Count("student_profiles", distinct=True))
+        .order_by("-school_count", "country_code")[:12]
+    )
+    revenue_by_country_lookup = {
+        str(row.get("country_code") or "").upper(): row
+        for row in revenue_by_country
+    }
+    for row in country_rollup:
+        country_code = str(row.get("country_code") or "").upper()
+        revenue_row = revenue_by_country_lookup.get(country_code, {})
+        row["country_name"] = country_names.get(country_code, country_code or "Unassigned")
+        row["actual_revenue"] = revenue_row.get("actual") or 0
+        row["waived_revenue"] = revenue_row.get("waived") or 0
+
+    school_count = len(schools)
+    if total_mrr is not None and total_mrr > 0:
+        north_star_label = "Total MRR"
+        north_star_formatted = f"${total_mrr:,.2f}"
+    else:
+        north_star_label = "Schools"
+        north_star_formatted = str(school_count)
+
+    next_best_actions = []
+    if pending_approval_count:
+        next_best_actions.append({
+            "label": f"{pending_approval_count} pending approval" + ("s" if pending_approval_count != 1 else ""),
+            "url": request.path + "#cp-action-queue",
+            "count": pending_approval_count,
+        })
+    if command_center.get("trial_ending_soon_count", 0):
+        cc_url = _safe_command_center_url()
+        if cc_url:
+            next_best_actions.append({
+                "label": f"{command_center['trial_ending_soon_count']} trial(s) ending soon",
+                "url": cc_url,
+                "count": command_center["trial_ending_soon_count"],
+            })
+    if command_center.get("provisioning_sla_breaches", 0):
+        cc_url = _safe_command_center_url()
+        if cc_url:
+            next_best_actions.append({
+                "label": f"{command_center['provisioning_sla_breaches']} provisioning breach(es)",
+                "url": cc_url,
+                "count": command_center["provisioning_sla_breaches"],
+            })
+    if platform_incidents:
+        next_best_actions.append({
+            "label": f"{len(platform_incidents)} live incident(s)",
+            "url": _safe_platform_incidents_url() or request.path,
+            "count": len(platform_incidents),
+        })
+
+    overview_cards = [
+        {
+            "label": "Fleet tenants",
+            "value": school_count,
+            "meta": f"{sum(1 for school in schools if school.is_active)} active / {pending_approval_count} pending approval",
+            "tone": "blue",
+        },
+        {
+            "label": north_star_label,
+            "value": north_star_formatted,
+            "meta": f"${total_waived:,.2f} waived in {first_of_month.strftime('%b %Y')}",
+            "tone": "emerald",
+        },
+        {
+            "label": "Open platform incidents",
+            "value": len(platform_incidents),
+            "meta": f"{critical_incident_count} critical or high severity",
+            "tone": "crimson" if platform_incidents else "slate",
+        },
+        {
+            "label": "Support backlog 48h+",
+            "value": command_center.get("support_backlog_48h_count", 0),
+            "meta": f"{command_center.get('support_backlog_7d_count', 0)} older than 7 days",
+            "tone": "amber" if command_center.get("support_backlog_48h_count", 0) else "slate",
+        },
+        {
+            "label": "Countries live",
+            "value": countries_live_count,
+            "meta": f"{registry_counts['countries']} countries in registry / {registry_counts['subdivisions']} subdivisions",
+            "tone": "sky",
+        },
+        {
+            "label": "Billing exceptions",
+            "value": len(billing_watchlist),
+            "meta": f"{active_subscription_count} active or trialing subscriptions / {billing_account_count} billing accounts",
+            "tone": "violet" if billing_watchlist else "slate",
+        },
+    ]
+    workstream_cards = [
+        {
+            "title": "Mission queues",
+            "metric": pending_approval_count + command_center.get("support_backlog_48h_count", 0) + len(platform_incidents),
+            "meta": "Approvals, stale support, incidents, and provisioning breaches",
+            "url": _safe_command_center_url(),
+            "cta": "Open queues",
+        },
+        {
+            "title": "Platform billing",
+            "metric": active_subscription_count,
+            "meta": f"{len(billing_watchlist)} tenants need billing attention",
+            "url": reverse("super:billing_dashboard"),
+            "cta": "Inspect billing",
+        },
+        {
+            "title": "Incident console",
+            "metric": len(platform_incidents),
+            "meta": f"{critical_incident_count} critical/high severity incidents",
+            "url": _safe_platform_incidents_url(),
+            "cta": "Review incidents",
+        },
+        {
+            "title": "Usage and quotas",
+            "metric": command_center.get("tenant_churn_risk_count", 0),
+            "meta": "Usage posture, risk watchlist, and adoption signals",
+            "url": reverse("super:usage"),
+            "cta": "View usage",
+        },
+        {
+            "title": "Fleet health",
+            "metric": str(platform_health.get("overall_status", "unknown")).upper(),
+            "meta": f"Webhook drift groups: {webhook_stack.get('unsynced_legacy_groups', 0)}",
+            "url": reverse("super:tenant_health"),
+            "cta": "Audit tenants",
+        },
+        {
+            "title": "Create school",
+            "metric": registry_counts["education_system_types"],
+            "meta": "Registry-backed onboarding with branding and control-plane defaults",
+            "url": reverse("super:create_school_wizard"),
+            "cta": "Provision tenant",
+        },
+    ]
+    readiness_cards = [
+        {
+            "label": "Canonical identity",
+            "value": f"{identity_complete_count}/{school_count}",
+            "meta": f"{school_count - identity_complete_count} tenants still partial or missing",
+            "tone": "success" if identity_complete_count == school_count else "warning",
+        },
+        {
+            "label": "BrandProfile coverage",
+            "value": f"{brand_profile_count}/{school_count}",
+            "meta": f"{school_count - brand_profile_count} tenants still rely on compatibility fallbacks",
+            "tone": "success" if brand_profile_count == school_count else "warning",
+        },
+        {
+            "label": "Verified domains",
+            "value": f"{verified_domain_count}/{custom_domain_count or 0}",
+            "meta": f"{custom_domain_count} custom domains configured",
+            "tone": "success" if custom_domain_count and verified_domain_count == custom_domain_count else "neutral",
+        },
+        {
+            "label": "Support impersonation consent",
+            "value": f"{impersonation_ready_count}/{school_count}",
+            "meta": "JIT consent grants available for audited support access",
+            "tone": "neutral",
+        },
+    ]
+    platform_health_cards = [
+        {
+            "label": "CPU",
+            "value": f"{platform_health.get('cpu', {}).get('usage_percent', 0):.1f}%",
+            "meta": f"threshold {platform_health.get('cpu', {}).get('threshold', 0)}%",
+            "tone": _status_tone(platform_health.get("cpu", {}).get("status", "")),
+        },
+        {
+            "label": "Memory",
+            "value": f"{platform_health.get('memory', {}).get('usage_percent', 0):.1f}%",
+            "meta": f"{platform_health.get('memory', {}).get('used_mb', 0):.0f} MB used",
+            "tone": _status_tone(platform_health.get("memory", {}).get("status", "")),
+        },
+        {
+            "label": "Disk",
+            "value": f"{platform_health.get('disk', {}).get('usage_percent', 0):.1f}%",
+            "meta": f"{platform_health.get('disk', {}).get('free_gb', 0):.1f} GB free",
+            "tone": _status_tone(platform_health.get("disk", {}).get("status", "")),
+        },
+        {
+            "label": "Database",
+            "value": str(platform_health.get("database", {}).get("status", "unknown")).upper(),
+            "meta": f"{platform_health.get('database', {}).get('response_time_ms', 0):.1f} ms health check",
+            "tone": _status_tone(platform_health.get("database", {}).get("status", "")),
+        },
+    ]
+
+    return render(
+        request,
+        "schools/super_dashboard.html",
+        {
+            "schools": schools,
+            "pending_schools": pending_schools,
+            "pending_approval_count": pending_approval_count,
+            "total_mrr": total_mrr,
+            "total_waived": total_waived,
+            "waiver_percentage": round(waiver_percentage, 1),
+            "revenue_by_country": revenue_by_country,
+            "billing_model_breakdown": billing_model_breakdown,
+            "revenue_snapshot_month": first_of_month,
+            "current_request_month": current_request_month,
+            "month_options": month_options,
+            "school_count": school_count,
+            "north_star_label": north_star_label,
+            "north_star_formatted": north_star_formatted,
+            "next_best_actions": next_best_actions,
+            "registry_url": _safe_registry_url(),
+            "command_center_url": _safe_command_center_url(),
+            "health_top_tables": health_top_tables,
+            "health_schema_stats": health_schema_stats,
+            "command_center": command_center,
+            "platform_health": platform_health,
+            "platform_health_cards": platform_health_cards,
+            "platform_incidents": platform_incidents,
+            "platform_incidents_url": _safe_platform_incidents_url(),
+            "incident_counts": incident_counts,
+            "critical_incident_count": critical_incident_count,
+            "billing_watchlist": billing_watchlist,
+            "webhook_stack": webhook_stack,
+            "registry_counts": registry_counts,
+            "country_rollup": country_rollup,
+            "countries_live_count": countries_live_count,
+            "countries_live_pct": _safe_percentage(countries_live_count, registry_counts["countries"]),
+            "overview_cards": overview_cards,
+            "workstream_cards": workstream_cards,
+            "readiness_cards": readiness_cards,
+            "attention_school_count": attention_school_count,
+            "recent_schools": recent_schools,
+            "tenant_risk_rows": command_center.get("tenant_churn_risk_rows", [])[:12],
+            "stale_support_rows": command_center.get("support_stale_rows", [])[:10],
+            "provisioning_breach_rows": command_center.get("provisioning_breach_rows", [])[:10],
+        },
+    )
+
+
 def export_revenue_csv(request):
     """Export revenue by country for selected month as CSV (powerhouse upgrade: export)."""
     from django.db.models import Sum
@@ -632,16 +1211,107 @@ def super_command_center(request):
         },
     )
 
+def super_command_center_v2(request):
+    """Operational queue drill-down for the manager control plane."""
+    from apps.billing.models import TenantSubscription
+    from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
+    from apps.observability.models import PlatformIncident
+    from apps.observability.monitoring import SystemHealthMonitor
+    from apps.siteconfig.models import GlobalSupportTicket
 
-def billing_dashboard(request):
-    """Plan X: Billing dashboard — trial schools, trial_end_date, usage; Stripe integration via webhooks (see docs)."""
-    from django.db.models import Sum
-    from django.utils import timezone
+    command_center = _build_command_center_data()
+    pending_schools = list(
+        School.objects.filter(is_approved=False)
+        .order_by("-created_at")
+        .annotate(student_count=Count("student_profiles", distinct=True))[:30]
+    )
     trial_schools = list(
         School.objects.filter(is_active=True, billing_type=School.BillingType.FREE_TRIAL)
-        .annotate(student_count=Count("student_profiles", distinct=True))
-        .order_by("trial_end_date", "name")
+        .order_by("trial_end_date", "name")[:30]
     )
+    stale_support = command_center.get("support_stale_rows", [])[:20]
+    provisioning_breach_rows = command_center.get("provisioning_breach_rows", [])[:20]
+    risk_rows = command_center.get("tenant_churn_risk_rows", [])[:20]
+    platform_incidents = list(
+        PlatformIncident.objects.select_related("affected_school")
+        .filter(
+            status__in=[
+                PlatformIncident.Status.OPEN,
+                PlatformIncident.Status.ACKNOWLEDGED,
+                PlatformIncident.Status.MITIGATED,
+            ]
+        )
+        .order_by("-detected_at", "-created_at")[:20]
+    )
+    incident_counts = {
+        row["status"]: row["total"]
+        for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
+    }
+    billing_watchlist = list(
+        TenantSubscription.objects.select_related("school", "billing_account", "plan")
+        .filter(status__in=[TenantSubscription.Status.PAST_DUE, TenantSubscription.Status.SUSPENDED])
+        .order_by("-updated_at", "school__name")[:20]
+    )
+    webhook_stack = legacy_webhook_sync_snapshot()
+    try:
+        platform_health = SystemHealthMonitor.get_comprehensive_health()
+    except Exception:
+        platform_health = {"overall_status": "warning", "database": {"status": "unhealthy"}, "cache": {"status": "unhealthy"}}
+
+    school_map = {
+        school.id: school
+        for school in School.objects.filter(id__in=[row["school_id"] for row in provisioning_breach_rows]).only("id", "name", "slug")
+    }
+    for row in provisioning_breach_rows:
+        row["school"] = school_map.get(row["school_id"])
+    for row in risk_rows:
+        school = row.get("school")
+        if school is not None:
+            row["admin_edit_url"] = _safe_school_admin_change_url(school.pk)
+
+    return render(
+        request,
+        "schools/super_command_center.html",
+        {
+            "command_center": command_center,
+            "pending_schools": pending_schools,
+            "trial_schools": trial_schools,
+            "stale_support": stale_support,
+            "provisioning_breach_rows": provisioning_breach_rows,
+            "support_dashboard_url": reverse("super:support_dashboard"),
+            "billing_dashboard_url": reverse("super:billing_dashboard"),
+            "usage_url": reverse("super:usage"),
+            "dashboard_url": reverse("super:dashboard"),
+            "open_ticket_statuses": list(GlobalSupportTicket.Status.values),
+            "risk_rows": risk_rows,
+            "platform_incidents": platform_incidents,
+            "incident_counts": incident_counts,
+            "billing_watchlist": billing_watchlist,
+            "webhook_stack": webhook_stack,
+            "platform_health": platform_health,
+            "platform_incidents_url": _safe_platform_incidents_url(),
+        },
+    )
+
+
+def billing_dashboard(request):
+    """Platform billing console: subscriptions, usage, and recent platform ledger activity."""
+    from django.db.models import Count, Sum
+    from django.utils import timezone
+    from apps.billing.models import BillingAccount, PlatformLedgerEntry, TenantSubscription
+    from apps.billing.services import ensure_subscription_for_school
+
+    active_schools = list(
+        School.objects.filter(is_active=True)
+        .select_related("plan", "default_region")
+        .annotate(student_count=Count("student_profiles", distinct=True))
+        .order_by("name")
+    )
+    for school in active_schools:
+        ensure_subscription_for_school(school)
+
+    trial_schools = [school for school in active_schools if school.billing_type == School.BillingType.FREE_TRIAL]
+    trial_schools.sort(key=lambda school: (school.trial_end_date or timezone.now().date(), school.name))
     school_ids = [s.pk for s in trial_schools]
     usage_agg = {}
     if school_ids:
@@ -651,11 +1321,56 @@ def billing_dashboard(request):
         school.api_requests = usage_agg.get(school.pk, 0)
         school.admin_edit_url = _safe_school_admin_change_url(school.pk)
         school.trial_expired = school.trial_end_date and school.trial_end_date < timezone.now().date()
+    account_summary = BillingAccount.objects.values("status").annotate(total=Count("id")).order_by("status")
+    subscription_summary = TenantSubscription.objects.values("status").annotate(total=Count("id")).order_by("status")
+    billing_account_count = BillingAccount.objects.count()
+    subscription_count = TenantSubscription.objects.count()
+    active_subscriptions = list(
+        TenantSubscription.objects.filter(
+            status__in=[
+                TenantSubscription.Status.TRIALING,
+                TenantSubscription.Status.ACTIVE,
+                TenantSubscription.Status.PAST_DUE,
+                TenantSubscription.Status.SUSPENDED,
+            ]
+        )
+        .select_related("school", "plan", "billing_account")
+        .order_by("-updated_at", "school__name")[:30]
+    )
+    recent_ledger = list(
+        PlatformLedgerEntry.objects.select_related("school", "billing_account")
+        .order_by("-happened_at", "-created_at")[:20]
+    )
+    total_posted_charges = (
+        PlatformLedgerEntry.objects.filter(
+            status=PlatformLedgerEntry.Status.POSTED,
+            entry_type=PlatformLedgerEntry.EntryType.CHARGE,
+        ).aggregate(total=Sum("amount")).get("total")
+        or 0
+    )
+    total_posted_credits = (
+        PlatformLedgerEntry.objects.filter(
+            status=PlatformLedgerEntry.Status.POSTED,
+            entry_type__in=[
+                PlatformLedgerEntry.EntryType.CREDIT,
+                PlatformLedgerEntry.EntryType.WRITE_OFF,
+            ],
+        ).aggregate(total=Sum("amount")).get("total")
+        or 0
+    )
     return render(
         request,
         "schools/billing_dashboard.html",
         {
             "trial_schools": trial_schools,
+            "account_summary": list(account_summary),
+            "subscription_summary": list(subscription_summary),
+            "billing_account_count": billing_account_count,
+            "subscription_count": subscription_count,
+            "active_subscriptions": active_subscriptions,
+            "recent_ledger": recent_ledger,
+            "total_posted_charges": total_posted_charges,
+            "total_posted_credits": total_posted_credits,
             "usage_url": reverse("super:usage"),
         },
     )
@@ -674,24 +1389,28 @@ def create_school_wizard(request):
         # Wizard form submitted via JS to api_create_school; this is fallback or redirect
         return redirect("super:api_create_school")
 
+    ensure_registry_baseline()
     regions = RegionConfig.objects.all().order_by("name")
     defaults = default_header_weather_config()
-    default_country_code = GlobalGeoCatalog.normalize_country_code(
+    default_country_code = _canonical_country_alpha2(
         defaults.get("header_weather_country_code", "CMR")
     )
-    countries = GlobalGeoCatalog.list_countries()
+    countries = list_country_choices()
     known_codes = {row["code"] for row in countries}
     if default_country_code not in known_codes and countries:
         default_country_code = countries[0]["code"]
+    default_country_alpha3 = GlobalGeoCatalog.normalize_country_code(default_country_code)
     cities = GlobalGeoCatalog.search_cities(
-        country_code=default_country_code,
+        country_code=default_country_alpha3,
         limit=180,
     )
     default_sub_system = School.SubSystem.EN
     education_profiles = list_profile_options(
-        country_code=default_country_code,
+        country_code=default_country_alpha3,
         sub_system=default_sub_system,
     )
+    education_levels = EducationLevelRegistry.objects.filter(is_active=True).order_by("sort_order", "global_name")
+    education_system_types = EducationSystemTypeRegistry.objects.filter(is_active=True).order_by("sort_order", "name")
     # S2: One-click education templates (British/WAEC/Vocational) — same as API config/education-templates
     education_templates_standard = [
         {"code": "BRITISH_IGCSE", "name": "British / IGCSE", "description": "Michaelmas, Lent, Trinity; A*–G or 9–1."},
@@ -713,11 +1432,20 @@ def create_school_wizard(request):
             if loc.region_id in seen:
                 continue
             seen.add(loc.region_id)
-            countries.append({"code": loc.region_id, "name": loc.region.name, "timezone": loc.region.timezone})
+            countries.append(
+                {
+                    "code": _canonical_country_alpha2(loc.region_id) or loc.region_id,
+                    "code_alpha2": _canonical_country_alpha2(loc.region_id) or "",
+                    "code_alpha3": loc.region_id,
+                    "name": loc.region.name,
+                    "timezone": loc.region.timezone,
+                }
+            )
         cities = [
             {
                 "id": str(loc.pk),
-                "country_code": loc.region_id,
+                "country_code": _canonical_country_alpha2(loc.region_id) or loc.region_id,
+                "country_code_alpha3": loc.region_id,
                 "city": loc.city,
                 "label": loc.display_label,
                 "timezone": loc.timezone or loc.region.timezone or "UTC",
@@ -725,7 +1453,7 @@ def create_school_wizard(request):
                 "longitude": float(loc.longitude),
             }
             for loc in locations
-            if not default_country_code or loc.region_id == default_country_code
+            if not default_country_alpha3 or loc.region_id == default_country_alpha3
         ]
     return render(
         request,
@@ -737,6 +1465,8 @@ def create_school_wizard(request):
             "default_country_code": default_country_code or defaults.get("header_weather_country_code", "CMR"),
             "default_sub_system": default_sub_system,
             "education_profiles": education_profiles,
+            "education_levels": education_levels,
+            "education_system_types": education_system_types,
             "education_templates_standard": education_templates_standard,
             "school_admin_edit_template": _safe_school_admin_change_url("00000000-0000-0000-0000-000000000000"),
             "geo_city_search_min_chars": 1,
@@ -764,20 +1494,18 @@ def api_geo_timezones(request):
 
 @require_http_methods(["GET"])
 def api_provinces(request):
-    """Phase B: List provinces/states for a country (for wizard and systems filter)."""
-    country_code = GlobalGeoCatalog.normalize_country_code(request.GET.get("country_code") or "")
-    if not country_code:
-        return JsonResponse({"country_code": "", "provinces": []})
-    from apps.siteconfig.models import RegionConfig, Province
-    region = RegionConfig.objects.filter(code=country_code).first()
-    if not region:
-        return JsonResponse({"country_code": country_code, "provinces": []})
-    provinces = list(
-        Province.objects.filter(region=region)
-        .order_by("name")
-        .values("id", "code", "name")
+    """List canonical subdivisions for a country; keeps `provinces` key for compatibility."""
+    ensure_registry_baseline()
+    country_code = (request.GET.get("country_code") or "").strip()
+    subdivisions = list_subdivision_choices(country_code)
+    alpha2 = _canonical_country_alpha2(country_code)
+    return JsonResponse(
+        {
+            "country_code": alpha2,
+            "provinces": subdivisions,
+            "subdivisions": subdivisions,
+        }
     )
-    return JsonResponse({"country_code": country_code, "provinces": provinces})
 
 
 @require_http_methods(["GET"])
@@ -788,6 +1516,14 @@ def api_education_profiles(request):
     if sub_system not in valid_subsystems:
         sub_system = School.SubSystem.EN
     province_id = request.GET.get("province_id")
+    subdivision_id = request.GET.get("subdivision_id")
+    if subdivision_id not in (None, ""):
+        try:
+            subdivision = SubdivisionRegistry.objects.filter(pk=int(subdivision_id)).first()
+        except (TypeError, ValueError):
+            subdivision = None
+        if subdivision:
+            province_id = (subdivision.metadata or {}).get("legacy_province_id")
     if province_id is not None and province_id != "":
         try:
             province_id = int(province_id)
@@ -839,7 +1575,7 @@ def api_plans_configurator(request):
     from apps.siteconfig.models import Plan, PlanAddon, CountryMultiplier
     from decimal import Decimal
 
-    country_code = (request.GET.get("country_code") or "").strip().upper()[:3]
+    country_code = GlobalGeoCatalog.normalize_country_code((request.GET.get("country_code") or "").strip())
     plans = []
     for p in Plan.objects.filter(is_active=True).order_by("name"):
         plans.append({
@@ -927,6 +1663,7 @@ def api_create_school(request):
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
+    ensure_registry_baseline()
     name = (data.get("name") or "").strip()
     slug = (data.get("slug") or "").strip().lower().replace(" ", "-")
     if not slug and name:
@@ -934,9 +1671,9 @@ def api_create_school(request):
     subdomain = (data.get("subdomain") or slug or "").strip().lower()
     contact_email = (data.get("contact_email") or "").strip()
     region_code = GlobalGeoCatalog.normalize_country_code((data.get("region_code") or "").strip())
-    country_code = GlobalGeoCatalog.normalize_country_code(
-        (data.get("country_code") or region_code or "").strip()
-    )
+    raw_country_code = (data.get("country_code") or region_code or "").strip()
+    country_code = GlobalGeoCatalog.normalize_country_code(raw_country_code)
+    canonical_country_code = _canonical_country_alpha2(raw_country_code or country_code)
     city_id = (data.get("city_id") or "").strip()
     sub_system = (data.get("sub_system") or School.SubSystem.EN).strip().upper()
     valid_subsystems = {School.SubSystem.EN, School.SubSystem.FR, School.SubSystem.INT}
@@ -947,6 +1684,15 @@ def api_create_school(request):
     if not isinstance(education_system_ids, list):
         education_system_ids = []
     education_system_ids = [str(x).strip() for x in education_system_ids if x]
+    education_level_codes = data.get("education_level_codes")
+    if not isinstance(education_level_codes, list):
+        education_level_codes = []
+    education_level_codes = [str(x).strip().upper() for x in education_level_codes if x]
+    education_system_type_codes = data.get("education_system_type_codes")
+    if not isinstance(education_system_type_codes, list):
+        education_system_type_codes = []
+    education_system_type_codes = [str(x).strip().upper() for x in education_system_type_codes if x]
+    subdivision_id = data.get("subdivision_id")
     province_id = data.get("province_id")  # Phase B: optional province for geo filtering
     if province_id is not None and province_id != "":
         try:
@@ -1027,10 +1773,12 @@ def api_create_school(request):
         selected_location = None
     if selected_city:
         country_code = selected_city["country_code"]
+        canonical_country_code = _canonical_country_alpha2(selected_city.get("country_code_alpha2") or country_code)
         default_region = _ensure_region_for_country(country_code, selected_city.get("timezone") or "UTC")
     elif selected_location:
         default_region = selected_location.region
         country_code = selected_location.region_id
+        canonical_country_code = _canonical_country_alpha2(country_code)
     if default_region is None and country_code:
         default_region = RegionConfig.objects.filter(code=country_code).first() or _ensure_region_for_country(country_code)
     if default_region is None and region_code:
@@ -1038,6 +1786,9 @@ def api_create_school(request):
     if default_region is None and explicit_profile and explicit_profile.region_id:
         default_region = explicit_profile.region
         country_code = explicit_profile.region_id
+        canonical_country_code = _canonical_country_alpha2(country_code)
+    if default_region is not None and not canonical_country_code:
+        canonical_country_code = _canonical_country_alpha2(default_region.code)
     resolved_timezone = (
         (selected_city.get("timezone") if selected_city else "")
         or (selected_location.timezone if selected_location else "")
@@ -1045,8 +1796,26 @@ def api_create_school(request):
         or (default_region.timezone if default_region else "")
         or "UTC"
     )
+    resolved_subdivision = _resolve_subdivision(
+        canonical_country_code or country_code,
+        subdivision_id=subdivision_id,
+        province_id=province_id,
+    )
+    selected_levels = _resolve_registry_codes(EducationLevelRegistry, education_level_codes)
+    selected_system_types = _resolve_registry_codes(EducationSystemTypeRegistry, education_system_type_codes)
+    if education_level_codes and len({row.code for row in selected_levels}) != len(set(education_level_codes)):
+        errors.append("education_level_codes contains unknown values")
+    if education_system_type_codes and len({row.code for row in selected_system_types}) != len(set(education_system_type_codes)):
+        errors.append("education_system_type_codes contains unknown values")
+    if subdivision_id not in (None, "") and resolved_subdivision is None:
+        errors.append("subdivision_id is invalid")
+    if errors:
+        return JsonResponse({"errors": errors}, status=400)
     location_payload = {
         "country_code": country_code or (default_region.code if default_region else ""),
+        "country_code_alpha2": canonical_country_code or "",
+        "subdivision_code": resolved_subdivision.code if resolved_subdivision else "",
+        "subdivision_name": resolved_subdivision.name if resolved_subdivision else "",
         "city": "",
         "label": "",
         "timezone": resolved_timezone,
@@ -1077,7 +1846,10 @@ def api_create_school(request):
             "logo_uploaded": False,
             "education_profile_mode": "explicit" if explicit_profile else "auto",
             "education_system_ids": education_system_ids,
+            "education_level_codes": [row.code for row in selected_levels],
+            "education_system_type_codes": [row.code for row in selected_system_types],
             "province_id": province_id,
+            "subdivision_id": resolved_subdivision.id if resolved_subdivision else None,
         },
         "education_profile_code": (explicit_profile.code if explicit_profile else education_profile_code or ""),
         "location": location_payload,
@@ -1094,6 +1866,8 @@ def api_create_school(request):
         subdomain=subdomain or slug,
         sub_system=sub_system,
         default_region=default_region,
+        country_code=canonical_country_code or "",
+        subdivision=resolved_subdivision,
         timezone=resolved_timezone,
         primary_color=primary_color,
         accent_color=accent_color,
@@ -1112,6 +1886,16 @@ def api_create_school(request):
         addons = [str(x).strip() for x in addons if x]
         create_kw["addons"] = addons
     school = School.objects.create(**create_kw)
+    if selected_levels:
+        school.education_levels.set(selected_levels)
+    if selected_system_types:
+        school.education_system_types.set(selected_system_types)
+    try:
+        from apps.billing.services import ensure_subscription_for_school
+
+        ensure_subscription_for_school(school)
+    except Exception:
+        pass
     apply_tenant_settings_overrides(
         school=school,
         overrides=school_settings_overrides,

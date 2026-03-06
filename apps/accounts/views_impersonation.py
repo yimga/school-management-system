@@ -62,8 +62,7 @@ def end_impersonation(request):
     """
     Clear session impersonation, log ImpersonationLog.END, redirect to super dashboard.
     """
-    from django.urls import reverse
-    from apps.schools.tenant_url import get_base_domain
+    from apps.schools.tenant_url import build_manager_absolute_url
     from apps.siteconfig.models import ImpersonationLog
     from apps.schools.models import School
 
@@ -82,13 +81,7 @@ def end_impersonation(request):
             )
         except School.DoesNotExist:
             pass
-    base = get_base_domain()
-    scheme = "https" if request.is_secure() else "http"
-    host = request.get_host() or base
-    super_url = reverse("super:dashboard")
-    if base and host and host.split(":")[0].lower() != base:
-        return redirect(f"{scheme}://{base}{super_url}")
-    return redirect(super_url)
+    return redirect(build_manager_absolute_url(request, "/super/"))
 
 
 def _client_ip(request):

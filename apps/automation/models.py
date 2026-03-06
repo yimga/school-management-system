@@ -23,6 +23,14 @@ class AutomationExecutionLog(models.Model):
         DRY_RUN = "DRY_RUN", "Dry Run"
     
     task_name = models.CharField(max_length=200, db_index=True)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="automation_execution_logs",
+    )
+    schema_name = models.CharField(max_length=63, blank=True, db_index=True)
     execution_type = models.CharField(max_length=20, choices=ExecutionType.choices, default=ExecutionType.SCHEDULED)
     started_at = models.DateTimeField(auto_now_add=True, db_index=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -71,6 +79,14 @@ class AutomationApprovalQueue(models.Model):
         EXECUTED = "EXECUTED", "Executed"
     
     automation_type = models.CharField(max_length=100, db_index=True)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="automation_approval_queue",
+    )
+    schema_name = models.CharField(max_length=63, blank=True, db_index=True)
     execution_summary = models.JSONField(default=dict, help_text="Summary of what will be executed")
     requested_by = models.ForeignKey(
         User,

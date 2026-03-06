@@ -44,6 +44,7 @@ from .models import (
     BillingWaiverAuditLog,
     WaiverRequest,
     DesignTemplate,
+    BrandProfile,
     BrandSettings,
     GlobalBrandRegistry,
     CustomFeatureTicket,
@@ -2212,6 +2213,15 @@ class DesignTemplateAdmin(ModelAdmin):
 
 
 admin_site.register(DesignTemplate, DesignTemplateAdmin)
+
+
+class BrandProfileAdmin(ModelAdmin):
+    list_display = ("school", "primary_color", "accent_color", "tagline", "updated_at")
+    raw_id_fields = ("school",)
+    readonly_fields = ("created_at", "updated_at")
+
+
+admin_site.register(BrandProfile, BrandProfileAdmin)
 
 
 class BrandSettingsAdmin(ModelAdmin):
