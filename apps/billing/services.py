@@ -2,18 +2,25 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+import json
 
 from django.db import models, transaction
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
 from apps.billing.models import (
     BillingAccount,
+    PlatformBillingProcessorConfig,
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
     RevenueSharePayout,
     TenantSubscription,
     UsageMeter,
 )
+from apps.billing.processors import get_platform_billing_processor
+
+_BILLING_INCIDENT_SOURCE = "billing.platform"
+_PAYOUT_INCIDENT_SOURCE = "billing.revenue_share"
 
 
 _ACCOUNT_STATUS_MAP = {
@@ -128,6 +135,10 @@ def _coerce_date(value, default: date | None = None) -> date | None:
     if isinstance(value, date):
         return value
     return default
+
+
+def _json_safe(value):
+    return json.loads(json.dumps(value, cls=DjangoJSONEncoder))
 
 
 def ensure_billing_account_for_school(school):
@@ -270,6 +281,52 @@ def reconcile_subscription_entitlements(subscription: TenantSubscription, *, as_
     if school_changed:
         school.save(update_fields=school_changed + ["updated_at"])
     return account, school
+
+
+def sync_billing_incident_state(subscription: TenantSubscription):
+    from apps.observability.incident_services import resolve_platform_incident, upsert_platform_incident
+    from apps.observability.models import PlatformIncident
+
+    school = subscription.school
+    incident_key = f"billing-delinquency:{school.pk}"
+    if subscription.status in {TenantSubscription.Status.PAST_DUE, TenantSubscription.Status.SUSPENDED}:
+        severity = (
+            PlatformIncident.Severity.CRITICAL
+            if subscription.status == TenantSubscription.Status.SUSPENDED
+            else PlatformIncident.Severity.HIGH
+        )
+        summary = (
+            "Platform subscription is suspended and tenant access is at risk."
+            if subscription.status == TenantSubscription.Status.SUSPENDED
+            else "Platform subscription is past due and requires operator follow-up."
+        )
+        upsert_platform_incident(
+            incident_key=incident_key,
+            title=f"Billing delinquency: {school.name}",
+            incident_type=PlatformIncident.IncidentType.BILLING,
+            severity=severity,
+            summary=summary,
+            source_system=_BILLING_INCIDENT_SOURCE,
+            affected_school=school,
+            affected_schema_name=getattr(school, "schema_name", "") or getattr(school, "subdomain", ""),
+            details={
+                "subscription_status": subscription.status,
+                "account_status": subscription.billing_account.status,
+                "trial_end_date": subscription.trial_end_date.isoformat() if subscription.trial_end_date else None,
+                "current_period_end": (
+                    subscription.current_period_end.isoformat() if subscription.current_period_end else None
+                ),
+                "external_subscription_ref": subscription.external_subscription_ref,
+            },
+        )
+        return
+
+    resolve_platform_incident(
+        incident_key=incident_key,
+        source_system=_BILLING_INCIDENT_SOURCE,
+        incident_type="billing",
+        affected_school=school,
+    )
 
 
 def sync_platform_usage_snapshot(school):
@@ -416,10 +473,11 @@ def apply_processor_snapshot(
             status=BillingProcessorSyncEvent.Status.APPLIED,
             external_customer_ref=external_customer_ref or account.external_customer_ref,
             external_subscription_ref=external_subscription_ref or subscription.external_subscription_ref,
-            payload=payload or {},
+            payload=_json_safe(payload or {}),
             message=message,
             happened_at=happened_at,
         )
+        sync_billing_incident_state(subscription)
         return event, account, subscription
 
 
@@ -532,6 +590,7 @@ def run_platform_billing_lifecycle(
         if subscription_changed:
             subscription.save(update_fields=list(dict.fromkeys(subscription_changed + ["updated_at"])))
         reconcile_subscription_entitlements(subscription, as_of=as_of)
+        sync_billing_incident_state(subscription)
 
     return summary
 
@@ -572,3 +631,224 @@ def schedule_revenue_share_payout(
         scheduled_for=scheduled_for or timezone.now(),
         metadata=metadata or {},
     )
+
+
+def _normalize_payout_execution_status(raw_status: str | None) -> str:
+    normalized = str(raw_status or "").strip().lower()
+    if normalized in {"paid", "succeeded", "completed"}:
+        return RevenueSharePayout.Status.PAID
+    if normalized in {"submitted", "queued", "pending", "processing", "in_transit"}:
+        return RevenueSharePayout.Status.IN_TRANSIT
+    if normalized in {"failed", "error", "rejected"}:
+        return RevenueSharePayout.Status.FAILED
+    return RevenueSharePayout.Status.IN_TRANSIT
+
+
+def _record_payout_sync_event(
+    *,
+    payout: RevenueSharePayout,
+    status: str,
+    event_type: str,
+    message: str = "",
+    payload: dict | None = None,
+):
+    account = None
+    subscription = None
+    if payout.source_school_id:
+        account = BillingAccount.objects.filter(school=payout.source_school).first()
+        if account is not None:
+            subscription = (
+                TenantSubscription.objects.filter(billing_account=account, school=payout.source_school)
+                .order_by("-updated_at", "-created_at")
+                .first()
+            )
+    return BillingProcessorSyncEvent.objects.create(
+        school=payout.source_school,
+        billing_account=account,
+        subscription=subscription,
+        processor_code=str(payout.processor_code or "").strip() or "manual",
+        event_type=event_type,
+        status=status,
+        payload=_json_safe(payload or {}),
+        message=message[:255],
+        happened_at=timezone.now(),
+    )
+
+
+def _sync_revenue_share_payout_incident_state(payout: RevenueSharePayout, *, error_message: str = ""):
+    from apps.observability.incident_services import resolve_platform_incident, upsert_platform_incident
+    from apps.observability.models import PlatformIncident
+
+    incident_key = f"revenue-share-payout:{payout.pk}"
+    if payout.status == RevenueSharePayout.Status.FAILED:
+        upsert_platform_incident(
+            incident_key=incident_key,
+            title=f"Revenue-share payout failed: {payout.payee_name}",
+            incident_type=PlatformIncident.IncidentType.BILLING,
+            severity=PlatformIncident.Severity.HIGH,
+            summary=error_message or "A scheduled revenue-share payout could not be executed.",
+            source_system=_PAYOUT_INCIDENT_SOURCE,
+            affected_school=payout.source_school,
+            affected_schema_name=(
+                getattr(payout.source_school, "schema_name", "")
+                or getattr(payout.source_school, "subdomain", "")
+            ),
+            details={
+                "payout_id": payout.pk,
+                "payee_name": payout.payee_name,
+                "payee_ref": payout.payee_ref,
+                "processor_code": payout.processor_code,
+                "external_payout_ref": payout.external_payout_ref,
+                "payout_scope": payout.payout_scope,
+                "status": payout.status,
+            },
+        )
+        return
+
+    resolve_platform_incident(
+        incident_key=incident_key,
+        source_system=_PAYOUT_INCIDENT_SOURCE,
+        incident_type="billing",
+        affected_school=payout.source_school,
+    )
+
+
+def execute_revenue_share_payout(
+    payout,
+    *,
+    executed_at: datetime | None = None,
+    force: bool = False,
+    http_post_json=None,
+    http_post_form=None,
+):
+    if not isinstance(payout, RevenueSharePayout):
+        payout = RevenueSharePayout.objects.get(pk=payout)
+    executed_at = executed_at or timezone.now()
+
+    if payout.status in {RevenueSharePayout.Status.PAID, RevenueSharePayout.Status.VOIDED}:
+        return payout, {"status": "skipped", "message": "Payout is already finalized.", "skipped": True}
+    if not force and payout.scheduled_for and payout.scheduled_for > executed_at:
+        return payout, {"status": "skipped", "message": "Payout is not due yet.", "skipped": True}
+
+    error_message = ""
+    try:
+        processor_code = str(payout.processor_code or "").strip().lower()
+        if not processor_code:
+            raise ValueError("Payout processor is not configured.")
+        config = PlatformBillingProcessorConfig.objects.filter(code=processor_code, is_active=True).first()
+        if config is None:
+            raise ValueError(f"Platform billing processor '{processor_code}' is not configured.")
+
+        processor = get_platform_billing_processor(config)
+        result = processor.execute_payout(
+            payout,
+            http_post_json=http_post_json,
+            http_post_form=http_post_form,
+        )
+        payout_status = _normalize_payout_execution_status(result.get("status"))
+        metadata = dict(payout.metadata or {})
+        metadata["last_execution"] = {
+            "executed_at": executed_at.isoformat(),
+            "processor_code": processor_code,
+            "status": str(result.get("status") or ""),
+            "message": str(result.get("message") or ""),
+        }
+        metadata["processor_response"] = result.get("payload") or {}
+        metadata.pop("last_error", None)
+        payout.metadata = metadata
+        payout.status = payout_status
+        payout.scheduled_for = None
+        if result.get("external_payout_ref"):
+            payout.external_payout_ref = str(result["external_payout_ref"])
+        if payout_status == RevenueSharePayout.Status.PAID:
+            payout.paid_at = executed_at
+        payout.save(
+            update_fields=[
+                "status",
+                "scheduled_for",
+                "external_payout_ref",
+                "paid_at",
+                "metadata",
+                "updated_at",
+            ]
+        )
+        _record_payout_sync_event(
+            payout=payout,
+            status=BillingProcessorSyncEvent.Status.APPLIED,
+            event_type="payout.executed",
+            message=str(result.get("message") or ""),
+            payload={
+                "payout_id": payout.pk,
+                "processor_status": result.get("status"),
+                "external_payout_ref": payout.external_payout_ref,
+                "response": result.get("payload") or {},
+            },
+        )
+        _sync_revenue_share_payout_incident_state(payout)
+        return payout, result
+    except Exception as exc:
+        error_message = str(exc).strip() or "Payout execution failed."
+        metadata = dict(payout.metadata or {})
+        metadata["last_error"] = {
+            "at": executed_at.isoformat(),
+            "processor_code": str(payout.processor_code or ""),
+            "message": error_message,
+        }
+        payout.metadata = metadata
+        payout.status = RevenueSharePayout.Status.FAILED
+        payout.scheduled_for = None
+        payout.save(update_fields=["status", "scheduled_for", "metadata", "updated_at"])
+        _record_payout_sync_event(
+            payout=payout,
+            status=BillingProcessorSyncEvent.Status.FAILED,
+            event_type="payout.failed",
+            message=error_message,
+            payload={"payout_id": payout.pk, "error": error_message},
+        )
+        _sync_revenue_share_payout_incident_state(payout, error_message=error_message)
+        return payout, {"status": "failed", "message": error_message}
+
+
+def run_revenue_share_payout_execution(
+    *,
+    as_of: datetime | None = None,
+    limit: int = 50,
+    include_failed: bool = False,
+    http_post_json=None,
+    http_post_form=None,
+):
+    as_of = as_of or timezone.now()
+    statuses = [RevenueSharePayout.Status.SCHEDULED]
+    if include_failed:
+        statuses.append(RevenueSharePayout.Status.FAILED)
+    payouts = list(
+        RevenueSharePayout.objects.filter(status__in=statuses)
+        .filter(models.Q(scheduled_for__isnull=True) | models.Q(scheduled_for__lte=as_of))
+        .select_related("source_school")
+        .order_by("scheduled_for", "created_at")[: max(1, int(limit))]
+    )
+    summary = {
+        "selected": len(payouts),
+        "paid": 0,
+        "in_transit": 0,
+        "failed": 0,
+        "skipped": 0,
+    }
+    for payout in payouts:
+        payout, result = execute_revenue_share_payout(
+            payout,
+            executed_at=as_of,
+            force=include_failed,
+            http_post_json=http_post_json,
+            http_post_form=http_post_form,
+        )
+        if result.get("skipped"):
+            summary["skipped"] += 1
+            continue
+        if payout.status == RevenueSharePayout.Status.PAID:
+            summary["paid"] += 1
+        elif payout.status == RevenueSharePayout.Status.IN_TRANSIT:
+            summary["in_transit"] += 1
+        elif payout.status == RevenueSharePayout.Status.FAILED:
+            summary["failed"] += 1
+    return summary

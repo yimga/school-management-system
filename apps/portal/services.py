@@ -204,6 +204,8 @@ def threads_for_user(user: User, limit: int = 12) -> List[dict]:
 
 def parent_dashboard_widget_data(
     students: Iterable[StudentProfile],
+    *,
+    school=None,
 ) -> dict[str, dict]:
     """
     Generate dashboard widget data with query optimization and caching.
@@ -217,6 +219,7 @@ def parent_dashboard_widget_data(
     Cache key includes student IDs to differentiate parent/child combinations.
     """
     students = list(students)
+    school = school or (students[0].school if students else None)
     if not students:
         return _empty_widget_data()
     
@@ -241,7 +244,7 @@ def parent_dashboard_widget_data(
         "finance": _finance_summary(students),
         "fees_breakdown": _fees_breakdown(students),
         "assignment_completion": _assignment_completion(students, year, term),
-        "events": _merged_upcoming_events(year),
+        "events": _merged_upcoming_events(year, school=school),
         "tasks": _task_tracker(students, year, term),
         "access": _portal_access_links(),
         "timetable": _timetable_overview(students, year, term),
@@ -754,10 +757,10 @@ def _finance_summary(students):
     }
 
 
-def _merged_upcoming_events(year):
+def _merged_upcoming_events(year, *, school=None):
     """Phase 8: Merge grading deadlines and public school calendar events, sorted by date."""
     deadlines = _upcoming_deadlines(year)
-    school_events = _upcoming_school_events(limit=15)
+    school_events = _upcoming_school_events(limit=15, school=school)
     merged = deadlines + school_events
     merged.sort(key=lambda x: x["when"])
     return merged[:25]
@@ -787,11 +790,19 @@ def _upcoming_deadlines(year):
     ]
 
 
-def _upcoming_school_events(limit=15):
+def _upcoming_school_events(limit=15, *, school=None):
     """Phase 8: Upcoming public school calendar events for School Feed / Unified Calendar."""
     from django.utils import timezone
-    from apps.portal.models import Event
     now = timezone.now()
+    if school is not None:
+        try:
+            from apps.school_events.services import upcoming_public_events_for_school
+
+            return upcoming_public_events_for_school(school, limit=limit)
+        except Exception:
+            pass
+    from apps.portal.models import Event
+
     qs = Event.objects.filter(
         is_public=True,
         start_at__gte=now,

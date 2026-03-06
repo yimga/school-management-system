@@ -12,6 +12,8 @@ from django.apps import apps
 from django.db import transaction
 from django.utils import timezone
 
+from apps.metadata.services import get_dynamic_field_map, set_dynamic_field_value
+
 logger = logging.getLogger(__name__)
 
 
@@ -149,11 +151,11 @@ def gdpr_scrub_student(
                 logger.debug("Could not delete student profile photo for student_id=%s", student_id)
             student.profile_photo = None
 
-        custom = dict(getattr(student, "custom_attributes", {}) or {})
-        custom["gdpr"] = {
+        gdpr_marker = {
             "scrubbed_at": scrubbed_at.isoformat(),
             "action": "art17_erasure_anonymization",
         }
+        set_dynamic_field_value(student, "gdpr", gdpr_marker, sync_legacy=True)
 
         student.first_name = "Deleted"
         student.last_name = f"Student-{student.pk}"
@@ -163,7 +165,6 @@ def gdpr_scrub_student(
         student.parent_phone = ""
         student.place_of_birth = ""
         student.referral_code = f"GDPR-{token[:6]}"
-        student.custom_attributes = custom
         student.is_active = False
         if hasattr(student, "deleted_at"):
             student.deleted_at = scrubbed_at
@@ -173,6 +174,14 @@ def gdpr_scrub_student(
             except Exception:
                 pass
         student.save()
+        set_dynamic_field_value(
+            student,
+            "gdpr",
+            gdpr_marker,
+            sync_legacy=False,
+            data_type="json",
+            label="GDPR status",
+        )
 
         if StudentGuardian:
             StudentGuardian.objects.filter(student_id=student_id).update(
@@ -241,7 +250,7 @@ def _student_core_payload(student) -> dict[str, Any]:
         "specialty_id": student.specialty_id,
         "academic_year_id": student.academic_year_id,
         "is_active": bool(student.is_active),
-        "custom_attributes": dict(getattr(student, "custom_attributes", {}) or {}),
+        "custom_attributes": get_dynamic_field_map(student),
     }
 
 

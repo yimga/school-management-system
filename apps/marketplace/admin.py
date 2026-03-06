@@ -1,6 +1,9 @@
 from django.contrib import admin
 from .models import (
+    PublisherOrganization,
     MarketplaceApp,
+    MarketplaceListing,
+    MarketplaceReview,
     AppScope,
     AppInstallation,
     ScopeGrant,
@@ -10,11 +13,42 @@ from .models import (
 )
 
 
+@admin.register(PublisherOrganization)
+class PublisherOrganizationAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "verification_status", "country_code", "payout_processor_code")
+    list_filter = ("verification_status", "country_code", "payout_processor_code")
+    search_fields = ("name", "legal_name", "slug", "payout_ref")
+
+
 @admin.register(MarketplaceApp)
 class MarketplaceAppAdmin(admin.ModelAdmin):
-    list_display = ("slug", "name", "kind", "version", "is_active", "updated_at")
+    list_display = ("slug", "name", "publisher", "kind", "version", "is_active", "updated_at")
     list_filter = ("kind", "is_active")
-    search_fields = ("slug", "name")
+    search_fields = ("slug", "name", "publisher__name")
+
+
+@admin.register(MarketplaceListing)
+class MarketplaceListingAdmin(admin.ModelAdmin):
+    list_display = (
+        "app",
+        "publisher",
+        "status",
+        "security_review_status",
+        "certification_status",
+        "kill_switch_active",
+        "revenue_share_percent",
+    )
+    list_filter = ("status", "security_review_status", "certification_status", "kill_switch_active")
+    search_fields = ("app__slug", "app__name", "publisher__name")
+    raw_id_fields = ("app", "publisher", "approved_by")
+
+
+@admin.register(MarketplaceReview)
+class MarketplaceReviewAdmin(admin.ModelAdmin):
+    list_display = ("listing", "review_type", "status", "app_version", "requested_at", "reviewed_at")
+    list_filter = ("review_type", "status")
+    search_fields = ("listing__app__slug", "listing__app__name", "listing__publisher__name")
+    raw_id_fields = ("listing", "requested_by", "reviewed_by")
 
 
 @admin.register(AppScope)

@@ -12,6 +12,7 @@ from django.db import transaction
 from django.db.models import Count, Sum
 from django.utils import timezone
 
+from apps.metadata.services import get_dynamic_field_map, get_dynamic_field_value
 from apps.people.models import StudentProfile
 from apps.siteconfig.nuance_engine import _safe_eval, HOOK_REGISTRY, _scrub_context, DEFAULT_ALLOWED_KEYS
 
@@ -39,12 +40,12 @@ def _student_context(student: StudentProfile) -> dict[str, Any]:
             sibling_count = max(0, len(set(same_guardian)) - 1)
     except Exception:
         pass
-    custom = getattr(student, "custom_attributes", None) or {}
-    gpa = custom.get("gpa")
+    custom = get_dynamic_field_map(student)
+    gpa = get_dynamic_field_value(student, "gpa", default=getattr(student, "gpa", None))
     if gpa is None and hasattr(student, "gpa"):
         gpa = getattr(student, "gpa", None)
-    attendance_rate = custom.get("attendance_rate")
-    fee_status = custom.get("fee_status", "unknown")
+    attendance_rate = get_dynamic_field_value(student, "attendance_rate", default=custom.get("attendance_rate"))
+    fee_status = get_dynamic_field_value(student, "fee_status", default=custom.get("fee_status", "unknown"))
     return {
         "gpa": float(gpa) if gpa is not None else None,
         "sibling_count": sibling_count,

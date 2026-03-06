@@ -459,6 +459,53 @@ def list_profile_options(
     return []
 
 
+def _profile_catalog_description(profile: EducationSystemProfile) -> str:
+    labels = [str(label).strip() for label in (profile.term_labels or []) if str(label).strip()]
+    term_preview = ", ".join(labels[:3]) if labels else "Default terms"
+    grading_scale = str(getattr(profile, "grading_scale", "") or "default")
+    return f"{term_preview}; grading {grading_scale}."
+
+
+def list_template_catalog(
+    *,
+    country_code: str | None = None,
+    sub_system: str | None = None,
+    limit: int | None = None,
+) -> list[dict[str, Any]]:
+    normalized_country = GlobalGeoCatalog.normalize_country_code(country_code)
+    normalized_sub = normalize_sub_system(sub_system)
+
+    queryset = _approved_profiles().select_related("region")
+    if normalized_country:
+        queryset = queryset.filter(region__code=normalized_country)
+    if normalized_sub != EducationSystemProfile.SubSystem.ANY:
+        queryset = queryset.filter(
+            sub_system__in=[normalized_sub, EducationSystemProfile.SubSystem.ANY]
+        )
+
+    catalog: list[dict[str, Any]] = []
+    seen_codes: set[str] = set()
+    for row in queryset.order_by("-is_default", "region__name", "name"):
+        code = str(row.code)
+        if code in seen_codes:
+            continue
+        seen_codes.add(code)
+        catalog.append(
+            {
+                "code": code,
+                "name": str(row.name),
+                "description": _profile_catalog_description(row),
+                "region_code": str(row.region_id or ""),
+                "sub_system": str(row.sub_system),
+                "is_default": bool(row.is_default),
+                "is_auto_generated": bool((row.config or {}).get("generated")),
+            }
+        )
+        if limit is not None and len(catalog) >= int(limit):
+            break
+    return catalog
+
+
 def get_system_blueprint(
     region_id: str | None,
     flavor: str | None = None,

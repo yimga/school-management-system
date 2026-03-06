@@ -130,6 +130,7 @@ urlpatterns = [
     path("academics/", include(("apps.academics.urls", "academics"), namespace="academics")),
     path("portal/", include(("apps.portal.urls", "portal"), namespace="portal")),
     path("portal", lambda request: redirect("portal:parent_dashboard")),
+    path("events/", include(("apps.school_events.urls", "school_events"), namespace="school_events")),
     path("kb/", include(("apps.portal.urls_kb", "kb"), namespace="kb")),
     path("reports/", include(("apps.reports.urls", "reports"), namespace="reports")),
     path("analytics/", include(("apps.analytics.urls", "analytics"), namespace="analytics")),

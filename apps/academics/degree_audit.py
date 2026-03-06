@@ -5,6 +5,8 @@ Phase 3-4 (global platform). Uses Subject.credits and evals/grades; TransferCred
 from __future__ import annotations
 
 from collections import defaultdict
+
+from apps.metadata.services import get_dynamic_field_value
 from decimal import Decimal, InvalidOperation
 from typing import Any, Iterable
 
@@ -258,7 +260,7 @@ def run_degree_audit(enrollment: StudentDegreeEnrollment) -> dict[str, Any]:
     gpa_ok = True
     if min_gpa is not None:
         try:
-            gpa = float(student.custom_attributes.get("gpa") or 0)
+            gpa = float(get_dynamic_field_value(student, "gpa", default=getattr(student, "gpa", None)) or 0)
             gpa_ok = gpa >= float(min_gpa)
         except (TypeError, ValueError):
             gpa_ok = False

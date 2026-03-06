@@ -172,3 +172,19 @@ def sync_legacy_webhook_subscriptions(*, dry_run: bool = False) -> dict:
         "legacy_groups": snapshot["legacy_groups"],
         "unsynced_legacy_groups": snapshot["unsynced_legacy_groups"],
     }
+
+
+def retire_legacy_webhook_subscriptions(*, dry_run: bool = False) -> dict:
+    from apps.siteconfig.models import WebhookSubscription as LegacyWebhookSubscription
+
+    sync_summary = sync_legacy_webhook_subscriptions(dry_run=dry_run)
+    active_qs = LegacyWebhookSubscription.objects.filter(is_active=True)
+    active_count = active_qs.count()
+    if active_count and not dry_run:
+        active_qs.update(is_active=False)
+    snapshot = legacy_webhook_sync_snapshot()
+    return {
+        **sync_summary,
+        "retired_active_subscriptions": int(active_count),
+        "remaining_active_legacy_groups": int(snapshot.get("legacy_active_groups", 0) if dry_run else 0),
+    }

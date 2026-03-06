@@ -4,10 +4,47 @@ Control-plane models (shared schema); install pipeline records install + registe
 """
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 # School is the tenant in both RLS and schema-per-tenant (via bridge).
 # Use string ref to avoid circular import; schools.School.id is UUID.
 AUTH_USER_MODEL = getattr(settings, "AUTH_USER_MODEL", "accounts.User")
+
+
+class PublisherOrganization(models.Model):
+    """Verified publisher/developer organization for the governed marketplace."""
+
+    class VerificationStatus(models.TextChoices):
+        UNVERIFIED = "unverified", "Unverified"
+        PENDING = "pending", "Pending review"
+        VERIFIED = "verified", "Verified"
+        SUSPENDED = "suspended", "Suspended"
+
+    slug = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=255)
+    legal_name = models.CharField(max_length=255, blank=True)
+    verification_status = models.CharField(
+        max_length=20,
+        choices=VerificationStatus.choices,
+        default=VerificationStatus.UNVERIFIED,
+        db_index=True,
+    )
+    country_code = models.CharField(max_length=2, blank=True, db_index=True)
+    payout_email = models.EmailField(blank=True)
+    payout_processor_code = models.CharField(max_length=32, blank=True)
+    payout_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Publisher organization"
+        verbose_name_plural = "Publisher organizations"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
 
 
 class MarketplaceApp(models.Model):
@@ -20,6 +57,13 @@ class MarketplaceApp(models.Model):
         FIRST_PARTY = "first_party", "First-party"
         THIRD_PARTY = "third_party", "Third-party"
 
+    publisher = models.ForeignKey(
+        PublisherOrganization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="apps",
+    )
     slug = models.SlugField(max_length=80, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -42,6 +86,158 @@ class MarketplaceApp(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.slug})"
+
+
+class MarketplaceListing(models.Model):
+    """Control-plane listing state for app review, certification, and revenue share."""
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        PENDING_REVIEW = "pending_review", "Pending review"
+        APPROVED = "approved", "Approved"
+        SUSPENDED = "suspended", "Suspended"
+        REJECTED = "rejected", "Rejected"
+
+    class ReviewStatus(models.TextChoices):
+        NOT_REQUIRED = "not_required", "Not required"
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        CHANGES_REQUIRED = "changes_required", "Changes required"
+        REJECTED = "rejected", "Rejected"
+
+    app = models.OneToOneField(
+        MarketplaceApp,
+        on_delete=models.CASCADE,
+        related_name="listing",
+    )
+    publisher = models.ForeignKey(
+        PublisherOrganization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="listings",
+    )
+    category = models.CharField(max_length=80, blank=True)
+    short_description = models.CharField(max_length=255, blank=True)
+    status = models.CharField(
+        max_length=24,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        db_index=True,
+    )
+    security_review_status = models.CharField(
+        max_length=24,
+        choices=ReviewStatus.choices,
+        default=ReviewStatus.NOT_REQUIRED,
+        db_index=True,
+    )
+    certification_status = models.CharField(
+        max_length=24,
+        choices=ReviewStatus.choices,
+        default=ReviewStatus.NOT_REQUIRED,
+        db_index=True,
+    )
+    revenue_share_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    kill_switch_active = models.BooleanField(default=False, db_index=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Marketplace listing"
+        verbose_name_plural = "Marketplace listings"
+        ordering = ["app__name"]
+
+    def __str__(self):
+        return f"{self.app.name} listing"
+
+    def save(self, *args, **kwargs):
+        if self.publisher_id is None and getattr(self.app, "publisher_id", None):
+            self.publisher_id = self.app.publisher_id
+        super().save(*args, **kwargs)
+
+    @property
+    def installable(self) -> bool:
+        if self.kill_switch_active:
+            return False
+        if self.status != self.Status.APPROVED:
+            return False
+        if self.app.kind == MarketplaceApp.AppKind.THIRD_PARTY:
+            return self.security_review_status == self.ReviewStatus.APPROVED
+        return True
+
+
+class MarketplaceReview(models.Model):
+    """Queue item for listing, security, certification, and version review."""
+
+    class ReviewType(models.TextChoices):
+        LISTING = "listing", "Listing review"
+        SECURITY = "security", "Security review"
+        CERTIFICATION = "certification", "Certification review"
+        VERSION = "version", "Version review"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        IN_REVIEW = "in_review", "In review"
+        APPROVED = "approved", "Approved"
+        CHANGES_REQUIRED = "changes_required", "Changes required"
+        REJECTED = "rejected", "Rejected"
+
+    listing = models.ForeignKey(
+        MarketplaceListing,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+    )
+    review_type = models.CharField(max_length=24, choices=ReviewType.choices, db_index=True)
+    status = models.CharField(max_length=24, choices=Status.choices, default=Status.PENDING, db_index=True)
+    requested_by = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    reviewed_by = models.ForeignKey(
+        AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    app_version = models.CharField(max_length=32, blank=True)
+    notes = models.TextField(blank=True)
+    findings_json = models.JSONField(default=dict, blank=True)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "marketplace"
+        verbose_name = "Marketplace review"
+        verbose_name_plural = "Marketplace reviews"
+        ordering = ["status", "-requested_at"]
+
+    def __str__(self):
+        return f"{self.listing.app.slug} {self.review_type} {self.status}"
+
+    def mark_reviewed(self, *, status: str, reviewed_by=None, notes: str = "", findings_json=None):
+        self.status = status
+        self.reviewed_by = reviewed_by
+        self.reviewed_at = timezone.now()
+        if notes:
+            self.notes = notes
+        if findings_json is not None:
+            self.findings_json = findings_json
+        self.save(update_fields=["status", "reviewed_by", "reviewed_at", "notes", "findings_json", "updated_at"])
 
 
 class AppScope(models.Model):
@@ -253,3 +449,6 @@ class AppVersionCompat(models.Model):
         app_label = "marketplace"
         verbose_name = "App Version Compatibility"
         verbose_name_plural = "App Version Compatibility"
+
+    def __str__(self):
+        return f"{self.app.slug} {self.app_version_min or '*'}->{self.app_version_max or '*'}"

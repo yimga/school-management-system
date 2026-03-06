@@ -24,6 +24,73 @@ SEVERITY_ORDER = {
 }
 
 
+def _platform_incident_severity(value: str):
+    from apps.observability.models import PlatformIncident
+
+    normalized = str(value or "MEDIUM").upper()
+    mapping = {
+        "LOW": PlatformIncident.Severity.LOW,
+        "MEDIUM": PlatformIncident.Severity.MEDIUM,
+        "HIGH": PlatformIncident.Severity.HIGH,
+        "CRITICAL": PlatformIncident.Severity.CRITICAL,
+    }
+    return mapping.get(normalized, PlatformIncident.Severity.MEDIUM)
+
+
+def _sync_platform_incident_from_audit_log(audit_log):
+    from apps.observability.incident_services import upsert_platform_incident
+    from apps.observability.models import PlatformIncident
+
+    upsert_platform_incident(
+        incident_key=f"audit:{audit_log.id}",
+        title=f"Compliance audit escalation: {audit_log.model_name}",
+        incident_type=PlatformIncident.IncidentType.SECURITY,
+        severity=_platform_incident_severity(audit_log.sensitivity),
+        summary=audit_log.summary,
+        source_system="compliance.audit",
+        details={
+            "audit_log_id": audit_log.id,
+            "action": audit_log.action,
+            "model_name": audit_log.model_name,
+            "object_id": audit_log.object_id,
+            "ip_address": audit_log.ip_address,
+            "reason": audit_log.reason,
+        },
+        created_by=audit_log.user,
+    )
+
+
+def _sync_platform_incident_from_threat(finding: dict):
+    from apps.observability.incident_services import upsert_platform_incident
+    from apps.observability.models import PlatformIncident
+
+    threat_type = str(finding.get("type") or "unknown").strip().lower()
+    incident_key = ":".join(
+        [
+            "threat",
+            threat_type or "unknown",
+            str(finding.get("user") or "system").strip().lower() or "system",
+            str(finding.get("ip_address") or "unknown").strip().lower() or "unknown",
+            str(finding.get("window") or "na").strip().lower() or "na",
+        ]
+    )
+    upsert_platform_incident(
+        incident_key=incident_key,
+        title=f"Threat detected: {finding.get('type', 'Unknown')}",
+        incident_type=PlatformIncident.IncidentType.SECURITY,
+        severity=_platform_incident_severity(finding.get("severity")),
+        summary=str(finding.get("description") or finding.get("type") or "Threat detection event"),
+        source_system="compliance.threat_detection",
+        details={
+            "threat_type": finding.get("type"),
+            "user": finding.get("user"),
+            "ip_address": finding.get("ip_address"),
+            "count": finding.get("count"),
+            "window": finding.get("window"),
+        },
+    )
+
+
 def _should_alert(audit_log):
     cfg = getattr(settings, "COMPLIANCE_ALERTS", {})
     if not cfg.get("enabled", True):
@@ -255,6 +322,7 @@ def notify_audit_event(audit_log):
     
     # Create incident ticket for HIGH/CRITICAL events
     if audit_log.sensitivity in ["HIGH", "CRITICAL"]:
+        _sync_platform_incident_from_audit_log(audit_log)
         _create_incident_ticket({
             "title": f"[{audit_log.sensitivity}] {audit_log.get_action_display()} on {audit_log.model_name}",
             "description": message["text"],
@@ -308,6 +376,7 @@ def send_threat_alert(finding: dict):
         "runbook": cfg.get("runbook_url"),
     }
     _send_webhook(structured)
+    _sync_platform_incident_from_threat(finding)
     
     # Create incident ticket for all threat alerts
     _create_incident_ticket({

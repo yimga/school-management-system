@@ -1,6 +1,10 @@
 from django.test import TestCase
 
-from apps.events.legacy_bridge import legacy_webhook_sync_snapshot, sync_legacy_webhook_subscriptions
+from apps.events.legacy_bridge import (
+    legacy_webhook_sync_snapshot,
+    retire_legacy_webhook_subscriptions,
+    sync_legacy_webhook_subscriptions,
+)
 from apps.events.models import WebhookSubscription as CanonicalWebhookSubscription
 from apps.schools.models import School
 from apps.siteconfig.models import RegionConfig, WebhookSubscription as LegacyWebhookSubscription
@@ -67,3 +71,19 @@ class LegacyWebhookBridgeTests(TestCase):
 
         after = legacy_webhook_sync_snapshot()
         self.assertEqual(after["unsynced_legacy_groups"], 0)
+
+    def test_retire_legacy_webhooks_deactivates_legacy_subscriptions(self):
+        LegacyWebhookSubscription.objects.create(
+            school=self.school,
+            event_type="student.promoted",
+            target_url="https://example.org/promoted",
+            secret="secret-c",
+            is_active=True,
+        )
+
+        result = retire_legacy_webhook_subscriptions(dry_run=False)
+
+        self.assertEqual(result["retired_active_subscriptions"], 1)
+        self.assertFalse(LegacyWebhookSubscription.objects.get().is_active)
+        snapshot = legacy_webhook_sync_snapshot()
+        self.assertEqual(snapshot["legacy_active_groups"], 0)

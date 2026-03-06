@@ -118,6 +118,7 @@ INSTALLED_APPS = [
     "apps.registries.apps.RegistriesConfig",
     "apps.billing",  # Entitlements: can(), limits(), usage() (blueprint A1)
     "apps.student360",  # Student 360: timeline feed, export pack (blueprint B1)
+    "apps.school_events.apps.SchoolEventsConfig",
     "apps.evals",
     "apps.portal",
     "apps.academics",
@@ -902,6 +903,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.communication",
         "apps.analytics",
         "apps.payroll",
+        "apps.school_events",
     ]
     INSTALLED_APPS = list(SHARED_APPS) + [a for a in TENANT_APPS if a not in SHARED_APPS]
     # Middleware: TenantMain first (strict tenant resolution), then URLConf switch, then school bridge.

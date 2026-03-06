@@ -200,6 +200,21 @@ class SystemHealthMonitorTestCase(TestCase):
         
         self.assertEqual(metric.status, 'healthy')
 
+    def test_record_metric_creates_and_resolves_platform_incident(self):
+        from apps.observability.models import PlatformIncident
+        from apps.observability.monitoring import SystemHealthMonitor
+
+        SystemHealthMonitor.record_metric('CPU', 99.0, threshold=80.0)
+
+        incident = PlatformIncident.objects.get(source_system="observability.healthcheck")
+        self.assertEqual(incident.status, PlatformIncident.Status.OPEN)
+        self.assertEqual(incident.severity, PlatformIncident.Severity.CRITICAL)
+
+        SystemHealthMonitor.record_metric('CPU', 55.0, threshold=80.0)
+
+        incident.refresh_from_db()
+        self.assertEqual(incident.status, PlatformIncident.Status.RESOLVED)
+
 
 class PerformanceProfilerTestCase(TestCase):
     """Test performance profiler"""

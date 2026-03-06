@@ -1,4 +1,5 @@
 from django.urls import path
+from apps.marketplace import views as marketplace_views
 from . import super_views
 from .parent_tenant_views import parent_tenant_dashboard
 
@@ -24,6 +25,8 @@ urlpatterns = [
     path("pulse/", super_views.super_pulse, name="pulse"),
     path("tenant-health/", super_views.super_tenant_health, name="tenant_health"),
     path("billing/", super_views.billing_dashboard, name="billing_dashboard"),
+    path("marketplace/", marketplace_views.governance_console, name="marketplace_governance"),
+    path("marketplace/reviews/<int:review_id>/action/", marketplace_views.marketplace_review_action, name="marketplace_review_action"),
     path("support/", super_views.super_support_dashboard, name="support_dashboard"),
     path("support/queue/", super_views.support_queue_fragment, name="support_queue_fragment"),
     path("switch-to-tenant/", super_views.switch_to_tenant, name="switch_to_tenant"),

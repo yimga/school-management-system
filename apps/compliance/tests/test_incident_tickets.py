@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from apps.compliance.models_audit import AuditLog
 from apps.compliance.alerts import send_threat_alert, notify_audit_event
+from apps.observability.models import PlatformIncident
 
 User = get_user_model()
 
@@ -76,6 +77,9 @@ class IncidentTicketIntegrationTestCase(TestCase):
         self.assertEqual(ticket_payload['type'], 'threat.detection')
         self.assertEqual(ticket_payload['user'], 'testuser')
         self.assertEqual(ticket_payload['ip_address'], '192.168.1.100')
+        incident = PlatformIncident.objects.get(source_system="compliance.threat_detection")
+        self.assertEqual(incident.incident_type, PlatformIncident.IncidentType.SECURITY)
+        self.assertEqual(incident.status, PlatformIncident.Status.OPEN)
 
     @patch('apps.compliance.alerts._post_json')
     @patch('apps.compliance.alerts.settings')
@@ -126,6 +130,9 @@ class IncidentTicketIntegrationTestCase(TestCase):
         self.assertIn('HIGH', ticket_payload['title'])
         self.assertEqual(ticket_payload['severity'], 'HIGH')
         self.assertEqual(ticket_payload['type'], 'compliance.audit')
+        incident = PlatformIncident.objects.get(source_system="compliance.audit")
+        self.assertEqual(incident.incident_type, PlatformIncident.IncidentType.SECURITY)
+        self.assertEqual(incident.status, PlatformIncident.Status.OPEN)
 
     @patch('apps.compliance.alerts._post_json')
     @patch('apps.compliance.alerts.settings')
@@ -170,6 +177,7 @@ class IncidentTicketIntegrationTestCase(TestCase):
             if 'create-ticket' in str(call)
         ]
         self.assertEqual(len(ticket_calls), 0)
+        self.assertFalse(PlatformIncident.objects.filter(source_system="compliance.audit").exists())
 
     @patch('apps.compliance.alerts._post_json')
     @patch('apps.compliance.alerts.logger')

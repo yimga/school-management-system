@@ -1,0 +1,60 @@
+{% extends "backend_base.html" %}
+
+{% block title %}School Events{% endblock %}
+{% block backend_title %}School Events{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">School events</h1>
+      <p class="text-muted mb-0">Event operations, ticketing, venues, and sponsor commitments for {{ school.name }}.</p>
+    </div>
+    <div class="d-flex gap-3">
+      <div class="card p-3">
+        <div class="small text-muted">Published</div>
+        <div class="h4 mb-0">{{ snapshot.published_events }}</div>
+      </div>
+      <div class="card p-3">
+        <div class="small text-muted">Registrations</div>
+        <div class="h4 mb-0">{{ snapshot.open_registrations }}</div>
+      </div>
+      <div class="card p-3">
+        <div class="small text-muted">Sponsor commitments</div>
+        <div class="h4 mb-0">${{ snapshot.sponsorship_total|floatformat:2 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    {% for event in events %}
+    <div class="col-12 col-xl-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="text-uppercase small text-muted">{{ event.status }}</div>
+              <h2 class="h5 mb-1"><a href="{% url 'school_events:event_detail' slug=event.slug %}">{{ event.title }}</a></h2>
+              <div class="text-muted small">{{ event.start_at|date:"Y-m-d H:i" }}{% if event.venue %} | {{ event.venue.name }}{% endif %}</div>
+            </div>
+            <div class="text-end">
+              {% if event.ticketing_enabled %}<span class="badge text-bg-primary">Ticketing</span>{% endif %}
+              {% if event.sponsorship_enabled %}<span class="badge text-bg-warning">Sponsors</span>{% endif %}
+            </div>
+          </div>
+          {% if event.summary %}<p class="mt-3 mb-3">{{ event.summary }}</p>{% endif %}
+          <div class="small text-muted">Ticket tiers {{ event.ticket_tiers.count }} | Sponsor commitments {{ event.sponsor_commitments.count }}</div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body text-muted">No school events have been configured yet.</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+

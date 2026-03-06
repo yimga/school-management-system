@@ -933,7 +933,7 @@ def api_operational_slo_dashboard(request):
         _get_region_bucket(region_metrics, region_code, region_name)["active_schools"] += 1
 
     legacy_deliveries = (
-        LegacyWebhookDelivery.objects.filter(created_at__gte=window_start)
+        LegacyWebhookDelivery.objects.filter(created_at__gte=window_start, subscription__is_active=True)
         .select_related("subscription__school__default_region")
         .only(
             "status",

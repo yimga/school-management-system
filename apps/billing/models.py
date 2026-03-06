@@ -181,12 +181,16 @@ class BillingProcessorSyncEvent(models.Model):
 
     school = models.ForeignKey(
         "schools.School",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="billing_processor_events",
     )
     billing_account = models.ForeignKey(
         BillingAccount,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="processor_events",
     )
     subscription = models.ForeignKey(
@@ -215,6 +219,39 @@ class BillingProcessorSyncEvent(models.Model):
 
     def __str__(self):
         return f"{self.processor_code} {self.event_type} {self.status}"
+
+
+class PlatformBillingProcessorConfig(models.Model):
+    class SignatureStyle(models.TextChoices):
+        PLAIN_HMAC = "PLAIN_HMAC", "Plain HMAC"
+        PREFIXED_HMAC = "PREFIXED_HMAC", "Prefixed HMAC"
+        STRIPE_V1 = "STRIPE_V1", "Stripe v1"
+
+    code = models.SlugField(max_length=32, unique=True)
+    display_name = models.CharField(max_length=120)
+    is_active = models.BooleanField(default=True, db_index=True)
+    signature_header = models.CharField(max_length=64, default="X-Signature")
+    signature_algorithm = models.CharField(max_length=16, default="sha256")
+    signature_style = models.CharField(
+        max_length=24,
+        choices=SignatureStyle.choices,
+        default=SignatureStyle.PLAIN_HMAC,
+    )
+    webhook_secret = models.CharField(max_length=500, blank=True)
+    timestamp_tolerance_seconds = models.PositiveIntegerField(default=300)
+    event_allowlist = models.JSONField(default=list, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    last_webhook_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["code"]
+        verbose_name = "Platform billing processor config"
+        verbose_name_plural = "Platform billing processor configs"
+
+    def __str__(self):
+        return self.display_name or self.code
 
 
 class RevenueSharePayout(models.Model):

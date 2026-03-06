@@ -102,10 +102,14 @@ class EducationTemplatesView(View):
             {"code": "VOCATIONAL", "name": "Vocational / Trade", "description": "Competency checklists; clock hours; skill badges."},
         ]
         try:
+            from apps.siteconfig.education_profile_engine import list_template_catalog
             from apps.siteconfig.models import EducationSystemProfile
             for p in EducationSystemProfile.objects.filter(is_active=True, approval_status=EducationSystemProfile.ApprovalStatus.APPROVED).values("code", "name"):
                 if not any(t["code"] == p["code"] for t in templates):
                     templates.append({"code": p["code"], "name": p["name"], "description": ""})
+            catalog = list_template_catalog()
+            if catalog:
+                templates = catalog
         except Exception:
             pass
         return JsonResponse({"templates": templates})

@@ -455,14 +455,56 @@ class SystemHealthMonitor:
         )
         
         # Create alert if needed
+        alert = None
         if status != 'healthy':
-            HealthCheckAlert.objects.create(
+            alert = HealthCheckAlert.objects.create(
                 metric=metric,
                 severity='CRITICAL' if status == 'critical' else 'WARNING',
                 message=f"{metric_type} exceeded threshold: {value:.2f} > {threshold}"
             )
+        _sync_health_metric_incident(metric, status=status, alert=alert)
         
         return metric
+
+
+def _sync_health_metric_incident(metric, *, status: str, alert=None):
+    from apps.observability.incident_services import resolve_platform_incident, upsert_platform_incident
+
+    metric_key = str(getattr(metric, "metric_type", "") or "").strip().lower() or "unknown"
+    incident_key = f"healthcheck:{metric_key}"
+    incident_type = (
+        PlatformIncident.IncidentType.AVAILABILITY
+        if metric_key in {"database", "cache", "disk"}
+        else PlatformIncident.IncidentType.PERFORMANCE
+    )
+    if status == "healthy":
+        resolve_platform_incident(
+            incident_key=incident_key,
+            source_system="observability.healthcheck",
+            incident_type=incident_type,
+        )
+        return
+
+    severity = PlatformIncident.Severity.CRITICAL if status == "critical" else PlatformIncident.Severity.HIGH
+    summary = f"{metric.metric_type} measured {metric.value:.2f} against threshold {metric.threshold:.2f}."
+    details = {
+        "metric_id": metric.pk,
+        "metric_type": metric.metric_type,
+        "metric_value": metric.value,
+        "metric_threshold": metric.threshold,
+        "metric_status": metric.status,
+        "alert_id": getattr(alert, "pk", None),
+        "alert_severity": getattr(alert, "severity", ""),
+    }
+    upsert_platform_incident(
+        incident_key=incident_key,
+        title=f"Health metric degraded: {metric.metric_type}",
+        incident_type=incident_type,
+        severity=severity,
+        summary=summary,
+        source_system="observability.healthcheck",
+        details=details,
+    )
 
 
 class PerformanceProfiler:

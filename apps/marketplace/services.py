@@ -9,6 +9,207 @@ from django.core.management import call_command
 logger = logging.getLogger(__name__)
 
 
+def ensure_marketplace_listing(app, *, publisher=None):
+    from apps.marketplace.models import MarketplaceApp, MarketplaceListing
+
+    if not isinstance(app, MarketplaceApp):
+        app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+    listing, _created = MarketplaceListing.objects.get_or_create(
+        app=app,
+        defaults={
+            "publisher": publisher or app.publisher,
+            "short_description": (app.description or "")[:255],
+            "status": (
+                MarketplaceListing.Status.DRAFT
+                if app.kind == MarketplaceApp.AppKind.THIRD_PARTY
+                else MarketplaceListing.Status.APPROVED
+            ),
+            "security_review_status": (
+                MarketplaceListing.ReviewStatus.PENDING
+                if app.kind == MarketplaceApp.AppKind.THIRD_PARTY
+                else MarketplaceListing.ReviewStatus.NOT_REQUIRED
+            ),
+        },
+    )
+    changed_fields = []
+    if publisher and listing.publisher_id != getattr(publisher, "pk", publisher):
+        listing.publisher = publisher
+        changed_fields.append("publisher")
+    elif listing.publisher_id is None and app.publisher_id:
+        listing.publisher = app.publisher
+        changed_fields.append("publisher")
+    short_description = (app.description or "")[:255]
+    if short_description and listing.short_description != short_description:
+        listing.short_description = short_description
+        changed_fields.append("short_description")
+    if changed_fields:
+        listing.save(update_fields=changed_fields + ["updated_at"])
+    return listing
+
+
+def _assert_app_installable(app):
+    from apps.marketplace.models import MarketplaceApp
+
+    if not app.is_active:
+        raise ValueError(f"Marketplace app {app.slug} is inactive.")
+
+    listing = getattr(app, "listing", None)
+    if listing is None:
+        listing = ensure_marketplace_listing(app)
+
+    if app.kind == MarketplaceApp.AppKind.THIRD_PARTY and listing.publisher is None:
+        raise ValueError(f"Marketplace app {app.slug} has no verified publisher organization.")
+    if listing.kill_switch_active:
+        raise ValueError(f"Marketplace app {app.slug} is under platform kill switch.")
+    if listing.status != listing.Status.APPROVED:
+        raise ValueError(f"Marketplace app {app.slug} is not approved for install.")
+    if app.kind == MarketplaceApp.AppKind.THIRD_PARTY and listing.security_review_status != listing.ReviewStatus.APPROVED:
+        raise ValueError(f"Marketplace app {app.slug} has not passed security review.")
+    return listing
+
+
+def submit_marketplace_review(
+    listing,
+    *,
+    review_type: str,
+    requested_by=None,
+    notes: str = "",
+    findings_json: dict | None = None,
+):
+    from apps.marketplace.models import MarketplaceListing, MarketplaceReview
+
+    if not isinstance(listing, MarketplaceListing):
+        listing = MarketplaceListing.objects.select_related("app", "publisher").get(pk=listing)
+
+    review = MarketplaceReview.objects.create(
+        listing=listing,
+        review_type=review_type,
+        status=MarketplaceReview.Status.PENDING,
+        requested_by=requested_by,
+        app_version=listing.app.version,
+        notes=notes,
+        findings_json=findings_json or {},
+    )
+    update_fields = []
+    if review_type == MarketplaceReview.ReviewType.LISTING and listing.status == MarketplaceListing.Status.DRAFT:
+        listing.status = MarketplaceListing.Status.PENDING_REVIEW
+        update_fields.append("status")
+    if review_type == MarketplaceReview.ReviewType.SECURITY and listing.security_review_status == MarketplaceListing.ReviewStatus.NOT_REQUIRED:
+        listing.security_review_status = MarketplaceListing.ReviewStatus.PENDING
+        update_fields.append("security_review_status")
+    if review_type == MarketplaceReview.ReviewType.CERTIFICATION and listing.certification_status == MarketplaceListing.ReviewStatus.NOT_REQUIRED:
+        listing.certification_status = MarketplaceListing.ReviewStatus.PENDING
+        update_fields.append("certification_status")
+    if update_fields:
+        listing.save(update_fields=update_fields + ["updated_at"])
+    return review
+
+
+def finalize_marketplace_review(
+    review,
+    *,
+    status: str,
+    reviewed_by=None,
+    notes: str = "",
+    findings_json: dict | None = None,
+):
+    from apps.marketplace.models import MarketplaceListing, MarketplaceReview
+
+    if not isinstance(review, MarketplaceReview):
+        review = MarketplaceReview.objects.select_related("listing", "listing__app").get(pk=review)
+    review.mark_reviewed(
+        status=status,
+        reviewed_by=reviewed_by,
+        notes=notes,
+        findings_json=findings_json or review.findings_json,
+    )
+    listing = review.listing
+    update_fields = []
+    approved_states = {MarketplaceReview.Status.APPROVED}
+    rejected_states = {MarketplaceReview.Status.REJECTED}
+    change_states = {MarketplaceReview.Status.CHANGES_REQUIRED}
+
+    if review.review_type == MarketplaceReview.ReviewType.LISTING:
+        if status in approved_states:
+            listing.status = MarketplaceListing.Status.APPROVED
+            listing.approved_at = timezone.now()
+            listing.approved_by = reviewed_by
+            update_fields.extend(["status", "approved_at", "approved_by"])
+        elif status in rejected_states:
+            listing.status = MarketplaceListing.Status.REJECTED
+            update_fields.append("status")
+        elif status in change_states:
+            listing.status = MarketplaceListing.Status.DRAFT
+            update_fields.append("status")
+    elif review.review_type == MarketplaceReview.ReviewType.SECURITY:
+        if status in approved_states:
+            listing.security_review_status = MarketplaceListing.ReviewStatus.APPROVED
+        elif status in rejected_states:
+            listing.security_review_status = MarketplaceListing.ReviewStatus.REJECTED
+            listing.status = MarketplaceListing.Status.SUSPENDED
+            update_fields.append("status")
+        elif status in change_states:
+            listing.security_review_status = MarketplaceListing.ReviewStatus.CHANGES_REQUIRED
+        update_fields.append("security_review_status")
+    elif review.review_type == MarketplaceReview.ReviewType.CERTIFICATION:
+        if status in approved_states:
+            listing.certification_status = MarketplaceListing.ReviewStatus.APPROVED
+        elif status in rejected_states:
+            listing.certification_status = MarketplaceListing.ReviewStatus.REJECTED
+        elif status in change_states:
+            listing.certification_status = MarketplaceListing.ReviewStatus.CHANGES_REQUIRED
+        update_fields.append("certification_status")
+    elif review.review_type == MarketplaceReview.ReviewType.VERSION and status in approved_states:
+        listing.metadata = {
+            **(listing.metadata or {}),
+            "approved_version": review.app_version or listing.app.version,
+        }
+        update_fields.append("metadata")
+
+    if update_fields:
+        listing.save(update_fields=list(dict.fromkeys(update_fields + ["updated_at"])))
+    return review, listing
+
+
+def schedule_publisher_revenue_share_payout(
+    listing,
+    *,
+    gross_amount,
+    fee_amount=0,
+    source_school=None,
+    period_start=None,
+    period_end=None,
+):
+    from apps.billing.models import RevenueSharePayout
+    from apps.billing.services import schedule_revenue_share_payout
+    from apps.marketplace.models import MarketplaceListing
+
+    if not isinstance(listing, MarketplaceListing):
+        listing = MarketplaceListing.objects.select_related("app", "publisher").get(pk=listing)
+    publisher = listing.publisher or listing.app.publisher
+    if publisher is None:
+        raise ValueError("Marketplace listing has no payout-capable publisher.")
+
+    return schedule_revenue_share_payout(
+        payee_name=publisher.legal_name or publisher.name,
+        gross_amount=gross_amount,
+        fee_amount=fee_amount,
+        payout_scope=RevenueSharePayout.Scope.APP_PUBLISHER,
+        payee_ref=publisher.payout_ref or publisher.slug,
+        processor_code=publisher.payout_processor_code,
+        currency_code="USD",
+        source_school=source_school,
+        period_start=period_start,
+        period_end=period_end,
+        metadata={
+            "listing_id": listing.pk,
+            "app_slug": listing.app.slug,
+            "publisher_slug": publisher.slug,
+            "revenue_share_percent": str(listing.revenue_share_percent),
+        },
+    )
+
+
 def run_schema_patches_for_installation(installation):
     """
     Run schema patches (migrations) for an app installation when the app manifest
@@ -76,6 +277,7 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
 
     if not isinstance(app, MarketplaceApp):
         app = MarketplaceApp.objects.get(slug=app) if isinstance(app, str) else MarketplaceApp.objects.get(pk=app)
+    listing = _assert_app_installable(app)
     installation, created = AppInstallation.objects.get_or_create(
         school=school,
         app=app,
@@ -98,7 +300,11 @@ def install_app(school, app, *, installed_by=None, config=None, run_schema_patch
         school=school,
         app=app,
         action="install",
-        payload={"config": installation.config},
+        payload={
+            "config": installation.config,
+            "listing_status": getattr(listing, "status", ""),
+            "publisher": getattr(getattr(listing, "publisher", None), "slug", ""),
+        },
         actor=installed_by,
     )
     return installation

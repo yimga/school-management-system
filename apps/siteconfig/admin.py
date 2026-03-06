@@ -23,7 +23,6 @@ from .models import (
     ReportTemplate,
     SiteSettings,
     ServiceIntegration,
-    WebhookSubscription,
     ThemePack,
     UserPreference,
     RegionConfig,
@@ -2289,16 +2288,7 @@ class ServiceIntegrationAdmin(ModelAdmin):
     ordering = ("school", "service_name")
 
 
-class WebhookSubscriptionAdmin(ModelAdmin):
-    list_display = ("school", "event_type", "target_url", "is_active", "updated_at")
-    list_filter = ("is_active", "event_type")
-    raw_id_fields = ("school",)
-    search_fields = ("event_type", "target_url")
-    ordering = ("school", "event_type")
-
-
 admin_site.register(ServiceIntegration, ServiceIntegrationAdmin)
-admin_site.register(WebhookSubscription, WebhookSubscriptionAdmin)
 
 
 # World Engine: GlobalSyllabus, LearningPassport, BreakGlassOverride, BroadcastCampaign

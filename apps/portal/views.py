@@ -192,9 +192,12 @@ def parent_dashboard(request: HttpRequest):
     can_view_finance = bool(finance_students)
     
     # Widget data is now cached internally for 5 minutes
-    widget_data = parent_dashboard_widget_data(students)
+    widget_data = parent_dashboard_widget_data(students, school=getattr(request, "school", None))
     if can_view_finance:
-        finance_widget = parent_dashboard_widget_data(finance_students).get("finance", {})
+        finance_widget = parent_dashboard_widget_data(
+            finance_students,
+            school=getattr(request, "school", None),
+        ).get("finance", {})
         widget_data["finance"] = finance_widget or widget_data.get("finance", {})
     else:
         widget_data["finance"] = {
@@ -1229,7 +1232,7 @@ def parent_medal_case(request: HttpRequest):
 def unified_calendar(request: HttpRequest):
     """Phase 9: Unified calendar – school events and grading deadlines for teachers and parents."""
     year, _term = get_active_year_and_term()
-    events = _merged_upcoming_events(year)
+    events = _merged_upcoming_events(year, school=getattr(request, "school", None))
     role = get_user_role(request.user)
     return render(request, "portal/unified_calendar.html", {
         "events": events,

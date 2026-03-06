@@ -216,6 +216,31 @@ class OperationalSLODashboardAPITests(TestCase):
         self.assertEqual(us["webhook"]["delivered"], 1)
         self.assertEqual(payload["webhook_stack"]["legacy_groups"], 0)
 
+    def test_endpoint_ignores_retired_legacy_webhook_deliveries(self):
+        subscription = LegacyWebhookSubscription.objects.create(
+            school=self.school_us,
+            event_type="grade.published",
+            target_url="https://example.org/retired-hook",
+            is_active=False,
+        )
+        self._create_delivery(
+            subscription=subscription,
+            event_id="legacy-retired-1",
+            status=LegacyWebhookDelivery.Status.DELIVERED,
+            created_delta_seconds=4,
+            completed_delta_seconds=1,
+        )
+
+        self.client.force_login(self.admin_user)
+        response = self.client.get("/api/observability/slo-dashboard/?hours=24")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+
+        by_code = {row["region_code"]: row for row in payload["regions"]}
+        us = by_code["USA"]
+        self.assertEqual(us["webhook"]["total"], 0)
+        self.assertEqual(payload["webhook_stack"]["legacy_active_groups"], 0)
+
     def test_endpoint_requires_observability_auth(self):
         response = self.client.get("/api/observability/slo-dashboard/")
         self.assertEqual(response.status_code, 403)

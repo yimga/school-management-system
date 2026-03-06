@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import include, path, reverse
 
+from apps.billing import api_views as billing_api_views
 from apps.billing.models import TenantSubscription
 from apps.observability import views as obs_views
 from apps.observability.models import PlatformIncident
@@ -137,6 +138,13 @@ def manager_search_api(request):
             "meta": ["Billing"],
         },
         {
+            "title": "Marketplace Governance",
+            "description": "Publishers, app review queue, kill switches, and revenue-share posture.",
+            "url": reverse("super:marketplace_governance"),
+            "type": "app",
+            "meta": ["Marketplace"],
+        },
+        {
             "title": "Platform Incidents",
             "description": "Operator incident console and escalation status.",
             "url": reverse("platform_incidents_console"),
@@ -235,6 +243,11 @@ urlpatterns = [
     path("status/", obs_views.public_health, name="status"),
     path("api/health/", obs_views.api_health, name="api_health"),
     path("api/search/", manager_search_api, name="manager_search_api"),
+    path(
+        "api/billing/processors/<str:processor_code>/webhook/",
+        billing_api_views.platform_billing_processor_webhook,
+        name="platform_billing_processor_webhook",
+    ),
     path("api/observability/incidents/", obs_views.api_platform_incidents, name="api_platform_incidents"),
     path(
         "api/observability/incidents/<uuid:incident_id>/status/",

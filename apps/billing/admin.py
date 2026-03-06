@@ -6,6 +6,7 @@ from apps.billing.models import (
     BillingAccount,
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
+    PlatformBillingProcessorConfig,
     RevenueSharePayout,
     TenantSubscription,
     UsageMeter,
@@ -71,6 +72,21 @@ class BillingProcessorSyncEventAdmin(admin.ModelAdmin):
     )
     list_filter = ("processor_code", "event_type", "status")
     search_fields = ("school__name", "external_customer_ref", "external_subscription_ref", "message")
+
+
+@admin.register(PlatformBillingProcessorConfig, site=admin_site)
+class PlatformBillingProcessorConfigAdmin(admin.ModelAdmin):
+    list_display = (
+        "code",
+        "display_name",
+        "is_active",
+        "signature_style",
+        "signature_header",
+        "last_webhook_at",
+        "updated_at",
+    )
+    list_filter = ("is_active", "signature_style", "signature_algorithm")
+    search_fields = ("code", "display_name")
 
 
 @admin.register(RevenueSharePayout, site=admin_site)

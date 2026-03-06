@@ -65,12 +65,35 @@ This file is the canonical closure ledger for the Shopify/AWS-style platform pla
 - `implemented`: superadmin billing dashboard now shows platform subscription state, trial watchlist, and recent platform ledger activity
 - `implemented`: school provisioning now seeds platform billing account/subscription records
 - `implemented`: billing services and dashboard tests now cover platform billing model creation and ledger writes
+- `implemented`: platform billing processors now support signed webhook ingestion plus provider-specific normalization for generic relay and Stripe-compatible events
+- `implemented`: revenue-share payouts now execute through configured processor adapters, write sync events, open billing incidents on failure, and can be driven by `run_revenue_share_payouts`
 
 ### Placeholder surface gating
 - `implemented`: enrollment forecast API is now disabled by default behind `enable_enrollment_forecast_api`
 - `implemented`: intervention roadmap API stub is now disabled by default behind `enable_intervention_llm_roadmap`
 - `implemented`: seating-chart placeholder UI is now disabled by default behind `enable_seating_chart_beta`
 - `implemented`: tests now verify placeholder surfaces stay dark until explicitly enabled
+
+### Marketplace governance
+- `implemented`: publisher organizations, governed listings, listing/security/certification reviews, and revenue-share metadata now exist in `apps.marketplace`
+- `implemented`: the install pipeline now blocks unapproved or kill-switched third-party apps before tenant installation
+- `implemented`: manager host now exposes a marketplace governance console and operator review actions
+- `implemented`: marketplace governance tests now cover manager rendering, review approval, and third-party install blocking
+
+### School events domain
+- `implemented`: `apps.school_events` now exists as a distinct tenant product app for venues, sponsors, events, ticket tiers, sponsorship commitments, and registrations
+- `implemented`: tenant event hub/detail/registration routes now exist and are integrated into portal event aggregation
+- `implemented`: school-events tests now cover tenant rendering, ticket registration, and tenant-scoped public event discovery
+
+### Metadata compatibility adoption
+- `implemented`: `apps.metadata.services` now provides a compatibility layer that merges dynamic metadata with legacy `custom_attributes`
+- `implemented`: degree-audit GPA checks, financial-aid eligibility context, and GDPR export/scrub flows now use the metadata compatibility layer instead of raw JSON reads alone
+- `implemented`: metadata service tests now cover dynamic-field override precedence and legacy-sync compatibility
+
+### Automated incident ingestion
+- `implemented`: health metric degradation and recovery now auto-open and auto-resolve `PlatformIncident` records
+- `implemented`: high-severity compliance audit alerts and threat alerts now auto-open `PlatformIncident` records
+- `implemented`: incident-ingestion tests now cover observability health incidents plus compliance security incidents
 
 ## Partial
 
@@ -95,15 +118,17 @@ This file is the canonical closure ledger for the Shopify/AWS-style platform pla
 - `partial`: not every producer path has been audited yet to guarantee those fields are always populated
 
 ### Eventing and webhook consolidation
-- `partial`: control-plane observability now aggregates both the legacy `siteconfig` ledger and the canonical `apps.events` ledger
-- `partial`: Django system checks now warn when legacy webhook subscriptions still exist beside the canonical stack
-- `partial`: a sync command now groups legacy webhook subscriptions into canonical `apps.events.WebhookSubscription` records
-- `partial`: the duplicate `siteconfig` delivery runtime no longer owns live dispatch, but the legacy models/admin/data still exist and the observability dashboard still reports both ledgers during migration
+- `partial`: control-plane observability still exposes legacy migration state, but retired legacy subscriptions no longer count toward operational SLO metrics
+- `partial`: Django system checks now warn only when active or unsynced legacy webhook subscriptions still exist beside the canonical stack
+- `implemented`: `retire_legacy_webhooks` now syncs legacy subscriptions into `apps.events` and deactivates the legacy producers
+- `partial`: the duplicate `siteconfig` delivery runtime no longer owns live dispatch and legacy webhook subscriptions are no longer manageable from siteconfig admin, but the legacy models/data still exist during migration
 
 ### Platform incident management
 - `partial`: `PlatformIncident` now exists as a shared-schema control-plane model
 - `partial`: manager host now exposes a dedicated incident console plus incident status APIs
-- `partial`: incident ingestion and automated creation from observability/security/billing signals are still open
+- `implemented`: platform billing lifecycle and processor-webhook ingestion now auto-create and auto-resolve billing/integration incidents in the manager control plane
+- `implemented`: observability health metrics and compliance threat/audit alerts now auto-create platform incidents
+- `partial`: deployment-specific and remaining operator/security sources are still not fully wired into the incident pipeline
 
 ## Pending
 
@@ -112,20 +137,18 @@ This file is the canonical closure ledger for the Shopify/AWS-style platform pla
 - `implemented`: platform billing now stores normalized processor sync events, external customer/subscription references, and sync heartbeat data
 - `implemented`: platform billing now has lifecycle automation for trial conversion, renewal charging, delinquency/suspension, and entitlement reconciliation back into school freeze state
 - `implemented`: platform billing now includes management commands for importing processor snapshots and running lifecycle automation
+- `implemented`: manager host now exposes a live platform billing processor webhook endpoint with provider-configured signature validation and incident escalation
 - `implemented`: platform billing now exposes first-class revenue-share payout records and dashboard visibility for scheduled payout obligations
-- `partial`: platform billing still lacks a live third-party processor adapter, webhook ingestion from a real provider, and fully automated payout execution
+- `implemented`: platform billing now has a provider adapter contract with a real Stripe-compatible webhook/payout path plus a generic relay adapter for managed processors
+- `partial`: additional provider adapters and payout-status reconciliation beyond relay/Stripe still need to be added as the processor catalog expands
 
 ### Metadata adoption
-- `pending`: replace remaining direct `custom_attributes` style usage with the metadata engine or an explicit compatibility layer
-
-### School events domain
-- `pending`: create a distinct tenant school-events product app for event operations, sponsorships, ticketing, and venues
-
-### Marketplace governance
-- `pending`: add publisher organizations, security review status, revenue share, payout workflows, and listing governance
+- `partial`: metadata compatibility layer now exists and covers degree audit, aid eligibility, and GDPR flows
+- `partial`: remaining direct `custom_attributes` usage still needs to be migrated onto metadata services or removed
 
 ### No-hardcoding campaign
 - `partial`: key placeholder/stub surfaces are now behind explicit flags instead of always-on routes
+- `partial`: education template catalogs in the API and create-school flow now resolve from approved education profiles instead of only static preset lists
 - `pending`: finish replacing country/template branching across reports, payments, integrations, and operator copy with registries, policies, or seeded config
 
 ### Stub burn-down

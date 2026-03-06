@@ -4,6 +4,7 @@ from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 import uuid
+from unittest.mock import patch
 
 from django.conf import settings
 from django.core.management import call_command
@@ -14,18 +15,22 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.billing.models import (
     BillingAccount,
+    PlatformBillingProcessorConfig,
     BillingProcessorSyncEvent,
     PlatformLedgerEntry,
     RevenueSharePayout,
     TenantSubscription,
 )
 from apps.billing.services import (
+    execute_revenue_share_payout,
     apply_processor_snapshot,
     ensure_subscription_for_school,
     record_platform_charge,
+    run_revenue_share_payout_execution,
     run_platform_billing_lifecycle,
     schedule_revenue_share_payout,
 )
+from apps.observability.models import PlatformIncident
 from apps.schools.models import School
 from apps.siteconfig.models import Plan
 
@@ -209,6 +214,128 @@ class PlatformBillingServicesTests(TestCase):
         self.assertEqual(payout.net_amount, Decimal("360.00"))
         self.assertEqual(payout.processor_code, "stripe_connect")
 
+    def test_execute_revenue_share_payout_updates_status_and_records_sync_event(self):
+        PlatformBillingProcessorConfig.objects.create(
+            code="relay",
+            display_name="Relay",
+            is_active=True,
+            metadata={"payout_endpoint_url": "https://relay.example.org/payouts"},
+        )
+        payout = schedule_revenue_share_payout(
+            payee_name="Verified Publisher",
+            payee_ref="pub_001",
+            processor_code="relay",
+            gross_amount="400.00",
+            fee_amount="40.00",
+            currency_code="USD",
+            source_school=self.school,
+        )
+
+        payout, result = execute_revenue_share_payout(
+            payout,
+            http_post_json=lambda url, payload, headers, timeout: (
+                202,
+                {"id": "relay_payout_001", "status": "submitted", "message": "queued"},
+                "queued",
+            ),
+        )
+
+        self.assertEqual(result["status"], "submitted")
+        self.assertEqual(payout.status, RevenueSharePayout.Status.IN_TRANSIT)
+        self.assertEqual(payout.external_payout_ref, "relay_payout_001")
+        self.assertTrue(
+            BillingProcessorSyncEvent.objects.filter(
+                processor_code="relay",
+                event_type="payout.executed",
+                status=BillingProcessorSyncEvent.Status.APPLIED,
+            ).exists()
+        )
+
+    def test_execute_revenue_share_payout_failure_creates_platform_incident(self):
+        payout = schedule_revenue_share_payout(
+            payee_name="Broken Publisher",
+            payee_ref="pub_missing",
+            processor_code="missing",
+            gross_amount="80.00",
+            fee_amount="5.00",
+            currency_code="USD",
+            source_school=self.school,
+        )
+
+        payout, result = execute_revenue_share_payout(payout)
+
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(payout.status, RevenueSharePayout.Status.FAILED)
+        incident = PlatformIncident.objects.get(
+            source_system="billing.revenue_share",
+            incident_type=PlatformIncident.IncidentType.BILLING,
+            affected_school=self.school,
+        )
+        self.assertEqual(incident.status, PlatformIncident.Status.OPEN)
+        self.assertIn("failed", incident.title.lower())
+
+    def test_run_revenue_share_payout_execution_processes_due_records(self):
+        PlatformBillingProcessorConfig.objects.create(
+            code="relay",
+            display_name="Relay",
+            is_active=True,
+            metadata={"payout_endpoint_url": "https://relay.example.org/payouts"},
+        )
+        schedule_revenue_share_payout(
+            payee_name="Verified Publisher",
+            payee_ref="pub_002",
+            processor_code="relay",
+            gross_amount="120.00",
+            fee_amount="20.00",
+            currency_code="USD",
+            source_school=self.school,
+        )
+
+        summary = run_revenue_share_payout_execution(
+            as_of=timezone.now(),
+            http_post_json=lambda url, payload, headers, timeout: (
+                200,
+                {"id": "relay_payout_002", "status": "completed"},
+                "ok",
+            ),
+        )
+
+        self.assertEqual(summary["selected"], 1)
+        self.assertEqual(summary["paid"], 1)
+        self.assertEqual(RevenueSharePayout.objects.get(payee_ref="pub_002").status, RevenueSharePayout.Status.PAID)
+
+    def test_stripe_connect_processor_executes_transfer_api(self):
+        PlatformBillingProcessorConfig.objects.create(
+            code="stripe",
+            display_name="Stripe",
+            is_active=True,
+            metadata={"api_key": "sk_test_123", "api_base_url": "https://api.stripe.com"},
+        )
+        payout = schedule_revenue_share_payout(
+            payee_name="Stripe Publisher",
+            payee_ref="acct_123",
+            processor_code="stripe",
+            gross_amount="250.00",
+            fee_amount="25.00",
+            currency_code="USD",
+            source_school=self.school,
+        )
+
+        with patch(
+            "apps.billing.processors._default_form_post",
+            return_value=(200, {"id": "tr_123", "object": "transfer"}, "{\"id\":\"tr_123\"}"),
+        ) as mock_post:
+            payout, _result = execute_revenue_share_payout(payout)
+
+        self.assertEqual(payout.status, RevenueSharePayout.Status.IN_TRANSIT)
+        self.assertEqual(payout.external_payout_ref, "tr_123")
+        called_url, called_payload, called_headers, called_timeout = mock_post.call_args[0]
+        self.assertEqual(called_url, "https://api.stripe.com/v1/transfers")
+        self.assertEqual(called_payload["destination"], "acct_123")
+        self.assertEqual(called_payload["amount"], "22500")
+        self.assertEqual(called_headers["Authorization"], "Bearer sk_test_123")
+        self.assertEqual(called_timeout, 30)
+
 
 class PlatformBillingCommandTests(TestCase):
     def setUp(self):
@@ -269,6 +396,31 @@ class PlatformBillingCommandTests(TestCase):
         call_command("run_platform_billing_lifecycle")
 
         self.assertTrue(TenantSubscription.objects.filter(school=self.school).exists())
+
+    def test_run_revenue_share_payouts_command_executes_due_payouts(self):
+        PlatformBillingProcessorConfig.objects.create(
+            code="relay",
+            display_name="Relay",
+            is_active=True,
+            metadata={"payout_endpoint_url": "https://relay.example.org/payouts"},
+        )
+        schedule_revenue_share_payout(
+            payee_name="Command Publisher",
+            payee_ref="pub-command",
+            processor_code="relay",
+            gross_amount="75.00",
+            fee_amount="5.00",
+            source_school=self.school,
+        )
+
+        with patch(
+            "apps.billing.processors._default_json_post",
+            return_value=(202, {"id": "relay_cmd_001", "status": "submitted"}, "queued"),
+        ):
+            call_command("run_revenue_share_payouts")
+
+        payout = RevenueSharePayout.objects.get(payee_ref="pub-command")
+        self.assertEqual(payout.status, RevenueSharePayout.Status.IN_TRANSIT)
 
 
 class PlatformBillingDashboardTests(TestCase):

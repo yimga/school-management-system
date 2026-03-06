@@ -26,6 +26,7 @@ from apps.registries.services import (
 )
 from apps.siteconfig.education_profile_engine import (
     ensure_region_for_country as ensure_region_for_country_record,
+    list_template_catalog,
     list_profile_options,
 )
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
@@ -1449,6 +1450,13 @@ def create_school_wizard(request):
         {"code": "FRANCOPHONE_BAC", "name": "Francophone (Bac)", "description": "Trimestre 1–3; 20-point scale."},
         {"code": "VOCATIONAL", "name": "Vocational / Trade", "description": "Competency checklists; clock hours; skill badges."},
     ]
+    catalog_templates = list_template_catalog(
+        country_code=default_country_alpha3,
+        sub_system=default_sub_system,
+        limit=8,
+    )
+    if catalog_templates:
+        education_templates_standard = catalog_templates
     if not countries or not cities:
         # Backward-compatible fallback when optional catalog dependencies are unavailable.
         WeatherLocation.ensure_seed_data()
@@ -1769,7 +1777,10 @@ def api_create_school(request):
         return JsonResponse({"errors": ["subdomain already exists"]}, status=400)
 
     # S2: Allow standard one-click template codes (API config/education-templates) without requiring DB record
-    STANDARD_TEMPLATE_CODES = {"BRITISH_IGCSE", "WAEC", "FRANCOPHONE_BAC", "VOCATIONAL"}
+    STANDARD_TEMPLATE_CODES = {
+        row["code"]
+        for row in list_template_catalog(country_code=country_code, sub_system=sub_system)
+    }
     explicit_profile = None
     if education_profile_code:
         explicit_profile = EducationSystemProfile.objects.filter(
