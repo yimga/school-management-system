@@ -4,6 +4,28 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def add_hierarchy_path_if_missing(apps, schema_editor):
+    from django.db import connection
+    with connection.cursor() as cursor:
+        if connection.vendor == "postgresql":
+            cursor.execute("""
+                DO $$
+                BEGIN
+                    ALTER TABLE schools_school ADD COLUMN hierarchy_path varchar(1024) NOT NULL DEFAULT '';
+                EXCEPTION WHEN duplicate_column THEN NULL;
+                END $$;
+            """)
+            cursor.execute("CREATE INDEX IF NOT EXISTS schools_school_hierarchy_path_idx ON schools_school (hierarchy_path)")
+        else:
+            cursor.execute("PRAGMA table_info(schools_school)")
+            if "hierarchy_path" not in [row[1] for row in cursor.fetchall()]:
+                cursor.execute("ALTER TABLE schools_school ADD COLUMN hierarchy_path varchar(1024) NOT NULL DEFAULT ''")
+
+
+def noop_hierarchy(apps, schema_editor):
+    pass
+
+
 def backfill_hierarchy_path(apps, schema_editor):
     School = apps.get_model("schools", "School")
     for school in School.objects.all():
@@ -26,10 +48,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='school',
-            name='hierarchy_path',
-            field=models.CharField(blank=True, db_index=True, help_text='Slash-separated UUIDs from root to parent; empty for root. Used for get_descendants/get_ancestors.', max_length=1024),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AddField(
+                    model_name='school',
+                    name='hierarchy_path',
+                    field=models.CharField(blank=True, db_index=True, help_text='Slash-separated UUIDs from root to parent; empty for root. Used for get_descendants/get_ancestors.', max_length=1024),
+                ),
+            ],
+            database_operations=[migrations.RunPython(add_hierarchy_path_if_missing, noop_hierarchy)],
         ),
         migrations.CreateModel(
             name='Campus',

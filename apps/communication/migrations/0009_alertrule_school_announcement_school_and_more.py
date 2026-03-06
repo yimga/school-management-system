@@ -337,6 +337,45 @@ def disable_communication_rls(apps, schema_editor):
             cursor.execute(f"ALTER TABLE {table} DISABLE ROW LEVEL SECURITY;")
 
 
+def add_school_id_to_communication_tables(apps, schema_editor):
+    """Add school_id to all communication tables; idempotent (duplicate_column)."""
+    from django.db import connection
+    tables = [
+        "communication_alertrule",
+        "communication_announcement",
+        "communication_announcementauditlog",
+        "communication_classannouncement",
+        "communication_contactrequest",
+        "communication_contactrequestattachment",
+        "communication_directconversation",
+        "communication_message",
+        "communication_messagethread",
+        "communication_threadmessage",
+        "communication_threadreadstate",
+    ]
+    with connection.cursor() as cursor:
+        if connection.vendor == "postgresql":
+            for table in tables:
+                cursor.execute(f"""
+                    DO $$
+                    BEGIN
+                        ALTER TABLE {table} ADD COLUMN school_id uuid NULL REFERENCES schools_school(id) ON DELETE CASCADE;
+                    EXCEPTION WHEN duplicate_column THEN NULL;
+                    END $$;
+                """)
+                cursor.execute(f"CREATE INDEX IF NOT EXISTS {table}_school_id_idx ON {table} (school_id)")
+        else:
+            for table in tables:
+                cursor.execute(f"PRAGMA table_info({table})")
+                cols = [row[1] for row in cursor.fetchall()]
+                if "school_id" not in cols:
+                    cursor.execute(f"ALTER TABLE {table} ADD COLUMN school_id integer NULL REFERENCES schools_school(id) ON DELETE CASCADE")
+
+
+def noop_school_id(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -347,60 +386,65 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='alertrule',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='alert_rules', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='announcement',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='announcements', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='announcementauditlog',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='announcement_audit_logs', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='classannouncement',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='class_announcements', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='contactrequest',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='contact_requests', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='contactrequestattachment',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='contact_request_attachments', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='directconversation',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='direct_conversations', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='message',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='messagethread',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='message_threads', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='threadmessage',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='thread_messages', to='schools.school'),
-        ),
-        migrations.AddField(
-            model_name='threadreadstate',
-            name='school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='thread_read_states', to='schools.school'),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AddField(
+                    model_name='alertrule',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='alert_rules', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='announcement',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='announcements', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='announcementauditlog',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='announcement_audit_logs', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='classannouncement',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='class_announcements', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='contactrequest',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='contact_requests', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='contactrequestattachment',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='contact_request_attachments', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='directconversation',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='direct_conversations', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='message',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='messagethread',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='message_threads', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='threadmessage',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='thread_messages', to='schools.school'),
+                ),
+                migrations.AddField(
+                    model_name='threadreadstate',
+                    name='school',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='thread_read_states', to='schools.school'),
+                ),
+            ],
+            database_operations=[migrations.RunPython(add_school_id_to_communication_tables, noop_school_id)],
         ),
         migrations.RunPython(backfill_communication_school, migrations.RunPython.noop),
         migrations.RunPython(enable_communication_rls, disable_communication_rls),
