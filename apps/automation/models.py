@@ -178,7 +178,11 @@ class MigrationRun(models.Model):
     execution_summary = models.JSONField(default=dict, blank=True)  # scorecard details, error snippets
     error_message = models.TextField(blank=True)
     # Section 11.1: read-only legacy view — uploaded rows snapshot (no PII in logs)
-    legacy_snapshot = models.JSONField(default=dict, blank=True)
+    legacy_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Read-only copy of uploaded rows for legacy view (no PII in logs).",
+    )
     # Rollback (11.1, 29.6): store enough to revert last run; optional created_ids, updated_ids_with_old_values per migration_type
     rollback_snapshot = models.JSONField(default=dict, blank=True)
     rolled_back_by_run = models.ForeignKey(
