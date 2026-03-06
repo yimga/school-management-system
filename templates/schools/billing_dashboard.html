@@ -63,6 +63,45 @@
     </div>
   </div>
 
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Processor sync events" %}</div>
+          <div class="display-6">{{ processor_event_count }}</div>
+          <div class="small text-muted">{% trans "Normalized external billing snapshots applied to platform records." %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Stale processor sync" %}</div>
+          <div class="display-6">{{ stale_processor_accounts }}</div>
+          <div class="small text-muted">{% trans "Processor-linked accounts without a recent sync heartbeat." %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Scheduled payouts" %}</div>
+          <div class="display-6">{{ scheduled_payouts|length }}</div>
+          <div class="small text-muted">{% trans "Publisher and partner revenue-share payouts queued for processing." %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small text-uppercase">{% trans "Scheduled payout total" %}</div>
+          <div class="display-6">${{ scheduled_payout_total|floatformat:2 }}</div>
+          <div class="small text-muted">{% trans "Net platform payout obligation currently on deck." %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-4">
     <div class="col-xl-6">
       <div class="card shadow-sm h-100">
@@ -129,6 +168,84 @@
             </table>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mt-4">
+    <div class="card-header">{% trans "Processor sync ledger" %}</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{% trans "When" %}</th>
+              <th>{% trans "School" %}</th>
+              <th>{% trans "Processor" %}</th>
+              <th>{% trans "Event" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "External refs" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in recent_processor_events %}
+            <tr>
+              <td>{{ event.happened_at|date:"Y-m-d H:i" }}</td>
+              <td>{{ event.school.name }}</td>
+              <td>{{ event.processor_code }}</td>
+              <td>{{ event.event_type }}</td>
+              <td>{{ event.status }}</td>
+              <td>
+                {{ event.external_customer_ref|default:"-" }}
+                {% if event.external_subscription_ref %}
+                / {{ event.external_subscription_ref }}
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted">{% trans "No processor sync events yet." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mt-4">
+    <div class="card-header">{% trans "Scheduled revenue-share payouts" %}</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{% trans "Payee" %}</th>
+              <th>{% trans "Scope" %}</th>
+              <th>{% trans "Processor" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Net" %}</th>
+              <th>{% trans "Scheduled" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for payout in scheduled_payouts %}
+            <tr>
+              <td>
+                {{ payout.payee_name }}
+                {% if payout.source_school %}
+                <div class="small text-muted">{{ payout.source_school.name }}</div>
+                {% endif %}
+              </td>
+              <td>{{ payout.get_payout_scope_display }}</td>
+              <td>{{ payout.processor_code|default:"-" }}</td>
+              <td>{{ payout.status }}</td>
+              <td>{{ payout.currency_code }} {{ payout.net_amount }}</td>
+              <td>{{ payout.scheduled_for|date:"Y-m-d H:i"|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted">{% trans "No scheduled payouts." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

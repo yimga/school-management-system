@@ -1296,9 +1296,16 @@ def super_command_center_v2(request):
 
 def billing_dashboard(request):
     """Platform billing console: subscriptions, usage, and recent platform ledger activity."""
+    from datetime import timedelta
     from django.db.models import Count, Sum
     from django.utils import timezone
-    from apps.billing.models import BillingAccount, PlatformLedgerEntry, TenantSubscription
+    from apps.billing.models import (
+        BillingAccount,
+        BillingProcessorSyncEvent,
+        PlatformLedgerEntry,
+        RevenueSharePayout,
+        TenantSubscription,
+    )
     from apps.billing.services import ensure_subscription_for_school
 
     active_schools = list(
@@ -1358,6 +1365,25 @@ def billing_dashboard(request):
         ).aggregate(total=Sum("amount")).get("total")
         or 0
     )
+    stale_processor_accounts = BillingAccount.objects.exclude(processor_code="").filter(
+        Q(last_processor_sync_at__isnull=True) | Q(last_processor_sync_at__lt=timezone.now() - timedelta(days=3))
+    ).count()
+    processor_event_count = BillingProcessorSyncEvent.objects.count()
+    recent_processor_events = list(
+        BillingProcessorSyncEvent.objects.select_related("school", "billing_account", "subscription")
+        .order_by("-happened_at", "-created_at")[:12]
+    )
+    scheduled_payouts = list(
+        RevenueSharePayout.objects.select_related("source_school")
+        .filter(status__in=[RevenueSharePayout.Status.SCHEDULED, RevenueSharePayout.Status.IN_TRANSIT])
+        .order_by("scheduled_for", "-created_at")[:12]
+    )
+    scheduled_payout_total = (
+        RevenueSharePayout.objects.filter(status__in=[RevenueSharePayout.Status.SCHEDULED, RevenueSharePayout.Status.IN_TRANSIT])
+        .aggregate(total=Sum("net_amount"))
+        .get("total")
+        or 0
+    )
     return render(
         request,
         "schools/billing_dashboard.html",
@@ -1371,6 +1397,11 @@ def billing_dashboard(request):
             "recent_ledger": recent_ledger,
             "total_posted_charges": total_posted_charges,
             "total_posted_credits": total_posted_credits,
+            "stale_processor_accounts": stale_processor_accounts,
+            "processor_event_count": processor_event_count,
+            "recent_processor_events": recent_processor_events,
+            "scheduled_payouts": scheduled_payouts,
+            "scheduled_payout_total": scheduled_payout_total,
             "usage_url": reverse("super:usage"),
         },
     )

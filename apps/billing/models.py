@@ -20,8 +20,11 @@ class BillingAccount(models.Model):
     )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE, db_index=True)
     billing_email = models.EmailField(blank=True)
+    processor_code = models.CharField(max_length=32, blank=True, db_index=True)
     external_customer_ref = models.CharField(max_length=120, blank=True, db_index=True)
     currency_code = models.CharField(max_length=3, default="USD")
+    last_processor_sync_at = models.DateTimeField(null=True, blank=True)
+    delinquent_since = models.DateTimeField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -72,6 +75,8 @@ class TenantSubscription(models.Model):
     current_period_end = models.DateTimeField(null=True, blank=True)
     trial_end_date = models.DateField(null=True, blank=True)
     canceled_at = models.DateTimeField(null=True, blank=True)
+    external_subscription_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    last_invoiced_at = models.DateTimeField(null=True, blank=True)
     base_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     addons_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     billed_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
@@ -166,3 +171,95 @@ class PlatformLedgerEntry(models.Model):
 
     def __str__(self):
         return f"{self.school.name} {self.entry_type} {self.amount}"
+
+
+class BillingProcessorSyncEvent(models.Model):
+    class Status(models.TextChoices):
+        APPLIED = "APPLIED", "Applied"
+        IGNORED = "IGNORED", "Ignored"
+        FAILED = "FAILED", "Failed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="billing_processor_events",
+    )
+    billing_account = models.ForeignKey(
+        BillingAccount,
+        on_delete=models.CASCADE,
+        related_name="processor_events",
+    )
+    subscription = models.ForeignKey(
+        TenantSubscription,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="processor_events",
+    )
+    processor_code = models.CharField(max_length=32, db_index=True)
+    event_type = models.CharField(max_length=64, db_index=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.APPLIED, db_index=True)
+    external_customer_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    external_subscription_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    payload = models.JSONField(default=dict, blank=True)
+    message = models.CharField(max_length=255, blank=True)
+    happened_at = models.DateTimeField(db_index=True)
+    applied_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-happened_at", "-created_at"]
+        verbose_name = "Billing processor sync event"
+        verbose_name_plural = "Billing processor sync events"
+
+    def __str__(self):
+        return f"{self.processor_code} {self.event_type} {self.status}"
+
+
+class RevenueSharePayout(models.Model):
+    class Scope(models.TextChoices):
+        APP_PUBLISHER = "APP_PUBLISHER", "App publisher"
+        CHANNEL_PARTNER = "CHANNEL_PARTNER", "Channel partner"
+        AFFILIATE = "AFFILIATE", "Affiliate"
+
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", "Draft"
+        SCHEDULED = "SCHEDULED", "Scheduled"
+        IN_TRANSIT = "IN_TRANSIT", "In transit"
+        PAID = "PAID", "Paid"
+        FAILED = "FAILED", "Failed"
+        VOIDED = "VOIDED", "Voided"
+
+    source_school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="revenue_share_payouts",
+    )
+    payout_scope = models.CharField(max_length=32, choices=Scope.choices, default=Scope.APP_PUBLISHER, db_index=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True)
+    payee_name = models.CharField(max_length=160)
+    payee_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    processor_code = models.CharField(max_length=32, blank=True, db_index=True)
+    external_payout_ref = models.CharField(max_length=120, blank=True, db_index=True)
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
+    gross_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    fee_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    net_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    currency_code = models.CharField(max_length=3, default="USD")
+    scheduled_for = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Revenue share payout"
+        verbose_name_plural = "Revenue share payouts"
+
+    def __str__(self):
+        return f"{self.payee_name} {self.net_amount}"

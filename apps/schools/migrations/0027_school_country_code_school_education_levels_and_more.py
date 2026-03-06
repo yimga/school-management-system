@@ -9,13 +9,44 @@ def add_fields_if_missing(apps, schema_editor):
     """Add country_code, subdivision, and M2M through tables only if they don't exist (idempotent)."""
     from django.db import connection
 
+    def _column_exists(cursor, table_name: str, column_name: str) -> bool:
+        if connection.vendor == "postgresql":
+            cursor.execute(
+                """
+                SELECT 1 FROM information_schema.columns
+                WHERE table_schema = current_schema() AND table_name = %s AND column_name = %s
+                """,
+                [table_name, column_name],
+            )
+            return cursor.fetchone() is not None
+        if connection.vendor == "sqlite":
+            cursor.execute(f"PRAGMA table_info('{table_name}')")
+            return any(row[1] == column_name for row in cursor.fetchall())
+        return column_name in {
+            col.name for col in connection.introspection.get_table_description(cursor, table_name)
+        }
+
+    def _table_exists(cursor, table_name: str) -> bool:
+        if connection.vendor == "postgresql":
+            cursor.execute(
+                """
+                SELECT 1 FROM information_schema.tables
+                WHERE table_schema = current_schema() AND table_name = %s
+                """,
+                [table_name],
+            )
+            return cursor.fetchone() is not None
+        if connection.vendor == "sqlite":
+            cursor.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+                [table_name],
+            )
+            return cursor.fetchone() is not None
+        return table_name in connection.introspection.table_names(cursor)
+
     with connection.cursor() as cursor:
         # 1. country_code
-        cursor.execute("""
-            SELECT 1 FROM information_schema.columns
-            WHERE table_schema = current_schema() AND table_name = 'schools_school' AND column_name = 'country_code'
-        """)
-        if cursor.fetchone() is None:
+        if not _column_exists(cursor, "schools_school", "country_code"):
             cursor.execute(
                 "ALTER TABLE schools_school ADD COLUMN country_code varchar(2) NOT NULL DEFAULT ''"
             )
@@ -24,33 +55,41 @@ def add_fields_if_missing(apps, schema_editor):
             )
 
         # 2. subdivision_id (FK)
-        cursor.execute("""
-            SELECT 1 FROM information_schema.columns
-            WHERE table_schema = current_schema() AND table_name = 'schools_school' AND column_name = 'subdivision_id'
-        """)
-        if cursor.fetchone() is None:
-            cursor.execute("""
-                ALTER TABLE schools_school ADD COLUMN subdivision_id integer NULL
-                REFERENCES public.registries_subdivisionregistry(id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED
-            """)
+        if not _column_exists(cursor, "schools_school", "subdivision_id"):
+            if connection.vendor == "postgresql":
+                cursor.execute("""
+                    ALTER TABLE schools_school ADD COLUMN subdivision_id integer NULL
+                    REFERENCES public.registries_subdivisionregistry(id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED
+                """)
+            else:
+                cursor.execute(
+                    "ALTER TABLE schools_school ADD COLUMN subdivision_id bigint NULL "
+                    "REFERENCES registries_subdivisionregistry(id) ON DELETE SET NULL"
+                )
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS schools_school_subdivision_id_idx ON schools_school (subdivision_id)"
             )
 
         # 3. M2M through table: schools_school_education_levels
-        cursor.execute("""
-            SELECT 1 FROM information_schema.tables
-            WHERE table_schema = current_schema() AND table_name = 'schools_school_education_levels'
-        """)
-        if cursor.fetchone() is None:
-            cursor.execute("""
-                CREATE TABLE schools_school_education_levels (
-                    id serial PRIMARY KEY,
-                    school_id uuid NOT NULL REFERENCES schools_school(id) ON DELETE CASCADE,
-                    educationlevelregistry_id varchar(32) NOT NULL REFERENCES public.registries_educationlevelregistry(code) ON DELETE CASCADE,
-                    CONSTRAINT schools_school_education_levels_school_id_education_level_uniq UNIQUE (school_id, educationlevelregistry_id)
-                )
-            """)
+        if not _table_exists(cursor, "schools_school_education_levels"):
+            if connection.vendor == "postgresql":
+                cursor.execute("""
+                    CREATE TABLE schools_school_education_levels (
+                        id serial PRIMARY KEY,
+                        school_id uuid NOT NULL REFERENCES schools_school(id) ON DELETE CASCADE,
+                        educationlevelregistry_id varchar(32) NOT NULL REFERENCES public.registries_educationlevelregistry(code) ON DELETE CASCADE,
+                        CONSTRAINT schools_school_education_levels_school_id_education_level_uniq UNIQUE (school_id, educationlevelregistry_id)
+                    )
+                """)
+            else:
+                cursor.execute("""
+                    CREATE TABLE schools_school_education_levels (
+                        id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        school_id char(32) NOT NULL REFERENCES schools_school(id) ON DELETE CASCADE,
+                        educationlevelregistry_id varchar(32) NOT NULL REFERENCES registries_educationlevelregistry(code) ON DELETE CASCADE,
+                        CONSTRAINT schools_school_education_levels_school_id_education_level_uniq UNIQUE (school_id, educationlevelregistry_id)
+                    )
+                """)
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS schools_school_education_levels_school_id_idx ON schools_school_education_levels (school_id)"
             )
@@ -59,19 +98,25 @@ def add_fields_if_missing(apps, schema_editor):
             )
 
         # 4. M2M through table: schools_school_education_system_types
-        cursor.execute("""
-            SELECT 1 FROM information_schema.tables
-            WHERE table_schema = current_schema() AND table_name = 'schools_school_education_system_types'
-        """)
-        if cursor.fetchone() is None:
-            cursor.execute("""
-                CREATE TABLE schools_school_education_system_types (
-                    id serial PRIMARY KEY,
-                    school_id uuid NOT NULL REFERENCES schools_school(id) ON DELETE CASCADE,
-                    educationsystemtyperegistry_id varchar(48) NOT NULL REFERENCES public.registries_educationsystemtyperegistry(code) ON DELETE CASCADE,
-                    CONSTRAINT schools_school_education_system_types_school_id_type_uniq UNIQUE (school_id, educationsystemtyperegistry_id)
-                )
-            """)
+        if not _table_exists(cursor, "schools_school_education_system_types"):
+            if connection.vendor == "postgresql":
+                cursor.execute("""
+                    CREATE TABLE schools_school_education_system_types (
+                        id serial PRIMARY KEY,
+                        school_id uuid NOT NULL REFERENCES schools_school(id) ON DELETE CASCADE,
+                        educationsystemtyperegistry_id varchar(48) NOT NULL REFERENCES public.registries_educationsystemtyperegistry(code) ON DELETE CASCADE,
+                        CONSTRAINT schools_school_education_system_types_school_id_type_uniq UNIQUE (school_id, educationsystemtyperegistry_id)
+                    )
+                """)
+            else:
+                cursor.execute("""
+                    CREATE TABLE schools_school_education_system_types (
+                        id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        school_id char(32) NOT NULL REFERENCES schools_school(id) ON DELETE CASCADE,
+                        educationsystemtyperegistry_id varchar(48) NOT NULL REFERENCES registries_educationsystemtyperegistry(code) ON DELETE CASCADE,
+                        CONSTRAINT schools_school_education_system_types_school_id_type_uniq UNIQUE (school_id, educationsystemtyperegistry_id)
+                    )
+                """)
             cursor.execute(
                 "CREATE INDEX IF NOT EXISTS schools_school_education_system_types_school_id_idx ON schools_school_education_system_types (school_id)"
             )

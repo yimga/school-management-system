@@ -109,7 +109,11 @@ This file is the canonical closure ledger for the Shopify/AWS-style platform pla
 
 ### Platform billing
 - `partial`: platform billing domain models now exist and are wired into superadmin flows
-- `partial`: platform billing still lacks external processor sync, automated invoicing lifecycle, entitlement reconciliation, and payout/revenue-share workflows
+- `implemented`: platform billing now stores normalized processor sync events, external customer/subscription references, and sync heartbeat data
+- `implemented`: platform billing now has lifecycle automation for trial conversion, renewal charging, delinquency/suspension, and entitlement reconciliation back into school freeze state
+- `implemented`: platform billing now includes management commands for importing processor snapshots and running lifecycle automation
+- `implemented`: platform billing now exposes first-class revenue-share payout records and dashboard visibility for scheduled payout obligations
+- `partial`: platform billing still lacks a live third-party processor adapter, webhook ingestion from a real provider, and fully automated payout execution
 
 ### Metadata adoption
 - `pending`: replace remaining direct `custom_attributes` style usage with the metadata engine or an explicit compatibility layer
