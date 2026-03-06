@@ -128,26 +128,26 @@
         <i class="bi bi-question-circle"></i> Help & Support
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'kb:kb_home' %}">
+        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}">
           <i class="bi bi-life-preserver"></i>
           <span>Help Center</span>
           <kbd>?</kbd>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'kb:kb_home' %}">
+        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}">
           <i class="bi bi-book"></i>
           <span>Knowledge Base</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'portal:support_request' %}?type=support&next={{ request.path|urlencode }}" title="Contact Support">
+        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_support_request' %}{% else %}{% url 'portal:support_request' %}?type=support&next={{ request.path|urlencode }}{% endif %}" title="Contact Support">
           <i class="bi bi-envelope"></i>
           <span>Contact Support</span>
         </a>
       </li>
       <li>
-        <a class="dropdown-item" href="{% url 'portal:support_request' %}?type=feedback&next={{ request.path|urlencode }}" title="Send Feedback">
+        <a class="dropdown-item" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_feedback' %}{% else %}{% url 'portal:support_request' %}?type=feedback&next={{ request.path|urlencode }}{% endif %}" title="Send Feedback">
           <i class="bi bi-chat-left-text"></i>
           <span>Send Feedback</span>
         </a>
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (e.key === '?') {
       e.preventDefault();
-      window.location.href = "{% url 'kb:kb_home' %}";
+      window.location.href = "{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}";
     }
   });
 

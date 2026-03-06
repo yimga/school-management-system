@@ -139,9 +139,24 @@
   const COMMAND_TIMEOUT = 1000; // 1 second for compound commands
   const pathname = window.location.pathname || '';
   const isBackend = pathname.startsWith('/backend') || pathname.includes('/authentication/backend');
+  const isManager = {{ request.public_host_kind == 'manager'|yesno:"true,false" }};
 
   // Base URLs: when in backend context, navigation stays in backend; only 'a' goes to Configuration Engine
-  const nav = isBackend ? {
+  const nav = isManager ? {
+    home: '/super/',
+    admin: '/admin/',
+    backend: '/super/',
+    portal: '/super/',
+    users: '/authentication/rbac/',
+    students: '/super/create-school/',
+    teachers: '/super/command-center/',
+    invoice: '/super/billing/',
+    reports: '/ops/incidents/',
+    addUser: '/authentication/rbac/',
+    addStudent: '/super/create-school/',
+    addTeacher: '/super/command-center/',
+    addInvoice: '/super/billing/',
+  } : isBackend ? {
     home: '/',
     admin: '/admin/',
     backend: '/authentication/backend/',

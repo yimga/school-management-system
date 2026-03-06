@@ -47,7 +47,7 @@
         <details class="footer-details" open>
           <summary class="segment-title footer-accordion-summary">Support &amp; Help</summary>
           <div class="segment-links">
-            <a href="{% url 'kb:kb_home' %}"><i class="bi bi-book"></i> Knowledge Base</a>
+            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}"><i class="bi bi-book"></i> Knowledge Base</a>
             {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' %}
             {% if is_backend_context %}
             <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-shield-lock"></i> Backend Dashboard</a>
@@ -56,7 +56,7 @@
             {% endif %}
             <a href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-activity"></i> Activity Logs</a>
             {% endif %}
-            <a href="{% url 'kb:faq_list' %}"><i class="bi bi-patch-question"></i> FAQs</a>
+            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:faq_list' %}{% endif %}"><i class="bi bi-patch-question"></i> FAQs</a>
           </div>
         </details>
       </div>

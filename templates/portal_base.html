@@ -955,6 +955,19 @@
           <i class="bi bi-list" aria-hidden="true"></i>
         </button>
 
+        {% if request.public_host_kind == 'manager' %}
+        {% url 'super:dashboard' as backend_url %}
+        {% url 'super:dashboard' as teacher_url %}
+        {% url 'super:dashboard' as parent_url %}
+        {% url 'super:command_center' as teacher_evals_url %}
+        {% url 'super:dashboard' as teacher_alias_url %}
+        {% url 'super:billing_dashboard' as finance_url %}
+        {% url 'super:command_center' as payroll_url %}
+        {% url 'super:command_center' as analytics_url %}
+        {% url 'super:command_center' as compliance_url %}
+        {% url 'super:dashboard' as portal_home_url %}
+        {% url 'manager_help' as help_center_url %}
+        {% else %}
         {% url 'accounts:backend_dashboard' as backend_url %}
         {% url 'portal:teacher_dashboard_alias' as teacher_url %}
         {% url 'portal:parent_dashboard' as parent_url %}
@@ -965,6 +978,8 @@
         {% url 'analytics:dashboard' as analytics_url %}
         {% url 'compliance:dashboard' as compliance_url %}
         {% url 'accounts:redirect' as portal_home_url %}
+        {% url 'kb:kb_home' as help_center_url %}
+        {% endif %}
         <div id="preview-header-brand" class="d-inline-flex align-items-center" data-preview-label="{% trans 'Logo & site name' %}">
         {% if request.user.role == 'ADMIN' or request.user.is_staff %}
           <a class="navbar-brand d-flex align-items-center gap-2" href="{{ backend_url }}" title="Back to your home dashboard">
@@ -1066,7 +1081,7 @@
                 {% endif %}
               </a>
               {% endif %}
-              <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{% url 'kb:kb_home' %}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
+              <a class="btn btn-link text-white p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
               {% if SHOW_HEADER_THEME_TOGGLE %}
               <button 
                 type="button"
@@ -1155,7 +1170,7 @@
                 <div class="alert alert-{{ message.tags|default:'info' }} mb-2">
                   {{ message }}
                   {% if message.tags == 'error' %}
-                    <p class="mb-0 mt-2 small"><a class="alert-link" href="{% url 'kb:kb_home' %}">{% trans "Learn more in the Help centre" %}</a></p>
+                    <p class="mb-0 mt-2 small"><a class="alert-link" href="{{ help_center_url }}">{% trans "Learn more in the Help centre" %}</a></p>
                   {% endif %}
                 </div>
               {% endfor %}

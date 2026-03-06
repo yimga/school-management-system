@@ -88,6 +88,21 @@ def build_manager_absolute_url(request, path: str = "/super/") -> str:
     return f"{scheme}://{manager_host}{path}"
 
 
+def build_public_absolute_url(request, path: str = "/") -> str:
+    scheme = "https" if getattr(request, "is_secure", lambda: False)() or not getattr(settings, "DEBUG", False) else "http"
+    host = (request.get_host() or "").strip()
+    host_no_port = host.split(":")[0].lower()
+    port = host.split(":")[-1] if ":" in host else None
+    if is_local_dev_host(host_no_port) or public_host_kind(host_no_port) == "local":
+        public_host = "localhost"
+    else:
+        public_host = get_base_domain()
+    if port and port not in ("80", "443"):
+        public_host = f"{public_host}:{port}"
+    path = path if path.startswith("/") else f"/{path}"
+    return f"{scheme}://{public_host}{path}"
+
+
 def tenant_absolute_url(request, viewname, *args, school=None, path=None, **kwargs):
     """
     Build a tenant-aware absolute URL for the given view.

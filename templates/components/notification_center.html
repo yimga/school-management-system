@@ -1,5 +1,12 @@
 {% load static %}
 {# Notification center component for dashboard header #}
+{% if request.public_host_kind == 'manager' %}
+<div class="notification-center">
+  <a class="notification-bell text-decoration-none" href="{% url 'manager_notifications' %}" title="Open mission queues" aria-label="Open mission queues">
+    <i class="bi bi-bell"></i>
+  </a>
+</div>
+{% else %}
 <div class="notification-center">
   <!-- Notification Bell Icon -->
   <button class="notification-bell" id="notificationBell" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -359,6 +366,7 @@
   background: #94a3b8;
 }
 </style>
+{% endif %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

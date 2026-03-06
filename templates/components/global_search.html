@@ -4,7 +4,7 @@
   <div class="search-container">
     <button type="button" class="search-trigger" id="searchTrigger">
       <i class="bi bi-search"></i>
-      <span class="search-hint">Search... <kbd>Ctrl+K</kbd></span>
+      <span class="search-hint">{% if request.public_host_kind == 'manager' %}Search control plane... <kbd>Ctrl+K</kbd>{% else %}Search... <kbd>Ctrl+K</kbd>{% endif %}</span>
     </button>
   </div>
 </div>
@@ -20,7 +20,7 @@
             type="text" 
             class="search-input" 
             id="searchInput" 
-            placeholder="Search students, teachers, classes, invoices..."
+            placeholder="{% if request.public_host_kind == 'manager' %}Search tenants, incidents, subscriptions...{% else %}Search students, teachers, classes, invoices...{% endif %}"
             autocomplete="off"
           >
           <button type="button" class="search-clear" id="searchClear" style="display: none;">
@@ -50,7 +50,35 @@
             <span><i class="bi bi-lightning"></i> Quick Actions</span>
           </div>
           <div class="search-items">
-            {% if request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
+            {% if request.public_host_kind == 'manager' %}
+            <a href="{% url 'super:create_school_wizard' %}" class="search-item">
+              <div class="search-item-icon bg-primary">
+                <i class="bi bi-building-add"></i>
+              </div>
+              <div class="search-item-content">
+                <div class="search-item-title">Provision tenant</div>
+                <div class="search-item-desc">Launch the school onboarding wizard</div>
+              </div>
+            </a>
+            <a href="{% url 'super:billing_dashboard' %}" class="search-item">
+              <div class="search-item-icon bg-warning">
+                <i class="bi bi-receipt"></i>
+              </div>
+              <div class="search-item-content">
+                <div class="search-item-title">Platform Billing</div>
+                <div class="search-item-desc">Subscriptions, trials, and revenue exceptions</div>
+              </div>
+            </a>
+            <a href="{% url 'super:command_center' %}" class="search-item">
+              <div class="search-item-icon bg-success">
+                <i class="bi bi-kanban"></i>
+              </div>
+              <div class="search-item-content">
+                <div class="search-item-title">Mission Queues</div>
+                <div class="search-item-desc">Approvals, incidents, and operator backlog</div>
+              </div>
+            </a>
+            {% elif request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' %}
             {% if is_backend_context %}
             <a href="{% url 'accounts:backend_student_create' %}" class="search-item">
               <div class="search-item-icon bg-primary">
@@ -118,7 +146,7 @@
             <span><i class="bi bi-journal-text"></i> Help & Knowledge Base</span>
           </div>
           <div class="search-items">
-            <a href="{% url 'kb:kb_home' %}" class="search-item">
+            <a href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help' %}{% else %}{% url 'kb:kb_home' %}{% endif %}" class="search-item">
               <div class="search-item-icon bg-info">
                 <i class="bi bi-question-circle"></i>
               </div>
@@ -170,7 +198,7 @@
           <ul class="small text-muted mb-0 ps-3">
             <li>Use at least 2 characters for better results</li>
             <li>Check spelling or try a different keyword</li>
-            <li>Search by student name, teacher, class, or invoice number</li>
+            <li>{% if request.public_host_kind == 'manager' %}Search by tenant, incident, subscription, or billing status{% else %}Search by student name, teacher, class, or invoice number{% endif %}</li>
           </ul>
         </div>
       </div>

@@ -76,8 +76,9 @@ This file is the canonical closure ledger for the Shopify/AWS-style platform pla
 
 ### Control plane separation
 - `partial`: `manager.runmycampus.com` remains the control-plane host
-- `partial`: manager URLConf still mounts several tenant namespaces for reverse compatibility; these still need deliberate reduction or manager-only replacements
-- `partial`: manager and tenant planes now use separate cookie names and host-only scope, and the dashboard shell is now explicitly control-plane themed, but the URLConf/template namespace split is still not fully reduced to manager-only surfaces
+- `implemented`: manager host no longer mounts tenant app URLConfs for portal, finance, evals, reports, academics, communication, or KB surfaces
+- `implemented`: manager URLConf now exposes manager-safe compatibility namespaces and redirects so the shared shell can render without reopening tenant applications on the manager host
+- `partial`: manager and tenant planes now use separate cookie names and host-only scope, and the dashboard shell is explicitly control-plane themed, but some shared templates still carry compatibility links that should be replaced with manager-native destinations over time
 
 ### Geography and global readiness
 - `partial`: country registry is deterministic and can seed 195+ countries from `pytz`
