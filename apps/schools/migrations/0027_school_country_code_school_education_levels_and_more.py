@@ -45,30 +45,43 @@ def add_fields_if_missing(apps, schema_editor):
         return table_name in connection.introspection.table_names(cursor)
 
     with connection.cursor() as cursor:
-        # 1. country_code
-        if not _column_exists(cursor, "schools_school", "country_code"):
-            cursor.execute(
-                "ALTER TABLE schools_school ADD COLUMN country_code varchar(2) NOT NULL DEFAULT ''"
-            )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS schools_school_country_code_idx ON schools_school (country_code)"
-            )
+        # 1. country_code — use exception guard so deploy is idempotent when column already exists (e.g. tenant schema)
+        if connection.vendor == "postgresql":
+            cursor.execute("""
+                DO $$
+                BEGIN
+                    ALTER TABLE schools_school ADD COLUMN country_code varchar(2) NOT NULL DEFAULT '';
+                EXCEPTION WHEN duplicate_column THEN NULL;
+                END $$;
+            """)
+        else:
+            if not _column_exists(cursor, "schools_school", "country_code"):
+                cursor.execute(
+                    "ALTER TABLE schools_school ADD COLUMN country_code varchar(2) NOT NULL DEFAULT ''"
+                )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS schools_school_country_code_idx ON schools_school (country_code)"
+        )
 
-        # 2. subdivision_id (FK)
-        if not _column_exists(cursor, "schools_school", "subdivision_id"):
-            if connection.vendor == "postgresql":
-                cursor.execute("""
+        # 2. subdivision_id (FK) — idempotent for PostgreSQL
+        if connection.vendor == "postgresql":
+            cursor.execute("""
+                DO $$
+                BEGIN
                     ALTER TABLE schools_school ADD COLUMN subdivision_id integer NULL
-                    REFERENCES public.registries_subdivisionregistry(id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED
-                """)
-            else:
+                    REFERENCES public.registries_subdivisionregistry(id) ON DELETE SET NULL DEFERRABLE INITIALLY DEFERRED;
+                EXCEPTION WHEN duplicate_column THEN NULL;
+                END $$;
+            """)
+        else:
+            if not _column_exists(cursor, "schools_school", "subdivision_id"):
                 cursor.execute(
                     "ALTER TABLE schools_school ADD COLUMN subdivision_id bigint NULL "
                     "REFERENCES registries_subdivisionregistry(id) ON DELETE SET NULL"
                 )
-            cursor.execute(
-                "CREATE INDEX IF NOT EXISTS schools_school_subdivision_id_idx ON schools_school (subdivision_id)"
-            )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS schools_school_subdivision_id_idx ON schools_school (subdivision_id)"
+        )
 
         # 3. M2M through table: schools_school_education_levels
         if not _table_exists(cursor, "schools_school_education_levels"):
