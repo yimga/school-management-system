@@ -34,6 +34,7 @@ Use **`SeparateDatabaseAndState`**: keep the usual `state_operations` (AddField 
 | schools   | 0027      | `country_code`, `subdivision_id` on `schools_school` |
 | schools   | 0028      | `default_dashboard_slug`, `default_workflow_slug` on `schools_school` |
 | automation| 0002      | `schema_name`, `school_id` on `automation_automationapprovalqueue` and `automation_automationexecutionlog` |
+| portal    | 0023      | `school_id` on `portal_portalfeatureitem` |
 
 ## When to use this pattern
 
